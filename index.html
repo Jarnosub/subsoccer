@@ -250,19 +250,26 @@ function updatePoolUI() {
     pool.forEach((player, index) => {
         const div = document.createElement('div');
         div.className = 'pool-player-item';
+        div.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #111; padding: 8px; border-radius: 8px; border: 1px solid #222;";
+        
         div.innerHTML = `
-            <span style="color: var(--sub-red); font-weight: bold; margin-right: 10px; width: 25px; display: inline-block;">
-                ${index + 1}.
-            </span>
-            <img src="${player.char}" style="width: 25px; height: 25px; border-radius: 50%; margin-right: 10px; vertical-align: middle; background: #333; border: 1px solid #555;">
-            <span style="flex-grow: 1;">${player.name}</span>
-            <button class="remove-btn" onclick="removeFromPool(${index})">REMOVE</button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--sub-red); font-weight: bold; width: 20px;">${index + 1}.</span>
+                <img src="${player.char}" onerror="this.src='placeholder-silhouette.png'" style="width: 30px; height: 30px; border-radius: 50%; background: #333; border: 1px solid #444;">
+                <span style="color: white; text-transform: uppercase; font-size: 0.8rem; font-family: 'Russo One';">${player.name}</span>
+            </div>
+            <button onclick="removeFromPool(${index})" style="background: #333; color: #888; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">-</button>
         `;
         poolList.appendChild(div);
     });
 
     const countSpan = document.getElementById('pool-count');
     if (countSpan) countSpan.innerText = pool.length;
+}
+
+function removeFromPool(index) {
+    pool.splice(index, 1);
+    updatePoolUI();
 }
         function showPage(p) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById('section-' + p).classList.add('active'); document.getElementById('tab-' + p).classList.add('active'); if(p === 'leaderboard') fetchLB(); if(p === 'history') fetchHist(); }
         async function fetchLB() { const { data } = await _supabase.from('players').select('*').order('elo', {ascending: false}); document.getElementById('lb-data').innerHTML = data ? data.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #222;"><span>#${i+1} ${p.username}</span><span>${p.elo} ELO</span></div>`).join('') : ""; }
