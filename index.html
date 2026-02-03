@@ -134,7 +134,30 @@
                 
                 <input type="text" id="add-p-input" placeholder="Search database or guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
                 <div id="search-results"></div>
-                
+                <div class="character-selection" style="margin: 15px 0; text-align: center;">
+    <p style="font-family:'Russo One'; font-size: 0.7rem; color: #666; margin-bottom: 8px;">SELECT CHARACTER</p>
+    <div id="character-options" style="display: flex; justify-content: center; gap: 10px;">
+        <img src="placeholder-silhouette.png" class="char-thumb" onclick="selectChar(this, 'placeholder-silhouette.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid var(--sub-red); border-radius: 5px; background: #222;">
+        <img src="placeholder-silhouette-2.png" class="char-thumb" onclick="selectChar(this, 'placeholder-silhouette-2.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222;">
+        <img src="placeholder-silhouette-3.png" class="char-thumb" onclick="selectChar(this, 'placeholder-silhouette-3.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222;">
+    </div>
+</div>
+                <div class="character-selection" style="margin: 15px 0; text-align: center;">
+    <p style="font-family:'Russo One'; font-size: 0.7rem; color: #666; margin-bottom: 8px;">SELECT CHARACTER</p>
+    <div id="character-options" style="display: flex; justify-content: center; gap: 10px;">
+        <img src="char1.png" class="char-thumb" onclick="selectChar(this, 'char1.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid var(--sub-red); border-radius: 5px; background: #222;">
+        <img src="char2.png" class="char-thumb" onclick="selectChar(this, 'char2.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222;">
+        <img src="char3.png" class="char-thumb" onclick="selectChar(this, 'char3.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222;">
+    </div>
+</div>
+                <div class="character-selection" style="margin: 15px 0; text-align: center;">
+    <p style="font-family:'Russo One'; font-size: 0.7rem; color: #666; margin-bottom: 10px;">SELECT CHARACTER</p>
+    <div id="character-options" style="display: flex; justify-content: center; gap: 15px;">
+        <img src="char1.png" class="char-thumb selected" onclick="selectChar(this, 'char1.png')" style="width: 50px; height: 50px; cursor: pointer; border: 2px solid var(--sub-red); border-radius: 5px; background: #222; padding: 2px;">
+        <img src="char2.png" class="char-thumb" onclick="selectChar(this, 'char2.png')" style="width: 50px; height: 50px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222; padding: 2px;">
+        <img src="char3.png" class="char-thumb" onclick="selectChar(this, 'char3.png')" style="width: 50px; height: 50px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222; padding: 2px;">
+    </div>
+</div>
                 <button class="btn-red" style="margin-top: 10px;" onclick="startTournament()">GENERATE BRACKETS</button>
             </div>
             
@@ -153,7 +176,13 @@
         const _URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co', _KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
         const _supabase = window.supabase.createClient(_URL, _KEY);
         let user = null, pool = [], sessionGuests = [], allDbNames = [];
+let selectedCharacter = 'char1.png';
 
+function selectChar(el, img) {
+    document.querySelectorAll('.char-thumb').forEach(i => i.style.borderColor = 'transparent');
+    el.style.borderColor = 'var(--sub-red)';
+    selectedCharacter = img;
+}
         async function initApp() { 
             const { data } = await _supabase.from('players').select('username');
             allDbNames = data ? data.map(p => p.username) : [];
@@ -189,9 +218,28 @@
             r.style.display = 'block';
         }
 
-        function addP() { const i = document.getElementById('add-p-input'); const n = i.value.trim().toUpperCase(); if(n && !pool.includes(n)) { pool.push(n); updatePoolUI(); } i.value = ''; document.getElementById('search-results').style.display = 'none'; }
-        function directAdd(n) { if(!pool.includes(n)) { pool.push(n); updatePoolUI(); } document.getElementById('add-p-input').value = ''; document.getElementById('search-results').style.display = 'none'; }
-        
+function addP() { 
+    const i = document.getElementById('add-p-input'); 
+    const n = i.value.trim().toUpperCase(); 
+    if(n && !pool.find(p => p.name === n)) { 
+        pool.push({ name: n, char: selectedCharacter }); 
+        updatePoolUI(); 
+    }
+    i.value = '';
+}
+
+function directAdd(n) {
+    if(!pool.find(p => p.name === n)) { 
+        pool.push({ name: n, char: selectedCharacter }); 
+        updatePoolUI(); 
+    }
+    document.getElementById('add-p-input').value = '';
+    const results = document.getElementById('search-results');
+    if(results) results.style.display = 'none';
+}
+    document.getElementById('add-p-input').value = '';
+    document.getElementById('search-results').style.display = 'none';
+}        
         function updateGuestUI() { document.getElementById('active-guests').innerHTML = sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join(''); }
         function updateProfileCard() { document.getElementById('card-name').innerText = user.username; document.getElementById('card-wins').innerText = user.wins; document.getElementById('card-elo').innerText = user.elo; }
 function updatePoolUI() {
@@ -199,14 +247,15 @@ function updatePoolUI() {
     if (!poolList) return;
     poolList.innerHTML = '';
 
-    pool.forEach((playerName, index) => {
+    pool.forEach((player, index) => {
         const div = document.createElement('div');
         div.className = 'pool-player-item';
         div.innerHTML = `
             <span style="color: var(--sub-red); font-weight: bold; margin-right: 10px; width: 25px; display: inline-block;">
                 ${index + 1}.
             </span>
-            <span style="flex-grow: 1;">${playerName}</span>
+            <img src="${player.char}" style="width: 25px; height: 25px; border-radius: 50%; margin-right: 10px; vertical-align: middle; background: #333; border: 1px solid #555;">
+            <span style="flex-grow: 1;">${player.name}</span>
             <button class="remove-btn" onclick="removeFromPool(${index})">REMOVE</button>
         `;
         poolList.appendChild(div);
@@ -215,8 +264,6 @@ function updatePoolUI() {
     const countSpan = document.getElementById('pool-count');
     if (countSpan) countSpan.innerText = pool.length;
 }
-        function clearPool() { pool = []; updatePoolUI(); }
-
         function showPage(p) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById('section-' + p).classList.add('active'); document.getElementById('tab-' + p).classList.add('active'); if(p === 'leaderboard') fetchLB(); if(p === 'history') fetchHist(); }
         async function fetchLB() { const { data } = await _supabase.from('players').select('*').order('elo', {ascending: false}); document.getElementById('lb-data').innerHTML = data ? data.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #222;"><span>#${i+1} ${p.username}</span><span>${p.elo} ELO</span></div>`).join('') : ""; }
         async function fetchHist() { const { data } = await _supabase.from('tournament_history').select('*').order('created_at', {ascending: false}); document.getElementById('hist-list').innerHTML = data ? data.map(h => `<div style="background:#000; padding:15px; border-radius:10px; border-left:4px solid var(--sub-gold); margin-bottom:10px;">🏆 ${h.winner_name}<br><small>${h.tournament_name}</small></div>`).join('') : "No history."; }
