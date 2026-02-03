@@ -25,21 +25,15 @@
         .section { width: 100%; display: none; flex-direction: column; align-items: center; }
         .section.active { display: flex; }
 
-        /* PLAYER CARD - VERTICAL ADJUSTMENTS */
         .premium-card { position: relative; width: 350px; height: 500px; background-image: url('silver-temp.jpg'); background-size: cover; border-radius: 15px; overflow: hidden; border: 1px solid #555; box-shadow: 0 15px 35px rgba(0,0,0,0.9); margin-bottom: 20px; }
         .player-img { position: absolute; left: 5px; bottom: 45px; width: 190px; height: auto; z-index: 1; pointer-events: none; }
         .card-content { position: absolute; right: 32px; top: 122px; width: 155px; z-index: 2; display: flex; flex-direction: column; text-align: right; }
         .card-name-tag { font-family: 'Russo One', sans-serif; font-size: 0.85rem; color: var(--sub-gold); text-transform: uppercase; height: 55px; display: flex; align-items: center; justify-content: flex-end; text-shadow: 2px 2px 4px #000; line-height: 1.1; margin-top: 10px; margin-bottom: 12px; max-width: 100px; margin-left: auto; word-wrap: break-word; }
         
         .card-stat-box { height: 55px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 12px; }
-        .wins-container { margin-top: -5px; } 
-        .elo-container { margin-top: -10px; } 
-        .team-container { margin-top: -10px; } 
-
         .stat-label { font-family: 'Russo One', sans-serif; font-size: 0.5rem; color: var(--sub-white); text-transform: uppercase; opacity: 0.8; margin-bottom: 2px; }
         .stat-val { font-family: 'Russo One', sans-serif; font-size: 1.4rem; color: var(--sub-red); text-transform: uppercase; line-height: 0.9; text-shadow: 1px 1px 2px #000; }
 
-        /* SEARCH RESULTS STYLING */
         #search-results { background: #111; border: 1px solid #333; border-radius: 8px; max-height: 150px; overflow-y: auto; display: none; position: absolute; width: calc(100% - 50px); z-index: 10; margin-top: -20px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .search-item { padding: 12px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.9rem; text-align: left; transition: background 0.2s; }
         .search-item:hover { background: #222; color: var(--sub-red); }
@@ -48,22 +42,9 @@
         .btn-red { width: 100%; padding: 18px; border-radius: 12px; border: none; font-family: 'Russo One', sans-serif; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1.1rem; }
         input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; font-size: 1rem; }
         #auth-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--sub-black); display: flex; flex-direction: column; align-items: center; z-index: 1000; padding-top: 80px; }
-        /* Connection Light */
-.connection-dot {
-    width: 8px;
-    height: 8px;
-    background-color: #28a745;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 8px;
-    box-shadow: 0 0 8px #28a745;
-    transition: 0.3s;
-    vertical-align: middle;
-}
-.dot-offline {
-    background-color: #ff0000 !important;
-    box-shadow: 0 0 8px #ff0000 !important;
-}
+        .connection-dot { width: 8px; height: 8px; background-color: #28a745; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 8px #28a745; transition: 0.3s; vertical-align: middle; }
+        .dot-offline { background-color: #ff0000 !important; box-shadow: 0 0 8px #ff0000 !important; }
+        .char-thumb { width: 50px; height: 50px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222; padding: 2px; }
     </style>
 </head>
 <body onload="initApp()">
@@ -93,13 +74,13 @@
     </div>
 
     <div id="app-content">
-       <div class="status-bar">
-    <div class="player-label">
-        <span id="conn-dot" class="connection-dot"></span>
-        PLAYER: <span style="color: var(--sub-red); font-family: 'Russo One';" id="label-user"></span>
-    </div>
-    <div class="logout-link" onclick="location.reload()">LOGOUT</div>
-</div>
+        <div class="status-bar">
+            <div class="player-label">
+                <span id="conn-dot" class="connection-dot"></span>
+                PLAYER: <span style="color: var(--sub-red); font-family: 'Russo One';" id="label-user"></span>
+            </div>
+            <div class="logout-link" onclick="location.reload()">LOGOUT</div>
+        </div>
         <nav class="nav-tabs">
             <div class="tab" id="tab-profile" onclick="showPage('profile')">Profile</div>
             <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">Ranking</div>
@@ -112,53 +93,38 @@
                 <img id="card-char-img" src="placeholder-silhouette.png" class="player-img">
                 <div class="card-content">
                     <div class="card-name-tag" id="card-name">PLAYER</div>
-                    <div class="card-stat-box wins-container"><div class="stat-label">TOTAL WINS</div><div class="stat-val" id="card-wins">0</div></div>
-                    <div class="card-stat-box elo-container"><div class="stat-label">ELO RATING</div><div class="stat-val" id="card-elo">1300</div></div>
-                    <div class="card-stat-box team-container"><div class="stat-label">TEAM</div><div class="stat-val" id="card-team" style="font-size: 0.85rem;">SUPERSTARS</div></div>
+                    <div class="card-stat-box"><div class="stat-label">TOTAL WINS</div><div class="stat-val" id="card-wins">0</div></div>
+                    <div class="card-stat-box"><div class="stat-label">ELO RATING</div><div class="stat-val" id="card-elo">1300</div></div>
+                    <div class="card-stat-box"><div class="stat-label">TEAM</div><div class="stat-val" id="card-team" style="font-size: 0.85rem;">SUPERSTARS</div></div>
                 </div>
             </div>
         </div>
 
         <div id="section-tournament" class="section active">
             <div id="tour-setup" class="container" style="position:relative;">
-                <h3 style="font-family:'Russo One'; text-transform:uppercase;">NEW TOURNAMENT</h3>
+                <h3 style="font-family:'Russo One';">NEW TOURNAMENT</h3>
                 <input type="text" id="tour-name-input" placeholder="Tournament Name">
-                
                 <div id="active-guests" style="margin-bottom:15px; text-align:left;"></div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
                    <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">PLAYER POOL (<span id="pool-count">0</span>)</span>
                     <button style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;" onclick="clearPool()">CLEAR</button>
                 </div>
-                <div id="pool-list" style="margin:10px 0; background:#000; padding:15px; border-radius:12px; font-size:0.8rem; min-height:40px; text-align:left; color:#888;">No players added.</div>
+                <div id="pool-list" style="margin:10px 0; background:#000; padding:15px; border-radius:12px; font-size:0.8rem; min-height:40px; text-align:left;">No players added.</div>
                 
                 <input type="text" id="add-p-input" placeholder="Search database or guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
                 <div id="search-results"></div>
+
                 <div class="character-selection" style="margin: 15px 0; text-align: center;">
-    <p style="font-family:'Russo One'; font-size: 0.7rem; color: #666; margin-bottom: 8px;">SELECT CHARACTER</p>
-    <div id="character-options" style="display: flex; justify-content: center; gap: 10px;">
-        <img src="placeholder-silhouette.png" class="char-thumb" onclick="selectChar(this, 'placeholder-silhouette.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid var(--sub-red); border-radius: 5px; background: #222;">
-        <img src="placeholder-silhouette-2.png" class="char-thumb" onclick="selectChar(this, 'placeholder-silhouette-2.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222;">
-        <img src="placeholder-silhouette-3.png" class="char-thumb" onclick="selectChar(this, 'placeholder-silhouette-3.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222;">
-    </div>
-</div>
-                <div class="character-selection" style="margin: 15px 0; text-align: center;">
-    <p style="font-family:'Russo One'; font-size: 0.7rem; color: #666; margin-bottom: 8px;">SELECT CHARACTER</p>
-    <div id="character-options" style="display: flex; justify-content: center; gap: 10px;">
-        <img src="char1.png" class="char-thumb" onclick="selectChar(this, 'char1.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid var(--sub-red); border-radius: 5px; background: #222;">
-        <img src="char2.png" class="char-thumb" onclick="selectChar(this, 'char2.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222;">
-        <img src="char3.png" class="char-thumb" onclick="selectChar(this, 'char3.png')" style="width: 45px; height: 45px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222;">
-    </div>
-</div>
-                <div class="character-selection" style="margin: 15px 0; text-align: center;">
-    <p style="font-family:'Russo One'; font-size: 0.7rem; color: #666; margin-bottom: 10px;">SELECT CHARACTER</p>
-    <div id="character-options" style="display: flex; justify-content: center; gap: 15px;">
-        <img src="char1.png" class="char-thumb selected" onclick="selectChar(this, 'char1.png')" style="width: 50px; height: 50px; cursor: pointer; border: 2px solid var(--sub-red); border-radius: 5px; background: #222; padding: 2px;">
-        <img src="char2.png" class="char-thumb" onclick="selectChar(this, 'char2.png')" style="width: 50px; height: 50px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222; padding: 2px;">
-        <img src="char3.png" class="char-thumb" onclick="selectChar(this, 'char3.png')" style="width: 50px; height: 50px; cursor: pointer; border: 2px solid transparent; border-radius: 5px; background: #222; padding: 2px;">
-    </div>
-</div>
-                <button class="btn-red" style="margin-top: 10px;" onclick="startTournament()">GENERATE BRACKETS</button>
+                    <p style="font-family:'Russo One'; font-size: 0.7rem; color: #666; margin-bottom: 10px;">SELECT CHARACTER</p>
+                    <div id="character-options" style="display: flex; justify-content: center; gap: 10px;">
+                        <img src="placeholder-silhouette.png" class="char-thumb" id="default-char" onclick="selectChar(this, 'placeholder-silhouette.png')" style="border-color: var(--sub-red);">
+                        <img src="placeholder-silhouette-2.png" class="char-thumb" onclick="selectChar(this, 'placeholder-silhouette-2.png')">
+                        <img src="placeholder-silhouette-3.png" class="char-thumb" onclick="selectChar(this, 'placeholder-silhouette-3.png')">
+                    </div>
+                </div>
+
+                <button class="btn-red" onclick="startTournament()">GENERATE BRACKETS</button>
             </div>
             
             <div id="tour-engine" style="display:none; width:100%; max-width:450px; flex-direction:column; align-items:center;">
@@ -171,177 +137,3 @@
         <div id="section-leaderboard" class="section"><div class="container" id="lb-data"></div></div>
         <div id="section-history" class="section"><div class="container" id="hist-list"></div></div>
     </div>
-
-    <script>
-        const _URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co', _KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
-        const _supabase = window.supabase.createClient(_URL, _KEY);
-        let user = null, pool = [], sessionGuests = [], allDbNames = [];
-let selectedCharacter = 'char1.png';
-
-function selectChar(el, img) {
-    document.querySelectorAll('.char-thumb').forEach(i => i.style.borderColor = 'transparent');
-    el.style.borderColor = 'var(--sub-red)';
-    selectedCharacter = img;
-}
-        async function initApp() { 
-            const { data } = await _supabase.from('players').select('username');
-            allDbNames = data ? data.map(p => p.username) : [];
-        }
-
-        function toggleAuth(s) { document.getElementById('login-form').style.display = s ? 'none' : 'block'; document.getElementById('signup-form').style.display = s ? 'block' : 'none'; }
-        
-        async function handleSignUp() {
-            const u = document.getElementById('reg-user').value.trim().toUpperCase(), p = document.getElementById('reg-pass').value.trim();
-            if(!u || !p) return alert("Fill all fields");
-            const { error } = await _supabase.from('players').insert([{ username: u, password: p, elo: 1300, wins: 0 }]);
-            if(error) alert("Error: " + error.message); else { alert("Account created!"); toggleAuth(false); initApp(); }
-        }
-
-        async function handleAuth() {
-            const u = document.getElementById('auth-user').value.trim().toUpperCase(), p = document.getElementById('auth-pass').value;
-            let { data } = await _supabase.from('players').select('*').eq('username', u).single();
-            if(data && data.password === p) { user = data; startSession(); } else alert("Login failed.");
-        }
-
-        function handleGuest() {
-            const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST"; user = { username: g, id: 'guest', elo: 1300, wins: 0 };
-            if(!sessionGuests.includes(g)) sessionGuests.push(g); startSession();
-        }
-
-        function startSession() { document.getElementById('auth-page').style.display = 'none'; document.getElementById('app-content').style.display = 'flex'; document.getElementById('label-user').innerText = user.username; updateProfileCard(); updateGuestUI(); showPage('tournament'); }
-        
-        // AUTOMATIC SEARCH / AUTOCOMPLETE LOGIC
-        function handleSearch(v) {
-            const r = document.getElementById('search-results'); if(!v) { r.style.display = 'none'; return; }
-            const q = v.toUpperCase(), combined = [...new Set([...allDbNames, ...sessionGuests])], f = combined.filter(n => n.includes(q) && !pool.includes(n));
-            r.innerHTML = f.map(n => `<div class="search-item" onclick="directAdd('${n}')">${n}</div>`).join('') + `<div class="search-item" onclick="directAdd('${q}')">Add: "${q}"</div>`;
-            r.style.display = 'block';
-        }
-function addP() { 
-    const i = document.getElementById('add-p-input'); 
-    const n = i.value.trim().toUpperCase(); 
-    if(n && !pool.find(p => p.name === n)) { 
-        pool.push({ name: n, char: selectedCharacter }); 
-        updatePoolUI(); 
-    }
-    i.value = '';
-}
-
-function directAdd(n) {
-    if(!pool.find(p => p.name === n)) { 
-        pool.push({ name: n, char: selectedCharacter }); 
-        updatePoolUI(); 
-    }
-    const input = document.getElementById('add-p-input');
-    if(input) input.value = '';
-    const results = document.getElementById('search-results');
-    if(results) results.style.display = 'none';
-}
-
-function updateGuestUI() { 
-    const guestEl = document.getElementById('active-guests');
-    if(guestEl) {
-        guestEl.innerHTML = sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join(''); 
-    }
-}
-
-function updateProfileCard() { 
-    const nameEl = document.getElementById('card-name');
-    if(nameEl) {
-        nameEl.innerText = user.username; 
-        document.getElementById('card-wins').innerText = user.wins; 
-        document.getElementById('card-elo').innerText = user.elo; 
-    }
-}
-
-function updatePoolUI() {
-    const poolList = document.getElementById('pool-list');
-    if (!poolList) return;
-    poolList.innerHTML = '';
-
-    pool.forEach((player, index) => {
-        const div = document.createElement('div');
-        div.className = 'pool-player-item';
-        div.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #111; padding: 8px; border-radius: 8px; border: 1px solid #222;";
-        
-        div.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: var(--sub-red); font-weight: bold; width: 20px;">${index + 1}.</span>
-                <img src="${player.char}" onerror="this.src='placeholder-silhouette.png'" style="width: 30px; height: 30px; border-radius: 50%; background: #333; border: 1px solid #444;">
-                <span style="color: white; text-transform: uppercase; font-size: 0.8rem; font-family: 'Russo One';">${player.name}</span>
-            </div>
-            <button onclick="removeFromPool(${index})" style="background: #333; color: #888; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; line-height: 1;">-</button>
-        `;
-        poolList.appendChild(div);
-    });
-
-    const countSpan = document.getElementById('pool-count');
-    if (countSpan) countSpan.innerText = pool.length;
-}
-
-function removeFromPool(index) {
-    pool.splice(index, 1);
-    updatePoolUI();
-}
-    pool.splice(index, 1);
-    updatePoolUI();
-}
-
-function showPage(p) { 
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); 
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); 
-    document.getElementById('section-' + p).classList.add('active'); 
-    document.getElementById('tab-' + p).classList.add('active'); 
-    if(p === 'leaderboard') fetchLB(); 
-    if(p === 'history') fetchHist(); 
-}
-        async function fetchHist() { const { data } = await _supabase.from('tournament_history').select('*').order('created_at', {ascending: false}); document.getElementById('hist-list').innerHTML = data ? data.map(h => `<div style="background:#000; padding:15px; border-radius:10px; border-left:4px solid var(--sub-gold); margin-bottom:10px;">🏆 ${h.winner_name}<br><small>${h.tournament_name}</small></div>`).join('') : "No history."; }
-        
-        let rP = [], rW = [];
-        function startTournament() { if(pool.length < 2) return alert("Min 2 players!"); document.getElementById('tour-setup').style.display = 'none'; document.getElementById('tour-engine').style.display = 'flex'; rP = [...pool]; drawRound(); }
-        
-        function drawRound() {
-            const a = document.getElementById('bracket-area'); a.innerHTML = ""; rW = []; if(rP.length === 1) { a.innerHTML = `<div class="container" style="text-align:center;"><h2>🏆 WINNER: ${rP[0]}</h2></div>`; document.getElementById('save-btn').style.display = 'block'; return; }
-            for(let i=0; i < rP.length; i += 2) {
-                const p1 = rP[i], p2 = rP[i+1], m = document.createElement('div'); m.className = "bracket-match"; m.style.background="#111"; m.style.border="1px solid #222"; m.style.borderRadius="10px"; m.style.marginBottom="10px"; m.style.width="100%"; m.style.overflow="hidden";
-                if(!p2) { m.innerHTML = `<div style="padding:15px; opacity:0.5; font-family:'Russo One';">${p1} (BYE)</div>`; rW[i/2] = p1; } else { m.innerHTML = `<div style="padding:15px; cursor:pointer; font-family:'Russo One';" onclick="pickWin(${i/2}, '${p1}', this)">${p1}</div><div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222;" onclick="pickWin(${i/2}, '${p2}', this)">${p2}</div>`; }
-                a.appendChild(m);
-            }
-        }
-
-        function pickWin(idx, n, e) { rW[idx] = n; e.parentElement.querySelectorAll('div').forEach(d => d.style.background="transparent"); e.style.background = "rgba(227, 6, 19, 0.4)"; if(rW.filter(w => w).length === Math.ceil(rP.length/2)) document.getElementById('next-rd-btn').style.display = 'block'; }
-        function advanceRound() { rP = rW.filter(w => w); document.getElementById('next-rd-btn').style.display = 'none'; drawRound(); }
-
-        async function saveTour() {
-            const winnerName = rP[0];
-            const tournamentName = document.getElementById('tour-name-input').value || "Tournament";
-            await _supabase.from('tournament_history').insert([{ tournament_name: tournamentName, winner_name: winnerName }]);
-
-            const { data: dbWinner } = await _supabase.from('players').select('*').eq('username', winnerName).single();
-            if (dbWinner) {
-                const newElo = (dbWinner.elo || 1300) + 25;
-                const newWins = (dbWinner.wins || 0) + 1;
-                await _supabase.from('players').update({ elo: newElo, wins: newWins }).eq('id', dbWinner.id);
-                if (user && user.id === dbWinner.id) { user.elo = newElo; user.wins = newWins; updateProfileCard(); }
-            }
-
-            pool = []; updatePoolUI();
-            document.getElementById('tour-engine').style.display = 'none';
-            document.getElementById('tour-setup').style.display = 'block';
-            showPage('history');
-        }
-        // Connection Watchdog
-setInterval(async () => {
-    const dot = document.getElementById('conn-dot');
-    if (!dot) return;
-    try {
-        const { error } = await _supabase.from('players').select('username').limit(1);
-        if (error) throw error;
-        dot.classList.remove('dot-offline');
-    } catch (e) {
-        dot.classList.add('dot-offline');
-    }
-}, 30000);
-    </script>
-</body>
-</html>
