@@ -48,6 +48,22 @@
         .btn-red { width: 100%; padding: 18px; border-radius: 12px; border: none; font-family: 'Russo One', sans-serif; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1.1rem; }
         input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; font-size: 1rem; }
         #auth-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--sub-black); display: flex; flex-direction: column; align-items: center; z-index: 1000; padding-top: 80px; }
+        /* Connection Light */
+.connection-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #28a745;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: 0 0 8px #28a745;
+    transition: 0.3s;
+    vertical-align: middle;
+}
+.dot-offline {
+    background-color: #ff0000 !important;
+    box-shadow: 0 0 8px #ff0000 !important;
+}
     </style>
 </head>
 <body onload="initApp()">
@@ -77,10 +93,13 @@
     </div>
 
     <div id="app-content">
-        <div class="status-bar">
-            <div class="player-label">PLAYER: <span style="color: var(--sub-red); font-family: 'Russo One';" id="label-user"></span></div>
-            <div class="logout-link" onclick="location.reload()">LOGOUT</div>
-        </div>
+       <div class="status-bar">
+    <div class="player-label">
+        <span id="conn-dot" class="connection-dot"></span>
+        PLAYER: <span style="color: var(--sub-red); font-family: 'Russo One';" id="label-user"></span>
+    </div>
+    <div class="logout-link" onclick="location.reload()">LOGOUT</div>
+</div>
         <nav class="nav-tabs">
             <div class="tab" id="tab-profile" onclick="showPage('profile')">Profile</div>
             <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">Ranking</div>
@@ -215,6 +234,18 @@
             document.getElementById('tour-setup').style.display = 'block';
             showPage('history');
         }
+        // Connection Watchdog
+setInterval(async () => {
+    const dot = document.getElementById('conn-dot');
+    if (!dot) return;
+    try {
+        const { error } = await _supabase.from('players').select('username').limit(1);
+        if (error) throw error;
+        dot.classList.remove('dot-offline');
+    } catch (e) {
+        dot.classList.add('dot-offline');
+    }
+}, 30000);
     </script>
 </body>
 </html>
