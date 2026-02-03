@@ -189,13 +189,61 @@
             r.style.display = 'block';
         }
 
-        function addP() { const i = document.getElementById('add-p-input'); const n = i.value.trim().toUpperCase(); if(n && !pool.includes(n)) { pool.push(n); updatePoolUI(); } i.value = ''; document.getElementById('search-results').style.display = 'none'; }
-        function directAdd(n) { if(!pool.includes(n)) { pool.push(n); updatePoolUI(); } document.getElementById('add-p-input').value = ''; document.getElementById('search-results').style.display = 'none'; }
-        
-        function updateGuestUI() { document.getElementById('active-guests').innerHTML = sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join(''); }
-        function updateProfileCard() { document.getElementById('card-name').innerText = user.username; document.getElementById('card-wins').innerText = user.wins; document.getElementById('card-elo').innerText = user.elo; }
-        function updatePoolUI() { document.getElementById('pool-list').innerText = pool.length ? pool.join(', ') : "No players added."; }
-        function clearPool() { pool = []; updatePoolUI(); }
+      function addP() { 
+    const i = document.getElementById('add-p-input'); 
+    const n = i.value.trim().toUpperCase(); 
+    if(n && !pool.includes(n)) { pool.push(n); updatePoolUI(); } 
+    i.value = ''; 
+    document.getElementById('search-results').style.display = 'none'; 
+}
+
+function directAdd(n) { 
+    if(!pool.includes(n)) { pool.push(n); updatePoolUI(); } 
+    document.getElementById('add-p-input').value = ''; 
+    document.getElementById('search-results').style.display = 'none'; 
+}
+
+function updateGuestUI() { 
+    document.getElementById('active-guests').innerHTML = sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join(''); 
+}
+
+function updateProfileCard() { 
+    document.getElementById('card-name').innerText = user.username; 
+    document.getElementById('card-wins').innerText = user.wins; 
+    document.getElementById('card-elo').innerText = user.elo; 
+}
+
+function updatePoolUI() {
+    const list = document.getElementById('pool-list');
+    list.innerHTML = ''; // Tyhjennetään vanha teksti
+    
+    if (pool.length === 0) {
+        list.innerText = "No players added.";
+        return;
+    }
+
+    pool.forEach((name, index) => {
+        const div = document.createElement('div');
+        div.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #111; padding: 8px; border-radius: 8px; border: 1px solid #222;";
+        div.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--sub-red); font-weight: bold; width: 20px;">${index + 1}.</span>
+                <span style="color: white; text-transform: uppercase; font-size: 0.8rem; font-family: 'Russo One';">${name}</span>
+            </div>
+            <button onclick="removeFromPool(${index})" style="background: #333; color: #888; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold;">-</button>
+        `;
+        list.appendChild(div);
+    });
+    
+    if(document.getElementById('pool-count')) document.getElementById('pool-count').innerText = pool.length;
+}
+
+function removeFromPool(index) {
+    pool.splice(index, 1);
+    updatePoolUI();
+}
+
+function clearPool() { pool = []; updatePoolUI(); }
 
         function showPage(p) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById('section-' + p).classList.add('active'); document.getElementById('tab-' + p).classList.add('active'); if(p === 'leaderboard') fetchLB(); if(p === 'history') fetchHist(); }
         async function fetchLB() { const { data } = await _supabase.from('players').select('*').order('elo', {ascending: false}); document.getElementById('lb-data').innerHTML = data ? data.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #222;"><span>#${i+1} ${p.username}</span><span>${p.elo} ELO</span></div>`).join('') : ""; }
