@@ -127,31 +127,31 @@
     </div>
 </div>
         <div id="section-tournament" class="section active">
-            <div id="tour-setup" class="container" style="position:relative;">
-                <h3 style="font-family:'Russo One'; text-transform:uppercase;">NEW TOURNAMENT</h3>
-                <input type="text" id="tour-name-input" placeholder="Tournament Name">
-                
-                <div id="active-guests" style="margin-bottom:15px; text-align:left;"></div>
+    <div id="tour-setup" class="container" style="position:relative;">
+        <h3 style="font-family:'Russo One'; text-transform:uppercase;">NEW TOURNAMENT</h3>
+        <input type="text" id="tour-name-input" placeholder="Tournament Name">
+        
+        <div id="active-guests" style="margin-bottom:15px; text-align:left;"></div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
-                    <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">PLAYER POOL</span>
-                    <button style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;" onclick="clearPool()">CLEAR</button>
-                </div>
-                <div id="pool-list" style="margin:10px 0; background:#000; padding:15px; border-radius:12px; font-size:0.8rem; min-height:40px; text-align:left; color:#888;">No players added.</div>
-                
-                <input type="text" id="add-p-input" placeholder="Search database or guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
-                <div id="search-results"></div>
-                
-                <button class="btn-red" style="margin-top: 10px;" onclick="startTournament()">GENERATE BRACKETS</button>
-            </div>
-            
-            <div id="tour-engine" style="display:none; width:100%; max-width:450px; flex-direction:column; align-items:center;">
-                <div id="bracket-area" style="width:100%;"></div>
-                <button id="next-rd-btn" class="btn-red" style="display:none; margin-top:15px;" onclick="advanceRound()">NEXT ROUND</button>
-                <button id="save-btn" class="btn-red" style="display:none; background:var(--sub-gold)!important; color:#000!important; margin-top:15px;" onclick="saveTour()">SAVE RESULTS</button>
-            </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
+           <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">PLAYER POOL (<span id="pool-count">0</span>)</span>
+            <button style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;" onclick="clearPool()">CLEAR</button>
         </div>
+        
+        <div id="pool-list" style="margin:10px 0; background:#000; padding:15px; border-radius:12px; font-size:0.8rem; min-height:40px; text-align:left;">No players added.</div>
+        
+        <input type="text" id="add-p-input" placeholder="Search database or guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
+        <div id="search-results"></div>
 
+        <button class="btn-red" style="margin-top: 20px;" onclick="startTournament()">GENERATE BRACKETS</button>
+    </div>
+    
+    <div id="tour-engine" style="display:none; width:100%; max-width:450px; flex-direction:column; align-items:center;">
+        <div id="bracket-area" style="width:100%;"></div>
+        <button id="next-rd-btn" class="btn-red" style="display:none; margin-top:15px;" onclick="advanceRound()">NEXT ROUND</button>
+        <button id="save-btn" class="btn-red" style="display:none; background:var(--sub-gold)!important; color:#000!important; margin-top:15px;" onclick="saveTour()">SAVE RESULTS</button>
+    </div>
+</div>
         <div id="section-leaderboard" class="section"><div class="container" id="lb-data"></div></div>
         <div id="section-history" class="section"><div class="container" id="hist-list"></div></div>
     </div>
