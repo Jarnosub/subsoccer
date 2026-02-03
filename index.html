@@ -127,7 +127,7 @@
                 <div id="active-guests" style="margin-bottom:15px; text-align:left;"></div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
-                    <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">PLAYER POOL</span>
+                   <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">PLAYER POOL (<span id="pool-count">0</span>)</span>
                     <button style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;" onclick="clearPool()">CLEAR</button>
                 </div>
                 <div id="pool-list" style="margin:10px 0; background:#000; padding:15px; border-radius:12px; font-size:0.8rem; min-height:40px; text-align:left; color:#888;">No players added.</div>
@@ -194,7 +194,27 @@
         
         function updateGuestUI() { document.getElementById('active-guests').innerHTML = sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join(''); }
         function updateProfileCard() { document.getElementById('card-name').innerText = user.username; document.getElementById('card-wins').innerText = user.wins; document.getElementById('card-elo').innerText = user.elo; }
-        function updatePoolUI() { document.getElementById('pool-list').innerText = pool.length ? pool.join(', ') : "No players added."; }
+function updatePoolUI() {
+    const poolList = document.getElementById('pool-list');
+    if (!poolList) return;
+    poolList.innerHTML = '';
+
+    pool.forEach((playerName, index) => {
+        const div = document.createElement('div');
+        div.className = 'pool-player-item';
+        div.innerHTML = `
+            <span style="color: var(--sub-red); font-weight: bold; margin-right: 10px; width: 25px; display: inline-block;">
+                ${index + 1}.
+            </span>
+            <span style="flex-grow: 1;">${playerName}</span>
+            <button class="remove-btn" onclick="removeFromPool(${index})">REMOVE</button>
+        `;
+        poolList.appendChild(div);
+    });
+
+    const countSpan = document.getElementById('pool-count');
+    if (countSpan) countSpan.innerText = pool.length;
+}
         function clearPool() { pool = []; updatePoolUI(); }
 
         function showPage(p) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById('section-' + p).classList.add('active'); document.getElementById('tab-' + p).classList.add('active'); if(p === 'leaderboard') fetchLB(); if(p === 'history') fetchHist(); }
