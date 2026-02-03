@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Subsoccer Pro</title>
+    <title>Subsoccer Pro v70.0</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@300;400;700&display=swap');
         :root { --sub-red: #E30613; --sub-black: #0a0a0a; --sub-white: #FFFFFF; --sub-gold: #FFD700; --sub-border: #333; }
-        body { font-family: 'Open Sans', sans-serif; background-color: var(--sub-black); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        body { font-family: 'Open Sans', sans-serif; background-color: var(--sub-black); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
         header { width: 100%; padding: 45px 0 15px 0; display: flex; justify-content: center; }
         .main-logo { width: 220px; height: auto; }
         #app-content { width: 100%; display: none; flex-direction: column; align-items: center; }
@@ -18,50 +18,54 @@
         .section { width: 100%; display: none; flex-direction: column; align-items: center; }
         .section.active { display: flex; }
         .premium-card { position: relative; width: 350px; height: 500px; background-image: url('silver-temp.jpg'); background-size: cover; border-radius: 15px; overflow: hidden; border: 1px solid #555; box-shadow: 0 15px 35px rgba(0,0,0,0.9); margin-bottom: 20px; }
-        .player-img { position: absolute; left: 5px; bottom: 45px; width: 190px; height: auto; z-index: 1; }
-        .card-content { position: absolute; right: 32px; top: 122px; width: 155px; z-index: 2; text-align: right; }
-        .card-name-tag { font-family: 'Russo One'; font-size: 0.85rem; color: var(--sub-gold); margin-bottom: 12px; }
-        .stat-val { font-family: 'Russo One'; font-size: 1.4rem; color: var(--sub-red); line-height: 0.9; }
+        .player-img { position: absolute; left: 5px; bottom: 45px; width: 190px; height: auto; z-index: 1; pointer-events: none; }
+        .card-content { position: absolute; right: 32px; top: 122px; width: 155px; z-index: 2; display: flex; flex-direction: column; text-align: right; }
+        .card-name-tag { font-family: 'Russo One'; font-size: 0.85rem; color: var(--sub-gold); text-transform: uppercase; height: 55px; display: flex; align-items: center; justify-content: flex-end; text-shadow: 2px 2px 4px #000; line-height: 1.1; margin-top: 10px; margin-bottom: 12px; }
+        .stat-label { font-family: 'Russo One'; font-size: 0.5rem; color: var(--sub-white); opacity: 0.8; }
+        .stat-val { font-family: 'Russo One'; font-size: 1.4rem; color: var(--sub-red); text-shadow: 1px 1px 2px #000; }
         .container { background: #111; padding: 25px; border-radius: 20px; border: 1px solid #222; width: 95%; max-width: 400px; box-sizing: border-box; }
-        .btn-red { width: 100%; padding: 18px; border-radius: 12px; border: none; font-family: 'Russo One'; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; }
+        .btn-red { width: 100%; padding: 18px; border-radius: 12px; border: none; font-family: 'Russo One'; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1.1rem; }
         input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; }
         .char-thumb { width: 50px; height: 75px; object-fit: cover; cursor: pointer; border: 2px solid transparent; border-radius: 8px; background: #222; }
+        #search-results { background: #111; border: 1px solid #333; border-radius: 8px; display: none; position: absolute; width: calc(100% - 50px); z-index: 10; margin-top: -20px; }
+        .search-item { padding: 12px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.8rem; text-align: left; }
     </style>
 </head>
 <body onload="initApp()">
 
     <header><img src="logo.png" class="main-logo" alt="Subsoccer"></header>
 
-    <div id="auth-page" style="padding-top: 50px;">
-        <div id="login-form" class="container">
-            <h2 style="text-align:center; font-family:'Russo One';">LOGIN</h2>
+    <div id="auth-page">
+        <div id="login-form" class="container" style="text-align:center;">
+            <h2 style="font-family:'Russo One'; margin-bottom: 25px;">PLAYER LOGIN</h2>
             <input type="text" id="auth-user" placeholder="Username">
             <input type="password" id="auth-pass" placeholder="Password">
             <button class="btn-red" onclick="handleAuth()">ENTER</button>
-            <button class="btn-red" style="background:#333; margin-top:10px;" onclick="handleGuest()">GUEST</button>
+            <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
+            <input type="text" id="guest-nick" placeholder="Guest Nickname">
+            <button class="btn-red" style="background:#333;" onclick="handleGuest()">JOIN AS GUEST</button>
         </div>
     </div>
 
     <div id="app-content">
         <nav class="nav-tabs">
-            <div class="tab active" id="tab-profile" onclick="showPage('profile')">Profile</div>
+            <div class="tab" id="tab-profile" onclick="showPage('profile')">Profile</div>
             <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">Ranking</div>
-            <div class="tab" id="tab-tournament" onclick="showPage('tournament')">Tournament</div>
+            <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">Tournament</div>
             <div class="tab" id="tab-history" onclick="showPage('history')">History</div>
         </nav>
 
-        <div id="section-profile" class="section active">
+        <div id="section-profile" class="section">
             <div class="premium-card">
                 <img id="card-char-img" src="placeholder-silhouette.png" class="player-img">
                 <div class="card-content">
                     <div class="card-name-tag" id="card-name">PLAYER</div>
-                    <div style="margin-bottom:12px;"><div class="stat-val" id="card-wins">0</div></div>
-                    <div style="margin-bottom:12px;"><div class="stat-val" id="card-elo">1300</div></div>
+                    <div style="margin-bottom:12px;"><div class="stat-label">TOTAL WINS</div><div class="stat-val" id="card-wins">0</div></div>
+                    <div style="margin-bottom:12px;"><div class="stat-label">ELO RATING</div><div class="stat-val" id="card-elo">1300</div></div>
                 </div>
             </div>
-            
             <div class="container" style="text-align: center; margin-top: 10px;">
-                <p style="font-size: 0.7rem; color: #666; margin-bottom: 10px; font-family:'Russo One';">SELECT CHARACTER</p>
+                <p style="font-family:'Russo One'; font-size: 0.7rem; color: #666; margin-bottom: 10px;">SELECT CHARACTER</p>
                 <div style="display: flex; justify-content: center; gap: 10px;">
                     <img src="char1.png" class="char-thumb" onclick="selectChar(this, 'char1.png')" style="border-color: var(--sub-red);">
                     <img src="char2.png" class="char-thumb" onclick="selectChar(this, 'char2.png')">
@@ -70,52 +74,64 @@
             </div>
         </div>
 
-        <div id="section-leaderboard" class="section">
-            <div class="container" id="lb-data">Ranking loading...</div>
-        </div>
-
-        <div id="section-tournament" class="section">
-            <div class="container">
+        <div id="section-tournament" class="section active">
+            <div id="tour-setup" class="container" style="position:relative;">
                 <h3 style="font-family:'Russo One';">NEW TOURNAMENT</h3>
-                <input type="text" id="add-p-input" placeholder="Player Name" onkeypress="if(event.key === 'Enter') addP()">
-                <div id="pool-list" style="margin-bottom: 20px;">No players added.</div>
-                <button class="btn-red" onclick="startTournament()">START</button>
-                <button class="btn-red" style="background:#333; margin-top:10px;" onclick="clearPool()">CLEAR</button>
+                <div id="active-guests" style="margin-bottom:10px; text-align:left;"></div>
+                <div style="display: flex; justify-content: space-between; border-top:1px solid #222; padding-top:10px;">
+                   <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">POOL (<span id="pool-count">0</span>)</span>
+                   <button style="background:none; color:var(--sub-red); border:none; cursor:pointer; font-size:0.6rem;" onclick="clearPool()">CLEAR</button>
+                </div>
+                <div id="pool-list" style="margin:10px 0; background:#000; padding:15px; border-radius:12px; font-size:0.8rem; text-align:left;">No players added.</div>
+                <input type="text" id="add-p-input" placeholder="Search or add..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
+                <div id="search-results"></div>
+                <button class="btn-red" onclick="startTournament()">GENERATE BRACKETS</button>
             </div>
         </div>
 
-        <div id="section-history" class="section">
-            <div class="container" id="hist-list">No history yet.</div>
-        </div>
+        <div id="section-leaderboard" class="section"><div class="container" id="lb-data">Ranking loading...</div></div>
+        <div id="section-history" class="section"><div class="container" id="hist-list">History loading...</div></div>
     </div>
 
     <script>
         const _URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co', _KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
         const _supabase = window.supabase.createClient(_URL, _KEY);
-        let user = null, pool = [], selectedCharacter = 'char1.png';
+        let user = null, pool = [], sessionGuests = [], allDbNames = [];
+        let selectedCharacter = 'char1.png';
 
-        async function initApp() { console.log("App ready"); }
+        async function initApp() { 
+            const { data } = await _supabase.from('players').select('username');
+            allDbNames = data ? data.map(p => p.username) : [];
+        }
 
         function showPage(p) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('section-' + p).classList.add('active');
+            const target = document.getElementById('section-' + p);
+            if(target) target.classList.add('active');
             document.getElementById('tab-' + p).classList.add('active');
+            if(p === 'leaderboard') fetchLB();
+            if(p === 'history') fetchHist();
         }
 
-        function handleAuth() { 
-            const u = document.getElementById('auth-user').value.toUpperCase();
-            user = { username: u, wins: 0, elo: 1300 };
-            document.getElementById('auth-page').style.display = 'none';
-            document.getElementById('app-content').style.display = 'flex';
-            document.getElementById('card-name').innerText = u;
+        async function handleAuth() {
+            const u = document.getElementById('auth-user').value.trim().toUpperCase(), p = document.getElementById('auth-pass').value;
+            let { data } = await _supabase.from('players').select('*').eq('username', u).single();
+            if(data && data.password === p) { user = data; startSession(); } else alert("Login failed.");
         }
 
         function handleGuest() {
-            user = { username: "GUEST", wins: 0, elo: 1300 };
-            document.getElementById('auth-page').style.display = 'none';
-            document.getElementById('app-content').style.display = 'flex';
-            document.getElementById('card-name').innerText = "GUEST";
+            const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST";
+            user = { username: g, wins: 0, elo: 1300 };
+            if(!sessionGuests.includes(g)) sessionGuests.push(g);
+            startSession();
+        }
+
+        function startSession() { 
+            document.getElementById('auth-page').style.display = 'none'; 
+            document.getElementById('app-content').style.display = 'flex'; 
+            document.getElementById('card-name').innerText = user.username;
+            updateProfileCard(); updateGuestUI(); showPage('tournament'); 
         }
 
         function selectChar(el, img) {
@@ -125,26 +141,38 @@
             document.getElementById('card-char-img').src = img;
         }
 
-        function addP() {
-            const i = document.getElementById('add-p-input');
-            const n = i.value.trim().toUpperCase();
-            if(n && !pool.includes(n)) { pool.push(n); updatePoolUI(); }
-            i.value = '';
+        function handleSearch(v) {
+            const r = document.getElementById('search-results'); if(!v) { r.style.display = 'none'; return; }
+            const q = v.toUpperCase(), combined = [...new Set([...allDbNames, ...sessionGuests])], f = combined.filter(n => n.includes(q) && !pool.includes(n));
+            r.innerHTML = f.map(n => `<div class="search-item" onclick="directAdd('${n}')">${n}</div>`).join('') + `<div class="search-item" onclick="directAdd('${q.toUpperCase()}')">Add: "${q}"</div>`;
+            r.style.display = 'block';
         }
+
+        function addP() {
+            const i = document.getElementById('add-p-input'); const n = i.value.trim().toUpperCase();
+            if(n && !pool.includes(n)) { pool.push(n); updatePoolUI(); }
+            i.value = ''; document.getElementById('search-results').style.display = 'none';
+        }
+
+        function directAdd(n) { if(!pool.includes(n)) { pool.push(n); updatePoolUI(); } document.getElementById('add-p-input').value = ''; document.getElementById('search-results').style.display = 'none'; }
 
         function updatePoolUI() {
             const list = document.getElementById('pool-list');
-            list.innerHTML = pool.map((name, index) => `
-                <div style="display:flex; justify-content:space-between; padding:8px; background:#000; margin-bottom:5px; border-radius:8px; border:1px solid #222;">
-                    <span><b style="color:var(--sub-red)">${index + 1}.</b> ${name}</span>
-                    <span onclick="removeFromPool(${index})" style="color:#666; cursor:pointer;">✕</span>
-                </div>
-            `).join('');
+            list.innerHTML = pool.map((n, i) => `
+                <div style="display:flex; justify-content:space-between; padding:8px; background:#111; margin-bottom:5px; border-radius:8px; border:1px solid #222;">
+                    <span><b style="color:var(--sub-red)">${i+1}.</b> ${n}</span>
+                    <span onclick="removeFromPool(${i})" style="color:#666; cursor:pointer;">✕</span>
+                </div>`).join('');
+            document.getElementById('pool-count').innerText = pool.length;
         }
 
-        function removeFromPool(idx) { pool.splice(idx, 1); updatePoolUI(); }
+        function removeFromPool(i) { pool.splice(i, 1); updatePoolUI(); }
         function clearPool() { pool = []; updatePoolUI(); }
-        function startTournament() { if(pool.length < 2) alert("Min 2 players"); else alert("Tournament Started!"); }
+        function updateGuestUI() { document.getElementById('active-guests').innerHTML = sessionGuests.map(g => `<span style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin-right:5px;" onclick="directAdd('${g}')">${g}</span>`).join(''); }
+        function updateProfileCard() { document.getElementById('card-name').innerText = user.username; document.getElementById('card-wins').innerText = user.wins || 0; document.getElementById('card-elo').innerText = user.elo || 1300; }
+        async function fetchLB() { const { data } = await _supabase.from('players').select('*').order('elo', {ascending: false}); document.getElementById('lb-data').innerHTML = data.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:10px;"><span>#${i+1} ${p.username}</span><span>${p.elo} ELO</span></div>`).join(''); }
+        async function fetchHist() { const { data } = await _supabase.from('tournament_history').select('*').order('created_at', {ascending: false}); document.getElementById('hist-list').innerHTML = data.map(h => `<div style="padding:10px;">🏆 ${h.winner_name} - ${h.tournament_name}</div>`).join(''); }
+        function startTournament() { if(pool.length < 2) alert("Min 2 players!"); else alert("Tournament Started!"); }
     </script>
 </body>
 </html>
