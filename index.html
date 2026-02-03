@@ -217,7 +217,6 @@ function selectChar(el, img) {
             r.innerHTML = f.map(n => `<div class="search-item" onclick="directAdd('${n}')">${n}</div>`).join('') + `<div class="search-item" onclick="directAdd('${q}')">Add: "${q}"</div>`;
             r.style.display = 'block';
         }
-
 function addP() { 
     const i = document.getElementById('add-p-input'); 
     const n = i.value.trim().toUpperCase(); 
@@ -233,23 +232,26 @@ function directAdd(n) {
         pool.push({ name: n, char: selectedCharacter }); 
         updatePoolUI(); 
     }
-    document.getElementById('add-p-input').value = '';
+    const input = document.getElementById('add-p-input');
+    if(input) input.value = '';
     const results = document.getElementById('search-results');
     if(results) results.style.display = 'none';
 }
-    document.getElementById('add-p-input').value = '';
-    const searchRes = document.getElementById('search-results');
-    if (searchRes) searchRes.style.display = 'none';
-}
 
 function updateGuestUI() { 
-    document.getElementById('active-guests').innerHTML = sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join(''); 
+    const guestEl = document.getElementById('active-guests');
+    if(guestEl) {
+        guestEl.innerHTML = sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join(''); 
+    }
 }
 
 function updateProfileCard() { 
-    document.getElementById('card-name').innerText = user.username; 
-    document.getElementById('card-wins').innerText = user.wins; 
-    document.getElementById('card-elo').innerText = user.elo; 
+    const nameEl = document.getElementById('card-name');
+    if(nameEl) {
+        nameEl.innerText = user.username; 
+        document.getElementById('card-wins').innerText = user.wins; 
+        document.getElementById('card-elo').innerText = user.elo; 
+    }
 }
 
 function updatePoolUI() {
@@ -268,7 +270,7 @@ function updatePoolUI() {
                 <img src="${player.char}" onerror="this.src='placeholder-silhouette.png'" style="width: 30px; height: 30px; border-radius: 50%; background: #333; border: 1px solid #444;">
                 <span style="color: white; text-transform: uppercase; font-size: 0.8rem; font-family: 'Russo One';">${player.name}</span>
             </div>
-            <button onclick="removeFromPool(${index})" style="background: #333; color: #888; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">-</button>
+            <button onclick="removeFromPool(${index})" style="background: #333; color: #888; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; line-height: 1;">-</button>
         `;
         poolList.appendChild(div);
     });
@@ -278,6 +280,9 @@ function updatePoolUI() {
 }
 
 function removeFromPool(index) {
+    pool.splice(index, 1);
+    updatePoolUI();
+}
     pool.splice(index, 1);
     updatePoolUI();
 }
