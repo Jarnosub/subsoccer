@@ -101,110 +101,43 @@ let rP = [], rW = [];
 function startTournament() { if(pool.length < 2) return alert("Min 2 players!"); document.getElementById('tour-setup').style.display = 'none'; document.getElementById('tour-engine').style.display = 'flex'; rP = [...pool]; rW = []; drawRound(); }
 
 function drawRound() {
-    const area = document.getElementById('bracket-area');
-    area.innerHTML = '';
-
-    // Jos vain yksi pelaaja jäljellä, hän on voittaja.
-    if (rP.length === 1) {
-        area.innerHTML = `<div class='winner-display'>WINNER: ${rP[0]}</div>`;
-        document.getElementById('save-btn').style.display = 'block';
+    const a = document.getElementById('bracket-area'); a.innerHTML = ""; rW = []; 
+    if(rP.length === 1 && pool.length > 1) { 
+        a.innerHTML = `<div class="container" style="text-align:center;"><h2>🏆 WINNER: ${rP[0]}</h2></div>`; 
+        document.getElementById('save-btn').style.display = 'block'; 
         document.getElementById('next-rd-btn').style.display = 'none';
-        return;
+        return; 
     }
-
-    // Jos pelaajia on pariton määrä, yksi saa vapaalipun.
-    if (rP.length % 2 !== 0) {
-        const lucky = rP.pop();
-        rW.push(lucky);
-        area.innerHTML += `<div class='match-bye'>${lucky} (BYE)</div>`;
+    for(let i=0; i < rP.length; i += 2) {
+        const p1 = rP[i], p2 = rP[i+1], m = document.createElement('div'); m.className = "bracket-match"; m.style.background="#111"; m.style.border="1px solid #222"; m.style.borderRadius="10px"; m.style.marginBottom="10px"; m.style.width="100%"; m.style.overflow="hidden";
+        if(!p2) { m.innerHTML = `<div style="padding:15px; opacity:0.5; font-family:'Russo One';">${p1} (BYE)</div>`; rW[i/2] = p1; } else { m.innerHTML = `<div style="padding:15px; cursor:pointer; font-family:'Russo One';" onclick="pickWin(${i/2}, '${p1}', this)">${p1}</div><div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222;" onclick="pickWin(${i/2}, '${p2}', this)">${p2}</div>`; }
+        a.appendChild(m);
     }
-
-    // Arvo loput otteluparit.
-    for (let i = 0; i < rP.length; i += 2) {
-        area.innerHTML += `
-            <div class='match'>
-                <div class='p-name' onclick='pickWin(this, "${rP[i+1]}")'>${rP[i]}</div>
-                <div class='p-name' onclick='pickWin(this, "${rP[i]}")'>${rP[i+1]}</div>
-            </div>`;
+    if (rW.filter(w => w).length === Math.ceil(rP.length / 2)) {
+        document.getElementById('next-rd-btn').style.display = 'block';
     }
-
-    document.getElementById('next-rd-btn').style.display = 'block';
-    document.getElementById('save-btn').style.display = 'none';
 }
-    const match = elem.parentElement;
-    const winnerName = elem.innerText;
 
-    // Estä tuplaklikkaukset
-    if (match.dataset.locked) return;
-    match.dataset.locked = 'true';
-
-    // Visuaalinen palaute
-    elem.style.backgroundColor = 'var(--sub-red)';
-    elem.style.color = 'var(--sub-white)';
-    
-    Array.from(match.children).forEach(child => {
-        if (child !== elem) {
-            child.style.opacity = '0.5';
-            child.style.backgroundColor = '#111';
-        }
-    });
-
-    // Lisää voittaja listaan
-    rW.push(winnerName);
-}
+function pickWin(idx, n, e) { rW[idx] = n; e.parentElement.querySelectorAll('div').forEach(d => d.style.background="transparent"); e.style.background = "rgba(227, 6, 19, 0.4)"; if(rW.filter(w => w).length === Math.ceil(rP.length/2)) document.getElementById('next-rd-btn').style.display = 'block'; }
 function advanceRound() { rP = rW.filter(w => w); document.getElementById('next-rd-btn').style.display = 'none'; drawRound(); }
 
 async function saveTour() {
     const winnerName = rP[0];
-    if (!winnerName) {
-        console.error("Winner could not be determined.");
-        alert("Error saving tournament: Winner not found.");
-        // Reset UI to a safe state
-        pool = [];
-        rP = [];
-        rW = [];
-        updatePoolUI();
-        document.getElementById('tour-engine').style.display = 'none';
-        document.getElementById('tour-setup').style.display = 'block';
-        return;
-    }
-    
-    pool = []; // Tyhjennetään heti
-
     const tournamentName = document.getElementById('tour-name-input').value || "Tournament";
-    
-    try {
-        // Tallenna turnauksen historia
-        await _supabase.from('tournament_history').insert([{ 
-            tournament_name: tournamentName, 
-            winner_name: winnerName,
-            user_id: user.id,
-            created_at: new Date().toISOString()
-        }]);
+    await _supabase.from('tournament_history').insert([{ tournament_name: tournamentName, winner_name: winnerName }]);
 
-        // Päivitä voittajan statistiikat
-        const { data: dbWinner } = await _supabase.from('players').select('*').eq('username', winnerName).single();
-        if (dbWinner) {
-            const newElo = (dbWinner.elo || 1300) + 25;
-            const newWins = (dbWinner.wins || 0) + 1;
-            await _supabase.from('players').update({ elo: newElo, wins: newWins }).eq('id', dbWinner.id);
-            if (user && user.id === dbWinner.id) { 
-                user.elo = newElo; 
-                user.wins = newWins; 
-                updateProfileCard(); 
-            }
-        }
-
-        // Nollaa ja päivitä käyttöliittymä
-        updatePoolUI();
-        document.getElementById('tour-engine').style.display = 'none';
-        document.getElementById('tour-setup').style.display = 'block';
-        showPage('history');
-
-    } catch (error) {
-        console.error("Error in saveTour:", error);
-        alert("An error occurred while saving the tournament. Please check the console for details.");
+    const { data: dbWinner } = await _supabase.from('players').select('*').eq('username', winnerName).single();
+    if (dbWinner) {
+        const newElo = (dbWinner.elo || 1300) + 25;
+        const newWins = (dbWinner.wins || 0) + 1;
+        await _supabase.from('players').update({ elo: newElo, wins: newWins }).eq('id', dbWinner.id);
+        if (user && user.id === dbWinner.id) { user.elo = newElo; user.wins = newWins; updateProfileCard(); }
     }
+
+    pool = []; updatePoolUI();
+    document.getElementById('tour-engine').style.display = 'none';
+    document.getElementById('tour-setup').style.display = 'block';
+    showPage('history');
 }
 // Connection Watchdog
 setInterval(async () => {
