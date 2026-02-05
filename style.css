@@ -56,3 +56,26 @@ input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; bo
     background-color: #ff0000 !important;
     box-shadow: 0 0 8px #ff0000 !important;
 }
+
+/* Uudet tyylit pelaajan lisäykselle */
+.add-player-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.add-player-container input {
+    flex-grow: 1;
+    margin-bottom: 0; /* Poistetaan inputin oletusmarginaali */
+}
+.add-guest-btn {
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Russo One', sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: #333;
+    color: white;
+    font-size: 0.9rem;
+    flex-shrink: 0; /* Estää napin kutistumisen */
+}

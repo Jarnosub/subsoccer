@@ -132,7 +132,10 @@
                 </div>
                 <div id="pool-list" style="margin:10px 0; background:#000; padding:15px; border-radius:12px; font-size:0.8rem; min-height:40px; text-align:left; color:#888;">No players added.</div>
                 
-                <input type="text" id="add-p-input" placeholder="Search database or guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
+                <div class="add-player-container">
+                    <input type="text" id="add-p-input" placeholder="Search or add guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
+                    <button class="add-guest-btn" onclick="addP()">+ Add</button>
+                </div>
                 <div id="search-results"></div>
                 
                 <button class="btn-red" style="margin-top: 10px;" onclick="startTournament()">GENERATE BRACKETS</button>
