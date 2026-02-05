@@ -2,6 +2,18 @@ const _URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co', _KEY = 'sb_publishable_
 const _supabase = window.supabase.createClient(_URL, _KEY);
 let user = null, pool = [], sessionGuests = [], allDbNames = [];
 
+// UUSI ILMOITUSFUNKTIO
+function showNotification(message, type = 'error') {
+    const container = document.getElementById('notification-container');
+    const notification = document.createElement('div');
+    notification.className = `toast-notification ${type}`;
+    notification.innerText = message;
+    container.appendChild(notification);
+    setTimeout(() => {
+        notification.remove();
+    }, 4000); // Ilmoitus poistuu 4 sekunnin kuluttua
+}
+
 async function initApp() { 
     const { data } = await _supabase.from('players').select('username');
     allDbNames = data ? data.map(p => p.username) : [];
@@ -11,15 +23,15 @@ function toggleAuth(s) { document.getElementById('login-form').style.display = s
 
 async function handleSignUp() {
     const u = document.getElementById('reg-user').value.trim().toUpperCase(), p = document.getElementById('reg-pass').value.trim();
-    if(!u || !p) return alert("Fill all fields");
+    if(!u || !p) return showNotification("Fill all fields", "error");
     const { error } = await _supabase.from('players').insert([{ username: u, password: p, elo: 1300, wins: 0 }]);
-    if(error) alert("Error: " + error.message); else { alert("Account created!"); toggleAuth(false); initApp(); }
+    if(error) showNotification("Error: " + error.message, "error"); else { showNotification("Account created!", "success"); toggleAuth(false); initApp(); }
 }
 
 async function handleAuth() {
     const u = document.getElementById('auth-user').value.trim().toUpperCase(), p = document.getElementById('auth-pass').value;
     let { data } = await _supabase.from('players').select('*').eq('username', u).single();
-    if(data && data.password === p) { user = data; startSession(); } else alert("Login failed.");
+    if(data && data.password === p) { user = data; startSession(); } else showNotification("Login failed.", "error");
 }
 
 function handleGuest() {
@@ -40,13 +52,21 @@ function handleSearch(v) {
 function addP() { 
     const i = document.getElementById('add-p-input'); 
     const n = i.value.trim().toUpperCase(); 
-    if(n && !pool.includes(n)) { pool.push(n); updatePoolUI(); } 
+    if(n && !pool.includes(n)) { 
+        pool.push(n); 
+        updatePoolUI(); 
+        showNotification(`${n} added to pool`, 'success');
+    } 
     i.value = ''; 
     document.getElementById('search-results').style.display = 'none'; 
 }
 
 function directAdd(n) { 
-    if(!pool.includes(n)) { pool.push(n); updatePoolUI(); } 
+    if(!pool.includes(n)) { 
+        pool.push(n); 
+        updatePoolUI(); 
+        showNotification(`${n} added to pool`, 'success');
+    } 
     document.getElementById('add-p-input').value = ''; 
     document.getElementById('search-results').style.display = 'none'; 
 }
@@ -87,11 +107,17 @@ function updatePoolUI() {
 }
 
 function removeFromPool(index) {
+    const removedPlayer = pool[index];
     pool.splice(index, 1);
     updatePoolUI();
+    showNotification(`${removedPlayer} removed from pool`, 'error');
 }
 
-function clearPool() { pool = []; updatePoolUI(); }
+function clearPool() { 
+    pool = []; 
+    updatePoolUI(); 
+    showNotification('Player pool cleared', 'error');
+}
 
 function showPage(p) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById('section-' + p).classList.add('active'); document.getElementById('tab-' + p).classList.add('active'); if(p === 'leaderboard') fetchLB(); if(p === 'history') fetchHist(); }
 async function fetchLB() { const { data } = await _supabase.from('players').select('*').order('elo', {ascending: false}); document.getElementById('lb-data').innerHTML = data ? data.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #222;"><span>#${i+1} ${p.username}</span><span>${p.elo} ELO</span></div>`).join('') : ""; }
@@ -99,7 +125,7 @@ async function fetchHist() { const { data } = await _supabase.from('tournament_h
 
 let rP = [], rW = [];
 function startTournament() { 
-    if(pool.length < 2) return alert("Min 2 players!"); 
+    if(pool.length < 2) return showNotification("Min 2 players!", "error"); 
     document.getElementById('tour-setup').style.display = 'none'; 
     document.getElementById('tour-engine').style.display = 'flex'; 
     document.getElementById('save-btn').style.display = 'none'; // Piilota tallennusnappi uuden turnauksen alussa

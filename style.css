@@ -79,3 +79,55 @@ input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; bo
     font-size: 0.9rem;
     flex-shrink: 0; /* Estää napin kutistumisen */
 }
+
+/* ILMOITUSTEN TYYLIT (TOAST) */
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast-notification {
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.9rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-left: 5px solid;
+    opacity: 0;
+    transform: translateX(100%);
+    animation: slideIn 0.5s forwards, fadeOut 0.5s 3.5s forwards;
+}
+
+.toast-notification.error {
+    background-color: #4d0000;
+    border-color: var(--sub-red);
+}
+
+.toast-notification.success {
+    background-color: #00330d;
+    border-color: #28a745;
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
