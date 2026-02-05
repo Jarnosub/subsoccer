@@ -130,8 +130,7 @@ function drawRound() {
 
     document.getElementById('next-rd-btn').style.display = 'block';
     document.getElementById('save-btn').style.display = 'none';
-
-function pickWin(elem, loserName) {
+}
     const match = elem.parentElement;
     const winnerName = elem.innerText;
 
