@@ -131,7 +131,28 @@ function drawRound() {
     document.getElementById('next-rd-btn').style.display = 'block';
     document.getElementById('save-btn').style.display = 'none';
 
-function pickWin(idx, n, e) { rW[idx] = n; e.parentElement.querySelectorAll('div').forEach(d => d.style.background="transparent"); e.style.background = "rgba(227, 6, 19, 0.4)"; if(rW.filter(w => w).length === Math.ceil(rP.length/2)) document.getElementById('next-rd-btn').style.display = 'block'; }
+function pickWin(elem, loserName) {
+    const match = elem.parentElement;
+    const winnerName = elem.innerText;
+
+    // Estä tuplaklikkaukset
+    if (match.dataset.locked) return;
+    match.dataset.locked = 'true';
+
+    // Visuaalinen palaute
+    elem.style.backgroundColor = 'var(--sub-red)';
+    elem.style.color = 'var(--sub-white)';
+    
+    Array.from(match.children).forEach(child => {
+        if (child !== elem) {
+            child.style.opacity = '0.5';
+            child.style.backgroundColor = '#111';
+        }
+    });
+
+    // Lisää voittaja listaan
+    rW.push(winnerName);
+}
 function advanceRound() { rP = rW.filter(w => w); document.getElementById('next-rd-btn').style.display = 'none'; drawRound(); }
 
 async function saveTour() {
