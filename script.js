@@ -101,22 +101,35 @@ let rP = [], rW = [];
 function startTournament() { if(pool.length < 2) return alert("Min 2 players!"); document.getElementById('tour-setup').style.display = 'none'; document.getElementById('tour-engine').style.display = 'flex'; rP = [...pool]; rW = []; drawRound(); }
 
 function drawRound() {
-    const a = document.getElementById('bracket-area'); a.innerHTML = ""; rW = []; 
-    if(rP.length === 1 && pool.length > 1) { 
-        a.innerHTML = `<div class="container" style="text-align:center;"><h2>🏆 WINNER: ${rP[0]}</h2></div>`; 
-        document.getElementById('save-btn').style.display = 'block'; 
+    const area = document.getElementById('bracket-area');
+    area.innerHTML = '';
+
+    // Jos vain yksi pelaaja jäljellä, hän on voittaja.
+    if (rP.length === 1) {
+        area.innerHTML = `<div class='winner-display'>WINNER: ${rP[0]}</div>`;
+        document.getElementById('save-btn').style.display = 'block';
         document.getElementById('next-rd-btn').style.display = 'none';
-        return; 
+        return;
     }
-    for(let i=0; i < rP.length; i += 2) {
-        const p1 = rP[i], p2 = rP[i+1], m = document.createElement('div'); m.className = "bracket-match"; m.style.background="#111"; m.style.border="1px solid #222"; m.style.borderRadius="10px"; m.style.marginBottom="10px"; m.style.width="100%"; m.style.overflow="hidden";
-        if(!p2) { m.innerHTML = `<div style="padding:15px; opacity:0.5; font-family:'Russo One';">${p1} (BYE)</div>`; rW[i/2] = p1; } else { m.innerHTML = `<div style="padding:15px; cursor:pointer; font-family:'Russo One';" onclick="pickWin(${i/2}, '${p1}', this)">${p1}</div><div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222;" onclick="pickWin(${i/2}, '${p2}', this)">${p2}</div>`; }
-        a.appendChild(m);
+
+    // Jos pelaajia on pariton määrä, yksi saa vapaalipun.
+    if (rP.length % 2 !== 0) {
+        const lucky = rP.pop();
+        rW.push(lucky);
+        area.innerHTML += `<div class='match-bye'>${lucky} (BYE)</div>`;
     }
-    if (rW.filter(w => w).length === Math.ceil(rP.length / 2)) {
-        document.getElementById('next-rd-btn').style.display = 'block';
+
+    // Arvo loput otteluparit.
+    for (let i = 0; i < rP.length; i += 2) {
+        area.innerHTML += `
+            <div class='match'>
+                <div class='p-name' onclick='pickWin(this, "${rP[i+1]}")'>${rP[i]}</div>
+                <div class='p-name' onclick='pickWin(this, "${rP[i]}")'>${rP[i+1]}</div>
+            </div>`;
     }
-}
+
+    document.getElementById('next-rd-btn').style.display = 'block';
+    document.getElementById('save-btn').style.display = 'none';
 
 function pickWin(idx, n, e) { rW[idx] = n; e.parentElement.querySelectorAll('div').forEach(d => d.style.background="transparent"); e.style.background = "rgba(227, 6, 19, 0.4)"; if(rW.filter(w => w).length === Math.ceil(rP.length/2)) document.getElementById('next-rd-btn').style.display = 'block'; }
 function advanceRound() { rP = rW.filter(w => w); document.getElementById('next-rd-btn').style.display = 'none'; drawRound(); }
