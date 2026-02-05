@@ -122,10 +122,57 @@ function pickWin(idx, n, e) { rW[idx] = n; e.parentElement.querySelectorAll('div
 function advanceRound() { rP = rW.filter(w => w); document.getElementById('next-rd-btn').style.display = 'none'; drawRound(); }
 
 async function saveTour() {
-    pool = [];
-    const tourData = {
-        "user_id": user.id,
-        "created_at": new Date().toISOString(),
+    const winnerName = rP[0];
+    if (!winnerName) {
+        console.error("Winner could not be determined.");
+        alert("Error saving tournament: Winner not found.");
+        // Reset UI to a safe state
+        pool = [];
+        rP = [];
+        rW = [];
+        updatePoolUI();
+        document.getElementById('tour-engine').style.display = 'none';
+        document.getElementById('tour-setup').style.display = 'block';
+        return;
+    }
+    
+    pool = []; // Tyhjennetään heti
+
+    const tournamentName = document.getElementById('tour-name-input').value || "Tournament";
+    
+    try {
+        // Tallenna turnauksen historia
+        await _supabase.from('tournament_history').insert([{ 
+            tournament_name: tournamentName, 
+            winner_name: winnerName,
+            user_id: user.id,
+            created_at: new Date().toISOString()
+        }]);
+
+        // Päivitä voittajan statistiikat
+        const { data: dbWinner } = await _supabase.from('players').select('*').eq('username', winnerName).single();
+        if (dbWinner) {
+            const newElo = (dbWinner.elo || 1300) + 25;
+            const newWins = (dbWinner.wins || 0) + 1;
+            await _supabase.from('players').update({ elo: newElo, wins: newWins }).eq('id', dbWinner.id);
+            if (user && user.id === dbWinner.id) { 
+                user.elo = newElo; 
+                user.wins = newWins; 
+                updateProfileCard(); 
+            }
+        }
+
+        // Nollaa ja päivitä käyttöliittymä
+        updatePoolUI();
+        document.getElementById('tour-engine').style.display = 'none';
+        document.getElementById('tour-setup').style.display = 'block';
+        showPage('history');
+
+    } catch (error) {
+        console.error("Error in saveTour:", error);
+        alert("An error occurred while saving the tournament. Please check the console for details.");
+    }
+}
 // Connection Watchdog
 setInterval(async () => {
     const dot = document.getElementById('conn-dot');
