@@ -122,23 +122,10 @@ function pickWin(idx, n, e) { rW[idx] = n; e.parentElement.querySelectorAll('div
 function advanceRound() { rP = rW.filter(w => w); document.getElementById('next-rd-btn').style.display = 'none'; drawRound(); }
 
 async function saveTour() {
-    const winnerName = rP[0];
-    const tournamentName = document.getElementById('tour-name-input').value || "Tournament";
-    await _supabase.from('tournament_history').insert([{ tournament_name: tournamentName, winner_name: winnerName }]);
-
-    const { data: dbWinner } = await _supabase.from('players').select('*').eq('username', winnerName).single();
-    if (dbWinner) {
-        const newElo = (dbWinner.elo || 1300) + 25;
-        const newWins = (dbWinner.wins || 0) + 1;
-        await _supabase.from('players').update({ elo: newElo, wins: newWins }).eq('id', dbWinner.id);
-        if (user && user.id === dbWinner.id) { user.elo = newElo; user.wins = newWins; updateProfileCard(); }
-    }
-
-    pool = []; updatePoolUI();
-    document.getElementById('tour-engine').style.display = 'none';
-    document.getElementById('tour-setup').style.display = 'block';
-    showPage('history');
-}
+    pool = [];
+    const tourData = {
+        "user_id": user.id,
+        "created_at": new Date().toISOString(),
 // Connection Watchdog
 setInterval(async () => {
     const dot = document.getElementById('conn-dot');
