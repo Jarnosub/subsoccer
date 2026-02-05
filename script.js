@@ -98,7 +98,7 @@ async function fetchLB() { const { data } = await _supabase.from('players').sele
 async function fetchHist() { const { data } = await _supabase.from('tournament_history').select('*').order('created_at', {ascending: false}); document.getElementById('hist-list').innerHTML = data ? data.map(h => `<div style="background:#000; padding:15px; border-radius:10px; border-left:4px solid var(--sub-gold); margin-bottom:10px;">🏆 ${h.winner_name}<br><small>${h.tournament_name}</small></div>`).join('') : "No history."; }
 
 let rP = [], rW = [];
-function startTournament() { if(pool.length < 2) return alert("Min 2 players!"); document.getElementById('tour-setup').style.display = 'none'; document.getElementById('tour-engine').style.display = 'flex'; rP = [...pool]; drawRound(); }
+function startTournament() { if(pool.length < 2) return alert("Min 2 players!"); document.getElementById('tour-setup').style.display = 'none'; document.getElementById('tour-engine').style.display = 'flex'; rP = [...pool]; rW = []; drawRound(); }
 
 function drawRound() {
     const a = document.getElementById('bracket-area'); a.innerHTML = ""; rW = []; 
