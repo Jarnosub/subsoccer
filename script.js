@@ -39,7 +39,22 @@ function handleGuest() {
     if(!sessionGuests.includes(g)) sessionGuests.push(g); startSession();
 }
 
-function startSession() { document.getElementById('auth-page').style.display = 'none'; document.getElementById('app-content').style.display = 'flex'; document.getElementById('label-user').innerText = user.username; updateProfileCard(); updateGuestUI(); showPage('tournament'); }
+function startSession() { 
+    if (user) {
+        // Varmistetaan, että kaikilla uusilla kentillä on oletusarvo, jos ne puuttuvat
+        user.wins = user.wins || 0;
+        user.losses = user.losses || 0;
+        user.matches_played = user.matches_played || 0;
+        user.avatar_url = user.avatar_url || '';
+        user.elo = user.elo || 1300;
+    }
+    document.getElementById('auth-page').style.display = 'none'; 
+    document.getElementById('app-content').style.display = 'flex'; 
+    document.getElementById('label-user').innerText = user.username; 
+    updateProfileCard(); 
+    updateGuestUI(); 
+    showPage('tournament'); 
+}
 
 // AUTOMATIC SEARCH / AUTOCOMPLETE LOGIC
 function handleSearch(v) {
@@ -106,6 +121,12 @@ function updateProfileCard() {
         avatarImg.src = user.avatar_url;
     } else {
         avatarImg.src = 'placeholder-silhouette-5-wide.png'; // Oletuskuva
+    }
+
+    // Aseta olemassa oleva URL input-kenttään, jotta se näkyy käyttäjälle
+    const avatarInput = document.getElementById('avatar-url-input');
+    if (avatarInput) {
+        avatarInput.value = user.avatar_url || '';
     }
 }
 
