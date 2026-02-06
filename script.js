@@ -123,14 +123,23 @@ function clearPool() {
     showNotification('Player pool cleared', 'error');
 }
 
-function showPage(p) { 
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); 
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); 
-    document.getElementById('section-' + p).classList.add('active'); 
-    document.getElementById('tab-' + p).classList.add('active'); 
-    if(p === 'leaderboard') fetchLB(); 
-    if(p === 'history') fetchHist();
-    if(p === 'games') fetchMyGames();
+function showPage(p) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    
+    const section = document.getElementById('section-' + p);
+    if (section) {
+        section.classList.add('active');
+    }
+
+    const tab = document.getElementById('tab-' + p);
+    if (tab) {
+        tab.classList.add('active');
+    }
+
+    if (p === 'leaderboard') fetchLB();
+    if (p === 'history') fetchHist();
+    if (p === 'games') fetchMyGames();
 }
 async function fetchLB() { const { data } = await _supabase.from('players').select('*').order('elo', {ascending: false}); document.getElementById('lb-data').innerHTML = data ? data.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #222;"><span>#${i+1} ${p.username}</span><span>${p.elo} ELO</span></div>`).join('') : ""; }
 

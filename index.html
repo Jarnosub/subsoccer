@@ -38,14 +38,13 @@
 
     <div id="app-content">
        <div class="status-bar">
-    <div class="player-label">
+    <div class="player-label" onclick="showPage('profile')">
         <span id="conn-dot" class="connection-dot"></span>
         PLAYER: <span style="color: var(--sub-red); font-family: 'Russo One';" id="label-user"></span>
     </div>
     <div class="logout-link" onclick="location.reload()">LOGOUT</div>
 </div>
         <nav class="nav-tabs">
-            <div class="tab" id="tab-profile" onclick="showPage('profile')">Profile</div>
             <div class="tab" id="tab-games" onclick="showPage('games')">Games</div>
             <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">Ranking</div>
             <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">Tournament</div>
