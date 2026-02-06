@@ -30,7 +30,7 @@ header { width: 100%; padding: 45px 0 15px 0; display: flex; justify-content: ce
     background: linear-gradient(145deg, #1a1a1a, #000);
     border-radius: 18px;
     border: 2px solid #444;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    /* box-shadow poistettu */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -63,26 +63,27 @@ header { width: 100%; padding: 45px 0 15px 0; display: flex; justify-content: ce
 .topps-card-image-container {
     flex-grow: 1;
     background: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     overflow: hidden;
     position: relative;
-    margin: 0 12px;
+    margin: 0; /* Kuva ulottuu nyt kortin reunoihin */
     border-bottom: 4px solid var(--sub-red);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .topps-card-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    /* Kuvaelementtiä ei enää käytetä, piilotetaan se */
+    display: none;
 }
 
 .topps-card-banner {
     background-color: var(--sub-red);
-    padding: 10px;
+    padding: 10px 0;
     text-align: center;
-    box-shadow: 0 -5px 10px rgba(0,0,0,0.5) inset;
+    /* box-shadow poistettu */
+    margin: 0;
+    border-radius: 0 0 0 0;
 }
 
 .player-name {
@@ -270,4 +271,54 @@ input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; bo
         opacity: 0;
         transform: translateX(100%);
     }
+}
+
+/* Leaderboard styles */
+#lb-data {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 24px 0;
+}
+
+#lb-data .ranking-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    background: #181818;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 8px #0002;
+    transition: background 0.2s;
+}
+#lb-data .ranking-row.gold {
+    background: linear-gradient(90deg, #FFD700 60%, #181818 100%);
+    border: 2px solid #FFD700;
+}
+#lb-data .ranking-row.silver {
+    background: linear-gradient(90deg, #C0C0C0 60%, #181818 100%);
+    border: 2px solid #C0C0C0;
+}
+#lb-data .ranking-row.bronze {
+    background: linear-gradient(90deg, #CD7F32 60%, #181818 100%);
+    border: 2px solid #CD7F32;
+}
+#lb-data .ranking-row .rank {
+    font-size: 1.1rem;
+    color: #888;
+    width: 32px;
+}
+#lb-data .ranking-row .flag {
+    font-size: 1.3rem;
+}
+#lb-data .ranking-row .name {
+    font-family: 'Russo One';
+    font-size: 1.1rem;
+    color: #fff;
+}
+#lb-data .ranking-row .elo {
+    font-size: 1.1rem;
+    color: var(--sub-red);
+    font-family: 'Russo One';
 }

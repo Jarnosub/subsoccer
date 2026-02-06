@@ -72,7 +72,6 @@ function addP() {
         updatePoolUI(); 
         showNotification(`${n} added to pool`, 'success');
     } 
-    i.value = ''; 
     document.getElementById('search-results').style.display = 'none'; 
 }
 
@@ -93,7 +92,7 @@ function updateGuestUI() {
 function updateProfileCard() { 
     if (!user) return;
 
-    // ELO-pohjainen rank
+            document.getElementById('card-name').innerHTML = `${flag} ${user.username}`; 
     const getRank = (elo) => {
         if (elo >= 1600) return 'LEGEND';
         if (elo >= 1500) return 'MASTER';
@@ -116,11 +115,11 @@ function updateProfileCard() {
     document.getElementById('card-losses').innerText = losses;
     document.getElementById('card-wl-ratio').innerText = wlRatio;
     
-    const avatarImg = document.getElementById('card-char-img');
+    const imageContainer = document.getElementById('card-image-container');
     if (user.avatar_url) {
-        avatarImg.src = user.avatar_url;
+        imageContainer.style.backgroundImage = `url('${user.avatar_url}')`;
     } else {
-        avatarImg.src = 'placeholder-silhouette-5-wide.png'; // Oletuskuva
+        imageContainer.style.backgroundImage = `url('placeholder-silhouette-5-wide.png')`; // Oletuskuva
     }
 
     // Aseta olemassa oleva URL input-kenttään, jotta se näkyy käyttäjälle
@@ -218,7 +217,26 @@ function showPage(p) {
     if (p === 'history') fetchHist();
     if (p === 'games') fetchMyGames();
 }
-async function fetchLB() { const { data } = await _supabase.from('players').select('*').order('elo', {ascending: false}); document.getElementById('lb-data').innerHTML = data ? data.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #222;"><span>#${i+1} ${p.username}</span><span>${p.elo} ELO</span></div>`).join('') : ""; }
+async function fetchLB() {
+    const { data } = await _supabase.from('players').select('*').order('elo', {ascending: false});
+    document.getElementById('lb-data').innerHTML = data ? data.map((p, i) => {
+        const flag = countryToFlag(p.country);
+        let rowClass = 'ranking-row';
+        if (i === 0) rowClass += ' gold';
+        else if (i === 1) rowClass += ' silver';
+        else if (i === 2) rowClass += ' bronze';
+        return `
+            <div class="${rowClass}">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span class="rank">#${i+1}</span>
+                    <span class="flag">${flag}</span>
+                    <span class="name">${p.username}</span>
+                </div>
+                <div class="elo">${p.elo} ELO</div>
+            </div>
+        `;
+    }).join('') : "";
+}
 
 async function fetchHist() { 
     const { data: tourData } = await _supabase.from('tournament_history').select('*').order('created_at', {ascending: false}); 

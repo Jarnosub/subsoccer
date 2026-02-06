@@ -57,8 +57,8 @@
                     <div class="player-rank" id="card-rank">ROOKIE</div>
                     <div class="player-elo" id="card-elo">1300</div>
                 </div>
-                <div class="topps-card-image-container">
-                    <img id="card-char-img" src="placeholder-silhouette-5-wide.png" class="topps-card-image">
+                <div class="topps-card-image-container" id="card-image-container">
+                    <img id="card-char-img" src="placeholder-silhouette-5-wide.png" class="topps-card-image" style="display: none;">
                 </div>
                 <div class="topps-card-banner">
                     <div class="player-name" id="card-name">PLAYER</div>
@@ -138,7 +138,9 @@
             </div>
         </div>
 
-        <div id="section-leaderboard" class="section"><div class="container" id="lb-data"></div></div>
+        <div id="section-leaderboard" class="section">
+            <div class="container" id="lb-data" style="max-width:500px; margin:auto; padding:24px 0;"></div>
+        </div>
         <div id="section-history" class="section"><div class="container" id="hist-list"></div></div>
     </div>
 
