@@ -24,7 +24,7 @@ function toggleAuth(s) { document.getElementById('login-form').style.display = s
 async function handleSignUp() {
     const u = document.getElementById('reg-user').value.trim().toUpperCase(), p = document.getElementById('reg-pass').value.trim();
     if(!u || !p) return showNotification("Fill all fields", "error");
-    const { error } = await _supabase.from('players').insert([{ username: u, password: p, elo: 1300, wins: 0 }]);
+    const { error } = await _supabase.from('players').insert([{ username: u, password: p, elo: 1300, wins: 0, losses: 0, matches_played: 0, avatar_url: '' }]);
     if(error) showNotification("Error: " + error.message, "error"); else { showNotification("Account created!", "success"); toggleAuth(false); initApp(); }
 }
 
@@ -76,9 +76,65 @@ function updateGuestUI() {
 }
 
 function updateProfileCard() { 
+    if (!user) return;
+
+    // ELO-pohjainen rank
+    const getRank = (elo) => {
+        if (elo >= 1600) return 'LEGEND';
+        if (elo >= 1500) return 'MASTER';
+        if (elo >= 1400) return 'VETERAN';
+        if (elo >= 1300) return 'PRO';
+        return 'ROOKIE';
+    };
+
+    const wins = user.wins || 0;
+    const losses = user.losses || 0;
+    const matchesPlayed = user.matches_played || 0;
+    const wlRatio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? 'INF' : '0.00');
+
     document.getElementById('card-name').innerText = user.username; 
-    document.getElementById('card-wins').innerText = user.wins; 
-    document.getElementById('card-elo').innerText = user.elo; 
+    document.getElementById('card-elo').innerText = user.elo || 1300; 
+    document.getElementById('card-rank').innerText = getRank(user.elo || 1300);
+    
+    document.getElementById('card-matches-played').innerText = matchesPlayed;
+    document.getElementById('card-wins').innerText = wins;
+    document.getElementById('card-losses').innerText = losses;
+    document.getElementById('card-wl-ratio').innerText = wlRatio;
+    
+    const avatarImg = document.getElementById('card-char-img');
+    if (user.avatar_url) {
+        avatarImg.src = user.avatar_url;
+    } else {
+        avatarImg.src = 'placeholder-silhouette-5-wide.png'; // Oletuskuva
+    }
+}
+
+async function updateAvatar() {
+    const newUrl = document.getElementById('avatar-url-input').value.trim();
+    if (!newUrl) {
+        return showNotification("URL cannot be empty.", "error");
+    }
+    if (user.id === 'guest') {
+        return showNotification("Guests cannot update their profile.", "error");
+    }
+
+    const { data, error } = await _supabase
+        .from('players')
+        .update({ avatar_url: newUrl })
+        .eq('id', user.id)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating avatar:', error);
+        return showNotification("Error updating profile picture.", "error");
+    }
+
+    if (data) {
+        user = data; // Päivitä paikallinen user-objekti
+        updateProfileCard(); // Päivitä kortti uusilla tiedoilla
+        showNotification("Profile picture updated!", "success");
+    }
 }
 
 function updatePoolUI() {
@@ -220,15 +276,27 @@ async function saveMatch(p1, p2, winner, tourName) {
 
     if (p1Data && p2Data) {
         const winnerData = winner === p1 ? p1Data : p2Data;
+        const loserData = winner === p1 ? p2Data : p1Data;
         const { newEloA, newEloB } = calculateNewElo(p1Data, p2Data, winnerData);
 
-        await _supabase.from('players').update({ elo: newEloA }).eq('id', p1Data.id);
-        await _supabase.from('players').update({ elo: newEloB }).eq('id', p2Data.id);
+        const winnerElo = winner === p1 ? newEloA : newEloB;
+        const loserElo = winner === p1 ? newEloB : newEloA;
 
-        const { data: winnerDb } = await _supabase.from('players').select('wins').eq('username', winner).single();
-        if(winnerDb) {
-            await _supabase.from('players').update({ wins: (winnerDb.wins || 0) + 1 }).eq('username', winner);
-        }
+        // Päivitä voittajan tiedot
+        const winnerUpdate = _supabase.from('players').update({ 
+            wins: (winnerData.wins || 0) + 1,
+            matches_played: (winnerData.matches_played || 0) + 1,
+            elo: winnerElo
+        }).eq('id', winnerData.id);
+
+        // Päivitä häviäjän tiedot
+        const loserUpdate = _supabase.from('players').update({ 
+            losses: (loserData.losses || 0) + 1,
+            matches_played: (loserData.matches_played || 0) + 1,
+            elo: loserElo
+        }).eq('id', loserData.id);
+        
+        await Promise.all([winnerUpdate, loserUpdate]);
     }
 
     const matchData = { player1: p1, player2: p2, winner: winner, tournament_name: tourName || null, tournament_id: currentTournamentId };

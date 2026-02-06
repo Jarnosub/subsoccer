@@ -52,14 +52,44 @@
         </nav>
 
         <div id="section-profile" class="section">
-            <div class="premium-card">
-                <img id="card-char-img" src="placeholder-silhouette-5-wide.png" class="player-img">
-                <div class="card-content">
-                    <div class="card-name-tag" id="card-name">PLAYER</div>
-                    <div class="card-stat-box wins-container"><div class="stat-label">TOTAL WINS</div><div class="stat-val" id="card-wins">0</div></div>
-                    <div class="card-stat-box elo-container"><div class="stat-label">ELO RATING</div><div class="stat-val" id="card-elo">1300</div></div>
-                    <div class="card-stat-box team-container"><div class="stat-label">TEAM</div><div class="stat-val" id="card-team" style="font-size: 0.85rem;">SUPERSTARS</div></div>
+            <div class="topps-card">
+                <div class="topps-card-header">
+                    <div class="player-rank" id="card-rank">ROOKIE</div>
+                    <div class="player-elo" id="card-elo">1300</div>
                 </div>
+                <div class="topps-card-image-container">
+                    <img id="card-char-img" src="placeholder-silhouette-5-wide.png" class="topps-card-image">
+                </div>
+                <div class="topps-card-banner">
+                    <div class="player-name" id="card-name">PLAYER</div>
+                </div>
+                <div class="topps-card-stats">
+                    <div class="stat">
+                        <span class="stat-value" id="card-matches-played">0</span>
+                        <span class="stat-label">GAMES</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="card-wins">0</span>
+                        <span class="stat-label">WINS</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="card-losses">0</span>
+                        <span class="stat-label">LOSSES</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="card-wl-ratio">.000</span>
+                        <span class="stat-label">W/L</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container" style="margin-top: 20px;">
+                <h3 style="font-family:'Russo One'; text-transform:uppercase;">UPDATE PROFILE PICTURE</h3>
+                <p style="font-size: 0.7rem; color: #888; text-align: center; margin-bottom: 15px;">
+                    For best results, use a tool like <a href="https://imgur.com/upload" target="_blank" style="color: var(--sub-gold);">Imgur</a>. After uploading, right-click the image and select "Copy Image Address".
+                </p>
+                <input type="text" id="avatar-url-input" placeholder="Paste image URL here...">
+                <button class="btn-red" style="background: #333;" onclick="updateAvatar()">SAVE PICTURE</button>
             </div>
         </div>
 

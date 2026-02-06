@@ -17,19 +17,106 @@ header { width: 100%; padding: 45px 0 15px 0; display: flex; justify-content: ce
 .section { width: 100%; display: none; flex-direction: column; align-items: center; }
 .section.active { display: flex; }
 
-/* PLAYER CARD - VERTICAL ADJUSTMENTS */
-.premium-card { position: relative; width: 350px; height: 500px; background-image: url('silver-temp-custom.jpg'); background-size: cover; border-radius: 15px; overflow: hidden; border: 1px solid #555; box-shadow: 0 15px 35px rgba(0,0,0,0.9); margin-bottom: 20px; }
-.player-img { position: absolute; left: -10px; bottom: 45px; width: 240px; height: auto; z-index: 1; pointer-events: none; }
-.card-content { position: absolute; right: 26px; top: 132px; width: 155px; z-index: 2; display: flex; flex-direction: column; text-align: right; }
-.card-name-tag { font-family: 'Russo One', sans-serif; font-size: 0.85rem; color: var(--sub-white); text-transform: uppercase; height: 55px; display: flex; align-items: center; justify-content: flex-end; text-shadow: 2px 2px 4px #000; line-height: 1.1; margin-top: 10px; margin-bottom: 12px; max-width: 100px; margin-left: auto; word-wrap: break-word; }
+/* REMOVE OLD CARD STYLES */
+.premium-card, .player-img, .card-content, .card-name-tag, .card-stat-box, .wins-container, .elo-container, .team-container, .stat-label, .stat-val {
+    display: none;
+}
 
-.card-stat-box { height: 55px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 12px; }
-.wins-container { margin-top: -8px; } 
-.elo-container { margin-top: -14px; } 
-.team-container { margin-top: -10px; } 
+/* NEW TOPPS CARD STYLES */
+.topps-card {
+    font-family: 'Russo One', sans-serif;
+    width: 350px;
+    height: 500px;
+    background: linear-gradient(145deg, #1a1a1a, #000);
+    border-radius: 18px;
+    border: 2px solid #444;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
 
-.stat-label { font-family: 'Russo One', sans-serif; font-size: 0.5rem; color: var(--sub-white); text-transform: uppercase; opacity: 0.8; margin-bottom: 2px; }
-.stat-val { font-family: 'Russo One', sans-serif; font-size: 1.4rem; color: var(--sub-red); text-transform: uppercase; line-height: 0.9; text-shadow: 1px 1px 2px #000; }
+.topps-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: rgba(0,0,0,0.3);
+}
+
+.player-rank {
+    background-color: var(--sub-gold);
+    color: #000;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.player-elo {
+    font-size: 1.5rem;
+    color: var(--sub-white);
+    text-shadow: 0 0 5px var(--sub-red);
+}
+
+.topps-card-image-container {
+    flex-grow: 1;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    margin: 0 12px;
+    border-bottom: 4px solid var(--sub-red);
+}
+
+.topps-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.topps-card-banner {
+    background-color: var(--sub-red);
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 -5px 10px rgba(0,0,0,0.5) inset;
+}
+
+.player-name {
+    color: var(--sub-white);
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 3px #000;
+}
+
+.topps-card-stats {
+    display: flex;
+    justify-content: space-around;
+    background: #111;
+    padding: 15px 10px;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.6rem;
+    color: var(--sub-white);
+    line-height: 1;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.6rem;
+    color: #888;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
 
 /* SEARCH RESULTS STYLING */
 #search-results { 
