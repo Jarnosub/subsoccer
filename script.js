@@ -91,8 +91,6 @@ function updateGuestUI() {
 
 function updateProfileCard() { 
     if (!user) return;
-
-            document.getElementById('card-name').innerHTML = `${flag} ${user.username}`; 
     const getRank = (elo) => {
         if (elo >= 1600) return 'LEGEND';
         if (elo >= 1500) return 'MASTER';
@@ -100,29 +98,24 @@ function updateProfileCard() {
         if (elo >= 1300) return 'PRO';
         return 'ROOKIE';
     };
-
     const wins = user.wins || 0;
     const losses = user.losses || 0;
     const matchesPlayed = user.matches_played || 0;
     const wlRatio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? 'INF' : '0.00');
-
-    document.getElementById('card-name').innerText = user.username; 
-    document.getElementById('card-elo').innerText = user.elo || 1300; 
+    const flag = countryToFlag(user.country);
+    document.getElementById('card-name').innerHTML = `${flag} ${user.username}`;
+    document.getElementById('card-elo').innerText = user.elo || 1300;
     document.getElementById('card-rank').innerText = getRank(user.elo || 1300);
-    
     document.getElementById('card-matches-played').innerText = matchesPlayed;
     document.getElementById('card-wins').innerText = wins;
     document.getElementById('card-losses').innerText = losses;
     document.getElementById('card-wl-ratio').innerText = wlRatio;
-    
     const imageContainer = document.getElementById('card-image-container');
     if (user.avatar_url) {
         imageContainer.style.backgroundImage = `url('${user.avatar_url}')`;
     } else {
-        imageContainer.style.backgroundImage = `url('placeholder-silhouette-5-wide.png')`; // Oletuskuva
+        imageContainer.style.backgroundImage = `url('placeholder-silhouette-5-wide.png')`;
     }
-
-    // Aseta olemassa oleva URL input-kenttään, jotta se näkyy käyttäjälle
     const avatarInput = document.getElementById('avatar-url-input');
     if (avatarInput) {
         avatarInput.value = user.avatar_url || '';
