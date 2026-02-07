@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer Pro v70.0 Master</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="initApp()">
+
+    <div id="notification-container"></div>
+
+    <header><img src="logo.png" class="main-logo" alt="Subsoccer"></header>
+
+    <div id="auth-page">
+        <div id="login-form" class="container" style="text-align:center;">
+            <h2 style="font-family:'Russo One'; margin-bottom: 25px;">PLAYER LOGIN</h2>
+            <input type="text" id="auth-user" placeholder="Username">
+            <input type="password" id="auth-pass" placeholder="Password">
+            <button class="btn-red" onclick="handleAuth()">ENTER</button>
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <span style="font-size: 0.75rem; color: var(--sub-gold); cursor: pointer;" onclick="toggleAuth(true)">Create Account</span>
+            </div>
+            <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
+            <input type="text" id="guest-nick" placeholder="Guest Nickname">
+            <button class="btn-red" style="background:#333;" onclick="handleGuest()">JOIN AS GUEST</button>
+        </div>
+        <div id="signup-form" class="container" style="text-align:center; display:none;">
+            <h2 style="font-family:'Russo One';">CREATE ACCOUNT</h2>
+            <input type="text" id="reg-user" placeholder="Choose Username">
+            <input type="password" id="reg-pass" placeholder="Choose Password">
+            <button class="btn-red" onclick="handleSignUp()">REGISTER</button>
+            <div style="margin-top: 15px;"><span style="font-size: 0.75rem; color: #666; cursor: pointer;" onclick="toggleAuth(false)">Back to Login</span></div>
+        </div>
+    </div>
+
+    <div id="app-content">
+       <div class="status-bar">
+    <div class="player-label" onclick="showPage('profile')" style="cursor: pointer;">
+        <span id="conn-dot" class="connection-dot"></span>
+        PLAYER: <span style="color: var(--sub-red); font-family: 'Russo One';" id="label-user"></span>
+    </div>
+    <div class="logout-link" onclick="location.reload()">LOGOUT</div>
+</div>
+        <nav class="nav-tabs">
+            <div class="tab" id="tab-games" onclick="showPage('games')">Games</div>
+            <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">Ranking</div>
+            <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">Tournament</div>
+            <div class="tab" id="tab-history" onclick="showPage('history')">History</div>
+        </nav>
+
+        <div id="section-profile" class="section">
+            <div class="premium-card">
+                <img id="card-char-img" src="placeholder-silhouette-5-wide.png" class="player-img">
+                <div class="card-content">
+                    <div class="card-name-tag" id="card-name">PLAYER</div>
+                    <div class="card-stat-box wins-container"><div class="stat-label">TOTAL WINS</div><div class="stat-val" id="card-wins">0</div></div>
+                    <div class="card-stat-box elo-container"><div class="stat-label">ELO RATING</div><div class="stat-val" id="card-elo">1300</div></div>
+                    <div class="card-stat-box team-container"><div class="stat-label">TEAM</div><div class="stat-val" id="card-team" style="font-size: 0.85rem;">SUPERSTARS</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-games" class="section">
+            <div class="container">
+                <h3 style="font-family:'Russo One'; text-transform:uppercase;">REGISTER NEW GAME</h3>
+                <input type="text" id="game-code-input" placeholder="Unique Game Code">
+                <input type="text" id="game-name-input" placeholder="Give a Name for Your Game">
+                <input type="text" id="game-location-input" placeholder="Game Location">
+                <button class="btn-red" onclick="registerGame()">REGISTER GAME</button>
+                <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
+                <h3 style="font-family:'Russo One'; text-transform:uppercase;">MY GAMES</h3>
+                <div id="my-games-list"></div>
+            </div>
+        </div>
+
+        <div id="section-tournament" class="section active">
+            <div id="tour-setup" class="container">
+                <div class="tour-setup-header">
+                    <h3 style="font-family:'Russo One'; text-transform:uppercase;">NEW EVENT / TOURNAMENT</h3>
+                    <input type="text" id="event-name-input" placeholder="Event Name (Optional)">
+                    <input type="text" id="tour-name-input" placeholder="Tournament Name">
+                    <div id="active-guests" style="margin-bottom:15px; text-align:left;"></div>
+                </div>
+                <div class="tour-setup-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
+                        <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">PLAYER POOL (<span id="pool-count">0</span>)</span>
+                        <button style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;" onclick="clearPool()">CLEAR</button>
+                    </div>
+                    <div id="pool-list">No players added.</div>
+                </div>
+                <div class="tour-setup-footer">
+                    <div class="add-player-container">
+                        <input type="text" id="add-p-input" placeholder="Search or add guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
+                        <button class="add-guest-btn" onclick="addP()">+ Add</button>
+                    </div>
+                    <div id="search-results"></div>
+                    <button class="btn-red" style="margin-top: 10px;" onclick="startTournament()">GENERATE BRACKETS</button>
+                </div>
+            </div>
+            
+            <div id="tour-engine" style="display:none; width:100%; max-width:450px; flex-direction:column; align-items:center;">
+                <div id="bracket-area" style="width:100%;"></div>
+                <button id="next-rd-btn" class="btn-red" style="display:none; margin-top:15px;" onclick="advanceRound()">NEXT ROUND</button>
+                <button id="save-btn" class="btn-red" style="display:none; background:var(--sub-gold)!important; color:#000!important; margin-top:15px;" onclick="saveTour()">SAVE RESULTS</button>
+            </div>
+        </div>
+
+        <div id="section-leaderboard" class="section"><div class="container" id="lb-data"></div></div>
+        <div id="section-history" class="section"><div class="container" id="hist-list"></div></div>
+    </div>
+
+    <script src="script.js?v=1.2"></script>
+    <div style="position: fixed; bottom: 5px; right: 10px; font-size: 12px; color: #555;">v.1.0.1</div>
+</body>
+</html>
