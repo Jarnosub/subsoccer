@@ -24,7 +24,7 @@ header { width: 100%; padding: 45px 0 15px 0; display: flex; justify-content: ce
         height: 70px !important; display: flex; align-items: center;
     }
     .tab { 
-        opacity: 0.5; color: #888; border-bottom: none; padding: 12px 0 !important; flex: 1; font-size: 2.5rem !important; text-align: center;
+        opacity: 0.5; color: #888; border-bottom: none; padding: 12px 0 !important; flex: 1; font-size: 2.2rem !important; text-align: center;
     }
     .tab.active { opacity: 1; color: var(--sub-red) !important; border-bottom: none !important; }
     #app-content { padding-bottom: 80px; }
