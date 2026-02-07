@@ -5,66 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Subsoccer Pro v70.0 Master</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@300;400;700&display=swap');
-        :root { --sub-red: #E30613; --sub-black: #0a0a0a; --sub-white: #FFFFFF; --sub-gold: #FFD700; --sub-border: #333; }
-        
-        body { font-family: 'Open Sans', sans-serif; background-color: var(--sub-black); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-        header { width: 100%; padding: 45px 0 15px 0; display: flex; justify-content: center; }
-        .main-logo { width: 220px; height: auto; }
-
-        #app-content { width: 100%; display: none; flex-direction: column; align-items: center; }
-        .status-bar { width: 100%; max-width: 450px; text-align: center; margin-bottom: 20px; text-transform: uppercase; }
-        .player-label { font-size: 0.85rem; font-weight: 400; color: #fff; }
-        .logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; margin-top: 2px; letter-spacing: 1px; }
-
-        .nav-tabs { display: flex; justify-content: center; gap: 12px; width: 95%; max-width: 450px; border-bottom: 1px solid var(--sub-border); margin-bottom: 25px; }
-        .tab { font-family: 'Russo One', sans-serif; font-size: 0.8rem; padding: 12px 6px; cursor: pointer; opacity: 0.4; text-transform: uppercase; color: #fff; border-bottom: 3px solid transparent; }
-        .tab.active { opacity: 1; color: var(--sub-red); border-bottom-color: var(--sub-red); }
-
-        .section { width: 100%; display: none; flex-direction: column; align-items: center; }
-        .section.active { display: flex; }
-
-        /* PLAYER CARD - VERTICAL ADJUSTMENTS */
-        .premium-card { position: relative; width: 350px; height: 500px; background-image: url('silver-temp-custom.jpg'); background-size: cover; border-radius: 15px; overflow: hidden; border: 1px solid #555; box-shadow: 0 15px 35px rgba(0,0,0,0.9); margin-bottom: 20px; }
-        .player-img { position: absolute; left: -10px; bottom: 45px; width: 240px; height: auto; z-index: 1; pointer-events: none; }
-        .card-content { position: absolute; right: 26px; top: 132px; width: 155px; z-index: 2; display: flex; flex-direction: column; text-align: right; }
-        .card-name-tag { font-family: 'Russo One', sans-serif; font-size: 0.85rem; color: var(--sub-white); text-transform: uppercase; height: 55px; display: flex; align-items: center; justify-content: flex-end; text-shadow: 2px 2px 4px #000; line-height: 1.1; margin-top: 10px; margin-bottom: 12px; max-width: 100px; margin-left: auto; word-wrap: break-word; }
-        
-        .card-stat-box { height: 55px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 12px; }
-        .wins-container { margin-top: -8px; } 
-        .elo-container { margin-top: -14px; } 
-        .team-container { margin-top: -10px; } 
-
-        .stat-label { font-family: 'Russo One', sans-serif; font-size: 0.5rem; color: var(--sub-white); text-transform: uppercase; opacity: 0.8; margin-bottom: 2px; }
-        .stat-val { font-family: 'Russo One', sans-serif; font-size: 1.4rem; color: var(--sub-red); text-transform: uppercase; line-height: 0.9; text-shadow: 1px 1px 2px #000; }
-
-        /* SEARCH RESULTS STYLING */
-        #search-results { background: #111; border: 1px solid #333; border-radius: 8px; max-height: 150px; overflow-y: auto; display: none; position: absolute; width: calc(100% - 50px); z-index: 10; margin-top: -20px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        .search-item { padding: 12px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.9rem; text-align: left; transition: background 0.2s; }
-        .search-item:hover { background: #222; color: var(--sub-red); }
-
-        .container { background: #111; padding: 25px; border-radius: 20px; border: 1px solid #222; width: 95%; max-width: 400px; box-sizing: border-box; }
-        .btn-red { width: 100%; padding: 18px; border-radius: 12px; border: none; font-family: 'Russo One', sans-serif; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1.1rem; }
-        input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; font-size: 1rem; }
-        #auth-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--sub-black); display: flex; flex-direction: column; align-items: center; z-index: 1000; padding-top: 80px; }
-        /* Connection Light */
-.connection-dot {
-    width: 8px;
-    height: 8px;
-    background-color: #28a745;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 8px;
-    box-shadow: 0 0 8px #28a745;
-    transition: 0.3s;
-    vertical-align: middle;
-}
-.dot-offline {
-    background-color: #ff0000 !important;
-    box-shadow: 0 0 8px #ff0000 !important;
-}
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body onload="initApp()">
 
@@ -104,6 +46,7 @@
 </div>
         <nav class="nav-tabs">
             <div class="tab" id="tab-profile" onclick="showPage('profile')">Profile</div>
+            <div class="tab" id="tab-games" onclick="showPage('games')">Games</div>
             <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">Ranking</div>
             <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">Tournament</div>
             <div class="tab" id="tab-history" onclick="showPage('history')">History</div>
@@ -121,26 +64,42 @@
             </div>
         </div>
 
-        <div id="section-tournament" class="section active">
-            <div id="tour-setup" class="container" style="position:relative;">
-                <h3 style="font-family:'Russo One'; text-transform:uppercase;">NEW TOURNAMENT</h3>
-                <input type="text" id="tour-name-input" placeholder="Tournament Name">
-                
-                <div id="active-guests" style="margin-bottom:15px; text-align:left;"></div>
+        <div id="section-games" class="section">
+            <div class="container">
+                <h3 style="font-family:'Russo One'; text-transform:uppercase;">REGISTER NEW GAME</h3>
+                <input type="text" id="game-code-input" placeholder="Unique Game Code">
+                <input type="text" id="game-name-input" placeholder="Give a Name for Your Game">
+                <input type="text" id="game-location-input" placeholder="Game Location">
+                <button class="btn-red" onclick="registerGame()">REGISTER GAME</button>
+                <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
+                <h3 style="font-family:'Russo One'; text-transform:uppercase;">MY GAMES</h3>
+                <div id="my-games-list"></div>
+            </div>
+        </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
-                    <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">PLAYER POOL</span>
-                    <button style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;" onclick="clearPool()">CLEAR</button>
+        <div id="section-tournament" class="section active">
+            <div id="tour-setup" class="container">
+                <div class="tour-setup-header">
+                    <h3 style="font-family:'Russo One'; text-transform:uppercase;">NEW EVENT / TOURNAMENT</h3>
+                    <input type="text" id="event-name-input" placeholder="Event Name (Optional)">
+                    <input type="text" id="tour-name-input" placeholder="Tournament Name">
+                    <div id="active-guests" style="margin-bottom:15px; text-align:left;"></div>
                 </div>
-                <div id="pool-list" style="margin:10px 0; background:#000; padding:15px; border-radius:12px; font-size:0.8rem; min-height:40px; text-align:left; color:#888;">No players added.</div>
-                
-                <div class="add-player-container">
-                    <input type="text" id="add-p-input" placeholder="Search or add guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
-                    <button class="add-guest-btn" onclick="addP()">+ Add</button>
+                <div class="tour-setup-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
+                        <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">PLAYER POOL (<span id="pool-count">0</span>)</span>
+                        <button style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;" onclick="clearPool()">CLEAR</button>
+                    </div>
+                    <div id="pool-list">No players added.</div>
                 </div>
-                <div id="search-results"></div>
-                
-                <button class="btn-red" style="margin-top: 10px;" onclick="startTournament()">GENERATE BRACKETS</button>
+                <div class="tour-setup-footer">
+                    <div class="add-player-container">
+                        <input type="text" id="add-p-input" placeholder="Search or add guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
+                        <button class="add-guest-btn" onclick="addP()">+ Add</button>
+                    </div>
+                    <div id="search-results"></div>
+                    <button class="btn-red" style="margin-top: 10px;" onclick="startTournament()">GENERATE BRACKETS</button>
+                </div>
             </div>
             
             <div id="tour-engine" style="display:none; width:100%; max-width:450px; flex-direction:column; align-items:center;">
@@ -154,7 +113,7 @@
         <div id="section-history" class="section"><div class="container" id="hist-list"></div></div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=1.2"></script>
     <div style="position: fixed; bottom: 5px; right: 10px; font-size: 12px; color: #555;">v.1.0.1</div>
 </body>
 </html>
