@@ -883,7 +883,7 @@ async function updateGame() {
 }
 
 async function deleteGame(id) {
-    if (!confirm("Haluatko varmasti poistaa tämän pelipaikan? Se poistuu myös vanhoista turnaustuloksista.")) return;
+    if (!confirm("Are you sure you want to delete this game table? It will also be removed from past tournament results.")) return;
     try {
         // 1. Irrotetaan peli historiasta (asetetaan game_id nulliksi niissä turnauksissa, joissa se on ollut)
         const { error: updateError } = await _supabase
@@ -898,13 +898,13 @@ async function deleteGame(id) {
             .eq('id', id);
         if (deleteError) throw deleteError;
         // 3. Päivitetään käyttöliittymä
-        showNotification("Peli poistettu onnistuneesti", "success");
+        showNotification("Game deleted successfully", "success");
         if (typeof fetchMyGames === "function") fetchMyGames();
         if (typeof fetchAllGames === "function") fetchAllGames();
         
     } catch (e) {
-        console.error("Poistovirhe:", e);
-        showNotification("Poisto epäonnistui: " + e.message, "error");
+        console.error("Deletion error:", e);
+        showNotification("Deletion failed: " + e.message, "error");
     }
 }
 
@@ -1144,7 +1144,7 @@ function closeVictoryOverlay() {
 
     // POISTETTU: location.reload(); <-- Tämä aiheutti login-ruutuun hyppäämisen
     
-    showNotification("Ottelu tallennettu!", "success");
+    showNotification("Match saved!", "success");
 }
 
 function toggleTournamentMode() {
