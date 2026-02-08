@@ -3,7 +3,7 @@
     font-family: 'SubsoccerLogo';
     src: url('fonts/Subsoccer-2-Regular.otf') format('opentype');
 }
-@font-face { font-family: 'Resolve'; /* Vaihdettu Condensed -> Narrow */ src: url('fonts/Resolve-BoldNrw.otf') format('opentype'); }
+@font-face { font-family: 'ResolveNarrow'; /* Vaihdettu Condensed -> Narrow */ src: url('fonts/Resolve-BoldNrw.otf') format('opentype'); }
 
 @font-face { font-family: 'ResolveRegular'; src: url('fonts/Resolve-RegularCn.otf') format('opentype'); }
 
@@ -15,7 +15,7 @@
 :root { 
     --sub-red: #E30613; --sub-black: #0a0a0a; --sub-white: #FFFFFF; --sub-gold: #FFD700; --sub-border: #333; 
     --sub-logo-font: 'SubsoccerLogo', sans-serif;
-    --sub-name-font: 'Resolve', sans-serif; /* Käytetään väljempää fonttia */
+    --sub-name-font: 'ResolveNarrow', sans-serif; /* Käytetään väljempää fonttia */
     --sub-body-font: 'ResolveRegular', sans-serif;
 }
 
@@ -118,12 +118,10 @@ h2, h3, .card-header-stripe, .event-title {
     color: #fff;
     text-align: center;
     padding: 2px 0 !important;
-    font-family: 'Resolve', sans-serif !important;
-    font-stretch: normal !important;
-    letter-spacing: 0.05em !important; /* Kortissa saa olla vielä enemmän arvokkuutta */
+    font-family: var(--sub-name-font) !important;
+    font-size: 1.4rem !important;
     text-transform: uppercase;
-    font-size: 2.2rem !important;
-    line-height: 1.1;
+    letter-spacing: 0.5px !important;
 }
 .card-info-area {
     flex-grow: 1;
@@ -167,15 +165,7 @@ h2, h3, .card-header-stripe, .event-title {
     max-height: 200px !important;
     overflow-y: auto !important;
 }
-.search-item { 
-    padding: 12px 15px !important; 
-    border-bottom: 1px solid #222; cursor: pointer; font-size: 0.9rem; text-align: left; transition: background 0.2s; 
-    font-family: 'Resolve', sans-serif !important;
-    font-stretch: normal !important; /* Estää fontin puristumisen */
-    letter-spacing: 0.02em !important; /* Lisää hieman hengittävyyttä */
-    text-transform: uppercase;
-    font-weight: 500;
-}
+.search-item { padding: 12px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.9rem; text-align: left; transition: background 0.2s; }
 .search-item:hover { background: #222; color: var(--sub-red); }
 
 .quick-results {
@@ -287,12 +277,6 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
     padding-bottom: 120px !important;
 }
 
-#elo-preview {
-    font-family: 'Resolve', sans-serif !important;
-    font-stretch: normal !important;
-    letter-spacing: 0.03em;
-}
-
 /* ILMOITUSTEN TYYLIT (TOAST) */
 #notification-container {
     position: fixed;
@@ -355,7 +339,7 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 
 #elo-prediction-text .highlight {
     color: var(--sub-gold) !important;
-    font-family: 'Resolve', sans-serif !important;
+    font-family: 'ResolveNarrow', sans-serif !important;
     font-size: 1.1rem !important;
 }
 
@@ -363,7 +347,7 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 .tour-mode-toggle {
     margin-top: 15px;
     padding: 10px 25px !important; /* Hieman enemmän tilaa sormille */
-    font-family: 'Resolve', sans-serif !important; /* Vaihdetaan Russo Onesta luettavampaan mutta tyylikkääseen */
+    font-family: 'ResolveNarrow', sans-serif !important; /* Vaihdetaan Russo Onesta luettavampaan mutta tyylikkääseen */
     font-size: 0.9rem !important; /* Pidetään hieman isompana kuten pyysit */
     color: #888 !important;
     background: transparent !important;

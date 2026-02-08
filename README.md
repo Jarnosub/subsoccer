@@ -1,44 +1,36 @@
-# Subsoccer Pro v70.0 Master
+⚽ Subsoccer Pro - Master Edition
+A high-performance web application designed for competitive Subsoccer matches. This tool focuses on a "Play First" philosophy, allowing players to start matches instantly, track ELO ratings, and manage local tournaments.
 
-Subsoccer Pro is a mobile-optimized tournament and ranking management application designed for physical Subsoccer (table football) games. This application serves as a digital companion to track player performance, manage tournament brackets, and maintain a global ranking system.
+🚀 Core Features
+1. Quick Match (Primary Mode)
+Instant Start: Jump into a match by simply entering two player names.
 
-## 🚀 Features
+ELO Prediction: Real-time calculation of potential ELO gains before the match begins.
 
-- **Premium Player Cards:** High-fidelity UI with real-time stats (Wins, ELO, Team) pixel-perfectly aligned to custom graphics.
-- **Character Selection:** Integrated avatar system allowing players to choose their identity from a set of silhouettes.
-- **Tournament Engine:** - Automated bracket generation with support for "BYE" rounds (odd player counts).
-  - Hybrid search: Instant search across database-registered players and session-based guest players.
-  - "Quick Add" functionality: Add any name to the pool instantly by pressing Enter.
-- **Competitive Ranking (ELO):** A chess-inspired ranking system that awards +25 ELO per victory.
-- **Global Updates:** The engine automatically updates the ELO of any registered winner in the database, regardless of who is currently logged in to the device.
-- **History Tracking:** Persistent storage of tournament winners and event names.
+Winner Reveal: High-impact "Victory Overlay" that celebrates the winner and displays rating changes with professional animations.
 
-## 🛠 Technical Stack
+2. ELO Ranking System
+Fully integrated with Supabase for persistent data storage.
 
-- **Frontend:** Vanilla JavaScript (ES6+), HTML5, CSS3 (Flexbox & Absolute Positioning).
-- **Backend-as-a-Service:** [Supabase](https://supabase.com/) (PostgreSQL).
-- **Hosting:** [Netlify](https://netlify.com/) with automated GitHub CI/CD deployment.
-- **Typography:** Russo One (Sporty Headers) and Open Sans (UI/Body).
+Tracks player wins, losses, and overall skill level.
 
-## 📂 Project Structure
+Guest support: Casual players can participate in matches without permanent accounts.
 
-- `index.html`: The main Single Page Application containing all logic and styling.
-- `logo.png`: Official Subsoccer branding.
-- `silver-temp.jpg`: The graphic background for the premium player cards.
-- `placeholder-silhouette.png`: Player avatar assets.
+3. Tournament Engine (Advanced)
+Bracket Generation: Create single-elimination brackets for local events.
 
-## 🔧 Development Notes
+Management Tools: Dedicated "Manage Game Tables" section for organizers to handle physical table settings and live stream integration.
 
-This version (**v70.0 Master**) is the most stable release, prioritizing reliable database connections and precise CSS alignment. 
+4. Player Profiles & Pro Cards
+Custom Pro Cards: Generate high-resolution, shareable player cards using html2canvas.
 
-### Global ELO Update Logic
-The application performs a cross-reference check upon tournament completion. If the winner's name exists in the `players` table, the system updates their global ELO and Win count automatically. This allows for multi-user tournaments to affect rankings without requiring every player to log in individually.
+National Representation: Select flags and clubs to personalize the competitive experience.
 
-## 👥 Developers & Contributions
+🛠 Technical Stack
+Frontend: Vanilla JS, CSS3, HTML5.
 
-This repository serves as a **Sandbox Environment** for feature testing and UI refinement. 
-- Primary testing focused on mobile browser compatibility and database latency handling.
-- For production-level integration, refer to the database schema in the connected Supabase instance.
+Backend: Supabase (Database & Auth).
 
----
-*Developed as a collaborative project for the Subsoccer gaming community.*
+Mapping: Leaflet.js for managing game table locations.
+
+Fonts: Specialized sports typography (SubsoccerLogo, Russo One, Resolve Narrow).
