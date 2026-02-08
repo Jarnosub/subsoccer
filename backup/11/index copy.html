@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
         /* Fix navigation visibility */
@@ -124,23 +123,13 @@
     </div>
     <div class="logout-link" onclick="location.reload()">LOGOUT</div>
 </div>
-        <div class="nav-tabs">
-            <div class="tab" id="tab-profile" onclick="showPage('profile')">
-                <i class="fa-regular fa-user"></i>
-            </div>
-            <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
-                <i class="fa-solid fa-trophy"></i>
-            </div>
-            <div class="tab" id="tab-map" onclick="showPage('map')">
-                <i class="fa-regular fa-map"></i>
-            </div>
-            <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">
-                <i class="fa-solid fa-chart-simple"></i>
-            </div>
-            <div class="tab" id="tab-more" onclick="showPage('more')">
-                <i class="fa-solid fa-ellipsis"></i>
-            </div>
-        </div>
+        <nav class="nav-tabs">
+            <div class="tab" id="tab-profile" onclick="showPage('profile')">👤</div>
+            <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">🏆</div>
+            <div class="tab" id="tab-map" onclick="showPage('map')">📍</div>
+            <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">📊</div>
+            <div class="tab" id="tab-more" onclick="showPage('more')">...</div>
+        </nav>
 
         <div id="section-profile" class="section">
             <div class="pro-card">

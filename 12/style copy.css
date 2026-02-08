@@ -17,35 +17,17 @@ header { width: 100%; padding: 45px 0 15px 0; display: flex; justify-content: ce
 /* Mobile Navigation Bar */
 @media (max-width: 768px) {
     .nav-tabs {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        /* iPhonen standardikorkeus 50px + alareunan turvaväli */
-        height: calc(50px + env(safe-area-inset-bottom)) !important; 
-        background: rgba(10, 10, 10, 0.98) !important;
-        backdrop-filter: blur(15px);
-        border-top: 0.5px solid rgba(255, 255, 255, 0.15) !important; /* Erittäin ohut viiva kuten iOS */
-        border-bottom: none !important;
-        padding-top: 0 !important;
-        padding-bottom: env(safe-area-inset-bottom) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-around !important;
-        z-index: 9999 !important;
-        margin-bottom: 0; gap: 0;
+        position: fixed; bottom: 0; left: 0; width: 100%; max-width: 100%;
+        background: #0a0a0a; border-top: 1px solid #333; border-bottom: none;
+        margin-bottom: 0; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)) 0;
+        z-index: 9999; justify-content: space-around; gap: 0;
+        height: 70px !important; display: flex; align-items: center;
     }
-    .tab i {
-        font-size: 1.6rem !important; /* Maltillinen, tyylikäs koko */
-        display: block;
-        transition: transform 0.2s ease;
+    .tab { 
+        opacity: 0.5; color: #888; border-bottom: none; padding: 12px 0 !important; flex: 1; font-size: 2.2rem !important; text-align: center;
     }
-    .tab { font-size: 1.4rem !important; padding: 0 !important; flex: 1; display: flex; justify-content: center; align-items: center; height: 50px; opacity: 0.4; color: #ffffff !important; border: none !important; }
-
-    .tab.active { opacity: 1; color: var(--sub-red) !important; }
-
-    .tab.active i { transform: translateY(-2px); /* Pieni nosto korostukseksi */ }
-    #app-content { padding-bottom: calc(60px + env(safe-area-inset-bottom)) !important; }
+    .tab.active { opacity: 1; color: var(--sub-red) !important; border-bottom: none !important; }
+    #app-content { padding-bottom: 80px; }
 }
 
 .section { width: 100%; display: none; flex-direction: column; align-items: center; }
