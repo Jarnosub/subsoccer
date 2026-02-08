@@ -45,22 +45,10 @@ function populateGameSelect() {
 function toggleAuth(s) { document.getElementById('login-form').style.display = s ? 'none' : 'block'; document.getElementById('signup-form').style.display = s ? 'block' : 'none'; }
 
 async function handleSignUp() {
-    const u = document.getElementById('reg-user').value.trim().toUpperCase();
-    const p = document.getElementById('reg-pass').value.trim();
-    
+    const u = document.getElementById('reg-user').value.trim().toUpperCase(), p = document.getElementById('reg-pass').value.trim();
     if(!u || !p) return showNotification("Fill all fields", "error");
-    // TARKISTUS: Onko nimi jo varattu?
-    const { data: existing } = await _supabase.from('players').select('id').eq('username', u).single();
-    if (existing) {
-        return showNotification("Username already taken!", "error");
-    }
     const { error } = await _supabase.from('players').insert([{ username: u, password: p, elo: 1300, wins: 0 }]);
-    if(error) showNotification("Error: " + error.message, "error"); 
-    else { 
-        showNotification("Account created!", "success"); 
-        toggleAuth(false); 
-        initApp(); 
-    }
+    if(error) showNotification("Error: " + error.message, "error"); else { showNotification("Account created!", "success"); toggleAuth(false); initApp(); }
 }
 
 async function handleAuth() {
@@ -123,16 +111,12 @@ async function updateProfileCard() {
     if(count) totalGames = count;
     const losses = Math.max(0, totalGames - wins);
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
-    
-    const rank = user.elo > 1500 ? "PRO" : "ROOKIE";
-    const avatarUrl = user.avatar_url ? user.avatar_url : 'placeholder-silhouette-5-wide.png';
-
     container.innerHTML = `
         <div class="pro-card">
-            <div class="card-header-stripe">${rank} CARD</div>
+            <div class="card-header-stripe">ROOKIE CARD</div>
             
             <div class="card-image-area">
-                <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                <img src="${user.avatar_url || 'placeholder-silhouette-5-wide.png'}" style="width:100%; height:100%; object-fit:cover;">
             </div>
             <div class="card-name-strip">${user.username}</div>
             <div class="card-info-area">
@@ -164,21 +148,12 @@ async function updateProfileCard() {
                 </div>
             </div>
         </div>
-    `;
-    container.innerHTML += `
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px;">
-        <button class="btn-red" onclick="downloadFanCard()" style="background:var(--sub-gold) !important; color:#000 !important; font-family:'ResolveNarrow'; font-weight:bold; border:none; width:320px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <i class="fa-solid fa-camera" style="font-size:1.2rem;"></i> DOWNLOAD OFFICIAL FAN CARD
-        </button>
-        <button class="btn-outline" onclick="toggleSettings()" style="width:320px; background:rgba(255,255,255,0.05); border:1px solid #333; color:#888; padding:10px; border-radius:8px; font-size:0.8rem; font-family:'ResolveNarrow'; text-transform:uppercase;">
-            <i class="fa-solid fa-gear"></i> Edit Profile
-        </button>
-        <div id="profile-edit-fields" style="display:none; width:320px; background:#111; padding:15px; border-radius:12px; border:1px solid #222;">
+        <button class="btn-outline" onclick="toggleSettings()" style="margin-top:15px; width:320px; background:none; border:1px solid #333; color:#666; padding:8px; border-radius:8px; font-size:0.8rem;">⚙️ EDIT PROFILE</button>
+        <div id="profile-edit-fields" style="display:none; width:320px; margin-top:10px; background:#111; padding:15px; border-radius:10px; border:1px solid #222;">
             <input type="text" id="avatar-url-input" placeholder="Avatar URL">
             <input type="text" id="country-input" placeholder="fi" maxlength="2">
-            <button class="btn-red" onclick="saveProfile()" style="width:100%; margin-top:10px;">SAVE CHANGES</button>
+            <button class="btn-red" onclick="saveProfile()" style="width:100%; margin-top:10px;">SAVE</button>
         </div>
-    </div>
     `;
 }
 
@@ -726,15 +701,6 @@ async function saveTour() {
     document.getElementById('tour-engine').style.display = 'none';
     document.getElementById('tour-setup').style.display = 'block';
     showPage('history');
-
-    if (winnerName === user.username) {
-        // Haetaan tuoreet tiedot DB:stä ennen kortin päivitystä
-        const { data } = await _supabase.from('players').select('*').eq('id', user.id).single();
-        if (data) {
-            user = data;
-            updateProfileCard();
-        }
-    }
 }
 
 // Connection Watchdog
@@ -954,13 +920,12 @@ async function viewPlayerCard(targetUsername) {
     const losses = Math.max(0, (totalGames || 0) - wins);
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
     const rank = p.elo > 1600 ? "PRO" : "ROOKIE";
-    const avatarUrl = p.avatar_url ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
     // Rakennetaan kortti (käytetään samaa Topps-geometriaa kuin profiilissa)
     container.innerHTML = `
         <div class="pro-card" style="margin:0;">
             <div class="card-header-stripe">${rank} CARD</div>
             <div class="card-image-area">
-                <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                <img src="${p.avatar_url || 'placeholder-silhouette-5-wide.png'}" style="width:100%; height:100%; object-fit:cover;">
             </div>
             <div class="card-name-strip">${p.username}</div>
             <div class="card-info-area">
@@ -983,27 +948,3 @@ async function viewPlayerCard(targetUsername) {
 }
 
 function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
-
-async function downloadFanCard() {
-    const cardElement = document.querySelector('.pro-card');
-    if (!cardElement) return showNotification("Card element not found", "error");
-    showNotification("Generating high-res card...", "success");
-    try {
-        const canvas = await html2canvas(cardElement, {
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: "#0a0a0a",
-            scale: 2, // Tuplaresoluutio painolaatua varten
-            logging: false
-        });
-        const link = document.createElement('a');
-        link.download = `Subsoccer_ProCard_${user.username}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-        
-        showNotification("Card saved to your device!", "success");
-    } catch (err) {
-        console.error("Canvas error:", err);
-        showNotification("Download failed. Check image permissions.", "error");
-    }
-}

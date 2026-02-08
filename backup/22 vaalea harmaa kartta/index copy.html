@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
@@ -34,6 +33,8 @@
         .tour-settings-compact input, .tour-settings-compact select {
             padding: 6px 10px; margin-bottom: 5px; font-size: 0.85rem; height: 34px;
         }
+        /* Override search results to drop DOWN instead of up, since input is now at top */
+        #search-results { top: 100%; bottom: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body onload="initApp()">
@@ -91,6 +92,37 @@
         </div>
 
         <div id="section-profile" class="section">
+            <div class="pro-card">
+                <div class="card-image-area">
+                    <img id="card-img-el" src="placeholder-silhouette-5-wide.png" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                </div>
+                <div class="card-name-strip" id="card-name">PLAYER</div>
+                <div class="card-info-area">
+                    <div class="card-stats-row">
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">RANKING</div>
+                            <div class="card-stat-value" id="card-elo">1300</div>
+                        </div>
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">WINS</div>
+                            <div class="card-stat-value" id="card-wins">0</div>
+                        </div>
+                    </div>
+                    <div class="card-bottom-row">
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <img id="card-flag" src="" style="width:16px; height:auto;">
+                            <span>REPRESENTING</span>
+                        </div>
+                        <div style="color:var(--sub-gold)">CLUB: PRO</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="container profile-controls">
+                <input type="text" id="avatar-url-input" placeholder="Avatar URL (Imgur etc.)">
+                <input type="text" id="country-input" placeholder="Country Code (e.g. fi, se, us)" maxlength="2">
+                <button class="btn-red" onclick="saveProfile()">UPDATE PROFILE</button>
+            </div>
         </div>
 
         <div id="section-games" class="section">
@@ -172,11 +204,11 @@
                 <h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom: 15px;">NEW EVENT / TOURNAMENT</h3>
                 
                 <!-- 1. Add Players (Top Priority) -->
-                <div class="add-player-input-group" style="position: relative;">
+                <div class="add-player-input-group">
                     <input type="text" id="add-p-input" placeholder="Search or add guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
                     <button class="add-guest-btn" onclick="addP()">+ Add</button>
-                    <div id="search-results"></div>
                 </div>
+                <div id="search-results"></div>
                 <div id="active-guests" style="margin-bottom:10px; text-align:left;"></div>
 
                 <!-- 2. Player Pool (Middle) -->

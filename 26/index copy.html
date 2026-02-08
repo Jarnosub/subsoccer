@@ -91,6 +91,37 @@
         </div>
 
         <div id="section-profile" class="section">
+            <div class="pro-card">
+                <div class="card-image-area">
+                    <img id="card-img-el" src="placeholder-silhouette-5-wide.png" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                </div>
+                <div class="card-name-strip" id="card-name">PLAYER</div>
+                <div class="card-info-area">
+                    <div class="card-stats-row">
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">RANKING</div>
+                            <div class="card-stat-value" id="card-elo">1300</div>
+                        </div>
+                        <div class="card-stat-item">
+                            <div class="card-stat-label">WINS</div>
+                            <div class="card-stat-value" id="card-wins">0</div>
+                        </div>
+                    </div>
+                    <div class="card-bottom-row">
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <img id="card-flag" src="" style="width:16px; height:auto;">
+                            <span>REPRESENTING</span>
+                        </div>
+                        <div style="color:var(--sub-gold)">CLUB: PRO</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="container profile-controls">
+                <input type="text" id="avatar-url-input" placeholder="Avatar URL (Imgur etc.)">
+                <input type="text" id="country-input" placeholder="Country Code (e.g. fi, se, us)" maxlength="2">
+                <button class="btn-red" onclick="saveProfile()">UPDATE PROFILE</button>
+            </div>
         </div>
 
         <div id="section-games" class="section">

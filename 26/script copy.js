@@ -164,22 +164,18 @@ async function updateProfileCard() {
                 </div>
             </div>
         </div>
-    `;
-    container.innerHTML += `
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px;">
-        <button class="btn-red" onclick="downloadFanCard()" style="background:var(--sub-gold) !important; color:#000 !important; font-family:'ResolveNarrow'; font-weight:bold; border:none; width:320px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <i class="fa-solid fa-camera" style="font-size:1.2rem;"></i> DOWNLOAD OFFICIAL FAN CARD
-        </button>
-        <button class="btn-outline" onclick="toggleSettings()" style="width:320px; background:rgba(255,255,255,0.05); border:1px solid #333; color:#888; padding:10px; border-radius:8px; font-size:0.8rem; font-family:'ResolveNarrow'; text-transform:uppercase;">
-            <i class="fa-solid fa-gear"></i> Edit Profile
-        </button>
-        <div id="profile-edit-fields" style="display:none; width:320px; background:#111; padding:15px; border-radius:12px; border:1px solid #222;">
+        <button class="btn-outline" onclick="toggleSettings()" style="margin-top:15px; width:320px; background:none; border:1px solid #333; color:#666; padding:8px; border-radius:8px; font-size:0.8rem;">⚙️ EDIT PROFILE</button>
+        <div id="profile-edit-fields" style="display:none; width:320px; margin-top:10px; background:#111; padding:15px; border-radius:10px; border:1px solid #222;">
             <input type="text" id="avatar-url-input" placeholder="Avatar URL">
             <input type="text" id="country-input" placeholder="fi" maxlength="2">
-            <button class="btn-red" onclick="saveProfile()" style="width:100%; margin-top:10px;">SAVE CHANGES</button>
+            <button class="btn-red" onclick="saveProfile()" style="width:100%; margin-top:10px;">SAVE</button>
         </div>
-    </div>
     `;
+    container.innerHTML += `
+    <button class="btn-red" onclick="downloadFanCard()" style="margin-top:20px; background:var(--sub-gold) !important; color:#000 !important; font-family:'ResolveNarrow'; font-weight:bold; border:none; width:100%; max-width:300px;">
+        <i class="fa-solid fa-camera"></i> DOWNLOAD OFFICIAL FAN CARD
+    </button>
+`;
 }
 
 function toggleSettings() { const fields = document.getElementById('profile-edit-fields'); if(fields) fields.style.display = fields.style.display === 'none' ? 'block' : 'none'; }

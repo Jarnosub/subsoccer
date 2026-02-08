@@ -153,17 +153,18 @@ h2, h3, .card-header-stripe, .event-title {
 
 /* SEARCH RESULTS STYLING */
 #search-results { 
-    position: absolute !important;
-    top: 100% !important; /* Tippuu suoraan syöttökentän alta */
-    left: 0 !important;
-    width: calc(100% - 100px) !important; /* Sama leveys kuin syöttökentällä */
-    background: #1a1a1a !important;
-    border: 1px solid var(--sub-red) !important;
-    border-radius: 0 0 8px 8px !important;
-    z-index: 99999 !important;
-    display: none;
-    max-height: 200px !important;
-    overflow-y: auto !important;
+    background: #1a1a1a; 
+    border: 1px solid #333; 
+    border-radius: 8px; 
+    max-height: 150px; 
+    overflow-y: auto; 
+    display: none; 
+    position: absolute; 
+    width: calc(100% - 4px);
+    left: 2px;
+    bottom: 100%; /* Position above the input container */
+    z-index: 10; 
+    box-shadow: 0 -10px 20px rgba(0,0,0,0.5); 
 }
 .search-item { padding: 12px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.9rem; text-align: left; transition: background 0.2s; }
 .search-item:hover { background: #222; color: var(--sub-red); }
@@ -233,8 +234,9 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 }
 
 .add-player-input-group {
-    position: relative !important;
     display: flex !important;
+    gap: 10px !important;
+    margin-bottom: 15px !important;
     width: 100% !important;
 }
 
