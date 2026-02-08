@@ -101,7 +101,8 @@ function updateGuestUI() {
 async function updateProfileCard() { 
     const container = document.getElementById('section-profile');
     if (!container) return;
-    // Tilastojen laskenta (wins, losses, ratio jne.) säilyy samana
+
+    // Haetaan ja lasketaan tilastot
     const wins = user.wins || 0;
     let totalGames = 0;
     const { count } = await _supabase
@@ -109,50 +110,47 @@ async function updateProfileCard() {
         .select('*', { count: 'exact', head: true })
         .or(`player1.eq.${user.username},player2.eq.${user.username}`);
     if(count) totalGames = count;
-    const losses = Math.max(0, totalGames - wins);
-    const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
+    const losses = totalGames - wins; 
+    const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "100%" : "-");
+
+    // Määritetään Rank
+    let rank = "ROOKIE";
+    if(user.elo > 1400) rank = "VETERAN";
+    if(user.elo > 1600) rank = "PRO";
+    if(user.elo > 1900) rank = "LEGEND";
+
     container.innerHTML = `
         <div class="pro-card">
-            <div class="card-header-stripe">ROOKIE CARD</div>
-            
+            <div style="position:absolute; top:8px; left:8px; background:var(--sub-gold); color:#000; padding:2px 8px; font-family:'Russo One'; font-size:0.6rem; border-radius:3px; z-index:10;">
+                ${rank} CARD
+            </div>
             <div class="card-image-area">
-                <img src="${user.avatar_url || 'placeholder-silhouette-5-wide.png'}" style="width:100%; height:100%; object-fit:cover;">
+                <img src="${user.avatar_url || 'placeholder-silhouette-5-wide.png'}">
             </div>
             <div class="card-name-strip">${user.username}</div>
             <div class="card-info-area">
                 <div class="card-stats-row">
-                    <div class="card-stat-item">
-                        <div class="card-stat-label">RANK</div>
-                        <div class="card-stat-value">${user.elo}</div>
-                    </div>
-                    <div class="card-stat-item">
-                        <div class="card-stat-label">WINS</div>
-                        <div class="card-stat-value">${wins}</div>
-                    </div>
-                    <div class="card-stat-item">
-                        <div class="card-stat-label">LOSS</div>
-                        <div class="card-stat-value">${losses}</div>
-                    </div>
-                    <div class="card-stat-item">
-                        <div class="card-stat-label">W/L</div>
-                        <div class="card-stat-value">${ratio}</div>
-                    </div>
+                    <div class="card-stat-item"><div class="card-stat-label">RANKING</div><div class="card-stat-value" style="font-size:1.1rem;">${user.elo}</div></div>
+                    <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value" style="font-size:1.1rem;">${wins}</div></div>
+                    <div class="card-stat-item"><div class="card-stat-label">LOSSES</div><div class="card-stat-value" style="font-size:1.1rem;">${losses < 0 ? 0 : losses}</div></div>
+                    <div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value" style="font-size:1.1rem;">${ratio}</div></div>
                 </div>
-                
-                <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
+                <div class="card-bottom-row">
                     <div style="display:flex; align-items:center; gap:5px;">
-                        <img src="https://flagcdn.com/w20/${(user.country || 'fi').toLowerCase()}.png" width="16">
-                        <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING</span>
+                        <img src="https://flagcdn.com/w20/${(user.country || 'fi').toLowerCase()}.png" width="16" style="border-radius:2px;">
+                        <span style="color:#888;">REPRESENTING</span>
                     </div>
-                    <div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div>
+                    <div style="color:var(--sub-gold)">CLUB: PRO</div>
                 </div>
             </div>
         </div>
-        <button class="btn-outline" onclick="toggleSettings()" style="margin-top:15px; width:320px; background:none; border:1px solid #333; color:#666; padding:8px; border-radius:8px; font-size:0.8rem;">⚙️ EDIT PROFILE</button>
+        <button class="btn-outline" onclick="toggleSettings()" style="margin-top:15px; width:320px; background:none; border:1px solid #333; color:#666; padding:8px; border-radius:8px; font-size:0.8rem; cursor:pointer;">⚙️ EDIT PROFILE</button>
         <div id="profile-edit-fields" style="display:none; width:320px; margin-top:10px; background:#111; padding:15px; border-radius:10px; border:1px solid #222;">
-            <input type="text" id="avatar-url-input" placeholder="Avatar URL">
+            <label style="font-size:0.7rem; color:#888; display:block; margin-bottom:5px;">AVATAR URL</label>
+            <input type="text" id="avatar-url-input" placeholder="https://imgur.com/...">
+            <label style="font-size:0.7rem; color:#888; display:block; margin-bottom:5px; margin-top:10px;">COUNTRY CODE (fi, us, se)</label>
             <input type="text" id="country-input" placeholder="fi" maxlength="2">
-            <button class="btn-red" onclick="saveProfile()" style="width:100%; margin-top:10px;">SAVE</button>
+            <button class="btn-red" onclick="saveProfile()" style="width:100%; padding:10px; margin-top:10px;">SAVE CHANGES</button>
         </div>
     `;
 }

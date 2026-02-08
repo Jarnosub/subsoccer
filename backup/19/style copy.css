@@ -43,7 +43,7 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
     .tab.active { opacity: 1; color: var(--sub-red) !important; }
 
     .tab.active i { transform: translateY(-2px); /* Pieni nosto korostukseksi */ }
-    #app-content { padding-bottom: 100px !important; }
+    #app-content { padding-bottom: calc(60px + env(safe-area-inset-bottom)) !important; }
 }
 
 .section { width: 100%; display: none; flex-direction: column; align-items: center; }
@@ -155,9 +155,8 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 #tour-setup.container {
     display: flex;
     flex-direction: column;
-    height: auto !important;
-    max-height: none !important;
-    margin-bottom: 20px !important;
+    height: calc(100vh - 220px); /* Full viewport height minus header/nav/margins */
+    max-height: 700px; /* A sensible max height */
 }
 
 .tour-setup-header {
@@ -165,14 +164,16 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 }
 
 .tour-setup-body {
-    flex-grow: 0 !important;
+    flex-grow: 1; /* Body takes up available space */
     display: flex;
     flex-direction: column;
-    overflow: visible !important;
+    min-height: 0; /* Important for flex-grow to work in a nested flex container */
+    overflow: hidden; /* Hide anything that spills out */
 }
 
 #pool-list {
-    flex-grow: 0 !important; min-height: 50px !important; height: auto !important; overflow-y: visible !important;
+    flex-grow: 1; /* The list grows to fill the body */
+    overflow-y: auto; /* Add scrollbar ONLY when needed */
     margin: 10px 0;
     background: #000;
     padding: 15px;
@@ -209,15 +210,6 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
     border-radius: 8px !important;
     font-family: 'Russo One', sans-serif !important;
     cursor: pointer !important;
-}
-
-#tour-engine {
-    width: 100%;
-    max-width: 450px;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    padding-bottom: 120px !important;
 }
 
 /* ILMOITUSTEN TYYLIT (TOAST) */
