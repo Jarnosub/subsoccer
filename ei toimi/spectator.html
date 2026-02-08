@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SUBSOCCER LIVE CHANNEL</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { 
+            background: #000; 
+            margin: 0; 
+            padding: 40px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .live-header { text-align: center; margin-bottom: 40px; }
+        .live-logo { font-family: 'SubsoccerLogo'; color: var(--sub-gold); font-size: 3.5rem; line-height: 1; }
+        #event-display { font-family: 'ResolveNarrow'; color: #fff; font-size: 1.5rem; margin-top: 10px; letter-spacing: 2px; }
+        .live-indicator { 
+            display: inline-block; 
+            padding: 5px 15px; 
+            background: var(--sub-red); 
+            color: #fff; 
+            font-family: 'ResolveNarrow'; 
+            font-size: 0.8rem; 
+            border-radius: 4px; 
+            margin-top: 10px;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0.4; } }
+
+        #bracket-area { 
+            display: flex; 
+            gap: 50px; 
+            justify-content: center; 
+            align-items: center;
+            margin-top: 20px;
+            transform: scale(1.1);
+        }
+        .match-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            width: 240px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .player-row {
+            padding: 15px 20px;
+            font-family: 'ResolveNarrow';
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #222;
+        }
+        .player-row.winner {
+            background: rgba(227, 6, 19, 0.2);
+            color: #fff;
+            border-left: 4px solid var(--sub-red);
+        }
+        .player-row.loser { color: #444; }
+        .waiting-msg { font-family: 'ResolveNarrow'; color: #444; font-size: 2rem; margin-top: 100px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="live-header">
+        <div class="live-logo">SUBSOCCER LIVE</div>
+        <div id="event-display">CONNECTING...</div>
+        <div class="live-indicator">STATIONARY CHANNEL</div>
+    </div>
+
+    <div id="bracket-area">
+        <div class="waiting-msg">Waiting for tournament to start on this table...</div>
+    </div>
+
+    <script>
+        const _URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co', _KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const _supabase = supabase.createClient(_URL, _KEY);
+        
+        const params = new URLSearchParams(window.location.search);
+        const tableId = params.get('tableId');
+
+        async function updateView() {
+            if(!tableId) {
+                document.getElementById('event-display').innerText = "ERROR: NO TABLE ID";
+                return;
+            }
+
+            const { data, error } = await _supabase
+                .from('games')
+                .select('*')
+                .eq('id', tableId)
+                .single();
+
+            if (data && data.bracket_data) {
+                renderBracket(data.bracket_data, data.game_name);
+            } else {
+                document.getElementById('bracket-area').innerHTML = '<div class="waiting-msg">Waiting for tournament...</div>';
+                if(data) document.getElementById('event-display').innerText = data.game_name.toUpperCase();
+            }
+        }
+
+        function renderBracket(data, defaultName) {
+            const area = document.getElementById('bracket-area');
+            const eventDisp = document.getElementById('event-display');
+            
+            eventDisp.innerText = (data.eventName || defaultName).toUpperCase();
+            area.innerHTML = ''; // Tyhjennetään
+
+            if(!data.rounds || data.rounds.length === 0) {
+                area.innerHTML = '<div class="waiting-msg">Channel active. Waiting for brackets...</div>';
+                return;
+            }
+
+            data.rounds.forEach(round => {
+                const roundDiv = document.createElement('div');
+                round.matches.forEach(m => {
+                    const card = document.createElement('div');
+                    card.className = 'match-card';
+                    
+                    const p1Class = m.winner === m.p1 ? 'winner' : (m.winner ? 'loser' : '');
+                    const p2Class = m.winner === m.p2 ? 'winner' : (m.winner ? 'loser' : '');
+
+                    card.innerHTML = `
+                        <div class="player-row ${p1Class}"><span>${m.p1 || 'TBD'}</span></div>
+                        <div class="player-row ${p2Class}"><span>${m.p2 || 'TBD'}</span></div>
+                    `;
+                    roundDiv.appendChild(card);
+                });
+                area.appendChild(roundDiv);
+            });
+        }
+
+        // Päivitys 5 sekunnin välein
+        setInterval(updateView, 5000);
+        updateView();
+    </script>
+</body>
+</html>

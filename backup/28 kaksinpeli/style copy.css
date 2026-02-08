@@ -346,12 +346,12 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 /* Tournament Mode -napin hienovaraisempi tyyli */
 .tour-mode-toggle {
     margin-top: 15px;
-    padding: 10px 25px !important; /* Hieman enemmän tilaa sormille */
+    padding: 8px 20px !important;
     font-family: 'ResolveNarrow', sans-serif !important; /* Vaihdetaan Russo Onesta luettavampaan mutta tyylikkääseen */
-    font-size: 0.9rem !important; /* Pidetään hieman isompana kuten pyysit */
-    color: #888 !important;
+    font-size: 0.85rem !important;
+    color: #666 !important; /* Harmaampi teksti oletuksena */
     background: transparent !important;
-    border: 1px dashed #444 !important; /* Tehdään siitä selkeästi "toissijainen" toiminto */
+    border: 1px solid #222 !important; /* Hyvin himmeä reuna */
     border-radius: 8px !important;
     cursor: pointer;
     display: inline-flex;
@@ -371,21 +371,4 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 .tour-mode-toggle i {
     font-size: 0.75rem;
     opacity: 0.6;
-}
-
-#victory-overlay {
-    backdrop-filter: blur(15px); /* Tyylikäs sumennus taustalle */
-    background: rgba(0, 0, 0, 0.9);
-}
-
-#victory-elo-count {
-    color: var(--sub-gold);
-    font-family: 'Russo One', sans-serif;
-    font-size: 4rem;
-    animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-@keyframes bounceIn {
-    0% { transform: scale(0.3); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
 }

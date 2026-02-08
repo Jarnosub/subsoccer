@@ -73,6 +73,20 @@ h2, h3, .card-header-stripe, .event-title {
 .section { width: 100%; display: none; flex-direction: column; align-items: center; }
 .section.active { display: flex; }
 
+#section-map.active {
+    display: flex !important;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+/* Tummennetaan harmaata karttaa, jotta se sulautuu mustaan taustaan */
+#public-game-map {
+    filter: brightness(0.8) contrast(1.1) grayscale(0.5) !important;
+    background: var(--sub-black) !important;
+    border: 2px solid #222 !important;
+}
+/* Varmistetaan, että kustomoidut pallo-pinnit pysyvät kirkkaina kartan päällä */ .custom-div-icon { filter: brightness(1.2) !important; z-index: 1000 !important; }
+
 /* PLAYER CARD - VERTICAL ADJUSTMENTS */
 .pro-card {
     width: 320px !important;
@@ -139,21 +153,34 @@ h2, h3, .card-header-stripe, .event-title {
 
 /* SEARCH RESULTS STYLING */
 #search-results { 
-    background: #1a1a1a; 
-    border: 1px solid #333; 
-    border-radius: 8px; 
-    max-height: 150px; 
-    overflow-y: auto; 
-    display: none; 
-    position: absolute; 
-    width: calc(100% - 4px);
-    left: 2px;
-    bottom: 100%; /* Position above the input container */
-    z-index: 10; 
-    box-shadow: 0 -10px 20px rgba(0,0,0,0.5); 
+    position: absolute !important;
+    top: 100% !important; /* Tippuu suoraan syöttökentän alta */
+    left: 0 !important;
+    width: calc(100% - 100px) !important; /* Sama leveys kuin syöttökentällä */
+    background: #1a1a1a !important;
+    border: 1px solid var(--sub-red) !important;
+    border-radius: 0 0 8px 8px !important;
+    z-index: 99999 !important;
+    display: none;
+    max-height: 200px !important;
+    overflow-y: auto !important;
 }
 .search-item { padding: 12px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.9rem; text-align: left; transition: background 0.2s; }
 .search-item:hover { background: #222; color: var(--sub-red); }
+
+.quick-results {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: #1a1a1a !important;
+    border: 1px solid var(--sub-red) !important;
+    border-radius: 0 0 8px 8px !important;
+    z-index: 99999 !important;
+    display: none;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+}
 
 .container { background: #111; padding: 15px !important; border-radius: 12px !important; border: 1px solid #222; width: 94% !important; max-width: 400px; box-sizing: border-box; margin: 0 auto; }
 .btn-red { width: 100%; padding: 12px !important; border-radius: 8px !important; border: none; font-family: var(--sub-name-font) !important; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1rem !important; }
@@ -220,9 +247,8 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 }
 
 .add-player-input-group {
+    position: relative !important;
     display: flex !important;
-    gap: 10px !important;
-    margin-bottom: 15px !important;
     width: 100% !important;
 }
 
@@ -301,4 +327,65 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
         opacity: 0;
         transform: translateX(100%);
     }
+}
+
+/* ELO-tekstin lopullinen hionta */
+#elo-prediction-text {
+    font-family: 'Open Sans', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    color: #ffffff !important;
+}
+
+#elo-prediction-text .highlight {
+    color: var(--sub-gold) !important;
+    font-family: 'ResolveNarrow', sans-serif !important;
+    font-size: 1.1rem !important;
+}
+
+/* Tournament Mode -napin hienovaraisempi tyyli */
+.tour-mode-toggle {
+    margin-top: 15px;
+    padding: 8px 20px !important;
+    font-family: 'ResolveNarrow', sans-serif !important; /* Vaihdetaan Russo Onesta luettavampaan mutta tyylikkääseen */
+    font-size: 0.85rem !important;
+    color: #666 !important; /* Harmaampi teksti oletuksena */
+    background: transparent !important;
+    border: 1px solid #222 !important; /* Hyvin himmeä reuna */
+    border-radius: 8px !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tour-mode-toggle:hover {
+    color: var(--sub-gold) !important; /* Korostuu kullalla vasta kun hiiri on päällä */
+    border-color: #444 !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.tour-mode-toggle i {
+    font-size: 0.75rem;
+    opacity: 0.6;
+}
+
+#victory-overlay {
+    backdrop-filter: blur(15px); /* Tyylikäs sumennus taustalle */
+    background: rgba(0, 0, 0, 0.9);
+}
+
+#victory-elo-count {
+    color: var(--sub-gold);
+    font-family: 'Russo One', sans-serif;
+    font-size: 4rem;
+    animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }

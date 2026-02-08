@@ -21,6 +21,7 @@ async function initApp() {
     const { data } = await _supabase.from('players').select('username');
     allDbNames = data ? data.map(p => p.username) : [];
     await fetchAllGames();
+    fetchUniqueEvents();
 }   
 
 async function fetchAllGames() {
@@ -45,10 +46,22 @@ function populateGameSelect() {
 function toggleAuth(s) { document.getElementById('login-form').style.display = s ? 'none' : 'block'; document.getElementById('signup-form').style.display = s ? 'block' : 'none'; }
 
 async function handleSignUp() {
-    const u = document.getElementById('reg-user').value.trim().toUpperCase(), p = document.getElementById('reg-pass').value.trim();
+    const u = document.getElementById('reg-user').value.trim().toUpperCase();
+    const p = document.getElementById('reg-pass').value.trim();
+    
     if(!u || !p) return showNotification("Fill all fields", "error");
+    // TARKISTUS: Onko nimi jo varattu?
+    const { data: existing } = await _supabase.from('players').select('id').eq('username', u).single();
+    if (existing) {
+        return showNotification("Username already taken!", "error");
+    }
     const { error } = await _supabase.from('players').insert([{ username: u, password: p, elo: 1300, wins: 0 }]);
-    if(error) showNotification("Error: " + error.message, "error"); else { showNotification("Account created!", "success"); toggleAuth(false); initApp(); }
+    if(error) showNotification("Error: " + error.message, "error"); 
+    else { 
+        showNotification("Account created!", "success"); 
+        toggleAuth(false); 
+        initApp(); 
+    }
 }
 
 async function handleAuth() {
@@ -111,12 +124,16 @@ async function updateProfileCard() {
     if(count) totalGames = count;
     const losses = Math.max(0, totalGames - wins);
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
+    
+    const rank = user.elo > 1500 ? "PRO" : "ROOKIE";
+    const avatarUrl = user.avatar_url ? user.avatar_url : 'placeholder-silhouette-5-wide.png';
+
     container.innerHTML = `
         <div class="pro-card">
-            <div class="card-header-stripe">ROOKIE CARD</div>
+            <div class="card-header-stripe">${rank} CARD</div>
             
             <div class="card-image-area">
-                <img src="${user.avatar_url || 'placeholder-silhouette-5-wide.png'}" style="width:100%; height:100%; object-fit:cover;">
+                <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
             </div>
             <div class="card-name-strip">${user.username}</div>
             <div class="card-info-area">
@@ -148,12 +165,21 @@ async function updateProfileCard() {
                 </div>
             </div>
         </div>
-        <button class="btn-outline" onclick="toggleSettings()" style="margin-top:15px; width:320px; background:none; border:1px solid #333; color:#666; padding:8px; border-radius:8px; font-size:0.8rem;">⚙️ EDIT PROFILE</button>
-        <div id="profile-edit-fields" style="display:none; width:320px; margin-top:10px; background:#111; padding:15px; border-radius:10px; border:1px solid #222;">
+    `;
+    container.innerHTML += `
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px;">
+        <button class="btn-red" onclick="downloadFanCard()" style="background:var(--sub-gold) !important; color:#000 !important; font-family:'ResolveNarrow'; font-weight:bold; border:none; width:320px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <i class="fa-solid fa-camera" style="font-size:1.2rem;"></i> DOWNLOAD OFFICIAL FAN CARD
+        </button>
+        <button class="btn-outline" onclick="toggleSettings()" style="width:320px; background:rgba(255,255,255,0.05); border:1px solid #333; color:#888; padding:10px; border-radius:8px; font-size:0.8rem; font-family:'ResolveNarrow'; text-transform:uppercase;">
+            <i class="fa-solid fa-gear"></i> Edit Profile
+        </button>
+        <div id="profile-edit-fields" style="display:none; width:320px; background:#111; padding:15px; border-radius:12px; border:1px solid #222;">
             <input type="text" id="avatar-url-input" placeholder="Avatar URL">
             <input type="text" id="country-input" placeholder="fi" maxlength="2">
-            <button class="btn-red" onclick="saveProfile()" style="width:100%; margin-top:10px;">SAVE</button>
+            <button class="btn-red" onclick="saveProfile()" style="width:100%; margin-top:10px;">SAVE CHANGES</button>
         </div>
+    </div>
     `;
 }
 
@@ -465,6 +491,7 @@ function startTournament() {
         bronzeContenders = [];
         bronzeWinner = null;
         drawRound(byes); // Välitä byes-määrä drawRound-funktiolle
+        syncTournamentState();
     } catch (e) {
         showNotification("Error starting tournament: " + e.message, "error");
         console.error(e);
@@ -587,6 +614,7 @@ function pickWin(idx, n, e) {
     e.style.opacity = "1";
 
     checkCompletion();
+    syncTournamentState();
 }
 
 function pickBronzeWinner(n, e) {
@@ -602,6 +630,7 @@ function pickBronzeWinner(n, e) {
     e.style.opacity = "1";
 
     checkCompletion();
+    syncTournamentState();
 }
 
 function checkCompletion() {
@@ -649,6 +678,7 @@ function advanceRound() {
         
         // Seuraavaksi piirretään finaali ja pronssiottelu
         drawRound();
+        syncTournamentState();
         return;
     }
     
@@ -660,6 +690,7 @@ function advanceRound() {
 
     document.getElementById('next-rd-btn').style.display = 'none'; 
     drawRound(nextByes); 
+    syncTournamentState();
 }
 
 async function saveTour() {
@@ -701,6 +732,15 @@ async function saveTour() {
     document.getElementById('tour-engine').style.display = 'none';
     document.getElementById('tour-setup').style.display = 'block';
     showPage('history');
+
+    if (winnerName === user.username) {
+        // Haetaan tuoreet tiedot DB:stä ennen kortin päivitystä
+        const { data } = await _supabase.from('players').select('*').eq('id', user.id).single();
+        if (data) {
+            user = data;
+            updateProfileCard();
+        }
+    }
 }
 
 // Connection Watchdog
@@ -774,6 +814,7 @@ async function registerGame() {
         return showNotification("Error registering game: " + error.message, "error");
     }
 
+    await fetchAllGames(); // Refresh dropdown list immediately
     showNotification(`Game "${gameName}" registered successfully!`, "success");
     document.getElementById('game-code-input').value = '';
     document.getElementById('game-name-input').value = '';
@@ -781,7 +822,6 @@ async function registerGame() {
     selLat = null; selLng = null;
     if(gameMarker) gameMap.removeLayer(gameMarker);
     document.getElementById('location-confirm').innerText = '';
-    await fetchAllGames(); // Refresh dropdown list
     fetchMyGames(); // Päivitä pelilista
 }
 
@@ -920,12 +960,13 @@ async function viewPlayerCard(targetUsername) {
     const losses = Math.max(0, (totalGames || 0) - wins);
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
     const rank = p.elo > 1600 ? "PRO" : "ROOKIE";
+    const avatarUrl = p.avatar_url ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
     // Rakennetaan kortti (käytetään samaa Topps-geometriaa kuin profiilissa)
     container.innerHTML = `
         <div class="pro-card" style="margin:0;">
             <div class="card-header-stripe">${rank} CARD</div>
             <div class="card-image-area">
-                <img src="${p.avatar_url || 'placeholder-silhouette-5-wide.png'}" style="width:100%; height:100%; object-fit:cover;">
+                <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
             </div>
             <div class="card-name-strip">${p.username}</div>
             <div class="card-info-area">
@@ -948,3 +989,121 @@ async function viewPlayerCard(targetUsername) {
 }
 
 function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
+
+async function downloadFanCard() {
+    const cardElement = document.querySelector('.pro-card');
+    if (!cardElement) return showNotification("Card element not found", "error");
+    showNotification("Generating high-res card...", "success");
+    try {
+        const canvas = await html2canvas(cardElement, {
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#0a0a0a",
+            scale: 2, // Tuplaresoluutio painolaatua varten
+            logging: false
+        });
+        const link = document.createElement('a');
+        link.download = `Subsoccer_ProCard_${user.username}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        
+        showNotification("Card saved to your device!", "success");
+    } catch (err) {
+        console.error("Canvas error:", err);
+        showNotification("Download failed. Check image permissions.", "error");
+    }
+}
+
+async function fetchUniqueEvents() {
+    const { data } = await _supabase
+        .from('tournament_history')
+        .select('event_name, created_at')
+        .order('created_at', { ascending: false });
+    const uniqueNames = [...new Set(data?.map(g => g.event_name).filter(n => n) || [])];
+    const dl = document.getElementById('event-names');
+    if(dl) dl.innerHTML = uniqueNames.map(name => `<option value="${name}">`).join('');
+}
+
+async function syncTournamentState() {
+    const tableId = document.getElementById('tournament-game-select').value;
+    if (!tableId) return;
+
+    const eventName = document.getElementById('event-name-input').value.toUpperCase();
+    const tourName = document.getElementById('tour-name-input').value;
+    
+    let matches = [];
+
+    // Logic to determine matches based on current state
+    if (finalists.length === 2) {
+        // Finals Stage
+        if (bronzeContenders.length === 2) {
+            matches.push({ 
+                p1: bronzeContenders[0], 
+                p2: bronzeContenders[1], 
+                winner: bronzeWinner || null 
+            });
+        }
+        matches.push({ 
+            p1: finalists[0], 
+            p2: finalists[1], 
+            winner: rW[0] || null 
+        });
+    } else {
+        // Regular Round
+        const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(rP.length)));
+        const byes = nextPowerOfTwo - rP.length;
+        const playersInMatches = rP.slice(byes);
+        
+        for (let i = 0; i < playersInMatches.length; i += 2) {
+            matches.push({
+                p1: playersInMatches[i],
+                p2: playersInMatches[i+1],
+                winner: rW[byes + i/2] || null
+            });
+        }
+    }
+    
+    // Luodaan kattava tietorakenne, jota spectator.html ymmärtää
+    const bracketData = {
+        eventName: eventName,
+        tourName: tourName,
+        rounds: [{ matches: matches }],
+        status: "LIVE"
+    };
+
+    await _supabase.from('games').update({ bracket_data: bracketData }).eq('id', tableId);
+}
+
+function updateLiveLinkDisplay() {
+    const tableId = document.getElementById('tournament-game-select').value;
+    const container = document.getElementById('live-link-container');
+    const input = document.getElementById('live-url-field');
+    const qrDiv = document.getElementById('qrcode');
+    
+    if (tableId) {
+        const currentUrl = window.location.href.split('index.html')[0];
+        // Käytetään tableId-parametria, jotta spectator.html toimii oikein
+        const spectatorUrl = `${currentUrl}spectator.html?tableId=${tableId}`;
+        input.value = spectatorUrl;
+        container.style.display = 'block';
+
+        qrDiv.innerHTML = "";
+        new QRCode(qrDiv, { text: spectatorUrl, width: 150, height: 150 });
+    }
+}
+
+function copyLiveUrl() {
+    const field = document.getElementById('live-url-field');
+    field.select();
+    document.execCommand("copy");
+    showNotification("Link copied!", "success");
+}
+
+function downloadQRCode() {
+    const canvas = document.querySelector('#qrcode canvas');
+    if (!canvas) return;
+    const link = document.createElement('a');
+    link.download = 'Subsoccer_Live_QR.jpg';
+    link.href = canvas.toDataURL("image/jpeg", 0.8);
+    link.click();
+}

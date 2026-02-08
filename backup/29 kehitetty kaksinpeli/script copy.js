@@ -45,10 +45,22 @@ function populateGameSelect() {
 function toggleAuth(s) { document.getElementById('login-form').style.display = s ? 'none' : 'block'; document.getElementById('signup-form').style.display = s ? 'block' : 'none'; }
 
 async function handleSignUp() {
-    const u = document.getElementById('reg-user').value.trim().toUpperCase(), p = document.getElementById('reg-pass').value.trim();
+    const u = document.getElementById('reg-user').value.trim().toUpperCase();
+    const p = document.getElementById('reg-pass').value.trim();
+    
     if(!u || !p) return showNotification("Fill all fields", "error");
+    // TARKISTUS: Onko nimi jo varattu?
+    const { data: existing } = await _supabase.from('players').select('id').eq('username', u).single();
+    if (existing) {
+        return showNotification("Username already taken!", "error");
+    }
     const { error } = await _supabase.from('players').insert([{ username: u, password: p, elo: 1300, wins: 0 }]);
-    if(error) showNotification("Error: " + error.message, "error"); else { showNotification("Account created!", "success"); toggleAuth(false); initApp(); }
+    if(error) showNotification("Error: " + error.message, "error"); 
+    else { 
+        showNotification("Account created!", "success"); 
+        toggleAuth(false); 
+        initApp(); 
+    }
 }
 
 async function handleAuth() {
@@ -111,12 +123,16 @@ async function updateProfileCard() {
     if(count) totalGames = count;
     const losses = Math.max(0, totalGames - wins);
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
+    
+    const rank = user.elo > 1500 ? "PRO" : "ROOKIE";
+    const avatarUrl = user.avatar_url ? user.avatar_url : 'placeholder-silhouette-5-wide.png';
+
     container.innerHTML = `
         <div class="pro-card">
-            <div class="card-header-stripe">ROOKIE CARD</div>
+            <div class="card-header-stripe">${rank} CARD</div>
             
             <div class="card-image-area">
-                <img src="${user.avatar_url || 'placeholder-silhouette-5-wide.png'}" style="width:100%; height:100%; object-fit:cover;">
+                <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
             </div>
             <div class="card-name-strip">${user.username}</div>
             <div class="card-info-area">
@@ -148,12 +164,21 @@ async function updateProfileCard() {
                 </div>
             </div>
         </div>
-        <button class="btn-outline" onclick="toggleSettings()" style="margin-top:15px; width:320px; background:none; border:1px solid #333; color:#666; padding:8px; border-radius:8px; font-size:0.8rem;">⚙️ EDIT PROFILE</button>
-        <div id="profile-edit-fields" style="display:none; width:320px; margin-top:10px; background:#111; padding:15px; border-radius:10px; border:1px solid #222;">
+    `;
+    container.innerHTML += `
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px;">
+        <button class="btn-red" onclick="downloadFanCard()" style="background:var(--sub-gold) !important; color:#000 !important; font-family:'ResolveNarrow'; font-weight:bold; border:none; width:320px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <i class="fa-solid fa-camera" style="font-size:1.2rem;"></i> DOWNLOAD OFFICIAL FAN CARD
+        </button>
+        <button class="btn-outline" onclick="toggleSettings()" style="width:320px; background:rgba(255,255,255,0.05); border:1px solid #333; color:#888; padding:10px; border-radius:8px; font-size:0.8rem; font-family:'ResolveNarrow'; text-transform:uppercase;">
+            <i class="fa-solid fa-gear"></i> Edit Profile
+        </button>
+        <div id="profile-edit-fields" style="display:none; width:320px; background:#111; padding:15px; border-radius:12px; border:1px solid #222;">
             <input type="text" id="avatar-url-input" placeholder="Avatar URL">
             <input type="text" id="country-input" placeholder="fi" maxlength="2">
-            <button class="btn-red" onclick="saveProfile()" style="width:100%; margin-top:10px;">SAVE</button>
+            <button class="btn-red" onclick="saveProfile()" style="width:100%; margin-top:10px;">SAVE CHANGES</button>
         </div>
+    </div>
     `;
 }
 
@@ -701,6 +726,15 @@ async function saveTour() {
     document.getElementById('tour-engine').style.display = 'none';
     document.getElementById('tour-setup').style.display = 'block';
     showPage('history');
+
+    if (winnerName === user.username) {
+        // Haetaan tuoreet tiedot DB:stä ennen kortin päivitystä
+        const { data } = await _supabase.from('players').select('*').eq('id', user.id).single();
+        if (data) {
+            user = data;
+            updateProfileCard();
+        }
+    }
 }
 
 // Connection Watchdog
@@ -920,12 +954,13 @@ async function viewPlayerCard(targetUsername) {
     const losses = Math.max(0, (totalGames || 0) - wins);
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
     const rank = p.elo > 1600 ? "PRO" : "ROOKIE";
+    const avatarUrl = p.avatar_url ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
     // Rakennetaan kortti (käytetään samaa Topps-geometriaa kuin profiilissa)
     container.innerHTML = `
         <div class="pro-card" style="margin:0;">
             <div class="card-header-stripe">${rank} CARD</div>
             <div class="card-image-area">
-                <img src="${p.avatar_url || 'placeholder-silhouette-5-wide.png'}" style="width:100%; height:100%; object-fit:cover;">
+                <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
             </div>
             <div class="card-name-strip">${p.username}</div>
             <div class="card-info-area">
@@ -948,3 +983,171 @@ async function viewPlayerCard(targetUsername) {
 }
 
 function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
+
+async function downloadFanCard() {
+    const cardElement = document.querySelector('.pro-card');
+    if (!cardElement) return showNotification("Card element not found", "error");
+    showNotification("Generating high-res card...", "success");
+    try {
+        const canvas = await html2canvas(cardElement, {
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#0a0a0a",
+            scale: 2, // Tuplaresoluutio painolaatua varten
+            logging: false
+        });
+        const link = document.createElement('a');
+        link.download = `Subsoccer_ProCard_${user.username}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        
+        showNotification("Card saved to your device!", "success");
+    } catch (err) {
+        console.error("Canvas error:", err);
+        showNotification("Download failed. Check image permissions.", "error");
+    }
+}
+
+// Quick Match pelaajien säilö
+let quickP1 = null, quickP2 = null;
+
+function handleQuickSearch(input, slot) {
+    const v = input.value.toUpperCase();
+    const resDiv = document.getElementById(`${slot}-results`);
+    if(!v) { resDiv.style.display = 'none'; return; }
+
+    const combined = [...new Set([...allDbNames, ...sessionGuests])];
+    const filtered = combined.filter(n => n.includes(v)).slice(0, 5);
+
+    resDiv.innerHTML = filtered.map(n => 
+        `<div class="search-item" onclick="selectQuickPlayer('${n}', '${slot}')">${n}</div>`
+    ).join('');
+    resDiv.style.display = 'block';
+}
+
+async function selectQuickPlayer(name, slot) {
+    document.getElementById(`${slot}-quick-search`).value = name;
+    document.getElementById(`${slot}-results`).style.display = 'none';
+    
+    if(slot === 'p1') quickP1 = name;
+    else quickP2 = name;
+
+    if(quickP1 && quickP2) updateEloPreview();
+}
+
+async function updateEloPreview() {
+    const { data: p1 } = await _supabase.from('players').select('id, elo').eq('username', quickP1).single();
+    const { data: p2 } = await _supabase.from('players').select('id, elo').eq('username', quickP2).single();
+
+    if(p1 && p2) {
+        // Käytetään olemassa olevaa calculateNewElo -funktiota ennusteeseen
+        const p1Win = calculateNewElo(p1, p2, p1); 
+        const gain = p1Win.newEloA - p1.elo;
+        
+        const preview = document.getElementById('elo-preview');
+        const text = document.getElementById('elo-prediction-text');
+        // Käytetään highlight-luokkaa ja pidetään muu teksti tavallisena
+        text.innerHTML = `<span class="highlight">${quickP1}</span> gains <span class="highlight">+${gain} ELO</span> if they win`;
+        preview.style.display = 'block';
+    }
+}
+
+async function startQuickMatch() {
+    if(!quickP1 || !quickP2) return showNotification("Select both players!", "error");
+    if(quickP1 === quickP2) return showNotification("Select different players!", "error");
+    
+    // Luodaan dynaaminen valintaikkuna promptin tilalle
+    const overlay = document.createElement('div');
+    overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:40000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; animation: fadeIn 0.3s;";
+    overlay.innerHTML = `<h2 style="font-family:'Russo One'; color:#fff; margin-bottom:10px;">WHO WON?</h2> <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem;" onclick="handleQuickWinner('${quickP1}', this)">${quickP1}</button> <div style="color:var(--sub-gold); font-family:'Russo One';">OR</div> <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem; background:#333;" onclick="handleQuickWinner('${quickP2}', this)">${quickP2}</button> <button onclick="this.parentElement.remove()" style="margin-top:20px; background:none; border:none; color:#666; text-decoration:underline; cursor:pointer;">Cancel</button>`;
+
+    document.body.appendChild(overlay);
+}
+
+window.handleQuickWinner = function(winnerName, btn) { 
+    btn.parentElement.remove(); 
+    finalizeQuickMatch(winnerName); 
+}
+
+async function finalizeQuickMatch(winnerName) {
+    const loserName = (winnerName === quickP1) ? quickP2 : quickP1;
+    
+    // Haetaan pelaajien tiedot
+    let { data: p1Data } = await _supabase.from('players').select('*').eq('username', winnerName).single();
+    let { data: p2Data } = await _supabase.from('players').select('*').eq('username', loserName).single();
+
+    // Jos pelaajaa ei löydy DB:stä, luodaan vieras-objekti
+    if (!p1Data) p1Data = { username: winnerName, elo: 1300, id: 'guest_' + winnerName, isGuest: true };
+    if (!p2Data) p2Data = { username: loserName, elo: 1300, id: 'guest_' + loserName, isGuest: true };
+
+    // Lasketaan uudet ELO-pisteet
+    const result = calculateNewElo(p1Data, p2Data, p1Data); 
+    const gain = result.newEloA - p1Data.elo;
+
+    // Päivitetään DB vain rekisteröityneille
+    if (!p1Data.isGuest) {
+        await _supabase.from('players').update({ elo: result.newEloA, wins: (p1Data.wins || 0) + 1 }).eq('id', p1Data.id);
+    }
+    if (!p2Data.isGuest) {
+        await _supabase.from('players').update({ elo: result.newEloB }).eq('id', p2Data.id);
+    }
+    
+    await _supabase.from('matches').insert([{
+        player1: winnerName, player2: loserName, winner: winnerName
+    }]);
+
+    // Aktivoitetaan hieno visualisointi
+    showVictory(winnerName, result.newEloA, gain, p1Data.isGuest);
+}
+
+function showVictory(name, newElo, gain, isGuest = false) {
+    document.getElementById('victory-player-name').innerText = name;
+    document.getElementById('victory-elo-count').innerText = newElo;
+    document.getElementById('victory-elo-gain').innerText = `+${gain} POINTS`;
+    
+    const overlay = document.getElementById('victory-overlay');
+    
+    // Poistetaan vanha vierasviesti jos sellainen oli
+    const oldMsg = document.getElementById('guest-upsell');
+    if(oldMsg) oldMsg.remove();
+
+    if(isGuest) {
+        const msg = document.createElement('div');
+        msg.id = 'guest-upsell';
+        msg.style = "margin-top: 20px; color: var(--sub-gold); font-family: 'Open Sans'; font-size: 0.85rem; max-width: 250px; background: rgba(255,215,0,0.1); padding: 10px; border-radius: 8px; border: 1px dashed var(--sub-gold);";
+        msg.innerHTML = "🔥 <strong>Great win!</strong> Create a free account to start climbing the official Global Leaderboard.";
+        // Lisätään viesti ennen Continue-nappia
+        const btn = overlay.querySelector('button');
+        overlay.insertBefore(msg, btn);
+    }
+
+    overlay.style.display = 'flex';
+}
+
+function closeVictoryOverlay() {
+    // 1. Piilotetaan voittoilmoitus
+    document.getElementById('victory-overlay').style.display = 'none';
+    
+    // 2. Nollataan Quick Match -kentät ilman sivun latausta
+    document.getElementById('p1-quick-search').value = '';
+    document.getElementById('p2-quick-search').value = '';
+    quickP1 = null; 
+    quickP2 = null;
+    document.getElementById('elo-preview').style.display = 'none';
+
+    // 3. Päivitetään leaderboard ja historia taustalla, jotta uudet pisteet näkyvät
+    if (typeof fetchLB === "function") fetchLB();
+    if (typeof fetchHist === "function") fetchHist();
+    
+    // 4. Varmistetaan, että pysytään turnaus-sivulla (missä Quick Match on)
+    showPage('tournament'); 
+
+    // POISTETTU: location.reload(); <-- Tämä aiheutti login-ruutuun hyppäämisen
+    
+    showNotification("Ottelu tallennettu!", "success");
+}
+
+function toggleTournamentMode() {
+    const el = document.getElementById('advanced-tour-settings');
+    if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}

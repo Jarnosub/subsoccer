@@ -1052,99 +1052,18 @@ async function updateEloPreview() {
     }
 }
 
-async function startQuickMatch() {
+function startQuickMatch() {
     if(!quickP1 || !quickP2) return showNotification("Select both players!", "error");
     if(quickP1 === quickP2) return showNotification("Select different players!", "error");
     
-    // Luodaan dynaaminen valintaikkuna promptin tilalle
-    const overlay = document.createElement('div');
-    overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:40000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; animation: fadeIn 0.3s;";
-    overlay.innerHTML = `<h2 style="font-family:'Russo One'; color:#fff; margin-bottom:10px;">WHO WON?</h2> <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem;" onclick="handleQuickWinner('${quickP1}', this)">${quickP1}</button> <div style="color:var(--sub-gold); font-family:'Russo One';">OR</div> <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem; background:#333;" onclick="handleQuickWinner('${quickP2}', this)">${quickP2}</button> <button onclick="this.parentElement.remove()" style="margin-top:20px; background:none; border:none; color:#666; text-decoration:underline; cursor:pointer;">Cancel</button>`;
-
-    document.body.appendChild(overlay);
-}
-
-window.handleQuickWinner = function(winnerName, btn) { 
-    btn.parentElement.remove(); 
-    finalizeQuickMatch(winnerName); 
-}
-
-async function finalizeQuickMatch(winnerName) {
-    const loserName = (winnerName === quickP1) ? quickP2 : quickP1;
-    
-    // Haetaan pelaajien tiedot
-    let { data: p1Data } = await _supabase.from('players').select('*').eq('username', winnerName).single();
-    let { data: p2Data } = await _supabase.from('players').select('*').eq('username', loserName).single();
-
-    // Jos pelaajaa ei löydy DB:stä, luodaan vieras-objekti
-    if (!p1Data) p1Data = { username: winnerName, elo: 1300, id: 'guest_' + winnerName, isGuest: true };
-    if (!p2Data) p2Data = { username: loserName, elo: 1300, id: 'guest_' + loserName, isGuest: true };
-
-    // Lasketaan uudet ELO-pisteet
-    const result = calculateNewElo(p1Data, p2Data, p1Data); 
-    const gain = result.newEloA - p1Data.elo;
-
-    // Päivitetään DB vain rekisteröityneille
-    if (!p1Data.isGuest) {
-        await _supabase.from('players').update({ elo: result.newEloA, wins: (p1Data.wins || 0) + 1 }).eq('id', p1Data.id);
-    }
-    if (!p2Data.isGuest) {
-        await _supabase.from('players').update({ elo: result.newEloB }).eq('id', p2Data.id);
-    }
-    
-    await _supabase.from('matches').insert([{
-        player1: winnerName, player2: loserName, winner: winnerName
-    }]);
-
-    // Aktivoitetaan hieno visualisointi
-    showVictory(winnerName, result.newEloA, gain, p1Data.isGuest);
-}
-
-function showVictory(name, newElo, gain, isGuest = false) {
-    document.getElementById('victory-player-name').innerText = name;
-    document.getElementById('victory-elo-count').innerText = newElo;
-    document.getElementById('victory-elo-gain').innerText = `+${gain} POINTS`;
-    
-    const overlay = document.getElementById('victory-overlay');
-    
-    // Poistetaan vanha vierasviesti jos sellainen oli
-    const oldMsg = document.getElementById('guest-upsell');
-    if(oldMsg) oldMsg.remove();
-
-    if(isGuest) {
-        const msg = document.createElement('div');
-        msg.id = 'guest-upsell';
-        msg.style = "margin-top: 20px; color: var(--sub-gold); font-family: 'Open Sans'; font-size: 0.85rem; max-width: 250px; background: rgba(255,215,0,0.1); padding: 10px; border-radius: 8px; border: 1px dashed var(--sub-gold);";
-        msg.innerHTML = "🔥 <strong>Great win!</strong> Create a free account to start climbing the official Global Leaderboard.";
-        // Lisätään viesti ennen Continue-nappia
-        const btn = overlay.querySelector('button');
-        overlay.insertBefore(msg, btn);
-    }
-
-    overlay.style.display = 'flex';
-}
-
-function closeVictoryOverlay() {
-    // 1. Piilotetaan voittoilmoitus
-    document.getElementById('victory-overlay').style.display = 'none';
-    
-    // 2. Nollataan Quick Match -kentät ilman sivun latausta
+    pool = [quickP1, quickP2];
+    // Clear inputs
     document.getElementById('p1-quick-search').value = '';
     document.getElementById('p2-quick-search').value = '';
-    quickP1 = null; 
-    quickP2 = null;
+    quickP1 = null; quickP2 = null;
     document.getElementById('elo-preview').style.display = 'none';
-
-    // 3. Päivitetään leaderboard ja historia taustalla, jotta uudet pisteet näkyvät
-    if (typeof fetchLB === "function") fetchLB();
-    if (typeof fetchHist === "function") fetchHist();
     
-    // 4. Varmistetaan, että pysytään turnaus-sivulla (missä Quick Match on)
-    showPage('tournament'); 
-
-    // POISTETTU: location.reload(); <-- Tämä aiheutti login-ruutuun hyppäämisen
-    
-    showNotification("Ottelu tallennettu!", "success");
+    startTournament();
 }
 
 function toggleTournamentMode() {
