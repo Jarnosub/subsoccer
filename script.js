@@ -383,7 +383,7 @@ async function fetchLB() {
     const { data } = await _supabase.from('players').select('*').order('elo', {ascending: false}); 
     document.getElementById('lb-data').innerHTML = data ? data.map((p, i) => {
         const flag = p.country ? p.country.toLowerCase() : 'fi';
-        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #222;"><span><span style="color:#666; margin-right:10px; font-size:0.8rem;">#${i+1}</span> <img src="https://flagcdn.com/w20/${flag}.png" style="width:16px; margin-right:6px; vertical-align:middle; opacity:0.8;"> <span class="lb-name" onclick="viewPlayerCard('${p.username}')" style="cursor:pointer; text-decoration:underline;">${p.username}</span></span><span class="lb-elo">${p.elo}</span></div>`;
+        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px 10px; border-bottom:1px solid #222;"><span><span style="color:#666; margin-right:10px; font-size:0.8rem;">#${i+1}</span> <img src="https://flagcdn.com/w40/${flag}.png" style="height:14px; width:auto; margin-right:10px; vertical-align:middle; border-radius:2px; opacity:0.9;"> <span class="lb-name" onclick="viewPlayerCard('${p.username}')" style="cursor:pointer; text-decoration:none; color:#fff;">${p.username}</span></span><span class="lb-elo">${p.elo}</span></div>`;
     }).join('') : ""; 
 }
 

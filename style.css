@@ -175,6 +175,8 @@ h2, h3, .card-header-stripe, .event-title {
     letter-spacing: 0.02em !important; /* Lisää hieman hengittävyyttä */
     text-transform: uppercase;
     font-weight: 500;
+    color: #fff !important;
+    text-decoration: none !important;
 }
 .search-item:hover { background: #222; color: var(--sub-red); }
 
