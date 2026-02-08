@@ -2,11 +2,11 @@
 :root { --sub-red: #E30613; --sub-black: #0a0a0a; --sub-white: #FFFFFF; --sub-gold: #FFD700; --sub-border: #333; }
 
 body { font-family: 'Open Sans', sans-serif; background-color: var(--sub-black); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-content: center; }
-.main-logo { width: 150px !important; height: auto; }
+header { width: 100%; padding: 45px 0 15px 0; display: flex; justify-content: center; }
+.main-logo { width: 220px; height: auto; }
 
 #app-content { width: 100%; display: none; flex-direction: column; align-items: center; }
-.status-bar { width: 100%; max-width: 450px; text-align: center; margin-bottom: 10px !important; text-transform: uppercase; }
+.status-bar { width: 100%; max-width: 450px; text-align: center; margin-bottom: 20px; text-transform: uppercase; }
 .player-label { font-size: 0.85rem; font-weight: 400; color: #fff; }
 .logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; margin-top: 2px; letter-spacing: 1px; }
 
@@ -21,12 +21,14 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
         bottom: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        height: 60px !important; /* Matala ja huomaamaton */
+        /* iPhonen standardikorkeus 50px + alareunan turvaväli */
+        height: calc(50px + env(safe-area-inset-bottom)) !important; 
         background: rgba(10, 10, 10, 0.98) !important;
         backdrop-filter: blur(15px);
         border-top: 0.5px solid rgba(255, 255, 255, 0.15) !important; /* Erittäin ohut viiva kuten iOS */
         border-bottom: none !important;
-        padding: 5px 0 calc(5px + env(safe-area-inset-bottom)) 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-around !important;
@@ -38,7 +40,7 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
         display: block;
         transition: transform 0.2s ease;
     }
-    .tab { font-size: 1.6rem !important; padding: 0 !important; flex: 1; display: flex; justify-content: center; align-items: center; height: 100%; opacity: 0.4; color: #ffffff !important; border: none !important; }
+    .tab { font-size: 1.4rem !important; padding: 0 !important; flex: 1; display: flex; justify-content: center; align-items: center; height: 50px; opacity: 0.4; color: #ffffff !important; border: none !important; }
 
     .tab.active { opacity: 1; color: var(--sub-red) !important; }
 
@@ -50,65 +52,18 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
 .section.active { display: flex; }
 
 /* PLAYER CARD - VERTICAL ADJUSTMENTS */
-.pro-card {
-    width: 320px !important;
-    height: 448px !important; /* Lukittu 1:1.4 keräilykorttisuhde */
-    background: #000 !important;
-    border: 3px solid var(--sub-gold) !important;
-    border-radius: 12px !important;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    margin: 10px auto;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.8);
-}
-.card-image-area {
-    height: 260px !important;
-    background: #111;
-    border-bottom: 2px solid var(--sub-gold);
-    position: relative;
-    overflow: hidden;
-}
-.card-image-area img {
-    width: 100%; height: 100%; object-fit: cover;
-}
-.card-name-strip {
-    background: var(--sub-red);
-    color: #fff;
-    text-align: center;
-    padding: 8px 0;
-    font-family: 'Russo One';
-    font-size: 1.3rem;
-    text-transform: uppercase;
-}
-.card-info-area {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    background: #000;
-    padding: 10px;
-}
-.card-stats-row {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr 1fr; /* Neljä saraketta */
-    gap: 5px;
-    padding: 10px 5px !important;
-    border-bottom: 1px solid #222;
-}
-.card-stat-item { text-align: center; }
-.card-stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; }
-.card-stat-value { font-family: 'Russo One'; font-size: 1.4rem; color: #fff; }
-.card-bottom-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 10px;
-    border-top: 1px solid #222;
-    margin-top: auto;
-    font-size: 0.7rem;
-    font-family: 'Russo One';
-}
+.premium-card { position: relative; width: 350px; height: 500px; background-image: url('silver-temp-custom.jpg'); background-size: cover; border-radius: 15px; overflow: hidden; border: 1px solid #555; box-shadow: 0 15px 35px rgba(0,0,0,0.9); margin-bottom: 20px; }
+.player-img { position: absolute; left: -10px; bottom: 45px; width: 240px; height: auto; z-index: 1; pointer-events: none; }
+.card-content { position: absolute; right: 26px; top: 132px; width: 155px; z-index: 2; display: flex; flex-direction: column; text-align: right; }
+.card-name-tag { font-family: 'Russo One', sans-serif; font-size: 0.85rem; color: var(--sub-white); text-transform: uppercase; height: 55px; display: flex; align-items: center; justify-content: flex-end; text-shadow: 2px 2px 4px #000; line-height: 1.1; margin-top: 10px; margin-bottom: 12px; max-width: 100px; margin-left: auto; word-wrap: break-word; }
+
+.card-stat-box { height: 55px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 12px; }
+.wins-container { margin-top: -8px; } 
+.elo-container { margin-top: -14px; } 
+.team-container { margin-top: -10px; } 
+
+.stat-label { font-family: 'Russo One', sans-serif; font-size: 0.5rem; color: var(--sub-white); text-transform: uppercase; opacity: 0.8; margin-bottom: 2px; }
+.stat-val { font-family: 'Russo One', sans-serif; font-size: 1.4rem; color: var(--sub-red); text-transform: uppercase; line-height: 0.9; text-shadow: 1px 1px 2px #000; }
 
 /* SEARCH RESULTS STYLING */
 #search-results { 
@@ -128,9 +83,9 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
 .search-item { padding: 12px; border-bottom: 1px solid #222; cursor: pointer; font-size: 0.9rem; text-align: left; transition: background 0.2s; }
 .search-item:hover { background: #222; color: var(--sub-red); }
 
-.container { background: #111; padding: 15px !important; border-radius: 12px !important; border: 1px solid #222; width: 94% !important; max-width: 400px; box-sizing: border-box; margin: 0 auto; }
-.btn-red { width: 100%; padding: 12px !important; border-radius: 8px !important; border: none; font-family: 'Russo One', sans-serif; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1rem !important; }
-input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: 8px !important; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; font-size: 1rem; }
+.container { background: #111; padding: 25px; border-radius: 20px; border: 1px solid #222; width: 95%; max-width: 400px; box-sizing: border-box; margin: 0 auto; }
+.btn-red { width: 100%; padding: 18px; border-radius: 12px; border: none; font-family: 'Russo One', sans-serif; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1.1rem; }
+input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; font-size: 1rem; }
 #auth-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--sub-black); display: flex; flex-direction: column; align-items: center; z-index: 1000; padding-top: 80px; }
 /* Connection Light */
 .connection-dot {
@@ -187,27 +142,29 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
     padding-top: 10px;
 }
 
-.add-player-input-group {
-    display: flex !important;
-    gap: 10px !important;
-    margin-bottom: 15px !important;
-    width: 100% !important;
+.add-player-container {
+    position: relative;
+    display: flex;
 }
 
-#add-p-input { flex-grow: 1 !important; margin-bottom: 0 !important; }
+#add-p-input {
+    flex-grow: 1;
+    margin-bottom: 0; /* Override default margin */
+}
 
 .add-guest-btn {
-    position: static !important;
-    transform: none !important;
-    white-space: nowrap !important;
-    padding: 0 20px !important;
-    height: 48px !important;
-    background: var(--sub-red) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 8px !important;
-    font-family: 'Russo One', sans-serif !important;
-    cursor: pointer !important;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--sub-red);
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    height: calc(100% - 10px);
+    margin: 5px 0;
 }
 
 /* ILMOITUSTEN TYYLIT (TOAST) */

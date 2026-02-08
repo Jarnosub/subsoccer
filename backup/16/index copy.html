@@ -16,6 +16,57 @@
         .section.active { display: flex; justify-content: center; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
+        /* New Pro Card Styles */
+        .pro-card {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            width: 350px;
+            margin: 20px auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 15px; position: absolute; top: 0; width: 100%; z-index: 2;
+        }
+        .rank-badge {
+            background: var(--sub-gold, #FFD700); color: #000;
+            padding: 5px 10px; font-family: 'Russo One'; font-size: 0.8rem;
+            border-radius: 4px; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+        .elo-display {
+            position: absolute; right: 35px; top: 20px; text-align: right; text-shadow: 2px 2px 4px #000; white-space: nowrap; z-index: 10; width: 80px;
+        }
+        .elo-val { font-family: 'Russo One'; font-size: 1.1rem; color: #fff; line-height: 0.9; font-weight: 900; text-shadow: 0 0 10px rgba(0,0,0,0.8); margin-right: 0; white-space: nowrap; }
+        .elo-label { font-size: 0.55rem; color: #ddd; font-weight: bold; letter-spacing: 1px; opacity: 0.8; margin-top: 2px; }
+        
+        .card-image-area {
+            height: 320px; background: #222; /* Placeholder for action shot bg */
+            display: flex; align-items: flex-end; justify-content: center;
+            overflow: hidden;
+        }
+        .card-img-action { width: 100%; height: 100%; object-fit: cover; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+
+        .card-name-bar {
+            background: var(--sub-red, #E30613);
+            border-top: 3px solid var(--sub-gold, #FFD700);
+            border-bottom: 3px solid var(--sub-gold, #FFD700);
+            padding: 10px 0; text-align: center;
+        }
+        .card-player-name {
+            font-family: 'Russo One'; color: #fff; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 1px;
+            text-shadow: 2px 2px 0px #000, -1px -1px 0 var(--sub-gold), 1px -1px 0 var(--sub-gold), -1px 1px 0 var(--sub-gold), 1px 1px 0 var(--sub-gold);
+        }
+
+        .card-stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+            background: #000; padding: 15px 5px; text-align: center;
+        }
+        .stat-box .lbl { font-size: 0.6rem; color: #666; font-weight: bold; margin-bottom: 2px; }
+        .stat-box .val { font-family: 'Russo One'; font-size: 1.1rem; color: #fff; }
+
         /* Profile Controls Compact Style */
         .profile-controls { max-width: 300px; margin: 10px auto; display: flex; flex-direction: column; gap: 5px; }
         .profile-controls input, .profile-controls button {
@@ -93,28 +144,24 @@
 
         <div id="section-profile" class="section">
             <div class="pro-card">
-                <div class="card-image-area">
-                    <img id="card-img-el" src="placeholder-silhouette-5-wide.png" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                <div class="card-header">
+                    <div class="rank-badge" id="card-rank">ROOKIE</div>
+                    <div class="elo-display">
+                        <div class="elo-val" id="card-elo">1300</div>
+                        <div class="elo-label">ELO RATING</div>
+                    </div>
                 </div>
-                <div class="card-name-strip" id="card-name">PLAYER</div>
-                <div class="card-info-area">
-                    <div class="card-stats-row">
-                        <div class="card-stat-item">
-                            <div class="card-stat-label">RANKING</div>
-                            <div class="card-stat-value" id="card-elo">1300</div>
-                        </div>
-                        <div class="card-stat-item">
-                            <div class="card-stat-label">WINS</div>
-                            <div class="card-stat-value" id="card-wins">0</div>
-                        </div>
-                    </div>
-                    <div class="card-bottom-row">
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <img id="card-flag" src="" style="width:16px; height:auto;">
-                            <span>REPRESENTING</span>
-                        </div>
-                        <div style="color:var(--sub-gold)">CLUB: PRO</div>
-                    </div>
+                <div class="card-image-area">
+                    <img id="card-img-el" src="placeholder-silhouette-5-wide.png" class="card-img-action" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                </div>
+                <div class="card-name-bar">
+                    <div class="card-player-name"><img id="card-flag" src="" style="width: 25px; height: auto; margin-right: 8px; vertical-align: middle; border-radius: 2px; box-shadow: 0 0 5px rgba(0,0,0,0.5);"><span id="card-name">PLAYER</span></div>
+                </div>
+                <div class="card-stats-grid">
+                    <div class="stat-box"><div class="lbl">GAMES</div><div class="val" id="card-games">0</div></div>
+                    <div class="stat-box"><div class="lbl">WINS</div><div class="val" id="card-wins">0</div></div>
+                    <div class="stat-box"><div class="lbl">LOSSES</div><div class="val" id="card-losses">0</div></div>
+                    <div class="stat-box"><div class="lbl">W/L</div><div class="val" id="card-ratio">-</div></div>
                 </div>
             </div>
             

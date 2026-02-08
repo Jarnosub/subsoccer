@@ -99,63 +99,49 @@ function updateGuestUI() {
 }
 
 async function updateProfileCard() { 
-    const container = document.getElementById('section-profile');
-    if (!container) return;
+    document.getElementById('card-name').innerText = user.username; 
+    document.getElementById('card-elo').innerText = user.elo; 
+    
+    // Update Flag
+    const countryCode = user.country ? user.country.toLowerCase() : 'fi';
+    document.getElementById('card-flag').src = `https://flagcdn.com/w40/${countryCode}.png`;
 
-    // Haetaan ja lasketaan tilastot
+    // Update Avatar Image if exists
+    const imgEl = document.getElementById('card-img-el');
+    if (user.avatar_url) {
+        imgEl.src = user.avatar_url;
+    } else {
+        imgEl.src = 'placeholder-silhouette-5-wide.png';
+    }
+    
+    // Rank Logic
+    let rank = "ROOKIE";
+    if(user.elo > 1200) rank = "AMATEUR";
+    if(user.elo > 1400) rank = "VETERAN"; // Updated per request
+    if(user.elo > 1600) rank = "PRO";
+    if(user.elo > 1900) rank = "LEGEND";
+    document.getElementById('card-rank').innerText = rank;
+
+    // Fetch Stats
     const wins = user.wins || 0;
     let totalGames = 0;
-    const { count } = await _supabase
+    
+    // Count matches where user is player1 OR player2
+    const { count, error } = await _supabase
         .from('matches')
         .select('*', { count: 'exact', head: true })
         .or(`player1.eq.${user.username},player2.eq.${user.username}`);
-    if(count) totalGames = count;
-    const losses = totalGames - wins; 
+        
+    if(!error) totalGames = count || 0;
+    
+    const losses = totalGames - wins;
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "100%" : "-");
 
-    // Määritetään Rank
-    let rank = "ROOKIE";
-    if(user.elo > 1400) rank = "VETERAN";
-    if(user.elo > 1600) rank = "PRO";
-    if(user.elo > 1900) rank = "LEGEND";
-
-    container.innerHTML = `
-        <div class="pro-card">
-            <div style="position:absolute; top:8px; left:8px; background:var(--sub-gold); color:#000; padding:2px 8px; font-family:'Russo One'; font-size:0.6rem; border-radius:3px; z-index:10;">
-                ${rank} CARD
-            </div>
-            <div class="card-image-area">
-                <img src="${user.avatar_url || 'placeholder-silhouette-5-wide.png'}">
-            </div>
-            <div class="card-name-strip">${user.username}</div>
-            <div class="card-info-area">
-                <div class="card-stats-row">
-                    <div class="card-stat-item"><div class="card-stat-label">RANKING</div><div class="card-stat-value" style="font-size:1.1rem;">${user.elo}</div></div>
-                    <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value" style="font-size:1.1rem;">${wins}</div></div>
-                    <div class="card-stat-item"><div class="card-stat-label">LOSSES</div><div class="card-stat-value" style="font-size:1.1rem;">${losses < 0 ? 0 : losses}</div></div>
-                    <div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value" style="font-size:1.1rem;">${ratio}</div></div>
-                </div>
-                <div class="card-bottom-row">
-                    <div style="display:flex; align-items:center; gap:5px;">
-                        <img src="https://flagcdn.com/w20/${(user.country || 'fi').toLowerCase()}.png" width="16" style="border-radius:2px;">
-                        <span style="color:#888;">REPRESENTING</span>
-                    </div>
-                    <div style="color:var(--sub-gold)">CLUB: PRO</div>
-                </div>
-            </div>
-        </div>
-        <button class="btn-outline" onclick="toggleSettings()" style="margin-top:15px; width:320px; background:none; border:1px solid #333; color:#666; padding:8px; border-radius:8px; font-size:0.8rem; cursor:pointer;">⚙️ EDIT PROFILE</button>
-        <div id="profile-edit-fields" style="display:none; width:320px; margin-top:10px; background:#111; padding:15px; border-radius:10px; border:1px solid #222;">
-            <label style="font-size:0.7rem; color:#888; display:block; margin-bottom:5px;">AVATAR URL</label>
-            <input type="text" id="avatar-url-input" placeholder="https://imgur.com/...">
-            <label style="font-size:0.7rem; color:#888; display:block; margin-bottom:5px; margin-top:10px;">COUNTRY CODE (fi, us, se)</label>
-            <input type="text" id="country-input" placeholder="fi" maxlength="2">
-            <button class="btn-red" onclick="saveProfile()" style="width:100%; padding:10px; margin-top:10px;">SAVE CHANGES</button>
-        </div>
-    `;
+    document.getElementById('card-games').innerText = totalGames;
+    document.getElementById('card-wins').innerText = wins;
+    document.getElementById('card-losses').innerText = losses < 0 ? 0 : losses;
+    document.getElementById('card-ratio').innerText = ratio;
 }
-
-function toggleSettings() { const fields = document.getElementById('profile-edit-fields'); if(fields) fields.style.display = fields.style.display === 'none' ? 'block' : 'none'; }
 
 async function saveProfile() {
     const avatarUrl = document.getElementById('avatar-url-input').value.trim();
@@ -837,28 +823,17 @@ async function updateGame() {
 }
 
 async function deleteGame(id) {
-    if (!confirm("Haluatko varmasti poistaa tämän pelipaikan? Se poistuu myös vanhoista turnaustuloksista.")) return;
-    try {
-        // 1. Irrotetaan peli historiasta (asetetaan game_id nulliksi niissä turnauksissa, joissa se on ollut)
-        const { error: updateError } = await _supabase
-            .from('tournament_history')
-            .update({ game_id: null })
-            .eq('game_id', id);
-        if (updateError) throw updateError;
-        // 2. Poistetaan itse peli games-taulusta
-        const { error: deleteError } = await _supabase
-            .from('games')
-            .delete()
-            .eq('id', id);
-        if (deleteError) throw deleteError;
-        // 3. Päivitetään käyttöliittymä
-        showNotification("Peli poistettu onnistuneesti", "success");
-        if (typeof fetchMyGames === "function") fetchMyGames();
-        if (typeof fetchAllGames === "function") fetchAllGames();
-        
-    } catch (e) {
-        console.error("Poistovirhe:", e);
-        showNotification("Poisto epäonnistui: " + e.message, "error");
+    if (!confirm("Haluatko varmasti poistaa tämän pelipaikan lopullisesti?")) return;
+
+    const { error } = await _supabase.from('games').delete().eq('id', id);
+
+    if (error) {
+        showNotification("Error deleting game: " + error.message, "error");
+    } else {
+        showNotification("Game deleted.", "success");
+        fetchMyGames();
+        fetchAllGames(); 
+        if(publicMap) fetchPublicGamesMap();
     }
 }
 
