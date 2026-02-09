@@ -719,6 +719,43 @@ function replayTournament(players, tourName, eventName, gameId) {
 // 9. QUICK MATCH
 // ============================================================
 
+/**
+ * Handle acoustic goal detection from audio-engine.js
+ * Called automatically when goal sound is detected
+ * @param {number} playerNumber - 1 or 2, which player scored
+ */
+function handleGoalDetected(playerNumber) {
+    // Check if Quick Match is active
+    const overlay = document.getElementById('active-winner-selection');
+    if (!overlay) {
+        console.log('Goal detected but Quick Match not active');
+        return;
+    }
+    
+    // Determine winner based on player number
+    const winnerName = playerNumber === 1 ? quickP1 : quickP2;
+    
+    if (!winnerName) {
+        console.error('Winner name not found for player', playerNumber);
+        return;
+    }
+    
+    console.log(`🎯 Acoustic goal detected! Player ${playerNumber} (${winnerName}) scores!`);
+    showNotification(`🚨 GOAL! ${winnerName} scores!`, 'success');
+    
+    // Find and click the winner's button
+    const buttons = overlay.querySelectorAll('button.btn-red');
+    for (let btn of buttons) {
+        if (btn.textContent.trim() === winnerName) {
+            // Simulate click after short delay for visual feedback
+            setTimeout(() => {
+                btn.click();
+            }, 800);
+            break;
+        }
+    }
+}
+
 function handleQuickSearch(input, slot) {
     const v = input.value.toUpperCase();
     const resDiv = document.getElementById(`${slot}-results`);
@@ -755,6 +792,15 @@ async function startQuickMatch() {
     quickP1 = p1Val; quickP2 = p2Val;
     if (!quickP1 || !quickP2) return showNotification("Select both players!", "error");
     if (quickP1 === quickP2) return showNotification("Select different players!", "error");
+    
+    // Start acoustic goal detection
+    if (window.audioEngine && typeof window.audioEngine.startListening === 'function') {
+        const result = await window.audioEngine.startListening();
+        if (result.success) {
+            showNotification("🎙️ Audio detection active", "success");
+        }
+    }
+    
     document.getElementById('app-content').style.display = 'none';
     const overlay = document.createElement('div');
     overlay.id = "active-winner-selection";
@@ -769,6 +815,11 @@ async function startQuickMatch() {
 }
 
 function cancelQuickMatch() {
+    // Stop audio detection
+    if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') {
+        window.audioEngine.stopListening();
+    }
+    
     const overlay = document.getElementById('active-winner-selection');
     if (overlay) overlay.remove();
     document.getElementById('app-content').style.display = 'flex';
@@ -802,6 +853,11 @@ async function finalizeQuickMatch(winnerName) {
         
         const { error: matchError } = await _supabase.from('matches').insert([{ player1: winnerName, player2: loserName, winner: winnerName }]);
         if (matchError) throw matchError;
+        
+        // Stop audio detection
+        if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') {
+            window.audioEngine.stopListening();
+        }
         
         showVictory(winnerName, result.newEloA, gain, p1Data.isGuest);
     } catch (error) {
@@ -911,6 +967,7 @@ window.handleQuickWinner = handleQuickWinner;
 window.finalizeQuickMatch = finalizeQuickMatch;
 window.showVictory = showVictory;
 window.closeVictoryOverlay = closeVictoryOverlay;
+window.handleGoalDetected = handleGoalDetected;
 
 // ============================================================
 // 12. KÄYNNISTYS
