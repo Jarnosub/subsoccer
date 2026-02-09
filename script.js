@@ -770,7 +770,12 @@ async function selectQuickPlayer(name, slot) {
     document.getElementById(`${slot}-quick-search`).value = name;
     document.getElementById(`${slot}-results`).style.display = 'none';
     if (slot === 'p1') quickP1 = name; else quickP2 = name;
-    if (quickP1 && quickP2) updateEloPreview();
+    if (quickP1 && quickP2) {
+        updateEloPreview();
+        // Show audio detection panels when both players selected
+        document.getElementById('audio-status-panel').style.display = 'block';
+        document.getElementById('audio-test-panel').style.display = 'block';
+    }
 }
 
 async function updateEloPreview() {
@@ -896,10 +901,190 @@ function closeVictoryOverlay() {
     document.getElementById('p2-quick-search').value = '';
     quickP1 = null; quickP2 = null;
     document.getElementById('elo-preview').style.display = 'none';
+    document.getElementById('audio-status-panel').style.display = 'none';
+    document.getElementById('audio-test-panel').style.display = 'none';
     if (typeof fetchLB === "function") fetchLB();
     if (typeof fetchHist === "function") fetchHist();
     showPage('tournament');
     showNotification("Match saved!", "success");
+}
+
+// ============================================================
+// 9B. AUDIO DETECTION UI CONTROLS
+// ============================================================
+
+/**
+ * Manual toggle for audio detection
+ */
+async function toggleAudioDetection() {
+    if (!window.audioEngine) {
+        showNotification('Audio engine not loaded', 'error');
+        return;
+    }
+    
+    const status = window.audioEngine.getStatus();
+    const btn = document.getElementById('toggle-audio-btn');
+    const indicator = document.getElementById('audio-indicator');
+    
+    if (status.isListening) {
+        // Stop detection
+        window.audioEngine.stopListening();
+        btn.textContent = 'ACTIVATE';
+        btn.style.background = '#333';
+        indicator.style.background = '#666';
+        indicator.style.boxShadow = 'none';
+        document.getElementById('audio-frequency-display').style.display = 'none';
+        showNotification('Audio detection stopped', 'info');
+    } else {
+        // Start detection
+        const result = await window.audioEngine.startListening();
+        if (result.success) {
+            btn.textContent = 'DEACTIVATE';
+            btn.style.background = 'var(--sub-red)';
+            indicator.style.background = '#4CAF50';
+            indicator.style.boxShadow = '0 0 10px #4CAF50';
+            document.getElementById('audio-frequency-display').style.display = 'block';
+            showNotification('🎙️ Audio detection active', 'success');
+            // Start real-time frequency display
+            startFrequencyMonitor();
+        } else {
+            showNotification(result.message, 'error');
+        }
+    }
+}
+
+/**
+ * Real-time frequency monitor (for testing)
+ */
+let frequencyMonitorInterval = null;
+function startFrequencyMonitor() {
+    if (frequencyMonitorInterval) clearInterval(frequencyMonitorInterval);
+    
+    frequencyMonitorInterval = setInterval(() => {
+        if (!window.audioEngine || !window.audioEngine.getStatus().isListening) {
+            clearInterval(frequencyMonitorInterval);
+            return;
+        }
+        
+        // This is a simplified display - actual detection happens in audio-engine.js
+        // For real frequency display, we'd need to expose analyser data from audio-engine
+        const status = window.audioEngine.getStatus();
+        document.getElementById('freq-goal1').textContent = status.settings.goal1Frequency;
+        document.getElementById('freq-goal2').textContent = status.settings.goal2Frequency;
+    }, 100);
+}
+
+/**
+ * Record goal sound for testing and analysis
+ * @param {number} goalNumber - 1 or 2
+ */
+let mediaRecorder = null;
+let recordedChunks = [];
+
+async function recordGoalSound(goalNumber) {
+    const statusDiv = document.getElementById('recording-status');
+    
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        // Start recording
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            recordedChunks = [];
+            
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+            
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                const url = URL.createObjectURL(blob);
+                
+                // Download the recording
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `goal${goalNumber}_sound_${Date.now()}.webm`;
+                a.click();
+                
+                // Stop all tracks
+                stream.getTracks().forEach(track => track.stop());
+                
+                statusDiv.textContent = `✅ Goal ${goalNumber} sound saved!`;
+                statusDiv.style.color = '#4CAF50';
+                
+                // Analyze the recording
+                analyzeRecording(blob, goalNumber);
+                
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                }, 3000);
+            };
+            
+            mediaRecorder.start();
+            statusDiv.textContent = `🔴 Recording Goal ${goalNumber} sound... (3 sec)`;
+            statusDiv.style.color = 'var(--sub-red)';
+            
+            // Auto-stop after 3 seconds
+            setTimeout(() => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            }, 3000);
+            
+        } catch (error) {
+            console.error('Recording failed:', error);
+            statusDiv.textContent = '❌ Microphone access required';
+            statusDiv.style.color = '#f44336';
+        }
+    } else {
+        // Stop recording manually
+        mediaRecorder.stop();
+    }
+}
+
+/**
+ * Analyze recorded audio to find dominant frequency
+ * @param {Blob} audioBlob - Recorded audio blob
+ * @param {number} goalNumber - Which goal was recorded
+ */
+async function analyzeRecording(audioBlob, goalNumber) {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        
+        // Create offline analysis
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 4096; // High resolution for accurate frequency detection
+        
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(analyser);
+        
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        
+        // Find peak frequency
+        let maxValue = 0;
+        let maxIndex = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            if (dataArray[i] > maxValue) {
+                maxValue = dataArray[i];
+                maxIndex = i;
+            }
+        }
+        
+        const frequency = Math.round(maxIndex * audioContext.sampleRate / analyser.fftSize);
+        
+        console.log(`🎵 Goal ${goalNumber} dominant frequency: ${frequency} Hz (intensity: ${maxValue})`);
+        showNotification(`Goal ${goalNumber}: ~${frequency} Hz detected`, 'info');
+        
+        audioContext.close();
+    } catch (error) {
+        console.error('Audio analysis failed:', error);
+    }
 }
 
 // ============================================================
@@ -968,6 +1153,8 @@ window.finalizeQuickMatch = finalizeQuickMatch;
 window.showVictory = showVictory;
 window.closeVictoryOverlay = closeVictoryOverlay;
 window.handleGoalDetected = handleGoalDetected;
+window.toggleAudioDetection = toggleAudioDetection;
+window.recordGoalSound = recordGoalSound;
 
 // ============================================================
 // 12. KÄYNNISTYS

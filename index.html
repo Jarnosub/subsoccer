@@ -216,6 +216,30 @@
                     <div id="elo-prediction-text"></div>
                 </div>
 
+                <!-- Audio Detection Status & Controls -->
+                <div id="audio-status-panel" style="background:#111; padding:12px; border-radius:10px; border:1px solid #333; margin-bottom:15px; display:none;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div id="audio-indicator" style="width:10px; height:10px; border-radius:50%; background:#666;"></div>
+                            <span style="font-family:'Russo One'; font-size:0.75rem; color:#fff;">AUDIO DETECTION</span>
+                        </div>
+                        <button id="toggle-audio-btn" onclick="toggleAudioDetection()" style="background:#333; color:#fff; border:none; padding:5px 12px; border-radius:5px; font-family:'Russo One'; font-size:0.7rem; cursor:pointer;">ACTIVATE</button>
+                    </div>
+                    <div id="audio-frequency-display" style="font-size:0.65rem; color:#666; font-family:'Open Sans'; display:none;">
+                        <div>Goal 1: <span id="freq-goal1" style="color:var(--sub-gold);">0</span> Hz | Goal 2: <span id="freq-goal2" style="color:var(--sub-gold);">0</span> Hz</div>
+                    </div>
+                </div>
+
+                <!-- Audio Recording Tool (Testing) -->
+                <div id="audio-test-panel" style="background:#0a0a0a; padding:10px; border-radius:8px; border:1px dashed #333; margin-bottom:15px; display:none;">
+                    <div style="font-family:'Russo One'; font-size:0.7rem; color:#888; margin-bottom:8px; text-align:center;">🎙️ GOAL SOUND RECORDER (Testing)</div>
+                    <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center;">
+                        <button onclick="recordGoalSound(1)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:5px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 1</button>
+                        <button onclick="recordGoalSound(2)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:5px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 2</button>
+                    </div>
+                    <div id="recording-status" style="font-size:0.65rem; color:#666; text-align:center; margin-top:5px; font-family:'Open Sans';"></div>
+                </div>
+
                 <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.2rem; height:60px;">START MATCH</button>
 
                 <div style="margin-top:20px; border-top:1px solid #222; padding-top:10px;">
@@ -268,7 +292,7 @@
     <script src="ui.js"></script>
     <script src="auth.js"></script>
     <script src="audio-engine.js"></script>
-    <script src="script.js?v=1.3"></script>
+    <script src="script.js?v=1.4"></script>
     <div style="position: fixed; bottom: 5px; right: 10px; font-size: 12px; color: #555;">v.1.0.1</div>
 
     <div id="card-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:20000; justify-content:center; align-items:center; flex-direction:column;">
