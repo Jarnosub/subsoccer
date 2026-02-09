@@ -130,40 +130,38 @@ async function updateProfileCard() {
 
     container.innerHTML = `
         <div class="pro-card">
-            <div class="card-inner-frame">
-                <div class="card-header-stripe">${rank} CARD</div>
-                
-                <div class="card-image-area">
-                    <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+            <div class="card-header-stripe">${rank} CARD</div>
+            
+            <div class="card-image-area">
+                <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+            </div>
+            <div class="card-name-strip">${user.username}</div>
+            <div class="card-info-area">
+                <div class="card-stats-row">
+                    <div class="card-stat-item">
+                        <div class="card-stat-label">RANK</div>
+                        <div class="card-stat-value">${user.elo}</div>
+                    </div>
+                    <div class="card-stat-item">
+                        <div class="card-stat-label">WINS</div>
+                        <div class="card-stat-value">${wins}</div>
+                    </div>
+                    <div class="card-stat-item">
+                        <div class="card-stat-label">LOSS</div>
+                        <div class="card-stat-value">${losses}</div>
+                    </div>
+                    <div class="card-stat-item">
+                        <div class="card-stat-label">W/L</div>
+                        <div class="card-stat-value">${ratio}</div>
+                    </div>
                 </div>
-                <div class="card-name-strip">${user.username}</div>
-                <div class="card-info-area">
-                    <div class="card-stats-row">
-                        <div class="card-stat-item">
-                            <div class="card-stat-label">RANK</div>
-                            <div class="card-stat-value">${user.elo}</div>
-                        </div>
-                        <div class="card-stat-item">
-                            <div class="card-stat-label">WINS</div>
-                            <div class="card-stat-value">${wins}</div>
-                        </div>
-                        <div class="card-stat-item">
-                            <div class="card-stat-label">LOSS</div>
-                            <div class="card-stat-value">${losses}</div>
-                        </div>
-                        <div class="card-stat-item">
-                            <div class="card-stat-label">W/L</div>
-                            <div class="card-stat-value">${ratio}</div>
-                        </div>
+                
+                <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <img src="https://flagcdn.com/w80/${(user.country || 'fi').toLowerCase()}.png" width="24" style="border-radius:2px;">
+                        <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING</span>
                     </div>
-                    
-                    <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <img src="https://flagcdn.com/w80/${(user.country || 'fi').toLowerCase()}.png" width="16">
-                            <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING</span>
-                        </div>
-                        <div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div>
-                    </div>
+                    <div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div>
                 </div>
             </div>
         </div>
@@ -988,26 +986,24 @@ async function viewPlayerCard(targetUsername) {
     // Rakennetaan kortti (käytetään samaa Topps-geometriaa kuin profiilissa)
     container.innerHTML = `
         <div class="pro-card" style="margin:0;">
-            <div class="card-inner-frame">
-                <div class="card-header-stripe">${rank} CARD</div>
-                <div class="card-image-area">
-                    <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+            <div class="card-header-stripe">${rank} CARD</div>
+            <div class="card-image-area">
+                <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+            </div>
+            <div class="card-name-strip">${p.username}</div>
+            <div class="card-info-area">
+                <div class="card-stats-row">
+                    <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div>
+                    <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div>
+                    <div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div>
+                    <div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div>
                 </div>
-                <div class="card-name-strip">${p.username}</div>
-                <div class="card-info-area">
-                    <div class="card-stats-row">
-                        <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div>
+                <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <img src="https://flagcdn.com/w80/${(p.country || 'fi').toLowerCase()}.png" width="24" style="border-radius:2px;">
+                        <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING</span>
                     </div>
-                    <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16">
-                            <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING</span>
-                        </div>
-                        <div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div>
-                    </div>
+                    <div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div>
                 </div>
             </div>
         </div>
@@ -1028,8 +1024,8 @@ async function downloadFanCard() {
         const canvas = await html2canvas(cardElement, {
             useCORS: true,
             allowTaint: true,
-            backgroundColor: "#000000",
-            scale: 4, // 300 DPI resolution
+            backgroundColor: "#0a0a0a",
+            scale: 3, // Tuplaresoluutio painolaatua varten
             logging: false
         });
         const link = document.createElement('a');
@@ -1072,59 +1068,32 @@ async function selectQuickPlayer(name, slot) {
 }
 
 async function updateEloPreview() {
-    if(!quickP1 || !quickP2) return;
     const { data: p1 } = await _supabase.from('players').select('id, elo').eq('username', quickP1).single();
     const { data: p2 } = await _supabase.from('players').select('id, elo').eq('username', quickP2).single();
 
-    // Use DB elo or default 1300 for guests
-    const elo1 = p1 ? p1.elo : 1300;
-    const elo2 = p2 ? p2.elo : 1300;
-    const id1 = p1 ? p1.id : 'guest1';
-    const id2 = p2 ? p2.id : 'guest2';
-
-    const result = calculateNewElo({id: id1, elo: elo1}, {id: id2, elo: elo2}, {id: id1}); 
-    const gain = result.newEloA - elo1;
-    
-    const text = document.getElementById('elo-prediction-text');
-    text.innerHTML = `<span class="highlight">${quickP1}</span> gains <span class="highlight">+${gain} ELO</span> if they win`;
-    document.getElementById('elo-preview').style.display = 'block';
+    if(p1 && p2) {
+        // Käytetään olemassa olevaa calculateNewElo -funktiota ennusteeseen
+        const p1Win = calculateNewElo(p1, p2, p1); 
+        const gain = p1Win.newEloA - p1.elo;
+        
+        const preview = document.getElementById('elo-preview');
+        const text = document.getElementById('elo-prediction-text');
+        // Käytetään highlight-luokkaa ja pidetään muu teksti tavallisena
+        text.innerHTML = `<span class="highlight">${quickP1}</span> gains <span class="highlight">+${gain} ELO</span> if they win`;
+        preview.style.display = 'block';
+    }
 }
 
 async function startQuickMatch() {
-    // 1. Poistetaan fokus kaikista kentistä välittömästi
-    document.querySelectorAll('input').forEach(input => input.blur());
-
-    const p1Val = document.getElementById('p1-quick-search').value.trim().toUpperCase();
-    const p2Val = document.getElementById('p2-quick-search').value.trim().toUpperCase();
-    
-    quickP1 = p1Val; 
-    quickP2 = p2Val; // Sallitaan käsin kirjoitetut nimet
-
     if(!quickP1 || !quickP2) return showNotification("Select both players!", "error");
     if(quickP1 === quickP2) return showNotification("Select different players!", "error");
     
-    // 2. PIILOTETAAN TAUSTA täysin (Display: none) jotta viiva ei voi näkyä
-    document.getElementById('app-content').style.display = 'none';
-
     // Luodaan dynaaminen valintaikkuna promptin tilalle
     const overlay = document.createElement('div');
-    overlay.id = "active-winner-selection"; // Lisätään ID sulkemista varten
-    overlay.style = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0a0a0a; z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;";
-    overlay.innerHTML = `
-        <h2 style="font-family:'Russo One'; color:#fff; margin-bottom:10px;">WHO WON?</h2> 
-        <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem;" onclick="handleQuickWinner('${quickP1}', this)">${quickP1}</button> 
-        <div style="color:var(--sub-gold); font-family:'Russo One';">OR</div> 
-        <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem; background:#333;" onclick="handleQuickWinner('${quickP2}', this)">${quickP2}</button> 
-        <button onclick="cancelQuickMatch()" style="margin-top:20px; background:none; border:none; color:#666; text-decoration:underline; cursor:pointer;">Cancel</button>`;
+    overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:40000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; animation: fadeIn 0.3s;";
+    overlay.innerHTML = `<h2 style="font-family:'Russo One'; color:#fff; margin-bottom:10px;">WHO WON?</h2> <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem;" onclick="handleQuickWinner('${quickP1}', this)">${quickP1}</button> <div style="color:var(--sub-gold); font-family:'Russo One';">OR</div> <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem; background:#333;" onclick="handleQuickWinner('${quickP2}', this)">${quickP2}</button> <button onclick="this.parentElement.remove()" style="margin-top:20px; background:none; border:none; color:#666; text-decoration:underline; cursor:pointer;">Cancel</button>`;
 
     document.body.appendChild(overlay);
-}
-
-// Lisätään uusi peruutustoiminto
-window.cancelQuickMatch = function() {
-    const overlay = document.getElementById('active-winner-selection');
-    if(overlay) overlay.remove();
-    document.getElementById('app-content').style.display = 'flex'; // Palautetaan tausta
 }
 
 window.handleQuickWinner = function(winnerName, btn) { 
@@ -1164,12 +1133,6 @@ async function finalizeQuickMatch(winnerName) {
 }
 
 function showVictory(name, newElo, gain, isGuest = false) {
-    document.querySelectorAll('input').forEach(input => input.blur());
-    
-    // Varmistetaan että tausta on poissa (display: none on varmempi kuin visibility)
-    const appContent = document.getElementById('app-content');
-    if(appContent) appContent.style.display = 'none';
-
     document.getElementById('victory-player-name').innerText = name;
     document.getElementById('victory-elo-count').innerText = newElo;
     document.getElementById('victory-elo-gain').innerText = `+${gain} POINTS`;
@@ -1194,13 +1157,8 @@ function showVictory(name, newElo, gain, isGuest = false) {
 }
 
 function closeVictoryOverlay() {
+    // 1. Piilotetaan voittoilmoitus
     document.getElementById('victory-overlay').style.display = 'none';
-    
-    // TUODAAN sovellus takaisin
-    const appContent = document.getElementById('app-content');
-    if(appContent) {
-        appContent.style.display = 'flex';
-    }
     
     // 2. Nollataan Quick Match -kentät ilman sivun latausta
     document.getElementById('p1-quick-search').value = '';
