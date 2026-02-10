@@ -29,6 +29,14 @@ function showPage(p) {
         const tm = document.getElementById('tab-more');
         if (tm) tm.classList.add('active');
     }
+    
+    // Update currentPageIndex for swipe navigation
+    const pages = ['profile', 'tournament', 'map', 'leaderboard', 'more'];
+    const pageIdx = pages.indexOf(p);
+    if (pageIdx !== -1) {
+        currentPageIndex = pageIdx;
+    }
+    
     // Funktiot, jotka suoritetaan sivun vaihdon yhteydessä
     if (p === 'leaderboard') fetchLB();
     if (p === 'history') fetchHist();
@@ -135,16 +143,6 @@ function initSwipeListener() {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     }, { passive: true });
-}
-
-// Update currentPageIndex when page changes via tab click
-const originalShowPage = showPage;
-function showPage(p) {
-    originalShowPage(p);
-    const pageIdx = pages.indexOf(p);
-    if (pageIdx !== -1) {
-        currentPageIndex = pageIdx;
-    }
 }
 
 // Alusta swipe kun DOM on valmis
