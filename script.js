@@ -725,6 +725,13 @@ function replayTournament(players, tourName, eventName, gameId) {
  * @param {number} playerNumber - 1 or 2, which player scored
  */
 function handleGoalDetected(playerNumber) {
+    // PRO MODE - Route to Pro Mode handler if active
+    if (proModeActive) {
+        handleGoalDetectedPro(playerNumber);
+        return;
+    }
+    
+    // Regular Quick Match flow
     // Check if Quick Match is active
     const overlay = document.getElementById('active-winner-selection');
     if (!overlay) {
@@ -798,6 +805,13 @@ async function startQuickMatch() {
     if (!quickP1 || !quickP2) return showNotification("Select both players!", "error");
     if (quickP1 === quickP2) return showNotification("Select different players!", "error");
     
+    // PRO MODE CHECK - Route to Pro Mode if enabled
+    if (proModeEnabled) {
+        startProMatch();
+        return;
+    }
+    
+    // Regular Quick Match flow
     // Start acoustic goal detection
     if (window.audioEngine && typeof window.audioEngine.startListening === 'function') {
         const result = await window.audioEngine.startListening();
@@ -1088,6 +1102,210 @@ async function analyzeRecording(audioBlob, goalNumber) {
 }
 
 // ============================================================
+// 9C. PRO MODE - ACOUSTIC LIVE SCORING (MODULAR)
+// This entire section can be removed for basic version
+// ============================================================
+
+let proModeActive = false;
+let proModeEnabled = false;
+let proScoreP1 = 0;
+let proScoreP2 = 0;
+const PRO_MODE_WIN_SCORE = 3; // First to 3 goals wins
+
+/**
+ * Toggle Pro Mode checkbox
+ */
+function toggleProMode() {
+    const checkbox = document.getElementById('pro-mode-toggle');
+    proModeEnabled = checkbox.checked;
+    
+    const startBtn = document.getElementById('start-quick-match');
+    if (proModeEnabled) {
+        startBtn.textContent = '⚡ START PRO MATCH';
+        startBtn.style.background = 'linear-gradient(135deg, var(--sub-gold), #d4a017)';
+        startBtn.style.color = '#000';
+        showNotification('Pro Mode enabled! First to 3 goals wins', 'success');
+    } else {
+        startBtn.textContent = 'START MATCH';
+        startBtn.style.background = '';
+        startBtn.style.color = '';
+    }
+}
+
+/**
+ * Start Pro Mode match
+ */
+async function startProMatch() {
+    if (!quickP1 || !quickP2) {
+        showNotification("Select both players!", "error");
+        return;
+    }
+    
+    // Initialize scores
+    proScoreP1 = 0;
+    proScoreP2 = 0;
+    proModeActive = true;
+    
+    // Update Pro Mode view
+    document.getElementById('pro-p1-name').textContent = quickP1;
+    document.getElementById('pro-p2-name').textContent = quickP2;
+    updateProScore();
+    
+    // Hide main app, show Pro Mode view
+    document.getElementById('app-content').style.display = 'none';
+    document.getElementById('pro-mode-view').style.display = 'flex';
+    
+    // Start audio detection automatically
+    if (window.audioEngine && typeof window.audioEngine.startListening === 'function') {
+        const result = await window.audioEngine.startListening();
+        if (result.success) {
+            console.log('🎙️ Pro Mode: Audio detection active');
+        } else {
+            showNotification('Audio detection failed: ' + result.message, 'error');
+        }
+    } else {
+        showNotification('⚠️ Audio engine not available - manual scoring only', 'error');
+    }
+    
+    // Request landscape orientation hint
+    if (screen.orientation && screen.orientation.lock) {
+        try {
+            await screen.orientation.lock('landscape');
+        } catch (e) {
+            // Landscape lock not supported or failed, continue anyway
+        }
+    }
+}
+
+/**
+ * Handle goal detected in Pro Mode
+ * @param {number} playerNumber - 1 or 2
+ */
+function handleGoalDetectedPro(playerNumber) {
+    if (!proModeActive) return;
+    
+    // Update score
+    if (playerNumber === 1) {
+        proScoreP1++;
+    } else {
+        proScoreP2++;
+    }
+    
+    // Update display
+    updateProScore();
+    
+    // Visual feedback
+    const side = playerNumber === 1 ? '.pro-player-left' : '.pro-player-right';
+    const element = document.querySelector(side);
+    element.classList.add('goal-flash');
+    setTimeout(() => element.classList.remove('goal-flash'), 500);
+    
+    // Haptic feedback
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+    }
+    
+    // Check for winner
+    if (proScoreP1 >= PRO_MODE_WIN_SCORE) {
+        setTimeout(() => finishProMatch(quickP1), 1500);
+    } else if (proScoreP2 >= PRO_MODE_WIN_SCORE) {
+        setTimeout(() => finishProMatch(quickP2), 1500);
+    }
+}
+
+/**
+ * Update Pro Mode score display
+ */
+function updateProScore() {
+    // Update scores
+    document.getElementById('pro-p1-score').textContent = proScoreP1;
+    document.getElementById('pro-p2-score').textContent = proScoreP2;
+    
+    // Update goal visualizations (●○○)
+    const p1Goals = '●'.repeat(proScoreP1) + '○'.repeat(PRO_MODE_WIN_SCORE - proScoreP1);
+    const p2Goals = '●'.repeat(proScoreP2) + '○'.repeat(PRO_MODE_WIN_SCORE - proScoreP2);
+    document.getElementById('pro-p1-goals').textContent = p1Goals;
+    document.getElementById('pro-p2-goals').textContent = p2Goals;
+    
+    // Update status text
+    const p1Status = document.getElementById('pro-p1-status');
+    const p2Status = document.getElementById('pro-p2-status');
+    
+    if (proScoreP1 === proScoreP2) {
+        p1Status.textContent = 'TIE';
+        p2Status.textContent = 'TIE';
+    } else if (proScoreP1 > proScoreP2) {
+        p1Status.textContent = 'LEADING';
+        p2Status.textContent = (proScoreP2 === PRO_MODE_WIN_SCORE - 1) ? 'MATCH POINT' : '';
+    } else {
+        p1Status.textContent = (proScoreP1 === PRO_MODE_WIN_SCORE - 1) ? 'MATCH POINT' : '';
+        p2Status.textContent = 'LEADING';
+    }
+    
+    // Match point highlight
+    if (proScoreP1 === PRO_MODE_WIN_SCORE - 1 || proScoreP2 === PRO_MODE_WIN_SCORE - 1) {
+        const matchPointStatus = proScoreP1 === PRO_MODE_WIN_SCORE - 1 ? p1Status : p2Status;
+        matchPointStatus.style.color = 'var(--sub-gold)';
+        matchPointStatus.style.fontSize = '1.1rem';
+    }
+}
+
+/**
+ * Finish Pro Mode match and save results
+ * @param {string} winnerName - Name of the winner
+ */
+async function finishProMatch(winnerName) {
+    proModeActive = false;
+    
+    // Stop audio detection
+    if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') {
+        window.audioEngine.stopListening();
+    }
+    
+    // Unlock orientation
+    if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+    }
+    
+    // Hide Pro Mode view
+    document.getElementById('pro-mode-view').style.display = 'none';
+    
+    // Finalize match (same as regular Quick Match)
+    await finalizeQuickMatch(winnerName);
+}
+
+/**
+ * Exit Pro Mode manually
+ */
+function exitProMode() {
+    if (!confirm('Exit Pro Mode? Current match will not be saved.')) {
+        return;
+    }
+    
+    proModeActive = false;
+    
+    // Stop audio detection
+    if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') {
+        window.audioEngine.stopListening();
+    }
+    
+    // Unlock orientation
+    if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+    }
+    
+    // Hide Pro Mode view, show main app
+    document.getElementById('pro-mode-view').style.display = 'none';
+    document.getElementById('app-content').style.display = 'flex';
+    
+    showNotification('Pro Mode exited - match not saved', 'info');
+}
+
+// ============================================================
+// END PRO MODE
+// ============================================================
+
+// ============================================================
 // 10. CONNECTION WATCHDOG
 // ============================================================
 
@@ -1155,6 +1373,10 @@ window.closeVictoryOverlay = closeVictoryOverlay;
 window.handleGoalDetected = handleGoalDetected;
 window.toggleAudioDetection = toggleAudioDetection;
 window.recordGoalSound = recordGoalSound;
+// PRO MODE window bindings
+window.toggleProMode = toggleProMode;
+window.startProMatch = startProMatch;
+window.exitProMode = exitProMode;
 
 // ============================================================
 // 12. KÄYNNISTYS

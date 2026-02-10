@@ -34,6 +34,109 @@
         .tour-settings-compact input, .tour-settings-compact select {
             padding: 6px 10px; margin-bottom: 5px; font-size: 0.85rem; height: 34px;
         }
+
+        /* ============================================================ */
+        /* PRO MODE STYLES (MODULAR - CAN BE REMOVED) */
+        /* ============================================================ */
+        #pro-mode-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0a0a0a;
+            z-index: 99999999;
+            display: none;
+            flex-direction: row;
+        }
+
+        .pro-player-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 2px solid #222;
+        }
+
+        .pro-player-left {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
+        }
+
+        .pro-player-right {
+            background: linear-gradient(135deg, #0a0a0a 0%, #0a0a1a 100%);
+        }
+
+        .pro-player-name {
+            font-family: 'Russo One';
+            font-size: 1.2rem;
+            color: #666;
+            position: absolute;
+            top: 30px;
+            letter-spacing: 2px;
+        }
+
+        .pro-score {
+            font-family: 'Russo One';
+            font-size: 10rem;
+            color: var(--sub-gold);
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            line-height: 1;
+        }
+
+        .pro-goals-visual {
+            font-size: 2rem;
+            margin-top: 20px;
+            letter-spacing: 10px;
+        }
+
+        .pro-status {
+            font-family: 'Russo One';
+            font-size: 0.9rem;
+            color: var(--sub-red);
+            position: absolute;
+            bottom: 40px;
+            letter-spacing: 3px;
+            opacity: 0.8;
+        }
+
+        .pro-divider {
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
+            box-shadow: 0 0 20px var(--sub-gold);
+        }
+
+        .pro-exit-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Russo One';
+            font-size: 0.8rem;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .pro-exit-btn:hover {
+            background: #333;
+        }
+
+        @keyframes goalFlash {
+            0% { background: var(--sub-red); transform: scale(1); }
+            50% { background: var(--sub-gold); transform: scale(1.05); }
+            100% { background: var(--sub-red); transform: scale(1); }
+        }
+
+        .goal-flash {
+            animation: goalFlash 0.5s ease-in-out;
+        }
+        /* END PRO MODE STYLES */
     </style>
 </head>
 <body onload="initApp()">
@@ -247,6 +350,18 @@
                         <i class="fa-solid fa-trophy" style="margin-right:8px;"></i> Tournament Mode & Settings
                     </div>
                     <div id="advanced-tour-settings" style="display:none; margin-top:15px;">
+                        <!-- PRO MODE TOGGLE (MODULAR - CAN BE REMOVED) -->
+                        <div style="background:#0a0a0a; padding:12px; border-radius:8px; border:2px solid var(--sub-gold); margin-bottom:15px;">
+                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                                <input type="checkbox" id="pro-mode-toggle" onchange="toggleProMode()" style="width:18px; height:18px; cursor:pointer;">
+                                <div>
+                                    <div style="font-family:'Russo One'; font-size:0.85rem; color:var(--sub-gold);">⚡ PRO MODE</div>
+                                    <div style="font-family:'Open Sans'; font-size:0.65rem; color:#888;">First to 3 Goals - Acoustic Live Scoring</div>
+                                </div>
+                            </label>
+                        </div>
+                        <!-- END PRO MODE TOGGLE -->
+                        
                         <h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom: 15px;">NEW EVENT / TOURNAMENT</h3>
                         
                         <!-- 1. Add Players (Top Priority) -->
@@ -292,12 +407,36 @@
     <script src="ui.js"></script>
     <script src="auth.js"></script>
     <script src="audio-engine.js"></script>
-    <script src="script.js?v=1.4"></script>
+    <script src="script.js?v=2.0-promode"></script>
     <div style="position: fixed; bottom: 5px; right: 10px; font-size: 12px; color: #555;">v.1.0.1</div>
 
     <div id="card-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:20000; justify-content:center; align-items:center; flex-direction:column;">
         <div id="modal-card-container"></div>
         <button onclick="closeCardModal()" style="margin-top:20px; background:var(--sub-red); color:white; border:none; padding:10px 30px; border-radius:20px; font-family:'Russo One'; cursor:pointer;">CLOSE</button>
     </div>
+
+    <!-- ============================================================ -->
+    <!-- PRO MODE VIEW (MODULAR - CAN BE REMOVED) -->
+    <!-- ============================================================ -->
+    <div id="pro-mode-view">
+        <div class="pro-player-side pro-player-left">
+            <div class="pro-player-name" id="pro-p1-name">PLAYER 1</div>
+            <div class="pro-score" id="pro-p1-score">0</div>
+            <div class="pro-goals-visual" id="pro-p1-goals">○○○</div>
+            <div class="pro-status" id="pro-p1-status"></div>
+        </div>
+        
+        <div class="pro-divider"></div>
+        
+        <div class="pro-player-side pro-player-right">
+            <div class="pro-player-name" id="pro-p2-name">PLAYER 2</div>
+            <div class="pro-score" id="pro-p2-score">0</div>
+            <div class="pro-goals-visual" id="pro-p2-goals">○○○</div>
+            <div class="pro-status" id="pro-p2-status"></div>
+        </div>
+        
+        <button class="pro-exit-btn" onclick="exitProMode()">✕ EXIT</button>
+    </div>
+    <!-- END PRO MODE VIEW -->
 </body>
 </html>
