@@ -345,23 +345,23 @@
 
                 <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.2rem; height:60px;">START MATCH</button>
 
+                <!-- PRO MODE TOGGLE (MODULAR - CAN BE REMOVED) -->
+                <div style="margin-top:20px; background:#0a0a0a; padding:12px; border-radius:8px; border:2px solid var(--sub-gold);">
+                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                        <input type="checkbox" id="pro-mode-toggle" onchange="toggleProMode()" style="width:18px; height:18px; cursor:pointer;">
+                        <div>
+                            <div style="font-family:'Russo One'; font-size:0.85rem; color:var(--sub-gold);">⚡ PRO MODE</div>
+                            <div style="font-family:'Open Sans'; font-size:0.65rem; color:#888;">First to 3 Goals - Acoustic Live Scoring</div>
+                        </div>
+                    </label>
+                </div>
+                <!-- END PRO MODE TOGGLE -->
+
                 <div style="margin-top:20px; border-top:1px solid #222; padding-top:10px;">
                     <div class="tour-mode-toggle" onclick="toggleTournamentMode()">
                         <i class="fa-solid fa-trophy" style="margin-right:8px;"></i> Tournament Mode & Settings
                     </div>
                     <div id="advanced-tour-settings" style="display:none; margin-top:15px;">
-                        <!-- PRO MODE TOGGLE (MODULAR - CAN BE REMOVED) -->
-                        <div style="background:#0a0a0a; padding:12px; border-radius:8px; border:2px solid var(--sub-gold); margin-bottom:15px;">
-                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                                <input type="checkbox" id="pro-mode-toggle" onchange="toggleProMode()" style="width:18px; height:18px; cursor:pointer;">
-                                <div>
-                                    <div style="font-family:'Russo One'; font-size:0.85rem; color:var(--sub-gold);">⚡ PRO MODE</div>
-                                    <div style="font-family:'Open Sans'; font-size:0.65rem; color:#888;">First to 3 Goals - Acoustic Live Scoring</div>
-                                </div>
-                            </label>
-                        </div>
-                        <!-- END PRO MODE TOGGLE -->
-                        
                         <h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom: 15px;">NEW EVENT / TOURNAMENT</h3>
                         
                         <!-- 1. Add Players (Top Priority) -->
