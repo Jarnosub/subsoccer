@@ -31,7 +31,7 @@ function showPage(p) {
     }
     
     // Update currentPageIndex for swipe navigation
-    const pages = ['profile', 'tournament', 'map', 'leaderboard', 'more'];
+    const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'more'];
     const pageIdx = pages.indexOf(p);
     if (pageIdx !== -1) {
         currentPageIndex = pageIdx;
@@ -43,6 +43,7 @@ function showPage(p) {
     if (p === 'games') fetchMyGames();
     if (p !== 'games') cancelEdit(); // Reset edit mode when leaving tab
     if (p === 'map') fetchPublicGamesMap();
+    if (p === 'events') loadEventsPage();
 
     // Alustaa kartan 'games'-sivulla
     if (p === 'games') {
@@ -107,7 +108,7 @@ function toggleTournamentMode() {
  */
 let touchStartX = 0;
 let touchEndX = 0;
-const pages = ['profile', 'tournament', 'map', 'leaderboard', 'more'];
+const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'more'];
 let currentPageIndex = 1; // Aloitetaan tournament-sivulta
 
 function handleSwipe() {

@@ -195,6 +195,9 @@
             <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
                 <i class="fa-solid fa-trophy"></i>
             </div>
+            <div class="tab" id="tab-events" onclick="showPage('events')">
+                <i class="fa-regular fa-calendar" style="color:#fff;"></i>
+            </div>
             <div class="tab" id="tab-map" onclick="showPage('map')">
                 <i class="fa-regular fa-map"></i>
             </div>
@@ -238,6 +241,13 @@
             </div>
         </div>
 
+        <div id="section-events" class="section">
+            <div class="container">
+                <h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom: 20px;">📅 EVENTS</h3>
+                <div id="events-view"></div>
+            </div>
+        </div>
+
         <div id="section-map" class="section" style="height: calc(100vh - 180px); flex-direction: column;">
             <h2 style="font-family: 'SubsoccerLogo'; color: var(--sub-red); text-align: center; margin-bottom: 15px; font-size: 1.2rem;">FIND YOUR NEAREST SUBSOCCER</h2>
             <div id="public-game-map" style="width: 100%; flex-grow: 1; border-radius: 12px; border: 2px solid var(--sub-red);"></div>
@@ -250,11 +260,14 @@
                 <button class="btn-red" style="background:#333;" onclick="showPage('games')">MANAGE GAME TABLES</button>
                 <button class="btn-red" style="background:#333; margin-top:10px;" onclick="showEditProfile()">EDIT PROFILE</button>
                 <div id="profile-edit-fields" style="display:none; margin-top:15px; background:#111; padding:15px; border-radius:12px; border:1px solid #222;">
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                        <img id="avatar-preview" src="placeholder-silhouette-5-wide.png" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid var(--sub-gold);">
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:10px;">
+                        <img id="avatar-preview" src="placeholder-silhouette-5-wide.png" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--sub-gold);">
                         <div style="flex-grow:1;">
-                            <input type="text" id="avatar-url-input" placeholder="Avatar URL" oninput="updateAvatarPreview(this.value)" style="margin-bottom:5px;">
-                            <div style="font-size:0.6rem; color:#888; font-family:'Open Sans';">Tip: Paste an image link from the web to update your photo.</div>
+                            <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewAvatarFile(this)">
+                            <label for="avatar-file-input" id="avatar-file-label" class="btn-red" style="display:block; text-align:center; padding:12px; margin-bottom:8px; cursor:pointer; background:var(--sub-gold); color:#000;">
+                                <i class="fa fa-camera"></i> CHOOSE PHOTO
+                            </label>
+                            <div id="avatar-file-name" style="font-size:0.75rem; color:#888; font-family:'Open Sans'; text-align:center; min-height:16px;"></div>
                         </div>
                     </div>
                     
@@ -407,6 +420,7 @@
     <script src="config.js"></script>
     <script src="ui.js"></script>
     <script src="auth.js"></script>
+    <script src="events.js"></script>
     <script src="audio-engine.js"></script>
     <script src="script.js?v=2.0-promode"></script>
     <div style="position: fixed; bottom: 5px; right: 10px; font-size: 12px; color: #555;">v.1.0.1</div>

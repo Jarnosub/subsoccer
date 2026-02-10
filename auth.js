@@ -56,15 +56,97 @@ async function showEditProfile() {
     
     if(fields.style.display === 'none' || fields.style.display === '') {
         fields.style.display = 'block';
-        // Populate fields
-        document.getElementById('avatar-url-input').value = user.avatar_url || '';
-        if (typeof updateAvatarPreview === 'function') updateAvatarPreview(user.avatar_url || '');
+        
+        // Show current avatar
+        if (typeof updateAvatarPreview === 'function') {
+            updateAvatarPreview(user.avatar_url || '');
+        }
+        
+        // Set country dropdown
         document.getElementById('country-input').value = user.country || 'fi';
+        
+        // Clear file input
+        const fileInput = document.getElementById('avatar-file-input');
+        if (fileInput) fileInput.value = '';
+        const fileNameDiv = document.getElementById('avatar-file-name');
+        if (fileNameDiv) fileNameDiv.textContent = '';
         
         // Varmistetaan että maat on ladattu
         if (typeof populateCountries === 'function') await populateCountries();
     } else {
         fields.style.display = 'none';
+    }
+}
+
+/**
+ * Preview avatar file before upload
+ */
+function previewAvatarFile(input) {
+    const file = input.files[0];
+    const fileNameDiv = document.getElementById('avatar-file-name');
+    
+    if (!file) {
+        if (fileNameDiv) fileNameDiv.textContent = '';
+        return;
+    }
+    
+    // Show filename
+    if (fileNameDiv) {
+        fileNameDiv.textContent = `📷 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    }
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('Image too large (max 5MB)', 'error');
+        input.value = '';
+        if (fileNameDiv) fileNameDiv.textContent = '';
+        return;
+    }
+    
+    // Preview image
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        if (typeof updateAvatarPreview === 'function') {
+            updateAvatarPreview(e.target.result);
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+/**
+ * Upload player avatar to Supabase Storage
+ */
+async function uploadPlayerAvatar(file) {
+    try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+        
+        console.log('Uploading avatar:', filePath);
+        
+        const { data, error } = await _supabase.storage
+            .from('event-images')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+        
+        if (error) {
+            console.error('Upload error:', error);
+            throw error;
+        }
+        
+        // Get public URL
+        const { data: urlData } = _supabase.storage
+            .from('event-images')
+            .getPublicUrl(filePath);
+        
+        console.log('Avatar uploaded successfully:', urlData.publicUrl);
+        return urlData.publicUrl;
+        
+    } catch (error) {
+        console.error('Failed to upload avatar:', error);
+        throw error;
     }
 }
 
@@ -75,32 +157,61 @@ async function saveProfile() {
     try {
         if (btn) {
             btn.disabled = true;
-            btn.textContent = 'Saving...';
+            btn.textContent = 'Uploading...';
         }
         
-        const avatarUrl = document.getElementById('avatar-url-input').value.trim();
-        const countryCode = document.getElementById('country-input').value.trim().toLowerCase();
+        const fileInput = document.getElementById('avatar-file-input');
+        const file = fileInput?.files[0];
+        const countryCode = document.getElementById('country-input')?.value.trim().toLowerCase();
         
+        let avatarUrl = user.avatar_url; // Keep existing if no new file
+        
+        // Upload new avatar if file selected
+        if (file) {
+            try {
+                if (btn) btn.textContent = 'Uploading photo...';
+                avatarUrl = await uploadPlayerAvatar(file);
+            } catch (uploadError) {
+                showNotification('Failed to upload photo: ' + uploadError.message, 'error');
+                return;
+            }
+        }
+        
+        // Prepare updates
         const updates = {};
-        if (avatarUrl) updates.avatar_url = avatarUrl;
-        if (countryCode) updates.country = countryCode;
+        if (avatarUrl && avatarUrl !== user.avatar_url) updates.avatar_url = avatarUrl;
+        if (countryCode && countryCode !== user.country) updates.country = countryCode;
 
         if (Object.keys(updates).length === 0) {
             showNotification("Nothing to update", "error");
             return;
         }
 
+        if (btn) btn.textContent = 'Saving...';
+        
         const { error } = await _supabase.from('players').update(updates).eq('id', user.id);
 
         if (error) {
             showNotification("Error updating profile: " + error.message, "error");
         } else {
+            // Update local user object
             if (avatarUrl) user.avatar_url = avatarUrl;
             if (countryCode) user.country = countryCode;
+            
+            // Update UI
             if (typeof updateProfileCard === 'function') updateProfileCard();
+            if (typeof updateAvatarPreview === 'function') updateAvatarPreview(user.avatar_url);
+            
             showNotification("Profile updated!", "success");
-            document.getElementById('avatar-url-input').value = '';
+            
+            // Clear file input
+            if (fileInput) fileInput.value = '';
+            const fileNameDiv = document.getElementById('avatar-file-name');
+            if (fileNameDiv) fileNameDiv.textContent = '';
         }
+    } catch (error) {
+        console.error('Save profile error:', error);
+        showNotification('Error: ' + error.message, 'error');
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -115,4 +226,5 @@ window.handleSignUp = handleSignUp;
 window.handleGuest = handleGuest;
 window.saveProfile = saveProfile;
 window.showEditProfile = showEditProfile;
+window.previewAvatarFile = previewAvatarFile;
 window.initApp = initApp;

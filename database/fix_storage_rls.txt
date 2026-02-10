@@ -1,0 +1,81 @@
+-- ============================================================
+-- STORAGE RLS FIX: Event Images Bucket Policies
+-- ============================================================
+-- IMPORTANT: Storage policies CANNOT be created via SQL!
+-- You MUST use the Supabase Dashboard UI
+-- ============================================================
+
+INSTRUCTIONS:
+
+1. Go to Supabase Dashboard → Storage → event-images bucket
+2. Click on "Policies" tab
+3. DELETE the existing INSERT/UPDATE/DELETE policies (if they use auth.uid())
+4. CREATE NEW POLICIES as follows:
+
+
+POLICY 1: Allow SELECT for everyone
+-----------------------------------------
+Policy name: Public read access
+Allowed operation: SELECT
+Policy definition: true
+
+SQL equivalent (for reference):
+CREATE POLICY "Public read access" ON storage.objects
+FOR SELECT TO public USING ( bucket_id = 'event-images' );
+
+
+POLICY 2: Allow INSERT for everyone (custom auth)
+-----------------------------------------
+Policy name: Public upload access
+Allowed operation: INSERT
+Policy definition: 
+
+(bucket_id = 'event-images')
+
+NOTE: Since your app uses CUSTOM authentication (not Supabase Auth),
+auth.role() is always 'anon'. We allow all uploads and validate in app code.
+
+SQL equivalent (for reference):
+CREATE POLICY "Public uploads" ON storage.objects
+FOR INSERT TO public
+WITH CHECK ( bucket_id = 'event-images' );
+
+
+POLICY 3: Allow UPDATE for everyone (custom auth)
+-----------------------------------------
+Policy name: Public update access
+Allowed operation: UPDATE
+Policy definition:
+
+(bucket_id = 'event-images')
+
+SQL equivalent (for reference):
+CREATE POLICY "Public updates" ON storage.objects
+FOR UPDATE TO public
+USING ( bucket_id = 'event-images' );
+
+
+POLICY 4: Allow DELETE for everyone (custom auth)
+-----------------------------------------
+Policy name: Public delete access
+Allowed operation: DELETE
+Policy definition:
+
+(bucket_id = 'event-images')
+
+SQL equivalent (for reference):
+CREATE POLICY "Public deletes" ON storage.objects
+FOR DELETE TO public
+USING ( bucket_id = 'event-images' );
+
+This allows anyone to upload (less secure, but works with custom auth).
+
+
+-- ============================================================
+-- VERIFICATION
+-- ============================================================
+-- After setting policies, test upload by:
+-- 1. Refresh your app
+-- 2. Try creating an event with an image
+-- 3. Check browser console for any storage errors
+-- ============================================================
