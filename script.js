@@ -1110,6 +1110,7 @@ let proModeActive = false;
 let proModeEnabled = false;
 let proScoreP1 = 0;
 let proScoreP2 = 0;
+let proGoalHistory = []; // Track goals for undo: [{player: 1}, {player: 2}, ...]
 const PRO_MODE_WIN_SCORE = 3; // First to 3 goals wins
 
 /**
@@ -1184,6 +1185,7 @@ async function startProMatch() {
     // Initialize scores
     proScoreP1 = 0;
     proScoreP2 = 0;
+    proGoalHistory = [];
     proModeActive = true;
     
     // Update Pro Mode view
@@ -1231,6 +1233,9 @@ function handleGoalDetectedPro(playerNumber) {
         proScoreP2++;
     }
     
+    // Add to history for undo
+    proGoalHistory.push({ player: playerNumber });
+    
     // Update display
     updateProScore();
     
@@ -1266,6 +1271,12 @@ function updateProScore() {
     const p2Goals = '●'.repeat(proScoreP2) + '○'.repeat(PRO_MODE_WIN_SCORE - proScoreP2);
     document.getElementById('pro-p1-goals').textContent = p1Goals;
     document.getElementById('pro-p2-goals').textContent = p2Goals;
+    
+    // Show/hide undo button based on goal history
+    const undoBtn = document.getElementById('pro-undo-btn');
+    if (undoBtn) {
+        undoBtn.style.display = proGoalHistory.length > 0 ? 'block' : 'none';
+    }
     
     // Update status text
     const p1Status = document.getElementById('pro-p1-status');
@@ -1323,6 +1334,7 @@ function exitProMode() {
     }
     
     proModeActive = false;
+    proGoalHistory = [];
     
     // Stop audio detection
     if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') {
@@ -1339,6 +1351,42 @@ function exitProMode() {
     document.getElementById('app-content').style.display = 'flex';
     
     showNotification('Pro Mode exited - match not saved', 'info');
+}
+
+/**
+ * Manual goal scoring - called when tapping player side
+ * @param {number} playerNumber - 1 or 2
+ */
+function addManualGoal(playerNumber) {
+    if (!proModeActive) return;
+    handleGoalDetectedPro(playerNumber);
+}
+
+/**
+ * Undo last goal in Pro Mode
+ */
+function undoLastGoal() {
+    if (!proModeActive || proGoalHistory.length === 0) return;
+    
+    // Get last goal from history
+    const lastGoal = proGoalHistory.pop();
+    
+    // Decrement score
+    if (lastGoal.player === 1) {
+        proScoreP1 = Math.max(0, proScoreP1 - 1);
+    } else {
+        proScoreP2 = Math.max(0, proScoreP2 - 1);
+    }
+    
+    // Update display
+    updateProScore();
+    
+    // Haptic feedback
+    if (navigator.vibrate) {
+        navigator.vibrate(50);
+    }
+    
+    showNotification('Last goal undone', 'success');
 }
 
 // ============================================================
@@ -1419,6 +1467,8 @@ window.initProModeUI = initProModeUI;
 window.toggleProMode = toggleProMode;
 window.startProMatch = startProMatch;
 window.exitProMode = exitProMode;
+window.addManualGoal = addManualGoal;
+window.undoLastGoal = undoLastGoal;
 
 // ============================================================
 // 12. KÄYNNISTYS

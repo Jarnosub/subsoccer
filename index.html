@@ -420,7 +420,7 @@
     <!-- PRO MODE VIEW (MODULAR - CAN BE REMOVED) -->
     <!-- ============================================================ -->
     <div id="pro-mode-view">
-        <div class="pro-player-side pro-player-left">
+        <div class="pro-player-side pro-player-left" onclick="addManualGoal(1)" style="cursor:pointer;">
             <div class="pro-player-name" id="pro-p1-name">PLAYER 1</div>
             <div class="pro-score" id="pro-p1-score">0</div>
             <div class="pro-goals-visual" id="pro-p1-goals">○○○</div>
@@ -429,7 +429,7 @@
         
         <div class="pro-divider"></div>
         
-        <div class="pro-player-side pro-player-right">
+        <div class="pro-player-side pro-player-right" onclick="addManualGoal(2)" style="cursor:pointer;">
             <div class="pro-player-name" id="pro-p2-name">PLAYER 2</div>
             <div class="pro-score" id="pro-p2-score">0</div>
             <div class="pro-goals-visual" id="pro-p2-goals">○○○</div>
@@ -437,6 +437,7 @@
         </div>
         
         <button class="pro-exit-btn" onclick="exitProMode()">✕ EXIT</button>
+        <button id="pro-undo-btn" onclick="undoLastGoal()" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:var(--sub-gold); border:2px solid var(--sub-gold); padding:10px 25px; border-radius:25px; font-family:'Russo One'; font-size:0.85rem; cursor:pointer; display:none; z-index:100000; letter-spacing:1px;">↺ UNDO LAST GOAL</button>
     </div>
     <!-- END PRO MODE VIEW -->
 </body>
