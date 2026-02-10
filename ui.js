@@ -94,6 +94,66 @@ function toggleTournamentMode() {
     if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
+/**
+ * Swipe-toiminnallisuus välilehtien vaihtamiseen
+ */
+let touchStartX = 0;
+let touchEndX = 0;
+const pages = ['profile', 'tournament', 'map', 'leaderboard', 'more'];
+let currentPageIndex = 1; // Aloitetaan tournament-sivulta
+
+function handleSwipe() {
+    const swipeThreshold = 50; // Minimimatka pikseleinä
+    const diff = touchStartX - touchEndX;
+    
+    if (Math.abs(diff) > swipeThreshold) {
+        if (diff > 0) {
+            // Swipe vasemmalle -> seuraava sivu
+            if (currentPageIndex < pages.length - 1) {
+                currentPageIndex++;
+                showPage(pages[currentPageIndex]);
+            }
+        } else {
+            // Swipe oikealle -> edellinen sivu
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                showPage(pages[currentPageIndex]);
+            }
+        }
+    }
+}
+
+function initSwipeListener() {
+    const appContent = document.getElementById('app-content');
+    if (!appContent) return;
+    
+    appContent.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    appContent.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+}
+
+// Update currentPageIndex when page changes via tab click
+const originalShowPage = showPage;
+function showPage(p) {
+    originalShowPage(p);
+    const pageIdx = pages.indexOf(p);
+    if (pageIdx !== -1) {
+        currentPageIndex = pageIdx;
+    }
+}
+
+// Alusta swipe kun DOM on valmis
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSwipeListener);
+} else {
+    initSwipeListener();
+}
+
 // Globaalit kytkennät HTML:ää varten
 window.showPage = showPage;
 window.showNotification = showNotification;
