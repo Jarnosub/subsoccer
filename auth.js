@@ -46,6 +46,7 @@ function startSession() {
     document.getElementById('label-user').innerText = user.username; 
     if (typeof updateProfileCard === 'function') updateProfileCard(); 
     if (typeof updateGuestUI === 'function') updateGuestUI(); 
+    if (typeof initProModeUI === 'function') initProModeUI(); 
     showPage('tournament'); 
 }
 

@@ -319,43 +319,7 @@
                     <div id="elo-prediction-text"></div>
                 </div>
 
-                <!-- Audio Detection Status & Controls -->
-                <div id="audio-status-panel" style="background:#111; padding:12px; border-radius:10px; border:1px solid #333; margin-bottom:15px; display:none;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <div id="audio-indicator" style="width:10px; height:10px; border-radius:50%; background:#666;"></div>
-                            <span style="font-family:'Russo One'; font-size:0.75rem; color:#fff;">AUDIO DETECTION</span>
-                        </div>
-                        <button id="toggle-audio-btn" onclick="toggleAudioDetection()" style="background:#333; color:#fff; border:none; padding:5px 12px; border-radius:5px; font-family:'Russo One'; font-size:0.7rem; cursor:pointer;">ACTIVATE</button>
-                    </div>
-                    <div id="audio-frequency-display" style="font-size:0.65rem; color:#666; font-family:'Open Sans'; display:none;">
-                        <div>Goal 1: <span id="freq-goal1" style="color:var(--sub-gold);">0</span> Hz | Goal 2: <span id="freq-goal2" style="color:var(--sub-gold);">0</span> Hz</div>
-                    </div>
-                </div>
-
-                <!-- Audio Recording Tool (Testing) -->
-                <div id="audio-test-panel" style="background:#0a0a0a; padding:10px; border-radius:8px; border:1px dashed #333; margin-bottom:15px; display:none;">
-                    <div style="font-family:'Russo One'; font-size:0.7rem; color:#888; margin-bottom:8px; text-align:center;">🎙️ GOAL SOUND RECORDER (Testing)</div>
-                    <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center;">
-                        <button onclick="recordGoalSound(1)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:5px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 1</button>
-                        <button onclick="recordGoalSound(2)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:5px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 2</button>
-                    </div>
-                    <div id="recording-status" style="font-size:0.65rem; color:#666; text-align:center; margin-top:5px; font-family:'Open Sans';"></div>
-                </div>
-
                 <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.2rem; height:60px;">START MATCH</button>
-
-                <!-- PRO MODE TOGGLE (MODULAR - CAN BE REMOVED) -->
-                <div style="margin-top:20px; background:#0a0a0a; padding:12px; border-radius:8px; border:2px solid var(--sub-gold);">
-                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                        <input type="checkbox" id="pro-mode-toggle" onchange="toggleProMode()" style="width:18px; height:18px; cursor:pointer;">
-                        <div>
-                            <div style="font-family:'Russo One'; font-size:0.85rem; color:var(--sub-gold);">⚡ PRO MODE</div>
-                            <div style="font-family:'Open Sans'; font-size:0.65rem; color:#888;">First to 3 Goals - Acoustic Live Scoring</div>
-                        </div>
-                    </label>
-                </div>
-                <!-- END PRO MODE TOGGLE -->
 
                 <div style="margin-top:20px; border-top:1px solid #222; padding-top:10px;">
                     <div class="tour-mode-toggle" onclick="toggleTournamentMode()">
@@ -390,6 +354,43 @@
                         <button class="btn-red" style="margin-top: 5px;" onclick="startTournament()">GENERATE BRACKETS</button>
                     </div>
                 </div>
+
+                <!-- PRO MODE TOGGLE (MODULAR - CAN BE REMOVED) -->
+                <div id="pro-mode-section" class="pro-mode-toggle" onclick="handleProModeClick()">
+                    <input type="checkbox" id="pro-mode-toggle" style="width:16px; height:16px; margin-right:8px; pointer-events:none;">
+                    <i class="fa-solid fa-bolt" style="font-size:0.75rem; opacity:0.6; margin-right:8px;"></i>
+                    <span>Pro Mode - Acoustic Live Scoring</span>
+
+                </div>
+                
+                <!-- Audio panels shown only when Pro Mode is checked -->
+                <div id="pro-mode-audio-panels" style="display:none; margin-top:12px;">
+                        <!-- Audio Detection Status & Controls -->
+                        <div id="audio-status-panel" style="background:#111; padding:12px; border-radius:10px; border:1px solid #333; margin-bottom:10px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div id="audio-indicator" style="width:10px; height:10px; border-radius:50%; background:#666;"></div>
+                                    <span style="font-family:'Russo One'; font-size:0.75rem; color:#fff;">AUDIO DETECTION</span>
+                                </div>
+                                <button id="toggle-audio-btn" onclick="toggleAudioDetection()" style="background:#333; color:#fff; border:none; padding:5px 12px; border-radius:5px; font-family:'Russo One'; font-size:0.7rem; cursor:pointer;">ACTIVATE</button>
+                            </div>
+                            <div id="audio-frequency-display" style="font-size:0.65rem; color:#666; font-family:'Open Sans'; display:none;">
+                                <div>Goal 1: <span id="freq-goal1" style="color:var(--sub-gold);">0</span> Hz | Goal 2: <span id="freq-goal2" style="color:var(--sub-gold);">0</span> Hz</div>
+                            </div>
+                        </div>
+
+                        <!-- Audio Recording Tool (Testing) -->
+                        <div id="audio-test-panel" style="background:#0a0a0a; padding:10px; border-radius:8px; border:1px dashed #333;">
+                            <div style="font-family:'Russo One'; font-size:0.7rem; color:#888; margin-bottom:8px; text-align:center;">🎙️ GOAL SOUND RECORDER (Testing)</div>
+                            <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center;">
+                                <button onclick="recordGoalSound(1)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:5px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 1</button>
+                                <button onclick="recordGoalSound(2)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:5px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 2</button>
+                            </div>
+                            <div id="recording-status" style="font-size:0.65rem; color:#666; text-align:center; margin-top:5px; font-family:'Open Sans';"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- END PRO MODE TOGGLE (including audio panels) -->
             </div>
             
             <div id="tour-engine" style="display:none; width:100%; max-width:450px; flex-direction:column; align-items:center;">

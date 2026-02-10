@@ -1113,22 +1113,62 @@ let proScoreP2 = 0;
 const PRO_MODE_WIN_SCORE = 3; // First to 3 goals wins
 
 /**
+ * Handle Pro Mode click (restricted to Jarno Saarinen only)
+ */
+function handleProModeClick() {
+    // Check if user is Jarno Saarinen
+    if (!user || user.username !== 'JARNO SAARINEN') {
+        showNotification('Pro Mode is currently in beta - Available for authorized users only', 'error');
+        return;
+    }
+    
+    toggleProMode();
+}
+
+/**
+ * Initialize Pro Mode UI based on user
+ */
+function initProModeUI() {
+    const proSection = document.getElementById('pro-mode-section');
+    if (!proSection) return;
+    
+    // If not Jarno Saarinen, add disabled class
+    if (!user || user.username !== 'JARNO SAARINEN') {
+        proSection.classList.add('disabled');
+    } else {
+        proSection.classList.remove('disabled');
+    }
+}
+
+/**
  * Toggle Pro Mode checkbox
  */
 function toggleProMode() {
     const checkbox = document.getElementById('pro-mode-toggle');
+    const proSection = document.getElementById('pro-mode-section');
+    
+    // Toggle checkbox
+    checkbox.checked = !checkbox.checked;
     proModeEnabled = checkbox.checked;
     
     const startBtn = document.getElementById('start-quick-match');
+    const audioPanels = document.getElementById('pro-mode-audio-panels');
+    
     if (proModeEnabled) {
         startBtn.textContent = '⚡ START PRO MATCH';
         startBtn.style.background = 'linear-gradient(135deg, var(--sub-gold), #d4a017)';
         startBtn.style.color = '#000';
+        audioPanels.style.display = 'block';
+        proSection.style.borderColor = 'var(--sub-gold)';
+        proSection.style.borderStyle = 'solid';
         showNotification('Pro Mode enabled! First to 3 goals wins', 'success');
     } else {
         startBtn.textContent = 'START MATCH';
         startBtn.style.background = '';
         startBtn.style.color = '';
+        audioPanels.style.display = 'none';
+        proSection.style.borderColor = '#444';
+        proSection.style.borderStyle = 'dashed';
     }
 }
 
@@ -1374,6 +1414,8 @@ window.handleGoalDetected = handleGoalDetected;
 window.toggleAudioDetection = toggleAudioDetection;
 window.recordGoalSound = recordGoalSound;
 // PRO MODE window bindings
+window.handleProModeClick = handleProModeClick;
+window.initProModeUI = initProModeUI;
 window.toggleProMode = toggleProMode;
 window.startProMatch = startProMatch;
 window.exitProMode = exitProMode;

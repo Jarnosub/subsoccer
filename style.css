@@ -403,6 +403,41 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
     opacity: 0.6;
 }
 
+/* Pro Mode toggle - matches Tournament Mode style */
+.pro-mode-toggle {
+    margin-top: 15px;
+    padding: 10px 25px !important;
+    font-family: 'Resolve', sans-serif !important;
+    font-size: 0.9rem !important;
+    color: #888 !important;
+    background: transparent !important;
+    border: 1px dashed #444 !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.pro-mode-toggle:hover {
+    color: var(--sub-gold) !important;
+    border-color: #444 !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.pro-mode-toggle.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pro-mode-toggle.disabled:hover {
+    color: #888 !important;
+    background: transparent !important;
+}
+
 #victory-overlay {
     position: fixed !important;
     top: 0 !important;
