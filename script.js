@@ -285,16 +285,17 @@ async function registerGame() {
     const btn = event?.target;
     const originalText = btn ? btn.textContent : '';
     
+    // Get form values before try block so they're available in catch
+    const serialNumber = document.getElementById('game-serial-input').value.trim();
+    const gameName = document.getElementById('game-name-input').value.trim();
+    const location = document.getElementById('game-address-input').value.trim();
+    const isPublic = document.getElementById('game-public-input').checked;
+    
     try {
         if (btn) {
             btn.disabled = true;
             btn.textContent = 'Registering...';
         }
-        
-        const serialNumber = document.getElementById('game-serial-input').value.trim();
-        const gameName = document.getElementById('game-name-input').value.trim();
-        const location = document.getElementById('game-address-input').value.trim();
-        const isPublic = document.getElementById('game-public-input').checked;
         
         if (!serialNumber || !gameName || !location || !selLat) {
             showNotification("Please fill all fields and select location on map.", "error");
