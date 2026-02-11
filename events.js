@@ -646,7 +646,7 @@ function getFlagEmoji(countryCode) {
 /**
  * Show create tournament form
  */
-function showCreateTournamentForm(eventId, eventName) {
+async function showCreateTournamentForm(eventId, eventName) {
     console.log('=== SHOW CREATE TOURNAMENT FORM ===');
     console.log('Event ID:', eventId);
     console.log('Event Name:', eventName);
@@ -660,42 +660,38 @@ function showCreateTournamentForm(eventId, eventName) {
     
     console.log('All games available:', allGames);
     
-    // Get available game tables (from global allGames or fetch)
-    let gameOptions = '';
-    if (allGames && allGames.length > 0) {
-        gameOptions = allGames.map(g => 
-            `<option value="${g.id}">${g.game_name} - ${g.location || 'Unknown location'}</option>`
-        ).join('');
-        console.log('✅ Using existing allGames array:', allGames.length, 'tables');
-    } else {
-        gameOptions = '<option value="">Loading tables...</option>';
+    // Ensure games are loaded before showing form
+    if (!allGames || allGames.length === 0) {
         console.log('⏳ Fetching games from database...');
-        // Fetch games if not loaded
-        _supabase.from('games').select('*').order('game_name').then(({ data, error }) => {
-            if (error) {
-                console.error('❌ Failed to load game tables:', error);
-                showNotification('Failed to load game tables', 'error');
-                return;
-            }
-            if (data && data.length > 0) {
-                allGames = data;
-                console.log('✅ Loaded', data.length, 'game tables');
-                const select = document.getElementById('tournament-game-select');
-                if (select) {
-                    select.innerHTML = data.map(g => 
-                        `<option value="${g.id}">${g.game_name} - ${g.location || 'Unknown location'}</option>`
-                    ).join('');
-                    console.log('✅ Updated game select dropdown');
-                }
-            } else {
-                console.warn('⚠️ No game tables found in database');
-                const select = document.getElementById('tournament-game-select');
-                if (select) {
-                    select.innerHTML = '<option value="">No game tables available</option>';
-                }
-            }
-        });
+        showNotification('Loading game tables...', 'success');
+        
+        const { data: games, error } = await _supabase
+            .from('games')
+            .select('*')
+            .order('game_name');
+        
+        if (error) {
+            console.error('❌ Failed to load game tables:', error);
+            showNotification('Failed to load game tables: ' + error.message, 'error');
+            return;
+        }
+        
+        if (!games || games.length === 0) {
+            console.warn('⚠️ No game tables found in database');
+            showNotification('No game tables available. Please create a table first in Tournament Mode.', 'error');
+            return;
+        }
+        
+        allGames = games;
+        console.log('✅ Loaded', games.length, 'game tables:', games);
     }
+    
+    // Generate game options from loaded games
+    const gameOptions = allGames.map(g => 
+        `<option value="${g.id}">${g.game_name} - ${g.location || 'Unknown location'}</option>`
+    ).join('');
+    
+    console.log('✅ Generated game options:', gameOptions.length, 'characters');
     
     const formHtml = `
         <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; overflow-y:auto; padding:20px; box-sizing:border-box;">
