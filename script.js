@@ -247,13 +247,24 @@ async function fetchPublicGamesMap() {
     } else {
         setTimeout(() => publicMap.invalidateSize(), 200);
     }
-    const subsoccerIcon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background-color:var(--sub-red); width:12px; height:12px; border-radius:50%; border:2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);'></div>", iconSize: [16, 16], iconAnchor: [8, 8] });
+    
     const { data } = await _supabase.from('games').select('*').eq('is_public', true);
     if (data) {
         publicMap.eachLayer((layer) => { if (layer instanceof L.Marker) publicMap.removeLayer(layer); });
         data.forEach(g => {
             if (g.latitude && g.longitude) {
-                L.marker([g.latitude, g.longitude], { icon: subsoccerIcon }).addTo(publicMap).bindPopup(`<div style="color:#000; font-family:'Resolve Sans';"><b>${g.game_name}</b><br>${g.location}</div>`);
+                // Different icon for verified games
+                const iconColor = g.verified ? 'var(--sub-gold)' : 'var(--sub-red)';
+                const verifiedBadge = g.verified ? '<span style="color:gold;">⭐</span> ' : '';
+                const subsoccerIcon = L.divIcon({ 
+                    className: 'custom-div-icon', 
+                    html: `<div style='background-color:${iconColor}; width:12px; height:12px; border-radius:50%; border:2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);'></div>`, 
+                    iconSize: [16, 16], 
+                    iconAnchor: [8, 8] 
+                });
+                L.marker([g.latitude, g.longitude], { icon: subsoccerIcon })
+                    .addTo(publicMap)
+                    .bindPopup(`<div style="color:#000; font-family:'Resolve Sans';">${verifiedBadge}<b>${g.game_name}</b><br>${g.location}</div>`);
             }
         });
     }
@@ -284,6 +295,7 @@ async function registerGame() {
         const gameName = document.getElementById('game-name-input').value.trim();
         const location = document.getElementById('game-address-input').value.trim();
         const isPublic = document.getElementById('game-public-input').checked;
+        const serialNumber = document.getElementById('game-serial-input').value.trim();
         
         if (!uniqueCode || !gameName || !location || !selLat) {
             showNotification("Please fill all fields and select location on map.", "error");
@@ -294,13 +306,43 @@ async function registerGame() {
             return;
         }
         
-        const { data, error } = await _supabase.from('games').insert([{ unique_code: uniqueCode, game_name: gameName, location: location, owner_id: user.id, latitude: selLat, longitude: selLng, is_public: isPublic }]);
+        // Check if serial number is already registered
+        if (serialNumber) {
+            const { data: existingGame, error: checkError } = await _supabase
+                .from('games')
+                .select('id, game_name, owner_id, players(username)')
+                .eq('serial_number', serialNumber)
+                .single();
+            
+            if (existingGame) {
+                // Serial number already in use - offer to request transfer
+                showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic, uniqueCode);
+                return;
+            }
+        }
+        
+        const verified = serialNumber ? true : false;
+        const registered_at = serialNumber ? new Date().toISOString() : null;
+        
+        const { data, error } = await _supabase.from('games').insert([{ 
+            unique_code: uniqueCode, 
+            game_name: gameName, 
+            location: location, 
+            owner_id: user.id, 
+            latitude: selLat, 
+            longitude: selLng, 
+            is_public: isPublic,
+            serial_number: serialNumber || null,
+            verified: verified,
+            registered_at: registered_at
+        }]);
         if (error) throw error;
         
-        showNotification(`Game "${gameName}" registered successfully!`, "success");
+        showNotification(`Game "${gameName}" registered successfully!${verified ? ' ⭐ VERIFIED' : ''}`, "success");
         document.getElementById('game-code-input').value = '';
         document.getElementById('game-name-input').value = '';
         document.getElementById('game-address-input').value = '';
+        document.getElementById('game-serial-input').value = '';
         selLat = null; selLng = null;
         if (gameMarker) gameMap.removeLayer(gameMarker);
         document.getElementById('location-confirm').innerText = '';
@@ -406,14 +448,17 @@ async function fetchMyGames() {
     myGames = data || [];
     if (data && data.length > 0) {
         list.innerHTML = data.map(game => `
-            <div style="background:#111; padding:15px; border-radius:8px; margin-bottom:10px; border-left: 3px solid var(--sub-red); position: relative;">
+            <div style="background:#111; padding:15px; border-radius:8px; margin-bottom:10px; border-left: 3px solid ${game.verified ? 'var(--sub-gold)' : 'var(--sub-red)'}; position: relative;">
+                ${game.verified ? '<div style="position:absolute; top:10px; left:10px; background:linear-gradient(135deg, var(--sub-gold) 0%, #d4af37 100%); color:#000; padding:3px 8px; border-radius:4px; font-size:0.65rem; font-family:\'Russo One\'; box-shadow:0 2px 4px rgba(255,215,0,0.3);">⭐ VERIFIED</div>' : ''}
                 <div style="position: absolute; top: 10px; right: 10px;">
                     <button onclick="initEditGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem; margin-right: 5px; color: #ccc;">✏️</button>
                     <button onclick="deleteGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--sub-red);">🗑️</button>
                 </div>
-                <div style="font-family: 'Russo One'; font-size: 1rem; padding-right: 60px;">${game.game_name}</div>
+                <div style="font-family: 'Russo One'; font-size: 1rem; padding-right: 60px; ${game.verified ? 'margin-top:25px;' : ''}">${game.game_name}</div>
                 <small style="color:#888;">${game.location}</small><br>
                 <small style="color:#666; font-size:0.6rem;">CODE: ${game.unique_code}</small>
+                ${game.verified && game.serial_number ? `<br><small style="color:var(--sub-gold); font-size:0.6rem;">SERIAL: ${game.serial_number}</small>` : ''}
+                ${game.verified ? `<div style="margin-top:10px;"><button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#444;" onclick="releaseGameOwnership('${game.id}')">Release Ownership</button></div>` : ''}
             </div>
         `).join('');
     } else {
@@ -1421,6 +1466,237 @@ window.directAdd = directAdd;
 window.updatePoolUI = updatePoolUI;
 window.removeFromPool = removeFromPool;
 window.clearPool = clearPool;
+
+// ============================================================
+// VERIFIED GAMES & OWNERSHIP FUNCTIONS
+// ============================================================
+
+function showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic, uniqueCode) {
+    const currentOwnerName = existingGame.players?.username || 'Unknown';
+    
+    const html = `
+        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; display:flex; align-items:center; justify-content:center; padding:20px;" id="ownership-transfer-modal">
+            <div style="background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px; max-width:500px; width:100%;">
+                <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:20px;">⚠️ SERIAL NUMBER IN USE</h3>
+                
+                <p style="margin-bottom:15px;">This serial number is already registered to:</p>
+                <div style="background:#111; padding:15px; border-radius:8px; margin-bottom:20px; border-left:3px solid var(--sub-gold);">
+                    <div style="font-family:'Russo One'; color:var(--sub-gold);">${existingGame.game_name}</div>
+                    <small style="color:#888;">Owner: ${currentOwnerName}</small>
+                </div>
+                
+                <p style="margin-bottom:20px; font-size:0.9rem; color:#ccc;">
+                    Each serial number can only be registered to one owner at a time. 
+                    You can request the current owner to transfer ownership to you.
+                </p>
+                
+                <div style="background:#222; padding:15px; border-radius:8px; margin-bottom:20px;">
+                    <div style="font-size:0.8rem; color:#999; margin-bottom:10px;">Your game details:</div>
+                    <div style="color:var(--sub-gold);">Name: ${gameName}</div>
+                    <div style="color:#ccc; font-size:0.85rem;">Location: ${location}</div>
+                </div>
+                
+                <textarea id="transfer-message" placeholder="Optional message to current owner..." style="width:100%; min-height:80px; margin-bottom:20px; background:#111; border:1px solid #333; border-radius:8px; padding:10px; color:#fff; font-family:inherit; resize:vertical;"></textarea>
+                
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="requestOwnershipTransfer('${existingGame.id}', '${serialNumber}', '${gameName}', '${location}', ${isPublic}, '${uniqueCode}')">
+                        REQUEST TRANSFER
+                    </button>
+                    <button class="btn-red" style="flex:1; background:#444;" onclick="closeOwnershipTransferDialog()">
+                        CANCEL
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function closeOwnershipTransferDialog() {
+    const modal = document.getElementById('ownership-transfer-modal');
+    if (modal) modal.remove();
+    
+    // Re-enable register button
+    const btn = document.getElementById('btn-reg-game');
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'REGISTER GAME';
+    }
+}
+
+async function requestOwnershipTransfer(gameId, serialNumber, newGameName, newLocation, isPublic, uniqueCode) {
+    try {
+        const message = document.getElementById('transfer-message')?.value.trim() || '';
+        
+        // Get current owner from the game
+        const { data: gameData, error: gameError } = await _supabase
+            .from('games')
+            .select('owner_id')
+            .eq('id', gameId)
+            .single();
+        
+        if (gameError) throw gameError;
+        
+        // Create transfer request
+        const { data, error } = await _supabase
+            .from('ownership_transfer_requests')
+            .insert([{
+                game_id: gameId,
+                serial_number: serialNumber,
+                current_owner_id: gameData.owner_id,
+                new_owner_id: user.id,
+                message: message,
+                status: 'pending'
+            }]);
+        
+        if (error) throw error;
+        
+        closeOwnershipTransferDialog();
+        showNotification("Transfer request sent! The current owner will be notified.", "success");
+        
+        // Clear form
+        document.getElementById('game-code-input').value = '';
+        document.getElementById('game-name-input').value = '';
+        document.getElementById('game-address-input').value = '';
+        document.getElementById('game-serial-input').value = '';
+        
+    } catch (error) {
+        console.error('Error requesting transfer:', error);
+        showNotification("Failed to send transfer request: " + error.message, "error");
+    }
+}
+
+async function releaseGameOwnership(gameId) {
+    if (!confirm("Are you sure you want to release ownership of this game?\n\nThis will:\n• Remove verified status\n• Allow others to register this serial number\n• Cannot be undone")) {
+        return;
+    }
+    
+    try {
+        const { data, error } = await _supabase.rpc('release_game_ownership', {
+            p_game_id: gameId,
+            p_player_id: user.id
+        });
+        
+        if (error) throw error;
+        
+        if (data) {
+            showNotification("Ownership released successfully. The game is now available for others to register.", "success");
+            fetchMyGames();
+        } else {
+            showNotification("Could not release ownership. You may not be the current owner.", "error");
+        }
+    } catch (error) {
+        console.error('Error releasing ownership:', error);
+        showNotification("Failed to release ownership: " + error.message, "error");
+    }
+}
+
+async function viewOwnershipRequests() {
+    try {
+        // Get pending requests where current user is the current owner
+        const { data, error } = await _supabase
+            .from('ownership_transfer_requests')
+            .select(`
+                *,
+                game:games(game_name, serial_number),
+                requester:new_owner_id(username)
+            `)
+            .eq('current_owner_id', user.id)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const modal = document.createElement('div');
+        modal.id = 'ownership-requests-modal';
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; overflow-y:auto; padding:20px;';
+        
+        const content = `
+            <div style="max-width:600px; margin:0 auto; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                    <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">OWNERSHIP TRANSFER REQUESTS</h3>
+                    <button onclick="closeOwnershipRequestsModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer;">×</button>
+                </div>
+                
+                ${data && data.length > 0 ? data.map(req => `
+                    <div style="background:#111; padding:20px; border-radius:8px; margin-bottom:15px; border-left:3px solid var(--sub-gold);">
+                        <div style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:10px;">${req.game?.game_name || 'Unknown Game'}</div>
+                        <div style="font-size:0.85rem; color:#ccc; margin-bottom:5px;">Serial: ${req.serial_number}</div>
+                        <div style="font-size:0.85rem; color:#ccc; margin-bottom:10px;">Requested by: ${req.requester?.username || 'Unknown'}</div>
+                        ${req.message ? `<div style="background:#222; padding:10px; border-radius:4px; margin-bottom:15px; font-size:0.85rem; color:#aaa;">"${req.message}"</div>` : ''}
+                        <div style="font-size:0.75rem; color:#666; margin-bottom:15px;">${new Date(req.created_at).toLocaleString()}</div>
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000; font-size:0.8rem; padding:8px;" onclick="approveOwnershipTransfer('${req.id}')">
+                                ✓ APPROVE
+                            </button>
+                            <button class="btn-red" style="flex:1; background:#666; font-size:0.8rem; padding:8px;" onclick="rejectOwnershipTransfer('${req.id}')">
+                                ✗ REJECT
+                            </button>
+                        </div>
+                    </div>
+                `).join('') : '<p style="text-align:center; color:#666;">No pending transfer requests</p>'}
+            </div>
+        `;
+        
+        modal.innerHTML = content;
+        document.body.appendChild(modal);
+        
+    } catch (error) {
+        console.error('Error fetching ownership requests:', error);
+        showNotification("Failed to load ownership requests: " + error.message, "error");
+    }
+}
+
+function closeOwnershipRequestsModal() {
+    const modal = document.getElementById('ownership-requests-modal');
+    if (modal) modal.remove();
+}
+
+async function approveOwnershipTransfer(transferId) {
+    if (!confirm("Approve this ownership transfer?\n\nThe game will be transferred to the requester.")) {
+        return;
+    }
+    
+    try {
+        const { data, error } = await _supabase.rpc('approve_ownership_transfer', {
+            transfer_id: transferId
+        });
+        
+        if (error) throw error;
+        
+        if (data) {
+            showNotification("Ownership transfer approved!", "success");
+            closeOwnershipRequestsModal();
+            fetchMyGames();
+        } else {
+            showNotification("Could not approve transfer.", "error");
+        }
+    } catch (error) {
+        console.error('Error approving transfer:', error);
+        showNotification("Failed to approve transfer: " + error.message, "error");
+    }
+}
+
+async function rejectOwnershipTransfer(transferId) {
+    try {
+        const { error } = await _supabase
+            .from('ownership_transfer_requests')
+            .update({ status: 'rejected', resolved_at: new Date().toISOString() })
+            .eq('id', transferId);
+        
+        if (error) throw error;
+        
+        showNotification("Transfer request rejected.", "success");
+        closeOwnershipRequestsModal();
+        
+    } catch (error) {
+        console.error('Error rejecting transfer:', error);
+        showNotification("Failed to reject transfer: " + error.message, "error");
+    }
+}
+
 window.updateGuestUI = updateGuestUI;
 window.updateProfileCard = updateProfileCard;
 window.updateAvatarPreview = updateAvatarPreview;
@@ -1437,6 +1713,15 @@ window.cancelEdit = cancelEdit;
 window.updateGame = updateGame;
 window.deleteGame = deleteGame;
 window.fetchMyGames = fetchMyGames;
+// Verified games functions
+window.showOwnershipTransferDialog = showOwnershipTransferDialog;
+window.closeOwnershipTransferDialog = closeOwnershipTransferDialog;
+window.requestOwnershipTransfer = requestOwnershipTransfer;
+window.releaseGameOwnership = releaseGameOwnership;
+window.viewOwnershipRequests = viewOwnershipRequests;
+window.closeOwnershipRequestsModal = closeOwnershipRequestsModal;
+window.approveOwnershipTransfer = approveOwnershipTransfer;
+window.rejectOwnershipTransfer = rejectOwnershipTransfer;
 window.calculateNewElo = calculateNewElo;
 window.fetchLB = fetchLB;
 window.fetchHist = fetchHist;
