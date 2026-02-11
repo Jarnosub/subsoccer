@@ -410,17 +410,24 @@ async function viewEventDetails(eventId) {
         
         if (error) throw error;
         
-        // Fetch tournaments linked to this event
+        // Fetch tournaments linked to this event WITH participant counts
         const { data: tournaments, error: tournamentsError } = await _supabase
             .from('tournament_history')
             .select(`
                 *,
-                game:games(game_name, location)
+                game:games(game_name, location),
+                participants:event_registrations(count)
             `)
             .eq('event_id', eventId)
             .order('created_at', { ascending: false });
         
         if (tournamentsError) throw tournamentsError;
+        
+        // Add participant count to each tournament
+        const tournamentsWithCounts = (tournaments || []).map(t => ({
+            ...t,
+            participant_count: t.participants?.[0]?.count || 0
+        }));
         
         // Fetch user's tournament registrations if logged in
         let userRegistrations = [];
@@ -434,7 +441,7 @@ async function viewEventDetails(eventId) {
         }
         
         // Show modal
-        showEventModal(event, tournaments || [], userRegistrations);
+        showEventModal(event, tournamentsWithCounts || [], userRegistrations);
         
     } catch (e) {
         console.error('Failed to load event details:', e);
@@ -538,6 +545,10 @@ function showEventModal(event, tournaments, userRegistrations) {
                                 minute: '2-digit' 
                             });
                             
+                            // Get participant count for this tournament
+                            const participantCount = t.participant_count || 0;
+                            const maxParticipants = t.max_participants || 8;
+                            
                             return `
                                 <div style="background:#0a0a0a; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:8px;">
                                     <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
@@ -547,6 +558,10 @@ function showEventModal(event, tournaments, userRegistrations) {
                                             </div>
                                             <div style="font-size:0.8rem; color:#888; margin-bottom:6px;">
                                                 <i class="fa fa-gamepad"></i> ${t.game?.game_name || 'Unknown Table'}${t.game?.location ? ` - ${t.game.location}` : ''}
+                                            </div>
+                                            <div style="font-size:0.8rem; color:${participantCount > 0 ? 'var(--sub-gold)' : '#666'}; margin-bottom:6px;">
+                                                <i class="fa fa-users"></i> ${participantCount} / ${maxParticipants} players
+                                                ${participantCount > 0 ? `<button onclick="viewTournamentParticipants('${t.id}', '${t.tournament_name || 'Tournament'}')" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;">View List</button>` : ''}
                                             </div>
                                             <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
                                                 <div style="font-size:0.95rem; color:#aaa;">
@@ -671,6 +686,113 @@ async function deleteEvent(eventId) {
         console.error('Failed to delete event:', e);
         showNotification('Failed to delete event: ' + e.message, 'error');
     }
+}
+
+/**
+ * View tournament participants
+ */
+async function viewTournamentParticipants(tournamentId, tournamentName) {
+    try {
+        // Fetch participants for this tournament
+        const { data: registrations, error } = await _supabase
+            .from('event_registrations')
+            .select(`
+                id,
+                created_at,
+                player:players(id, username, country, avatar_url)
+            `)
+            .eq('tournament_id', tournamentId)
+            .order('created_at', { ascending: true });
+        
+        if (error) throw error;
+        
+        // Build participant list HTML
+        let participantsHtml = `
+            <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10002; overflow-y:auto; padding:20px; box-sizing:border-box;">
+                <div style="max-width:500px; margin:0 auto; background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px;">
+                    
+                    <h2 style="font-family:'Russo One'; font-size:1.3rem; margin:0 0 20px 0; color:var(--sub-gold); text-align:center;">
+                        <i class="fa fa-users"></i> PARTICIPANTS
+                    </h2>
+                    
+                    <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888; text-align:center;">
+                        <strong style="color:#fff;">${tournamentName || 'Tournament'}</strong>
+                    </div>
+                    
+                    ${registrations && registrations.length > 0 ? `
+                        <div style="margin-bottom:20px;">
+                            <div style="font-size:0.85rem; color:#888; margin-bottom:10px;">
+                                ${registrations.length} player${registrations.length !== 1 ? 's' : ''} registered
+                            </div>
+                            ${registrations.map((reg, index) => {
+                                const player = reg.player;
+                                const flagEmoji = player?.country ? getFlagEmoji(player.country) : '';
+                                const registeredDate = new Date(reg.created_at).toLocaleDateString('en-GB', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                });
+                                
+                                return `
+                                    <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:8px; display:flex; align-items:center; gap:12px;">
+                                        <div style="font-size:1.2rem; color:#666; font-weight:bold; min-width:30px;">
+                                            #${index + 1}
+                                        </div>
+                                        ${player?.avatar_url ? `
+                                            <img src="${player.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #333;">
+                                        ` : `
+                                            <div style="width:40px; height:40px; border-radius:50%; background:#333; display:flex; align-items:center; justify-content:center; border:2px solid #444;">
+                                                <i class="fa fa-user" style="color:#666;"></i>
+                                            </div>
+                                        `}
+                                        <div style="flex:1;">
+                                            <div style="font-size:0.95rem; color:#fff; font-weight:bold;">
+                                                ${flagEmoji} ${player?.username || 'Unknown Player'}
+                                            </div>
+                                            <div style="font-size:0.75rem; color:#666;">
+                                                Registered: ${registeredDate}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    ` : `
+                        <div style="text-align:center; padding:40px; color:#666;">
+                            <i class="fa fa-users" style="font-size:3rem; margin-bottom:10px; opacity:0.3;"></i>
+                            <p>No participants yet</p>
+                        </div>
+                    `}
+                    
+                    <button class="btn-red" style="width:100%; background:#333; padding:12px;" onclick="closeParticipantsModal()">
+                        <i class="fa fa-times"></i> CLOSE
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Add modal to page
+        let modal = document.getElementById('participants-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'participants-modal';
+            document.body.appendChild(modal);
+        }
+        modal.innerHTML = participantsHtml;
+        
+    } catch (e) {
+        console.error('Failed to load participants:', e);
+        showNotification('Failed to load participants: ' + e.message, 'error');
+    }
+}
+
+/**
+ * Close participants modal
+ */
+function closeParticipantsModal() {
+    const modal = document.getElementById('participants-modal');
+    if (modal) modal.remove();
 }
 
 /**
@@ -1481,6 +1603,8 @@ window.createNewEvent = createNewEvent;
 window.viewEventDetails = viewEventDetails;
 window.closeEventModal = closeEventModal;
 window.deleteEvent = deleteEvent;
+window.viewTournamentParticipants = viewTournamentParticipants;
+window.closeParticipantsModal = closeParticipantsModal;
 window.showCreateTournamentForm = showCreateTournamentForm;
 window.closeTournamentForm = closeTournamentForm;
 window.createTournament = createTournament;
