@@ -586,19 +586,46 @@ function showEventModal(event, tournaments, userRegistrations) {
                                         </div>
                                         <div style="text-align:right;">
                                             <div style="font-size:0.75rem; color:var(--sub-gold); font-weight:bold; margin-bottom:4px;">
-                                                ${t.tournament_type?.toUpperCase() || 'RANKED'}
+                                                ${t.tournament_type?.toUpperCase() || 'ELIMINATION'}
                                             </div>
-                                            ${t.winner_id ? `
+                                            ${t.status === 'completed' ? `
                                                 <div style="font-size:0.7rem; color:#4CAF50;">
                                                     <i class="fa fa-check-circle"></i> COMPLETED
                                                 </div>
-                                            ` : `
+                                            ` : t.status === 'ongoing' ? `
                                                 <div style="font-size:0.7rem; color:#FF9800;">
                                                     <i class="fa fa-spinner"></i> ONGOING
+                                                </div>
+                                            ` : `
+                                                <div style="font-size:0.7rem; color:#666;">
+                                                    <i class="fa fa-calendar"></i> SCHEDULED
                                                 </div>
                                             `}
                                         </div>
                                     </div>
+                                    
+                                    ${t.status === 'completed' && (t.winner_name || t.second_place_name || t.third_place_name) ? `
+                                        <div style="background:#111; border:1px solid var(--sub-gold); border-radius:6px; padding:10px; margin-top:10px;">
+                                            <div style="font-size:0.75rem; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">
+                                                <i class="fa fa-trophy"></i> Results
+                                            </div>
+                                            ${t.winner_name ? `
+                                                <div style="font-size:0.85rem; color:var(--sub-gold); margin-bottom:4px;">
+                                                    🏆 ${t.winner_name}
+                                                </div>
+                                            ` : ''}
+                                            ${t.second_place_name ? `
+                                                <div style="font-size:0.85rem; color:#999; margin-bottom:4px;">
+                                                    🥈 ${t.second_place_name}
+                                                </div>
+                                            ` : ''}
+                                            ${t.third_place_name ? `
+                                                <div style="font-size:0.85rem; color:#CD7F32; margin-bottom:4px;">
+                                                    🥉 ${t.third_place_name}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    ` : ''}
                                     
                                     ${isOrganizer ? `
                                         <div style="display:flex; gap:8px; margin-top:8px;">
@@ -613,7 +640,7 @@ function showEventModal(event, tournaments, userRegistrations) {
                                         </div>
                                     ` : ''}
                                     
-                                    ${!t.winner_id && user && !isOrganizer ? `
+                                    ${t.status !== 'completed' && user && !isOrganizer ? `
                                         <button class="btn-red" style="width:100%; padding:8px; font-size:0.85rem; margin-top:8px; ${isUserRegistered ? 'background:#4CAF50;' : ''}" 
                                                 onclick="${isUserRegistered ? `unregisterFromTournament('${event.id}', '${t.id}')` : `registerForTournament('${event.id}', '${t.id}')`}">
                                             <i class="fa fa-${isUserRegistered ? 'check' : 'user-plus'}"></i> 
@@ -640,7 +667,13 @@ function showEventModal(event, tournaments, userRegistrations) {
                                 <i class="fa fa-trash"></i> DELETE EVENT
                             </button>
                         ` : ''}
-                        <button class="btn-red" style="${isOrganizer ? 'flex:1;' : 'flex:1;'} background:#333; padding:12px 25px;" onclick="closeEventModal()">
+                    </div>
+                    
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="btn-red" style="flex:1; background:#4CAF50; padding:12px 25px;" onclick="shareLiveEventLink('${event.id}', '${event.event_name}')">
+                            <i class="fa fa-share-alt"></i> SHARE LIVE LINK
+                        </button>
+                        <button class="btn-red" style="flex:1; background:#333; padding:12px 25px;" onclick="closeEventModal()">
                             <i class="fa fa-times"></i> CLOSE
                         </button>
                     </div>
@@ -1852,6 +1885,222 @@ async function deleteTournament(tournamentId, eventId) {
     }
 }
 
+// ============================================================
+// LIVE EVENT VIEW (PUBLIC SHAREABLE)
+// ============================================================
+
+/**
+ * Share live event link
+ */
+function shareLiveEventLink(eventId, eventName) {
+    const liveUrl = `${window.location.origin}${window.location.pathname}?live=${eventId}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(liveUrl).then(() => {
+        showNotification('Live link copied to clipboard!', 'success');
+    }).catch(() => {
+        // Fallback: show in modal
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; display:flex; align-items:center; justify-content:center; padding:20px;';
+        modal.innerHTML = `
+            <div style="background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px; max-width:500px; width:100%;">
+                <h2 style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:20px; text-align:center;">
+                    <i class="fa fa-share-alt"></i> LIVE EVENT LINK
+                </h2>
+                <p style="color:#ccc; margin-bottom:15px; text-align:center;">
+                    Share this link to display live tournament results on screens or other devices.
+                </p>
+                <input type="text" value="${liveUrl}" readonly 
+                       style="width:100%; padding:12px; background:#0a0a0a; border:1px solid #333; color:#fff; font-family:monospace; border-radius:6px; margin-bottom:20px; font-size:0.9rem;"
+                       onclick="this.select()">
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-red" style="flex:1; background:#4CAF50;" onclick="navigator.clipboard.writeText('${liveUrl}').then(() => { showNotification('Copied!', 'success'); this.parentElement.parentElement.parentElement.remove(); })">
+                        <i class="fa fa-copy"></i> COPY LINK
+                    </button>
+                    <button class="btn-red" style="flex:1; background:#333;" onclick="this.parentElement.parentElement.parentElement.remove()">
+                        <i class="fa fa-times"></i> CLOSE
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    });
+}
+
+/**
+ * View live event (public view for screens/TVs)
+ */
+async function viewLiveEvent(eventId) {
+    try {
+        // Fetch event details
+        const { data: event, error } = await _supabase
+            .from('events')
+            .select('*')
+            .eq('id', eventId)
+            .single();
+        
+        if (error) throw error;
+        
+        // Fetch tournaments
+        const { data: tournaments, error: tournamentsError } = await _supabase
+            .from('tournament_history')
+            .select(`
+                *,
+                game:games(game_name, location),
+                participants:event_registrations(count)
+            `)
+            .eq('event_id', eventId)
+            .order('start_datetime', { ascending: true });
+        
+        if (tournamentsError) throw tournamentsError;
+        
+        // Display live view
+        showLiveEventView(event, tournaments || []);
+        
+        // Auto-refresh every 10 seconds
+        if (window.liveEventRefreshInterval) {
+            clearInterval(window.liveEventRefreshInterval);
+        }
+        window.liveEventRefreshInterval = setInterval(() => {
+            viewLiveEvent(eventId);
+        }, 10000);
+        
+    } catch (e) {
+        console.error('Failed to load live event:', e);
+        document.getElementById('content').innerHTML = `
+            <div style="text-align:center; padding:40px;">
+                <h2 style="color:#f44336;">Event Not Found</h2>
+                <p style="color:#999;">This event may have been deleted or the link is incorrect.</p>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Show live event view
+ */
+function showLiveEventView(event, tournaments) {
+    const startDate = new Date(event.start_datetime);
+    const dateStr = startDate.toLocaleDateString('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+    
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <div style="max-width:1200px; margin:0 auto; padding:20px;">
+            <!-- Event Header -->
+            <div style="text-align:center; margin-bottom:40px; padding:30px; background:#0a0a0a; border-radius:12px; border:2px solid var(--sub-gold);">
+                ${event.image_url ? `
+                    <img src="${event.image_url}" style="max-width:200px; height:auto; border-radius:8px; margin-bottom:20px;">
+                ` : ''}
+                <h1 style="font-family:'Russo One'; color:var(--sub-gold); font-size:2.5rem; margin-bottom:10px; text-transform:uppercase;">
+                    ${event.event_name}
+                </h1>
+                <div style="font-size:1.2rem; color:#ccc; margin-bottom:10px;">
+                    <i class="fa fa-calendar"></i> ${dateStr}
+                </div>
+                ${event.location ? `
+                    <div style="font-size:1rem; color:#999;">
+                        <i class="fa fa-map-marker"></i> ${event.location}
+                    </div>
+                ` : ''}
+                ${event.description ? `
+                    <p style="color:#aaa; margin-top:15px; max-width:600px; margin-left:auto; margin-right:auto;">
+                        ${event.description}
+                    </p>
+                ` : ''}
+                <div style="margin-top:20px; font-size:0.9rem; color:#666;">
+                    <i class="fa fa-sync"></i> Auto-refreshing every 10 seconds
+                </div>
+            </div>
+            
+            <!-- Tournaments -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:20px;">
+                ${tournaments.map(t => {
+                    const tDate = new Date(t.start_datetime);
+                    const timeStr = tDate.toLocaleTimeString('en-GB', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                    const participantCount = t.participants?.[0]?.count || 0;
+                    
+                    return `
+                        <div style="background:#0a0a0a; border:2px solid ${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? '#FF9800' : '#333'}; border-radius:12px; padding:20px;">
+                            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:15px;">
+                                <div>
+                                    <h2 style="font-family:'Russo One'; color:#fff; font-size:1.5rem; margin-bottom:8px;">
+                                        ${t.tournament_name || 'Tournament'}
+                                    </h2>
+                                    <div style="font-size:0.9rem; color:#888; margin-bottom:5px;">
+                                        <i class="fa fa-gamepad"></i> ${t.game?.game_name || 'Unknown'}
+                                    </div>
+                                    <div style="font-size:0.9rem; color:var(--sub-gold);">
+                                        <i class="fa fa-clock"></i> ${timeStr} • <i class="fa fa-users"></i> ${participantCount} players
+                                    </div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:0.8rem; color:${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? '#FF9800' : '#666'}; font-weight:bold;">
+                                        ${t.status === 'completed' ? '✓ COMPLETED' : t.status === 'ongoing' ? '▶ ONGOING' : '⏱ SCHEDULED'}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${t.status === 'completed' && (t.winner_name || t.second_place_name || t.third_place_name) ? `
+                                <div style="background:#111; border:2px solid var(--sub-gold); border-radius:8px; padding:20px; margin-top:15px;">
+                                    <div style="font-size:0.85rem; color:#888; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px; text-align:center;">
+                                        <i class="fa fa-trophy"></i> FINAL RESULTS
+                                    </div>
+                                    ${t.winner_name ? `
+                                        <div style="font-size:1.3rem; color:var(--sub-gold); margin-bottom:10px; text-align:center; font-family:'Russo One';">
+                                            🏆 ${t.winner_name}
+                                        </div>
+                                    ` : ''}
+                                    ${t.second_place_name ? `
+                                        <div style="font-size:1.1rem; color:#C0C0C0; margin-bottom:10px; text-align:center; font-family:'Russo One';">
+                                            🥈 ${t.second_place_name}
+                                        </div>
+                                    ` : ''}
+                                    ${t.third_place_name ? `
+                                        <div style="font-size:1rem; color:#CD7F32; text-align:center; font-family:'Russo One';">
+                                            🥉 ${t.third_place_name}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : t.status === 'ongoing' ? `
+                                <div style="background:#1a1a1a; border:1px solid #FF9800; border-radius:8px; padding:15px; margin-top:15px; text-align:center;">
+                                    <div style="color:#FF9800; font-size:1rem;">
+                                        <i class="fa fa-spinner fa-spin"></i> TOURNAMENT IN PROGRESS
+                                    </div>
+                                    <div style="color:#666; font-size:0.85rem; margin-top:5px;">
+                                        Results will appear here when completed
+                                    </div>
+                                </div>
+                            ` : `
+                                <div style="background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:15px; margin-top:15px; text-align:center;">
+                                    <div style="color:#666; font-size:1rem;">
+                                        <i class="fa fa-calendar"></i> STARTING SOON
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            
+            ${tournaments.length === 0 ? `
+                <div style="text-align:center; padding:60px; color:#666;">
+                    <i class="fa fa-trophy" style="font-size:4rem; margin-bottom:20px; opacity:0.3;"></i>
+                    <h3>No Tournaments Yet</h3>
+                    <p>Tournaments will appear here when created</p>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
 // Global bindings for HTML onclick handlers
 window.loadEventsPage = loadEventsPage;
 window.showCreateEventForm = showCreateEventForm;
@@ -1877,6 +2126,22 @@ window.saveTournamentEdit = saveTournamentEdit;
 window.showEmailPrompt = showEmailPrompt;
 window.closeEmailPrompt = closeEmailPrompt;
 window.saveEmailAndRegister = saveEmailAndRegister;
+window.shareLiveEventLink = shareLiveEventLink;
+window.viewLiveEvent = viewLiveEvent;
+
+// Check for live event URL parameter on page load
+if (window.location.search.includes('live=')) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const liveEventId = urlParams.get('live');
+    if (liveEventId) {
+        // Hide main navigation
+        const mainNav = document.querySelector('nav');
+        if (mainNav) mainNav.style.display = 'none';
+        
+        // Load live view
+        viewLiveEvent(liveEventId);
+    }
+}
 
 // ============================================================
 // ============================================================
@@ -1892,6 +2157,29 @@ async function viewTournamentBracket(tournamentId, tournamentName, maxParticipan
     try {
         currentEventTournamentId = tournamentId;
         currentEventTournamentName = tournamentName;
+        
+        // First, check if tournament is completed
+        const { data: tournament, error: tournamentError } = await _supabase
+            .from('tournament_history')
+            .select('status, winner_name, second_place_name, third_place_name')
+            .eq('id', tournamentId)
+            .single();
+        
+        if (tournamentError) throw tournamentError;
+        
+        // If completed, show final results
+        if (tournament && tournament.status === 'completed') {
+            showCompletedTournamentBracket(tournament);
+            return;
+        }
+        
+        // Update status to 'ongoing' if it's scheduled
+        if (tournament && tournament.status === 'scheduled') {
+            await _supabase
+                .from('tournament_history')
+                .update({ status: 'ongoing' })
+                .eq('id', tournamentId);
+        }
         
         // Fetch participants from event_registrations
         const { data: registrations, error } = await _supabase
@@ -1926,9 +2214,9 @@ async function viewTournamentBracket(tournamentId, tournamentName, maxParticipan
         eventBronzeWinner = null;
         
         // Calculate byes
-        console.log('About to show bracket with byes:', byes);
         const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(players.length)));
         const byes = nextPowerOfTwo - players.length;
+        console.log('About to show bracket with byes:', byes);
         
         // Show bracket
         showEventBracket(byes);
@@ -1937,6 +2225,80 @@ async function viewTournamentBracket(tournamentId, tournamentName, maxParticipan
         console.error('Error loading bracket:', error);
         showNotification('Failed to load bracket: ' + error.message, 'error');
     }
+}
+
+/**
+ * Show completed tournament results
+ */
+function showCompletedTournamentBracket(tournament) {
+    const a = document.createElement('div');
+    a.id = 'bracket-area';
+    a.style.textAlign = 'center';
+    
+    // Show final results
+    if (tournament.third_place_name) {
+        // Tournament had bronze match
+        a.innerHTML += `<h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom:10px; color:#CD7F32; text-align:center;">🥉 BRONZE MATCH</h3>`;
+        const bMatch = document.createElement('div');
+        bMatch.style = "background:#111; border:1px solid #CD7F32; border-radius:10px; margin-bottom:20px; width:100%; max-width:400px; overflow:hidden; margin:0 auto 20px;";
+        bMatch.innerHTML = `
+            <div style="padding:15px; font-family:'Russo One'; background:rgba(205,127,50,0.3);">
+                ${tournament.third_place_name} ✓
+            </div>
+        `;
+        a.appendChild(bMatch);
+    }
+    
+    // Final
+    a.innerHTML += `<h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom:10px; color:var(--sub-gold); text-align:center;">🏆 FINAL</h3>`;
+    const fMatch = document.createElement('div');
+    fMatch.style = "background:#111; border:2px solid var(--sub-gold); border-radius:10px; width:100%; max-width:400px; overflow:hidden; margin:0 auto 20px;";
+    fMatch.innerHTML = `
+        <div style="padding:15px; font-family:'Russo One'; background:rgba(227,6,19,0.4);">
+            ${tournament.winner_name} ✓
+        </div>
+        ${tournament.second_place_name ? `
+        <div style="padding:15px; font-family:'Russo One'; border-top:1px solid #222;">
+            ${tournament.second_place_name}
+        </div>
+        ` : ''}
+    `;
+    a.appendChild(fMatch);
+    
+    // Winner announcement
+    a.innerHTML += `
+        <div style="text-align:center; margin-top:30px;">
+            <h2 style="font-family:'Russo One'; color:var(--sub-gold);">🏆 WINNER: ${tournament.winner_name}</h2>
+            ${tournament.second_place_name ? `<h3 style="font-family:'Russo One'; color:#999; margin-top:10px;">🥈 Second: ${tournament.second_place_name}</h3>` : ''}
+            ${tournament.third_place_name ? `<h3 style="font-family:'Russo One'; color:#CD7F32; margin-top:10px;">🥉 Third: ${tournament.third_place_name}</h3>` : ''}
+        </div>
+    `;
+    
+    // Create modal
+    let modal = document.getElementById('bracket-modal');
+    const modalContent = `
+        <div style="max-width:600px; margin:0 auto; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">${currentEventTournamentName}</h2>
+                <button onclick="closeBracketModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer; padding:5px 10px;">×</button>
+            </div>
+            
+            ${a.outerHTML}
+            
+            <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid #333;">
+                <button onclick="closeBracketModal()" class="btn-red" style="padding:15px 40px;"><i class="fa fa-times"></i> CLOSE</button>
+            </div>
+        </div>
+    `;
+    
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'bracket-modal';
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; overflow-y:auto; padding:20px;';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = modalContent;
 }
 
 /**
@@ -1955,13 +2317,13 @@ function showEventBracket(byes = 0) {
         bMatch.className = "bracket-match";
         bMatch.style = "background:#111; border:1px solid #CD7F32; border-radius:10px; margin-bottom:20px; width:100%; max-width:400px; overflow:hidden; margin:0 auto 20px;";
         bMatch.innerHTML = `
-            <div style="padding:15px; cursor:pointer; font-family:'Russo One'; transition:background 0.2s;" 
+            <div style="padding:15px; cursor:pointer; font-family:'Russo One'; transition:background 0.2s; ${eventBronzeWinner === eventBronzeContenders[0] ? 'background:rgba(205,127,50,0.3);' : ''}" 
                  onclick="pickEventBronzeWinner('${eventBronzeContenders[0]}')" 
                  onmouseover="this.style.background='#333'" 
                  onmouseout="this.style.background='${eventBronzeWinner === eventBronzeContenders[0] ? 'rgba(205,127,50,0.3)' : 'transparent'}'">
                 ${eventBronzeContenders[0]} ${eventBronzeWinner === eventBronzeContenders[0] ? '✓' : ''}
             </div>
-            <div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222; transition:background 0.2s;" 
+            <div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222; transition:background 0.2s; ${eventBronzeWinner === eventBronzeContenders[1] ? 'background:rgba(205,127,50,0.3);' : ''}" 
                  onclick="pickEventBronzeWinner('${eventBronzeContenders[1]}')" 
                  onmouseover="this.style.background='#333'" 
                  onmouseout="this.style.background='${eventBronzeWinner === eventBronzeContenders[1] ? 'rgba(205,127,50,0.3)' : 'transparent'}'">
@@ -2006,8 +2368,12 @@ function showEventBracket(byes = 0) {
         const playersWithBye = eventRoundPlayers.slice(0, byes);
         const playersInMatches = eventRoundPlayers.slice(byes);
         
-        // Automatically advance BYE players
-        playersWithBye.forEach(p => eventRoundWinners.push(p));
+        // Automatically advance BYE players (only if not already added)
+        playersWithBye.forEach((p, idx) => {
+            if (!eventRoundWinners[idx]) {
+                eventRoundWinners[idx] = p;
+            }
+        });
         
         // Create matches
         for (let i = 0; i < playersInMatches.length; i += 2) {
@@ -2131,10 +2497,66 @@ function getCurrentEventMatch(idx) {
 }
 
 /**
- * Save individual match to database
+ * Calculate new ELO ratings for two players
+ */
+function calculateEventElo(playerA, playerB, winner) {
+    const eloA = playerA.elo, eloB = playerB.elo, kFactor = 32;
+    const expectedScoreA = 1 / (1 + Math.pow(10, (eloB - eloA) / 400));
+    const expectedScoreB = 1 / (1 + Math.pow(10, (eloA - eloB) / 400));
+    const actualScoreA = winner.id === playerA.id ? 1 : 0;
+    const actualScoreB = winner.id === playerB.id ? 1 : 0;
+    const newEloA = Math.round(eloA + kFactor * (actualScoreA - expectedScoreA));
+    const newEloB = Math.round(eloB + kFactor * (actualScoreB - expectedScoreB));
+    return { newEloA, newEloB };
+}
+
+/**
+ * Save individual match to database and update ELO ratings
  */
 async function saveEventMatch(player1, player2, winner) {
     try {
+        // Fetch player data to calculate ELO
+        const { data: p1Data } = await _supabase
+            .from('players')
+            .select('id, elo, wins')
+            .eq('username', player1)
+            .single();
+        
+        const { data: p2Data } = await _supabase
+            .from('players')
+            .select('id, elo, wins')
+            .eq('username', player2)
+            .single();
+        
+        // Update ELO ratings if both players found
+        if (p1Data && p2Data) {
+            const winnerData = winner === player1 ? p1Data : p2Data;
+            const { newEloA, newEloB } = calculateEventElo(p1Data, p2Data, winnerData);
+            
+            // Update ELO for both players
+            const { error: e1 } = await _supabase
+                .from('players')
+                .update({ elo: newEloA })
+                .eq('id', p1Data.id);
+            
+            const { error: e2 } = await _supabase
+                .from('players')
+                .update({ elo: newEloB })
+                .eq('id', p2Data.id);
+            
+            if (e1 || e2) throw (e1 || e2);
+            
+            // Update wins for the winner
+            const winnerDbData = winner === player1 ? p1Data : p2Data;
+            const { error: e3 } = await _supabase
+                .from('players')
+                .update({ wins: (winnerDbData.wins || 0) + 1 })
+                .eq('id', winnerDbData.id);
+            
+            if (e3) throw e3;
+        }
+        
+        // Save match to database
         const { error } = await _supabase
             .from('matches')
             .insert([{
@@ -2212,34 +2634,49 @@ function advanceEventRound() {
  */
 async function finishEventTournament() {
     try {
-        const winnerName = eventRoundPlayers[0];
+        console.log('finishEventTournament called');
+        console.log('eventFinalists:', eventFinalists);
+        console.log('eventRoundWinners:', eventRoundWinners);
+        console.log('eventRoundPlayers:', eventRoundPlayers);
+        console.log('eventBronzeWinner:', eventBronzeWinner);
+        console.log('currentEventTournamentId:', currentEventTournamentId);
         
-        // Get second place
-        let secondPlaceName = null;
-        if (currentEventBracketParticipants.length >= 2) {
-            const allFinalists = eventRoundPlayers.length > 0 ? eventRoundPlayers : eventFinalists;
-            if (allFinalists.length > 0) {
-                const winner = allFinalists[0];
-                const allParticipantsInFinalRound = (currentEventBracketParticipants.length === 4) ? eventFinalists : currentEventBracketParticipants;
-                secondPlaceName = allParticipantsInFinalRound.find(p => p !== winner) || null;
-            }
+        // Determine winner and second place based on current state
+        let winnerName, secondPlaceName;
+        
+        if (eventFinalists.length === 2) {
+            // Final has been played
+            winnerName = eventRoundWinners[0];
+            secondPlaceName = eventFinalists.find(p => p !== winnerName);
+        } else {
+            // Single winner (2 players only)
+            winnerName = eventRoundPlayers[0];
+            secondPlaceName = currentEventBracketParticipants.find(p => p !== winnerName);
         }
+        
+        console.log('Winner:', winnerName);
+        console.log('Second place:', secondPlaceName);
         
         // Update tournament_history table with results
         const updateData = {
             winner_name: winnerName,
             second_place_name: secondPlaceName,
-            completed_at: new Date().toISOString()
+            status: 'completed',
+            end_datetime: new Date().toISOString()
         };
         
         if (eventBronzeWinner) {
             updateData.third_place_name = eventBronzeWinner;
         }
         
+        console.log('Update data:', updateData);
+        
         const { error } = await _supabase
             .from('tournament_history')
             .update(updateData)
             .eq('id', currentEventTournamentId);
+        
+        console.log('Update error:', error);
         
         if (error) throw error;
         
