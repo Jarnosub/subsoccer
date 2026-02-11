@@ -1185,20 +1185,20 @@ async function showCreateTournamentForm(eventId, eventName) {
                     </select>
                 </div>
                 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:15px;">
                     <div>
-                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
+                        <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
                             START TIME *
                         </label>
                         <input type="datetime-local" id="tournament-start-input" value="${defaultTime}"
-                               style="width:100%; height:38px; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem; max-width:100%;">
+                               style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
                     <div>
-                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                            END TIME <span style="color:#666;">(optional)</span>
+                        <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
+                            END TIME <span style="color:#666;">(opt.)</span>
                         </label>
                         <input type="datetime-local" id="tournament-end-input" value="${defaultTime}"
-                               style="width:100%; height:38px; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem; max-width:100%;">
+                               style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
                 </div>
                 
@@ -1682,22 +1682,22 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
                     </select>
                 </div>
                 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:15px;">
                     <div>
-                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                            START TIME <span style="color:#666;">(optional)</span>
+                        <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
+                            START TIME <span style="color:#666;">(opt.)</span>
                         </label>
                         <input type="datetime-local" id="tournament-start-input"
                                value="${tournament.start_datetime ? new Date(tournament.start_datetime).toISOString().slice(0, 16) : ''}"
-                               style="width:100%; height:38px; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem; max-width:100%;">
+                               style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
                     <div>
-                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                            END TIME <span style="color:#666;">(optional)</span>
+                        <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
+                            END TIME <span style="color:#666;">(opt.)</span>
                         </label>
                         <input type="datetime-local" id="tournament-end-input"
                                value="${tournament.end_datetime ? new Date(tournament.end_datetime).toISOString().slice(0, 16) : ''}"
-                               style="width:100%; height:38px; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem; max-width:100%;">
+                               style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
                 </div>
                 
