@@ -157,7 +157,149 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- ==================== PART 4: VERIFICATION QUERIES ====================
+-- ==================== PART 4: TRIGGER TO SYNC WITH MATCHES TABLE ====================
+
+-- Function to copy completed tournament match to matches table and update ELO
+CREATE OR REPLACE FUNCTION public.sync_tournament_match_to_matches()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_player1_data RECORD;
+    v_player2_data RECORD;
+    v_winner_data RECORD;
+    v_tournament_name TEXT;
+    v_new_elo_p1 INT;
+    v_new_elo_p2 INT;
+    v_k_factor INT := 32;
+    v_expected_p1 FLOAT;
+    v_expected_p2 FLOAT;
+    v_actual_p1 FLOAT;
+    v_actual_p2 FLOAT;
+BEGIN
+    -- Only process when match is completed (not bye)
+    IF NEW.status = 'completed' AND OLD.status != 'completed' THEN
+        
+        -- Get player data
+        SELECT * INTO v_player1_data FROM public.players WHERE id = NEW.player1_id;
+        SELECT * INTO v_player2_data FROM public.players WHERE id = NEW.player2_id;
+        SELECT * INTO v_winner_data FROM public.players WHERE id = NEW.winner_id;
+        
+        -- Get tournament name
+        SELECT tournament_name INTO v_tournament_name 
+        FROM public.tournament_history 
+        WHERE id = NEW.tournament_id;
+        
+        IF v_player1_data.id IS NOT NULL AND v_player2_data.id IS NOT NULL THEN
+            
+            -- Calculate ELO changes
+            v_expected_p1 := 1.0 / (1.0 + power(10, (v_player2_data.elo - v_player1_data.elo) / 400.0));
+            v_expected_p2 := 1.0 - v_expected_p1;
+            
+            IF NEW.winner_id = NEW.player1_id THEN
+                v_actual_p1 := 1.0;
+                v_actual_p2 := 0.0;
+            ELSE
+                v_actual_p1 := 0.0;
+                v_actual_p2 := 1.0;
+            END IF;
+            
+            v_new_elo_p1 := v_player1_data.elo + round(v_k_factor * (v_actual_p1 - v_expected_p1));
+            v_new_elo_p2 := v_player2_data.elo + round(v_k_factor * (v_actual_p2 - v_expected_p2));
+            
+            -- Update player ELO ratings
+            UPDATE public.players SET elo = v_new_elo_p1 WHERE id = NEW.player1_id;
+            UPDATE public.players SET elo = v_new_elo_p2 WHERE id = NEW.player2_id;
+            
+            -- Update winner's win count
+            UPDATE public.players 
+            SET wins = COALESCE(wins, 0) + 1 
+            WHERE id = NEW.winner_id;
+            
+            -- Insert match record into matches table
+            INSERT INTO public.matches (
+                player1,
+                player2,
+                winner,
+                tournament_name,
+                tournament_id,
+                created_at
+            ) VALUES (
+                v_player1_data.username,
+                v_player2_data.username,
+                v_winner_data.username,
+                v_tournament_name,
+                NEW.tournament_id,
+                NEW.completed_at
+            );
+            
+        END IF;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger that fires after tournament_matches update
+DROP TRIGGER IF EXISTS trigger_sync_tournament_match ON public.tournament_matches;
+
+CREATE TRIGGER trigger_sync_tournament_match
+    AFTER UPDATE ON public.tournament_matches
+    FOR EACH ROW
+    EXECUTE FUNCTION public.sync_tournament_match_to_matches();
+
+-- ==================== PART 5: WINNER ADVANCEMENT FUNCTION ====================
+
+-- Function to advance winner to next round (called by UI after match completion)
+CREATE OR REPLACE FUNCTION public.advance_winner_to_next_round(
+    p_match_id UUID,
+    p_winner_id UUID
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_current_match RECORD;
+    v_next_round INT;
+    v_next_match_number INT;
+    v_is_player1_slot BOOLEAN;
+    v_update_field TEXT;
+BEGIN
+    -- Get current match details
+    SELECT * INTO v_current_match 
+    FROM public.tournament_matches 
+    WHERE id = p_match_id;
+    
+    -- Calculate next round (rounds go: 8→4→2→1)
+    v_next_round := v_current_match.round / 2;
+    
+    -- If already in final (round 1), no advancement needed
+    IF v_next_round < 1 THEN
+        RETURN true;
+    END IF;
+    
+    -- Calculate which match in next round (match 1,2 → next match 1; match 3,4 → next match 2)
+    v_next_match_number := CEIL(v_current_match.match_number::FLOAT / 2.0);
+    
+    -- Determine if winner goes to player1 or player2 slot (odd match numbers go to player1)
+    v_is_player1_slot := (v_current_match.match_number % 2 = 1);
+    
+    -- Update next round match with winner
+    IF v_is_player1_slot THEN
+        UPDATE public.tournament_matches
+        SET player1_id = p_winner_id
+        WHERE tournament_id = v_current_match.tournament_id
+        AND round = v_next_round
+        AND match_number = v_next_match_number;
+    ELSE
+        UPDATE public.tournament_matches
+        SET player2_id = p_winner_id
+        WHERE tournament_id = v_current_match.tournament_id
+        AND round = v_next_round
+        AND match_number = v_next_match_number;
+    END IF;
+    
+    RETURN true;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==================== PART 6: VERIFICATION QUERIES ====================
 
 -- Check tournament_matches table
 SELECT column_name, data_type
@@ -166,14 +308,23 @@ WHERE table_name = 'tournament_matches'
 AND table_schema = 'public'
 ORDER BY ordinal_position;
 
--- Check function exists
+-- Check functions exist
 SELECT routine_name, routine_type
 FROM information_schema.routines
 WHERE routine_schema = 'public'
-AND routine_name = 'generate_tournament_bracket';
+AND routine_name IN ('generate_tournament_bracket', 'sync_tournament_match_to_matches', 'advance_winner_to_next_round');
+
+-- Check trigger exists
+SELECT trigger_name, event_manipulation, event_object_table
+FROM information_schema.triggers
+WHERE trigger_schema = 'public'
+AND trigger_name = 'trigger_sync_tournament_match';
 
 -- ============================================================
 -- EXPECTED RESULTS:
 -- 1. tournament_matches table with 13 columns
 -- 2. generate_tournament_bracket function created
+-- 3. sync_tournament_match_to_matches function created
+-- 4. advance_winner_to_next_round function created
+-- 5. trigger_sync_tournament_match trigger created
 -- ============================================================

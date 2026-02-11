@@ -1798,8 +1798,8 @@ async function saveMatchResult(matchId, tournamentId) {
         const match = await fetchMatchData(matchId);
         const winnerId = player1Score > player2Score ? match.player1_id : match.player2_id;
         
-        // Update match result
-        const { error } = await _supabase
+        // Update match result (trigger will handle ELO update and matches table insert)
+        const { error: updateError } = await _supabase
             .from('tournament_matches')
             .update({
                 player1_score: player1Score,
@@ -1810,15 +1810,21 @@ async function saveMatchResult(matchId, tournamentId) {
             })
             .eq('id', matchId);
         
-        if (error) throw error;
+        if (updateError) throw updateError;
         
-        // Advance winner to next round
-        await advanceWinnerToNextRound(match, winnerId, tournamentId);
+        // Advance winner to next round using database function
+        const { error: advanceError } = await _supabase
+            .rpc('advance_winner_to_next_round', {
+                p_match_id: matchId,
+                p_winner_id: winnerId
+            });
+        
+        if (advanceError) throw advanceError;
         
         closeResultModal();
         closeBracketModal();
         
-        showNotification('Match result saved!', 'success');
+        showNotification('Match result saved! ELO updated.', 'success');
         
         // Reload bracket
         const { data: tournamentData } = await _supabase
@@ -1835,23 +1841,6 @@ async function saveMatchResult(matchId, tournamentId) {
         console.error('Error saving result:', error);
         showNotification('Failed to save result: ' + error.message, 'error');
     }
-}
-
-async function advanceWinnerToNextRound(currentMatch, winnerId, tournamentId) {
-    const nextRound = Math.floor(currentMatch.round / 2);
-    if (nextRound < 1) return; // Already in final
-    
-    const nextMatchNumber = Math.ceil(currentMatch.match_number / 2);
-    const isPlayer1Slot = currentMatch.match_number % 2 === 1;
-    
-    const updateField = isPlayer1Slot ? 'player1_id' : 'player2_id';
-    
-    await _supabase
-        .from('tournament_matches')
-        .update({ [updateField]: winnerId })
-        .eq('tournament_id', tournamentId)
-        .eq('round', nextRound)
-        .eq('match_number', nextMatchNumber);
 }
 
 function closeBracketModal() {
