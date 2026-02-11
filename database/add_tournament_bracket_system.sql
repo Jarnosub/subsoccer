@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.tournament_matches (
     player2_score INT DEFAULT 0,
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'bye')),
     started_at TIMESTAMPTZ,
-   completed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT match_round_unique UNIQUE (tournament_id, round, match_number)
 );
@@ -75,6 +75,10 @@ DECLARE
     v_match_number INT;
     v_participants UUID[];
     v_player_index INT;
+    bye_match RECORD;
+    v_next_round INT;
+    v_next_match_number INT;
+    v_is_player1_slot BOOLEAN;
 BEGIN
     -- Get registered participants (RANDOMIZED for fair matchups)
     SELECT array_agg(player_id ORDER BY random())
@@ -121,15 +125,6 @@ BEGIN
             END
         );
         
-        -- Handle bye (advance player automatically if only one player)
-        IF v_player_index <= v_participant_count AND v_player_index + 1 > v_participant_count THEN
-            UPDATE public.tournament_matches
-            SET winner_id = player1_id, status = 'bye', completed_at = NOW()
-            WHERE tournament_id = p_tournament_id 
-            AND round = v_current_round 
-            AND match_number = v_match_number;
-        END IF;
-        
         v_player_index := v_player_index + 2;
     END LOOP;
     
@@ -151,13 +146,52 @@ BEGIN
         END LOOP;
     END LOOP;
     
+    -- Handle all BYE matches: set winner and advance to next round
+    FOR bye_match IN 
+        SELECT * FROM public.tournament_matches 
+        WHERE tournament_id = p_tournament_id 
+        AND status = 'bye'
+        AND player1_id IS NOT NULL
+        ORDER BY round DESC, match_number
+    LOOP
+        -- Set winner to the player who got the bye and mark as completed
+        UPDATE public.tournament_matches
+        SET winner_id = bye_match.player1_id,
+            status = 'completed',
+            completed_at = NOW()
+        WHERE id = bye_match.id;
+        
+        -- Calculate next round position
+        v_next_round := bye_match.round / 2;
+        
+        IF v_next_round >= 1 THEN
+            v_next_match_number := CEIL(bye_match.match_number::FLOAT / 2.0);
+            v_is_player1_slot := (bye_match.match_number % 2 = 1);
+            
+            -- Advance winner to next round
+            IF v_is_player1_slot THEN
+                UPDATE public.tournament_matches
+                SET player1_id = bye_match.player1_id
+                WHERE tournament_id = p_tournament_id
+                AND round = v_next_round
+                AND match_number = v_next_match_number;
+            ELSE
+                UPDATE public.tournament_matches
+                SET player2_id = bye_match.player1_id
+                WHERE tournament_id = p_tournament_id
+                AND round = v_next_round
+                AND match_number = v_next_match_number;
+            END IF;
+        END IF;
+    END LOOP;
+    
     RETURN true;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- ==================== PART 4: TRIGGER TO SYNC WITH MATCHES TABLE ====================
+-- ==================== PART 4: TRIGGER TO SYNC WITH MATCHES TABLE AND ADVANCE WINNER ====================
 
--- Function to copy completed tournament match to matches table and update ELO
+-- Function to copy completed tournament match to matches table, update ELO, and advance winner
 CREATE OR REPLACE FUNCTION public.sync_tournament_match_to_matches()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -172,6 +206,9 @@ DECLARE
     v_expected_p2 FLOAT;
     v_actual_p1 FLOAT;
     v_actual_p2 FLOAT;
+    v_next_round INT;
+    v_next_match_number INT;
+    v_is_player1_slot BOOLEAN;
 BEGIN
     -- Only process when match is completed (not bye)
     IF NEW.status = 'completed' AND OLD.status != 'completed' THEN
@@ -229,6 +266,28 @@ BEGIN
                 NEW.completed_at
             );
             
+            -- Advance winner to next round
+            v_next_round := NEW.round / 2;
+            
+            IF v_next_round >= 1 THEN
+                v_next_match_number := CEIL(NEW.match_number::FLOAT / 2.0);
+                v_is_player1_slot := (NEW.match_number % 2 = 1);
+                
+                IF v_is_player1_slot THEN
+                    UPDATE public.tournament_matches
+                    SET player1_id = NEW.winner_id
+                    WHERE tournament_id = NEW.tournament_id
+                    AND round = v_next_round
+                    AND match_number = v_next_match_number;
+                ELSE
+                    UPDATE public.tournament_matches
+                    SET player2_id = NEW.winner_id
+                    WHERE tournament_id = NEW.tournament_id
+                    AND round = v_next_round
+                    AND match_number = v_next_match_number;
+                END IF;
+            END IF;
+            
         END IF;
     END IF;
     
@@ -244,58 +303,86 @@ CREATE TRIGGER trigger_sync_tournament_match
     FOR EACH ROW
     EXECUTE FUNCTION public.sync_tournament_match_to_matches();
 
--- ==================== PART 5: WINNER ADVANCEMENT FUNCTION ====================
+-- ==================== PART 5: HELPER FUNCTIONS ====================
 
--- Function to advance winner to next round (called by UI after match completion)
-CREATE OR REPLACE FUNCTION public.advance_winner_to_next_round(
-    p_match_id UUID,
-    p_winner_id UUID
+-- Function to create a guest player (bypasses RLS for tournament flexibility)
+CREATE OR REPLACE FUNCTION public.create_guest_player(p_username TEXT)
+RETURNS UUID AS $$
+DECLARE
+    v_player_id UUID;
+    v_existing_id UUID;
+BEGIN
+    -- Check if player already exists (case-insensitive)
+    SELECT id INTO v_existing_id
+    FROM public.players
+    WHERE LOWER(username) = LOWER(p_username)
+    LIMIT 1;
+    
+    IF v_existing_id IS NOT NULL THEN
+        RETURN v_existing_id; -- Return existing player
+    END IF;
+    
+    -- Create new guest player
+    INSERT INTO public.players (username, elo, wins, created_at)
+    VALUES (p_username, 1000, 0, NOW())
+    RETURNING id INTO v_player_id;
+    
+    RETURN v_player_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to add participant to tournament (bypasses RLS)
+CREATE OR REPLACE FUNCTION public.add_tournament_participant(
+    p_tournament_id UUID,
+    p_player_id UUID
 )
 RETURNS BOOLEAN AS $$
 DECLARE
-    v_current_match RECORD;
-    v_next_round INT;
-    v_next_match_number INT;
-    v_is_player1_slot BOOLEAN;
-    v_update_field TEXT;
+    v_existing UUID;
+    v_event_id UUID;
 BEGIN
-    -- Get current match details
-    SELECT * INTO v_current_match 
-    FROM public.tournament_matches 
-    WHERE id = p_match_id;
+    -- Get event_id from tournament
+    SELECT event_id INTO v_event_id
+    FROM public.tournament_history
+    WHERE id = p_tournament_id
+    LIMIT 1;
     
-    -- Calculate next round (rounds go: 8→4→2→1)
-    v_next_round := v_current_match.round / 2;
-    
-    -- If already in final (round 1), no advancement needed
-    IF v_next_round < 1 THEN
-        RETURN true;
+    IF v_event_id IS NULL THEN
+        RAISE EXCEPTION 'Tournament not found or has no event_id';
     END IF;
     
-    -- Calculate which match in next round (match 1,2 → next match 1; match 3,4 → next match 2)
-    v_next_match_number := CEIL(v_current_match.match_number::FLOAT / 2.0);
+    -- Check if already registered
+    SELECT id INTO v_existing
+    FROM public.event_registrations
+    WHERE tournament_id = p_tournament_id
+    AND player_id = p_player_id
+    LIMIT 1;
     
-    -- Determine if winner goes to player1 or player2 slot (odd match numbers go to player1)
-    v_is_player1_slot := (v_current_match.match_number % 2 = 1);
-    
-    -- Update next round match with winner
-    IF v_is_player1_slot THEN
-        UPDATE public.tournament_matches
-        SET player1_id = p_winner_id
-        WHERE tournament_id = v_current_match.tournament_id
-        AND round = v_next_round
-        AND match_number = v_next_match_number;
-    ELSE
-        UPDATE public.tournament_matches
-        SET player2_id = p_winner_id
-        WHERE tournament_id = v_current_match.tournament_id
-        AND round = v_next_round
-        AND match_number = v_next_match_number;
+    IF v_existing IS NOT NULL THEN
+        RETURN false; -- Already registered
     END IF;
+    
+    -- Insert registration
+    INSERT INTO public.event_registrations (
+        event_id,
+        tournament_id,
+        player_id,
+        status,
+        registered_at
+    ) VALUES (
+        v_event_id,
+        p_tournament_id,
+        p_player_id,
+        'registered',
+        NOW()
+    );
     
     RETURN true;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Note: Winner advancement is now handled automatically by the trigger in PART 4.
+-- No manual function call needed from UI - just update match status to 'completed' and set winner_id.
 
 -- ==================== PART 6: VERIFICATION QUERIES ====================
 
@@ -310,7 +397,12 @@ ORDER BY ordinal_position;
 SELECT routine_name, routine_type
 FROM information_schema.routines
 WHERE routine_schema = 'public'
-AND routine_name IN ('generate_tournament_bracket', 'sync_tournament_match_to_matches', 'advance_winner_to_next_round');
+AND routine_name IN (
+    'generate_tournament_bracket', 
+    'sync_tournament_match_to_matches',
+    'create_guest_player',
+    'add_tournament_participant'
+);
 
 -- Check trigger exists
 SELECT trigger_name, event_manipulation, event_object_table
@@ -322,7 +414,8 @@ AND trigger_name = 'trigger_sync_tournament_match';
 -- EXPECTED RESULTS:
 -- 1. tournament_matches table with 13 columns
 -- 2. generate_tournament_bracket function created
--- 3. sync_tournament_match_to_matches function created
--- 4. advance_winner_to_next_round function created
--- 5. trigger_sync_tournament_match trigger created
+-- 3. sync_tournament_match_to_matches function created (includes winner advancement)
+-- 4. create_guest_player function created (for guest players)
+-- 5. add_tournament_participant function created (bypasses RLS)
+-- 6. trigger_sync_tournament_match trigger created
 -- ============================================================

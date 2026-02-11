@@ -6,6 +6,17 @@
  */
 
 let selectedEventImage = null;
+let currentEventId = null;
+let currentEventTournamentId = null;
+let currentEventTournamentName = null;
+
+// Bracket state variables (in-memory, like Tournament Mode)
+let eventRoundPlayers = [];
+let eventRoundWinners = [];
+let eventFinalists = [];
+let eventBronzeContenders = [];
+let eventBronzeWinner = null;
+let currentEventBracketParticipants = [];
 
 /**
  * Load events page - main entry point
@@ -561,8 +572,8 @@ function showEventModal(event, tournaments, userRegistrations) {
                                             </div>
                                             <div style="font-size:0.8rem; color:${participantCount > 0 ? 'var(--sub-gold)' : '#666'}; margin-bottom:6px;">
                                                 <i class="fa fa-users"></i> ${participantCount} / ${maxParticipants} players
-                                                ${participantCount > 0 ? `<button onclick="viewTournamentParticipants('${t.id}', '${t.tournament_name || 'Tournament'}')" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;">View List</button>` : ''}
-                                                ${participantCount >= 2 ? `<button onclick="viewTournamentBracket('${t.id}', '${t.tournament_name || 'Tournament'}', ${maxParticipants})" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;"><i class="fa fa-sitemap"></i> Bracket</button>` : ''}
+                                                <button onclick="viewTournamentParticipants('${event.id}', '${t.id}', '${t.tournament_name || 'Tournament'}')" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;">View List</button>
+                                                ${participantCount >= 2 ? `<button onclick="viewTournamentBracket('${t.id}', \`${(t.tournament_name || 'Tournament').replace(/[`'"]/g, '')}\`, ${maxParticipants})" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;"><i class="fa fa-sitemap"></i> Bracket</button>` : ''}
                                             </div>
                                             <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
                                                 <div style="font-size:0.95rem; color:#aaa;">
@@ -690,18 +701,22 @@ async function deleteEvent(eventId) {
 }
 
 /**
- * View tournament participants
+ * View and manage tournament participants
  */
-async function viewTournamentParticipants(tournamentId, tournamentName) {
+async function viewTournamentParticipants(eventId, tournamentId, tournamentName) {
+    // Store current event ID for refresh
+    currentEventId = eventId;
     try {
         // Fetch participants for this tournament
         const { data: registrations, error } = await _supabase
             .from('event_registrations')
             .select(`
                 id,
+                player_id,
                 player:players(id, username, country, avatar_url)
             `)
-            .eq('tournament_id', tournamentId);
+            .eq('tournament_id', tournamentId)
+            .eq('status', 'registered');
         
         if (error) throw error;
         
@@ -711,20 +726,67 @@ async function viewTournamentParticipants(tournamentId, tournamentName) {
                 <div style="max-width:500px; margin:0 auto; background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px;">
                     
                     <h2 style="font-family:'Russo One'; font-size:1.3rem; margin:0 0 20px 0; color:var(--sub-gold); text-align:center;">
-                        <i class="fa fa-users"></i> PARTICIPANTS
+                        <i class="fa fa-users"></i> MANAGE PARTICIPANTS
                     </h2>
                     
                     <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888; text-align:center;">
                         <strong style="color:#fff;">${tournamentName || 'Tournament'}</strong>
                     </div>
                     
+                    <!-- Add Player Section (Search + Dropdown) -->
+                    <div style="background:linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); border:2px solid var(--sub-gold); border-radius:10px; padding:20px; margin-bottom:25px; box-shadow: 0 4px 15px rgba(227,6,19,0.2);">
+                        <div style="font-family:'Russo One'; font-size:1rem; color:var(--sub-gold); margin-bottom:15px; text-align:center; text-transform:uppercase; letter-spacing:1px;">
+                            <i class="fa fa-user-plus"></i> Add Player
+                        </div>
+                        
+                        <div style="position: relative;">
+                            <input type="text" 
+                                   id="participant-search-${tournamentId}" 
+                                   placeholder="Search or type new name..."
+                                   autocomplete="off"
+                                   style="width:100%; padding:18px 20px; background:#000; border:2px solid #444; border-radius:8px; color:#fff; font-size:1.1rem; font-family:'Roboto', sans-serif; margin-bottom:12px; box-sizing:border-box; transition: all 0.3s ease;"
+                                   onfocus="this.style.borderColor='var(--sub-gold)'; this.style.background='#0a0a0a';"
+                                   onblur="setTimeout(() => { this.style.borderColor='#444'; this.style.background='#000'; }, 200);"
+                                   oninput="handleParticipantSearch('${tournamentId}')"
+                                   onkeypress="if(event.key==='Enter') addParticipantFromSearch('${tournamentId}')">
+                            
+                            <!-- Search dropdown -->
+                            <div id="search-dropdown-${tournamentId}" style="
+                                display: none;
+                                position: absolute;
+                                width: 100%;
+                                max-height: 250px;
+                                overflow-y: auto;
+                                background: #111;
+                                border: 2px solid var(--sub-gold);
+                                border-radius: 8px;
+                                margin-top: -10px;
+                                z-index: 10003;
+                                box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+                            "></div>
+                        </div>
+                        
+                        <button class="btn-red" 
+                                style="width:100%; padding:15px; background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:1rem; border:none; border-radius:8px; cursor:pointer; text-transform:uppercase; letter-spacing:1px; transition: all 0.2s ease;"
+                                onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 5px 20px rgba(227,6,19,0.4)';"
+                                onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+                                onclick="addParticipantFromSearch('${tournamentId}')">
+                            <i class="fa fa-plus"></i> ADD PLAYER
+                        </button>
+                        <div style="font-size:0.8rem; color:#888; margin-top:12px; text-align:center;">
+                            💡 Search existing or add new guest players
+                        </div>
+                    </div>
+                    
                     ${registrations && registrations.length > 0 ? `
                         <div style="margin-bottom:20px;">
                             <div style="font-size:0.85rem; color:#888; margin-bottom:10px;">
-                                ${registrations.length} player${registrations.length !== 1 ? 's' : ''} registered
+                                ${registrations.length} PARTICIPANT${registrations.length !== 1 ? 'S' : ''}
                             </div>
                             ${registrations.map((reg, index) => {
                                 const player = reg.player;
+                                const displayName = player?.username || 'Unknown';
+                                const isRegistered = !!player;
                                 const flagEmoji = player?.country ? getFlagEmoji(player.country) : '';
                                 
                                 return `
@@ -741,9 +803,15 @@ async function viewTournamentParticipants(tournamentId, tournamentName) {
                                         `}
                                         <div style="flex:1;">
                                             <div style="font-size:0.95rem; color:#fff; font-weight:bold;">
-                                                ${flagEmoji} ${player?.username || 'Unknown Player'}
+                                                ${flagEmoji} ${displayName}
                                             </div>
                                         </div>
+                                        <button onclick="removeTournamentParticipant('${reg.id}', '${tournamentId}')" 
+                                                style="background:none; border:1px solid #666; color:#666; padding:8px 12px; border-radius:6px; cursor:pointer; transition:all 0.2s;"
+                                                onmouseover="this.style.borderColor='var(--sub-red)'; this.style.color='var(--sub-red)';"
+                                                onmouseout="this.style.borderColor='#666'; this.style.color='#666';">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
                                     </div>
                                 `;
                             }).join('')}
@@ -752,6 +820,7 @@ async function viewTournamentParticipants(tournamentId, tournamentName) {
                         <div style="text-align:center; padding:40px; color:#666;">
                             <i class="fa fa-users" style="font-size:3rem; margin-bottom:10px; opacity:0.3;"></i>
                             <p>No participants yet</p>
+                            <p style="font-size:0.85rem;">Add players above to start</p>
                         </div>
                     `}
                     
@@ -778,11 +847,211 @@ async function viewTournamentParticipants(tournamentId, tournamentName) {
 }
 
 /**
+ * Remove participant from tournament
+ */
+async function removeTournamentParticipant(registrationId, tournamentId) {
+    if (!confirm('Remove this participant?')) {
+        return;
+    }
+    
+    try {
+        const { error } = await _supabase
+            .from('event_registrations')
+            .delete()
+            .eq('id', registrationId);
+        
+        if (error) throw error;
+        
+        showNotification('Participant removed', 'success');
+        
+        // Reload participant list
+        const tournamentNameDiv = document.querySelector('#participants-modal strong');
+        const tournamentName = tournamentNameDiv?.textContent || 'Tournament';
+        await viewTournamentParticipants(currentEventId, tournamentId, tournamentName);
+        
+    } catch (e) {
+        console.error('Failed to remove participant:', e);
+        showNotification('Failed to remove participant: ' + e.message, 'error');
+    }
+}
+
+/**
  * Close participants modal
  */
 function closeParticipantsModal() {
     const modal = document.getElementById('participants-modal');
     if (modal) modal.remove();
+    
+    // Refresh event details to update participant count
+    if (currentEventId) {
+        viewEventDetails(currentEventId);
+    }
+}
+
+/**
+ * Handle participant search with dropdown (like Tournament Mode)
+ */
+async function handleParticipantSearch(tournamentId) {
+    const input = document.getElementById(`participant-search-${tournamentId}`);
+    const dropdown = document.getElementById(`search-dropdown-${tournamentId}`);
+    
+    if (!input || !dropdown) return;
+    
+    const searchValue = input.value.trim();
+    
+    if (!searchValue) {
+        dropdown.style.display = 'none';
+        return;
+    }
+    
+    try {
+        //Search from database
+        const { data: players, error } = await _supabase
+            .from('players')
+            .select('id, username')
+            .ilike('username', `%${searchValue}%`)
+            .limit(10);
+        
+        if (error) throw error;
+        
+        // Build dropdown HTML
+        let html = '';
+        
+        // Show existing players
+        if (players && players.length > 0) {
+            players.forEach(player => {
+                html += `
+                    <div class="dropdown-item" onclick="selectParticipantFromDropdown('${tournamentId}', '${player.username}')" 
+                         style="padding:12px 15px; cursor:pointer; border-bottom:1px solid #222; transition:0.2s; color:#fff;"
+                         onmouseover="this.style.background='#222';"
+                         onmouseout="this.style.background='transparent';">
+                        <i class="fa-solid fa-user" style="margin-right:8px; color:var(--sub-gold);"></i>
+                        ${player.username}
+                    </div>
+                `;
+            });
+        }
+        
+        // Always show "Add as new player" option
+        html += `
+            <div class="dropdown-item" onclick="selectParticipantFromDropdown('${tournamentId}', '${searchValue.toUpperCase()}')" 
+                 style="padding:12px 15px; cursor:pointer; background:#0a0a0a; border-top:2px solid var(--sub-gold); transition:0.2s; color:var(--sub-gold); font-weight:bold;"
+                 onmouseover="this.style.background='#111';"
+                 onmouseout="this.style.background='#0a0a0a';">
+                <i class="fa-solid fa-plus-circle" style="margin-right:8px;"></i>
+                Add: "${searchValue.toUpperCase()}"
+            </div>
+        `;
+        
+        dropdown.innerHTML = html;
+        dropdown.style.display = 'block';
+        
+    } catch (e) {
+        console.error('Search failed:', e);
+    }
+}
+
+/**
+ * Select participant from dropdown
+ */
+function selectParticipantFromDropdown(tournamentId, playerName) {
+    const input = document.getElementById(`participant-search-${tournamentId}`);
+    const dropdown = document.getElementById(`search-dropdown-${tournamentId}`);
+    
+    if (input) {
+        input.value = playerName;
+    }
+    
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+    
+    // Immediately add the selected player
+    addParticipantFromSearch(tournamentId);
+}
+
+/**
+ * Add participant from search input
+ */
+async function addParticipantFromSearch(tournamentId) {
+    const input = document.getElementById(`participant-search-${tournamentId}`);
+    
+    if (!input) {
+        showNotification('Input field not found', 'error');
+        return;
+    }
+    
+    const playerName = input.value.trim();
+    
+    if (!playerName) {
+        showNotification('Please enter a name', 'error');
+        return;
+    }
+    
+    try {
+        showNotification('Adding player...', 'info');
+        
+        // Check if player exists
+        const { data: players, error: playerError } = await _supabase
+            .from('players')
+            .select('id, username')
+            .ilike('username', playerName);
+        
+        if (playerError) throw playerError;
+        
+        let playerId;
+        let isNewPlayer = false;
+        
+        if (players && players.length > 0) {
+            // Use existing player
+            playerId = players[0].id;
+        } else {
+            // Create new guest player using SQL function
+            const { data: result, error: createError } = await _supabase
+                .rpc('create_guest_player', { p_username: playerName });
+            
+            if (createError) {
+                showNotification(`Failed to create player: ${createError.message}`, 'error');
+                return;
+            }
+            
+            playerId = result;
+            isNewPlayer = true;
+        }
+        
+        // Add to tournament using SQL function (bypasses RLS)
+        const { data: success, error } = await _supabase
+            .rpc('add_tournament_participant', {
+                p_tournament_id: tournamentId,
+                p_player_id: playerId
+            });
+        
+        if (error) throw error;
+        
+        if (!success) {
+            showNotification(`${playerName} is already registered!`, 'error');
+            return;
+        }
+        
+        showNotification(
+            `${playerName} added!${isNewPlayer ? ' (new player)' : ''}`, 
+            'success'
+        );
+        
+        // Clear input and refresh list
+        input.value = '';
+        const dropdown = document.getElementById(`search-dropdown-${tournamentId}`);
+        if (dropdown) dropdown.style.display = 'none';
+        
+        // Refresh participants list
+        const tournamentNameEl = document.querySelector(`#participants-modal strong`);
+        const tournamentName = tournamentNameEl?.textContent || 'Tournament';
+        await viewTournamentParticipants(currentEventId, tournamentId, tournamentName);
+        
+    } catch (e) {
+        console.error('Failed to add participant:', e);
+        showNotification('Failed to add participant: ' + e.message, 'error');
+    }
 }
 
 /**
@@ -1595,6 +1864,8 @@ window.closeEventModal = closeEventModal;
 window.deleteEvent = deleteEvent;
 window.viewTournamentParticipants = viewTournamentParticipants;
 window.closeParticipantsModal = closeParticipantsModal;
+window.addTournamentParticipant = addTournamentParticipant;
+window.removeTournamentParticipant = removeTournamentParticipant;
 window.showCreateTournamentForm = showCreateTournamentForm;
 window.closeTournamentForm = closeTournamentForm;
 window.createTournament = createTournament;
@@ -1608,47 +1879,59 @@ window.closeEmailPrompt = closeEmailPrompt;
 window.saveEmailAndRegister = saveEmailAndRegister;
 
 // ============================================================
-// TOURNAMENT BRACKET FUNCTIONS  
+// ============================================================
+// TOURNAMENT BRACKET SYSTEM (IN-MEMORY, LIKE TOURNAMENT MODE)
+// Uses JavaScript state, saves final result to tournament_history
 // ============================================================
 
+/**
+ * View tournament bracket - loads participants and starts bracket
+ */
 async function viewTournamentBracket(tournamentId, tournamentName, maxParticipants) {
+    console.log('viewTournamentBracket called:', { tournamentId, tournamentName, maxParticipants });
     try {
-        // Check if bracket exists
-        const { data: existingMatches } = await _supabase
-            .from('tournament_matches')
-            .select('*')
-            .eq('tournament_id', tournamentId);
+        currentEventTournamentId = tournamentId;
+        currentEventTournamentName = tournamentName;
         
-        // If no bracket, generate it
-        if (!existingMatches || existingMatches.length === 0) {
-            const { data, error } = await _supabase.rpc('generate_tournament_bracket', {
-                p_tournament_id: tournamentId
-            });
-            
-            if (error) throw error;
-            
-            if (!data) {
-                showNotification('Not enough players to generate bracket (minimum 2 required)', 'error');
-                return;
-            }
-        }
-        
-        // Fetch matches with player data
-        const { data: matches, error } = await _supabase
-            .from('tournament_matches')
+        // Fetch participants from event_registrations
+        const { data: registrations, error } = await _supabase
+            .from('event_registrations')
             .select(`
-                *,
-                player1:player1_id(username),
-                player2:player2_id(username),
-                winner:winner_id(username)
+                player_id,
+                players:player_id(id, username)
             `)
             .eq('tournament_id', tournamentId)
-            .order('round', { ascending: false })
-            .order('match_number');
+            .eq('status', 'registered');
         
         if (error) throw error;
         
-        showBracketModal(matches, tournamentId, tournamentName, maxParticipants);
+        console.log('Fetched registrations:', registrations);
+        
+        if (!registrations || registrations.length < 2) {
+            showNotification('Not enough players (minimum 2 required)', 'error');
+            return;
+        }
+        
+        // Extract player usernames and shuffle
+        const players = registrations.map(r => r.players.username);
+        console.log('Players:', players);
+        const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
+        
+        // Initialize bracket state
+        currentEventBracketParticipants = shuffledPlayers;
+        eventRoundPlayers = [...shuffledPlayers];
+        eventRoundWinners = [];
+        eventFinalists = [];
+        eventBronzeContenders = [];
+        eventBronzeWinner = null;
+        
+        // Calculate byes
+        console.log('About to show bracket with byes:', byes);
+        const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(players.length)));
+        const byes = nextPowerOfTwo - players.length;
+        
+        // Show bracket
+        showEventBracket(byes);
         
     } catch (error) {
         console.error('Error loading bracket:', error);
@@ -1656,278 +1939,347 @@ async function viewTournamentBracket(tournamentId, tournamentName, maxParticipan
     }
 }
 
-function showBracketModal(matches, tournamentId, tournamentName, maxParticipants) {
-    const modal = document.createElement('div');
-    modal.id = 'bracket-modal';
-    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; overflow-y:auto; padding:20px;';
+/**
+ * Display bracket modal with current bracket state
+ */
+function showEventBracket(byes = 0) {
+    console.log('showEventBracket called with byes:', byes, 'eventRoundPlayers:', eventRoundPlayers);
+    const a = document.createElement('div');
+    a.id = 'bracket-area';
     
-    // Group matches by round
-    const matchesByRound = {};
-    matches.forEach(m => {
-        if (!matchesByRound[m.round]) matchesByRound[m.round] = [];
-        matchesByRound[m.round].push(m);
-    });
-    
-    const rounds = Object.keys(matchesByRound).map(Number).sort((a, b) => b - a);
-    
-    const content = `
-        <div style="max-width:1400px; margin:0 auto; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">${tournamentName} - BRACKET</h2>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <button class="btn-gold" style="padding:8px 15px; font-size:0.8rem;" onclick="addPlayerToBracket('${tournamentId}', '${tournamentName}', ${maxParticipants})">
-                        <i class="fa fa-user-plus"></i> ADD PLAYER
-                    </button>
-                    <button class="btn-gold" style="padding:8px 15px; font-size:0.8rem; background:#333;" onclick="regenerateBracket('${tournamentId}', '${tournamentName}', ${maxParticipants})">
-                        <i class="fa fa-refresh"></i> REGENERATE
-                    </button>
-                    <button onclick="closeBracketModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer;">×</button>
-                </div>
+    // Handle final round (with bronze match)
+    if (eventFinalists.length === 2) {
+        // Bronze Match
+        a.innerHTML += `<h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom:10px; color:#CD7F32; text-align:center;">🥉 BRONZE MATCH</h3>`;
+        const bMatch = document.createElement('div');
+        bMatch.className = "bracket-match";
+        bMatch.style = "background:#111; border:1px solid #CD7F32; border-radius:10px; margin-bottom:20px; width:100%; max-width:400px; overflow:hidden; margin:0 auto 20px;";
+        bMatch.innerHTML = `
+            <div style="padding:15px; cursor:pointer; font-family:'Russo One'; transition:background 0.2s;" 
+                 onclick="pickEventBronzeWinner('${eventBronzeContenders[0]}')" 
+                 onmouseover="this.style.background='#333'" 
+                 onmouseout="this.style.background='${eventBronzeWinner === eventBronzeContenders[0] ? 'rgba(205,127,50,0.3)' : 'transparent'}'">
+                ${eventBronzeContenders[0]} ${eventBronzeWinner === eventBronzeContenders[0] ? '✓' : ''}
             </div>
-            
-            <div style="display:flex; gap:30px; overflow-x:auto; padding-bottom:20px;">
-                ${rounds.map(round => {
-                    const roundName = round === 1 ? 'FINAL' : round === 2 ? 'SEMI-FINALS' : round === 4 ? 'QUARTER-FINALS' : `ROUND OF ${round * 2}`;
-                    const roundMatches = matchesByRound[round];
-                    
-                    return `
-                        <div style="min-width:300px;">
-                            <div style="font-family:'Russo One'; color:var(--sub-gold); font-size:0.9rem; margin-bottom:15px; text-align:center;">${roundName}</div>
-                            ${roundMatches.map(match => `
-                                <div style="background:#111; border:1px solid #333; border-radius:8px; padding:15px; margin-bottom:15px;">
-                                    <div style="font-size:0.7rem; color:#666; margin-bottom:10px;">Match ${match.match_number}</div>
-                                    
-                                    ${renderBracketMatch(match)}
-                                    
-                                    ${match.status === 'bye' ? `<div style="text-align:center; color:#666; font-size:0.75rem; margin-top:5px;">BYE</div>` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                }).join('')}
+            <div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222; transition:background 0.2s;" 
+                 onclick="pickEventBronzeWinner('${eventBronzeContenders[1]}')" 
+                 onmouseover="this.style.background='#333'" 
+                 onmouseout="this.style.background='${eventBronzeWinner === eventBronzeContenders[1] ? 'rgba(205,127,50,0.3)' : 'transparent'}'">
+                ${eventBronzeContenders[1]} ${eventBronzeWinner === eventBronzeContenders[1] ? '✓' : ''}
             </div>
-            
-            <div style="text-align:center; margin-top:20px;">
-                <button class="btn-red" style="padding:12px 30px;" onclick="closeBracketModal()">CLOSE</button>
+        `;
+        a.appendChild(bMatch);
+        
+        // Final
+        a.innerHTML += `<h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom:10px; color:var(--sub-gold); text-align:center;">🏆 FINAL</h3>`;
+        const fMatch = document.createElement('div');
+        fMatch.className = "bracket-match";
+        fMatch.style = "background:#111; border:2px solid var(--sub-gold); border-radius:10px; width:100%; max-width:400px; overflow:hidden; margin:0 auto;";
+        fMatch.innerHTML = `
+            <div style="padding:15px; cursor:pointer; font-family:'Russo One'; transition:background 0.2s;" 
+                 onclick="pickEventWinner(0, '${eventFinalists[0]}')" 
+                 onmouseover="this.style.background='#333'" 
+                 onmouseout="this.style.background='${eventRoundWinners[0] === eventFinalists[0] ? 'rgba(227,6,19,0.4)' : 'transparent'}'">
+                ${eventFinalists[0]} ${eventRoundWinners[0] === eventFinalists[0] ? '✓' : ''}
             </div>
-        </div>
-    `;
-    
-    modal.innerHTML = content;
-    document.body.appendChild(modal);
-}
-
-function renderBracketMatch(match) {
-    const player1Name = match.player1?.username || 'TBD';
-    const player2Name = match.player2?.username || 'TBD';
-    const isCompleted = match.status === 'completed';
-    const isPending = match.status === 'pending' && match.player1_id && match.player2_id;
-    const winner = match.winner_id;
-    
-    return `
-        <div style="display:flex; flex-direction:column; gap:8px;">
-            <div data-match="${match.id}" data-winner="${match.player1_id}" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:${winner === match.player1_id ? '#1a4d1a' : '#222'}; border-radius:4px; border-left:3px solid ${winner === match.player1_id ? 'var(--sub-gold)' : 'transparent'}; ${isPending ? 'cursor:pointer; transition: background 0.2s;' : ''}" 
-                 ${isPending ? `onclick="selectWinner('${match.id}', '${match.player1_id}', '${match.tournament_id}', this)" onmouseover="this.style.background='#333'" onmouseout="this.style.background='${winner === match.player1_id ? '#1a4d1a' : '#222'}'"` : ''}>
-                <span style="font-size:0.9rem; font-weight:${winner === match.player1_id ? 'bold' : 'normal'}; ${!match.player1_id ? 'color:#666;' : ''}">${player1Name}</span>
-                ${isCompleted && winner === match.player1_id ? `<i class="fa fa-trophy" style="color:var(--sub-gold);"></i>` : ''}
+            <div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222; transition:background 0.2s;" 
+                 onclick="pickEventWinner(0, '${eventFinalists[1]}')" 
+                 onmouseover="this.style.background='#333'" 
+                 onmouseout="this.style.background='${eventRoundWinners[0] === eventFinalists[1] ? 'rgba(227,6,19,0.4)' : 'transparent'}'">
+                ${eventFinalists[1]} ${eventRoundWinners[0] === eventFinalists[1] ? '✓' : ''}
             </div>
-            <div data-match="${match.id}" data-winner="${match.player2_id}" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:${winner === match.player2_id ? '#1a4d1a' : '#222'}; border-radius:4px; border-left:3px solid ${winner === match.player2_id ? 'var(--sub-gold)' : 'transparent'}; ${isPending ? 'cursor:pointer; transition: background 0.2s;' : ''}"
-                 ${isPending ? `onclick="selectWinner('${match.id}', '${match.player2_id}', '${match.tournament_id}', this)" onmouseover="this.style.background='#333'" onmouseout="this.style.background='${winner === match.player2_id ? '#1a4d1a' : '#222'}'"` : ''}>
-                <span style="font-size:0.9rem; font-weight:${winner === match.player2_id ? 'bold' : 'normal'}; ${!match.player2_id ? 'color:#666;' : ''}">${player2Name}</span>
-                ${isCompleted && winner === match.player2_id ? `<i class="fa fa-trophy" style="color:var(--sub-gold);"></i>` : ''}
+        `;
+        a.appendChild(fMatch);
+    } 
+    // Handle single winner
+    else if (eventRoundPlayers.length === 1 && eventFinalists.length === 0) {
+        a.innerHTML = `
+            <div style="text-align:center;">
+                <h2 style="font-family:'Russo One'; color:var(--sub-gold);">🏆 WINNER: ${eventRoundPlayers[0]}</h2>
+                ${eventBronzeWinner ? `<h3 style="font-family:'Russo One'; color:#CD7F32; margin-top:10px;">🥉 Bronze: ${eventBronzeWinner}</h3>` : ''}
             </div>
-        </div>
-    `;
-}
-
-async function selectWinner(matchId, winnerId, tournamentId, element) {
-    try {
-        // Update match result (trigger will handle ELO update and matches table insert)
-        const { error: updateError } = await _supabase
-            .from('tournament_matches')
-            .update({
-                winner_id: winnerId,
-                status: 'completed',
-                completed_at: new Date().toISOString()
-            })
-            .eq('id', matchId);
+        `;
+    }
+    // Handle regular rounds
+    else {
+        const matches = [];
+        const playersWithBye = eventRoundPlayers.slice(0, byes);
+        const playersInMatches = eventRoundPlayers.slice(byes);
         
-        if (updateError) throw updateError;
+        // Automatically advance BYE players
+        playersWithBye.forEach(p => eventRoundWinners.push(p));
         
-        // Advance winner to next round using database function
-        const { error: advanceError } = await _supabase
-            .rpc('advance_winner_to_next_round', {
-                p_match_id: matchId,
-                p_winner_id: winnerId
-            });
-        
-        if (advanceError) throw advanceError;
-        
-        showNotification('Winner selected! ELO updated.', 'success');
-        
-        // Reload bracket to show updated state
-        const { data: tournamentData } = await _supabase
-            .from('tournament_history')
-            .select('tournament_name, max_participants')
-            .eq('id', tournamentId)
-            .single();
-        
-        if (tournamentData) {
-            setTimeout(() => {
-                viewTournamentBracket(tournamentId, tournamentData.tournament_name, tournamentData.max_participants);
-            }, 500);
+        // Create matches
+        for (let i = 0; i < playersInMatches.length; i += 2) {
+            matches.push([playersInMatches[i], playersInMatches[i+1]]);
         }
         
+        matches.forEach((match, index) => {
+            const [p1, p2] = match;
+            const m = document.createElement('div');
+            m.className = "bracket-match";
+            m.style = "background:#111; border:1px solid #333; border-radius:10px; margin-bottom:10px; width:100%; max-width:400px; overflow:hidden; margin:0 auto 10px;";
+            
+            const winnerIndex = byes + index;
+            const currentWinner = eventRoundWinners[winnerIndex];
+            
+            if (!p2) {
+                m.innerHTML = `<div style="padding:15px; opacity:0.5; font-family:'Russo One';">${p1} (BYE)</div>`;
+                eventRoundWinners[winnerIndex] = p1;
+            } else {
+                m.innerHTML = `
+                    <div style="padding:15px; cursor:pointer; font-family:'Russo One'; transition:background 0.2s; ${currentWinner === p1 ? 'background:rgba(227,6,19,0.4);' : ''}" 
+                         onclick="pickEventWinner(${winnerIndex}, '${p1}')" 
+                         onmouseover="this.style.background='#333'" 
+                         onmouseout="this.style.background='${currentWinner === p1 ? 'rgba(227,6,19,0.4)' : 'transparent'}'">
+                        ${p1} ${currentWinner === p1 ? '✓' : ''}
+                    </div>
+                    <div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222; transition:background 0.2s; ${currentWinner === p2 ? 'background:rgba(227,6,19,0.4);' : ''}" 
+                         onclick="pickEventWinner(${winnerIndex}, '${p2}')" 
+                         onmouseover="this.style.background='#333'" 
+                         onmouseout="this.style.background='${currentWinner === p2 ? 'rgba(227,6,19,0.4)' : 'transparent'}'">
+                        ${p2} ${currentWinner === p2 ? '✓' : ''}
+                    </div>
+                `;
+            }
+            a.appendChild(m);
+        });
+        
+        // Show BYE players if any
+        if (playersWithBye.length > 0) {
+            a.innerHTML += `<h4 style="font-family:'Russo One'; text-transform:uppercase; margin: 20px 0 10px 0; opacity: 0.7; text-align:center;">Byes (Next Round)</h4>`;
+            playersWithBye.forEach(p => {
+                const byeEl = document.createElement('div');
+                byeEl.innerHTML = `<div style="padding:10px 15px; background: #0a0a0a; border:1px solid #222; border-radius:10px; margin-bottom:10px; width:100%; max-width:400px; font-family:'Russo One'; opacity:0.7; margin:0 auto 10px;">${p}</div>`;
+                a.appendChild(byeEl);
+            });
+        }
+    }
+    
+    // Create/update modal
+    let modal = document.getElementById('bracket-modal');
+    const isComplete = eventRoundPlayers.length === 1 && eventFinalists.length === 0;
+    
+    const nextBtnHtml = checkEventBracketCompletion();
+    
+    const modalContent = `
+        <div style="max-width:600px; margin:0 auto; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">${currentEventTournamentName}</h2>
+                <button onclick="closeBracketModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer; padding:5px 10px;">×</button>
+            </div>
+            
+            ${a.outerHTML}
+            
+            <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid #333;">
+                ${nextBtnHtml}
+            </div>
+        </div>
+    `;
+    
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'bracket-modal';
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; overflow-y:auto; padding:20px;';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = modalContent;
+}
+
+/**
+ * Pick winner for a match
+ */
+async function pickEventWinner(idx, playerName) {
+    // Save match to database
+    const match = getCurrentEventMatch(idx);
+    if (match.p1 && match.p2) {
+        await saveEventMatch(match.p1, match.p2, playerName);
+    }
+    
+    eventRoundWinners[idx] = playerName;
+    
+    // Recalculate byes for current state
+    const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(eventRoundPlayers.length)));
+    const byes = nextPowerOfTwo - eventRoundPlayers.length;
+    
+    showEventBracket(byes);
+}
+
+/**
+ * Pick bronze match winner
+ */
+async function pickEventBronzeWinner(playerName) {
+    await saveEventMatch(eventBronzeContenders[0], eventBronzeContenders[1], playerName);
+    eventBronzeWinner = playerName;
+    showEventBracket();
+}
+
+/**
+ * Get current match players for saving
+ */
+function getCurrentEventMatch(idx) {
+    const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(eventRoundPlayers.length)));
+    const byes = nextPowerOfTwo - eventRoundPlayers.length;
+    const playersInMatches = eventRoundPlayers.slice(byes);
+    const matchIndex = idx - byes;
+    
+    return {
+        p1: playersInMatches[matchIndex * 2],
+        p2: playersInMatches[matchIndex * 2 + 1]
+    };
+}
+
+/**
+ * Save individual match to database
+ */
+async function saveEventMatch(player1, player2, winner) {
+    try {
+        const { error } = await _supabase
+            .from('matches')
+            .insert([{
+                player1,
+                player2,
+                winner,
+                tournament_name: currentEventTournamentName,
+                tournament_id: currentEventTournamentId,
+                created_at: new Date().toISOString()
+            }]);
+        
+        if (error) console.error('Error saving match:', error);
     } catch (error) {
-        console.error('Error selecting winner:', error);
-        showNotification('Failed to save result: ' + error.message, 'error');
+        console.error('Error saving match:', error);
     }
 }
 
+/**
+ * Check if round is complete and return next button HTML
+ */
+function checkEventBracketCompletion() {
+    const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(eventRoundPlayers.length)));
+    const byes = nextPowerOfTwo - eventRoundPlayers.length;
+    const matchesToPlay = (eventRoundPlayers.length - byes) / 2;
+    const expectedWinners = byes + matchesToPlay;
+    const pickedWinners = eventRoundWinners.filter(w => w).length;
+    
+    // Final round completion
+    if (eventFinalists.length === 2) {
+        if (eventRoundWinners[0] && eventBronzeWinner) {
+            return '<button onclick="finishEventTournament()" class="btn-red" style="padding:15px 40px;"><i class="fa fa-trophy"></i> FINISH TOURNAMENT</button>';
+        }
+        return '<small style="color:#666;">Select winners for both Bronze Match and Final</small>';
+    }
+    
+    // Tournament complete (single winner)
+    if (eventRoundPlayers.length === 1 && eventFinalists.length === 0) {
+        return '<button onclick="finishEventTournament()" class="btn-red" style="padding:15px 40px;"><i class="fa fa-trophy"></i> FINISH TOURNAMENT</button>';
+    }
+    
+    // Regular round completion
+    if (pickedWinners === expectedWinners && matchesToPlay > 0) {
+        return '<button onclick="advanceEventRound()" class="btn-red" style="padding:15px 40px;">NEXT ROUND <i class="fa fa-arrow-right"></i></button>';
+    }
+    
+    return '<small style="color:#666;">Select winners for all matches</small>';
+}
+
+/**
+ * Advance to next round
+ */
+function advanceEventRound() {
+    // Check if moving to finals
+    if (eventRoundPlayers.length === 4) {
+        const losers = eventRoundPlayers.filter(p => !eventRoundWinners.includes(p));
+        eventBronzeContenders = [...losers];
+        eventFinalists = [...eventRoundWinners.filter(w => w)];
+        eventRoundWinners = [];
+        showEventBracket();
+        return;
+    }
+    
+    // Advance winners to next round
+    eventRoundPlayers = eventRoundWinners.filter(w => w);
+    eventRoundWinners = [];
+    
+    const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(eventRoundPlayers.length)));
+    const nextByes = nextPowerOfTwo - eventRoundPlayers.length;
+    
+    showEventBracket(nextByes);
+}
+
+/**
+ * Finish tournament and save to history
+ */
+async function finishEventTournament() {
+    try {
+        const winnerName = eventRoundPlayers[0];
+        
+        // Get second place
+        let secondPlaceName = null;
+        if (currentEventBracketParticipants.length >= 2) {
+            const allFinalists = eventRoundPlayers.length > 0 ? eventRoundPlayers : eventFinalists;
+            if (allFinalists.length > 0) {
+                const winner = allFinalists[0];
+                const allParticipantsInFinalRound = (currentEventBracketParticipants.length === 4) ? eventFinalists : currentEventBracketParticipants;
+                secondPlaceName = allParticipantsInFinalRound.find(p => p !== winner) || null;
+            }
+        }
+        
+        // Update tournament_history table with results
+        const updateData = {
+            winner_name: winnerName,
+            second_place_name: secondPlaceName,
+            completed_at: new Date().toISOString()
+        };
+        
+        if (eventBronzeWinner) {
+            updateData.third_place_name = eventBronzeWinner;
+        }
+        
+        const { error } = await _supabase
+            .from('tournament_history')
+            .update(updateData)
+            .eq('id', currentEventTournamentId);
+        
+        if (error) throw error;
+        
+        showNotification('Tournament completed successfully!', 'success');
+        closeBracketModal();
+        
+        // Refresh event details if we have the event ID
+        if (currentEventId) {
+            viewEventDetails(currentEventId);
+        }
+        
+    } catch (error) {
+        console.error('Error finishing tournament:', error);
+        showNotification('Failed to save tournament: ' + error.message, 'error');
+    }
+}
+
+/**
+ * Close bracket modal
+ */
 function closeBracketModal() {
     const modal = document.getElementById('bracket-modal');
     if (modal) modal.remove();
+    
+    // Reset bracket state
+    eventRoundPlayers = [];
+    eventRoundWinners = [];
+    eventFinalists = [];
+    eventBronzeContenders = [];
+    eventBronzeWinner = null;
+    currentEventBracketParticipants = [];
 }
 
-async function addPlayerToBracket(tournamentId, tournamentName, maxParticipants) {
-    try {
-        // Fetch all players
-        const { data: allPlayers, error: playersError } = await _supabase
-            .from('players')
-            .select('*')
-            .order('username');
-        
-        if (playersError) throw playersError;
-        
-        // Fetch already registered players
-        const { data: registered, error: regError } = await _supabase
-            .from('event_registrations')
-            .select('player_id')
-            .eq('tournament_id', tournamentId)
-            .eq('status', 'registered');
-        
-        if (regError) throw regError;
-        
-        const registeredIds = new Set(registered.map(r => r.player_id));
-        const availablePlayers = allPlayers.filter(p => !registeredIds.has(p.id));
-        
-        if (availablePlayers.length === 0) {
-            showNotification('All players are already registered!', 'error');
-            return;
-        }
-        
-        // Show player selection modal
-        const playerOptions = availablePlayers.map(p => 
-            `<div style="padding:10px; border-bottom:1px solid #333; cursor:pointer; transition:background 0.2s;" 
-                  onclick="selectPlayerForBracket('${p.id}', '${p.username}', '${tournamentId}', '${tournamentName}', ${maxParticipants})"
-                  onmouseover="this.style.background='#222'" onmouseout="this.style.background='transparent'">
-                <strong>${p.username}</strong> <span style="color:#888; font-size:0.85rem;">ELO: ${p.elo || 1000}</span>
-             </div>`
-        ).join('');
-        
-        const playerModal = `
-            <div id="player-select-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:10001; display:flex; align-items:center; justify-content:center; padding:20px;">
-                <div style="max-width:500px; width:100%; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px; max-height:80vh; overflow-y:auto;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">SELECT PLAYER TO ADD</h3>
-                        <button onclick="closePlayerSelectModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer;">×</button>
-                    </div>
-                    <div style="background:#111; border:1px solid #333; border-radius:8px; max-height:400px; overflow-y:auto;">
-                        ${playerOptions}
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', playerModal);
-        
-    } catch (error) {
-        console.error('Error adding player:', error);
-        showNotification('Failed to load players: ' + error.message, 'error');
-    }
-}
-
-async function selectPlayerForBracket(playerId, username, tournamentId, tournamentName, maxParticipants) {
-    try {
-        // Get event_id from tournament
-        const { data: tournament } = await _supabase
-            .from('tournament_history')
-            .select('event_id')
-            .eq('id', tournamentId)
-            .single();
-        
-        // Register player
-        const { error } = await _supabase
-            .from('event_registrations')
-            .insert({
-                event_id: tournament.event_id,
-                tournament_id: tournamentId,
-                player_id: playerId,
-                status: 'registered'
-            });
-        
-        if (error) throw error;
-        
-        closePlayerSelectModal();
-        closeBracketModal();
-        
-        showNotification(`${username} added! Regenerating bracket...`, 'success');
-        
-        // Auto-regenerate bracket
-        await regenerateBracket(tournamentId, tournamentName, maxParticipants);
-        
-    } catch (error) {
-        console.error('Error registering player:', error);
-        showNotification('Failed to register player: ' + error.message, 'error');
-    }
-}
-
-async function regenerateBracket(tournamentId, tournamentName, maxParticipants) {
-    try {
-        // Check if any matches have been played
-        const { data: completedMatches } = await _supabase
-            .from('tournament_matches')
-            .select('id')
-            .eq('tournament_id', tournamentId)
-            .eq('status', 'completed');
-        
-        if (completedMatches && completedMatches.length > 0) {
-            const confirm = window.confirm(`WARNING: ${completedMatches.length} match(es) have been played. Regenerating will reset all matches. Continue?`);
-            if (!confirm) return;
-        }
-        
-        // Regenerate bracket
-        const { data, error } = await _supabase.rpc('generate_tournament_bracket', {
-            p_tournament_id: tournamentId
-        });
-        
-        if (error) throw error;
-        
-        if (!data) {
-            showNotification('Not enough players (minimum 2 required)', 'error');
-            return;
-        }
-        
-        showNotification('Bracket regenerated with randomized matchups!', 'success');
-        
-        // Reload bracket
-        viewTournamentBracket(tournamentId, tournamentName, maxParticipants);
-        
-    } catch (error) {
-        console.error('Error regenerating bracket:', error);
-        showNotification('Failed to regenerate bracket: ' + error.message, 'error');
-    }
-}
-
-function closePlayerSelectModal() {
-    const modal = document.getElementById('player-select-modal');
-    if (modal) modal.remove();
-}
-
+// Export functions to window
 window.viewTournamentBracket = viewTournamentBracket;
 window.closeBracketModal = closeBracketModal;
-window.selectWinner = selectWinner;
-window.addPlayerToBracket = addPlayerToBracket;
-window.selectPlayerForBracket = selectPlayerForBracket;
-window.regenerateBracket = regenerateBracket;
-window.closePlayerSelectModal = closePlayerSelectModal;
+window.pickEventWinner = pickEventWinner;
+window.pickEventBronzeWinner = pickEventBronzeWinner;
+window.advanceEventRound = advanceEventRound;
+window.finishEventTournament = finishEventTournament;
+
+
+
