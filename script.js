@@ -310,15 +310,25 @@ async function registerGame() {
         console.log('Checking if serial number exists:', serialNumber);
         const { data: existingGames, error: checkError } = await _supabase
             .from('games')
-            .select('id, game_name, owner_id, players!owner_id(username)')
+            .select('id, game_name, owner_id')
             .eq('serial_number', serialNumber);
         
         console.log('Check result - games:', existingGames, 'error:', checkError);
         
-        // If serial number already exists, show transfer dialog
+        // If serial number already exists, fetch owner and show transfer dialog
         if (existingGames && existingGames.length > 0) {
-            console.log('Serial number already exists, showing dialog');
+            console.log('Serial number already exists, fetching owner info');
             const existingGame = existingGames[0];
+            
+            // Fetch owner separately
+            const { data: ownerData } = await _supabase
+                .from('players')
+                .select('username')
+                .eq('id', existingGame.owner_id)
+                .single();
+            
+            existingGame.players = ownerData;
+            console.log('Showing dialog with owner:', ownerData);
             showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic);
             return;
         }
@@ -363,15 +373,25 @@ async function registerGame() {
             // Fetch the existing game and show transfer dialog
             const { data: existingGames, error: fetchErr } = await _supabase
                 .from('games')
-                .select('id, game_name, owner_id, players!owner_id(username)')
+                .select('id, game_name, owner_id')
                 .eq('serial_number', serialNumber);
             
             console.log('Fetched games:', existingGames);
             console.log('Fetch error:', fetchErr);
             
             if (existingGames && existingGames.length > 0) {
-                console.log('Showing transfer dialog for:', existingGames[0]);
-                showOwnershipTransferDialog(existingGames[0], serialNumber, gameName, location, isPublic);
+                const existingGame = existingGames[0];
+                
+                // Fetch owner separately
+                const { data: ownerData } = await _supabase
+                    .from('players')
+                    .select('username')
+                    .eq('id', existingGame.owner_id)
+                    .single();
+                
+                existingGame.players = ownerData;
+                console.log('Showing transfer dialog for:', existingGame);
+                showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic);
             } else {
                 console.log('No games found with serial:', serialNumber);
                 showNotification("This serial number is already registered to another user.", "error");
