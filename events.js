@@ -543,7 +543,7 @@ function showEventModal(event, tournaments, userRegistrations) {
                                                 ${t.tournament_name || 'Tournament'}
                                             </div>
                                             <div style="font-size:0.8rem; color:#888; margin-bottom:6px;">
-                                                <i class="fa fa-gamepad"></i> ${t.game?.game_name || 'Unknown Table'}
+                                                <i class="fa fa-gamepad"></i> ${t.game?.game_name || 'Unknown Table'}${t.game?.location ? ` - ${t.game.location}` : ''}
                                             </div>
                                             <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
                                                 <div style="font-size:0.95rem; color:#aaa;">
@@ -691,9 +691,10 @@ async function showCreateTournamentForm(eventId, eventName) {
     console.log('All games data:', allGames);
     
     const gameOptions = '<option value="" disabled selected>Select Game Table</option>' + 
-        allGames.map(g => 
-            `<option value="${g.id}">${g.game_name} - ${g.location || 'Unknown location'}</option>`
-        ).join('');
+        allGames.map(g => {
+            const displayText = g.location ? `${g.game_name} - ${g.location}` : g.game_name;
+            return `<option value="${g.id}">${displayText}</option>`;
+        }).join('');
     
     console.log('✅ Generated game options:', gameOptions.length, 'characters');
     
@@ -1184,7 +1185,8 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
     const gameOptions = allGames.map(g => {
         const isSelected = g.id === tournament.game_id;
         console.log(`Game ${g.game_name}: ${g.id} - ${isSelected ? 'SELECTED' : 'not selected'}`);
-        return `<option value="${g.id}" ${isSelected ? 'selected' : ''}>${g.game_name} - ${g.location || 'Unknown location'}</option>`;
+        const displayText = g.location ? `${g.game_name} - ${g.location}` : g.game_name;
+        return `<option value="${g.id}" ${isSelected ? 'selected' : ''}>${displayText}</option>`;
     }).join('');
     
     console.log('Generated gameOptions HTML length:', gameOptions.length);
