@@ -1078,25 +1078,21 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
     }
     formContainer.innerHTML = formHtml;
     
-    // CRITICAL: Set select value AFTER DOM is created (selected attribute doesn't work reliably)
-    setTimeout(() => {
-        const gameSelect = document.getElementById('tournament-game-select');
-        if (gameSelect && tournament.game_id) {
-            console.log('Setting game select value to:', tournament.game_id);
-            gameSelect.value = tournament.game_id;
-            console.log('After setting - value:', gameSelect.value, 'selectedIndex:', gameSelect.selectedIndex);
-        }
-        
-        // Also set datetime values (they might not populate correctly from HTML)
-        const startInput = document.getElementById('tournament-start-input');
-        const endInput = document.getElementById('tournament-end-input');
-        if (startInput && tournament.start_datetime) {
-            startInput.value = new Date(tournament.start_datetime).toISOString().slice(0, 16);
-        }
-        if (endInput && tournament.end_datetime) {
-            endInput.value = new Date(tournament.end_datetime).toISOString().slice(0, 16);
-        }
-    }, 0);
+    // Set form values immediately after DOM is created
+    const gameSelect = document.getElementById('tournament-game-select');
+    if (gameSelect && tournament.game_id) {
+        gameSelect.value = tournament.game_id;
+    }
+    
+    // Set datetime values
+    const startInput = document.getElementById('tournament-start-input');
+    const endInput = document.getElementById('tournament-end-input');
+    if (startInput && tournament.start_datetime) {
+        startInput.value = new Date(tournament.start_datetime).toISOString().slice(0, 16);
+    }
+    if (endInput && tournament.end_datetime) {
+        endInput.value = new Date(tournament.end_datetime).toISOString().slice(0, 16);
+    }
 }
 
 /**
