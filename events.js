@@ -562,6 +562,7 @@ function showEventModal(event, tournaments, userRegistrations) {
                                             <div style="font-size:0.8rem; color:${participantCount > 0 ? 'var(--sub-gold)' : '#666'}; margin-bottom:6px;">
                                                 <i class="fa fa-users"></i> ${participantCount} / ${maxParticipants} players
                                                 ${participantCount > 0 ? `<button onclick="viewTournamentParticipants('${t.id}', '${t.tournament_name || 'Tournament'}')" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;">View List</button>` : ''}
+                                                ${participantCount >= 2 ? `<button onclick="viewTournamentBracket('${t.id}', '${t.tournament_name || 'Tournament'}', ${maxParticipants})" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;"><i class="fa fa-sitemap"></i> Bracket</button>` : ''}
                                             </div>
                                             <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
                                                 <div style="font-size:0.95rem; color:#aaa;">
@@ -1605,3 +1606,266 @@ window.saveTournamentEdit = saveTournamentEdit;
 window.showEmailPrompt = showEmailPrompt;
 window.closeEmailPrompt = closeEmailPrompt;
 window.saveEmailAndRegister = saveEmailAndRegister;
+
+// ============================================================
+// TOURNAMENT BRACKET FUNCTIONS  
+// ============================================================
+
+async function viewTournamentBracket(tournamentId, tournamentName, maxParticipants) {
+    try {
+        // Check if bracket exists
+        const { data: existingMatches } = await supabase
+            .from('tournament_matches')
+            .select('*')
+            .eq('tournament_id', tournamentId);
+        
+        // If no bracket, generate it
+        if (!existingMatches || existingMatches.length === 0) {
+            const { data, error } = await supabase.rpc('generate_tournament_bracket', {
+                p_tournament_id: tournamentId
+            });
+            
+            if (error) throw error;
+            
+            if (!data) {
+                showNotification('Not enough players to generate bracket (minimum 2 required)', 'error');
+                return;
+            }
+        }
+        
+        // Fetch matches with player data
+        const { data: matches, error } = await supabase
+            .from('tournament_matches')
+            .select(`
+                *,
+                player1:player1_id(username),
+                player2:player2_id(username),
+                winner:winner_id(username)
+            `)
+            .eq('tournament_id', tournamentId)
+            .order('round', { ascending: false })
+            .order('match_number');
+        
+        if (error) throw error;
+        
+        showBracketModal(matches, tournamentId, tournamentName, maxParticipants);
+        
+    } catch (error) {
+        console.error('Error loading bracket:', error);
+        showNotification('Failed to load bracket: ' + error.message, 'error');
+    }
+}
+
+function showBracketModal(matches, tournamentId, tournamentName, maxParticipants) {
+    const modal = document.createElement('div');
+    modal.id = 'bracket-modal';
+    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; overflow-y:auto; padding:20px;';
+    
+    // Group matches by round
+    const matchesByRound = {};
+    matches.forEach(m => {
+        if (!matchesByRound[m.round]) matchesByRound[m.round] = [];
+        matchesByRound[m.round].push(m);
+    });
+    
+    const rounds = Object.keys(matchesByRound).map(Number).sort((a, b) => b - a);
+    
+    const content = `
+        <div style="max-width:1400px; margin:0 auto; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                <h2 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">${tournamentName} - BRACKET</h2>
+                <button onclick="closeBracketModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer;">×</button>
+            </div>
+            
+            <div style="display:flex; gap:30px; overflow-x:auto; padding-bottom:20px;">
+                ${rounds.map(round => {
+                    const roundName = round === 1 ? 'FINAL' : round === 2 ? 'SEMI-FINALS' : round === 4 ? 'QUARTER-FINALS' : `ROUND OF ${round * 2}`;
+                    const roundMatches = matchesByRound[round];
+                    
+                    return `
+                        <div style="min-width:300px;">
+                            <div style="font-family:'Russo One'; color:var(--sub-gold); font-size:0.9rem; margin-bottom:15px; text-align:center;">${roundName}</div>
+                            ${roundMatches.map(match => `
+                                <div style="background:#111; border:1px solid #333; border-radius:8px; padding:15px; margin-bottom:15px;">
+                                    <div style="font-size:0.7rem; color:#666; margin-bottom:10px;">Match ${match.match_number}</div>
+                                    
+                                    ${renderBracketMatch(match, tournamentId)}
+                                    
+                                    ${match.status === 'pending' && match.player1_id && match.player2_id ? `
+                                        <button class="btn-gold" style="width:100%; padding:8px; font-size:0.75rem; margin-top:10px;" onclick="enterMatchResult('${match.id}', '${tournamentId}')">
+                                            ENTER RESULT
+                                        </button>
+                                    ` : ''}
+                                    
+                                    ${match.status === 'bye' ? `<div style="text-align:center; color:#666; font-size:0.75rem; margin-top:5px;">BYE</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            
+            <div style="text-align:center; margin-top:20px;">
+                <button class="btn-red" style="padding:12px 30px;" onclick="closeBracketModal()">CLOSE</button>
+            </div>
+        </div>
+    `;
+    
+    modal.innerHTML = content;
+    document.body.appendChild(modal);
+}
+
+function renderBracketMatch(match) {
+    const player1Name = match.player1?.username || 'TBD';
+    const player2Name = match.player2?.username || 'TBD';
+    const isCompleted = match.status === 'completed';
+    const winner = match.winner_id;
+    
+    return `
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:${winner === match.player1_id ? '#1a4d1a' : '#222'}; border-radius:4px; border-left:3px solid ${winner === match.player1_id ? 'var(--sub-gold)' : 'transparent'};">
+                <span style="font-size:0.85rem; ${!match.player1_id ? 'color:#666;' : ''}">${player1Name}</span>
+                ${isCompleted ? `<span style="font-size:0.9rem; font-weight:bold; color:var(--sub-gold);">${match.player1_score || 0}</span>` : ''}
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:${winner === match.player2_id ? '#1a4d1a' : '#222'}; border-radius:4px; border-left:3px solid ${winner === match.player2_id ? 'var(--sub-gold)' : 'transparent'};">
+                <span style="font-size:0.85rem; ${!match.player2_id ? 'color:#666;' : ''}">${player2Name}</span>
+                ${isCompleted ? `<span style="font-size:0.9rem; font-weight:bold; color:var(--sub-gold);">${match.player2_score || 0}</span>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+async function enterMatchResult(matchId, tournamentId) {
+    const match = await fetchMatchData(matchId);
+    if (!match) return;
+    
+    const modal = document.createElement('div');
+    modal.id = 'result-modal';
+    modal.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px; z-index:10001; min-width:400px;';
+    
+    modal.innerHTML = `
+        <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:20px;">ENTER MATCH RESULT</h3>
+        
+        <div style="margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:1rem;">${match.player1?.username || 'Player 1'}</span>
+                <input type="number" id="player1-score" min="0" value="0" style="width:80px; padding:8px; background:#222; border:1px solid #444; color:#fff; border-radius:4px; text-align:center; font-size:1.1rem;">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:1rem;">${match.player2?.username || 'Player 2'}</span>
+                <input type="number" id="player2-score" min="0" value="0" style="width:80px; padding:8px; background:#222; border:1px solid #444; color:#fff; border-radius:4px; text-align:center; font-size:1.1rem;">
+            </div>
+        </div>
+        
+        <div style="display:flex; gap:10px;">
+            <button class="btn-gold" style="flex:1;" onclick="saveMatchResult('${matchId}', '${tournamentId}')">SAVE RESULT</button>
+            <button class="btn-red" style="flex:1; background:#444;" onclick="closeResultModal()">CANCEL</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+async function fetchMatchData(matchId) {
+    const { data, error } = await supabase
+        .from('tournament_matches')
+        .select(`
+            *,
+            player1:player1_id(username),
+            player2:player2_id(username)
+        `)
+        .eq('id', matchId)
+        .single();
+    
+    if (error) {
+        console.error('Error fetching match:', error);
+        return null;
+    }
+    
+    return data;
+}
+
+async function saveMatchResult(matchId, tournamentId) {
+    try {
+        const player1Score = parseInt(document.getElementById('player1-score').value) || 0;
+        const player2Score = parseInt(document.getElementById('player2-score').value) || 0;
+        
+        if (player1Score === player2Score) {
+            showNotification('Scores cannot be tied - there must be a winner', 'error');
+            return;
+        }
+        
+        const match = await fetchMatchData(matchId);
+        const winnerId = player1Score > player2Score ? match.player1_id : match.player2_id;
+        
+        // Update match result
+        const { error } = await supabase
+            .from('tournament_matches')
+            .update({
+                player1_score: player1Score,
+                player2_score: player2Score,
+                winner_id: winnerId,
+                status: 'completed',
+                completed_at: new Date().toISOString()
+            })
+            .eq('id', matchId);
+        
+        if (error) throw error;
+        
+        // Advance winner to next round
+        await advanceWinnerToNextRound(match, winnerId, tournamentId);
+        
+        closeResultModal();
+        closeBracketModal();
+        
+        showNotification('Match result saved!', 'success');
+        
+        // Reload bracket
+        const { data: tournamentData } = await supabase
+            .from('tournament_history')
+            .select('tournament_name, max_participants')
+            .eq('id', tournamentId)
+            .single();
+        
+        if (tournamentData) {
+            viewTournamentBracket(tournamentId, tournamentData.tournament_name, tournamentData.max_participants);
+        }
+        
+    } catch (error) {
+        console.error('Error saving result:', error);
+        showNotification('Failed to save result: ' + error.message, 'error');
+    }
+}
+
+async function advanceWinnerToNextRound(currentMatch, winnerId, tournamentId) {
+    const nextRound = Math.floor(currentMatch.round / 2);
+    if (nextRound < 1) return; // Already in final
+    
+    const nextMatchNumber = Math.ceil(currentMatch.match_number / 2);
+    const isPlayer1Slot = currentMatch.match_number % 2 === 1;
+    
+    const updateField = isPlayer1Slot ? 'player1_id' : 'player2_id';
+    
+    await supabase
+        .from('tournament_matches')
+        .update({ [updateField]: winnerId })
+        .eq('tournament_id', tournamentId)
+        .eq('round', nextRound)
+        .eq('match_number', nextMatchNumber);
+}
+
+function closeBracketModal() {
+    const modal = document.getElementById('bracket-modal');
+    if (modal) modal.remove();
+}
+
+function closeResultModal() {
+    const modal = document.getElementById('result-modal');
+    if (modal) modal.remove();
+}
+
+window.viewTournamentBracket = viewTournamentBracket;
+window.closeBracketModal = closeBracketModal;
+window.enterMatchResult = enterMatchResult;
+window.saveMatchResult = saveMatchResult;
+window.closeResultModal = closeResultModal;
