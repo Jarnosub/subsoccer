@@ -1672,9 +1672,17 @@ function showBracketModal(matches, tournamentId, tournamentName, maxParticipants
     
     const content = `
         <div style="max-width:1400px; margin:0 auto; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h2 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">${tournamentName} - BRACKET</h2>
-                <button onclick="closeBracketModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer;">×</button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button class="btn-gold" style="padding:8px 15px; font-size:0.8rem;" onclick="addPlayerToBracket('${tournamentId}', '${tournamentName}', ${maxParticipants})">
+                        <i class="fa fa-user-plus"></i> ADD PLAYER
+                    </button>
+                    <button class="btn-gold" style="padding:8px 15px; font-size:0.8rem; background:#333;" onclick="regenerateBracket('${tournamentId}', '${tournamentName}', ${maxParticipants})">
+                        <i class="fa fa-refresh"></i> REGENERATE
+                    </button>
+                    <button onclick="closeBracketModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer;">×</button>
+                </div>
             </div>
             
             <div style="display:flex; gap:30px; overflow-x:auto; padding-bottom:20px;">
@@ -1853,8 +1861,147 @@ function closeResultModal() {
     if (modal) modal.remove();
 }
 
+async function addPlayerToBracket(tournamentId, tournamentName, maxParticipants) {
+    try {
+        // Fetch all players
+        const { data: allPlayers, error: playersError } = await _supabase
+            .from('players')
+            .select('*')
+            .order('username');
+        
+        if (playersError) throw playersError;
+        
+        // Fetch already registered players
+        const { data: registered, error: regError } = await _supabase
+            .from('event_registrations')
+            .select('player_id')
+            .eq('tournament_id', tournamentId)
+            .eq('status', 'registered');
+        
+        if (regError) throw regError;
+        
+        const registeredIds = new Set(registered.map(r => r.player_id));
+        const availablePlayers = allPlayers.filter(p => !registeredIds.has(p.id));
+        
+        if (availablePlayers.length === 0) {
+            showNotification('All players are already registered!', 'error');
+            return;
+        }
+        
+        // Show player selection modal
+        const playerOptions = availablePlayers.map(p => 
+            `<div style="padding:10px; border-bottom:1px solid #333; cursor:pointer; transition:background 0.2s;" 
+                  onclick="selectPlayerForBracket('${p.id}', '${p.username}', '${tournamentId}', '${tournamentName}', ${maxParticipants})"
+                  onmouseover="this.style.background='#222'" onmouseout="this.style.background='transparent'">
+                <strong>${p.username}</strong> <span style="color:#888; font-size:0.85rem;">ELO: ${p.elo || 1000}</span>
+             </div>`
+        ).join('');
+        
+        const playerModal = `
+            <div id="player-select-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:10001; display:flex; align-items:center; justify-content:center; padding:20px;">
+                <div style="max-width:500px; width:100%; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px; max-height:80vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">SELECT PLAYER TO ADD</h3>
+                        <button onclick="closePlayerSelectModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer;">×</button>
+                    </div>
+                    <div style="background:#111; border:1px solid #333; border-radius:8px; max-height:400px; overflow-y:auto;">
+                        ${playerOptions}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', playerModal);
+        
+    } catch (error) {
+        console.error('Error adding player:', error);
+        showNotification('Failed to load players: ' + error.message, 'error');
+    }
+}
+
+async function selectPlayerForBracket(playerId, username, tournamentId, tournamentName, maxParticipants) {
+    try {
+        // Get event_id from tournament
+        const { data: tournament } = await _supabase
+            .from('tournament_history')
+            .select('event_id')
+            .eq('id', tournamentId)
+            .single();
+        
+        // Register player
+        const { error } = await _supabase
+            .from('event_registrations')
+            .insert({
+                event_id: tournament.event_id,
+                tournament_id: tournamentId,
+                player_id: playerId,
+                status: 'registered'
+            });
+        
+        if (error) throw error;
+        
+        closePlayerSelectModal();
+        closeBracketModal();
+        
+        showNotification(`${username} added! Regenerating bracket...`, 'success');
+        
+        // Auto-regenerate bracket
+        await regenerateBracket(tournamentId, tournamentName, maxParticipants);
+        
+    } catch (error) {
+        console.error('Error registering player:', error);
+        showNotification('Failed to register player: ' + error.message, 'error');
+    }
+}
+
+async function regenerateBracket(tournamentId, tournamentName, maxParticipants) {
+    try {
+        // Check if any matches have been played
+        const { data: completedMatches } = await _supabase
+            .from('tournament_matches')
+            .select('id')
+            .eq('tournament_id', tournamentId)
+            .eq('status', 'completed');
+        
+        if (completedMatches && completedMatches.length > 0) {
+            const confirm = window.confirm(`WARNING: ${completedMatches.length} match(es) have been played. Regenerating will reset all matches. Continue?`);
+            if (!confirm) return;
+        }
+        
+        // Regenerate bracket
+        const { data, error } = await _supabase.rpc('generate_tournament_bracket', {
+            p_tournament_id: tournamentId
+        });
+        
+        if (error) throw error;
+        
+        if (!data) {
+            showNotification('Not enough players (minimum 2 required)', 'error');
+            return;
+        }
+        
+        showNotification('Bracket regenerated with randomized matchups!', 'success');
+        
+        // Reload bracket
+        viewTournamentBracket(tournamentId, tournamentName, maxParticipants);
+        
+    } catch (error) {
+        console.error('Error regenerating bracket:', error);
+        showNotification('Failed to regenerate bracket: ' + error.message, 'error');
+    }
+}
+
+function closePlayerSelectModal() {
+    const modal = document.getElementById('player-select-modal');
+    if (modal) modal.remove();
+}
+
 window.viewTournamentBracket = viewTournamentBracket;
 window.closeBracketModal = closeBracketModal;
 window.enterMatchResult = enterMatchResult;
 window.saveMatchResult = saveMatchResult;
 window.closeResultModal = closeResultModal;
+window.addPlayerToBracket = addPlayerToBracket;
+window.selectPlayerForBracket = selectPlayerForBracket;
+window.regenerateBracket = regenerateBracket;
+window.closePlayerSelectModal = closePlayerSelectModal;

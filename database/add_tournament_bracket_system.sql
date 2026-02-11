@@ -63,12 +63,12 @@ CREATE POLICY "Anyone can delete matches"
 
 -- ==================== PART 3: BRACKET GENERATION FUNCTION ====================
 
--- Function to generate elimination bracket for a tournament
+-- Function to generate elimination bracket for a tournament (dynamically scales)
 CREATE OR REPLACE FUNCTION public.generate_tournament_bracket(p_tournament_id UUID)
 RETURNS BOOLEAN AS $$
 DECLARE
     v_participant_count INT;
-    v_max_participants INT;
+    v_bracket_size INT;
     v_rounds INT;
     v_current_round INT;
     v_matches_in_round INT;
@@ -76,13 +76,8 @@ DECLARE
     v_participants UUID[];
     v_player_index INT;
 BEGIN
-    -- Get tournament info and participants
-    SELECT max_participants INTO v_max_participants
-    FROM public.tournament_history
-    WHERE id = p_tournament_id;
-    
-    -- Get registered participants
-    SELECT array_agg(player_id ORDER BY created_at)
+    -- Get registered participants (RANDOMIZED for fair matchups)
+    SELECT array_agg(player_id ORDER BY random())
     INTO v_participants
     FROM public.event_registrations
     WHERE tournament_id = p_tournament_id AND status = 'registered';
@@ -93,16 +88,19 @@ BEGIN
         RETURN false; -- Not enough players
     END IF;
     
-    -- Calculate number of rounds (log2 of max participants)
-    v_rounds := ceil(log(2, v_max_participants));
+    -- Calculate bracket size dynamically (next power of 2)
+    v_bracket_size := power(2, ceil(log(2, v_participant_count)));
+    
+    -- Calculate number of rounds
+    v_rounds := ceil(log(2, v_bracket_size));
     
     -- Clear existing matches
     DELETE FROM public.tournament_matches
     WHERE tournament_id = p_tournament_id;
     
     -- Generate first round matches
-    v_current_round := v_max_participants / 2; -- e.g., 8 players = round 4 (quarter-finals)
-    v_matches_in_round := v_max_participants / 2;
+    v_current_round := v_bracket_size / 2; -- e.g., 8 players = round 4 (quarter-finals)
+    v_matches_in_round := v_bracket_size / 2;
     v_player_index := 1;
     
     -- Create first round matches with participants
