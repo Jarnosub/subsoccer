@@ -545,9 +545,8 @@ function showEventModal(event, tournaments, userRegistrations) {
                             // Use start_datetime if available, otherwise created_at
                             const tDate = t.start_datetime ? new Date(t.start_datetime) : new Date(t.created_at);
                             
-                            // Format date and time separately for better visibility
+                            // Format date and time compactly for mobile
                             const dateStr = tDate.toLocaleDateString('en-GB', { 
-                                weekday: 'short',
                                 day: 'numeric', 
                                 month: 'short'
                             });
@@ -575,12 +574,12 @@ function showEventModal(event, tournaments, userRegistrations) {
                                                 <button onclick="viewTournamentParticipants('${event.id}', '${t.id}', '${t.tournament_name || 'Tournament'}')" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;">View List</button>
                                                 ${participantCount >= 2 ? `<button onclick="viewTournamentBracket('${t.id}', \`${(t.tournament_name || 'Tournament').replace(/[`'"]/g, '')}\`, ${maxParticipants})" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;"><i class="fa fa-sitemap"></i> Bracket</button>` : ''}
                                             </div>
-                                            <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
-                                                <div style="font-size:0.95rem; color:#aaa;">
-                                                    <i class="fa fa-calendar" style="color:#666; margin-right:4px;"></i> ${dateStr}
+                                            <div style="display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+                                                <div style="font-size:0.85rem; color:#aaa; white-space:nowrap;">
+                                                    <i class="fa fa-calendar" style="color:#666; margin-right:4px;"></i>${dateStr}
                                                 </div>
-                                                <div style="font-size:1.1rem; color:var(--sub-gold); font-weight:600;">
-                                                    <i class="fa fa-clock" style="margin-right:4px;"></i> ${timeStr}
+                                                <div style="font-size:1rem; color:var(--sub-gold); font-weight:600; white-space:nowrap;">
+                                                    <i class="fa fa-clock" style="margin-right:4px;"></i>${timeStr}
                                                 </div>
                                             </div>
                                         </div>
