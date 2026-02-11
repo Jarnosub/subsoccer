@@ -609,8 +609,11 @@ function showEventModal(event, tournaments, userRegistrations) {
                             <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="showCreateTournamentForm('${event.id}', '${event.event_name}')">
                                 <i class="fa fa-plus"></i> CREATE TOURNAMENT
                             </button>
+                            <button class="btn-red" style="flex:1; background:#c62828; color:#fff;" onclick="deleteEvent('${event.id}')">
+                                <i class="fa fa-trash"></i> DELETE EVENT
+                            </button>
                         ` : ''}
-                        <button class="btn-red" style="${isOrganizer ? '' : 'flex:1;'} background:#333; padding:12px 25px;" onclick="closeEventModal()">
+                        <button class="btn-red" style="${isOrganizer ? 'flex:1;' : 'flex:1;'} background:#333; padding:12px 25px;" onclick="closeEventModal()">
                             <i class="fa fa-times"></i> CLOSE
                         </button>
                     </div>
@@ -635,6 +638,39 @@ function showEventModal(event, tournaments, userRegistrations) {
 function closeEventModal() {
     const modal = document.getElementById('event-modal');
     if (modal) modal.remove();
+}
+
+/**
+ * Delete event
+ */
+async function deleteEvent(eventId) {
+    if (!user) {
+        showNotification('You must be logged in', 'error');
+        return;
+    }
+    
+    const confirmDelete = confirm('Are you sure you want to delete this event? This will also delete all tournaments and registrations associated with it.');
+    if (!confirmDelete) return;
+    
+    try {
+        // Delete event (CASCADE will delete related tournaments and registrations)
+        const { error } = await _supabase
+            .from('events')
+            .delete()
+            .eq('id', eventId);
+        
+        if (error) throw error;
+        
+        showNotification('Event deleted successfully!', 'success');
+        closeEventModal();
+        
+        // Reload events list
+        loadEventsPage();
+        
+    } catch (e) {
+        console.error('Failed to delete event:', e);
+        showNotification('Failed to delete event: ' + e.message, 'error');
+    }
 }
 
 /**
@@ -1042,10 +1078,14 @@ async function saveEmailAndRegister(eventId, tournamentId) {
         user.email = email;
         
         closeEmailPrompt();
-        showNotification('Email saved!', 'success');
         
-        // Proceed with registration
-        registerForTournament(eventId, tournamentId);
+        // Show success notification with longer duration
+        showNotification('✅ Email saved! You can now register for tournaments.', 'success');
+        
+        // Small delay to let user see the notification before registration proceeds
+        setTimeout(() => {
+            registerForTournament(eventId, tournamentId);
+        }, 800);
         
     } catch (e) {
         console.error('Failed to save email:', e);
@@ -1440,6 +1480,7 @@ window.clearEventImage = clearEventImage;
 window.createNewEvent = createNewEvent;
 window.viewEventDetails = viewEventDetails;
 window.closeEventModal = closeEventModal;
+window.deleteEvent = deleteEvent;
 window.showCreateTournamentForm = showCreateTournamentForm;
 window.closeTournamentForm = closeTournamentForm;
 window.createTournament = createTournament;
