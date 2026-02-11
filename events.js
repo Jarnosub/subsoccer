@@ -698,11 +698,9 @@ async function viewTournamentParticipants(tournamentId, tournamentName) {
             .from('event_registrations')
             .select(`
                 id,
-                created_at,
                 player:players(id, username, country, avatar_url)
             `)
-            .eq('tournament_id', tournamentId)
-            .order('created_at', { ascending: true });
+            .eq('tournament_id', tournamentId);
         
         if (error) throw error;
         
@@ -727,12 +725,6 @@ async function viewTournamentParticipants(tournamentId, tournamentName) {
                             ${registrations.map((reg, index) => {
                                 const player = reg.player;
                                 const flagEmoji = player?.country ? getFlagEmoji(player.country) : '';
-                                const registeredDate = new Date(reg.created_at).toLocaleDateString('en-GB', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                });
                                 
                                 return `
                                     <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:8px; display:flex; align-items:center; gap:12px;">
@@ -749,9 +741,6 @@ async function viewTournamentParticipants(tournamentId, tournamentName) {
                                         <div style="flex:1;">
                                             <div style="font-size:0.95rem; color:#fff; font-weight:bold;">
                                                 ${flagEmoji} ${player?.username || 'Unknown Player'}
-                                            </div>
-                                            <div style="font-size:0.75rem; color:#666;">
-                                                Registered: ${registeredDate}
                                             </div>
                                         </div>
                                     </div>
