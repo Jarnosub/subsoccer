@@ -1697,13 +1697,7 @@ function showBracketModal(matches, tournamentId, tournamentName, maxParticipants
                                 <div style="background:#111; border:1px solid #333; border-radius:8px; padding:15px; margin-bottom:15px;">
                                     <div style="font-size:0.7rem; color:#666; margin-bottom:10px;">Match ${match.match_number}</div>
                                     
-                                    ${renderBracketMatch(match, tournamentId)}
-                                    
-                                    ${match.status === 'pending' && match.player1_id && match.player2_id ? `
-                                        <button class="btn-gold" style="width:100%; padding:8px; font-size:0.75rem; margin-top:10px;" onclick="enterMatchResult('${match.id}', '${tournamentId}')">
-                                            ENTER RESULT
-                                        </button>
-                                    ` : ''}
+                                    ${renderBracketMatch(match)}
                                     
                                     ${match.status === 'bye' ? `<div style="text-align:center; color:#666; font-size:0.75rem; margin-top:5px;">BYE</div>` : ''}
                                 </div>
@@ -1727,91 +1721,31 @@ function renderBracketMatch(match) {
     const player1Name = match.player1?.username || 'TBD';
     const player2Name = match.player2?.username || 'TBD';
     const isCompleted = match.status === 'completed';
+    const isPending = match.status === 'pending' && match.player1_id && match.player2_id;
     const winner = match.winner_id;
     
     return `
         <div style="display:flex; flex-direction:column; gap:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:${winner === match.player1_id ? '#1a4d1a' : '#222'}; border-radius:4px; border-left:3px solid ${winner === match.player1_id ? 'var(--sub-gold)' : 'transparent'};">
-                <span style="font-size:0.85rem; ${!match.player1_id ? 'color:#666;' : ''}">${player1Name}</span>
-                ${isCompleted ? `<span style="font-size:0.9rem; font-weight:bold; color:var(--sub-gold);">${match.player1_score || 0}</span>` : ''}
+            <div data-match="${match.id}" data-winner="${match.player1_id}" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:${winner === match.player1_id ? '#1a4d1a' : '#222'}; border-radius:4px; border-left:3px solid ${winner === match.player1_id ? 'var(--sub-gold)' : 'transparent'}; ${isPending ? 'cursor:pointer; transition: background 0.2s;' : ''}" 
+                 ${isPending ? `onclick="selectWinner('${match.id}', '${match.player1_id}', '${match.tournament_id}', this)" onmouseover="this.style.background='#333'" onmouseout="this.style.background='${winner === match.player1_id ? '#1a4d1a' : '#222'}'"` : ''}>
+                <span style="font-size:0.9rem; font-weight:${winner === match.player1_id ? 'bold' : 'normal'}; ${!match.player1_id ? 'color:#666;' : ''}">${player1Name}</span>
+                ${isCompleted && winner === match.player1_id ? `<i class="fa fa-trophy" style="color:var(--sub-gold);"></i>` : ''}
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:${winner === match.player2_id ? '#1a4d1a' : '#222'}; border-radius:4px; border-left:3px solid ${winner === match.player2_id ? 'var(--sub-gold)' : 'transparent'};">
-                <span style="font-size:0.85rem; ${!match.player2_id ? 'color:#666;' : ''}">${player2Name}</span>
-                ${isCompleted ? `<span style="font-size:0.9rem; font-weight:bold; color:var(--sub-gold);">${match.player2_score || 0}</span>` : ''}
+            <div data-match="${match.id}" data-winner="${match.player2_id}" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:${winner === match.player2_id ? '#1a4d1a' : '#222'}; border-radius:4px; border-left:3px solid ${winner === match.player2_id ? 'var(--sub-gold)' : 'transparent'}; ${isPending ? 'cursor:pointer; transition: background 0.2s;' : ''}"
+                 ${isPending ? `onclick="selectWinner('${match.id}', '${match.player2_id}', '${match.tournament_id}', this)" onmouseover="this.style.background='#333'" onmouseout="this.style.background='${winner === match.player2_id ? '#1a4d1a' : '#222'}'"` : ''}>
+                <span style="font-size:0.9rem; font-weight:${winner === match.player2_id ? 'bold' : 'normal'}; ${!match.player2_id ? 'color:#666;' : ''}">${player2Name}</span>
+                ${isCompleted && winner === match.player2_id ? `<i class="fa fa-trophy" style="color:var(--sub-gold);"></i>` : ''}
             </div>
         </div>
     `;
 }
 
-async function enterMatchResult(matchId, tournamentId) {
-    const match = await fetchMatchData(matchId);
-    if (!match) return;
-    
-    const modal = document.createElement('div');
-    modal.id = 'result-modal';
-    modal.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px; z-index:10001; min-width:400px;';
-    
-    modal.innerHTML = `
-        <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:20px;">ENTER MATCH RESULT</h3>
-        
-        <div style="margin-bottom:20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span style="font-size:1rem;">${match.player1?.username || 'Player 1'}</span>
-                <input type="number" id="player1-score" min="0" value="0" style="width:80px; padding:8px; background:#222; border:1px solid #444; color:#fff; border-radius:4px; text-align:center; font-size:1.1rem;">
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:1rem;">${match.player2?.username || 'Player 2'}</span>
-                <input type="number" id="player2-score" min="0" value="0" style="width:80px; padding:8px; background:#222; border:1px solid #444; color:#fff; border-radius:4px; text-align:center; font-size:1.1rem;">
-            </div>
-        </div>
-        
-        <div style="display:flex; gap:10px;">
-            <button class="btn-gold" style="flex:1;" onclick="saveMatchResult('${matchId}', '${tournamentId}')">SAVE RESULT</button>
-            <button class="btn-red" style="flex:1; background:#444;" onclick="closeResultModal()">CANCEL</button>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-}
-
-async function fetchMatchData(matchId) {
-    const { data, error } = await _supabase
-        .from('tournament_matches')
-        .select(`
-            *,
-            player1:player1_id(username),
-            player2:player2_id(username)
-        `)
-        .eq('id', matchId)
-        .single();
-    
-    if (error) {
-        console.error('Error fetching match:', error);
-        return null;
-    }
-    
-    return data;
-}
-
-async function saveMatchResult(matchId, tournamentId) {
+async function selectWinner(matchId, winnerId, tournamentId, element) {
     try {
-        const player1Score = parseInt(document.getElementById('player1-score').value) || 0;
-        const player2Score = parseInt(document.getElementById('player2-score').value) || 0;
-        
-        if (player1Score === player2Score) {
-            showNotification('Scores cannot be tied - there must be a winner', 'error');
-            return;
-        }
-        
-        const match = await fetchMatchData(matchId);
-        const winnerId = player1Score > player2Score ? match.player1_id : match.player2_id;
-        
         // Update match result (trigger will handle ELO update and matches table insert)
         const { error: updateError } = await _supabase
             .from('tournament_matches')
             .update({
-                player1_score: player1Score,
-                player2_score: player2Score,
                 winner_id: winnerId,
                 status: 'completed',
                 completed_at: new Date().toISOString()
@@ -1829,12 +1763,9 @@ async function saveMatchResult(matchId, tournamentId) {
         
         if (advanceError) throw advanceError;
         
-        closeResultModal();
-        closeBracketModal();
+        showNotification('Winner selected! ELO updated.', 'success');
         
-        showNotification('Match result saved! ELO updated.', 'success');
-        
-        // Reload bracket
+        // Reload bracket to show updated state
         const { data: tournamentData } = await _supabase
             .from('tournament_history')
             .select('tournament_name, max_participants')
@@ -1842,22 +1773,19 @@ async function saveMatchResult(matchId, tournamentId) {
             .single();
         
         if (tournamentData) {
-            viewTournamentBracket(tournamentId, tournamentData.tournament_name, tournamentData.max_participants);
+            setTimeout(() => {
+                viewTournamentBracket(tournamentId, tournamentData.tournament_name, tournamentData.max_participants);
+            }, 500);
         }
         
     } catch (error) {
-        console.error('Error saving result:', error);
+        console.error('Error selecting winner:', error);
         showNotification('Failed to save result: ' + error.message, 'error');
     }
 }
 
 function closeBracketModal() {
     const modal = document.getElementById('bracket-modal');
-    if (modal) modal.remove();
-}
-
-function closeResultModal() {
-    const modal = document.getElementById('result-modal');
     if (modal) modal.remove();
 }
 
@@ -1998,9 +1926,7 @@ function closePlayerSelectModal() {
 
 window.viewTournamentBracket = viewTournamentBracket;
 window.closeBracketModal = closeBracketModal;
-window.enterMatchResult = enterMatchResult;
-window.saveMatchResult = saveMatchResult;
-window.closeResultModal = closeResultModal;
+window.selectWinner = selectWinner;
 window.addPlayerToBracket = addPlayerToBracket;
 window.selectPlayerForBracket = selectPlayerForBracket;
 window.regenerateBracket = regenerateBracket;
