@@ -1614,14 +1614,14 @@ window.saveEmailAndRegister = saveEmailAndRegister;
 async function viewTournamentBracket(tournamentId, tournamentName, maxParticipants) {
     try {
         // Check if bracket exists
-        const { data: existingMatches } = await supabase
+        const { data: existingMatches } = await _supabase
             .from('tournament_matches')
             .select('*')
             .eq('tournament_id', tournamentId);
         
         // If no bracket, generate it
         if (!existingMatches || existingMatches.length === 0) {
-            const { data, error } = await supabase.rpc('generate_tournament_bracket', {
+            const { data, error } = await _supabase.rpc('generate_tournament_bracket', {
                 p_tournament_id: tournamentId
             });
             
@@ -1634,7 +1634,7 @@ async function viewTournamentBracket(tournamentId, tournamentName, maxParticipan
         }
         
         // Fetch matches with player data
-        const { data: matches, error } = await supabase
+        const { data: matches, error } = await _supabase
             .from('tournament_matches')
             .select(`
                 *,
@@ -1767,7 +1767,7 @@ async function enterMatchResult(matchId, tournamentId) {
 }
 
 async function fetchMatchData(matchId) {
-    const { data, error } = await supabase
+    const { data, error } = await _supabase
         .from('tournament_matches')
         .select(`
             *,
@@ -1799,7 +1799,7 @@ async function saveMatchResult(matchId, tournamentId) {
         const winnerId = player1Score > player2Score ? match.player1_id : match.player2_id;
         
         // Update match result
-        const { error } = await supabase
+        const { error } = await _supabase
             .from('tournament_matches')
             .update({
                 player1_score: player1Score,
@@ -1821,7 +1821,7 @@ async function saveMatchResult(matchId, tournamentId) {
         showNotification('Match result saved!', 'success');
         
         // Reload bracket
-        const { data: tournamentData } = await supabase
+        const { data: tournamentData } = await _supabase
             .from('tournament_history')
             .select('tournament_name, max_participants')
             .eq('id', tournamentId)
@@ -1846,7 +1846,7 @@ async function advanceWinnerToNextRound(currentMatch, winnerId, tournamentId) {
     
     const updateField = isPlayer1Slot ? 'player1_id' : 'player2_id';
     
-    await supabase
+    await _supabase
         .from('tournament_matches')
         .update({ [updateField]: winnerId })
         .eq('tournament_id', tournamentId)
