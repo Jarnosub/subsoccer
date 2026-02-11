@@ -668,6 +668,7 @@ async function showCreateTournamentForm(eventId, eventName) {
         const { data: games, error } = await _supabase
             .from('games')
             .select('*')
+            .eq('is_public', true)
             .order('game_name');
         
         if (error) {
