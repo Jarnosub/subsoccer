@@ -65,6 +65,12 @@ async function showEditProfile() {
         // Set country dropdown
         document.getElementById('country-input').value = user.country || 'fi';
         
+        // Set email input
+        const emailInput = document.getElementById('email-input');
+        if (emailInput) {
+            emailInput.value = user.email || '';
+        }
+        
         // Clear file input
         const fileInput = document.getElementById('avatar-file-input');
         if (fileInput) fileInput.value = '';
@@ -163,6 +169,7 @@ async function saveProfile() {
         const fileInput = document.getElementById('avatar-file-input');
         const file = fileInput?.files[0];
         const countryCode = document.getElementById('country-input')?.value.trim().toLowerCase();
+        const email = document.getElementById('email-input')?.value.trim();
         
         let avatarUrl = user.avatar_url; // Keep existing if no new file
         
@@ -177,10 +184,20 @@ async function saveProfile() {
             }
         }
         
+        // Validate email if provided
+        if (email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showNotification('Please enter a valid email address', 'error');
+                return;
+            }
+        }
+        
         // Prepare updates
         const updates = {};
         if (avatarUrl && avatarUrl !== user.avatar_url) updates.avatar_url = avatarUrl;
         if (countryCode && countryCode !== user.country) updates.country = countryCode;
+        if (email !== undefined && email !== user.email) updates.email = email || null;
 
         if (Object.keys(updates).length === 0) {
             showNotification("Nothing to update", "error");
@@ -197,6 +214,7 @@ async function saveProfile() {
             // Update local user object
             if (avatarUrl) user.avatar_url = avatarUrl;
             if (countryCode) user.country = countryCode;
+            if (email !== undefined) user.email = email || null;
             
             // Update UI
             if (typeof updateProfileCard === 'function') updateProfileCard();

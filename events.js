@@ -850,11 +850,157 @@ async function createTournament(eventId) {
 }
 
 /**
+ * Show email prompt modal
+ */
+function showEmailPrompt(eventId, tournamentId) {
+    const modalHtml = `
+        <div style="
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        ">
+            <div style="
+                background: #222;
+                border: 2px solid var(--sub-gold);
+                border-radius: 8px;
+                max-width: 400px;
+                width: 100%;
+                padding: 30px;
+            ">
+                <h3 style="color: var(--sub-gold); margin-top: 0; text-align: center;">
+                    <i class="fa fa-envelope"></i> Email Required
+                </h3>
+                <p style="color: #ccc; margin-bottom: 20px; text-align: center;">
+                    Tournament participation requires an email address for notifications and updates.
+                </p>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #999; margin-bottom: 5px; font-size: 0.9rem;">
+                        Email Address
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email-prompt-input" 
+                        placeholder="your.email@example.com"
+                        style="
+                            width: 100%;
+                            padding: 10px;
+                            background: #333;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            color: white;
+                            font-size: 1rem;
+                        "
+                    />
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button 
+                        onclick="closeEmailPrompt()" 
+                        style="
+                            flex: 1;
+                            padding: 10px;
+                            background: #555;
+                            border: none;
+                            border-radius: 4px;
+                            color: white;
+                            cursor: pointer;
+                        "
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onclick="saveEmailAndRegister('${eventId}', '${tournamentId}')" 
+                        class="btn-gold"
+                        style="flex: 1;"
+                    >
+                        Save & Register
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    let modal = document.getElementById('email-prompt-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'email-prompt-modal';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = modalHtml;
+}
+
+/**
+ * Close email prompt modal
+ */
+function closeEmailPrompt() {
+    const modal = document.getElementById('email-prompt-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+/**
+ * Save email and proceed with tournament registration
+ */
+async function saveEmailAndRegister(eventId, tournamentId) {
+    const emailInput = document.getElementById('email-prompt-input');
+    const email = emailInput?.value?.trim();
+    
+    if (!email) {
+        showNotification('Please enter your email address', 'error');
+        return;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showNotification('Please enter a valid email address', 'error');
+        return;
+    }
+    
+    try {
+        // Update player's email
+        const { error } = await _supabase
+            .from('players')
+            .update({ email: email })
+            .eq('id', user.id);
+        
+        if (error) throw error;
+        
+        // Update local user object
+        user.email = email;
+        
+        closeEmailPrompt();
+        showNotification('Email saved!', 'success');
+        
+        // Proceed with registration
+        registerForTournament(eventId, tournamentId);
+        
+    } catch (e) {
+        console.error('Failed to save email:', e);
+        showNotification('Failed to save email: ' + e.message, 'error');
+    }
+}
+
+/**
  * Register for tournament
  */
 async function registerForTournament(eventId, tournamentId) {
     if (!user) {
         showNotification('You must be logged in to register', 'error');
+        return;
+    }
+    
+    // Check if user has email - required for tournament participation
+    if (!user.email) {
+        showEmailPrompt(eventId, tournamentId);
         return;
     }
     
