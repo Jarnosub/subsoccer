@@ -103,6 +103,9 @@ function renderEventCard(event) {
     };
     const typeColor = eventTypeColors[event.event_type] || '#888';
     
+    // Larger title if no image
+    const titleSize = event.image_url ? '1.1rem' : '1.5rem';
+    
     return `
         <div class="event-card" style="background:#111; border:1px solid #222; border-radius:12px; padding:15px; margin-bottom:15px;">
             ${event.image_url ? `
@@ -111,7 +114,7 @@ function renderEventCard(event) {
             
             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
                 <div>
-                    <h3 style="font-family:'Russo One'; font-size:1.1rem; margin:0 0 5px 0; color:#fff;">${event.event_name}</h3>
+                    <h3 style="font-family:'Russo One'; font-size:${titleSize}; margin:0 0 5px 0; color:#fff;">${event.event_name}</h3>
                     <div style="font-size:0.85rem; color:${typeColor}; text-transform:uppercase; letter-spacing:1px;">
                         ${event.event_type}
                     </div>
@@ -698,6 +701,10 @@ async function showCreateTournamentForm(eventId, eventName) {
     
     console.log('✅ Generated game options:', gameOptions.length, 'characters');
     
+    // Set default time to current time
+    const now = new Date();
+    const defaultTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    
     const formHtml = `
         <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; overflow-y:auto; padding:20px; box-sizing:border-box;">
             <div style="max-width:500px; margin:0 auto; background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px;">
@@ -734,14 +741,14 @@ async function showCreateTournamentForm(eventId, eventName) {
                         <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
                             START TIME *
                         </label>
-                        <input type="datetime-local" id="tournament-start-input"
+                        <input type="datetime-local" id="tournament-start-input" value="${defaultTime}"
                                style="width:100%; height:38px; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem; max-width:100%;">
                     </div>
                     <div>
                         <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
                             END TIME <span style="color:#666;">(optional)</span>
                         </label>
-                        <input type="datetime-local" id="tournament-end-input"
+                        <input type="datetime-local" id="tournament-end-input" value="${defaultTime}"
                                style="width:100%; height:38px; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem; max-width:100%;">
                     </div>
                 </div>
