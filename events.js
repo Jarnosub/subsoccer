@@ -687,9 +687,12 @@ async function showCreateTournamentForm(eventId, eventName) {
     }
     
     // Generate game options from loaded games
-    const gameOptions = allGames.map(g => 
-        `<option value="${g.id}">${g.game_name} - ${g.location || 'Unknown location'}</option>`
-    ).join('');
+    console.log('All games data:', allGames);
+    
+    const gameOptions = '<option value="" disabled selected>Select Game Table</option>' + 
+        allGames.map(g => 
+            `<option value="${g.id}">${g.game_name} - ${g.location || 'Unknown location'}</option>`
+        ).join('');
     
     console.log('✅ Generated game options:', gameOptions.length, 'characters');
     
@@ -785,6 +788,15 @@ async function showCreateTournamentForm(eventId, eventName) {
     }
     formContainer.innerHTML = formHtml;
     console.log('✅ Tournament form rendered successfully');
+    
+    // Auto-select first game if available
+    if (allGames && allGames.length > 0) {
+        const gameSelect = document.getElementById('tournament-game-select');
+        if (gameSelect) {
+            gameSelect.value = allGames[0].id;
+            console.log('✅ Auto-selected first game:', allGames[0].game_name, 'ID:', allGames[0].id);
+        }
+    }
 }
 
 /**
