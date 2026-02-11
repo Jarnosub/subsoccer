@@ -647,10 +647,18 @@ function getFlagEmoji(countryCode) {
  * Show create tournament form
  */
 function showCreateTournamentForm(eventId, eventName) {
+    console.log('=== SHOW CREATE TOURNAMENT FORM ===');
+    console.log('Event ID:', eventId);
+    console.log('Event Name:', eventName);
+    console.log('User:', user);
+    
     if (!user) {
+        console.log('❌ User not logged in');
         showNotification('You must be logged in to create tournaments', 'error');
         return;
     }
+    
+    console.log('All games available:', allGames);
     
     // Get available game tables (from global allGames or fetch)
     let gameOptions = '';
@@ -658,26 +666,29 @@ function showCreateTournamentForm(eventId, eventName) {
         gameOptions = allGames.map(g => 
             `<option value="${g.id}">${g.game_name} - ${g.location || 'Unknown location'}</option>`
         ).join('');
+        console.log('✅ Using existing allGames array:', allGames.length, 'tables');
     } else {
         gameOptions = '<option value="">Loading tables...</option>';
+        console.log('⏳ Fetching games from database...');
         // Fetch games if not loaded
         _supabase.from('games').select('*').order('game_name').then(({ data, error }) => {
             if (error) {
-                console.error('Failed to load game tables:', error);
+                console.error('❌ Failed to load game tables:', error);
                 showNotification('Failed to load game tables', 'error');
                 return;
             }
             if (data && data.length > 0) {
                 allGames = data;
-                console.log('Loaded', data.length, 'game tables');
+                console.log('✅ Loaded', data.length, 'game tables');
                 const select = document.getElementById('tournament-game-select');
                 if (select) {
                     select.innerHTML = data.map(g => 
                         `<option value="${g.id}">${g.game_name} - ${g.location || 'Unknown location'}</option>`
                     ).join('');
+                    console.log('✅ Updated game select dropdown');
                 }
             } else {
-                console.warn('No game tables found in database');
+                console.warn('⚠️ No game tables found in database');
                 const select = document.getElementById('tournament-game-select');
                 if (select) {
                     select.innerHTML = '<option value="">No game tables available</option>';
@@ -772,8 +783,12 @@ function showCreateTournamentForm(eventId, eventName) {
         formContainer = document.createElement('div');
         formContainer.id = 'tournament-form-modal';
         document.body.appendChild(formContainer);
+        console.log('✅ Created new form container');
+    } else {
+        console.log('✅ Using existing form container');
     }
     formContainer.innerHTML = formHtml;
+    console.log('✅ Tournament form rendered successfully');
 }
 
 /**
@@ -788,7 +803,12 @@ function closeTournamentForm() {
  * Create tournament
  */
 async function createTournament(eventId) {
+    console.log('=== CREATE TOURNAMENT CALLED ===');
+    console.log('Event ID:', eventId);
+    console.log('User:', user);
+    
     if (!user) {
+        console.log('❌ User not logged in');
         showNotification('You must be logged in', 'error');
         return;
     }
@@ -800,15 +820,28 @@ async function createTournament(eventId) {
     const maxParticipants = parseInt(document.getElementById('tournament-max-input')?.value) || 8;
     const tournamentType = document.getElementById('tournament-type-select')?.value || 'elimination';
     
+    console.log('Form values:', {
+        tournamentName,
+        gameId,
+        startDatetime,
+        endDatetime,
+        maxParticipants,
+        tournamentType
+    });
+    
     if (!gameId) {
+        console.log('❌ No game selected');
         showNotification('Please select a game table', 'error');
         return;
     }
     
     if (!startDatetime) {
+        console.log('❌ No start time selected');
         showNotification('Please select start time', 'error');
         return;
     }
+    
+    console.log('✅ Validation passed, creating tournament...');
     
     try {
         // Create tournament in tournament_history
@@ -825,14 +858,22 @@ async function createTournament(eventId) {
             created_at: new Date().toISOString()
         };
         
+        console.log('Tournament data to insert:', tournamentData);
+        
         const { data: tournament, error } = await _supabase
             .from('tournament_history')
             .insert(tournamentData)
             .select()
             .single();
         
-        if (error) throw error;
+        console.log('Supabase response:', { tournament, error });
         
+        if (error) {
+            console.log('❌ Database error:', error);
+            throw error;
+        }
+        
+        console.log('✅ Tournament created successfully:', tournament);
         showNotification('Tournament created successfully!', 'success');
         closeTournamentForm();
         
@@ -840,7 +881,13 @@ async function createTournament(eventId) {
         viewEventDetails(eventId);
         
     } catch (e) {
-        console.error('Failed to create tournament:', e);
+        console.error('❌ EXCEPTION in createTournament:', e);
+        console.error('Error details:', {
+            message: e.message,
+            code: e.code,
+            details: e.details,
+            hint: e.hint
+        });
         if (e.message && e.message.includes('column')) {
             showNotification('Database error: Please run add_tournament_datetime.sql in Supabase first', 'error');
         } else {
@@ -1383,3 +1430,6 @@ window.unregisterFromTournament = unregisterFromTournament;
 window.editTournament = editTournament;
 window.deleteTournament = deleteTournament;
 window.saveTournamentEdit = saveTournamentEdit;
+window.showEmailPrompt = showEmailPrompt;
+window.closeEmailPrompt = closeEmailPrompt;
+window.saveEmailAndRegister = saveEmailAndRegister;
