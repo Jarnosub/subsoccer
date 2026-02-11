@@ -309,7 +309,7 @@ async function registerGame() {
         // Check if serial number is already registered
         const { data: existingGames, error: checkError } = await _supabase
             .from('games')
-            .select('id, game_name, owner_id, players(username)')
+            .select('id, game_name, owner_id, players!owner_id(username)')
             .eq('serial_number', serialNumber);
         
         // If serial number already exists, show transfer dialog
@@ -353,20 +353,16 @@ async function registerGame() {
         // Check if it's a duplicate serial number error
         if (error.message && error.message.includes('idx_games_serial_number_unique')) {
             // Fetch the existing game and show transfer dialog
-            try {
-                const { data: existingGames } = await _supabase
-                    .from('games')
-                    .select('id, game_name, owner_id, players(username)')
-                    .eq('serial_number', serialNumber);
-                
-                if (existingGames && existingGames.length > 0) {
-                    showOwnershipTransferDialog(existingGames[0], serialNumber, gameName, location, isPublic);
-                    return;
-                }
-            } catch (fetchError) {
-                console.error('Error fetching existing game:', fetchError);
+            const { data: existingGames } = await _supabase
+                .from('games')
+                .select('id, game_name, owner_id, players!owner_id(username)')
+                .eq('serial_number', serialNumber);
+            
+            if (existingGames && existingGames.length > 0) {
+                showOwnershipTransferDialog(existingGames[0], serialNumber, gameName, location, isPublic);
+            } else {
+                showNotification("This serial number is already registered to another user.", "error");
             }
-            showNotification("This serial number is already registered to another user.", "error");
         } else {
             showNotification("Failed to register game: " + error.message, "error");
         }
@@ -1618,8 +1614,8 @@ async function viewOwnershipRequests() {
             .from('ownership_transfer_requests')
             .select(`
                 *,
-                game:games(game_name, serial_number),
-                requester:new_owner_id(username)
+                games!game_id(game_name, serial_number),
+                players!new_owner_id(username)
             `)
             .eq('current_owner_id', user.id)
             .eq('status', 'pending')
@@ -1640,9 +1636,9 @@ async function viewOwnershipRequests() {
                 
                 ${data && data.length > 0 ? data.map(req => `
                     <div style="background:#111; padding:20px; border-radius:8px; margin-bottom:15px; border-left:3px solid var(--sub-gold);">
-                        <div style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:10px;">${req.game?.game_name || 'Unknown Game'}</div>
+                        <div style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:10px;">${req.games?.game_name || 'Unknown Game'}</div>
                         <div style="font-size:0.85rem; color:#ccc; margin-bottom:5px;">Serial: ${req.serial_number}</div>
-                        <div style="font-size:0.85rem; color:#ccc; margin-bottom:10px;">Requested by: ${req.requester?.username || 'Unknown'}</div>
+                        <div style="font-size:0.85rem; color:#ccc; margin-bottom:10px;">Requested by: ${req.players?.username || 'Unknown'}</div>
                         ${req.message ? `<div style="background:#222; padding:10px; border-radius:4px; margin-bottom:15px; font-size:0.85rem; color:#aaa;">"${req.message}"</div>` : ''}
                         <div style="font-size:0.75rem; color:#666; margin-bottom:15px;">${new Date(req.created_at).toLocaleString()}</div>
                         
