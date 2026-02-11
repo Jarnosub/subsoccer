@@ -307,13 +307,17 @@ async function registerGame() {
         }
         
         // Check if serial number is already registered
+        console.log('Checking if serial number exists:', serialNumber);
         const { data: existingGames, error: checkError } = await _supabase
             .from('games')
             .select('id, game_name, owner_id, players!owner_id(username)')
             .eq('serial_number', serialNumber);
         
+        console.log('Check result - games:', existingGames, 'error:', checkError);
+        
         // If serial number already exists, show transfer dialog
         if (existingGames && existingGames.length > 0) {
+            console.log('Serial number already exists, showing dialog');
             const existingGame = existingGames[0];
             showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic);
             return;
@@ -349,18 +353,27 @@ async function registerGame() {
         fetchMyGames();
     } catch (error) {
         console.error('Error registering game:', error);
+        console.log('Error details:', error.message, error.code);
         
         // Check if it's a duplicate serial number error
         if (error.message && error.message.includes('idx_games_serial_number_unique')) {
+            console.log('Duplicate serial number detected, fetching existing game...');
+            console.log('Serial number to search:', serialNumber);
+            
             // Fetch the existing game and show transfer dialog
-            const { data: existingGames } = await _supabase
+            const { data: existingGames, error: fetchErr } = await _supabase
                 .from('games')
                 .select('id, game_name, owner_id, players!owner_id(username)')
                 .eq('serial_number', serialNumber);
             
+            console.log('Fetched games:', existingGames);
+            console.log('Fetch error:', fetchErr);
+            
             if (existingGames && existingGames.length > 0) {
+                console.log('Showing transfer dialog for:', existingGames[0]);
                 showOwnershipTransferDialog(existingGames[0], serialNumber, gameName, location, isPublic);
             } else {
+                console.log('No games found with serial:', serialNumber);
                 showNotification("This serial number is already registered to another user.", "error");
             }
         } else {
@@ -1488,7 +1501,9 @@ window.clearPool = clearPool;
 // ============================================================
 
 function showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic) {
+    console.log('showOwnershipTransferDialog called with:', { existingGame, serialNumber, gameName, location, isPublic });
     const currentOwnerName = existingGame.players?.username || 'Unknown';
+    console.log('Current owner name:', currentOwnerName);
     
     const html = `
         <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; display:flex; align-items:center; justify-content:center; padding:20px;" id="ownership-transfer-modal">
