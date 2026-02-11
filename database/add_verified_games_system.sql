@@ -1,16 +1,25 @@
 -- ============================================================
 -- VERIFIED GAMES SYSTEM - Two-Tier Game Registration
--- Adds serial number verification and ownership management
+-- Serial Number replaces Unique Game Code as primary identifier
 -- ============================================================
 
 -- ==================== PART 1: GAMES TABLE EXTENSIONS ====================
 
 -- Add verified game fields
+-- serial_number: Replaces unique_code as the primary game identifier
+-- owner_id: Links to the player who owns this verified game
+-- verified: True when serial number is registered (automatic verification)
+-- registered_at: Timestamp when the game was verified with serial number
+
 ALTER TABLE public.games 
 ADD COLUMN IF NOT EXISTS serial_number TEXT,
 ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES public.players(id) ON DELETE SET NULL,
 ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS registered_at TIMESTAMPTZ;
+
+-- Update comment on unique_code to clarify it's now auto-generated from serial
+COMMENT ON COLUMN public.games.unique_code IS 'Auto-generated from serial_number. Legacy field for backward compatibility.';
+COMMENT ON COLUMN public.games.serial_number IS 'Primary game identifier from QR code sticker. Required for tournament eligibility and verified status.';
 
 -- Create unique partial index for serial numbers (only non-null values)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_games_serial_number_unique 

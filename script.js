@@ -291,13 +291,12 @@ async function registerGame() {
             btn.textContent = 'Registering...';
         }
         
-        const uniqueCode = document.getElementById('game-code-input').value.trim();
+        const serialNumber = document.getElementById('game-serial-input').value.trim();
         const gameName = document.getElementById('game-name-input').value.trim();
         const location = document.getElementById('game-address-input').value.trim();
         const isPublic = document.getElementById('game-public-input').checked;
-        const serialNumber = document.getElementById('game-serial-input').value.trim();
         
-        if (!uniqueCode || !gameName || !location || !selLat) {
+        if (!serialNumber || !gameName || !location || !selLat) {
             showNotification("Please fill all fields and select location on map.", "error");
             return;
         }
@@ -307,22 +306,22 @@ async function registerGame() {
         }
         
         // Check if serial number is already registered
-        if (serialNumber) {
-            const { data: existingGame, error: checkError } = await _supabase
-                .from('games')
-                .select('id, game_name, owner_id, players(username)')
-                .eq('serial_number', serialNumber)
-                .single();
-            
-            if (existingGame) {
-                // Serial number already in use - offer to request transfer
-                showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic, uniqueCode);
-                return;
-            }
+        const { data: existingGame, error: checkError } = await _supabase
+            .from('games')
+            .select('id, game_name, owner_id, players(username)')
+            .eq('serial_number', serialNumber)
+            .single();
+        
+        if (existingGame) {
+            // Serial number already in use - offer to request transfer
+            showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic);
+            return;
         }
         
-        const verified = serialNumber ? true : false;
-        const registered_at = serialNumber ? new Date().toISOString() : null;
+        const verified = true;
+        const registered_at = new Date().toISOString();
+        // Auto-generate unique_code from serial number
+        const uniqueCode = serialNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         
         const { data, error } = await _supabase.from('games').insert([{ 
             unique_code: uniqueCode, 
@@ -332,14 +331,13 @@ async function registerGame() {
             latitude: selLat, 
             longitude: selLng, 
             is_public: isPublic,
-            serial_number: serialNumber || null,
+            serial_number: serialNumber,
             verified: verified,
             registered_at: registered_at
         }]);
         if (error) throw error;
         
-        showNotification(`Game "${gameName}" registered successfully!${verified ? ' ⭐ VERIFIED' : ''}`, "success");
-        document.getElementById('game-code-input').value = '';
+        showNotification(`Game "${gameName}" registered successfully! ⭐ VERIFIED`, "success");
         document.getElementById('game-name-input').value = '';
         document.getElementById('game-address-input').value = '';
         document.getElementById('game-serial-input').value = '';
@@ -363,7 +361,8 @@ function initEditGame(id) {
     const game = myGames.find(g => g.id === id);
     if (!game) return;
     editingGameId = id;
-    document.getElementById('game-code-input').value = game.unique_code;
+    document.getElementById('game-serial-input').value = game.serial_number || '';
+    document.getElementById('game-serial-input').disabled = true; // Can't change serial number
     document.getElementById('game-name-input').value = game.game_name;
     document.getElementById('game-address-input').value = game.location;
     document.getElementById('game-public-input').checked = game.is_public;
@@ -375,7 +374,8 @@ function initEditGame(id) {
 
 function cancelEdit() {
     editingGameId = null;
-    document.getElementById('game-code-input').value = '';
+    document.getElementById('game-serial-input').value = '';
+    document.getElementById('game-serial-input').disabled = false; // Re-enable for new registration
     document.getElementById('game-name-input').value = '';
     document.getElementById('game-address-input').value = '';
     document.getElementById('game-public-input').checked = false;
@@ -456,8 +456,7 @@ async function fetchMyGames() {
                 </div>
                 <div style="font-family: 'Russo One'; font-size: 1rem; padding-right: 60px; ${game.verified ? 'margin-top:25px;' : ''}">${game.game_name}</div>
                 <small style="color:#888;">${game.location}</small><br>
-                <small style="color:#666; font-size:0.6rem;">CODE: ${game.unique_code}</small>
-                ${game.verified && game.serial_number ? `<br><small style="color:var(--sub-gold); font-size:0.6rem;">SERIAL: ${game.serial_number}</small>` : ''}
+                ${game.serial_number ? `<small style="color:var(--sub-gold); font-size:0.65rem;">SERIAL: ${game.serial_number}</small>` : `<small style="color:#666; font-size:0.6rem;">CODE: ${game.unique_code}</small>`}
                 ${game.verified ? `<div style="margin-top:10px;"><button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#444;" onclick="releaseGameOwnership('${game.id}')">Release Ownership</button></div>` : ''}
             </div>
         `).join('');
@@ -1471,7 +1470,7 @@ window.clearPool = clearPool;
 // VERIFIED GAMES & OWNERSHIP FUNCTIONS
 // ============================================================
 
-function showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic, uniqueCode) {
+function showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic) {
     const currentOwnerName = existingGame.players?.username || 'Unknown';
     
     const html = `
@@ -1499,7 +1498,7 @@ function showOwnershipTransferDialog(existingGame, serialNumber, gameName, locat
                 <textarea id="transfer-message" placeholder="Optional message to current owner..." style="width:100%; min-height:80px; margin-bottom:20px; background:#111; border:1px solid #333; border-radius:8px; padding:10px; color:#fff; font-family:inherit; resize:vertical;"></textarea>
                 
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="requestOwnershipTransfer('${existingGame.id}', '${serialNumber}', '${gameName}', '${location}', ${isPublic}, '${uniqueCode}')">
+                    <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="requestOwnershipTransfer('${existingGame.id}', '${serialNumber}', '${gameName}', '${location}', ${isPublic})">
                         REQUEST TRANSFER
                     </button>
                     <button class="btn-red" style="flex:1; background:#444;" onclick="closeOwnershipTransferDialog()">
@@ -1525,7 +1524,7 @@ function closeOwnershipTransferDialog() {
     }
 }
 
-async function requestOwnershipTransfer(gameId, serialNumber, newGameName, newLocation, isPublic, uniqueCode) {
+async function requestOwnershipTransfer(gameId, serialNumber, newGameName, newLocation, isPublic) {
     try {
         const message = document.getElementById('transfer-message')?.value.trim() || '';
         
@@ -1556,7 +1555,6 @@ async function requestOwnershipTransfer(gameId, serialNumber, newGameName, newLo
         showNotification("Transfer request sent! The current owner will be notified.", "success");
         
         // Clear form
-        document.getElementById('game-code-input').value = '';
         document.getElementById('game-name-input').value = '';
         document.getElementById('game-address-input').value = '';
         document.getElementById('game-serial-input').value = '';
