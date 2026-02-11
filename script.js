@@ -306,14 +306,14 @@ async function registerGame() {
         }
         
         // Check if serial number is already registered
-        const { data: existingGame, error: checkError } = await _supabase
+        const { data: existingGames, error: checkError } = await _supabase
             .from('games')
             .select('id, game_name, owner_id, players(username)')
-            .eq('serial_number', serialNumber)
-            .single();
+            .eq('serial_number', serialNumber);
         
-        if (existingGame) {
-            // Serial number already in use - offer to request transfer
+        // If serial number already exists, show transfer dialog
+        if (existingGames && existingGames.length > 0) {
+            const existingGame = existingGames[0];
             showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic);
             return;
         }
@@ -348,7 +348,27 @@ async function registerGame() {
         fetchMyGames();
     } catch (error) {
         console.error('Error registering game:', error);
-        showNotification("Failed to register game: " + error.message, "error");
+        
+        // Check if it's a duplicate serial number error
+        if (error.message && error.message.includes('idx_games_serial_number_unique')) {
+            // Fetch the existing game and show transfer dialog
+            try {
+                const { data: existingGames } = await _supabase
+                    .from('games')
+                    .select('id, game_name, owner_id, players(username)')
+                    .eq('serial_number', serialNumber);
+                
+                if (existingGames && existingGames.length > 0) {
+                    showOwnershipTransferDialog(existingGames[0], serialNumber, gameName, location, isPublic);
+                    return;
+                }
+            } catch (fetchError) {
+                console.error('Error fetching existing game:', fetchError);
+            }
+            showNotification("This serial number is already registered to another user.", "error");
+        } else {
+            showNotification("Failed to register game: " + error.message, "error");
+        }
     } finally {
         if (btn) {
             btn.disabled = false;
