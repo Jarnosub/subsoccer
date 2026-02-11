@@ -1966,7 +1966,8 @@ async function viewLiveEvent(eventId) {
         
     } catch (e) {
         console.error('Failed to load live event:', e);
-        document.getElementById('content').innerHTML = `
+        const content = document.getElementById('live-content') || document.getElementById('content') || document.body;
+        content.innerHTML = `
             <div style="text-align:center; padding:40px;">
                 <h2 style="color:#f44336;">Event Not Found</h2>
                 <p style="color:#999;">This event may have been deleted or the link is incorrect.</p>
@@ -1987,7 +1988,7 @@ function showLiveEventView(event, tournaments) {
         year: 'numeric'
     });
     
-    const content = document.getElementById('content');
+    const content = document.getElementById('live-content') || document.getElementById('content') || document.body;
     content.innerHTML = `
         <div style="max-width:1200px; margin:0 auto; padding:20px;">
             <!-- Event Header -->
@@ -2133,9 +2134,25 @@ if (window.location.search.includes('live=')) {
     const urlParams = new URLSearchParams(window.location.search);
     const liveEventId = urlParams.get('live');
     if (liveEventId) {
-        // Hide main navigation
-        const mainNav = document.querySelector('nav');
-        if (mainNav) mainNav.style.display = 'none';
+        // Hide auth page and app content
+        const authPage = document.getElementById('auth-page');
+        const appContent = document.getElementById('app-content');
+        const header = document.querySelector('header');
+        const navTabs = document.querySelector('.nav-tabs');
+        
+        if (authPage) authPage.style.display = 'none';
+        if (appContent) appContent.style.display = 'none';
+        if (header) header.style.display = 'none';
+        if (navTabs) navTabs.style.display = 'none';
+        
+        // Create live content container if it doesn't exist
+        let liveContainer = document.getElementById('live-content');
+        if (!liveContainer) {
+            liveContainer = document.createElement('div');
+            liveContainer.id = 'live-content';
+            liveContainer.style.cssText = 'width:100%; min-height:100vh; padding:20px; box-sizing:border-box;';
+            document.body.appendChild(liveContainer);
+        }
         
         // Load live view
         viewLiveEvent(liveEventId);
