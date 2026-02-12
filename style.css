@@ -86,7 +86,6 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
         justify-content: space-around !important;
         z-index: 9999 !important;
         margin: 0 !important; gap: 0;
-        order: 999 !important; /* Push to end of flex flow so it doesn't create gaps */
     }
     .tab i {
         font-size: 1.6rem !important; /* Maltillinen, tyylikäs koko */
@@ -110,10 +109,6 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
         padding: 3px !important; 
     }
     
-    /* Tighter spacing on mobile since nav is at bottom */
-    .container {
-        margin-top: 5px !important;
-    }
 }
 
 .card-header-stripe, .event-title {
