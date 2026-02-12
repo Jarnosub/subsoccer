@@ -85,7 +85,7 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
         align-items: center !important;
         justify-content: space-around !important;
         z-index: 9999 !important;
-        margin-bottom: 0; gap: 0;
+        margin-bottom: 0 !important; gap: 0;
     }
     .tab i {
         font-size: 1.6rem !important; /* Maltillinen, tyylikäs koko */
@@ -98,6 +98,9 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
 
     .tab.active i { transform: translateY(-2px); /* Pieni nosto korostukseksi */ }
     #app-content { padding-bottom: 100px !important; }
+    
+    /* Mobiilissa nav-tabs on fixed ja ei ota tilaa - pienennetään container-margin */
+    .container { margin-top: 5px !important; }
     
     /* Status bar mobile adjustments */
     .status-bar { 
