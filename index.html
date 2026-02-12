@@ -362,7 +362,19 @@
 
         <div id="section-tournament" class="section active">
             <div id="tour-setup" class="container" style="text-align:center;">
-                <h2 style="font-family:'SubsoccerLogo'; color:var(--sub-red); margin-bottom:20px;">QUICK MATCH</h2>
+                
+                <!-- Mode Selector Buttons -->
+                <div style="display:flex; gap:10px; margin-bottom:30px;">
+                    <button id="btn-quick-match-mode" onclick="showMatchMode('quick')" style="flex:1; padding:20px; background:var(--sub-red); color:#fff; border:none; border-radius:12px; font-family:'Russo One'; font-size:1rem; cursor:pointer; transition:all 0.3s;">
+                        ⚽ QUICK MATCH
+                    </button>
+                    <button id="btn-tournament-mode" onclick="showMatchMode('tournament')" style="flex:1; padding:20px; background:#222; color:#888; border:none; border-radius:12px; font-family:'Russo One'; font-size:1rem; cursor:pointer; transition:all 0.3s;">
+                        🏆 TOURNAMENT
+                    </button>
+                </div>
+
+                <!-- QUICK MATCH SECTION -->
+                <div id="quick-match-section" style="display:block;">
                 
                 <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
                     <div style="position:relative;">
@@ -384,14 +396,12 @@
                     </button>
                 </div>
 
-                <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.2rem; height:60px; margin-bottom:40px;">START MATCH</button>
+                <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.2rem; height:60px;">START MATCH</button>
+                
+                </div>
 
-                <div style="margin-top:40px; border-top:1px solid #222; padding-top:10px;">
-                    <div class="tour-mode-toggle" onclick="toggleTournamentMode()">
-                        <i class="fa-solid fa-trophy" style="margin-right:8px;"></i> Tournament Mode & Settings
-                    </div>
-                    <div id="advanced-tour-settings" style="display:none; margin-top:15px;">
-                        <h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom: 15px;">NEW EVENT / TOURNAMENT</h3>
+                <!-- TOURNAMENT SECTION -->
+                <div id="tournament-section" style="display:none;">
                         
                         <!-- 1. Add Players (Top Priority) -->
                         <div class="add-player-input-group" style="position: relative;">
@@ -410,7 +420,6 @@
 
                         <!-- 3. Generate Tournament -->
                         <button class="btn-red" style="margin-top: 15px;" onclick="startTournament()">GENERATE BRACKETS</button>
-                    </div>
                 </div>
 
                 <!-- PRO MODE TOGGLE (MODULAR - CAN BE REMOVED) -->

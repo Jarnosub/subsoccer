@@ -264,7 +264,7 @@ async function fetchPublicGamesMap() {
                 });
                 L.marker([g.latitude, g.longitude], { icon: subsoccerIcon })
                     .addTo(publicMap)
-                    .bindPopup(`<div style="color:#fff; font-family:'Resolve Sans';">${verifiedBadge}<b>${g.game_name.toLowerCase()}</b><br>${g.location}</div>`);
+                    .bindPopup(`<div style="color:#000; font-family:'Resolve Sans';">${verifiedBadge}<b>${g.game_name.toLowerCase()}</b><br>${g.location}</div>`);
             }
         });
     }

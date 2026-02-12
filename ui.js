@@ -96,6 +96,32 @@ function populateGameSelect() {
 }
 
 /**
+ * Vaihtaa Quick Match ja Tournament osioiden välillä.
+ */
+function showMatchMode(mode) {
+    const quickSection = document.getElementById('quick-match-section');
+    const tournamentSection = document.getElementById('tournament-section');
+    const quickBtn = document.getElementById('btn-quick-match-mode');
+    const tournamentBtn = document.getElementById('btn-tournament-mode');
+    
+    if (mode === 'quick') {
+        quickSection.style.display = 'block';
+        tournamentSection.style.display = 'none';
+        quickBtn.style.background = 'var(--sub-red)';
+        quickBtn.style.color = '#fff';
+        tournamentBtn.style.background = '#222';
+        tournamentBtn.style.color = '#888';
+    } else {
+        quickSection.style.display = 'none';
+        tournamentSection.style.display = 'block';
+        quickBtn.style.background = '#222';
+        quickBtn.style.color = '#888';
+        tournamentBtn.style.background = 'var(--sub-red)';
+        tournamentBtn.style.color = '#fff';
+    }
+}
+
+/**
  * Näyttää tai piilottaa turnauksen lisäasetukset.
  */
 function toggleTournamentMode() {
@@ -156,5 +182,6 @@ if (document.readyState === 'loading') {
 // Globaalit kytkennät HTML:ää varten
 window.showPage = showPage;
 window.showNotification = showNotification;
+window.showMatchMode = showMatchMode;
 window.toggleTournamentMode = toggleTournamentMode;
 window.populateCountries = populateCountries;
