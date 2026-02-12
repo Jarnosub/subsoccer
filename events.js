@@ -2130,34 +2130,55 @@ window.shareLiveEventLink = shareLiveEventLink;
 window.viewLiveEvent = viewLiveEvent;
 
 // Check for live event URL parameter on page load
-if (window.location.search.includes('live=')) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const liveEventId = urlParams.get('live');
-    if (liveEventId) {
-        // Hide auth page and app content
-        const authPage = document.getElementById('auth-page');
-        const appContent = document.getElementById('app-content');
-        const header = document.querySelector('header');
-        const navTabs = document.querySelector('.nav-tabs');
-        
-        if (authPage) authPage.style.display = 'none';
-        if (appContent) appContent.style.display = 'none';
-        if (header) header.style.display = 'none';
-        if (navTabs) navTabs.style.display = 'none';
-        
-        // Create live content container if it doesn't exist
-        let liveContainer = document.getElementById('live-content');
-        if (!liveContainer) {
-            liveContainer = document.createElement('div');
-            liveContainer.id = 'live-content';
-            liveContainer.style.cssText = 'width:100%; min-height:100vh; padding:20px; box-sizing:border-box;';
-            document.body.appendChild(liveContainer);
+// Wrap in DOMContentLoaded to ensure elements exist
+function checkLiveEventParam() {
+    if (window.location.search.includes('live=')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const liveEventId = urlParams.get('live');
+        if (liveEventId) {
+            console.log('Live event ID detected:', liveEventId);
+            
+            // Hide auth page and app content
+            const authPage = document.getElementById('auth-page');
+            const appContent = document.getElementById('app-content');
+            const header = document.querySelector('header');
+            const navTabs = document.querySelector('.nav-tabs');
+            
+            if (authPage) {
+                authPage.style.display = 'none';
+                console.log('Auth page hidden');
+            }
+            if (appContent) {
+                appContent.style.display = 'none';
+                console.log('App content hidden');
+            }
+            if (header) header.style.display = 'none';
+            if (navTabs) navTabs.style.display = 'none';
+            
+            // Create live content container if it doesn't exist
+            let liveContainer = document.getElementById('live-content');
+            if (!liveContainer) {
+                liveContainer = document.createElement('div');
+                liveContainer.id = 'live-content';
+                liveContainer.style.cssText = 'width:100%; min-height:100vh; padding:20px; box-sizing:border-box;';
+                document.body.appendChild(liveContainer);
+                console.log('Live container created');
+            }
+            
+            // Load live view
+            console.log('Loading live event view...');
+            viewLiveEvent(liveEventId);
         }
-        
-        // Load live view
-        viewLiveEvent(liveEventId);
     }
 }
+
+// Run immediately if DOM is already loaded, otherwise wait
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkLiveEventParam);
+} else {
+    checkLiveEventParam();
+}
+
 
 // ============================================================
 // ============================================================
