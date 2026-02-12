@@ -220,7 +220,7 @@ async function downloadFanCard() {
 
 function initGameMap() {
     gameMap = L.map('map-picker').setView([60.1699, 24.9384], 10);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(gameMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(gameMap);
     gameMap.on('click', async function(e) {
         setMapLocation(e.latlng.lat, e.latlng.lng);
         try {
@@ -243,7 +243,7 @@ function setMapLocation(lat, lng, name) {
 async function fetchPublicGamesMap() {
     if (!publicMap) {
         publicMap = L.map('public-game-map').setView([60.1699, 24.9384], 11);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(publicMap);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(publicMap);
     } else {
         setTimeout(() => publicMap.invalidateSize(), 200);
     }
@@ -264,7 +264,7 @@ async function fetchPublicGamesMap() {
                 });
                 L.marker([g.latitude, g.longitude], { icon: subsoccerIcon })
                     .addTo(publicMap)
-                    .bindPopup(`<div style="color:#000; font-family:'Resolve Sans';">${verifiedBadge}<b>${g.game_name}</b><br>${g.location}</div>`);
+                    .bindPopup(`<div style="color:#fff; font-family:'Resolve Sans';">${verifiedBadge}<b>${g.game_name.toLowerCase()}</b><br>${g.location}</div>`);
             }
         });
     }
