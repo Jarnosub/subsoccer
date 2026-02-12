@@ -181,7 +181,7 @@
     </div>
 
     <div id="app-content">
-       <div class="status-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 15px;">
+       <div class="status-bar" style="display: flex; justify-content: center; align-items: center; padding: 8px 15px; gap: 20px;">
     <div class="player-label" onclick="showPage('profile')" style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
         <span style="color: #888; font-size:0.85rem;">👤</span>
         <span style="color: #fff; font-family: 'Open Sans'; font-size:0.85rem; text-transform: capitalize;" id="label-user"></span>
@@ -226,11 +226,11 @@
                 
                 <!-- Stats Grid -->
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; max-width:300px; margin-left:auto; margin-right:auto;">
-                    <div style="background:#111; padding:15px; border-radius:10px; border:1px solid #333;">
+                    <div style="background:#000; padding:15px; border-radius:10px; border:1px solid #333;">
                         <div style="font-size:0.7rem; color:#666; font-family:'Russo One'; margin-bottom:5px;">ELO RATING</div>
                         <div id="profile-elo" style="font-size:1.8rem; color:var(--sub-gold); font-family:'Russo One';">1000</div>
                     </div>
-                    <div style="background:#111; padding:15px; border-radius:10px; border:1px solid #333;">
+                    <div style="background:#000; padding:15px; border-radius:10px; border:1px solid #333;">
                         <div style="font-size:0.7rem; color:#666; font-family:'Russo One'; margin-bottom:5px;">MATCHES</div>
                         <div id="profile-matches" style="font-size:1.8rem; color:#fff; font-family:'Russo One';">0</div>
                     </div>
@@ -330,7 +330,7 @@
 
                 <div id="game-form-actions">
                     <button id="btn-reg-game" class="btn-red" onclick="registerGame()">Register Game</button>
-                    <div id="btn-edit-group" style="display:none; gap:10px; display: flex;">
+                    <div id="btn-edit-group" style="display:none; gap:10px;">
                         <button class="btn-red" style="background:var(--sub-gold); color:#000;" onclick="updateGame()">Update Game</button>
                         <button class="btn-red" style="background:#333;" onclick="cancelEdit()">Cancel</button>
                     </div>
@@ -348,7 +348,7 @@
 
         <div id="section-events" class="section">
             <div class="container">
-                <h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom: 20px;">📅 EVENTS</h3>
+                <h3 style="font-family:'Russo One'; text-transform:uppercase; margin: 0 0 20px 0;">📅 EVENTS</h3>
                 <div id="events-view"></div>
             </div>
         </div>
@@ -481,7 +481,12 @@
             </div>
         </div>
 
-        <div id="section-leaderboard" class="section"><div class="container" id="lb-data"></div></div>
+        <div id="section-leaderboard" class="section">
+            <div class="container">
+                <h3 style="font-family:'Russo One'; text-transform:uppercase; margin: 0 0 20px 0; color:var(--sub-gold);">🏆 Top Players</h3>
+                <div id="lb-data"></div>
+            </div>
+        </div>
         <div id="section-history" class="section"><div class="container" id="hist-list"></div></div>
     </div>
 

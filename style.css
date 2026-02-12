@@ -101,16 +101,16 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
     
     /* Status bar mobile adjustments */
     .status-bar { 
-        flex-direction: column !important;
-        gap: 5px !important;
+        flex-direction: row !important;
+        gap: 15px !important;
     }
     #sound-toggle-btn { 
-        font-size: 0.7rem !important; 
-        padding: 5px 10px !important; 
+        font-size: 1.1rem !important; 
+        padding: 3px !important; 
     }
 }
 
-h2, h3, .card-header-stripe, .event-title {
+.card-header-stripe, .event-title {
     font-family: 'SubsoccerLogo' !important;
     color: var(--sub-red) !important;
     letter-spacing: 1px;
@@ -252,7 +252,7 @@ h2, h3, .card-header-stripe, .event-title {
     overflow-y: auto !important;
 }
 
-.container { background: #111; padding: 15px !important; border-radius: 12px !important; border: 1px solid #222; width: 94% !important; max-width: 400px; box-sizing: border-box; margin: 0 auto; }
+.container { background: #111; padding: 15px !important; border-radius: 12px !important; border: 1px solid #222; width: 94% !important; max-width: 400px; box-sizing: border-box; margin: 15px auto 0; }
 .btn-red { width: 100%; padding: 12px !important; border-radius: 8px !important; border: none; font-family: var(--sub-name-font) !important; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1rem !important; }
 .btn-outline { font-family: var(--sub-name-font) !important; text-transform: uppercase; }
 .lb-name { font-family: 'ResolveNarrowReg', sans-serif !important; color: #FFFFFF !important; font-size: 1.1rem !important; letter-spacing: 1.5px !important; text-transform: uppercase; font-weight: 400 !important; font-stretch: normal !important; }

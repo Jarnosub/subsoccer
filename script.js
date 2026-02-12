@@ -544,10 +544,74 @@ function calculateNewElo(playerA, playerB, winner) {
 
 async function fetchLB() {
     const { data } = await _supabase.from('players').select('*').order('elo', { ascending: false });
-    document.getElementById('lb-data').innerHTML = data ? data.map((p, i) => {
-        const flag = p.country ? p.country.toLowerCase() : 'fi';
-        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px 10px; border-bottom:1px solid #222;"><span><span style="color:#666; margin-right:10px; font-size:0.8rem;">#${i+1}</span> <img src="https://flagcdn.com/w40/${flag}.png" style="height:14px; width:auto; margin-right:10px; vertical-align:middle; border-radius:2px; opacity:0.9;"> <span class="lb-name" onclick="viewPlayerCard('${p.username}')" style="cursor:pointer; text-decoration:none; color:#fff;">${p.username}</span></span><span class="lb-elo">${p.elo}</span></div>`;
-    }).join('') : "";
+    
+    if (!data || data.length === 0) {
+        document.getElementById('lb-data').innerHTML = '<div style="text-align:center; padding:40px; color:#666;">No players yet</div>';
+        return;
+    }
+    
+    let html = '';
+    
+    // Top 3 Podium (if we have at least 1 player)
+    if (data.length >= 1) {
+        const top3 = data.slice(0, 3);
+        const podiumOrder = top3.length === 3 ? [top3[1], top3[0], top3[2]] : 
+                           top3.length === 2 ? [top3[1], top3[0]] : 
+                           [top3[0]];
+        
+        html += '<div style="display:flex; align-items:flex-end; justify-content:center; gap:15px; margin-bottom:30px;">';
+        
+        podiumOrder.forEach((player, displayIndex) => {
+            const actualRank = top3.indexOf(player);
+            const flag = player.country ? player.country.toLowerCase() : 'fi';
+            const medals = ['🥇', '🥈', '🥉'];
+            const heights = ['180px', '140px', '120px'];
+            const colors = ['linear-gradient(135deg, #FFD700 0%, #d4af37 100%)', 'linear-gradient(135deg, #C0C0C0 0%, #8c8c8c 100%)', 'linear-gradient(135deg, #CD7F32 0%, #a85f1f 100%)'];
+            const glows = ['0 10px 30px rgba(255,215,0,0.5)', '0 8px 25px rgba(192,192,192,0.4)', '0 8px 25px rgba(205,127,50,0.4)'];
+            
+            // Only show if player exists in podiumOrder
+            if (player) {
+                const rankIndex = top3.length === 2 && displayIndex === 0 ? 1 : 
+                                 top3.length === 1 ? 0 : 
+                                 actualRank;
+                
+                html += `
+                    <div style="display:flex; flex-direction:column; align-items:center; flex:1; max-width:130px;">
+                        <div style="font-size:2.5rem; margin-bottom:8px;">${medals[rankIndex]}</div>
+                        <div style="background:#0a0a0a; padding:12px; border-radius:12px; width:100%; text-align:center; margin-bottom:10px; border:2px solid ${rankIndex === 0 ? 'var(--sub-gold)' : rankIndex === 1 ? '#C0C0C0' : '#CD7F32'};">
+                            <img src="https://flagcdn.com/w40/${flag}.png" style="height:16px; width:auto; margin-bottom:6px; border-radius:2px;">
+                            <div style="font-family:'Russo One'; font-size:0.85rem; color:#fff; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${player.username}</div>
+                            <div style="font-family:'Russo One'; font-size:1.2rem; color:${rankIndex === 0 ? 'var(--sub-gold)' : rankIndex === 1 ? '#C0C0C0' : '#CD7F32'};">${player.elo}</div>
+                        </div>
+                        <div style="background:${colors[rankIndex]}; height:${heights[rankIndex]}; width:100%; border-radius:8px 8px 0 0; box-shadow:${glows[rankIndex]};"></div>
+                    </div>
+                `;
+            }
+        });
+        
+        html += '</div>';
+    }
+    
+    // Rest of the players (4+)
+    if (data.length > 3) {
+        html += '<h3 style="font-family:\'Russo One\'; color:#888; margin:15px 0 12px 0; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #222; padding-bottom:8px;">Rankings</h3>';
+        html += data.slice(3).map((p, i) => {
+            const flag = p.country ? p.country.toLowerCase() : 'fi';
+            const rank = i + 4;
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:#0a0a0a; border-radius:8px; margin-bottom:8px; border-left:3px solid #333; transition:all 0.2s;" onmouseover="this.style.background='#111'; this.style.borderLeftColor='var(--sub-red)';" onmouseout="this.style.background='#0a0a0a'; this.style.borderLeftColor='#333';">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="color:#666; font-family:'Russo One'; font-size:0.85rem; min-width:35px;">#${rank}</span>
+                        <img src="https://flagcdn.com/w40/${flag}.png" style="height:16px; width:auto; border-radius:2px; opacity:0.9;">
+                        <span class="lb-name" onclick="viewPlayerCard('${p.username}')" style="cursor:pointer; color:#fff; font-family:'Open Sans'; font-size:0.95rem;">${p.username}</span>
+                    </div>
+                    <span class="lb-elo" style="font-family:'Russo One'; color:var(--sub-gold); font-size:1rem;">${p.elo}</span>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    document.getElementById('lb-data').innerHTML = html;
 }
 
 async function fetchHist() {
