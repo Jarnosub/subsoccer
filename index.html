@@ -362,12 +362,16 @@
             <div id="tour-setup" class="container" style="text-align:center;">
                 
                 <!-- Mode Selector Buttons -->
-                <div style="display:flex; gap:10px; margin-bottom:30px;">
-                    <button id="btn-quick-match-mode" onclick="showMatchMode('quick')" style="flex:1; padding:20px; background:var(--sub-red); color:#fff; border:none; border-radius:12px; font-family:'Russo One'; font-size:1rem; cursor:pointer; transition:all 0.3s;">
-                        ⚽ QUICK MATCH
+                <div style="display:flex; gap:12px; margin-bottom:30px;">
+                    <button id="btn-quick-match-mode" onclick="showMatchMode('quick')" onmouseover="if(this.style.background.includes('linear-gradient')) this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:linear-gradient(135deg, #E30613 0%, #c00510 100%); color:#fff; border:none; border-radius:12px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 15px rgba(227,6,19,0.3); position:relative; overflow:hidden;">
+                        <div style="font-size:1.8rem; margin-bottom:4px;">⚽</div>
+                        <div style="font-size:0.95rem; letter-spacing:0.5px;">Quick Match</div>
+                        <div style="font-size:0.65rem; color:rgba(255,255,255,0.7); margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">1 vs 1 ranked game</div>
                     </button>
-                    <button id="btn-tournament-mode" onclick="showMatchMode('tournament')" style="flex:1; padding:20px; background:#222; color:#888; border:none; border-radius:12px; font-family:'Russo One'; font-size:1rem; cursor:pointer; transition:all 0.3s;">
-                        🏆 TOURNAMENT
+                    <button id="btn-tournament-mode" onclick="showMatchMode('tournament')" onmouseover="if(this.style.background.includes('#1a1a1a')) this.style.background='#222'; else this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="if(!this.style.background.includes('linear-gradient')) this.style.background='#1a1a1a'; this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:#1a1a1a; color:#888; border:2px solid #333; border-radius:12px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden;">
+                        <div style="font-size:1.8rem; margin-bottom:4px;">🏆</div>
+                        <div style="font-size:0.95rem; letter-spacing:0.5px;">Tournament</div>
+                        <div style="font-size:0.65rem; color:#666; margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">Bracket competition</div>
                     </button>
                 </div>
 
