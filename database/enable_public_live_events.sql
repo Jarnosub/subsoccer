@@ -27,23 +27,24 @@ CREATE POLICY "Anyone can view events"
     TO public
     USING (true);
 
--- Allow AUTHENTICATED users to create events
-CREATE POLICY "Authenticated users can create events"
+-- Allow ANYONE to create events (we use custom auth, not Supabase Auth)
+-- App validates user in JavaScript before calling insert
+CREATE POLICY "Anyone can create events"
     ON public.events FOR INSERT
-    TO authenticated
+    TO public
     WITH CHECK (true);
 
--- Allow organizers to UPDATE their own events
-CREATE POLICY "Organizers can update own events"
+-- Allow ANYONE to update events (we validate organizer_id match in app)
+CREATE POLICY "Anyone can update events"
     ON public.events FOR UPDATE
-    TO authenticated
-    USING (organizer_id IN (SELECT id FROM players WHERE username = current_user OR id::text = auth.uid()::text));
+    TO public
+    USING (true);
 
--- Allow organizers to DELETE their own events
-CREATE POLICY "Organizers can delete own events"
+-- Allow ANYONE to delete events (we validate organizer_id match in app)
+CREATE POLICY "Anyone can delete events"
     ON public.events FOR DELETE
-    TO authenticated
-    USING (organizer_id IN (SELECT id FROM players WHERE username = current_user OR id::text = auth.uid()::text));
+    TO public
+    USING (true);
 
 -- ==================== TOURNAMENT_HISTORY TABLE ====================
 
@@ -56,30 +57,33 @@ DROP POLICY IF EXISTS "Anyone can create tournaments" ON public.tournament_histo
 DROP POLICY IF EXISTS "Organizers can manage tournaments" ON public.tournament_history;
 DROP POLICY IF EXISTS "Organizers can delete tournaments" ON public.tournament_history;
 DROP POLICY IF EXISTS "Allow all access" ON public.tournament_history;
+DROP POLICY IF EXISTS "Authenticated users can create tournaments" ON public.tournament_history;
+DROP POLICY IF EXISTS "Organizers can update tournaments" ON public.tournament_history;
 
--- Allow ANYONE (including anon users) to VIEW tournament history only
+-- Allow ANYONE (including anon users) to VIEW tournament history
 CREATE POLICY "Anyone can view tournament history"
     ON public.tournament_history FOR SELECT
     TO public
     USING (true);
 
--- Allow AUTHENTICATED users to INSERT tournaments
-CREATE POLICY "Authenticated users can create tournaments"
+-- Allow ANYONE to INSERT tournaments (we use custom auth, not Supabase Auth)
+-- App validates user in JavaScript before calling insert
+CREATE POLICY "Anyone can create tournaments"
     ON public.tournament_history FOR INSERT
-    TO authenticated
+    TO public
     WITH CHECK (true);
 
--- Allow authenticated users to UPDATE their tournaments
-CREATE POLICY "Organizers can update tournaments"
+-- Allow ANYONE to UPDATE tournaments (we validate organizer_id match in app)
+CREATE POLICY "Anyone can update tournaments"
     ON public.tournament_history FOR UPDATE
-    TO authenticated
-    USING (organizer_id IN (SELECT id FROM players WHERE username = current_user OR id::text = auth.uid()::text));
+    TO public
+    USING (true);
 
--- Allow authenticated users to DELETE their tournaments
-CREATE POLICY "Organizers can delete tournaments"
+-- Allow ANYONE to DELETE tournaments (we validate organizer_id match in app)
+CREATE POLICY "Anyone can delete tournaments"
     ON public.tournament_history FOR DELETE
-    TO authenticated
-    USING (organizer_id IN (SELECT id FROM players WHERE username = current_user OR id::text = auth.uid()::text));
+    TO public
+    USING (true);
 
 -- ==================== EVENT_REGISTRATIONS TABLE ====================
 
@@ -160,12 +164,16 @@ ORDER BY tablename, policyname;
 -- This enables anonymous (non-authenticated) access for live event links
 -- 
 -- SECURITY SUMMARY:
--- ✅ events: Public can VIEW only, authenticated can CREATE/UPDATE/DELETE own
--- ✅ tournament_history: Public can VIEW only, authenticated can CREATE/UPDATE/DELETE own
+-- ⚠️ CUSTOM AUTHENTICATION: This app uses custom auth (players table), not Supabase Auth
+-- ⚠️ All users have 'public' (anon) role in Supabase, even when logged in
+-- ⚠️ Security is enforced in application code, not RLS policies
+-- 
+-- ✅ events: Public can VIEW/INSERT/UPDATE/DELETE (validated in app)
+-- ✅ tournament_history: Public can VIEW/INSERT/UPDATE/DELETE (validated in app)
 -- ✅ event_registrations: Public can VIEW/INSERT/UPDATE/DELETE (needed for registration)
 -- ✅ games: Public can VIEW only
 -- ✅ players: Public can VIEW only
 -- 
--- ❌ Public CANNOT delete or modify events/tournaments (SECURE)
 -- ✅ Live event links work without authentication (FUNCTIONAL)
+-- ⚠️ App-level validation ensures only organizers can modify their own events/tournaments
 -- ============================================================
