@@ -701,7 +701,7 @@ function pickWin(idx, n, e) {
         const matchIndex = idx - (Math.pow(2, Math.ceil(Math.log2(rP.length))) - rP.length);
         p1 = playersInMatches[matchIndex * 2]; p2 = playersInMatches[matchIndex * 2 + 1];
     }
-    if (p1 && p2) { const tournamentName = document.getElementById('tour-name-input').value || "Tournament"; saveMatch(p1, p2, n, tournamentName); }
+    if (p1 && p2) { const tournamentName = "Tournament"; saveMatch(p1, p2, n, tournamentName); }
     rW[idx] = n;
     e.parentElement.querySelectorAll('div').forEach(d => { d.style.background = "transparent"; d.style.opacity = "0.5"; });
     e.style.background = "rgba(227, 6, 19, 0.4)"; e.style.opacity = "1";
@@ -709,7 +709,7 @@ function pickWin(idx, n, e) {
 }
 
 function pickBronzeWinner(n, e) {
-    const tournamentName = document.getElementById('tour-name-input').value || "Tournament";
+    const tournamentName = "Tournament";
     saveMatch(bronzeContenders[0], bronzeContenders[1], n, tournamentName + " (Bronze)");
     bronzeWinner = n;
     e.parentElement.querySelectorAll('div').forEach(d => { d.style.background = "transparent"; d.style.opacity = "0.5"; });
@@ -748,9 +748,9 @@ function advanceRound() {
 async function saveTour() {
     try {
         const winnerName = rP[0];
-        const tournamentName = document.getElementById('tour-name-input').value || "Tournament";
-        const eventName = document.getElementById('event-name-input').value.trim().toUpperCase() || null;
-        const gameId = document.getElementById('tournament-game-select').value || null;
+        const tournamentName = "Tournament";
+        const eventName = null;
+        const gameId = null;
         let secondPlaceName = null;
         
         if (initialPlayerCount >= 2) {
@@ -788,9 +788,6 @@ async function saveTour() {
 function replayTournament(players, tourName, eventName, gameId) {
     pool = [...players];
     showPage('tournament');
-    document.getElementById('tour-name-input').value = tourName + " (Rematch)";
-    document.getElementById('event-name-input').value = eventName || '';
-    document.getElementById('tournament-game-select').value = gameId || '';
     updatePoolUI();
     showNotification(`Players for "${tourName}" loaded!`, 'success');
 }
