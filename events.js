@@ -2154,7 +2154,7 @@ window.closeEventModal = closeEventModal;
 window.deleteEvent = deleteEvent;
 window.viewTournamentParticipants = viewTournamentParticipants;
 window.closeParticipantsModal = closeParticipantsModal;
-window.addTournamentParticipant = addTournamentParticipant;
+// window.addTournamentParticipant = addTournamentParticipant; // Function not defined - removed
 window.removeTournamentParticipant = removeTournamentParticipant;
 window.showCreateTournamentForm = showCreateTournamentForm;
 window.closeTournamentForm = closeTournamentForm;
@@ -2168,6 +2168,7 @@ window.showEmailPrompt = showEmailPrompt;
 window.closeEmailPrompt = closeEmailPrompt;
 window.saveEmailAndRegister = saveEmailAndRegister;
 window.shareLiveEventLink = shareLiveEventLink;
+window.viewLiveEvent = viewLiveEvent;
 window.viewLiveEvent = viewLiveEvent;
 
 // Check for live event URL parameter on page load
