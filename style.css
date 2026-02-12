@@ -24,9 +24,50 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
 .main-logo { width: 150px !important; height: auto; }
 
 #app-content { width: 100%; display: none; flex-direction: column; align-items: center; }
-.status-bar { width: 100%; max-width: 450px; text-align: center; margin-bottom: 10px !important; text-transform: uppercase; }
+.status-bar { width: 100%; max-width: 450px; text-align: center; margin-bottom: 10px !important; text-transform: uppercase; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
 .player-label { font-size: 0.85rem; font-weight: 400; color: #fff; }
-.logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; margin-top: 2px; letter-spacing: 1px; }
+#sound-toggle-btn { 
+    background: #333; 
+    padding: 6px 12px; 
+    border: none; 
+    color: #fff; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    font-family: 'Open Sans', sans-serif; 
+    font-size: 0.75rem; 
+    font-weight: 600; 
+    transition: all 0.2s; 
+    text-transform: uppercase;
+}
+#sound-toggle-btn:hover { 
+    background: #444; 
+    transform: scale(1.05); 
+}
+#sound-toggle-btn:active { 
+    transform: scale(0.95); 
+}
+.clear-players-btn {
+    margin-top: 10px;
+    background: #333;
+    border: none;
+    color: #888;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-family: 'Open Sans', sans-serif;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+.clear-players-btn:hover {
+    background: #444;
+    color: #aaa;
+    transform: scale(1.05);
+}
+.clear-players-btn:active {
+    transform: scale(0.95);
+}
+.logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; letter-spacing: 1px; }
 
 .nav-tabs { display: flex; justify-content: center; gap: 12px; width: 95%; max-width: 450px; border-bottom: 1px solid var(--sub-border); margin-bottom: 25px; }
 .tab { font-family: 'Russo One', sans-serif; font-size: 0.8rem; padding: 12px 6px; cursor: pointer; opacity: 0.4; text-transform: uppercase; color: #fff; border-bottom: 3px solid transparent; }
@@ -62,6 +103,16 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
 
     .tab.active i { transform: translateY(-2px); /* Pieni nosto korostukseksi */ }
     #app-content { padding-bottom: 100px !important; }
+    
+    /* Status bar mobile adjustments */
+    .status-bar { 
+        flex-direction: column !important;
+        gap: 5px !important;
+    }
+    #sound-toggle-btn { 
+        font-size: 0.7rem !important; 
+        padding: 5px 10px !important; 
+    }
 }
 
 h2, h3, .card-header-stripe, .event-title {

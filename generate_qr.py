@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""
+Subsoccer Instant Play QR Code Generator
+Generates QR codes for instant play mode
+"""
+
+import qrcode
+import sys
+from pathlib import Path
+
+def generate_qr(url, filename="subsoccer_instant_play_qr.png", size=400):
+    """
+    Generate QR code for Subsoccer Instant Play
+    
+    Args:
+        url: URL to instant-play.html
+        filename: Output filename
+        size: QR code size in pixels
+    """
+    print(f"🎮 Generating Subsoccer Instant Play QR Code...")
+    print(f"📍 URL: {url}")
+    
+    # Create QR code
+    qr = qrcode.QRCode(
+        version=1,  # Auto-adjust
+        error_correction=qrcode.constants.ERROR_CORRECT_H,  # High error correction
+        box_size=10,
+        border=4,
+    )
+    
+    qr.add_data(url)
+    qr.make(fit=True)
+    
+    # Create image
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Resize if needed
+    if size != 400:
+        img = img.resize((size, size))
+    
+    # Save
+    output_path = Path(filename)
+    img.save(output_path)
+    
+    print(f"✅ QR code saved: {output_path.absolute()}")
+    print(f"📐 Size: {size}x{size}px")
+    print(f"\n🖨️  Ready to print! Use this for your table stickers.")
+    
+    return output_path
+
+def main():
+    """Main function"""
+    print("=" * 60)
+    print("⚽ SUBSOCCER INSTANT PLAY - QR CODE GENERATOR")
+    print("=" * 60)
+    print()
+    
+    # Get URL from command line or use default
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
+    else:
+        print("💡 No URL provided, using localhost for testing...")
+        url = "http://192.168.1.100:8000/instant-play.html"
+        print(f"\nTo use custom URL, run:")
+        print(f"  python3 {sys.argv[0]} https://yourdomain.com/instant-play.html")
+        print()
+    
+    # Get size
+    if len(sys.argv) > 2:
+        size = int(sys.argv[2])
+    else:
+        size = 400
+    
+    # Generate QR code
+    output = generate_qr(url, size=size)
+    
+    print("\n" + "=" * 60)
+    print("📋 NEXT STEPS:")
+    print("=" * 60)
+    print("1. Open the QR code image")
+    print("2. Print on sticker paper or laminate")
+    print("3. Place on Subsoccer table")
+    print("4. Players scan and play instantly! 🚀")
+    print()
+
+if __name__ == "__main__":
+    try:
+        import qrcode
+    except ImportError:
+        print("❌ Error: qrcode module not installed")
+        print("\n📦 Install it with:")
+        print("   pip install qrcode[pil]")
+        sys.exit(1)
+    
+    main()

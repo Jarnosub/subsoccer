@@ -830,6 +830,11 @@ function handleGoalDetected(playerNumber) {
     console.log(`🎯 Acoustic goal detected! Player ${playerNumber} (${winnerName}) scores!`);
     showNotification(`🚨 GOAL! ${winnerName} scores!`, 'success');
     
+    // Play goal sound effect
+    if (window.soundEffects) {
+        window.soundEffects.playGoalSound();
+    }
+    
     // Find and click the winner's button
     const buttons = overlay.querySelectorAll('button.btn-red');
     for (let btn of buttons) {
@@ -964,6 +969,11 @@ async function finalizeQuickMatch(winnerName) {
             window.audioEngine.stopListening();
         }
         
+        // Play crowd cheer for winner
+        if (window.soundEffects) {
+            window.soundEffects.playCrowdCheer();
+        }
+        
         showVictory(winnerName, result.newEloA, gain, p1Data.isGuest);
     } catch (error) {
         console.error('Error finalizing Quick Match:', error);
@@ -997,16 +1007,41 @@ function closeVictoryOverlay() {
     document.getElementById('victory-overlay').style.display = 'none';
     const appContent = document.getElementById('app-content');
     if (appContent) appContent.style.display = 'flex';
-    document.getElementById('p1-quick-search').value = '';
-    document.getElementById('p2-quick-search').value = '';
-    quickP1 = null; quickP2 = null;
-    document.getElementById('elo-preview').style.display = 'none';
+    
+    // KEEP PLAYERS SELECTED - don't clear the fields!
+    // This allows instant re-play with same players or quick player swap
+    // document.getElementById('p1-quick-search').value = ''; // REMOVED
+    // document.getElementById('p2-quick-search').value = ''; // REMOVED
+    // quickP1 = null; quickP2 = null; // REMOVED
+    
+    // Keep ELO preview visible since players are still selected
+    // document.getElementById('elo-preview').style.display = 'none'; // REMOVED
+    
     document.getElementById('audio-status-panel').style.display = 'none';
     document.getElementById('audio-test-panel').style.display = 'none';
     if (typeof fetchLB === "function") fetchLB();
     if (typeof fetchHist === "function") fetchHist();
     showPage('tournament');
-    showNotification("Match saved!", "success");
+    showNotification("Ready for next match! 🎮", "success");
+}
+
+/**
+ * Clear Quick Match player selections
+ * Allows user to start fresh with new players
+ */
+function clearQuickMatchPlayers() {
+    document.getElementById('p1-quick-search').value = '';
+    document.getElementById('p2-quick-search').value = '';
+    quickP1 = null;
+    quickP2 = null;
+    document.getElementById('elo-preview').style.display = 'none';
+    document.getElementById('audio-status-panel').style.display = 'none';
+    document.getElementById('audio-test-panel').style.display = 'none';
+    
+    // Focus first input for quick typing
+    document.getElementById('p1-quick-search').focus();
+    
+    showNotification("Players cleared - ready for new match", "info");
 }
 
 // ============================================================
@@ -1336,10 +1371,23 @@ function handleGoalDetectedPro(playerNumber) {
         navigator.vibrate([100, 50, 100]);
     }
     
+    // Play goal sound effect
+    if (window.soundEffects) {
+        window.soundEffects.playGoalSound();
+    }
+    
     // Check for winner
     if (proScoreP1 >= PRO_MODE_WIN_SCORE) {
+        // Play crowd cheer before finishing
+        if (window.soundEffects) {
+            window.soundEffects.playCrowdCheer();
+        }
         setTimeout(() => finishProMatch(quickP1), 1500);
     } else if (proScoreP2 >= PRO_MODE_WIN_SCORE) {
+        // Play crowd cheer before finishing
+        if (window.soundEffects) {
+            window.soundEffects.playCrowdCheer();
+        }
         setTimeout(() => finishProMatch(quickP2), 1500);
     }
 }
@@ -1494,6 +1542,42 @@ setInterval(async () => {
         dot.classList.add('dot-offline');
     }
 }, 30000);
+
+// ============================================================
+// 10B. SOUND EFFECTS UI CONTROLS
+// ============================================================
+
+/**
+ * Toggle sound effects on/off
+ */
+function toggleSoundEffects() {
+    if (!window.soundEffects) {
+        showNotification('Sound system not loaded', 'error');
+        return;
+    }
+    
+    const enabled = window.soundEffects.toggle();
+    const btn = document.getElementById('sound-toggle-btn');
+    
+    if (!btn) return;
+    
+    if (enabled) {
+        btn.innerHTML = '🔊 SOUNDS';
+        btn.style.background = '#333';
+        btn.style.color = '#fff';
+        showNotification('🔊 Sound effects enabled', 'success');
+        
+        // Play a test sound to confirm
+        setTimeout(() => {
+            window.soundEffects.playGoalSound();
+        }, 300);
+    } else {
+        btn.innerHTML = '🔇 MUTED';
+        btn.style.background = '#666';
+        btn.style.color = '#aaa';
+        showNotification('🔇 Sound effects muted', 'info');
+    }
+}
 
 // ============================================================
 // 11. GLOBAALIT KYTKENNÄT (window-objekti)
@@ -1783,9 +1867,11 @@ window.handleQuickWinner = handleQuickWinner;
 window.finalizeQuickMatch = finalizeQuickMatch;
 window.showVictory = showVictory;
 window.closeVictoryOverlay = closeVictoryOverlay;
+window.clearQuickMatchPlayers = clearQuickMatchPlayers;
 window.handleGoalDetected = handleGoalDetected;
 window.toggleAudioDetection = toggleAudioDetection;
 window.recordGoalSound = recordGoalSound;
+window.toggleSoundEffects = toggleSoundEffects;
 // PRO MODE window bindings
 window.handleProModeClick = handleProModeClick;
 window.initProModeUI = initProModeUI;

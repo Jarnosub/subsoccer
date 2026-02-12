@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer - Instant Play</title>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sub-red: #FF0000;
+            --sub-gold: #FFD700;
+            --sub-black: #0a0a0a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Russo One', sans-serif;
+            background: var(--sub-black);
+            color: white;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        /* Scoreboard - Split screen */
+        .scoreboard {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Player sides */
+        .player-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .player-left {
+            background: linear-gradient(135deg, #1a0000 0%, var(--sub-black) 100%);
+        }
+        
+        .player-right {
+            background: linear-gradient(225deg, #1a0000 0%, var(--sub-black) 100%);
+        }
+        
+        .player-side:active {
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        /* Score display */
+        .score {
+            font-size: 20vw;
+            font-family: 'Russo One', sans-serif;
+            color: var(--sub-red);
+            text-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            line-height: 1;
+        }
+        
+        /* Player label */
+        .player-label {
+            font-size: 1.2rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        
+        /* Goal flash animation */
+        @keyframes goal-flash {
+            0% { background: rgba(255, 0, 0, 0.3); }
+            50% { background: rgba(255, 0, 0, 0.6); }
+            100% { background: rgba(255, 0, 0, 0); }
+        }
+        
+        .goal-flash {
+            animation: goal-flash 0.5s ease-out;
+        }
+        
+        /* Center divider */
+        .center-divider {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .center-divider .logo {
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.5rem;
+            color: var(--sub-red);
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+        
+        .center-divider .vs {
+            font-size: 2rem;
+            color: var(--sub-gold);
+        }
+        
+        /* Controls overlay */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Winner overlay */
+        .winner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .winner-overlay.show {
+            display: flex;
+        }
+        
+        .winner-text {
+            font-size: 4rem;
+            color: var(--sub-gold);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        .winner-subtitle {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .play-again-btn {
+            background: var(--sub-red);
+            border: none;
+            color: white;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            font-family: 'Russo One', sans-serif;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .play-again-btn:hover {
+            background: #cc0000;
+            transform: scale(1.1);
+        }
+        
+        /* Landscape mode message */
+        .landscape-message {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--sub-black);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 200;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        @media (orientation: portrait) {
+            .landscape-message {
+                display: flex;
+            }
+            .scoreboard {
+                display: none;
+            }
+        }
+        
+        .rotate-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: rotate 2s infinite;
+        }
+        
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Landscape mode reminder -->
+    <div class="landscape-message">
+        <div class="rotate-icon">📱</div>
+        <h2 style="color: var(--sub-red); margin-bottom: 10px;">ROTATE YOUR DEVICE</h2>
+        <p style="color: #666;">Turn your phone to landscape mode to play</p>
+    </div>
+
+    <!-- Main scoreboard -->
+    <div class="scoreboard">
+        <!-- Player 1 (Left) -->
+        <div class="player-side player-left" onclick="addGoal(1)">
+            <div class="player-label">Player 1</div>
+            <div class="score" id="score-p1">0</div>
+        </div>
+        
+        <!-- Player 2 (Right) -->
+        <div class="player-side player-right" onclick="addGoal(2)">
+            <div class="player-label">Player 2</div>
+            <div class="score" id="score-p2">0</div>
+        </div>
+        
+        <!-- Center divider -->
+        <div class="center-divider">
+            <div class="logo">SUBSOCCER</div>
+            <div class="vs">VS</div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <button class="control-btn" onclick="resetGame()">🔄 Reset</button>
+            <button class="control-btn" onclick="toggleSound()">🔊 Sound</button>
+            <button class="control-btn" onclick="undoGoal()">↩️ Undo</button>
+        </div>
+    </div>
+    
+    <!-- Winner overlay -->
+    <div class="winner-overlay" id="winner-overlay">
+        <div class="winner-text" id="winner-text">PLAYER 1 WINS!</div>
+        <div class="winner-subtitle">First to 5 goals</div>
+        <button class="play-again-btn" onclick="playAgain()">🎮 PLAY AGAIN</button>
+    </div>
+
+    <script>
+        // Game state
+        let scoreP1 = 0;
+        let scoreP2 = 0;
+        let goalHistory = []; // For undo
+        let soundEnabled = true;
+        const WIN_SCORE = 5;
+        
+        // Audio context for sound effects
+        let audioContext = null;
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            // Try to lock to landscape
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {
+                    console.log('Orientation lock not supported');
+                });
+            }
+            
+            // Initialize audio
+            if (window.AudioContext || window.webkitAudioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        });
+        
+        // Add goal
+        function addGoal(player) {
+            if (document.getElementById('winner-overlay').classList.contains('show')) {
+                return; // Game ended
+            }
+            
+            // Update score
+            if (player === 1) {
+                scoreP1++;
+                document.getElementById('score-p1').textContent = scoreP1;
+                flashGoal(1);
+            } else {
+                scoreP2++;
+                document.getElementById('score-p2').textContent = scoreP2;
+                flashGoal(2);
+            }
+            
+            // Add to history for undo
+            goalHistory.push(player);
+            
+            // Play sound
+            playGoalSound();
+            
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate([100, 50, 100]);
+            }
+            
+            // Check for winner
+            if (scoreP1 >= WIN_SCORE) {
+                setTimeout(() => showWinner(1), 800);
+            } else if (scoreP2 >= WIN_SCORE) {
+                setTimeout(() => showWinner(2), 800);
+            }
+        }
+        
+        // Flash effect when goal scored
+        function flashGoal(player) {
+            const side = player === 1 ? '.player-left' : '.player-right';
+            const element = document.querySelector(side);
+            element.classList.add('goal-flash');
+            setTimeout(() => element.classList.remove('goal-flash'), 500);
+        }
+        
+        // Show winner
+        function showWinner(player) {
+            document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
+            document.getElementById('winner-overlay').classList.add('show');
+            playCrowdCheer();
+        }
+        
+        // Play again
+        function playAgain() {
+            resetGame();
+            document.getElementById('winner-overlay').classList.remove('show');
+        }
+        
+        // Reset game
+        function resetGame() {
+            scoreP1 = 0;
+            scoreP2 = 0;
+            goalHistory = [];
+            document.getElementById('score-p1').textContent = '0';
+            document.getElementById('score-p2').textContent = '0';
+            document.getElementById('winner-overlay').classList.remove('show');
+        }
+        
+        // Undo last goal
+        function undoGoal() {
+            if (goalHistory.length === 0) return;
+            
+            const lastPlayer = goalHistory.pop();
+            if (lastPlayer === 1) {
+                scoreP1 = Math.max(0, scoreP1 - 1);
+                document.getElementById('score-p1').textContent = scoreP1;
+            } else {
+                scoreP2 = Math.max(0, scoreP2 - 1);
+                document.getElementById('score-p2').textContent = scoreP2;
+            }
+            
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+        
+        // Toggle sound
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = event.target;
+            btn.textContent = soundEnabled ? '🔊 Sound' : '🔇 Muted';
+        }
+        
+        // Play goal sound
+        function playGoalSound() {
+            if (!soundEnabled || !audioContext) return;
+            
+            const now = audioContext.currentTime;
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(220, now);
+            
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.3, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+        
+        // Play crowd cheer
+        function playCrowdCheer() {
+            if (!soundEnabled || !audioContext) return;
+            
+            const now = audioContext.currentTime;
+            const duration = 1.5;
+            
+            // Create noise
+            const bufferSize = audioContext.sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            const noise = audioContext.createBufferSource();
+            noise.buffer = buffer;
+            
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 1000;
+            
+            const gain = audioContext.createGain();
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.15, now + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+            
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            noise.start(now);
+            noise.stop(now + duration);
+        }
+        
+        // Handle acoustic detection if available
+        window.handleGoalDetected = function(playerNumber) {
+            addGoal(playerNumber);
+        };
+    </script>
+</body>
+</html>
