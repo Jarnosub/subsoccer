@@ -1930,7 +1930,34 @@ function shareLiveEventLink(eventId, eventName) {
  * View live event (public view for screens/TVs)
  */
 async function viewLiveEvent(eventId) {
+    console.log('viewLiveEvent called with ID:', eventId);
+    
+    // Ensure live content container exists
+    let content = document.getElementById('live-content');
+    if (!content) {
+        content = document.createElement('div');
+        content.id = 'live-content';
+        content.style.cssText = 'width:100%; min-height:100vh; padding:20px; box-sizing:border-box;';
+        document.body.appendChild(content);
+        console.log('Created live-content container');
+    }
+    
+    // Show loading state
+    content.innerHTML = `
+        <div style="text-align:center; padding:40px; color:#fff;">
+            <i class="fa fa-spinner fa-spin" style="font-size:3rem; color:var(--sub-gold);"></i>
+            <p style="margin-top:20px; font-size:1.2rem;">Loading event...</p>
+        </div>
+    `;
+    
     try {
+        console.log('Fetching event from Supabase...');
+        
+        // Check if _supabase is defined
+        if (typeof _supabase === 'undefined') {
+            throw new Error('Supabase client not initialized. Make sure config.js is loaded.');
+        }
+        
         // Fetch event details
         const { data: event, error } = await _supabase
             .from('events')
@@ -1938,7 +1965,12 @@ async function viewLiveEvent(eventId) {
             .eq('id', eventId)
             .single();
         
+        console.log('Event fetch result:', { event, error });
+        
         if (error) throw error;
+        if (!event) throw new Error('Event not found');
+        
+        console.log('Fetching tournaments...');
         
         // Fetch tournaments
         const { data: tournaments, error: tournamentsError } = await _supabase
@@ -1951,7 +1983,11 @@ async function viewLiveEvent(eventId) {
             .eq('event_id', eventId)
             .order('start_datetime', { ascending: true });
         
+        console.log('Tournaments fetch result:', { tournaments, error: tournamentsError });
+        
         if (tournamentsError) throw tournamentsError;
+        
+        console.log('Displaying live view...');
         
         // Display live view
         showLiveEventView(event, tournaments || []);
@@ -1964,13 +2000,18 @@ async function viewLiveEvent(eventId) {
             viewLiveEvent(eventId);
         }, 10000);
         
+        console.log('Live event view loaded successfully');
+        
     } catch (e) {
         console.error('Failed to load live event:', e);
-        const content = document.getElementById('live-content') || document.getElementById('content') || document.body;
         content.innerHTML = `
-            <div style="text-align:center; padding:40px;">
-                <h2 style="color:#f44336;">Event Not Found</h2>
-                <p style="color:#999;">This event may have been deleted or the link is incorrect.</p>
+            <div style="text-align:center; padding:40px; color:#fff;">
+                <h2 style="color:#f44336; font-family:'Russo One'; margin-bottom:20px;">⚠️ Error Loading Event</h2>
+                <p style="color:#999; margin-bottom:10px;">Unable to load event data.</p>
+                <p style="color:#666; font-size:0.9rem; font-family:monospace;">${e.message || 'Unknown error'}</p>
+                <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px; background:var(--sub-red); color:#fff; border:none; border-radius:6px; cursor:pointer; font-family:'Russo One';">
+                    RELOAD PAGE
+                </button>
             </div>
         `;
     }
