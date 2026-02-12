@@ -180,29 +180,6 @@
         </div>
     </div>
 
-    <div class="nav-tabs" id="nav-tabs" style="display:none;">
-        <div class="tab" id="tab-profile" onclick="showPage('profile')">
-            <i class="fa-regular fa-user"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
-        </div>
-        <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
-            <i class="fa-solid fa-futbol"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Play</span>
-        </div>
-        <div class="tab" id="tab-events" onclick="showPage('events')">
-            <i class="fa-regular fa-calendar"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Events</span>
-        </div>
-        <div class="tab" id="tab-map" onclick="showPage('map')">
-            <i class="fa-regular fa-map"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Map</span>
-        </div>
-        <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">
-            <i class="fa-solid fa-chart-simple"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Rank</span>
-        </div>
-    </div>
-
     <div id="app-content">
        <div class="status-bar" style="display: flex; justify-content: center; align-items: center; padding: 8px 15px; gap: 20px;">
     <div class="player-label" onclick="showPage('profile')" style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
@@ -529,5 +506,29 @@
         <button id="pro-undo-btn" onclick="undoLastGoal()" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:var(--sub-gold); border:2px solid var(--sub-gold); padding:10px 25px; border-radius:25px; font-family:'Russo One'; font-size:0.85rem; cursor:pointer; display:none; z-index:100000; letter-spacing:1px;">↺ UNDO LAST GOAL</button>
     </div>
     <!-- END PRO MODE VIEW -->
+
+    <!-- Nav tabs at end of body to avoid Safari flex layout bug -->
+    <div class="nav-tabs" id="nav-tabs" style="display:none;">
+        <div class="tab" id="tab-profile" onclick="showPage('profile')">
+            <i class="fa-regular fa-user"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
+        </div>
+        <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
+            <i class="fa-solid fa-futbol"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Play</span>
+        </div>
+        <div class="tab" id="tab-events" onclick="showPage('events')">
+            <i class="fa-regular fa-calendar"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Events</span>
+        </div>
+        <div class="tab" id="tab-map" onclick="showPage('map')">
+            <i class="fa-regular fa-map"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Map</span>
+        </div>
+        <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">
+            <i class="fa-solid fa-chart-simple"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Rank</span>
+        </div>
+    </div>
 </body>
 </html>
