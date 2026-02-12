@@ -38,81 +38,70 @@
             height: 100%;
         }
         
-        /* Player sides */
+        /* Player sides - Pro Mode styling */
         .player-side {
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            cursor: pointer;
-            transition: background 0.2s;
+            justify-content: center;
             position: relative;
+            border: 2px solid #222;
+            cursor: pointer;
         }
         
         .player-left {
-            background: linear-gradient(135deg, #1a0000 0%, var(--sub-black) 100%);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
         }
         
         .player-right {
-            background: linear-gradient(225deg, #1a0000 0%, var(--sub-black) 100%);
-        }
-        
-        .player-side:active {
-            background: rgba(255, 0, 0, 0.1);
-        }
-        
-        /* Score display */
-        .score {
-            font-size: 20vw;
-            font-family: 'Russo One', sans-serif;
-            color: var(--sub-red);
-            text-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
-            line-height: 1;
+            background: linear-gradient(135deg, #0a0a0a 0%, #0a0a1a 100%);
         }
         
         /* Player label */
         .player-label {
+            font-family: 'Russo One';
             font-size: 1.2rem;
             color: #666;
-            text-transform: uppercase;
+            position: absolute;
+            top: 30px;
             letter-spacing: 2px;
-            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        /* Score display */
+        .score {
+            font-family: 'Russo One';
+            font-size: 10rem;
+            color: var(--sub-gold);
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            line-height: 1;
+        }
+        
+        /* Goal visualization (○○○) */
+        .goals-visual {
+            font-size: 2rem;
+            margin-top: 20px;
+            letter-spacing: 10px;
         }
         
         /* Goal flash animation */
-        @keyframes goal-flash {
-            0% { background: rgba(255, 0, 0, 0.3); }
-            50% { background: rgba(255, 0, 0, 0.6); }
-            100% { background: rgba(255, 0, 0, 0); }
+        @keyframes goalFlash {
+            0% { background: var(--sub-red); transform: scale(1); }
+            50% { background: var(--sub-gold); transform: scale(1.05); }
+            100% { background: var(--sub-red); transform: scale(1); }
         }
         
         .goal-flash {
-            animation: goal-flash 0.5s ease-out;
+            animation: goalFlash 0.5s ease-in-out;
         }
         
-        /* Center divider */
+        /* Center divider - Golden gradient */
         .center-divider {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            pointer-events: none;
-            z-index: 10;
-        }
-        
-        .center-divider .logo {
-            font-family: 'Russo One', sans-serif;
-            font-size: 1.5rem;
-            color: var(--sub-red);
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-        }
-        
-        .center-divider .vs {
-            font-size: 2rem;
-            color: var(--sub-gold);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
+            box-shadow: 0 0 20px var(--sub-gold);
         }
         
         /* Controls overlay */
@@ -249,18 +238,17 @@
         <div class="player-side player-left" onclick="addGoal(1)">
             <div class="player-label">Player 1</div>
             <div class="score" id="score-p1">0</div>
+            <div class="goals-visual" id="goals-p1">○○○</div>
         </div>
+        
+        <!-- Center divider -->
+        <div class="center-divider"></div>
         
         <!-- Player 2 (Right) -->
         <div class="player-side player-right" onclick="addGoal(2)">
             <div class="player-label">Player 2</div>
             <div class="score" id="score-p2">0</div>
-        </div>
-        
-        <!-- Center divider -->
-        <div class="center-divider">
-            <div class="logo">SUBSOCCER</div>
-            <div class="vs">VS</div>
+            <div class="goals-visual" id="goals-p2">○○○</div>
         </div>
         
         <!-- Controls -->
@@ -274,7 +262,7 @@
     <!-- Winner overlay -->
     <div class="winner-overlay" id="winner-overlay">
         <div class="winner-text" id="winner-text">PLAYER 1 WINS!</div>
-        <div class="winner-subtitle">First to 5 goals</div>
+        <div class="winner-subtitle">First to 3 goals</div>
         <button class="play-again-btn" onclick="playAgain()">🎮 PLAY AGAIN</button>
     </div>
 
@@ -284,10 +272,14 @@
         let scoreP2 = 0;
         let goalHistory = []; // For undo
         let soundEnabled = true;
-        const WIN_SCORE = 5;
+        const WIN_SCORE = 3;
         
         // Audio context for sound effects
         let audioContext = null;
+        
+        // Custom audio files (MP3/WAV)
+        let goalAudio = null;
+        let crowdAudio = null;
         
         // Initialize
         window.addEventListener('load', () => {
@@ -301,6 +293,28 @@
             // Initialize audio
             if (window.AudioContext || window.webkitAudioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            // Try to load custom sounds (if available)
+            try {
+                goalAudio = new Audio('sounds/goal.mp3');
+                crowdAudio = new Audio('sounds/crowd.mp3');
+                
+                // Preload
+                goalAudio.load();
+                crowdAudio.load();
+                
+                // Fallback to synthesized if custom sounds fail
+                goalAudio.onerror = () => {
+                    console.log('Custom goal sound not found, using synthesized');
+                    goalAudio = null;
+                };
+                crowdAudio.onerror = () => {
+                    console.log('Custom crowd sound not found, using synthesized');
+                    crowdAudio = null;
+                };
+            } catch (e) {
+                console.log('Could not load custom sounds');
             }
         });
         
@@ -321,6 +335,9 @@
                 flashGoal(2);
             }
             
+            // Update goal visualization
+            updateGoalVisuals();
+            
             // Add to history for undo
             goalHistory.push(player);
             
@@ -338,6 +355,14 @@
             } else if (scoreP2 >= WIN_SCORE) {
                 setTimeout(() => showWinner(2), 800);
             }
+        }
+        
+        // Update goal visualizations (●○○)
+        function updateGoalVisuals() {
+            const p1Goals = '●'.repeat(scoreP1) + '○'.repeat(WIN_SCORE - scoreP1);
+            const p2Goals = '●'.repeat(scoreP2) + '○'.repeat(WIN_SCORE - scoreP2);
+            document.getElementById('goals-p1').textContent = p1Goals;
+            document.getElementById('goals-p2').textContent = p2Goals;
         }
         
         // Flash effect when goal scored
@@ -368,6 +393,7 @@
             goalHistory = [];
             document.getElementById('score-p1').textContent = '0';
             document.getElementById('score-p2').textContent = '0';
+            updateGoalVisuals();
             document.getElementById('winner-overlay').classList.remove('show');
         }
         
@@ -384,6 +410,9 @@
                 document.getElementById('score-p2').textContent = scoreP2;
             }
             
+            // Update goal visualization
+            updateGoalVisuals();
+            
             // Haptic feedback
             if (navigator.vibrate) {
                 navigator.vibrate(50);
@@ -399,7 +428,25 @@
         
         // Play goal sound
         function playGoalSound() {
-            if (!soundEnabled || !audioContext) return;
+            if (!soundEnabled) return;
+            
+            // Try custom sound first (MP3)
+            if (goalAudio) {
+                goalAudio.currentTime = 0;
+                goalAudio.volume = 0.7;
+                goalAudio.play().catch(e => {
+                    // Fallback to synthesized
+                    synthesizeGoalSound();
+                });
+            } else {
+                // Use synthesized sound
+                synthesizeGoalSound();
+            }
+        }
+        
+        // Synthesized goal sound (fallback)
+        function synthesizeGoalSound() {
+            if (!audioContext) return;
             
             const now = audioContext.currentTime;
             const osc = audioContext.createOscillator();
@@ -421,7 +468,25 @@
         
         // Play crowd cheer
         function playCrowdCheer() {
-            if (!soundEnabled || !audioContext) return;
+            if (!soundEnabled) return;
+            
+            // Try custom sound first (MP3)
+            if (crowdAudio) {
+                crowdAudio.currentTime = 0;
+                crowdAudio.volume = 0.7;
+                crowdAudio.play().catch(e => {
+                    // Fallback to synthesized
+                    synthesizeCrowdCheer();
+                });
+            } else {
+                // Use synthesized sound
+                synthesizeCrowdCheer();
+            }
+        }
+        
+        // Synthesized crowd cheer (fallback)
+        function synthesizeCrowdCheer() {
+            if (!audioContext) return;
             
             const now = audioContext.currentTime;
             const duration = 1.5;

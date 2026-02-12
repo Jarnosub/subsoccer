@@ -263,12 +263,15 @@ class SoundEffects {
 const soundEffects = new SoundEffects();
 
 // Auto-load sounds if files exist
-// You can add your own sound files to the sounds/ folder:
-// - sounds/goal.mp3 (or .wav, .ogg)
-// - sounds/crowd.mp3
-// Example:
-// soundEffects.loadSound('goal', 'sounds/goal.mp3');
-// soundEffects.loadSound('crowd', 'sounds/crowd.mp3');
+// Automatically loads sounds/goal.mp3 and sounds/crowd.mp3 if available
+// Falls back to synthesized sounds if files not found
+try {
+    soundEffects.loadSound('goal', 'sounds/goal.mp3');
+    soundEffects.loadSound('crowd', 'sounds/crowd.mp3');
+    console.log("🔊 Custom sound files loaded");
+} catch (e) {
+    console.log("🔊 Using synthesized sounds (custom files not found)");
+}
 
 // Export to window
 window.soundEffects = soundEffects;

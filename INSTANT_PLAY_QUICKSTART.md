@@ -26,7 +26,7 @@
 
 - **Left side = Player 1** (tap when you score)
 - **Right side = Player 2** (tap when you score)
-- First to **5 goals wins**! 🏆
+- First to **3 goals wins**! 🏆
 
 ### Controls (bottom of screen):
 - 🔄 **Reset** - Start new game

@@ -236,7 +236,7 @@ Esim: `http://192.168.1.100:8000/instant-play.html`
 
 Muokkaa `instant-play.html`:
 ```javascript
-const WIN_SCORE = 5;  // Muuta 3, 7, 10, jne.
+const WIN_SCORE = 3;  // Muuta 5, 7, 10, jne.
 ```
 
 ### Poista kontrollit:
