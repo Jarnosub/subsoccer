@@ -97,7 +97,7 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
     .tab.active { opacity: 1; color: var(--sub-red) !important; }
 
     .tab.active i { transform: translateY(-2px); /* Pieni nosto korostukseksi */ }
-    #app-content { padding-bottom: 100px !important; }
+    #app-content { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
     
     /* Status bar mobile adjustments */
     .status-bar { 
