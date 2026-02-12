@@ -40,10 +40,15 @@ ON public.tournament_matches(status);
 
 ALTER TABLE public.tournament_matches ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Anyone can view matches" ON public.tournament_matches;
-DROP POLICY IF EXISTS "Anyone can insert matches" ON public.tournament_matches;
-DROP POLICY IF EXISTS "Anyone can update matches" ON public.tournament_matches;
-DROP POLICY IF EXISTS "Anyone can delete matches" ON public.tournament_matches;
+-- Drop ALL existing policies on tournament_matches table dynamically
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'tournament_matches' LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.tournament_matches', r.policyname);
+    END LOOP;
+END $$;
 
 CREATE POLICY "Anyone can view matches"
     ON public.tournament_matches FOR SELECT

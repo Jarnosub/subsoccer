@@ -9,17 +9,15 @@
 -- Enable RLS on events if not already enabled
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 
--- Drop ALL existing policies to start fresh
-DROP POLICY IF EXISTS "Public events are viewable by everyone" ON public.events;
-DROP POLICY IF EXISTS "Authenticated users can view all events" ON public.events;
-DROP POLICY IF EXISTS "Anyone can view events" ON public.events;
-DROP POLICY IF EXISTS "Anyone can create events" ON public.events;
-DROP POLICY IF EXISTS "Anyone can delete events" ON public.events;
-DROP POLICY IF EXISTS "Anyone can insert events" ON public.events;
-DROP POLICY IF EXISTS "Anyone can update events" ON public.events;
-DROP POLICY IF EXISTS "Authenticated users can create events" ON public.events;
-DROP POLICY IF EXISTS "Organizers can update own events" ON public.events;
-DROP POLICY IF EXISTS "Organizers can delete own events" ON public.events;
+-- Drop ALL existing policies on events table dynamically
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'events' LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.events', r.policyname);
+    END LOOP;
+END $$;
 
 -- Allow ANYONE (including anon users) to VIEW events only
 CREATE POLICY "Anyone can view events"
@@ -51,14 +49,15 @@ CREATE POLICY "Anyone can delete events"
 -- Enable RLS on tournament_history if not already enabled
 ALTER TABLE public.tournament_history ENABLE ROW LEVEL SECURITY;
 
--- Drop ALL existing policies to start fresh
-DROP POLICY IF EXISTS "Anyone can view tournament history" ON public.tournament_history;
-DROP POLICY IF EXISTS "Anyone can create tournaments" ON public.tournament_history;
-DROP POLICY IF EXISTS "Organizers can manage tournaments" ON public.tournament_history;
-DROP POLICY IF EXISTS "Organizers can delete tournaments" ON public.tournament_history;
-DROP POLICY IF EXISTS "Allow all access" ON public.tournament_history;
-DROP POLICY IF EXISTS "Authenticated users can create tournaments" ON public.tournament_history;
-DROP POLICY IF EXISTS "Organizers can update tournaments" ON public.tournament_history;
+-- Drop ALL existing policies on tournament_history table dynamically
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'tournament_history' LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.tournament_history', r.policyname);
+    END LOOP;
+END $$;
 
 -- Allow ANYONE (including anon users) to VIEW tournament history
 CREATE POLICY "Anyone can view tournament history"
@@ -90,12 +89,15 @@ CREATE POLICY "Anyone can delete tournaments"
 -- Enable RLS on event_registrations if not already enabled
 ALTER TABLE public.event_registrations ENABLE ROW LEVEL SECURITY;
 
--- Drop ALL existing policies to start fresh
-DROP POLICY IF EXISTS "Anyone can view event registrations" ON public.event_registrations;
-DROP POLICY IF EXISTS "Players can register for events" ON public.event_registrations;
-DROP POLICY IF EXISTS "Players can cancel own registration" ON public.event_registrations;
-DROP POLICY IF EXISTS "Players can update own registration" ON public.event_registrations;
-DROP POLICY IF EXISTS "Players can delete own registration" ON public.event_registrations;
+-- Drop ALL existing policies on event_registrations table dynamically
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'event_registrations' LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.event_registrations', r.policyname);
+    END LOOP;
+END $$;
 
 -- Allow ANYONE (including anon users) to VIEW registrations only
 CREATE POLICY "Anyone can view event registrations"
@@ -126,8 +128,15 @@ CREATE POLICY "Anyone can delete own registration"
 -- Enable RLS on games if not already enabled
 ALTER TABLE public.games ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies
-DROP POLICY IF EXISTS "Anyone can view games" ON public.games;
+-- Drop ALL existing policies on games table dynamically
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'games' LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.games', r.policyname);
+    END LOOP;
+END $$;
 
 -- Allow ANYONE (including anon users) to VIEW games only
 CREATE POLICY "Anyone can view games"
@@ -140,8 +149,15 @@ CREATE POLICY "Anyone can view games"
 -- Enable RLS on players if not already enabled
 ALTER TABLE public.players ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies
-DROP POLICY IF EXISTS "Anyone can view players" ON public.players;
+-- Drop ALL existing policies on players table dynamically
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'players' LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.players', r.policyname);
+    END LOOP;
+END $$;
 
 -- Allow ANYONE (including anon users) to VIEW player profiles only
 CREATE POLICY "Anyone can view players"

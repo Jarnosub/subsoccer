@@ -860,8 +860,10 @@ async function selectQuickPlayer(name, slot) {
     if (quickP1 && quickP2) {
         updateEloPreview();
         // Show audio detection panels when both players selected
-        document.getElementById('audio-status-panel').style.display = 'block';
-        document.getElementById('audio-test-panel').style.display = 'block';
+        if (proModeEnabled) {
+            document.getElementById('audio-status-panel').style.display = 'block';
+            document.getElementById('audio-test-panel').style.display = 'block';
+        }
     }
 }
 
@@ -891,26 +893,30 @@ async function startQuickMatch() {
         return;
     }
     
-    // Regular Quick Match flow
-    // Start acoustic goal detection
-    if (window.audioEngine && typeof window.audioEngine.startListening === 'function') {
-        const result = await window.audioEngine.startListening();
-        if (result.success) {
-            showNotification("🎙️ Audio detection active", "success");
-        }
-    }
+    // STANDARD QUICK MATCH (Split Screen UI, No Audio)
+    
+    // Initialize scores
+    proScoreP1 = 0;
+    proScoreP2 = 0;
+    proGoalHistory = [];
+    proModeActive = true; // Activate the split-screen logic
+    
+    // Update View
+    document.getElementById('pro-p1-name').textContent = quickP1;
+    document.getElementById('pro-p2-name').textContent = quickP2;
+    updateProScore();
     
     document.getElementById('app-content').style.display = 'none';
-    const overlay = document.createElement('div');
-    overlay.id = "active-winner-selection";
-    overlay.style = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0a0a0a; z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;";
-    overlay.innerHTML = `
-        <h2 style="font-family:'Russo One'; color:#fff; margin-bottom:10px;">WHO WON?</h2>
-        <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem;" onclick="handleQuickWinner('${quickP1}', this)">${quickP1}</button>
-        <div style="color:var(--sub-gold); font-family:'Russo One';">OR</div>
-        <button class="btn-red" style="width:280px; height:80px; font-size:1.5rem; background:#333;" onclick="handleQuickWinner('${quickP2}', this)">${quickP2}</button>
-        <button onclick="cancelQuickMatch()" style="margin-top:20px; background:none; border:none; color:#666; text-decoration:underline; cursor:pointer;">Cancel</button>`;
-    document.body.appendChild(overlay);
+    document.getElementById('pro-mode-view').style.display = 'flex';
+    
+    // Request landscape orientation hint (same as Pro Mode)
+    if (screen.orientation && screen.orientation.lock) {
+        try {
+            await screen.orientation.lock('landscape').catch(() => {});
+        } catch (e) {}
+    }
+    
+    // Note: Audio engine is NOT started here, avoiding microphone permission prompt
 }
 
 function cancelQuickMatch() {
@@ -1409,7 +1415,7 @@ async function finishProMatch(winnerName) {
  * Exit Pro Mode manually
  */
 function exitProMode() {
-    if (!confirm('Exit Pro Mode? Current match will not be saved.')) {
+    if (!confirm('Exit current match? Result will not be saved.')) {
         return;
     }
     
@@ -1430,7 +1436,7 @@ function exitProMode() {
     document.getElementById('pro-mode-view').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
     
-    showNotification('Pro Mode exited - match not saved', 'info');
+    showNotification('Match exited - result not saved', 'info');
 }
 
 /**

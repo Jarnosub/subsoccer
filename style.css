@@ -484,3 +484,9 @@ input:focus, input:active {
     box-shadow: none !important;
     -webkit-tap-highlight-color: transparent;
 }
+
+/* ESTÄÄ KLIKKAUKSET HETI KUN PELI PÄÄTTYY */
+.game-controls-locked {
+    pointer-events: none !important;
+    opacity: 0.8; /* Pieni visuaalinen himmennys merkiksi lukituksesta */
+}

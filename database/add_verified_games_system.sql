@@ -68,10 +68,15 @@ ON public.ownership_transfer_requests(status);
 ALTER TABLE public.ownership_transfer_requests ENABLE ROW LEVEL SECURITY;
 
 -- Anyone can view, insert, update, delete (matching existing pattern)
-DROP POLICY IF EXISTS "Anyone can view ownership transfers" ON public.ownership_transfer_requests;
-DROP POLICY IF EXISTS "Anyone can insert ownership transfers" ON public.ownership_transfer_requests;
-DROP POLICY IF EXISTS "Anyone can update ownership transfers" ON public.ownership_transfer_requests;
-DROP POLICY IF EXISTS "Anyone can delete ownership transfers" ON public.ownership_transfer_requests;
+-- Drop ALL existing policies dynamically
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'ownership_transfer_requests' LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.ownership_transfer_requests', r.policyname);
+    END LOOP;
+END $$;
 
 CREATE POLICY "Anyone can view ownership transfers"
     ON public.ownership_transfer_requests FOR SELECT
