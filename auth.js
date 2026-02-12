@@ -1,16 +1,4 @@
 async function initApp() {
-    // Check if this is a live event view (public access, no auth required)
-    if (window.location.search.includes('live=')) {
-        console.log('Live event mode detected - skipping auth');
-        // Hide auth page immediately
-        const authPage = document.getElementById('auth-page');
-        const appContent = document.getElementById('app-content');
-        if (authPage) authPage.style.display = 'none';
-        if (appContent) appContent.style.display = 'none';
-        // events.js will handle the rest
-        return;
-    }
-    
     try {
         const { data: players } = await _supabase.from('players').select('username');
         allDbNames = players ? players.map(p => p.username) : [];
