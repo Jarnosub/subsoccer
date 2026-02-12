@@ -52,20 +52,28 @@ function renderEventsPage(events) {
     const container = document.getElementById('events-view');
     
     let html = `
-        <div style="text-align:center; margin-bottom:20px;">
-            <button class="btn-red" onclick="showCreateEventForm()" style="width:100%; max-width:300px;">
-                <i class="fa fa-plus"></i> CREATE NEW EVENT
+        <div style="text-align:center; margin-bottom:25px;">
+            <button class="btn-red" onclick="showCreateEventForm()" style="width:100%; max-width:300px; padding:12px;">
+                <i class="fa fa-plus"></i> Create Event
             </button>
         </div>
         
         <div id="create-event-form" style="display:none;"></div>
         
-        <h4 style="font-family:'Russo One'; text-transform:uppercase; margin:20px 0 10px 0; color:#888;">📅 Upcoming Events</h4>
+        <h3 style="font-family:'Russo One'; text-transform:uppercase; margin:25px 0 15px 0; color:#fff; font-size:1rem; letter-spacing:1px; border-bottom:2px solid var(--sub-red); padding-bottom:8px;">
+            <i class="fa fa-calendar-days" style="color:var(--sub-gold);"></i> Upcoming Events
+        </h3>
         <div id="events-list">
     `;
     
     if (events.length === 0) {
-        html += '<div style="text-align:center; padding:40px; color:#666;">No upcoming events. Create one!</div>';
+        html += `
+            <div style="text-align:center; padding:60px 20px; color:#666;">
+                <i class="fa fa-calendar-xmark" style="font-size:3rem; color:#333; margin-bottom:15px;"></i>
+                <div style="font-size:1.1rem; color:#888; margin-bottom:8px;">No upcoming events</div>
+                <div style="font-size:0.85rem; color:#666;">Create the first event and get the party started!</div>
+            </div>
+        `;
     } else {
         events.forEach(event => {
             html += renderEventCard(event);
@@ -114,46 +122,48 @@ function renderEventCard(event) {
     };
     const typeColor = eventTypeColors[event.event_type] || '#888';
     
-    // Larger title if no image
-    const titleSize = event.image_url ? '1.1rem' : '1.5rem';
+    // Format day of week
+    const dayOfWeek = startDate.toLocaleDateString('en-GB', { weekday: 'short' });
     
     return `
-        <div class="event-card" style="background:#111; border:1px solid #222; border-radius:12px; padding:15px; margin-bottom:15px;">
+        <div class="event-card" style="background:#111; border:1px solid #333; border-radius:12px; padding:20px; margin-bottom:20px; border-left:4px solid ${typeColor};">
             ${event.image_url ? `
-                <div style="width:100%; height:150px; background:url('${event.image_url}') center/cover; border-radius:8px; margin-bottom:10px;"></div>
+                <div style="width:100%; height:150px; background:url('${event.image_url}') center/cover; border-radius:8px; margin-bottom:15px;"></div>
             ` : ''}
             
-            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
-                <div>
-                    <h3 style="font-family:'Russo One'; font-size:${titleSize}; margin:0 0 5px 0; color:#fff;">${event.event_name}</h3>
-                    <div style="font-size:0.85rem; color:${typeColor}; text-transform:uppercase; letter-spacing:1px;">
+            <!-- Event Header -->
+            <div style="margin-bottom:15px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <span style="background:${typeColor}; color:#000; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-family:'Russo One'; text-transform:uppercase; letter-spacing:0.5px;">
                         ${event.event_type}
-                    </div>
+                    </span>
+                    <span style="color:#666; font-size:0.75rem;">•</span>
+                    <span style="color:#888; font-size:0.85rem; font-family:'Open Sans';">
+                        <i class="fa fa-calendar" style="color:var(--sub-gold); margin-right:4px;"></i>
+                        <strong style="color:#fff;">${dayOfWeek}, ${dateStr}</strong>
+                        ${!endDate || endDate.toDateString() === startDate.toDateString() ? ` at ${timeStr}` : ''}
+                    </span>
                 </div>
-                <div style="text-align:right;">
-                    <div style="font-size:0.75rem; color:#888;">${dateStr}</div>
-                    ${!endDate || endDate.toDateString() === startDate.toDateString() ? `
-                        <div style="font-size:0.9rem; color:var(--sub-gold); font-family:'Russo One';">${timeStr}</div>
-                    ` : ''}
-                </div>
+                
+                <h3 style="font-family:'Russo One'; font-size:1.4rem; margin:0; color:#fff; line-height:1.2;">${event.event_name}</h3>
             </div>
             
             ${event.description ? `
-                <p style="font-size:0.85rem; color:#aaa; margin:10px 0; line-height:1.4;">${event.description}</p>
+                <p style="font-size:0.9rem; color:#bbb; margin:12px 0; line-height:1.5;">${event.description}</p>
             ` : ''}
             
             ${event.location ? `
-                <div style="font-size:0.8rem; color:#666; margin:8px 0;">
-                    <i class="fa fa-location-dot"></i> ${event.location}
+                <div style="font-size:0.85rem; color:#888; margin:10px 0;">
+                    <i class="fa fa-location-dot" style="color:var(--sub-red);"></i> ${event.location}
                 </div>
             ` : ''}
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:1px solid #222;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:15px; border-top:1px solid #222;">
                 <div style="font-size:0.85rem; color:#888;">
-                    <i class="fa fa-calendar"></i> Event Info
+                    <i class="fa fa-users"></i> ${registeredCount}/${maxParticipants} registered
                 </div>
-                <button class="btn-red" style="padding:8px 20px; font-size:0.8rem;" onclick="viewEventDetails('${event.id}')">
-                    VIEW DETAILS
+                <button class="btn-red" style="padding:10px 24px; font-size:0.85rem;" onclick="viewEventDetails('${event.id}')">
+                    View Details
                 </button>
             </div>
         </div>
