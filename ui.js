@@ -25,19 +25,17 @@ function showPage(p) {
     const t = document.getElementById('tab-' + p);
     if (t) {
         t.classList.add('active');
-    } else if (p === 'history' || p === 'games') {
-        const tm = document.getElementById('tab-more');
-        if (tm) tm.classList.add('active');
     }
     
     // Update currentPageIndex for swipe navigation
-    const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'more'];
+    const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard'];
     const pageIdx = pages.indexOf(p);
     if (pageIdx !== -1) {
         currentPageIndex = pageIdx;
     }
     
     // Funktiot, jotka suoritetaan sivun vaihdon yhteydessä
+    if (p === 'profile') loadUserProfile();
     if (p === 'leaderboard') fetchLB();
     if (p === 'history') fetchHist();
     if (p === 'games') fetchMyGames();
@@ -134,7 +132,7 @@ function toggleTournamentMode() {
  */
 let touchStartX = 0;
 let touchEndX = 0;
-const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'more'];
+const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard'];
 let currentPageIndex = 1; // Aloitetaan tournament-sivulta
 
 function handleSwipe() {
@@ -185,3 +183,91 @@ window.showNotification = showNotification;
 window.showMatchMode = showMatchMode;
 window.toggleTournamentMode = toggleTournamentMode;
 window.populateCountries = populateCountries;
+window.loadUserProfile = loadUserProfile;
+window.showEditProfile = showEditProfile;
+window.cancelEditProfile = cancelEditProfile;
+
+/**
+ * Lataa ja näyttää käyttäjän profiilin tiedot
+ */
+async function loadUserProfile() {
+    if (!user || !user.id) return;
+    
+    // Päivitä avatar
+    const avatarEl = document.getElementById('profile-avatar-display');
+    const previewEl = document.getElementById('avatar-preview');
+    if (avatarEl && user.avatar) {
+        avatarEl.src = user.avatar;
+    }
+    if (previewEl && user.avatar) {
+        previewEl.src = user.avatar;
+    }
+    
+    // Päivitä nimi
+    const usernameEl = document.getElementById('profile-username');
+    if (usernameEl) {
+        usernameEl.innerText = user.username || 'Player';
+    }
+    
+    // Päivitä maa
+    const countryEl = document.getElementById('profile-country');
+    if (countryEl && user.country) {
+        countryEl.innerText = '🌍 ' + user.country.toUpperCase();
+    } else if (countryEl) {
+        countryEl.innerText = '🌍 Set your country';
+    }
+    
+    // Päivitä ELO
+    const eloEl = document.getElementById('profile-elo');
+    if (eloEl) {
+        eloEl.innerText = user.elo || 1000;
+    }
+    
+    // Hae otteluiden määrä
+    const matchesEl = document.getElementById('profile-matches');
+    if (matchesEl && user.id !== 'guest') {
+        try {
+            const { count } = await _supabase
+                .from('matches')
+                .select('*', { count: 'exact', head: true })
+                .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`);
+            matchesEl.innerText = count || 0;
+        } catch(e) {
+            matchesEl.innerText = '0';
+        }
+    }
+    
+    // Lataa pelit
+    fetchMyGames();
+}
+
+/**
+ * Näyttää profiilin muokkauslomakkeen
+ */
+function showEditProfile() {
+    const editFields = document.getElementById('profile-edit-fields');
+    if (editFields) {
+        editFields.style.display = 'block';
+        
+        // Täytä lomake nykyisillä tiedoilla
+        const countryInput = document.getElementById('country-input');
+        const emailInput = document.getElementById('email-input');
+        
+        if (countryInput && user.country) {
+            countryInput.value = user.country;
+        }
+        if (emailInput && user.email) {
+            emailInput.value = user.email;
+        }
+    }
+}
+
+/**
+ * Piilottaa profiilin muokkauslomakkeen
+ */
+function cancelEditProfile() {
+    const editFields = document.getElementById('profile-edit-fields');
+    if (editFields) {
+        editFields.style.display = 'none';
+    }
+}

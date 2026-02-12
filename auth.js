@@ -44,6 +44,13 @@ function startSession() {
     document.getElementById('auth-page').style.display = 'none'; 
     document.getElementById('app-content').style.display = 'flex'; 
     document.getElementById('label-user').innerText = user.username; 
+    
+    // Show Pro Mode only for developer (Jarno Saarinen)
+    const proModeSection = document.getElementById('pro-mode-section');
+    if (proModeSection && user.username === 'Jarno Saarinen') {
+        proModeSection.style.display = 'block';
+    }
+    
     if (typeof updateProfileCard === 'function') updateProfileCard(); 
     if (typeof updateGuestUI === 'function') updateGuestUI(); 
     if (typeof initProModeUI === 'function') initProModeUI(); 
@@ -219,6 +226,8 @@ async function saveProfile() {
             // Update UI
             if (typeof updateProfileCard === 'function') updateProfileCard();
             if (typeof updateAvatarPreview === 'function') updateAvatarPreview(user.avatar_url);
+            if (typeof loadUserProfile === 'function') loadUserProfile();
+            if (typeof cancelEditProfile === 'function') cancelEditProfile();
             
             showNotification("Profile updated!", "success");
             

@@ -70,7 +70,21 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
 .logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; letter-spacing: 1px; }
 
 .nav-tabs { display: flex; justify-content: center; gap: 12px; width: 95%; max-width: 450px; border-bottom: 1px solid var(--sub-border); margin-bottom: 25px; }
-.tab { font-family: 'Russo One', sans-serif; font-size: 0.8rem; padding: 12px 6px; cursor: pointer; opacity: 0.4; text-transform: uppercase; color: #fff; border-bottom: 3px solid transparent; }
+.tab { 
+    font-family: 'Russo One', sans-serif; 
+    font-size: 0.8rem; 
+    padding: 12px 6px; 
+    cursor: pointer; 
+    opacity: 0.4; 
+    text-transform: uppercase; 
+    color: #fff; 
+    border-bottom: 3px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+.tab i { font-size: 1.1rem; }
 .tab.active { opacity: 1; color: var(--sub-red); border-bottom-color: var(--sub-red); }
 
 /* Mobile Navigation Bar */

@@ -477,27 +477,49 @@ async function deleteGame(id) {
 }
 
 async function fetchMyGames() {
-    if (user.id === 'guest') { document.getElementById('my-games-list').innerHTML = '<p>Login to see your registered games.</p>'; return; }
+    if (user.id === 'guest') { 
+        const gamesListEl = document.getElementById('my-games-list');
+        const profileGamesListEl = document.getElementById('profile-games-list');
+        if (gamesListEl) gamesListEl.innerHTML = '<p>Login to see your registered games.</p>';
+        if (profileGamesListEl) profileGamesListEl.innerHTML = '<p style="color:#666; font-size:0.85rem;">Login to see your registered games.</p>';
+        return;
+    }
     const { data, error } = await _supabase.from('games').select('*').eq('owner_id', user.id);
     if (error) { console.error('Error fetching games:', error); return; }
-    const list = document.getElementById('my-games-list');
+    
     myGames = data || [];
-    if (data && data.length > 0) {
-        list.innerHTML = data.map(game => `
-            <div style="background:#111; padding:15px; border-radius:8px; margin-bottom:10px; border-left: 3px solid ${game.verified ? 'var(--sub-gold)' : 'var(--sub-red)'}; position: relative;">
-                ${game.verified ? '<div style="position:absolute; top:10px; left:10px; background:linear-gradient(135deg, var(--sub-gold) 0%, #d4af37 100%); color:#000; padding:3px 8px; border-radius:4px; font-size:0.65rem; font-family:\'Russo One\'; box-shadow:0 2px 4px rgba(255,215,0,0.3);">⭐ VERIFIED</div>' : ''}
-                <div style="position: absolute; top: 10px; right: 10px;">
-                    <button onclick="initEditGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem; margin-right: 5px; color: #ccc;">✏️</button>
-                    <button onclick="deleteGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--sub-red);">🗑️</button>
-                </div>
-                <div style="font-family: 'Russo One'; font-size: 1rem; padding-right: 60px; ${game.verified ? 'margin-top:25px;' : ''}">${game.game_name}</div>
-                <small style="color:#888;">${game.location}</small><br>
-                ${game.serial_number ? `<small style="color:var(--sub-gold); font-size:0.65rem;">SERIAL: ${game.serial_number}</small>` : `<small style="color:#666; font-size:0.6rem;">CODE: ${game.unique_code}</small>`}
-                ${game.verified ? `<div style="margin-top:10px;"><button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#444;" onclick="releaseGameOwnership('${game.id}')">Release Ownership</button></div>` : ''}
+    
+    const gameHTML = (data && data.length > 0) ? data.map(game => `
+        <div style="background:#111; padding:15px; border-radius:8px; margin-bottom:10px; border-left: 3px solid ${game.verified ? 'var(--sub-gold)' : 'var(--sub-red)'}; position: relative;">
+            ${game.verified ? '<div style="position:absolute; top:10px; left:10px; background:linear-gradient(135deg, var(--sub-gold) 0%, #d4af37 100%); color:#000; padding:3px 8px; border-radius:4px; font-size:0.65rem; font-family:\'Russo One\'; box-shadow:0 2px 4px rgba(255,215,0,0.3);">⭐ VERIFIED</div>' : ''}
+            <div style="position: absolute; top: 10px; right: 10px;">
+                <button onclick="initEditGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem; margin-right: 5px; color: #ccc;">✏️</button>
+                <button onclick="deleteGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--sub-red);">🗑️</button>
             </div>
-        `).join('');
-    } else {
-        list.innerHTML = '<p>You have not registered any games yet.</p>';
+            <div style="font-family: 'Russo One'; font-size: 1rem; padding-right: 60px; ${game.verified ? 'margin-top:25px;' : ''}">${game.game_name}</div>
+            <small style="color:#888;">${game.location}</small><br>
+            ${game.serial_number ? `<small style="color:var(--sub-gold); font-size:0.65rem;">SERIAL: ${game.serial_number}</small>` : `<small style="color:#666; font-size:0.6rem;">CODE: ${game.unique_code}</small>`}
+            ${game.verified ? `<div style="margin-top:10px;"><button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#444;" onclick="releaseGameOwnership('${game.id}')">Release Ownership</button></div>` : ''}
+        </div>
+    `).join('') : '<p>You have not registered any games yet.</p>';
+    
+    // Päivitä molemmat listat
+    const list = document.getElementById('my-games-list');
+    const profileList = document.getElementById('profile-games-list');
+    if (list) list.innerHTML = gameHTML;
+    if (profileList) {
+        if (data && data.length > 0) {
+            profileList.innerHTML = data.map(game => `
+                <div style="background:#0a0a0a; padding:12px; border-radius:8px; margin-bottom:8px; border-left:3px solid ${game.verified ? 'var(--sub-gold)' : '#333'};">
+                    <div style="font-family:'Russo One'; font-size:0.9rem; color:#fff; margin-bottom:3px;">
+                        ${game.verified ? '⭐ ' : ''}${game.game_name}
+                    </div>
+                    <div style="font-size:0.75rem; color:#888;">${game.location}</div>
+                </div>
+            `).join('');
+        } else {
+            profileList.innerHTML = '<p style="color:#666; font-size:0.85rem; text-align:center; padding:20px 0;">No game tables registered yet.</p>';
+        }
     }
 }
 
