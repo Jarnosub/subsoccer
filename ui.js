@@ -15,48 +15,6 @@ function showNotification(message, type = 'error') {
 }
 
 /**
- * Näyttää voittoanimaation overlayn.
- * @param {string} winnerName - Voittajan nimi
- * @param {number|string} newElo - Uusi ELO-luku
- * @param {number|string} eloGain - ELO-muutos
- */
-function showVictoryAnimation(winnerName, newElo, eloGain) {
-    const overlay = document.getElementById('victory-overlay');
-    if (!overlay) return;
-    
-    const nameEl = document.getElementById('victory-player-name');
-    const eloEl = document.getElementById('victory-elo-count');
-    const gainEl = document.getElementById('victory-elo-gain');
-    
-    if (nameEl) nameEl.innerText = winnerName || 'Winner';
-    if (eloEl) eloEl.innerText = newElo || '';
-    if (gainEl) {
-        const val = parseInt(eloGain);
-        if (!isNaN(val)) {
-            const prefix = val >= 0 ? '+' : '';
-            gainEl.innerText = `${prefix}${val} POINTS`;
-        }
-    }
-    
-    overlay.style.display = 'flex';
-    
-    // Soita äänet
-    if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
-        window.soundEffects.playCrowdCheer();
-    }
-}
-
-/**
- * Sulkee voittoanimaation.
- */
-function closeVictoryOverlay() {
-    const overlay = document.getElementById('victory-overlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-}
-
-/**
  * Vaihtaa näkyvän sivun (section) ja aktivoi vastaavan välilehden.
  * @param {string} p - Näytettävän sivun ID ilman 'section-'-etuliitettä.
  */
@@ -248,8 +206,6 @@ window.populateCountries = populateCountries;
 window.loadUserProfile = loadUserProfile;
 window.showEditProfile = showEditProfile;
 window.cancelEditProfile = cancelEditProfile;
-window.showVictoryAnimation = showVictoryAnimation;
-window.closeVictoryOverlay = closeVictoryOverlay;
 
 /**
  * Lataa ja näyttää käyttäjän profiilin tiedot

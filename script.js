@@ -677,10 +677,6 @@ async function saveMatch(p1, p2, winner, tourName) {
             const winnerData = winner === p1 ? p1Data : p2Data;
             const { newEloA, newEloB } = calculateNewElo(p1Data, p2Data, winnerData);
             
-            // Store for animation
-            window.lastTournamentEloGain = (winner === p1 ? newEloA : newEloB) - winnerData.elo;
-            window.lastTournamentWinner = winner;
-            
             const { error: e1 } = await _supabase.from('players').update({ elo: newEloA }).eq('id', p1Data.id);
             const { error: e2 } = await _supabase.from('players').update({ elo: newEloB }).eq('id', p2Data.id);
             if (e1 || e2) throw (e1 || e2);
@@ -864,23 +860,6 @@ async function saveTour() {
         document.getElementById('tour-setup').style.display = 'block';
         showPage('history');
         showNotification('Tournament saved successfully!', 'success');
-        
-        // Show victory animation
-        let winnerElo = 0;
-        let winnerGain = 0;
-        
-        if (winnerName) {
-            const { data: p } = await _supabase.from('players').select('elo').eq('username', winnerName).single();
-            if (p) winnerElo = p.elo;
-            
-            if (window.lastTournamentWinner === winnerName) {
-                winnerGain = window.lastTournamentEloGain || 0;
-            }
-        }
-        
-        if (typeof showVictoryAnimation === 'function') {
-            showVictoryAnimation(winnerName, winnerElo, winnerGain);
-        }
         
         if (winnerName === user.username) {
             const { data } = await _supabase.from('players').select('*').eq('id', user.id).single();

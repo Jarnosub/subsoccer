@@ -20,10 +20,10 @@
 }
 
 body { font-family: var(--sub-body-font) !important; background-color: var(--sub-black); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-content: center; order: -2; }
+header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-content: center; }
 .main-logo { width: 150px !important; height: auto; }
 
-#app-content { width: 100%; display: none; flex-direction: column; align-items: center; order: 0; }
+#app-content { width: 100%; display: none; flex-direction: column; align-items: center; }
 .status-bar { width: 100%; max-width: 450px; margin-bottom: 10px !important; }
 .player-label { font-size: 0.85rem; font-weight: 400; color: #fff; }
 
@@ -50,7 +50,7 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
 }
 .logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; letter-spacing: 1px; }
 
-.nav-tabs { display: flex; justify-content: center; gap: 12px; width: 95%; max-width: 450px; border-bottom: 1px solid var(--sub-border); margin-bottom: 25px; order: -1; }
+.nav-tabs { display: flex; justify-content: center; gap: 12px; width: 95%; max-width: 450px; border-bottom: 1px solid var(--sub-border); margin-bottom: 25px; }
 .tab { 
     font-family: 'Russo One', sans-serif; 
     font-size: 0.8rem; 
@@ -85,7 +85,7 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
         align-items: center !important;
         justify-content: space-around !important;
         z-index: 9999 !important;
-        margin: 0 !important; gap: 0;
+        margin-bottom: 0; gap: 0;
     }
     .tab i {
         font-size: 1.6rem !important; /* Maltillinen, tyylikäs koko */
@@ -97,7 +97,7 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
     .tab.active { opacity: 1; color: var(--sub-red) !important; }
 
     .tab.active i { transform: translateY(-2px); /* Pieni nosto korostukseksi */ }
-    #app-content { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+    #app-content { padding-bottom: 100px !important; }
     
     /* Status bar mobile adjustments */
     .status-bar { 
@@ -108,7 +108,6 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
         font-size: 1.1rem !important; 
         padding: 3px !important; 
     }
-    
 }
 
 .card-header-stripe, .event-title {
@@ -118,15 +117,12 @@ header { width: 100%; padding: 20px 0 10px 0 !important; display: flex; justify-
 }
 
 .section { width: 100%; display: none; flex-direction: column; align-items: center; }
-.section:not(.active) { display: none !important; height: 0 !important; overflow: hidden !important; }
 .section.active { display: flex; }
 
 #section-map.active {
     display: flex !important;
     padding: 15px;
     box-sizing: border-box;
-    height: calc(100vh - 180px);
-    flex-direction: column;
 }
 
 /* Tummennetaan harmaata karttaa, jotta se sulautuu mustaan taustaan */

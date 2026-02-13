@@ -43,7 +43,6 @@ function handleGuest() {
 function startSession() { 
     document.getElementById('auth-page').style.display = 'none'; 
     document.getElementById('app-content').style.display = 'flex'; 
-    document.getElementById('nav-tabs').style.display = 'flex'; 
     document.getElementById('label-user').innerText = user.username; 
     
     // Show Pro Mode only for developer (Jarno Saarinen)
