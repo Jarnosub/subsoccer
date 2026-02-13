@@ -1,7 +1,11 @@
-async function initApp() {
+import { showNotification, showPage, loadUserProfile, populateCountries } from './ui.js';
+import { _supabase, state } from './config.js';
+import { fetchAllGames, updateGuestUI, updateProfileCard, initProModeUI, toggleAuth } from './script.js';
+
+export async function initApp() {
     try {
         const { data: players } = await _supabase.from('players').select('username');
-        allDbNames = players ? players.map(p => p.username) : [];
+        state.allDbNames = players ? players.map(p => p.username) : [];
         
         if (typeof fetchAllGames === 'function') await fetchAllGames();
         if (typeof populateCountries === 'function') await populateCountries();
@@ -10,7 +14,7 @@ async function initApp() {
     }
 }
 
-async function handleSignUp() {
+export async function handleSignUp() {
     const u = document.getElementById('reg-user').value.trim().toUpperCase();
     const p = document.getElementById('reg-pass').value.trim();
     
@@ -29,18 +33,18 @@ async function handleSignUp() {
     }
 }
 
-async function handleAuth() {
+export async function handleAuth() {
     const u = document.getElementById('auth-user').value.trim().toUpperCase(), p = document.getElementById('auth-pass').value;
     let { data } = await _supabase.from('players').select('*').eq('username', u).single();
-    if(data && data.password === p) { user = data; startSession(); } else showNotification("Login failed.", "error");
+    if(data && data.password === p) { state.user = data; startSession(); } else showNotification("Login failed.", "error");
 }
 
-function handleGuest() {
-    const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST"; user = { username: g, id: 'guest', elo: 1300, wins: 0 };
-    if(!sessionGuests.includes(g)) sessionGuests.push(g); startSession();
+export function handleGuest() {
+    const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST"; state.user = { username: g, id: 'guest', elo: 1300, wins: 0 };
+    if(!state.sessionGuests.includes(g)) state.sessionGuests.push(g); startSession();
 }
 
-async function handleLogout() {
+export async function handleLogout() {
     if (_supabase) {
         const { error } = await _supabase.auth.signOut();
         if (error) console.error('Error logging out:', error);
@@ -55,11 +59,11 @@ function startSession() {
     document.getElementById('app-content').style.display = 'flex'; 
     document.getElementById('nav-tabs').style.display = 'flex'; 
     const nameEl = document.getElementById('user-display-name');
-    if (nameEl) nameEl.innerText = user.username;
+    if (nameEl) nameEl.innerText = state.user.username;
     
     // Show Pro Mode only for developer (Jarno Saarinen)
     const proModeSection = document.getElementById('pro-mode-section');
-    if (proModeSection && user.username === 'Jarno Saarinen') {
+    if (proModeSection && state.user.username === 'Jarno Saarinen') {
         proModeSection.style.display = 'block';
     }
     
@@ -69,7 +73,7 @@ function startSession() {
     showPage('tournament'); 
 }
 
-async function showEditProfile() { 
+export async function showEditProfile() { 
     const fields = document.getElementById('profile-edit-fields'); 
     if(!fields) return;
     
@@ -78,16 +82,16 @@ async function showEditProfile() {
         
         // Show current avatar
         if (typeof updateAvatarPreview === 'function') {
-            updateAvatarPreview(user.avatar_url || '');
+            updateAvatarPreview(state.user.avatar_url || '');
         }
         
         // Set country dropdown
-        document.getElementById('country-input').value = user.country || 'fi';
+        document.getElementById('country-input').value = state.user.country || 'fi';
         
         // Set email input
         const emailInput = document.getElementById('email-input');
         if (emailInput) {
-            emailInput.value = user.email || '';
+            emailInput.value = state.user.email || '';
         }
         
         // Clear file input
@@ -106,7 +110,7 @@ async function showEditProfile() {
 /**
  * Preview avatar file before upload
  */
-function previewAvatarFile(input) {
+export function previewAvatarFile(input) {
     const file = input.files[0];
     const fileNameDiv = document.getElementById('avatar-file-name');
     
@@ -144,7 +148,7 @@ function previewAvatarFile(input) {
 async function uploadPlayerAvatar(file) {
     try {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+        const fileName = `${state.user.id}_${Date.now()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
         
         console.log('Uploading avatar:', filePath);
@@ -175,7 +179,7 @@ async function uploadPlayerAvatar(file) {
     }
 }
 
-async function saveProfile() {
+export async function saveProfile() {
     const btn = event?.target;
     const originalText = btn ? btn.textContent : '';
     
@@ -190,7 +194,7 @@ async function saveProfile() {
         const countryCode = document.getElementById('country-input')?.value.trim().toLowerCase();
         const email = document.getElementById('email-input')?.value.trim();
         
-        let avatarUrl = user.avatar_url; // Keep existing if no new file
+        let avatarUrl = state.user.avatar_url; // Keep existing if no new file
         
         // Upload new avatar if file selected
         if (file) {
@@ -214,9 +218,9 @@ async function saveProfile() {
         
         // Prepare updates
         const updates = {};
-        if (avatarUrl && avatarUrl !== user.avatar_url) updates.avatar_url = avatarUrl;
-        if (countryCode && countryCode !== user.country) updates.country = countryCode;
-        if (email !== undefined && email !== user.email) updates.email = email || null;
+        if (avatarUrl && avatarUrl !== state.user.avatar_url) updates.avatar_url = avatarUrl;
+        if (countryCode && countryCode !== state.user.country) updates.country = countryCode;
+        if (email !== undefined && email !== state.user.email) updates.email = email || null;
 
         if (Object.keys(updates).length === 0) {
             showNotification("Nothing to update", "error");
@@ -225,19 +229,19 @@ async function saveProfile() {
 
         if (btn) btn.textContent = 'Saving...';
         
-        const { error } = await _supabase.from('players').update(updates).eq('id', user.id);
+        const { error } = await _supabase.from('players').update(updates).eq('id', state.user.id);
 
         if (error) {
             showNotification("Error updating profile: " + error.message, "error");
         } else {
             // Update local user object
-            if (avatarUrl) user.avatar_url = avatarUrl;
-            if (countryCode) user.country = countryCode;
-            if (email !== undefined) user.email = email || null;
+            if (avatarUrl) state.user.avatar_url = avatarUrl;
+            if (countryCode) state.user.country = countryCode;
+            if (email !== undefined) state.user.email = email || null;
             
             // Update UI
             if (typeof updateProfileCard === 'function') updateProfileCard();
-            if (typeof updateAvatarPreview === 'function') updateAvatarPreview(user.avatar_url);
+            if (typeof updateAvatarPreview === 'function') updateAvatarPreview(state.user.avatar_url);
             if (typeof loadUserProfile === 'function') loadUserProfile();
             if (typeof cancelEditProfile === 'function') cancelEditProfile();
             
@@ -259,12 +263,12 @@ async function saveProfile() {
     }
 }
 
-// Globaalit kytkennät
+// Globaalit kytkennät HTML:ää varten
 window.handleAuth = handleAuth;
 window.handleSignUp = handleSignUp;
 window.handleGuest = handleGuest;
+window.handleLogout = handleLogout;
+window.initApp = initApp;
 window.saveProfile = saveProfile;
 window.showEditProfile = showEditProfile;
 window.previewAvatarFile = previewAvatarFile;
-window.initApp = initApp;
-window.handleLogout = handleLogout;

@@ -139,7 +139,7 @@
         /* END PRO MODE STYLES */
     </style>
 </head>
-<body onload="initApp()">
+<body>
 
     <div id="victory-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgb(10,10,10) !important; z-index:9999999; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
         <div style="font-family:'SubsoccerLogo'; color:var(--sub-red); font-size:4rem; margin-bottom:10px; text-shadow: 0 0 20px rgba(227,6,19,0.5);">WINNER!</div>
@@ -489,13 +489,7 @@
         <div id="section-history" class="section"><div class="container" id="hist-list"></div></div>
     </div>
 
-    <script src="config.js"></script>
-    <script src="ui.js"></script>
-    <script src="auth.js"></script>
-    <script src="events.js?v=6.1-bracket-fix"></script>
-    <script src="audio-engine.js"></script>
-    <script src="sound-effects.js"></script>
-    <script src="script.js?v=5.0-clean"></script>
+    <script type="module" src="main.js"></script>
     <div style="position: fixed; bottom: 5px; right: 10px; font-size: 12px; color: #555;">v.1.0.1</div>
 
     <div id="card-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:20000; justify-content:center; align-items:center; flex-direction:column;">

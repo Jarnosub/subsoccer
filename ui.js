@@ -1,9 +1,13 @@
+import { state, _supabase } from './config.js';
+import { fetchLB, fetchHist, fetchMyGames, initGameMap, fetchPublicGamesMap, cancelEdit } from './script.js';
+import { loadEventsPage } from './events.js';
+
 /**
  * Näyttää toast-tyyppisen ilmoituksen ruudun yläreunassa.
  * @param {string} message - Näytettävä viesti.
  * @param {string} [type='error'] - Ilmoituksen tyyppi ('success' tai 'error').
  */
-function showNotification(message, type = 'error') {
+export function showNotification(message, type = 'error') {
     const container = document.getElementById('notification-container');
     const notification = document.createElement('div');
     notification.className = `toast-notification ${type}`;
@@ -20,7 +24,7 @@ function showNotification(message, type = 'error') {
  * @param {number|string} newElo - Uusi ELO-luku
  * @param {number|string} eloGain - ELO-muutos
  */
-function showVictoryAnimation(winnerName, newElo, eloGain) {
+export function showVictoryAnimation(winnerName, newElo, eloGain) {
     const overlay = document.getElementById('victory-overlay');
     if (!overlay) return;
     
@@ -49,7 +53,7 @@ function showVictoryAnimation(winnerName, newElo, eloGain) {
 /**
  * Sulkee voittoanimaation.
  */
-function closeVictoryOverlay() {
+export function closeVictoryOverlay() {
     const overlay = document.getElementById('victory-overlay');
     if (overlay) {
         overlay.style.display = 'none';
@@ -60,7 +64,7 @@ function closeVictoryOverlay() {
  * Vaihtaa näkyvän sivun (section) ja aktivoi vastaavan välilehden.
  * @param {string} p - Näytettävän sivun ID ilman 'section-'-etuliitettä.
  */
-function showPage(p) {
+export function showPage(p) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('section-' + p).classList.add('active');
@@ -77,9 +81,9 @@ function showPage(p) {
     }
     
     // Update header user name
-    if (typeof user !== 'undefined' && user && user.username) {
+    if (typeof state.user !== 'undefined' && state.user && state.user.username) {
         const headerNameEl = document.getElementById('user-display-name');
-        if (headerNameEl) headerNameEl.innerText = user.username;
+        if (headerNameEl) headerNameEl.innerText = state.user.username;
     }
     
     // Funktiot, jotka suoritetaan sivun vaihdon yhteydessä
@@ -94,8 +98,8 @@ function showPage(p) {
     // Alustaa kartan 'games'-sivulla
     if (p === 'games') {
         setTimeout(() => {
-            if (!gameMap) initGameMap();
-            else gameMap.invalidateSize();
+            if (!state.gameMap) initGameMap();
+            else state.gameMap.invalidateSize();
         }, 200);
     }
 }
@@ -103,7 +107,7 @@ function showPage(p) {
 /**
  * Hakee maat Supabasesta ja täyttää pudotusvalikon.
  */
-async function populateCountries() {
+export async function populateCountries() {
     const select = document.getElementById('country-input');
     if (!select) return;
 
@@ -129,11 +133,11 @@ async function populateCountries() {
 /**
  * Täyttää turnauksen pelipöytien pudotusvalikon.
  */
-function populateGameSelect() {
+export function populateGameSelect() {
     const sel = document.getElementById('tournament-game-select');
     if (!sel) return;
     sel.innerHTML = '<option value="" disabled selected>Select Game Table</option>';
-    allGames.forEach(g => {
+    state.allGames.forEach(g => {
         const opt = document.createElement('option');
         opt.value = g.id;
         opt.innerText = g.game_name;
@@ -144,7 +148,7 @@ function populateGameSelect() {
 /**
  * Vaihtaa Quick Match ja Tournament osioiden välillä.
  */
-function showMatchMode(mode) {
+export function showMatchMode(mode) {
     const quickSection = document.getElementById('quick-match-section');
     const tournamentSection = document.getElementById('tournament-section');
     const quickBtn = document.getElementById('btn-quick-match-mode');
@@ -190,7 +194,7 @@ function showMatchMode(mode) {
 /**
  * Näyttää tai piilottaa turnauksen lisäasetukset.
  */
-function toggleTournamentMode() {
+export function toggleTournamentMode() {
     const el = document.getElementById('advanced-tour-settings');
     if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
@@ -245,50 +249,38 @@ if (document.readyState === 'loading') {
     initSwipeListener();
 }
 
-// Globaalit kytkennät HTML:ää varten
-window.showPage = showPage;
-window.showNotification = showNotification;
-window.showMatchMode = showMatchMode;
-window.toggleTournamentMode = toggleTournamentMode;
-window.populateCountries = populateCountries;
-window.loadUserProfile = loadUserProfile;
-window.showEditProfile = showEditProfile;
-window.cancelEditProfile = cancelEditProfile;
-window.showVictoryAnimation = showVictoryAnimation;
-window.closeVictoryOverlay = closeVictoryOverlay;
-
 /**
  * Lataa ja näyttää käyttäjän profiilin tiedot
  */
-async function loadUserProfile() {
-    if (!user || !user.id) return;
+export async function loadUserProfile() {
+    if (!state.user || !state.user.id) return;
     
     // Päivitä avatar
     const avatarEl = document.getElementById('profile-avatar-display');
     const previewEl = document.getElementById('avatar-preview');
-    if (avatarEl && user.avatar) {
-        avatarEl.src = user.avatar;
+    if (avatarEl && state.user.avatar_url) {
+        avatarEl.src = state.user.avatar_url;
     }
-    if (previewEl && user.avatar) {
-        previewEl.src = user.avatar;
+    if (previewEl && state.user.avatar_url) {
+        previewEl.src = state.user.avatar_url;
     }
     
     // Päivitä nimi
     const usernameEl = document.getElementById('profile-username');
     if (usernameEl) {
-        usernameEl.innerText = user.username || 'Player';
+        usernameEl.innerText = state.user.username || 'Player';
     }
     
     // Päivitä nimi headeriin
     const headerNameEl = document.getElementById('user-display-name');
     if (headerNameEl) {
-        headerNameEl.innerText = user.username || 'Player';
+        headerNameEl.innerText = state.user.username || 'Player';
     }
     
     // Päivitä maa
     const countryEl = document.getElementById('profile-country');
-    if (countryEl && user.country) {
-        countryEl.innerText = '🌍 ' + user.country.toUpperCase();
+    if (countryEl && state.user.country) {
+        countryEl.innerText = '🌍 ' + state.user.country.toUpperCase();
     } else if (countryEl) {
         countryEl.innerText = '🌍 Set your country';
     }
@@ -296,17 +288,17 @@ async function loadUserProfile() {
     // Päivitä ELO
     const eloEl = document.getElementById('profile-elo');
     if (eloEl) {
-        eloEl.innerText = user.elo || 1000;
+        eloEl.innerText = state.user.elo || 1000;
     }
     
     // Hae otteluiden määrä
     const matchesEl = document.getElementById('profile-matches');
-    if (matchesEl && user.id !== 'guest') {
+    if (matchesEl && state.user.id !== 'guest') {
         try {
             const { count } = await _supabase
                 .from('matches')
                 .select('*', { count: 'exact', head: true })
-                .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`);
+                .or(`player1.eq.${state.user.username},player2.eq.${state.user.username}`);
             matchesEl.innerText = count || 0;
         } catch(e) {
             matchesEl.innerText = '0';
@@ -320,7 +312,7 @@ async function loadUserProfile() {
 /**
  * Näyttää profiilin muokkauslomakkeen
  */
-function showEditProfile() {
+export function showEditProfile() {
     const editFields = document.getElementById('profile-edit-fields');
     if (editFields) {
         editFields.style.display = 'block';
@@ -329,11 +321,11 @@ function showEditProfile() {
         const countryInput = document.getElementById('country-input');
         const emailInput = document.getElementById('email-input');
         
-        if (countryInput && user.country) {
-            countryInput.value = user.country;
+        if (countryInput && state.user.country) {
+            countryInput.value = state.user.country;
         }
-        if (emailInput && user.email) {
-            emailInput.value = user.email;
+        if (emailInput && state.user.email) {
+            emailInput.value = state.user.email;
         }
     }
 }
@@ -341,9 +333,21 @@ function showEditProfile() {
 /**
  * Piilottaa profiilin muokkauslomakkeen
  */
-function cancelEditProfile() {
+export function cancelEditProfile() {
     const editFields = document.getElementById('profile-edit-fields');
     if (editFields) {
         editFields.style.display = 'none';
     }
 }
+
+// Globaalit kytkennät
+window.showPage = showPage;
+window.showNotification = showNotification;
+window.showMatchMode = showMatchMode;
+window.toggleTournamentMode = toggleTournamentMode;
+window.populateCountries = populateCountries;
+window.loadUserProfile = loadUserProfile;
+window.showEditProfile = showEditProfile;
+window.cancelEditProfile = cancelEditProfile;
+window.showVictoryAnimation = showVictoryAnimation;
+window.closeVictoryOverlay = closeVictoryOverlay;

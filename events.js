@@ -1,3 +1,6 @@
+import { _supabase, state } from './config.js';
+import { showNotification, showPage } from './ui.js';
+
 /**
  * ============================================================
  * SUBSOCCER EVENT CALENDAR SYSTEM
@@ -21,7 +24,7 @@ let currentEventBracketParticipants = [];
 /**
  * Load events page - main entry point
  */
-async function loadEventsPage() {
+export async function loadEventsPage() {
     const container = document.getElementById('events-view');
     if (!container) return;
 
@@ -173,7 +176,7 @@ function renderEventCard(event) {
 /**
  * Show create event form
  */
-function showCreateEventForm() {
+export function showCreateEventForm() {
     selectedEventImage = null;
     const formContainer = document.getElementById('create-event-form');
     if (!formContainer) return;
@@ -250,7 +253,7 @@ function showCreateEventForm() {
 /**
  * Hide create event form
  */
-function hideCreateEventForm() {
+export function hideCreateEventForm() {
     const formContainer = document.getElementById('create-event-form');
     if (formContainer) {
         formContainer.style.display = 'none';
@@ -262,7 +265,7 @@ function hideCreateEventForm() {
 /**
  * Preview event image
  */
-function previewEventImage(input) {
+export function previewEventImage(input) {
     const preview = document.getElementById('event-image-preview');
     const fileLabel = document.getElementById('event-image-label');
     if (!preview) return;
@@ -299,7 +302,7 @@ function previewEventImage(input) {
 /**
  * Clear event image
  */
-function clearEventImage() {
+export function clearEventImage() {
     const input = document.getElementById('event-image-input');
     const preview = document.getElementById('event-image-preview');
     const fileLabel = document.getElementById('event-image-label');
@@ -312,17 +315,17 @@ function clearEventImage() {
 /**
  * Create new event
  */
-async function createNewEvent() {
+export async function createNewEvent() {
     console.log('createNewEvent() called'); // DEBUG
     
     // Check if user is logged in - use 'user' not 'user'
-    if (!user) {
+    if (!state.user) {
         console.log('User not logged in'); // DEBUG
         showNotification('You must be logged in to create events', 'error');
         return;
     }
     
-    console.log('User logged in:', user.id); // DEBUG
+    console.log('User logged in:', state.user.id); // DEBUG
     
     // Get form values
     const eventName = document.getElementById('event-name-input')?.value.trim();
@@ -359,7 +362,7 @@ async function createNewEvent() {
             end_datetime: endDatetime,
             description: description || null,
             location: location,
-            organizer_id: user.id,
+            organizer_id: state.user.id,
             image_url: imageUrl,
             status: 'upcoming',
             is_public: true
@@ -395,7 +398,7 @@ async function createNewEvent() {
  * Upload event image to Supabase Storage
  */
 async function uploadEventImage(file) {
-    const fileName = `${user.id}-${Date.now()}.${file.name.split('.').pop()}`;
+    const fileName = `${state.user.id}-${Date.now()}.${file.name.split('.').pop()}`;
     
     const { data, error } = await _supabase.storage
         .from('event-images')
@@ -420,7 +423,7 @@ async function uploadEventImage(file) {
 /**
  * View event details and registration
  */
-async function viewEventDetails(eventId) {
+export async function viewEventDetails(eventId) {
     try {
         // Fetch event details
         const { data: event, error } = await _supabase
@@ -452,12 +455,12 @@ async function viewEventDetails(eventId) {
         
         // Fetch user's tournament registrations if logged in
         let userRegistrations = [];
-        if (user) {
+        if (state.user) {
             const { data: regs } = await _supabase
                 .from('event_registrations')
                 .select('tournament_id')
                 .eq('event_id', eventId)
-                .eq('player_id', user.id);
+                .eq('player_id', state.user.id);
             userRegistrations = regs || [];
         }
         
@@ -501,7 +504,7 @@ function showEventModal(event, tournaments, userRegistrations) {
         minute: '2-digit' 
     });
     
-    const isOrganizer = user && event.organizer_id === user.id;
+    const isOrganizer = state.user && event.organizer_id === state.user.id;
     
     let modalHtml = `
         <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; overflow-y:auto; padding:20px; box-sizing:border-box;">
@@ -649,7 +652,7 @@ function showEventModal(event, tournaments, userRegistrations) {
                                         </div>
                                     ` : ''}
                                     
-                                    ${t.status !== 'completed' && user && !isOrganizer ? `
+                                    ${t.status !== 'completed' && state.user && !isOrganizer ? `
                                         <button class="btn-red" style="width:100%; padding:8px; font-size:0.85rem; margin-top:8px; ${isUserRegistered ? 'background:#4CAF50;' : ''}" 
                                                 onclick="${isUserRegistered ? `unregisterFromTournament('${event.id}', '${t.id}')` : `registerForTournament('${event.id}', '${t.id}')`}">
                                             <i class="fa fa-${isUserRegistered ? 'check' : 'user-plus'}"></i> 
@@ -707,7 +710,7 @@ function showEventModal(event, tournaments, userRegistrations) {
 /**
  * Close event modal
  */
-function closeEventModal() {
+export function closeEventModal() {
     const modal = document.getElementById('event-modal');
     if (modal) modal.remove();
 }
@@ -715,8 +718,8 @@ function closeEventModal() {
 /**
  * Delete event
  */
-async function deleteEvent(eventId) {
-    if (!user) {
+export async function deleteEvent(eventId) {
+    if (!state.user) {
         showNotification('You must be logged in', 'error');
         return;
     }
@@ -748,7 +751,7 @@ async function deleteEvent(eventId) {
 /**
  * View and manage tournament participants
  */
-async function viewTournamentParticipants(eventId, tournamentId, tournamentName) {
+export async function viewTournamentParticipants(eventId, tournamentId, tournamentName) {
     // Store current event ID for refresh
     currentEventId = eventId;
     try {
@@ -894,7 +897,7 @@ async function viewTournamentParticipants(eventId, tournamentId, tournamentName)
 /**
  * Remove participant from tournament
  */
-async function removeTournamentParticipant(registrationId, tournamentId) {
+export async function removeTournamentParticipant(registrationId, tournamentId) {
     if (!confirm('Remove this participant?')) {
         return;
     }
@@ -923,7 +926,7 @@ async function removeTournamentParticipant(registrationId, tournamentId) {
 /**
  * Close participants modal
  */
-function closeParticipantsModal() {
+export function closeParticipantsModal() {
     const modal = document.getElementById('participants-modal');
     if (modal) modal.remove();
     
@@ -1111,22 +1114,22 @@ function getFlagEmoji(countryCode) {
 /**
  * Show create tournament form
  */
-async function showCreateTournamentForm(eventId, eventName) {
+export async function showCreateTournamentForm(eventId, eventName) {
     console.log('=== SHOW CREATE TOURNAMENT FORM ===');
     console.log('Event ID:', eventId);
     console.log('Event Name:', eventName);
-    console.log('User:', user);
+    console.log('User:', state.user);
     
-    if (!user) {
+    if (!state.user) {
         console.log('❌ User not logged in');
         showNotification('You must be logged in to create tournaments', 'error');
         return;
     }
     
-    console.log('All games available:', allGames);
+    console.log('All games available:', state.allGames);
     
     // Ensure games are loaded before showing form
-    if (!allGames || allGames.length === 0) {
+    if (!state.allGames || state.allGames.length === 0) {
         console.log('⏳ Fetching games from database...');
         showNotification('Loading game tables...', 'success');
         
@@ -1148,15 +1151,15 @@ async function showCreateTournamentForm(eventId, eventName) {
             return;
         }
         
-        allGames = games;
+        state.allGames = games;
         console.log('✅ Loaded', games.length, 'game tables:', games);
     }
     
     // Generate game options from loaded games
-    console.log('All games data:', allGames);
+    console.log('All games data:', state.allGames);
     
     const gameOptions = '<option value="" disabled selected>Select Game Table</option>' + 
-        allGames.map(g => {
+        state.allGames.map(g => {
             const displayText = g.location ? `${g.game_name} - ${g.location}` : g.game_name;
             return `<option value="${g.id}">${displayText}</option>`;
         }).join('');
@@ -1261,11 +1264,11 @@ async function showCreateTournamentForm(eventId, eventName) {
     console.log('✅ Tournament form rendered successfully');
     
     // Auto-select first game if available
-    if (allGames && allGames.length > 0) {
+    if (state.allGames && state.allGames.length > 0) {
         const gameSelect = document.getElementById('tournament-game-select');
         if (gameSelect) {
-            gameSelect.value = allGames[0].id;
-            console.log('✅ Auto-selected first game:', allGames[0].game_name, 'ID:', allGames[0].id);
+            gameSelect.value = state.allGames[0].id;
+            console.log('✅ Auto-selected first game:', state.allGames[0].game_name, 'ID:', state.allGames[0].id);
         }
     }
 }
@@ -1273,7 +1276,7 @@ async function showCreateTournamentForm(eventId, eventName) {
 /**
  * Close tournament form
  */
-function closeTournamentForm() {
+export function closeTournamentForm() {
     const formContainer = document.getElementById('tournament-form-modal');
     if (formContainer) formContainer.remove();
 }
@@ -1281,12 +1284,12 @@ function closeTournamentForm() {
 /**
  * Create tournament
  */
-async function createTournament(eventId) {
+export async function createTournament(eventId) {
     console.log('=== CREATE TOURNAMENT CALLED ===');
     console.log('Event ID:', eventId);
-    console.log('User:', user);
+    console.log('User:', state.user);
     
-    if (!user) {
+    if (!state.user) {
         console.log('❌ User not logged in');
         showNotification('You must be logged in', 'error');
         return;
@@ -1327,7 +1330,7 @@ async function createTournament(eventId) {
         const tournamentData = {
             event_id: eventId,
             game_id: gameId,
-            organizer_id: user.id,
+            organizer_id: state.user.id,
             tournament_name: tournamentName,
             tournament_type: tournamentType,
             max_participants: maxParticipants,
@@ -1378,7 +1381,7 @@ async function createTournament(eventId) {
 /**
  * Show email prompt modal
  */
-function showEmailPrompt(eventId, tournamentId) {
+export function showEmailPrompt(eventId, tournamentId) {
     const modalHtml = `
         <div style="
             position: fixed;
@@ -1465,7 +1468,7 @@ function showEmailPrompt(eventId, tournamentId) {
 /**
  * Close email prompt modal
  */
-function closeEmailPrompt() {
+export function closeEmailPrompt() {
     const modal = document.getElementById('email-prompt-modal');
     if (modal) {
         modal.remove();
@@ -1475,7 +1478,7 @@ function closeEmailPrompt() {
 /**
  * Save email and proceed with tournament registration
  */
-async function saveEmailAndRegister(eventId, tournamentId) {
+export async function saveEmailAndRegister(eventId, tournamentId) {
     const emailInput = document.getElementById('email-prompt-input');
     const email = emailInput?.value?.trim();
     
@@ -1496,12 +1499,12 @@ async function saveEmailAndRegister(eventId, tournamentId) {
         const { error } = await _supabase
             .from('players')
             .update({ email: email })
-            .eq('id', user.id);
+            .eq('id', state.user.id);
         
         if (error) throw error;
         
         // Update local user object
-        user.email = email;
+        state.user.email = email;
         
         closeEmailPrompt();
         
@@ -1522,20 +1525,20 @@ async function saveEmailAndRegister(eventId, tournamentId) {
 /**
  * Register for tournament
  */
-async function registerForTournament(eventId, tournamentId) {
-    if (!user) {
+export async function registerForTournament(eventId, tournamentId) {
+    if (!state.user) {
         showNotification('You must be logged in to register', 'error');
         return;
     }
     
     // Check if user has email - required for tournament participation
-    if (!user.email) {
+    if (!state.user.email) {
         showEmailPrompt(eventId, tournamentId);
         return;
     }
     
     try {
-        console.log('Registering:', { eventId, tournamentId, playerId: user.id });
+        console.log('Registering:', { eventId, tournamentId, playerId: state.user.id });
         
         // Register in event_registrations (links event, tournament, and player)
         const { data, error } = await _supabase
@@ -1543,7 +1546,7 @@ async function registerForTournament(eventId, tournamentId) {
             .insert({
                 event_id: eventId,
                 tournament_id: tournamentId,
-                player_id: user.id,
+                player_id: state.user.id,
                 status: 'registered'
             })
             .select();
@@ -1577,8 +1580,8 @@ async function registerForTournament(eventId, tournamentId) {
 /**
  * Unregister from tournament
  */
-async function unregisterFromTournament(eventId, tournamentId) {
-    if (!user) return;
+export async function unregisterFromTournament(eventId, tournamentId) {
+    if (!state.user) return;
     
     try {
         const { error } = await _supabase
@@ -1586,7 +1589,7 @@ async function unregisterFromTournament(eventId, tournamentId) {
             .delete()
             .eq('event_id', eventId)
             .eq('tournament_id', tournamentId)
-            .eq('player_id', user.id);
+            .eq('player_id', state.user.id);
         
         if (error) throw error;
         
@@ -1604,8 +1607,8 @@ async function unregisterFromTournament(eventId, tournamentId) {
 /**
  * Edit tournament
  */
-async function editTournament(tournamentId, eventId, eventName) {
-    if (!user) {
+export async function editTournament(tournamentId, eventId, eventName) {
+    if (!state.user) {
         showNotification('You must be logged in', 'error');
         return;
     }
@@ -1634,7 +1637,7 @@ async function editTournament(tournamentId, eventId, eventName) {
  */
 async function showEditTournamentForm(tournament, eventId, eventName) {
     // Ensure games are loaded first
-    if (!allGames || allGames.length === 0) {
+    if (!state.allGames || state.allGames.length === 0) {
         console.log('Loading games for edit form...');
         const { data: games, error } = await _supabase.from('games').select('*').order('game_name');
         if (error) {
@@ -1642,20 +1645,20 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
             showNotification('Failed to load game tables', 'error');
             return;
         }
-        allGames = games || [];
-        console.log('Loaded', allGames.length, 'games');
+        state.allGames = games || [];
+        console.log('Loaded', state.allGames.length, 'games');
     }
     
-    if (allGames.length === 0) {
+    if (state.allGames.length === 0) {
         showNotification('No game tables available. Create a table first in Tournament Mode.', 'error');
         return;
     }
     
-    console.log('All games:', allGames.map(g => ({ id: g.id, name: g.game_name })));
+    console.log('All games:', state.allGames.map(g => ({ id: g.id, name: g.game_name })));
     console.log('Tournament game_id:', tournament.game_id);
     
     // Get available game tables
-    const gameOptions = allGames.map(g => {
+    const gameOptions = state.allGames.map(g => {
         const isSelected = g.id === tournament.game_id;
         console.log(`Game ${g.game_name}: ${g.id} - ${isSelected ? 'SELECTED' : 'not selected'}`);
         const displayText = g.location ? `${g.game_name} - ${g.location}` : g.game_name;
@@ -1775,16 +1778,16 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
 /**
  * Save tournament edit
  */
-async function saveTournamentEdit(tournamentId, eventId) {
+export async function saveTournamentEdit(tournamentId, eventId) {
     console.log('saveTournamentEdit called with:', { tournamentId, eventId });
     
-    if (!user) {
+    if (!state.user) {
         console.log('User not logged in');
         showNotification('You must be logged in', 'error');
         return;
     }
     
-    console.log('User:', user.username);
+    console.log('User:', state.user.username);
     
     const nameInput = document.getElementById('tournament-name-input');
     const gameSelect = document.getElementById('tournament-game-select');
@@ -1870,8 +1873,8 @@ async function saveTournamentEdit(tournamentId, eventId) {
 /**
  * Delete tournament
  */
-async function deleteTournament(tournamentId, eventId) {
-    if (!user) {
+export async function deleteTournament(tournamentId, eventId) {
+    if (!state.user) {
         showNotification('You must be logged in', 'error');
         return;
     }
@@ -1904,7 +1907,7 @@ async function deleteTournament(tournamentId, eventId) {
 /**
  * Share live event link
  */
-function shareLiveEventLink(eventId, eventName) {
+export function shareLiveEventLink(eventId, eventName) {
     const liveUrl = `${window.location.origin}${window.location.pathname}?live=${eventId}`;
     
     // Copy to clipboard
@@ -1942,7 +1945,7 @@ function shareLiveEventLink(eventId, eventName) {
 /**
  * View live event (public view for screens/TVs)
  */
-async function viewLiveEvent(eventId) {
+export async function viewLiveEvent(eventId) {
     console.log('viewLiveEvent called with ID:', eventId);
     
     // Ensure live content container exists
@@ -2158,8 +2161,8 @@ function showLiveEventView(event, tournaments) {
 /**
  * Edit existing event
  */
-async function editEvent(eventId) {
-    if (!user) {
+export async function editEvent(eventId) {
+    if (!state.user) {
         showNotification('You must be logged in', 'error');
         return;
     }
@@ -2174,7 +2177,7 @@ async function editEvent(eventId) {
         
         if (error) throw error;
         
-        if (event.organizer_id !== user.id) {
+        if (event.organizer_id !== state.user.id) {
             showNotification('You are not authorized to edit this event', 'error');
             return;
         }
@@ -2234,8 +2237,8 @@ async function editEvent(eventId) {
 /**
  * Update event from form
  */
-async function updateEventForm(eventId) {
-    if (!user) {
+export async function updateEventForm(eventId) {
+    if (!state.user) {
         showNotification('You must be logged in', 'error');
         return;
     }
@@ -2267,7 +2270,7 @@ async function updateEventForm(eventId) {
                 location: location
             })
             .eq('id', eventId)
-            .eq('organizer_id', user.id); // Security check
+            .eq('organizer_id', state.user.id); // Security check
         
         if (error) throw error;
         
@@ -2314,7 +2317,7 @@ window.viewLiveEvent = viewLiveEvent;
 
 // Check for live event URL parameter on page load
 // Wrap in DOMContentLoaded to ensure elements exist
-function checkLiveEventParam() {
+export function checkLiveEventParam() {
     if (window.location.search.includes('live=')) {
         const urlParams = new URLSearchParams(window.location.search);
         const liveEventId = urlParams.get('live');
@@ -2372,7 +2375,7 @@ if (document.readyState === 'loading') {
 /**
  * View tournament bracket - loads participants and starts bracket
  */
-async function viewTournamentBracket(tournamentId, tournamentName, maxParticipants) {
+export async function viewTournamentBracket(tournamentId, tournamentName, maxParticipants) {
     console.log('viewTournamentBracket called:', { tournamentId, tournamentName, maxParticipants });
     try {
         currentEventTournamentId = tournamentId;
@@ -2937,6 +2940,3 @@ window.pickEventWinner = pickEventWinner;
 window.pickEventBronzeWinner = pickEventBronzeWinner;
 window.advanceEventRound = advanceEventRound;
 window.finishEventTournament = finishEventTournament;
-
-
-

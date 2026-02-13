@@ -1,7 +1,5 @@
-// ============================================================
-// script.js — PUHDAS PELIMOOTTORI
-// Ei Supabase-configia (config.js), ei authia (auth.js), ei UI-perusfunktioita (ui.js)
-// ============================================================
+import { _supabase, state } from './config.js';
+import { showNotification, showVictoryAnimation, populateGameSelect } from './ui.js';
 
 // --- Turnausmuuttujat ---
 let rP = [], rW = [], finalists = [], bronzeContenders = [], bronzeWinner = null, currentTournamentId = null, initialPlayerCount = 0;
@@ -11,17 +9,17 @@ let quickP1 = null, quickP2 = null;
 // 1. PELIEN HAKU
 // ============================================================
 
-async function fetchAllGames() {
+export async function fetchAllGames() {
     try {
         const { data } = await _supabase.from('games').select('id, game_name');
-        allGames = data || [];
+        state.allGames = data || [];
         populateGameSelect();
     } catch (e) {
         console.error(e);
     }
 }
 
-function toggleAuth(s) {
+export function toggleAuth(s) {
     document.getElementById('login-form').style.display = s ? 'none' : 'block';
     document.getElementById('signup-form').style.display = s ? 'block' : 'none';
 }
@@ -30,40 +28,40 @@ function toggleAuth(s) {
 // 2. PELAAJAPOOLIN HALLINTA (haku, lisäys, poisto)
 // ============================================================
 
-function handleSearch(v) {
+export function handleSearch(v) {
     const r = document.getElementById('search-results');
     if (!v) { r.style.display = 'none'; return; }
-    const q = v.toUpperCase(), combined = [...new Set([...allDbNames, ...sessionGuests])], f = combined.filter(n => n.includes(q) && !pool.includes(n));
+    const q = v.toUpperCase(), combined = [...new Set([...state.allDbNames, ...state.sessionGuests])], f = combined.filter(n => n.includes(q) && !state.pool.includes(n));
     r.innerHTML = f.map(n => `<div class="search-item" onclick="directAdd('${n}')">${n}</div>`).join('') + `<div class="search-item" onclick="directAdd('${q}')">Add: "${q}"</div>`;
     r.style.display = 'block';
 }
 
-function addP() {
+export function addP() {
     const i = document.getElementById('add-p-input');
     const n = i.value.trim().toUpperCase();
-    if (n && !pool.includes(n)) { pool.push(n); updatePoolUI(); showNotification(`${n} added to pool`, 'success'); }
+    if (n && !state.pool.includes(n)) { state.pool.push(n); updatePoolUI(); showNotification(`${n} added to pool`, 'success'); }
     i.value = '';
     document.getElementById('search-results').style.display = 'none';
 }
 
-function directAdd(n) {
-    if (!pool.includes(n)) { pool.push(n); updatePoolUI(); showNotification(`${n} added to pool`, 'success'); }
+export function directAdd(n) {
+    if (!state.pool.includes(n)) { state.pool.push(n); updatePoolUI(); showNotification(`${n} added to pool`, 'success'); }
     document.getElementById('add-p-input').value = '';
     document.getElementById('search-results').style.display = 'none';
 }
 
-function updatePoolUI() {
+export function updatePoolUI() {
     const list = document.getElementById('pool-list');
     const countSpan = document.getElementById('pool-count');
     list.innerHTML = '';
-    if (pool.length === 0) {
+    if (state.pool.length === 0) {
         const emptyMessage = document.createElement('div');
         emptyMessage.innerText = "No players added.";
         list.appendChild(emptyMessage);
         if (countSpan) countSpan.innerText = 0;
         return;
     }
-    pool.forEach((name, index) => {
+    state.pool.forEach((name, index) => {
         const div = document.createElement('div');
         div.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #111; padding: 8px; border-radius: 8px; border: 1px solid #222;";
         div.innerHTML = `
@@ -78,38 +76,38 @@ function updatePoolUI() {
     if (countSpan) countSpan.innerText = pool.length;
 }
 
-function removeFromPool(index) {
-    const removedPlayer = pool[index];
-    pool.splice(index, 1);
+export function removeFromPool(index) {
+    const removedPlayer = state.pool[index];
+    state.pool.splice(index, 1);
     updatePoolUI();
     showNotification(`${removedPlayer} removed from pool`, 'error');
 }
 
-function clearPool() {
-    pool = [];
+export function clearPool() {
+    state.pool = [];
     updatePoolUI();
     showNotification('Player pool cleared', 'error');
 }
 
-function updateGuestUI() {
-    document.getElementById('active-guests').innerHTML = sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join('');
+export function updateGuestUI() {
+    document.getElementById('active-guests').innerHTML = state.sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join('');
 }
 
 // ============================================================
 // 3. PROFIILIKORTTI & AVATAR
 // ============================================================
 
-async function updateProfileCard() {
+export async function updateProfileCard() {
     const container = document.getElementById('section-profile');
     if (!container) return;
-    const wins = user.wins || 0;
+    const wins = state.user.wins || 0;
     let totalGames = 0;
-    const { count } = await _supabase.from('matches').select('*', { count: 'exact', head: true }).or(`player1.eq.${user.username},player2.eq.${user.username}`);
+    const { count } = await _supabase.from('matches').select('*', { count: 'exact', head: true }).or(`player1.eq.${state.user.username},player2.eq.${state.user.username}`);
     if (count) totalGames = count;
     const losses = Math.max(0, totalGames - wins);
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
-    const rank = user.elo > 1500 ? "PRO" : "ROOKIE";
-    const avatarUrl = user.avatar_url ? user.avatar_url : 'placeholder-silhouette-5-wide.png';
+    const rank = state.user.elo > 1500 ? "PRO" : "ROOKIE";
+    const avatarUrl = state.user.avatar_url ? state.user.avatar_url : 'placeholder-silhouette-5-wide.png';
     container.innerHTML = `
         <div class="pro-card">
             <div class="card-inner-frame">
@@ -117,17 +115,17 @@ async function updateProfileCard() {
                 <div class="card-image-area">
                     <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                 </div>
-                <div class="card-name-strip">${user.username}</div>
+                <div class="card-name-strip">${state.user.username}</div>
                 <div class="card-info-area">
                     <div class="card-stats-row">
-                        <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${user.elo}</div></div>
+                        <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${state.user.elo}</div></div>
                         <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div>
                         <div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div>
                         <div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div>
                     </div>
                     <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:5px;">
-                            <img src="https://flagcdn.com/w80/${(user.country || 'fi').toLowerCase()}.png" width="16">
+                            <img src="https://flagcdn.com/w80/${(state.user.country || 'fi').toLowerCase()}.png" width="16">
                             <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING</span>
                         </div>
                         <div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div>
@@ -145,7 +143,7 @@ async function updateProfileCard() {
     `;
 }
 
-function updateAvatarPreview(url) {
+export function updateAvatarPreview(url) {
     const img = document.getElementById('avatar-preview');
     if (img) {
         img.src = url || 'placeholder-silhouette-5-wide.png';
@@ -153,7 +151,7 @@ function updateAvatarPreview(url) {
     }
 }
 
-async function viewPlayerCard(targetUsername) {
+export async function viewPlayerCard(targetUsername) {
     const modal = document.getElementById('card-modal');
     const container = document.getElementById('modal-card-container');
     modal.style.display = 'flex';
@@ -194,9 +192,9 @@ async function viewPlayerCard(targetUsername) {
     `;
 }
 
-function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
+export function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
 
-async function downloadFanCard() {
+export async function downloadFanCard() {
     const cardElement = document.querySelector('.pro-card');
     if (!cardElement) return showNotification("Card element not found", "error");
     await document.fonts.load('1em Resolve');
@@ -204,7 +202,7 @@ async function downloadFanCard() {
     try {
         const canvas = await html2canvas(cardElement, { useCORS: true, allowTaint: true, backgroundColor: "#000000", scale: 4, logging: false });
         const link = document.createElement('a');
-        link.download = `Subsoccer_ProCard_${user.username}.png`;
+        link.download = `Subsoccer_ProCard_${state.user.username}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
         showNotification("Card saved to your device!", "success");
@@ -218,10 +216,10 @@ async function downloadFanCard() {
 // 4. KARTTA & PELIPÖYTIEN HALLINTA
 // ============================================================
 
-function initGameMap() {
-    gameMap = L.map('map-picker').setView([60.1699, 24.9384], 10);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(gameMap);
-    gameMap.on('click', async function(e) {
+export function initGameMap() {
+    state.gameMap = L.map('map-picker').setView([60.1699, 24.9384], 10);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(state.gameMap);
+    state.gameMap.on('click', async function(e) {
         setMapLocation(e.latlng.lat, e.latlng.lng);
         try {
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}`);
@@ -231,26 +229,26 @@ function initGameMap() {
     });
 }
 
-function setMapLocation(lat, lng, name) {
-    selLat = lat; selLng = lng;
-    if (gameMarker) gameMap.removeLayer(gameMarker);
-    gameMarker = L.marker([lat, lng]).addTo(gameMap);
-    gameMap.setView([lat, lng], 13);
+export function setMapLocation(lat, lng, name) {
+    state.selLat = lat; state.selLng = lng;
+    if (state.gameMarker) state.gameMap.removeLayer(state.gameMarker);
+    state.gameMarker = L.marker([lat, lng]).addTo(state.gameMap);
+    state.gameMap.setView([lat, lng], 13);
     const txt = name ? `${name} (${lat.toFixed(2)}, ${lng.toFixed(2)})` : `Selected: ${lat.toFixed(2)}, ${lng.toFixed(2)}`;
     document.getElementById('location-confirm').innerText = "Location set to " + txt;
 }
 
-async function fetchPublicGamesMap() {
-    if (!publicMap) {
-        publicMap = L.map('public-game-map').setView([60.1699, 24.9384], 11);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(publicMap);
+export async function fetchPublicGamesMap() {
+    if (!state.publicMap) {
+        state.publicMap = L.map('public-game-map').setView([60.1699, 24.9384], 11);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
     } else {
-        setTimeout(() => publicMap.invalidateSize(), 200);
+        setTimeout(() => state.publicMap.invalidateSize(), 200);
     }
     
     const { data } = await _supabase.from('games').select('*').eq('is_public', true);
     if (data) {
-        publicMap.eachLayer((layer) => { if (layer instanceof L.Marker) publicMap.removeLayer(layer); });
+        state.publicMap.eachLayer((layer) => { if (layer instanceof L.Marker) state.publicMap.removeLayer(layer); });
         data.forEach(g => {
             if (g.latitude && g.longitude) {
                 // Different icon for verified games
@@ -263,14 +261,14 @@ async function fetchPublicGamesMap() {
                     iconAnchor: [8, 8] 
                 });
                 L.marker([g.latitude, g.longitude], { icon: subsoccerIcon })
-                    .addTo(publicMap)
+                    .addTo(state.publicMap)
                     .bindPopup(`<div style="color:#000; font-family:'Resolve Sans';">${verifiedBadge}<b>${g.game_name.toLowerCase()}</b><br>${g.location}</div>`);
             }
         });
     }
 }
 
-async function searchLocation() {
+export async function searchLocation() {
     const q = document.getElementById('game-address-input').value;
     if (!q) return;
     try {
@@ -281,7 +279,7 @@ async function searchLocation() {
     } catch(e) { showNotification("Search error", "error"); }
 }
 
-async function registerGame() {
+export async function registerGame() {
     const btn = event?.target;
     const originalText = btn ? btn.textContent : '';
     
@@ -297,11 +295,11 @@ async function registerGame() {
             btn.textContent = 'Registering...';
         }
         
-        if (!serialNumber || !gameName || !location || !selLat) {
+        if (!serialNumber || !gameName || !location || !state.selLat) {
             showNotification("Please fill all fields and select location on map.", "error");
             return;
         }
-        if (user.id === 'guest') {
+        if (state.user.id === 'guest') {
             showNotification("Guests cannot register games. Please create an account.", "error");
             return;
         }
@@ -337,9 +335,9 @@ async function registerGame() {
             unique_code: uniqueCode, 
             game_name: gameName, 
             location: location, 
-            owner_id: user.id, 
-            latitude: selLat, 
-            longitude: selLng, 
+            owner_id: state.user.id, 
+            latitude: state.selLat, 
+            longitude: state.selLng, 
             is_public: isPublic,
             serial_number: serialNumber,
             verified: verified,
@@ -351,8 +349,8 @@ async function registerGame() {
         document.getElementById('game-name-input').value = '';
         document.getElementById('game-address-input').value = '';
         document.getElementById('game-serial-input').value = '';
-        selLat = null; selLng = null;
-        if (gameMarker) gameMap.removeLayer(gameMarker);
+        state.selLat = null; state.selLng = null;
+        if (state.gameMarker) state.gameMap.removeLayer(state.gameMarker);
         document.getElementById('location-confirm').innerText = '';
         await fetchAllGames();
         fetchMyGames();
@@ -393,10 +391,10 @@ async function registerGame() {
     }
 }
 
-function initEditGame(id) {
-    const game = myGames.find(g => g.id === id);
+export function initEditGame(id) {
+    const game = state.myGames.find(g => g.id === id);
     if (!game) return;
-    editingGameId = id;
+    state.editingGameId = id;
     document.getElementById('game-serial-input').value = game.serial_number || '';
     document.getElementById('game-serial-input').disabled = true; // Can't change serial number
     document.getElementById('game-name-input').value = game.game_name;
@@ -408,22 +406,22 @@ function initEditGame(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function cancelEdit() {
-    editingGameId = null;
+export function cancelEdit() {
+    state.editingGameId = null;
     document.getElementById('game-serial-input').value = '';
     document.getElementById('game-serial-input').disabled = false; // Re-enable for new registration
     document.getElementById('game-name-input').value = '';
     document.getElementById('game-address-input').value = '';
     document.getElementById('game-public-input').checked = false;
     document.getElementById('location-confirm').innerText = '';
-    selLat = null; selLng = null;
-    if (gameMarker) gameMap.removeLayer(gameMarker);
+    state.selLat = null; state.selLng = null;
+    if (state.gameMarker) state.gameMap.removeLayer(state.gameMarker);
     document.getElementById('btn-reg-game').style.display = 'block';
     document.getElementById('btn-edit-group').style.display = 'none';
 }
 
-async function updateGame() {
-    if (!editingGameId) return;
+export async function updateGame() {
+    if (!state.editingGameId) return;
     
     const btn = event?.target;
     const originalText = btn ? btn.textContent : '';
@@ -438,12 +436,12 @@ async function updateGame() {
         const location = document.getElementById('game-address-input').value.trim();
         const isPublic = document.getElementById('game-public-input').checked;
         
-        if (!gameName || !location || !selLat) {
+        if (!gameName || !location || !state.selLat) {
             showNotification("Please fill fields and location.", "error");
             return;
         }
         
-        const { error } = await _supabase.from('games').update({ game_name: gameName, location: location, latitude: selLat, longitude: selLng, is_public: isPublic }).eq('id', editingGameId);
+        const { error } = await _supabase.from('games').update({ game_name: gameName, location: location, latitude: state.selLat, longitude: state.selLng, is_public: isPublic }).eq('id', state.editingGameId);
         if (error) throw error;
         
         showNotification("Game updated!", "success");
@@ -460,7 +458,7 @@ async function updateGame() {
     }
 }
 
-async function deleteGame(id) {
+export async function deleteGame(id) {
     if (!confirm("Are you sure you want to delete this game table? It will also be removed from past tournament results.")) return;
     try {
         const { error: updateError } = await _supabase.from('tournament_history').update({ game_id: null }).eq('game_id', id);
@@ -476,18 +474,18 @@ async function deleteGame(id) {
     }
 }
 
-async function fetchMyGames() {
-    if (user.id === 'guest') { 
+export async function fetchMyGames() {
+    if (state.user.id === 'guest') { 
         const gamesListEl = document.getElementById('my-games-list');
         const profileGamesListEl = document.getElementById('profile-games-list');
         if (gamesListEl) gamesListEl.innerHTML = '<p>Login to see your registered games.</p>';
         if (profileGamesListEl) profileGamesListEl.innerHTML = '<p style="color:#666; font-size:0.85rem;">Login to see your registered games.</p>';
         return;
     }
-    const { data, error } = await _supabase.from('games').select('*').eq('owner_id', user.id);
+    const { data, error } = await _supabase.from('games').select('*').eq('owner_id', state.user.id);
     if (error) { console.error('Error fetching games:', error); return; }
     
-    myGames = data || [];
+    state.myGames = data || [];
     
     const gameHTML = (data && data.length > 0) ? data.map(game => `
         <div style="background:#111; padding:15px; border-radius:8px; margin-bottom:10px; border-left: 3px solid ${game.verified ? 'var(--sub-gold)' : 'var(--sub-red)'}; position: relative;">
@@ -527,7 +525,7 @@ async function fetchMyGames() {
 // 5. ELO-LASKENTA
 // ============================================================
 
-function calculateNewElo(playerA, playerB, winner) {
+export function calculateNewElo(playerA, playerB, winner) {
     const eloA = playerA.elo, eloB = playerB.elo, kFactor = 32;
     const expectedScoreA = 1 / (1 + Math.pow(10, (eloB - eloA) / 400));
     const expectedScoreB = 1 / (1 + Math.pow(10, (eloA - eloB) / 400));
@@ -542,7 +540,7 @@ function calculateNewElo(playerA, playerB, winner) {
 // 6. TILASTOT: LEADERBOARD & HISTORIA
 // ============================================================
 
-async function fetchLB() {
+export async function fetchLB() {
     const { data } = await _supabase.from('players').select('*').order('elo', { ascending: false });
     
     if (!data || data.length === 0) {
@@ -614,10 +612,10 @@ async function fetchLB() {
     document.getElementById('lb-data').innerHTML = html;
 }
 
-async function fetchHist() {
+export async function fetchHist() {
     const { data: tourData } = await _supabase.from('tournament_history').select('*').order('created_at', { ascending: false });
     const { data: matchData } = await _supabase.from('matches').select('*').order('created_at', { ascending: false });
-    if (allGames.length === 0) await fetchAllGames();
+    if (state.allGames.length === 0) await fetchAllGames();
     if (!tourData || tourData.length === 0) { document.getElementById('hist-list').innerHTML = "No history."; return; }
 
     const events = tourData.reduce((acc, h) => {
@@ -642,7 +640,7 @@ async function fetchHist() {
             let thirdPlace = h.third_place_name ? `<br><small>🥉 ${h.third_place_name}</small>` : '';
             const date = new Date(h.created_at);
             const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-            const gameName = h.game_id ? (allGames.find(g => g.id === h.game_id)?.game_name || '') : '';
+            const gameName = h.game_id ? (state.allGames.find(g => g.id === h.game_id)?.game_name || '') : '';
             const uniqueTourId = `${eventName.replace(/\s+/g, '-')}-${h.tournament_id}`;
             const safeEventName = h.event_name ? h.event_name.replace(/"/g, '&quot;') : '';
             const safeGameId = h.game_id || '';
@@ -668,7 +666,7 @@ async function fetchHist() {
 // 7. OTTELUN TALLENNUS
 // ============================================================
 
-async function saveMatch(p1, p2, winner, tourName) {
+export async function saveMatch(p1, p2, winner, tourName) {
     try {
         const { data: p1Data } = await _supabase.from('players').select('*').eq('username', p1).single();
         const { data: p2Data } = await _supabase.from('players').select('*').eq('username', p2).single();
@@ -676,6 +674,10 @@ async function saveMatch(p1, p2, winner, tourName) {
         if (p1Data && p2Data) {
             const winnerData = winner === p1 ? p1Data : p2Data;
             const { newEloA, newEloB } = calculateNewElo(p1Data, p2Data, winnerData);
+            
+            // Store for animation
+            window.lastTournamentEloGain = (winner === p1 ? newEloA : newEloB) - winnerData.elo;
+            window.lastTournamentWinner = winner;
             
             const { error: e1 } = await _supabase.from('players').update({ elo: newEloA }).eq('id', p1Data.id);
             const { error: e2 } = await _supabase.from('players').update({ elo: newEloB }).eq('id', p2Data.id);
@@ -702,17 +704,17 @@ async function saveMatch(p1, p2, winner, tourName) {
 // 8. TURNAUSMOOTTORI
 // ============================================================
 
-function startTournament() {
-    if (pool.length < 2) return showNotification("Min 2 players for a tournament!", "error");
+export function startTournament() {
+    if (state.pool.length < 2) return showNotification("Min 2 players for a tournament!", "error");
     try {
         currentTournamentId = uuid.v4();
-        initialPlayerCount = pool.length;
+        initialPlayerCount = state.pool.length;
         document.getElementById('tour-setup').style.display = 'none';
         document.getElementById('tour-engine').style.display = 'flex';
         document.getElementById('save-btn').style.display = 'none';
-        const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(pool.length)));
-        const byes = nextPowerOfTwo - pool.length;
-        let shuffledPlayers = [...pool].sort(() => Math.random() - 0.5);
+        const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(state.pool.length)));
+        const byes = nextPowerOfTwo - state.pool.length;
+        let shuffledPlayers = [...state.pool].sort(() => Math.random() - 0.5);
         rP = shuffledPlayers;
         rW = []; finalists = []; bronzeContenders = []; bronzeWinner = null;
         drawRound(byes);
@@ -722,7 +724,7 @@ function startTournament() {
     }
 }
 
-function drawRound(byes = 0) {
+export function drawRound(byes = 0) {
     const a = document.getElementById('bracket-area'); a.innerHTML = "";
     if (finalists.length === 0) rW = [];
 
@@ -779,7 +781,7 @@ function drawRound(byes = 0) {
     checkCompletion();
 }
 
-function pickWin(idx, n, e) {
+export function pickWin(idx, n, e) {
     let p1, p2;
     if (finalists.length === 2) { p1 = finalists[0]; p2 = finalists[1]; }
     else {
@@ -794,7 +796,7 @@ function pickWin(idx, n, e) {
     checkCompletion();
 }
 
-function pickBronzeWinner(n, e) {
+export function pickBronzeWinner(n, e) {
     const tournamentName = "Tournament";
     saveMatch(bronzeContenders[0], bronzeContenders[1], n, tournamentName + " (Bronze)");
     bronzeWinner = n;
@@ -803,7 +805,7 @@ function pickBronzeWinner(n, e) {
     checkCompletion();
 }
 
-function checkCompletion() {
+export function checkCompletion() {
     const nextBtn = document.getElementById('next-rd-btn');
     const byes = Math.pow(2, Math.ceil(Math.log2(rP.length))) - rP.length;
     const matchesToPlay = (rP.length - byes) / 2;
@@ -816,7 +818,7 @@ function checkCompletion() {
     else { nextBtn.style.display = 'none'; }
 }
 
-function advanceRound() {
+export function advanceRound() {
     const nextBtn = document.getElementById('next-rd-btn');
     if (nextBtn.innerText === 'FINISH TOURNAMENT') { rP = rW.filter(w => w); saveTour(); return; }
     if (rP.length === 4) {
@@ -831,7 +833,7 @@ function advanceRound() {
     drawRound(nextByes);
 }
 
-async function saveTour() {
+export async function saveTour() {
     try {
         const winnerName = rP[0];
         const tournamentName = "Tournament";
@@ -843,7 +845,7 @@ async function saveTour() {
             const allFinalists = rP.length > 0 ? rP : finalists;
             if (allFinalists.length > 0) {
                 const winner = allFinalists[0];
-                const allParticipantsInFinalRound = (initialPlayerCount === 4) ? finalists : pool;
+                const allParticipantsInFinalRound = (initialPlayerCount === 4) ? finalists : state.pool;
                 secondPlaceName = allParticipantsInFinalRound.find(p => p !== winner) || null;
             }
         }
@@ -854,16 +856,33 @@ async function saveTour() {
         const { error } = await _supabase.from('tournament_history').insert([dataToInsert]);
         if (error) throw error;
         
-        pool = []; 
+        state.pool = []; 
         updatePoolUI();
         document.getElementById('tour-engine').style.display = 'none';
         document.getElementById('tour-setup').style.display = 'block';
         showPage('history');
         showNotification('Tournament saved successfully!', 'success');
         
-        if (winnerName === user.username) {
-            const { data } = await _supabase.from('players').select('*').eq('id', user.id).single();
-            if (data) { user = data; updateProfileCard(); }
+        // Show victory animation
+        let winnerElo = 0;
+        let winnerGain = 0;
+        
+        if (winnerName) {
+            const { data: p } = await _supabase.from('players').select('elo').eq('username', winnerName).single();
+            if (p) winnerElo = p.elo;
+            
+            if (window.lastTournamentWinner === winnerName) {
+                winnerGain = window.lastTournamentEloGain || 0;
+            }
+        }
+        
+        if (typeof showVictoryAnimation === 'function') {
+            showVictoryAnimation(winnerName, winnerElo, winnerGain);
+        }
+        
+        if (winnerName === state.user.username) {
+            const { data } = await _supabase.from('players').select('*').eq('id', state.user.id).single();
+            if (data) { state.user = data; updateProfileCard(); }
         }
     } catch (error) {
         console.error('Error saving tournament:', error);
@@ -871,8 +890,8 @@ async function saveTour() {
     }
 }
 
-function replayTournament(players, tourName, eventName, gameId) {
-    pool = [...players];
+export function replayTournament(players, tourName, eventName, gameId) {
+    state.pool = [...players];
     showPage('tournament');
     updatePoolUI();
     showNotification(`Players for "${tourName}" loaded!`, 'success');
@@ -887,7 +906,7 @@ function replayTournament(players, tourName, eventName, gameId) {
  * Called automatically when goal sound is detected
  * @param {number} playerNumber - 1 or 2, which player scored
  */
-function handleGoalDetected(playerNumber) {
+export function handleGoalDetected(playerNumber) {
     // PRO MODE - Route to Pro Mode handler if active
     if (proModeActive) {
         handleGoalDetectedPro(playerNumber);
@@ -931,17 +950,17 @@ function handleGoalDetected(playerNumber) {
     }
 }
 
-function handleQuickSearch(input, slot) {
+export function handleQuickSearch(input, slot) {
     const v = input.value.toUpperCase();
     const resDiv = document.getElementById(`${slot}-results`);
     if (!v) { resDiv.style.display = 'none'; return; }
-    const combined = [...new Set([...allDbNames, ...sessionGuests])];
+    const combined = [...new Set([...state.allDbNames, ...state.sessionGuests])];
     const filtered = combined.filter(n => n.includes(v)).slice(0, 5);
     resDiv.innerHTML = filtered.map(n => `<div class="search-item" onclick="selectQuickPlayer('${n}', '${slot}')">${n}</div>`).join('');
     resDiv.style.display = 'block';
 }
 
-async function selectQuickPlayer(name, slot) {
+export async function selectQuickPlayer(name, slot) {
     document.getElementById(`${slot}-quick-search`).value = name;
     document.getElementById(`${slot}-results`).style.display = 'none';
     if (slot === 'p1') quickP1 = name; else quickP2 = name;
@@ -955,7 +974,7 @@ async function selectQuickPlayer(name, slot) {
     }
 }
 
-async function updateEloPreview() {
+export async function updateEloPreview() {
     if (!quickP1 || !quickP2) return;
     const { data: p1 } = await _supabase.from('players').select('id, elo').eq('username', quickP1).single();
     const { data: p2 } = await _supabase.from('players').select('id, elo').eq('username', quickP2).single();
@@ -967,7 +986,7 @@ async function updateEloPreview() {
     document.getElementById('elo-preview').style.display = 'block';
 }
 
-async function startQuickMatch() {
+export async function startQuickMatch() {
     document.querySelectorAll('input').forEach(input => input.blur());
     const p1Val = document.getElementById('p1-quick-search').value.trim().toUpperCase();
     const p2Val = document.getElementById('p2-quick-search').value.trim().toUpperCase();
@@ -1007,7 +1026,7 @@ async function startQuickMatch() {
     // Note: Audio engine is NOT started here, avoiding microphone permission prompt
 }
 
-function cancelQuickMatch() {
+export function cancelQuickMatch() {
     // Stop audio detection
     if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') {
         window.audioEngine.stopListening();
@@ -1018,12 +1037,12 @@ function cancelQuickMatch() {
     document.getElementById('app-content').style.display = 'flex';
 }
 
-function handleQuickWinner(winnerName, btn) {
+export function handleQuickWinner(winnerName, btn) {
     btn.parentElement.remove();
     finalizeQuickMatch(winnerName);
 }
 
-async function finalizeQuickMatch(winnerName) {
+export async function finalizeQuickMatch(winnerName) {
     try {
         const loserName = (winnerName === quickP1) ? quickP2 : quickP1;
         let { data: p1Data } = await _supabase.from('players').select('*').eq('username', winnerName).single();
@@ -1065,7 +1084,7 @@ async function finalizeQuickMatch(winnerName) {
     }
 }
 
-function showVictory(name, newElo, gain, isGuest = false) {
+export function showVictory(name, newElo, gain, isGuest = false) {
     document.querySelectorAll('input').forEach(input => input.blur());
     const appContent = document.getElementById('app-content');
     if (appContent) appContent.style.display = 'none';
@@ -1086,7 +1105,7 @@ function showVictory(name, newElo, gain, isGuest = false) {
     overlay.style.display = 'flex';
 }
 
-function closeVictoryOverlay() {
+export function closeVictoryOverlay() {
     document.getElementById('victory-overlay').style.display = 'none';
     const appContent = document.getElementById('app-content');
     if (appContent) appContent.style.display = 'flex';
@@ -1112,7 +1131,7 @@ function closeVictoryOverlay() {
  * Clear Quick Match player selections
  * Allows user to start fresh with new players
  */
-function clearQuickMatchPlayers() {
+export function clearQuickMatchPlayers() {
     document.getElementById('p1-quick-search').value = '';
     document.getElementById('p2-quick-search').value = '';
     quickP1 = null;
@@ -1134,7 +1153,7 @@ function clearQuickMatchPlayers() {
 /**
  * Manual toggle for audio detection
  */
-async function toggleAudioDetection() {
+export async function toggleAudioDetection() {
     if (!window.audioEngine) {
         showNotification('Audio engine not loaded', 'error');
         return;
@@ -1199,7 +1218,7 @@ function startFrequencyMonitor() {
 let mediaRecorder = null;
 let recordedChunks = [];
 
-async function recordGoalSound(goalNumber) {
+export async function recordGoalSound(goalNumber) {
     const statusDiv = document.getElementById('recording-status');
     
     if (!mediaRecorder || mediaRecorder.state === 'inactive') {
@@ -1320,9 +1339,9 @@ const PRO_MODE_WIN_SCORE = 3; // First to 3 goals wins
 /**
  * Handle Pro Mode click (restricted to Jarno Saarinen only)
  */
-function handleProModeClick() {
+export function handleProModeClick() {
     // Check if user is Jarno Saarinen
-    if (!user || user.username !== 'JARNO SAARINEN') {
+    if (!state.user || state.user.username !== 'JARNO SAARINEN') {
         showNotification('Pro Mode is currently in beta - Available for authorized users only', 'error');
         return;
     }
@@ -1333,12 +1352,12 @@ function handleProModeClick() {
 /**
  * Initialize Pro Mode UI based on user
  */
-function initProModeUI() {
+export function initProModeUI() {
     const proSection = document.getElementById('pro-mode-section');
     if (!proSection) return;
     
     // If not Jarno Saarinen, add disabled class
-    if (!user || user.username !== 'JARNO SAARINEN') {
+    if (!state.user || state.user.username !== 'JARNO SAARINEN') {
         proSection.classList.add('disabled');
     } else {
         proSection.classList.remove('disabled');
@@ -1348,7 +1367,7 @@ function initProModeUI() {
 /**
  * Toggle Pro Mode checkbox
  */
-function toggleProMode() {
+export function toggleProMode() {
     const checkbox = document.getElementById('pro-mode-toggle');
     const proSection = document.getElementById('pro-mode-section');
     
@@ -1380,7 +1399,7 @@ function toggleProMode() {
 /**
  * Start Pro Mode match
  */
-async function startProMatch() {
+export async function startProMatch() {
     if (!quickP1 || !quickP2) {
         showNotification("Select both players!", "error");
         return;
@@ -1545,7 +1564,7 @@ async function finishProMatch(winnerName) {
 /**
  * Exit Pro Mode manually
  */
-function exitProMode() {
+export function exitProMode() {
     if (!confirm('Exit current match? Result will not be saved.')) {
         return;
     }
@@ -1574,7 +1593,7 @@ function exitProMode() {
  * Manual goal scoring - called when tapping player side
  * @param {number} playerNumber - 1 or 2
  */
-function addManualGoal(playerNumber) {
+export function addManualGoal(playerNumber) {
     if (!proModeActive) return;
     handleGoalDetectedPro(playerNumber);
 }
@@ -1582,7 +1601,7 @@ function addManualGoal(playerNumber) {
 /**
  * Undo last goal in Pro Mode
  */
-function undoLastGoal() {
+export function undoLastGoal() {
     if (!proModeActive || proGoalHistory.length === 0) return;
     
     // Get last goal from history
@@ -1633,7 +1652,7 @@ setInterval(async () => {
 /**
  * Toggle sound effects on/off
  */
-function toggleSoundEffects() {
+export function toggleSoundEffects() {
     if (!window.soundEffects) {
         showNotification('Sound system not loaded', 'error');
         return;
@@ -1674,236 +1693,6 @@ window.directAdd = directAdd;
 window.updatePoolUI = updatePoolUI;
 window.removeFromPool = removeFromPool;
 window.clearPool = clearPool;
-
-// ============================================================
-// VERIFIED GAMES & OWNERSHIP FUNCTIONS
-// ============================================================
-
-function showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic) {
-    const currentOwnerName = existingGame.players?.username || 'Unknown';
-    
-    const html = `
-        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; display:flex; align-items:center; justify-content:center; padding:20px;" id="ownership-transfer-modal">
-            <div style="background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px; max-width:500px; width:100%;">
-                <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:20px;">⚠️ SERIAL NUMBER IN USE</h3>
-                
-                <p style="margin-bottom:15px;">This serial number is already registered to:</p>
-                <div style="background:#111; padding:15px; border-radius:8px; margin-bottom:20px; border-left:3px solid var(--sub-gold);">
-                    <div style="font-family:'Russo One'; color:var(--sub-gold);">${existingGame.game_name}</div>
-                    <small style="color:#888;">Owner: ${currentOwnerName}</small>
-                </div>
-                
-                <p style="margin-bottom:20px; font-size:0.9rem; color:#ccc;">
-                    Each serial number can only be registered to one owner at a time. 
-                    You can request the current owner to transfer ownership to you.
-                </p>
-                
-                <div style="background:#222; padding:15px; border-radius:8px; margin-bottom:20px;">
-                    <div style="font-size:0.8rem; color:#999; margin-bottom:10px;">Your game details:</div>
-                    <div style="color:var(--sub-gold);">Name: ${gameName}</div>
-                    <div style="color:#ccc; font-size:0.85rem;">Location: ${location}</div>
-                </div>
-                
-                <textarea id="transfer-message" placeholder="Optional message to current owner..." style="width:100%; min-height:80px; margin-bottom:20px; background:#111; border:1px solid #333; border-radius:8px; padding:10px; color:#fff; font-family:inherit; resize:vertical;"></textarea>
-                
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="requestOwnershipTransfer('${existingGame.id}', '${serialNumber}', '${gameName}', '${location}', ${isPublic})">
-                        REQUEST TRANSFER
-                    </button>
-                    <button class="btn-red" style="flex:1; background:#444;" onclick="closeOwnershipTransferDialog()">
-                        CANCEL
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', html);
-}
-
-function closeOwnershipTransferDialog() {
-    const modal = document.getElementById('ownership-transfer-modal');
-    if (modal) modal.remove();
-    
-    // Re-enable register button
-    const btn = document.getElementById('btn-reg-game');
-    if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'REGISTER GAME';
-    }
-}
-
-async function requestOwnershipTransfer(gameId, serialNumber, newGameName, newLocation, isPublic) {
-    try {
-        const message = document.getElementById('transfer-message')?.value.trim() || '';
-        
-        // Get current owner from the game
-        const { data: gameData, error: gameError } = await _supabase
-            .from('games')
-            .select('owner_id')
-            .eq('id', gameId)
-            .single();
-        
-        if (gameError) throw gameError;
-        
-        // Create transfer request
-        const { data, error } = await _supabase
-            .from('ownership_transfer_requests')
-            .insert([{
-                game_id: gameId,
-                serial_number: serialNumber,
-                current_owner_id: gameData.owner_id,
-                new_owner_id: user.id,
-                message: message,
-                status: 'pending'
-            }]);
-        
-        if (error) throw error;
-        
-        closeOwnershipTransferDialog();
-        showNotification("Transfer request sent! The current owner will be notified.", "success");
-        
-        // Clear form
-        document.getElementById('game-name-input').value = '';
-        document.getElementById('game-address-input').value = '';
-        document.getElementById('game-serial-input').value = '';
-        
-    } catch (error) {
-        console.error('Error requesting transfer:', error);
-        showNotification("Failed to send transfer request: " + error.message, "error");
-    }
-}
-
-async function releaseGameOwnership(gameId) {
-    if (!confirm("Are you sure you want to release ownership of this game?\n\nThis will:\n• Remove verified status\n• Allow others to register this serial number\n• Cannot be undone")) {
-        return;
-    }
-    
-    try {
-        const { data, error } = await _supabase.rpc('release_game_ownership', {
-            p_game_id: gameId,
-            p_player_id: user.id
-        });
-        
-        if (error) throw error;
-        
-        if (data) {
-            showNotification("Ownership released successfully. The game is now available for others to register.", "success");
-            fetchMyGames();
-        } else {
-            showNotification("Could not release ownership. You may not be the current owner.", "error");
-        }
-    } catch (error) {
-        console.error('Error releasing ownership:', error);
-        showNotification("Failed to release ownership: " + error.message, "error");
-    }
-}
-
-async function viewOwnershipRequests() {
-    try {
-        // Get pending requests where current user is the current owner
-        const { data, error } = await _supabase
-            .from('ownership_transfer_requests')
-            .select(`
-                *,
-                games!game_id(game_name, serial_number),
-                players!new_owner_id(username)
-            `)
-            .eq('current_owner_id', user.id)
-            .eq('status', 'pending')
-            .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        
-        const modal = document.createElement('div');
-        modal.id = 'ownership-requests-modal';
-        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; overflow-y:auto; padding:20px;';
-        
-        const content = `
-            <div style="max-width:600px; margin:0 auto; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-                    <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">OWNERSHIP TRANSFER REQUESTS</h3>
-                    <button onclick="closeOwnershipRequestsModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer;">×</button>
-                </div>
-                
-                ${data && data.length > 0 ? data.map(req => `
-                    <div style="background:#111; padding:20px; border-radius:8px; margin-bottom:15px; border-left:3px solid var(--sub-gold);">
-                        <div style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:10px;">${req.games?.game_name || 'Unknown Game'}</div>
-                        <div style="font-size:0.85rem; color:#ccc; margin-bottom:5px;">Serial: ${req.serial_number}</div>
-                        <div style="font-size:0.85rem; color:#ccc; margin-bottom:10px;">Requested by: ${req.players?.username || 'Unknown'}</div>
-                        ${req.message ? `<div style="background:#222; padding:10px; border-radius:4px; margin-bottom:15px; font-size:0.85rem; color:#aaa;">"${req.message}"</div>` : ''}
-                        <div style="font-size:0.75rem; color:#666; margin-bottom:15px;">${new Date(req.created_at).toLocaleString()}</div>
-                        
-                        <div style="display:flex; gap:10px;">
-                            <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000; font-size:0.8rem; padding:8px;" onclick="approveOwnershipTransfer('${req.id}')">
-                                ✓ APPROVE
-                            </button>
-                            <button class="btn-red" style="flex:1; background:#666; font-size:0.8rem; padding:8px;" onclick="rejectOwnershipTransfer('${req.id}')">
-                                ✗ REJECT
-                            </button>
-                        </div>
-                    </div>
-                `).join('') : '<p style="text-align:center; color:#666;">No pending transfer requests</p>'}
-            </div>
-        `;
-        
-        modal.innerHTML = content;
-        document.body.appendChild(modal);
-        
-    } catch (error) {
-        console.error('Error fetching ownership requests:', error);
-        showNotification("Failed to load ownership requests: " + error.message, "error");
-    }
-}
-
-function closeOwnershipRequestsModal() {
-    const modal = document.getElementById('ownership-requests-modal');
-    if (modal) modal.remove();
-}
-
-async function approveOwnershipTransfer(transferId) {
-    if (!confirm("Approve this ownership transfer?\n\nThe game will be transferred to the requester.")) {
-        return;
-    }
-    
-    try {
-        const { data, error } = await _supabase.rpc('approve_ownership_transfer', {
-            transfer_id: transferId
-        });
-        
-        if (error) throw error;
-        
-        if (data) {
-            showNotification("Ownership transfer approved!", "success");
-            closeOwnershipRequestsModal();
-            fetchMyGames();
-        } else {
-            showNotification("Could not approve transfer.", "error");
-        }
-    } catch (error) {
-        console.error('Error approving transfer:', error);
-        showNotification("Failed to approve transfer: " + error.message, "error");
-    }
-}
-
-async function rejectOwnershipTransfer(transferId) {
-    try {
-        const { error } = await _supabase
-            .from('ownership_transfer_requests')
-            .update({ status: 'rejected', resolved_at: new Date().toISOString() })
-            .eq('id', transferId);
-        
-        if (error) throw error;
-        
-        showNotification("Transfer request rejected.", "success");
-        closeOwnershipRequestsModal();
-        
-    } catch (error) {
-        console.error('Error rejecting transfer:', error);
-        showNotification("Failed to reject transfer: " + error.message, "error");
-    }
-}
-
 window.updateGuestUI = updateGuestUI;
 window.updateProfileCard = updateProfileCard;
 window.updateAvatarPreview = updateAvatarPreview;
@@ -1965,9 +1754,239 @@ window.addManualGoal = addManualGoal;
 window.undoLastGoal = undoLastGoal;
 
 // ============================================================
-// 12. KÄYNNISTYS
+// VERIFIED GAMES & OWNERSHIP FUNCTIONS
 // ============================================================
 
-document.addEventListener('DOMContentLoaded', async () => {
-    if (typeof initApp === 'function') await initApp();
-});
+export function showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic) {
+    const currentOwnerName = existingGame.players?.username || 'Unknown';
+    
+    const html = `
+        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; display:flex; align-items:center; justify-content:center; padding:20px;" id="ownership-transfer-modal">
+            <div style="background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px; max-width:500px; width:100%;">
+                <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:20px;">⚠️ SERIAL NUMBER IN USE</h3>
+                
+                <p style="margin-bottom:15px;">This serial number is already registered to:</p>
+                <div style="background:#111; padding:15px; border-radius:8px; margin-bottom:20px; border-left:3px solid var(--sub-gold);">
+                    <div style="font-family:'Russo One'; color:var(--sub-gold);">${existingGame.game_name}</div>
+                    <small style="color:#888;">Owner: ${currentOwnerName}</small>
+                </div>
+                
+                <p style="margin-bottom:20px; font-size:0.9rem; color:#ccc;">
+                    Each serial number can only be registered to one owner at a time. 
+                    You can request the current owner to transfer ownership to you.
+                </p>
+                
+                <div style="background:#222; padding:15px; border-radius:8px; margin-bottom:20px;">
+                    <div style="font-size:0.8rem; color:#999; margin-bottom:10px;">Your game details:</div>
+                    <div style="color:var(--sub-gold);">Name: ${gameName}</div>
+                    <div style="color:#ccc; font-size:0.85rem;">Location: ${location}</div>
+                </div>
+                
+                <textarea id="transfer-message" placeholder="Optional message to current owner..." style="width:100%; min-height:80px; margin-bottom:20px; background:#111; border:1px solid #333; border-radius:8px; padding:10px; color:#fff; font-family:inherit; resize:vertical;"></textarea>
+                
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="requestOwnershipTransfer('${existingGame.id}', '${serialNumber}', '${gameName}', '${location}', ${isPublic})">
+                        REQUEST TRANSFER
+                    </button>
+                    <button class="btn-red" style="flex:1; background:#444;" onclick="closeOwnershipTransferDialog()">
+                        CANCEL
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+export function closeOwnershipTransferDialog() {
+    const modal = document.getElementById('ownership-transfer-modal');
+    if (modal) modal.remove();
+    
+    // Re-enable register button
+    const btn = document.getElementById('btn-reg-game');
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'REGISTER GAME';
+    }
+}
+
+export async function requestOwnershipTransfer(gameId, serialNumber, newGameName, newLocation, isPublic) {
+    try {
+        const message = document.getElementById('transfer-message')?.value.trim() || '';
+        
+        // Get current owner from the game
+        const { data: gameData, error: gameError } = await _supabase
+            .from('games')
+            .select('owner_id')
+            .eq('id', gameId)
+            .single();
+        
+        if (gameError) throw gameError;
+        
+        // Create transfer request
+        const { data, error } = await _supabase
+            .from('ownership_transfer_requests')
+            .insert([{
+                game_id: gameId,
+                serial_number: serialNumber,
+                current_owner_id: gameData.owner_id,
+                new_owner_id: state.user.id,
+                message: message,
+                status: 'pending'
+            }]);
+        
+        if (error) throw error;
+        
+        closeOwnershipTransferDialog();
+        showNotification("Transfer request sent! The current owner will be notified.", "success");
+        
+        // Clear form
+        document.getElementById('game-name-input').value = '';
+        document.getElementById('game-address-input').value = '';
+        document.getElementById('game-serial-input').value = '';
+        
+    } catch (error) {
+        console.error('Error requesting transfer:', error);
+        showNotification("Failed to send transfer request: " + error.message, "error");
+    }
+}
+
+export async function releaseGameOwnership(gameId) {
+    if (!confirm("Are you sure you want to release ownership of this game?\n\nThis will:\n• Remove verified status\n• Allow others to register this serial number\n• Cannot be undone")) {
+        return;
+    }
+    
+    try {
+        const { data, error } = await _supabase.rpc('release_game_ownership', {
+            p_game_id: gameId,
+            p_player_id: state.user.id
+        });
+        
+        if (error) throw error;
+        
+        if (data) {
+            showNotification("Ownership released successfully. The game is now available for others to register.", "success");
+            fetchMyGames();
+        } else {
+            showNotification("Could not release ownership. You may not be the current owner.", "error");
+        }
+    } catch (error) {
+        console.error('Error releasing ownership:', error);
+        showNotification("Failed to release ownership: " + error.message, "error");
+    }
+}
+
+export async function viewOwnershipRequests() {
+    try {
+        // Get pending requests where current user is the current owner
+        const { data, error } = await _supabase
+            .from('ownership_transfer_requests')
+            .select(`
+                *,
+                games!game_id(game_name, serial_number),
+                players!new_owner_id(username)
+            `)
+            .eq('current_owner_id', state.user.id)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const modal = document.createElement('div');
+        modal.id = 'ownership-requests-modal';
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; overflow-y:auto; padding:20px;';
+        
+        const content = `
+            <div style="max-width:600px; margin:0 auto; background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                    <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin:0;">OWNERSHIP TRANSFER REQUESTS</h3>
+                    <button onclick="closeOwnershipRequestsModal()" style="background:none; border:none; color:#999; font-size:1.5rem; cursor:pointer;">×</button>
+                </div>
+                
+                ${data && data.length > 0 ? data.map(req => `
+                    <div style="background:#111; padding:20px; border-radius:8px; margin-bottom:15px; border-left:3px solid var(--sub-gold);">
+                        <div style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:10px;">${req.games?.game_name || 'Unknown Game'}</div>
+                        <div style="font-size:0.85rem; color:#ccc; margin-bottom:5px;">Serial: ${req.serial_number}</div>
+                        <div style="font-size:0.85rem; color:#ccc; margin-bottom:10px;">Requested by: ${req.players?.username || 'Unknown'}</div>
+                        ${req.message ? `<div style="background:#222; padding:10px; border-radius:4px; margin-bottom:15px; font-size:0.85rem; color:#aaa;">"${req.message}"</div>` : ''}
+                        <div style="font-size:0.75rem; color:#666; margin-bottom:15px;">${new Date(req.created_at).toLocaleString()}</div>
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000; font-size:0.8rem; padding:8px;" onclick="approveOwnershipTransfer('${req.id}')">
+                                ✓ APPROVE
+                            </button>
+                            <button class="btn-red" style="flex:1; background:#666; font-size:0.8rem; padding:8px;" onclick="rejectOwnershipTransfer('${req.id}')">
+                                ✗ REJECT
+                            </button>
+                        </div>
+                    </div>
+                `).join('') : '<p style="text-align:center; color:#666;">No pending transfer requests</p>'}
+            </div>
+        `;
+        
+        modal.innerHTML = content;
+        document.body.appendChild(modal);
+        
+    } catch (error) {
+        console.error('Error fetching ownership requests:', error);
+        showNotification("Failed to load ownership requests: " + error.message, "error");
+    }
+}
+
+export function closeOwnershipRequestsModal() {
+    const modal = document.getElementById('ownership-requests-modal');
+    if (modal) modal.remove();
+}
+
+export async function approveOwnershipTransfer(transferId) {
+    if (!confirm("Approve this ownership transfer?\n\nThe game will be transferred to the requester.")) {
+        return;
+    }
+    
+    try {
+        const { data, error } = await _supabase.rpc('approve_ownership_transfer', {
+            transfer_id: transferId
+        });
+        
+        if (error) throw error;
+        
+        if (data) {
+            showNotification("Ownership transfer approved!", "success");
+            closeOwnershipRequestsModal();
+            fetchMyGames();
+        } else {
+            showNotification("Could not approve transfer.", "error");
+        }
+    } catch (error) {
+        console.error('Error approving transfer:', error);
+        showNotification("Failed to approve transfer: " + error.message, "error");
+    }
+}
+
+export async function rejectOwnershipTransfer(transferId) {
+    try {
+        const { error } = await _supabase
+            .from('ownership_transfer_requests')
+            .update({ status: 'rejected', resolved_at: new Date().toISOString() })
+            .eq('id', transferId);
+        
+        if (error) throw error;
+        
+        showNotification("Transfer request rejected.", "success");
+        closeOwnershipRequestsModal();
+        
+    } catch (error) {
+        console.error('Error rejecting transfer:', error);
+        showNotification("Failed to reject transfer: " + error.message, "error");
+    }
+}
+
+window.showOwnershipTransferDialog = showOwnershipTransferDialog;
+window.closeOwnershipTransferDialog = closeOwnershipTransferDialog;
+window.requestOwnershipTransfer = requestOwnershipTransfer;
+window.releaseGameOwnership = releaseGameOwnership;
+window.viewOwnershipRequests = viewOwnershipRequests;
+window.closeOwnershipRequestsModal = closeOwnershipRequestsModal;
+window.approveOwnershipTransfer = approveOwnershipTransfer;
+window.rejectOwnershipTransfer = rejectOwnershipTransfer;
