@@ -2622,6 +2622,10 @@ async function saveEventMatch(player1, player2, winner) {
             const winnerData = winner === player1 ? p1Data : p2Data;
             const { newEloA, newEloB } = calculateEventElo(p1Data, p2Data, winnerData);
             
+            // Store for animation
+            window.lastEventEloGain = (winner === player1 ? newEloA : newEloB) - winnerData.elo;
+            window.lastEventWinner = winner;
+            
             // Update ELO for both players
             const { error: e1 } = await _supabase
                 .from('players')
@@ -2772,6 +2776,23 @@ async function finishEventTournament() {
         showNotification('Tournament completed successfully!', 'success');
         closeBracketModal();
         
+        // Show victory animation
+        let winnerElo = 0;
+        let winnerGain = 0;
+        
+        if (winnerName) {
+            const { data: p } = await _supabase.from('players').select('elo').eq('username', winnerName).single();
+            if (p) winnerElo = p.elo;
+            
+            if (window.lastEventWinner === winnerName) {
+                winnerGain = window.lastEventEloGain || 0;
+            }
+        }
+        
+        if (typeof showVictoryAnimation === 'function') {
+            showVictoryAnimation(winnerName, winnerElo, winnerGain);
+        }
+        
         // Refresh event details if we have the event ID
         if (currentEventId) {
             viewEventDetails(currentEventId);
@@ -2806,6 +2827,3 @@ window.pickEventWinner = pickEventWinner;
 window.pickEventBronzeWinner = pickEventBronzeWinner;
 window.advanceEventRound = advanceEventRound;
 window.finishEventTournament = finishEventTournament;
-
-
-
