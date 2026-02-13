@@ -1,6 +1,6 @@
 import { showNotification, showPage, loadUserProfile, populateCountries } from './ui.js';
 import { _supabase, state } from './config.js';
-import { fetchAllGames, updateGuestUI, updateProfileCard, initProModeUI, toggleAuth } from './script.js';
+import { fetchAllGames, updateGuestUI, updateProfileCard, initProModeUI, toggleAuth, initClaimResult } from './script.js';
 
 export async function initApp() {
     try {
@@ -58,8 +58,14 @@ function startSession() {
     document.getElementById('auth-page').style.display = 'none'; 
     document.getElementById('app-content').style.display = 'flex'; 
     document.getElementById('nav-tabs').style.display = 'flex'; 
-    const nameEl = document.getElementById('user-display-name');
-    if (nameEl) nameEl.innerText = state.user.username;
+    
+    // Contextual UI for Guests
+    const eventsTab = document.getElementById('tab-events');
+    if (state.user.id === 'guest') {
+        if (eventsTab) eventsTab.style.display = 'none';
+    } else {
+        if (eventsTab) eventsTab.style.display = 'flex';
+    }
     
     // Show Pro Mode only for developer (Jarno Saarinen)
     const proModeSection = document.getElementById('pro-mode-section');
@@ -70,7 +76,17 @@ function startSession() {
     if (typeof updateProfileCard === 'function') updateProfileCard(); 
     if (typeof updateGuestUI === 'function') updateGuestUI(); 
     if (typeof initProModeUI === 'function') initProModeUI(); 
-    showPage('tournament'); 
+    
+    // Check for claim result params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'claim_result') {
+        const p1 = parseInt(params.get('p1_score')) || 0;
+        const p2 = parseInt(params.get('p2_score')) || 0;
+        const gameId = params.get('game_id');
+        initClaimResult(p1, p2, gameId);
+    } else {
+        showPage('tournament'); 
+    }
 }
 
 export async function showEditProfile() { 

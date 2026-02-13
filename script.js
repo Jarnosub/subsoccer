@@ -1,5 +1,5 @@
 import { _supabase, state } from './config.js';
-import { showNotification, showVictoryAnimation, populateGameSelect } from './ui.js';
+import { showNotification, showVictoryAnimation, populateGameSelect, showMatchMode } from './ui.js';
 
 // --- Turnausmuuttujat ---
 let rP = [], rW = [], finalists = [], bronzeContenders = [], bronzeWinner = null, currentTournamentId = null, initialPlayerCount = 0;
@@ -1042,7 +1042,7 @@ export function handleQuickWinner(winnerName, btn) {
     finalizeQuickMatch(winnerName);
 }
 
-export async function finalizeQuickMatch(winnerName) {
+export async function finalizeQuickMatch(winnerName, context = null) {
     try {
         const loserName = (winnerName === quickP1) ? quickP2 : quickP1;
         let { data: p1Data } = await _supabase.from('players').select('*').eq('username', winnerName).single();
@@ -1063,7 +1063,12 @@ export async function finalizeQuickMatch(winnerName) {
             if (e2) throw e2;
         }
         
-        const { error: matchError } = await _supabase.from('matches').insert([{ player1: winnerName, player2: loserName, winner: winnerName }]);
+        const { error: matchError } = await _supabase.from('matches').insert([{ 
+            player1: winnerName, 
+            player2: loserName, 
+            winner: winnerName,
+            tournament_name: context // Save game_id or context here
+        }]);
         if (matchError) throw matchError;
         
         // Stop audio detection
@@ -1123,7 +1128,12 @@ export function closeVictoryOverlay() {
     document.getElementById('audio-test-panel').style.display = 'none';
     if (typeof fetchLB === "function") fetchLB();
     if (typeof fetchHist === "function") fetchHist();
-    showPage('tournament');
+    
+    // Use window.showPage to avoid circular dependency issues
+    if (window.showPage) {
+        window.showPage('tournament');
+    }
+    
     showNotification("Ready for next match! 🎮", "success");
 }
 
@@ -1333,6 +1343,7 @@ let proModeActive = false;
 let proModeEnabled = false;
 let proScoreP1 = 0;
 let proScoreP2 = 0;
+let isMatchEnding = false;
 let proGoalHistory = []; // Track goals for undo: [{player: 1}, {player: 2}, ...]
 const PRO_MODE_WIN_SCORE = 3; // First to 3 goals wins
 
@@ -1409,6 +1420,7 @@ export async function startProMatch() {
     proScoreP1 = 0;
     proScoreP2 = 0;
     proGoalHistory = [];
+    isMatchEnding = false;
     proModeActive = true;
     
     // Update Pro Mode view
@@ -1420,17 +1432,28 @@ export async function startProMatch() {
     document.getElementById('app-content').style.display = 'none';
     document.getElementById('pro-mode-view').style.display = 'flex';
     
-    // Start audio detection automatically
-    if (window.audioEngine && typeof window.audioEngine.startListening === 'function') {
-        const result = await window.audioEngine.startListening();
-        if (result.success) {
-            console.log('🎙️ Pro Mode: Audio detection active');
-        } else {
-            showNotification('Audio detection failed: ' + result.message, 'error');
-        }
+    // Show Rules Overlay
+    const rulesOverlay = document.getElementById('pro-rules-overlay');
+    if (rulesOverlay) {
+        rulesOverlay.style.display = 'flex';
+        // Pause game logic until rules accepted
+        proModeActive = false;
     } else {
-        showNotification('⚠️ Audio engine not available - manual scoring only', 'error');
+        // Fallback if rules overlay missing
+        acceptRulesAndStart();
     }
+}
+
+/**
+ * Called when user accepts rules
+ */
+export async function acceptRulesAndStart() {
+    console.log("Rules accepted, starting game...");
+    const rulesOverlay = document.getElementById('pro-rules-overlay');
+    if (rulesOverlay) rulesOverlay.style.display = 'none';
+    
+    proModeActive = true;
+    isMatchEnding = false;
     
     // Request landscape orientation hint
     if (screen.orientation && screen.orientation.lock) {
@@ -1447,7 +1470,7 @@ export async function startProMatch() {
  * @param {number} playerNumber - 1 or 2
  */
 function handleGoalDetectedPro(playerNumber) {
-    if (!proModeActive) return;
+    if (!proModeActive || isMatchEnding) return;
     
     // Update score
     if (playerNumber === 1) {
@@ -1480,12 +1503,14 @@ function handleGoalDetectedPro(playerNumber) {
     
     // Check for winner
     if (proScoreP1 >= PRO_MODE_WIN_SCORE) {
+        isMatchEnding = true;
         // Play crowd cheer before finishing
         if (window.soundEffects) {
             window.soundEffects.playCrowdCheer();
         }
         setTimeout(() => finishProMatch(quickP1), 1500);
     } else if (proScoreP2 >= PRO_MODE_WIN_SCORE) {
+        isMatchEnding = true;
         // Play crowd cheer before finishing
         if (window.soundEffects) {
             window.soundEffects.playCrowdCheer();
@@ -1543,6 +1568,7 @@ function updateProScore() {
  */
 async function finishProMatch(winnerName) {
     proModeActive = false;
+    isMatchEnding = false;
     
     // Stop audio detection
     if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') {
@@ -1570,6 +1596,7 @@ export function exitProMode() {
     }
     
     proModeActive = false;
+    isMatchEnding = false;
     proGoalHistory = [];
     
     // Stop audio detection
@@ -1594,7 +1621,7 @@ export function exitProMode() {
  * @param {number} playerNumber - 1 or 2
  */
 export function addManualGoal(playerNumber) {
-    if (!proModeActive) return;
+    if (!proModeActive || isMatchEnding) return;
     handleGoalDetectedPro(playerNumber);
 }
 
@@ -1602,7 +1629,7 @@ export function addManualGoal(playerNumber) {
  * Undo last goal in Pro Mode
  */
 export function undoLastGoal() {
-    if (!proModeActive || proGoalHistory.length === 0) return;
+    if (!proModeActive || isMatchEnding || proGoalHistory.length === 0) return;
     
     // Get last goal from history
     const lastGoal = proGoalHistory.pop();
@@ -1750,8 +1777,67 @@ window.initProModeUI = initProModeUI;
 window.toggleProMode = toggleProMode;
 window.startProMatch = startProMatch;
 window.exitProMode = exitProMode;
+window.acceptRulesAndStart = acceptRulesAndStart;
 window.addManualGoal = addManualGoal;
 window.undoLastGoal = undoLastGoal;
+
+// ============================================================
+// CLAIM RESULT LOGIC (Instant Play Integration)
+// ============================================================
+
+export function initClaimResult(p1Score, p2Score, gameId) {
+    const userScore = Math.max(p1Score, p2Score);
+    const opponentScore = Math.min(p1Score, p2Score);
+    
+    // Ensure we are on the right page
+    const appContent = document.getElementById('app-content');
+    if (appContent) appContent.style.display = 'flex';
+    
+    showMatchMode('quick');
+    
+    // Pre-fill P1 with current user (assuming user is the winner who claimed)
+    const p1Input = document.getElementById('p1-quick-search');
+    const p2Input = document.getElementById('p2-quick-search');
+    
+    if (p1Input) {
+        p1Input.value = state.user.username;
+        p1Input.disabled = true; // Lock P1
+        quickP1 = state.user.username;
+    }
+    
+    if (p2Input) {
+        p2Input.value = '';
+        p2Input.placeholder = "Enter Opponent Name";
+        p2Input.focus();
+    }
+    
+    // Update Button to "Save Result"
+    const startBtn = document.getElementById('start-quick-match');
+    if (startBtn) {
+        startBtn.textContent = `SAVE RESULT (${userScore}-${opponentScore})`;
+        startBtn.onclick = function() { saveClaimedResult(userScore, opponentScore, gameId); };
+        startBtn.style.background = 'linear-gradient(135deg, var(--sub-gold), #d4a017)';
+        startBtn.style.color = '#000';
+    }
+    
+    showNotification(`🏆 Victory! Who did you beat?`, 'success');
+}
+
+export async function saveClaimedResult(userScore, opponentScore, gameId) {
+    const p2Input = document.getElementById('p2-quick-search');
+    const opponentName = p2Input.value.trim().toUpperCase();
+    
+    if (!opponentName) return showNotification("Enter opponent name", "error");
+    if (opponentName === state.user.username) return showNotification("Cannot play against yourself", "error");
+    
+    quickP2 = opponentName;
+    
+    // Save match using existing logic, passing gameId as context
+    await finalizeQuickMatch(state.user.username, gameId ? `Instant Play: ${gameId}` : 'Instant Play');
+    
+    // Clear URL params to prevent re-triggering
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
 
 // ============================================================
 // VERIFIED GAMES & OWNERSHIP FUNCTIONS

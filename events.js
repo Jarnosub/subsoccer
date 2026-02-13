@@ -9,6 +9,7 @@ import { showNotification, showPage } from './ui.js';
  */
 
 let selectedEventImage = null;
+let selectedBrandLogo = null;
 let currentEventId = null;
 let currentEventTournamentId = null;
 let currentEventTournamentName = null;
@@ -137,6 +138,7 @@ function renderEventCard(event) {
             <!-- Event Header -->
             <div style="margin-bottom:15px;">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    ${event.brand_logo_url ? `<img src="${event.brand_logo_url}" style="height:24px; width:auto; max-width:60px; object-fit:contain;" alt="Brand">` : ''}
                     <span style="background:${typeColor}; color:#000; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-family:'Russo One'; text-transform:uppercase; letter-spacing:0.5px;">
                         ${event.event_type}
                     </span>
@@ -178,6 +180,7 @@ function renderEventCard(event) {
  */
 export function showCreateEventForm() {
     selectedEventImage = null;
+    selectedBrandLogo = null;
     const formContainer = document.getElementById('create-event-form');
     if (!formContainer) return;
     
@@ -222,6 +225,27 @@ export function showCreateEventForm() {
             <textarea id="event-desc-input" placeholder="Event Description (optional)" 
                 style="width:100%; min-height:80px; padding:12px; background:#111; border:1px solid #333; color:#fff; border-radius:8px; font-family:'Open Sans'; font-size:0.95rem; margin-bottom:15px; resize:vertical; box-sizing:border-box;"></textarea>
             
+            <!-- Branding Section -->
+            <div style="margin-bottom:20px; padding:15px; background:#111; border:1px solid #333; border-radius:8px;">
+                <label style="font-size:0.9rem; color:#aaa; display:block; margin-bottom:10px; font-weight:600;">
+                    <i class="fa fa-star" style="color:var(--sub-gold);"></i> EVENT BRANDING
+                </label>
+                
+                <div style="margin-bottom:15px;">
+                    <label style="font-size:0.8rem; color:#888; display:block; margin-bottom:5px;">Brand Logo (e.g. UEFA/FIFA)</label>
+                    <input type="file" id="brand-logo-input" accept="image/jpeg,image/png,image/webp" onchange="previewBrandLogo(this)" style="display:none;">
+                    <label for="brand-logo-input" id="brand-logo-label" style="display:inline-block; padding:8px 15px; background:#333; color:#fff; border-radius:6px; cursor:pointer; font-size:0.8rem; border:1px solid #444;">
+                        <i class="fa fa-upload"></i> Upload Logo
+                    </label>
+                    <div id="brand-logo-preview" style="margin-top:10px; display:flex; align-items:center;"></div>
+                </div>
+                
+                <div>
+                    <label style="font-size:0.8rem; color:#888; display:block; margin-bottom:5px;">Primary Theme Color</label>
+                    <input type="color" id="event-color-input" value="#FFD700" style="width:100%; height:40px; padding:2px; background:none; border:none; cursor:pointer;">
+                </div>
+            </div>
+
             <div style="margin-bottom:20px;">
                 <input type="file" id="event-image-input" accept="image/jpeg,image/png,image/webp" 
                     onchange="previewEventImage(this)" 
@@ -260,6 +284,7 @@ export function hideCreateEventForm() {
         formContainer.innerHTML = '';
     }
     selectedEventImage = null;
+    selectedBrandLogo = null;
 }
 
 /**
@@ -313,6 +338,44 @@ export function clearEventImage() {
 }
 
 /**
+ * Preview brand logo
+ */
+export function previewBrandLogo(input) {
+    const preview = document.getElementById('brand-logo-preview');
+    const fileLabel = document.getElementById('brand-logo-label');
+    if (!preview) return;
+    
+    if (input.files && input.files[0]) {
+        selectedBrandLogo = input.files[0];
+        
+        if (selectedBrandLogo.size > 2 * 1024 * 1024) {
+            showNotification('Logo too large. Max 2MB allowed.', 'error');
+            input.value = '';
+            selectedBrandLogo = null;
+            preview.innerHTML = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            preview.innerHTML = `
+                <img src="${e.target.result}" style="height:40px; width:auto; margin-right:10px;">
+                <button onclick="clearBrandLogo()" style="background:none; border:none; color:#888; cursor:pointer;">&times; Remove</button>
+            `;
+        };
+        reader.readAsDataURL(selectedBrandLogo);
+    }
+}
+
+export function clearBrandLogo() {
+    const input = document.getElementById('brand-logo-input');
+    const preview = document.getElementById('brand-logo-preview');
+    if (input) input.value = '';
+    if (preview) preview.innerHTML = '';
+    selectedBrandLogo = null;
+}
+
+/**
  * Create new event
  */
 export async function createNewEvent() {
@@ -334,6 +397,7 @@ export async function createNewEvent() {
     const endDatetime = document.getElementById('event-end-input')?.value || null;
     const description = document.getElementById('event-desc-input')?.value.trim();
     const location = document.getElementById('event-location-input')?.value.trim() || null;
+    const primaryColor = document.getElementById('event-color-input')?.value;
     
     console.log('Form values:', { eventName, eventType, startDatetime, endDatetime, description, location }); // DEBUG
     
@@ -346,12 +410,19 @@ export async function createNewEvent() {
     
     try {
         let imageUrl = null;
+        let brandLogoUrl = null;
         
         // Upload image if selected
         if (selectedEventImage) {
             console.log('Uploading image...'); // DEBUG
             showNotification('Uploading image...', 'success');
             imageUrl = await uploadEventImage(selectedEventImage);
+        }
+
+        // Upload brand logo if selected
+        if (selectedBrandLogo) {
+            showNotification('Uploading logo...', 'success');
+            brandLogoUrl = await uploadEventImage(selectedBrandLogo); // Reuse same upload function
         }
         
         // Create event in database
@@ -364,6 +435,8 @@ export async function createNewEvent() {
             location: location,
             organizer_id: state.user.id,
             image_url: imageUrl,
+            brand_logo_url: brandLogoUrl,
+            primary_color: primaryColor,
             status: 'upcoming',
             is_public: true
             // Note: max_participants removed - will be per-tournament
@@ -680,6 +753,9 @@ function showEventModal(event, tournaments, userRegistrations) {
                             </button>
                             <button class="btn-red" style="flex:1; background:#c62828; color:#fff;" onclick="deleteEvent('${event.id}')">
                                 <i class="fa fa-trash"></i> DELETE EVENT
+                            </button>
+                            <button class="btn-red" style="flex:1; background:#2196F3; color:#fff;" onclick="window.open('?live=${event.id}', '_blank')">
+                                <i class="fa fa-external-link-alt"></i> OPEN PUBLIC DISPLAY
                             </button>
                         ` : ''}
                     </div>
@@ -2005,6 +2081,23 @@ export async function viewLiveEvent(eventId) {
         
         console.log('Displaying live view...');
         
+        // Apply Event Branding
+        if (event.brand_logo_url) {
+            const header = document.querySelector('header');
+            const logo = document.querySelector('.main-logo');
+            if (header && logo) {
+                header.style.display = 'flex'; // Ensure header is visible
+                logo.src = event.brand_logo_url;
+                logo.style.maxHeight = '80px';
+                logo.style.width = 'auto';
+            }
+        }
+        
+        if (event.primary_color) {
+            // Update theme color variable
+            document.documentElement.style.setProperty('--sub-gold', event.primary_color);
+        }
+
         // Display live view
         showLiveEventView(event, tournaments || []);
         
@@ -2198,6 +2291,8 @@ export async function editEvent(eventId) {
             const endInput = document.getElementById('event-end-input');
             const locationInput = document.getElementById('event-location-input');
             const descInput = document.getElementById('event-desc-input');
+            const colorInput = document.getElementById('event-color-input');
+            const brandPreview = document.getElementById('brand-logo-preview');
             
             if (nameInput) nameInput.value = event.event_name || '';
             if (typeSelect) typeSelect.value = event.event_type || 'tournament';
@@ -2212,6 +2307,15 @@ export async function editEvent(eventId) {
             if (endInput && event.end_datetime) {
                 const endDate = new Date(event.end_datetime);
                 endInput.value = endDate.toISOString().slice(0, 16);
+            }
+
+            if (colorInput && event.primary_color) {
+                colorInput.value = event.primary_color;
+            }
+            if (brandPreview && event.brand_logo_url) {
+                brandPreview.innerHTML = `
+                    <img src="${event.brand_logo_url}" style="height:40px; width:auto; margin-right:10px;">
+                `;
             }
             
             // Change button to UPDATE
@@ -2250,6 +2354,7 @@ export async function updateEventForm(eventId) {
     const endDatetime = document.getElementById('event-end-input')?.value || null;
     const description = document.getElementById('event-desc-input')?.value.trim();
     const location = document.getElementById('event-location-input')?.value.trim() || null;
+    const primaryColor = document.getElementById('event-color-input')?.value;
     
     // Validate required fields
     if (!eventName || !startDatetime) {
@@ -2258,17 +2363,33 @@ export async function updateEventForm(eventId) {
     }
     
     try {
+        let imageUrl = undefined;
+        let brandLogoUrl = undefined;
+
+        if (selectedEventImage) {
+            showNotification('Uploading new image...', 'success');
+            imageUrl = await uploadEventImage(selectedEventImage);
+        }
+        
+        if (selectedBrandLogo) {
+            showNotification('Uploading new logo...', 'success');
+            brandLogoUrl = await uploadEventImage(selectedBrandLogo);
+        }
+
+        const updates = {
+            event_name: eventName,
+            event_type: eventType,
+            start_datetime: startDatetime,
+            end_datetime: endDatetime,
+            description: description,
+            location: location,
+            primary_color: primaryColor
+        };
+        if (imageUrl) updates.image_url = imageUrl;
+        if (brandLogoUrl) updates.brand_logo_url = brandLogoUrl;
+
         // Update event in database
-        const { error } = await _supabase
-            .from('events')
-            .update({
-                event_name: eventName,
-                event_type: eventType,
-                start_datetime: startDatetime,
-                end_datetime: endDatetime,
-                description: description,
-                location: location
-            })
+        const { error } = await _supabase.from('events').update(updates)
             .eq('id', eventId)
             .eq('organizer_id', state.user.id); // Security check
         
@@ -2290,6 +2411,8 @@ window.showCreateEventForm = showCreateEventForm;
 window.hideCreateEventForm = hideCreateEventForm;
 window.previewEventImage = previewEventImage;
 window.clearEventImage = clearEventImage;
+window.previewBrandLogo = previewBrandLogo;
+window.clearBrandLogo = clearBrandLogo;
 window.createNewEvent = createNewEvent;
 window.editEvent = editEvent;
 window.updateEventForm = updateEventForm;

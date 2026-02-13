@@ -180,40 +180,46 @@
         </div>
     </div>
 
-    <div id="app-content">
-        <div id="user-info">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span id="user-display-name" onclick="showPage('profile')" style="cursor: pointer;"></span>
-                <button onclick="toggleSoundEffects()" id="sound-toggle-btn" title="Toggle sound effects">🔊</button>
-            </div>
-            <button id="logout-btn" onclick="handleLogout()">Logout</button>
+    <!-- Navigation Tabs (Moved above app-content for desktop stability) -->
+    <div class="nav-tabs" id="nav-tabs" style="display:none;">
+        <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
+            <i class="fa-solid fa-futbol"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Play</span>
         </div>
+        <div class="tab" id="tab-events" onclick="showPage('events')">
+            <i class="fa-regular fa-calendar"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Events</span>
+        </div>
+        <div class="tab" id="tab-profile" onclick="showPage('profile')">
+            <i class="fa-regular fa-user"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
+        </div>
+    </div>
 
-        <div class="nav-tabs" id="nav-tabs" style="display:none;">
-            <div class="tab" id="tab-profile" onclick="showPage('profile')">
-                <i class="fa-regular fa-user"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
-            </div>
-            <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
-                <i class="fa-solid fa-futbol"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Play</span>
-            </div>
-            <div class="tab" id="tab-events" onclick="showPage('events')">
-                <i class="fa-regular fa-calendar"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Events</span>
-            </div>
-            <div class="tab" id="tab-map" onclick="showPage('map')">
-                <i class="fa-regular fa-map"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Map</span>
-            </div>
-            <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">
-                <i class="fa-solid fa-chart-simple"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Rank</span>
-            </div>
-        </div>
+    <div id="app-content">
 
         <div id="section-profile" class="section">
-            <div class="container" style="text-align:center;">
+            <div class="container" style="text-align:center; position:relative;">
+                <!-- Settings Toggle -->
+                <div style="position:absolute; top:15px; right:15px; z-index:10;">
+                    <button onclick="toggleSettingsMenu()" style="background:none; border:none; color:#666; font-size:1.2rem; cursor:pointer; padding:5px;">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+
+                <!-- Settings Menu (Hidden) -->
+                <div id="settings-menu" style="display:none; margin-bottom:20px; background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #333;">
+                    <button onclick="showEditProfile()" style="width:100%; padding:12px; background:#333; border:none; border-radius:8px; color:#fff; margin-bottom:10px; font-family:'Russo One'; font-size:0.8rem; cursor:pointer; text-transform:uppercase;">
+                        <i class="fa fa-edit"></i> Edit Profile
+                    </button>
+                    <button onclick="toggleSoundEffects()" id="sound-toggle-btn" style="width:100%; padding:12px; background:#333; border:none; border-radius:8px; color:#fff; margin-bottom:10px; font-family:'Russo One'; font-size:0.8rem; cursor:pointer; text-transform:uppercase;">
+                        🔊 Sound Effects
+                    </button>
+                    <button onclick="location.reload()" style="width:100%; padding:12px; background:transparent; border:1px solid #333; border-radius:8px; color:#666; font-family:'Russo One'; font-size:0.8rem; cursor:pointer; text-transform:uppercase;">
+                        <i class="fa fa-sign-out"></i> Logout
+                    </button>
+                </div>
+
                 <!-- Avatar Section -->
                 <div style="margin: 20px auto 15px;">
                     <img id="profile-avatar-display" src="placeholder-silhouette-5-wide.png" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:4px solid var(--sub-gold); box-shadow: 0 5px 20px rgba(255,215,0,0.3);">
@@ -235,9 +241,19 @@
                     </div>
                 </div>
                 
-                <!-- Edit Profile Button -->
-                <button class="btn-red" onclick="showEditProfile()" style="margin-bottom:20px; background:#333;">
-                    <i class="fa fa-edit"></i> Edit Profile
+                <!-- Community Links -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:20px 0;">
+                    <button class="btn-red" onclick="showPage('leaderboard')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px;">
+                        <i class="fa-solid fa-trophy" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
+                        GLOBAL RANKING
+                    </button>
+                    <button class="btn-red" onclick="showPage('map')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px;">
+                        <i class="fa-solid fa-map-location-dot" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
+                        GAME MAP
+                    </button>
+                </div>
+                <button class="btn-red" onclick="showPage('history')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:10px; margin-bottom:20px;">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Match History
                 </button>
                 
                 <!-- Edit Profile Form (Hidden) -->
@@ -287,11 +303,6 @@
                     </div>
                     <div id="profile-games-list" style="text-align:left;"></div>
                 </div>
-                
-                <!-- Logout Button -->
-                <button onclick="location.reload()" style="margin-top:30px; background:transparent; color:#666; border:1px solid #333; padding:10px 20px; border-radius:8px; font-family:'Russo One'; font-size:0.85rem; cursor:pointer;">
-                    <i class="fa fa-sign-out"></i> Logout
-                </button>
             </div>
         </div>
 
@@ -397,13 +408,9 @@
                     </button>
                 </div>
 
-                <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.2rem; height:60px;">Start Match</button>
+                <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.8rem; height:80px; margin-bottom: 20px; box-shadow: 0 0 25px rgba(227, 6, 19, 0.5); text-transform: uppercase; letter-spacing: 1px;">START GAME</button>
                 
-                <!-- Quick Actions -->
-                <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button class="btn-red" onclick="showPage('history')" style="flex:1; background:#333; font-size:0.85rem; padding:12px;">
-                        📜 History
-                    </button>
+                <div style="display:flex; gap:10px; margin-top:5px;">
                     <a href="instant-play.html?game_id=QUICK-PLAY" style="flex:1; text-decoration:none;">
                         <button class="btn-red" style="width:100%; background:#333; font-size:0.85rem; padding:12px;">
                             ⚡ Instant Play
@@ -501,6 +508,42 @@
     <!-- PRO MODE VIEW (MODULAR - CAN BE REMOVED) -->
     <!-- ============================================================ -->
     <div id="pro-mode-view">
+        <!-- Rules Overlay inside Pro Mode -->
+        <div id="pro-rules-overlay" class="rules-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:200; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+            <div class="rules-header" style="font-family:'Russo One'; font-size:2.5rem; color:var(--sub-gold); margin-bottom:30px; text-transform:uppercase; letter-spacing:2px;">OFFICIAL RULES</div>
+            <div class="rules-list" style="display:flex; flex-direction:column; gap:15px; max-width:500px; width:90%; margin-bottom:40px;">
+                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:10px; border-left:4px solid var(--sub-red); text-align:left;">
+                    <span class="rule-number" style="font-family:'Russo One'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">1</span>
+                    <div class="rule-text">
+                        <div class="rule-title" style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);">START</div>
+                        <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">Winner of Rock/Paper/Scissors starts.</div>
+                    </div>
+                </div>
+                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:10px; border-left:4px solid var(--sub-red); text-align:left;">
+                    <span class="rule-number" style="font-family:'Russo One'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">2</span>
+                    <div class="rule-text">
+                        <div class="rule-title" style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);">KICK-OFF</div>
+                        <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">Always inside your own goal area.</div>
+                    </div>
+                </div>
+                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:10px; border-left:4px solid var(--sub-red); text-align:left;">
+                    <span class="rule-number" style="font-family:'Russo One'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">3</span>
+                    <div class="rule-text">
+                        <div class="rule-title" style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);">POSITION</div>
+                        <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">You must be seated at all times.</div>
+                    </div>
+                </div>
+                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:10px; border-left:4px solid var(--sub-red); text-align:left;">
+                    <span class="rule-number" style="font-family:'Russo One'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">4</span>
+                    <div class="rule-text">
+                        <div class="rule-title" style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);">WINNER</div>
+                        <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">First to score 3 goals wins.</div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-red pulse-anim" onclick="acceptRulesAndStart()" style="width: auto !important; padding:15px 50px !important; font-size:1.2rem; border-radius:50px; box-shadow:0 0 20px rgba(227,6,19,0.4); margin-top: 20px;">I UNDERSTAND - PLAY</button>
+        </div>
+
         <div class="pro-player-side pro-player-left" onclick="addManualGoal(1)" style="cursor:pointer;">
             <div class="pro-player-name" id="pro-p1-name">PLAYER 1</div>
             <div class="pro-score" id="pro-p1-score">0</div>

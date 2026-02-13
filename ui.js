@@ -51,16 +51,6 @@ export function showVictoryAnimation(winnerName, newElo, eloGain) {
 }
 
 /**
- * Sulkee voittoanimaation.
- */
-export function closeVictoryOverlay() {
-    const overlay = document.getElementById('victory-overlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-}
-
-/**
  * Vaihtaa näkyvän sivun (section) ja aktivoi vastaavan välilehden.
  * @param {string} p - Näytettävän sivun ID ilman 'section-'-etuliitettä.
  */
@@ -68,7 +58,14 @@ export function showPage(p) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('section-' + p).classList.add('active');
-    const t = document.getElementById('tab-' + p);
+    
+    // Map sub-pages to main tabs
+    let tabId = 'tab-' + p;
+    if (p === 'map' || p === 'leaderboard' || p === 'history') {
+        tabId = 'tab-profile'; // Map and Rank are now under Profile context
+    }
+    
+    const t = document.getElementById(tabId);
     if (t) {
         t.classList.add('active');
     }
@@ -80,11 +77,6 @@ export function showPage(p) {
         currentPageIndex = pageIdx;
     }
     
-    // Update header user name
-    if (typeof state.user !== 'undefined' && state.user && state.user.username) {
-        const headerNameEl = document.getElementById('user-display-name');
-        if (headerNameEl) headerNameEl.innerText = state.user.username;
-    }
     
     // Funktiot, jotka suoritetaan sivun vaihdon yhteydessä
     if (p === 'profile') loadUserProfile();
@@ -340,6 +332,14 @@ export function cancelEditProfile() {
     }
 }
 
+/**
+ * Toggle settings menu visibility
+ */
+export function toggleSettingsMenu() {
+    const menu = document.getElementById('settings-menu');
+    if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
 // Globaalit kytkennät
 window.showPage = showPage;
 window.showNotification = showNotification;
@@ -349,5 +349,5 @@ window.populateCountries = populateCountries;
 window.loadUserProfile = loadUserProfile;
 window.showEditProfile = showEditProfile;
 window.cancelEditProfile = cancelEditProfile;
+window.toggleSettingsMenu = toggleSettingsMenu;
 window.showVictoryAnimation = showVictoryAnimation;
-window.closeVictoryOverlay = closeVictoryOverlay;

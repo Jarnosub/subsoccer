@@ -309,6 +309,98 @@
             z-index: 150; /* Above winner overlay */
             display: none;
         }
+
+        /* Rules Overlay */
+        .rules-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .rules-header {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2.5rem;
+            color: var(--sub-gold);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .rules-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 500px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--sub-red);
+            text-align: left;
+        }
+
+        .rule-number {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.5rem;
+            color: #666;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .rule-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rule-title {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.1rem;
+            color: var(--sub-gold);
+            margin-bottom: 2px;
+        }
+
+        .rule-desc {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+
+        .play-btn {
+            background: var(--sub-red);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.5rem;
+            font-family: 'Subsoccer', sans-serif;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(227, 6, 19, 0.4);
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            background: #ff1a1a;
+        }
     </style>
 </head>
 <body>
@@ -319,12 +411,40 @@
         <p style="color: #666;">Turn your phone to landscape mode to play</p>
     </div>
 
-    <!-- Start Overlay -->
-    <div id="start-overlay" class="start-overlay" onclick="enterFullscreenGame()">
-        <div style="font-size: 3rem; color: var(--sub-red); margin-bottom: 10px;">SUBSOCCER</div>
-        <div style="font-size: 1.5rem; color: white; margin-bottom: 30px;">INSTANT PLAY</div>
-        <button class="play-again-btn pulse-anim">TAP TO START</button>
-        <p style="color: #666; margin-top: 20px; font-family: 'Open Sans'; font-size: 0.8rem;">Tap to enter fullscreen & enable sound</p>
+    <!-- Rules Overlay (Replaces Start Overlay) -->
+    <div id="rules-overlay" class="rules-overlay">
+        <div class="rules-header">OFFICIAL RULES</div>
+        <div class="rules-list">
+            <div class="rule-item">
+                <span class="rule-number">1</span>
+                <div class="rule-text">
+                    <div class="rule-title">START</div>
+                    <div class="rule-desc">The winner of Rock/Paper/Scissors gets to start.</div>
+                </div>
+            </div>
+            <div class="rule-item">
+                <span class="rule-number">2</span>
+                <div class="rule-text">
+                    <div class="rule-title">KICK-OFF</div>
+                    <div class="rule-desc">Always inside your own goal area.</div>
+                </div>
+            </div>
+            <div class="rule-item">
+                <span class="rule-number">3</span>
+                <div class="rule-text">
+                    <div class="rule-title">POSITION</div>
+                    <div class="rule-desc">You must be seated at all times.</div>
+                </div>
+            </div>
+            <div class="rule-item">
+                <span class="rule-number">4</span>
+                <div class="rule-text">
+                    <div class="rule-title">WINNER</div>
+                    <div class="rule-desc">The first one to score 3 goals is the winner.</div>
+                </div>
+            </div>
+        </div>
+        <button class="play-btn pulse-anim" onclick="enterFullscreenGame()">I UNDERSTAND - PLAY</button>
     </div>
 
     <!-- Table ID Display -->
@@ -442,7 +562,7 @@
             const elem = document.documentElement;
 
             // Hide overlay immediately to ensure game starts
-            document.getElementById('start-overlay').style.display = 'none';
+            document.getElementById('rules-overlay').style.display = 'none';
             
             // Scroll to hide address bar (iOS hack)
             window.scrollTo(0, 1);

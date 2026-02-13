@@ -49,7 +49,17 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
 }
 .logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; letter-spacing: 1px; }
 
-.nav-tabs { display: flex; justify-content: center; gap: 12px; width: 95%; max-width: 450px; border-bottom: 1px solid var(--sub-border); margin-bottom: 25px; }
+.nav-tabs { 
+    display: flex; 
+    justify-content: space-around; 
+    gap: 12px; 
+    width: 95%; 
+    max-width: 450px; 
+    border-bottom: 1px solid var(--sub-border); 
+    margin-bottom: 25px; 
+    position: relative;
+    z-index: 10;
+}
 .tab { 
     font-family: 'Russo One', sans-serif; 
     font-size: 0.8rem; 
@@ -81,10 +91,12 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
         border-bottom: none !important;
         padding: 5px 0 calc(5px + env(safe-area-inset-bottom)) 0 !important;
         display: flex !important;
+        visibility: visible !important;
         align-items: center !important;
         justify-content: space-around !important;
         z-index: 9999 !important;
         margin: 0 !important; gap: 0;
+        box-sizing: border-box !important; /* Estää leveyden ylityksen paddingin takia */
     }
     .tab i {
         font-size: 1.6rem !important; /* Maltillinen, tyylikäs koko */
@@ -103,24 +115,6 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
         padding: 3px !important; 
     }
     
-}
-
-#user-info {
-    width: 100%;
-    max-width: 450px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 15px;
-    gap: 0px;
-}
-
-#user-display-name {
-    font-family: 'Open Sans', sans-serif;
-    font-size: 0.9rem;
-    color: #fff;
-    text-transform: capitalize;
-    letter-spacing: 0.5px;
 }
 
 #logout-btn {
