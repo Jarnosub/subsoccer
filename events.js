@@ -672,6 +672,9 @@ function showEventModal(event, tournaments, userRegistrations) {
                             <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="showCreateTournamentForm('${event.id}', '${event.event_name}')">
                                 <i class="fa fa-plus"></i> CREATE TOURNAMENT
                             </button>
+                            <button class="btn-red" style="flex:1; background:#FF9800; color:#fff;" onclick="editEvent('${event.id}')">
+                                <i class="fa fa-edit"></i> EDIT EVENT
+                            </button>
                             <button class="btn-red" style="flex:1; background:#c62828; color:#fff;" onclick="deleteEvent('${event.id}')">
                                 <i class="fa fa-trash"></i> DELETE EVENT
                             </button>
@@ -2152,6 +2155,132 @@ function showLiveEventView(event, tournaments) {
     `;
 }
 
+/**
+ * Edit existing event
+ */
+async function editEvent(eventId) {
+    if (!user) {
+        showNotification('You must be logged in', 'error');
+        return;
+    }
+    
+    try {
+        // Fetch event details
+        const { data: event, error } = await _supabase
+            .from('events')
+            .select('*')
+            .eq('id', eventId)
+            .single();
+        
+        if (error) throw error;
+        
+        if (event.organizer_id !== user.id) {
+            showNotification('You are not authorized to edit this event', 'error');
+            return;
+        }
+        
+        // Close modal first
+        closeEventModal();
+        
+        // Show events page and form
+        showPage('events');
+        showCreateEventForm();
+        
+        // Wait for form to be rendered
+        setTimeout(() => {
+            // Populate form fields
+            const nameInput = document.getElementById('event-name-input');
+            const typeSelect = document.getElementById('event-type-select');
+            const startInput = document.getElementById('event-start-input');
+            const endInput = document.getElementById('event-end-input');
+            const locationInput = document.getElementById('event-location-input');
+            const descInput = document.getElementById('event-desc-input');
+            
+            if (nameInput) nameInput.value = event.event_name || '';
+            if (typeSelect) typeSelect.value = event.event_type || 'tournament';
+            if (locationInput) locationInput.value = event.location || '';
+            if (descInput) descInput.value = event.description || '';
+            
+            // Format datetime for input field
+            if (startInput && event.start_datetime) {
+                const startDate = new Date(event.start_datetime);
+                startInput.value = startDate.toISOString().slice(0, 16);
+            }
+            if (endInput && event.end_datetime) {
+                const endDate = new Date(event.end_datetime);
+                endInput.value = endDate.toISOString().slice(0, 16);
+            }
+            
+            // Change button to UPDATE
+            const createBtn = document.querySelector('#create-event-form button[onclick="createNewEvent()"]');
+            if (createBtn) {
+                createBtn.textContent = '✓ UPDATE EVENT';
+                createBtn.onclick = () => updateEventForm(eventId);
+            }
+            
+            // Change title
+            const formTitle = document.querySelector('#create-event-form h4');
+            if (formTitle) {
+                formTitle.innerHTML = '<i class="fa fa-edit"></i> Edit Event';
+            }
+        }, 150);
+        
+    } catch (e) {
+        console.error('Failed to load event for editing:', e);
+        showNotification('Failed to load event: ' + e.message, 'error');
+    }
+}
+
+/**
+ * Update event from form
+ */
+async function updateEventForm(eventId) {
+    if (!user) {
+        showNotification('You must be logged in', 'error');
+        return;
+    }
+    
+    // Get form values
+    const eventName = document.getElementById('event-name-input')?.value.trim();
+    const eventType = document.getElementById('event-type-select')?.value;
+    const startDatetime = document.getElementById('event-start-input')?.value;
+    const endDatetime = document.getElementById('event-end-input')?.value || null;
+    const description = document.getElementById('event-desc-input')?.value.trim();
+    const location = document.getElementById('event-location-input')?.value.trim() || null;
+    
+    // Validate required fields
+    if (!eventName || !startDatetime) {
+        showNotification('Please fill required fields (Event Name, Start Time)', 'error');
+        return;
+    }
+    
+    try {
+        // Update event in database
+        const { error } = await _supabase
+            .from('events')
+            .update({
+                event_name: eventName,
+                event_type: eventType,
+                start_datetime: startDatetime,
+                end_datetime: endDatetime,
+                description: description,
+                location: location
+            })
+            .eq('id', eventId)
+            .eq('organizer_id', user.id); // Security check
+        
+        if (error) throw error;
+        
+        showNotification('Event updated successfully!', 'success');
+        hideCreateEventForm();
+        loadEventsPage();
+        
+    } catch (e) {
+        console.error('Failed to update event:', e);
+        showNotification('Failed to update event: ' + e.message, 'error');
+    }
+}
+
 // Global bindings for HTML onclick handlers
 window.loadEventsPage = loadEventsPage;
 window.showCreateEventForm = showCreateEventForm;
@@ -2159,6 +2288,8 @@ window.hideCreateEventForm = hideCreateEventForm;
 window.previewEventImage = previewEventImage;
 window.clearEventImage = clearEventImage;
 window.createNewEvent = createNewEvent;
+window.editEvent = editEvent;
+window.updateEventForm = updateEventForm;
 window.viewEventDetails = viewEventDetails;
 window.closeEventModal = closeEventModal;
 window.deleteEvent = deleteEvent;

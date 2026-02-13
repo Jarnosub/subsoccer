@@ -163,9 +163,9 @@
             <h2 style="font-family:'Russo One'; margin-bottom: 25px;">PLAYER LOGIN</h2>
             <input type="text" id="auth-user" placeholder="Username">
             <input type="password" id="auth-pass" placeholder="Password">
-            <button class="btn-red" onclick="handleAuth()">ENTER</button>
-            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <span style="font-size: 0.75rem; color: var(--sub-gold); cursor: pointer;" onclick="toggleAuth(true)">Create Account</span>
+            <button class="btn-red" onclick="handleAuth()">LOG IN</button>
+            <div style="margin-top: 15px;">
+                <button onclick="toggleAuth(true)" style="width:100%; background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); color:var(--sub-gold); padding:12px; border-radius:8px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.2s; text-transform:uppercase;">CREATE ACCOUNT</button>
             </div>
             <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
             <input type="text" id="guest-nick" placeholder="Guest Nickname">
@@ -181,15 +181,36 @@
     </div>
 
     <div id="app-content">
-       <div class="status-bar" style="display: flex; justify-content: center; align-items: center; padding: 8px 15px; gap: 20px;">
-    <div class="player-label" onclick="showPage('profile')" style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
-        <span style="color: #888; font-size:0.85rem;">👤</span>
-        <span style="color: #fff; font-family: 'Open Sans'; font-size:0.85rem; text-transform: capitalize;" id="label-user"></span>
-    </div>
-    <button onclick="toggleSoundEffects()" id="sound-toggle-btn" title="Toggle sound effects" style="background:transparent; border:none; font-size:1.3rem; cursor:pointer; padding:5px; opacity:0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
-        🔊
-    </button>
-</div>
+        <div id="user-info">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="user-display-name" onclick="showPage('profile')" style="cursor: pointer;"></span>
+                <button onclick="toggleSoundEffects()" id="sound-toggle-btn" title="Toggle sound effects">🔊</button>
+            </div>
+            <button id="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+
+        <div class="nav-tabs" id="nav-tabs" style="display:none;">
+            <div class="tab" id="tab-profile" onclick="showPage('profile')">
+                <i class="fa-regular fa-user"></i>
+                <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
+            </div>
+            <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
+                <i class="fa-solid fa-futbol"></i>
+                <span style="font-size:0.65rem; margin-top:2px;">Play</span>
+            </div>
+            <div class="tab" id="tab-events" onclick="showPage('events')">
+                <i class="fa-regular fa-calendar"></i>
+                <span style="font-size:0.65rem; margin-top:2px;">Events</span>
+            </div>
+            <div class="tab" id="tab-map" onclick="showPage('map')">
+                <i class="fa-regular fa-map"></i>
+                <span style="font-size:0.65rem; margin-top:2px;">Map</span>
+            </div>
+            <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">
+                <i class="fa-solid fa-chart-simple"></i>
+                <span style="font-size:0.65rem; margin-top:2px;">Rank</span>
+            </div>
+        </div>
 
         <div id="section-profile" class="section">
             <div class="container" style="text-align:center;">
@@ -371,6 +392,9 @@
                 <div id="elo-preview" style="background:#000; padding:15px; border-radius:12px; border:1px solid #333; margin-bottom:20px; display:none; box-shadow: inset 0 0 15px rgba(255,255,255,0.05);">
                     <div style="font-size:0.65rem; color:#666; font-family:'Resolve'; letter-spacing:2px; margin-bottom:5px;">ELO PREDICTION</div>
                     <div id="elo-prediction-text"></div>
+                    <button onclick="clearQuickMatchPlayers()" class="clear-players-btn" title="Clear players and start fresh">
+                        🔄 New Players
+                    </button>
                 </div>
 
                 <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.2rem; height:60px;">Start Match</button>
@@ -504,28 +528,32 @@
     </div>
     <!-- END PRO MODE VIEW -->
 
-    <!-- Nav tabs at end of body to avoid Safari flex layout bug -->
-    <div class="nav-tabs" id="nav-tabs" style="display:none;">
-        <div class="tab" id="tab-profile" onclick="showPage('profile')">
-            <i class="fa-regular fa-user"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
-        </div>
-        <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
-            <i class="fa-solid fa-futbol"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Play</span>
-        </div>
-        <div class="tab" id="tab-events" onclick="showPage('events')">
-            <i class="fa-regular fa-calendar"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Events</span>
-        </div>
-        <div class="tab" id="tab-map" onclick="showPage('map')">
-            <i class="fa-regular fa-map"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Map</span>
-        </div>
-        <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">
-            <i class="fa-solid fa-chart-simple"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Rank</span>
-        </div>
-    </div>
+    <!-- Instant Play Onboarding Handler -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            // Check if user comes from Instant Play victory
+            if (params.get('action') === 'claim_result') {
+                const p1Score = params.get('p1_score');
+                const p2Score = params.get('p2_score');
+                
+                // If user is on login screen (not logged in)
+                const authPage = document.getElementById('auth-page');
+                if (authPage && getComputedStyle(authPage).display !== 'none') {
+                    // Switch to signup form automatically
+                    if (typeof toggleAuth === 'function') toggleAuth(true);
+                    
+                    // Add motivational message
+                    const signupForm = document.getElementById('signup-form');
+                    const msgDiv = document.createElement('div');
+                    msgDiv.style.cssText = "background: rgba(255, 215, 0, 0.1); border: 1px solid var(--sub-gold); color: var(--sub-gold); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-family: 'Open Sans'; font-size: 0.9rem; line-height: 1.4;";
+                    msgDiv.innerHTML = `🏆 <strong>VICTORY!</strong><br>Create an account to save your <strong>${Math.max(p1Score, p2Score)}-${Math.min(p1Score, p2Score)}</strong> win and get ranked!`;
+                    
+                    const title = signupForm.querySelector('h2');
+                    if (title) title.parentNode.insertBefore(msgDiv, title.nextSibling);
+                }
+            }
+        });
+    </script>
 </body>
 </html>

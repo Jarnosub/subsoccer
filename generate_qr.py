@@ -54,11 +54,11 @@ def main():
     print("=" * 60)
     print()
     
-    # Base URL (Vaihda tämä tuotanto-osoitteeseen kun julkaiset, esim. https://subsoccer.app/instant-play.html)
+    # Defaults
     base_url = "http://192.168.1.100:8000/instant-play.html"
     game_id = ""
     size = 400
-    
+
     # Parse arguments intelligently
     if len(sys.argv) > 1:
         arg1 = sys.argv[1]

@@ -178,6 +178,34 @@
             margin-bottom: 40px;
         }
         
+        .claim-victory-btn {
+            background: linear-gradient(135deg, var(--sub-gold) 0%, #e6c200 100%);
+            border: none;
+            color: #000;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-family: 'Subsoccer', sans-serif;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            text-transform: uppercase;
+            font-weight: bold;
+            animation: pulse-gold 2s infinite;
+        }
+        
+        .claim-victory-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+        
         .play-again-btn {
             background: var(--sub-red);
             border: none;
@@ -269,6 +297,18 @@
             animation: pulse 1.5s infinite;
         }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 150; /* Above winner overlay */
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -289,6 +329,9 @@
 
     <!-- Table ID Display -->
     <div id="table-id-display" class="table-id">TABLE: <span id="table-id-value"></span></div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
 
     <!-- Main scoreboard -->
     <div class="scoreboard">
@@ -321,6 +364,7 @@
     <div class="winner-overlay" id="winner-overlay">
         <div class="winner-text" id="winner-text">PLAYER 1 WINS!</div>
         <div class="winner-subtitle">First to 3 goals</div>
+        <button class="claim-victory-btn" onclick="claimVictory()">🏆 SAVE STATS & RANK UP</button>
         <button class="play-again-btn" onclick="playAgain()">🎮 PLAY AGAIN</button>
     </div>
 
@@ -392,7 +436,7 @@
                 console.log('Could not load custom sounds');
             }
         });
-
+        
         // Enter Fullscreen and Start
         function enterFullscreenGame() {
             const elem = document.documentElement;
@@ -482,12 +526,27 @@
             document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
             document.getElementById('winner-overlay').classList.add('show');
             playCrowdCheer();
+            startConfetti();
         }
         
         // Play again
         function playAgain() {
             resetGame();
             document.getElementById('winner-overlay').classList.remove('show');
+            stopConfetti();
+        }
+        
+        // Claim victory (Redirect to main app)
+        function claimVictory() {
+            // Construct URL parameters
+            const params = new URLSearchParams();
+            params.append('action', 'claim_result');
+            params.append('p1_score', scoreP1);
+            params.append('p2_score', scoreP2);
+            params.append('game_id', currentGameId || 'QUICK-PLAY');
+            
+            // Redirect to main app with data
+            window.location.href = `index.html?${params.toString()}`;
         }
         
         // Reset game
@@ -499,6 +558,7 @@
             document.getElementById('score-p2').textContent = '0';
             updateGoalVisuals();
             document.getElementById('winner-overlay').classList.remove('show');
+            stopConfetti();
         }
         
         // Undo last goal
@@ -627,6 +687,65 @@
         window.handleGoalDetected = function(playerNumber) {
             addGoal(playerNumber);
         };
+        
+        // Confetti Effect
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const ctx = confettiCanvas.getContext('2d');
+        let particles = [];
+        let animationId;
+
+        function resizeCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function createParticle() {
+            return {
+                x: Math.random() * confettiCanvas.width,
+                y: -10,
+                color: ['#FF0000', '#FFD700', '#FFFFFF'][Math.floor(Math.random() * 3)],
+                size: Math.random() * 8 + 4,
+                speedY: Math.random() * 3 + 2,
+                speedX: Math.random() * 2 - 1,
+                rotation: Math.random() * 360,
+                rotationSpeed: Math.random() * 10 - 5
+            };
+        }
+
+        function updateConfetti() {
+            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            
+            if (particles.length < 100) particles.push(createParticle());
+
+            particles.forEach((p, i) => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.rotation += p.rotationSpeed;
+                
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                ctx.restore();
+                
+                if (p.y > confettiCanvas.height) particles[i] = createParticle();
+            });
+            animationId = requestAnimationFrame(updateConfetti);
+        }
+
+        function startConfetti() {
+            confettiCanvas.style.display = 'block';
+            resizeCanvas();
+            particles = [];
+            updateConfetti();
+        }
+        
+        function stopConfetti() {
+            confettiCanvas.style.display = 'none';
+            if (animationId) cancelAnimationFrame(animationId);
+        }
     </script>
 </body>
 </html>

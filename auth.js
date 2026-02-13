@@ -40,10 +40,22 @@ function handleGuest() {
     if(!sessionGuests.includes(g)) sessionGuests.push(g); startSession();
 }
 
+async function handleLogout() {
+    if (_supabase) {
+        const { error } = await _supabase.auth.signOut();
+        if (error) console.error('Error logging out:', error);
+        window.location.reload();
+    } else {
+        window.location.reload();
+    }
+}
+
 function startSession() { 
     document.getElementById('auth-page').style.display = 'none'; 
     document.getElementById('app-content').style.display = 'flex'; 
-    document.getElementById('label-user').innerText = user.username; 
+    document.getElementById('nav-tabs').style.display = 'flex'; 
+    const nameEl = document.getElementById('user-display-name');
+    if (nameEl) nameEl.innerText = user.username;
     
     // Show Pro Mode only for developer (Jarno Saarinen)
     const proModeSection = document.getElementById('pro-mode-section');
@@ -255,3 +267,4 @@ window.saveProfile = saveProfile;
 window.showEditProfile = showEditProfile;
 window.previewAvatarFile = previewAvatarFile;
 window.initApp = initApp;
+window.handleLogout = handleLogout;
