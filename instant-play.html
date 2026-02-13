@@ -4,12 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Subsoccer - Instant Play</title>
-    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
             --sub-red: #FF0000;
             --sub-gold: #FFD700;
             --sub-black: #0a0a0a;
+        }
+        
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('fonts/Subsoccer-2-Regular.otf') format('opentype');
         }
         
         * {
@@ -20,12 +28,13 @@
         }
         
         body {
-            font-family: 'Russo One', sans-serif;
+            font-family: 'Subsoccer', sans-serif;
             background: var(--sub-black);
             color: white;
             overflow: hidden;
             width: 100vw;
             height: 100vh;
+            height: 100dvh; /* Adapts to address bar on mobile */
             display: flex;
             user-select: none;
             -webkit-user-select: none;
@@ -60,7 +69,7 @@
         
         /* Player label */
         .player-label {
-            font-family: 'Russo One';
+            font-family: 'Subsoccer', sans-serif;
             font-size: 1.2rem;
             color: #666;
             position: absolute;
@@ -71,7 +80,7 @@
         
         /* Score display */
         .score {
-            font-family: 'Russo One';
+            font-family: 'Subsoccer', sans-serif;
             font-size: 10rem;
             color: var(--sub-gold);
             text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
@@ -107,11 +116,11 @@
         /* Controls overlay */
         .controls {
             position: absolute;
-            bottom: 20px;
+            bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 10px;
+            gap: 8px;
             z-index: 20;
         }
         
@@ -120,10 +129,10 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 25px;
             font-family: 'Open Sans', sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -175,7 +184,7 @@
             color: white;
             padding: 20px 50px;
             font-size: 1.5rem;
-            font-family: 'Russo One', sans-serif;
+            font-family: 'Subsoccer', sans-serif;
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s;
@@ -222,6 +231,44 @@
             0%, 100% { transform: rotate(0deg); }
             50% { transform: rotate(90deg); }
         }
+
+        /* Table ID display */
+        .table-id {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.8rem;
+            color: #444;
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 10px;
+            border-radius: 10px;
+            display: none; /* Hidden by default */
+        }
+
+        /* Start Overlay (Click to Fullscreen) */
+        .start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .pulse-anim {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -231,6 +278,17 @@
         <h2 style="color: var(--sub-red); margin-bottom: 10px;">ROTATE YOUR DEVICE</h2>
         <p style="color: #666;">Turn your phone to landscape mode to play</p>
     </div>
+
+    <!-- Start Overlay -->
+    <div id="start-overlay" class="start-overlay" onclick="enterFullscreenGame()">
+        <div style="font-size: 3rem; color: var(--sub-red); margin-bottom: 10px;">SUBSOCCER</div>
+        <div style="font-size: 1.5rem; color: white; margin-bottom: 30px;">INSTANT PLAY</div>
+        <button class="play-again-btn pulse-anim">TAP TO START</button>
+        <p style="color: #666; margin-top: 20px; font-family: 'Open Sans'; font-size: 0.8rem;">Tap to enter fullscreen & enable sound</p>
+    </div>
+
+    <!-- Table ID Display -->
+    <div id="table-id-display" class="table-id">TABLE: <span id="table-id-value"></span></div>
 
     <!-- Main scoreboard -->
     <div class="scoreboard">
@@ -254,7 +312,7 @@
         <!-- Controls -->
         <div class="controls">
             <button class="control-btn" onclick="resetGame()">🔄 Reset</button>
-            <button class="control-btn" onclick="toggleSound()">🔊 Sound</button>
+            <button class="control-btn" onclick="toggleSound(this)">🔊 Sound</button>
             <button class="control-btn" onclick="undoGoal()">↩️ Undo</button>
         </div>
     </div>
@@ -272,6 +330,7 @@
         let scoreP2 = 0;
         let goalHistory = []; // For undo
         let soundEnabled = true;
+        let currentGameId = null;
         const WIN_SCORE = 3;
         
         // Audio context for sound effects
@@ -289,6 +348,22 @@
                     console.log('Orientation lock not supported');
                 });
             }
+
+            // Check for Game ID in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            // Use URL param or default to 'QUICK-PLAY'
+            const gameId = urlParams.get('game_id') || 'QUICK-PLAY';
+            
+            currentGameId = gameId;
+            document.getElementById('table-id-value').textContent = gameId;
+            document.getElementById('table-id-display').style.display = 'block';
+            
+            // Re-try scroll on orientation change (helps hide address bar when placing in holder)
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    window.scrollTo(0, 1);
+                }, 300);
+            });
             
             // Initialize audio
             if (window.AudioContext || window.webkitAudioContext) {
@@ -317,6 +392,35 @@
                 console.log('Could not load custom sounds');
             }
         });
+
+        // Enter Fullscreen and Start
+        function enterFullscreenGame() {
+            const elem = document.documentElement;
+
+            // Hide overlay immediately to ensure game starts
+            document.getElementById('start-overlay').style.display = 'none';
+            
+            // Scroll to hide address bar (iOS hack)
+            window.scrollTo(0, 1);
+            
+            // Try to request fullscreen
+            try {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(err => console.log(err));
+                } else if (elem.webkitRequestFullscreen) { /* Safari */
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { /* IE11 */
+                    elem.msRequestFullscreen();
+                }
+            } catch (e) {
+                console.log('Fullscreen not supported');
+            }
+
+            // Resume audio context (browsers block audio until user interaction)
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
         
         // Add goal
         function addGoal(player) {
@@ -420,9 +524,8 @@
         }
         
         // Toggle sound
-        function toggleSound() {
+        function toggleSound(btn) {
             soundEnabled = !soundEnabled;
-            const btn = event.target;
             btn.textContent = soundEnabled ? '🔊 Sound' : '🔇 Muted';
         }
         
@@ -446,7 +549,7 @@
         
         // Synthesized goal sound (fallback)
         function synthesizeGoalSound() {
-            if (!audioContext) return;
+            if (!audioContext || !soundEnabled) return;
             
             const now = audioContext.currentTime;
             const osc = audioContext.createOscillator();
@@ -486,7 +589,7 @@
         
         // Synthesized crowd cheer (fallback)
         function synthesizeCrowdCheer() {
-            if (!audioContext) return;
+            if (!audioContext || !soundEnabled) return;
             
             const now = audioContext.currentTime;
             const duration = 1.5;

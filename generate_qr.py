@@ -4,7 +4,6 @@ Subsoccer Instant Play QR Code Generator
 Generates QR codes for instant play mode
 """
 
-import qrcode
 import sys
 from pathlib import Path
 
@@ -55,24 +54,46 @@ def main():
     print("=" * 60)
     print()
     
-    # Get URL from command line or use default
-    if len(sys.argv) > 1:
-        url = sys.argv[1]
-    else:
-        print("💡 No URL provided, using localhost for testing...")
-        url = "http://192.168.1.100:8000/instant-play.html"
-        print(f"\nTo use custom URL, run:")
-        print(f"  python3 {sys.argv[0]} https://yourdomain.com/instant-play.html")
-        print()
+    # Base URL (Vaihda tämä tuotanto-osoitteeseen kun julkaiset, esim. https://subsoccer.app/instant-play.html)
+    base_url = "http://192.168.1.100:8000/instant-play.html"
+    game_id = ""
+    size = 400
     
-    # Get size
-    if len(sys.argv) > 2:
-        size = int(sys.argv[2])
-    else:
-        size = 400
+    # Parse arguments intelligently
+    if len(sys.argv) > 1:
+        arg1 = sys.argv[1]
+        
+        # Case 1: First argument is URL (starts with http)
+        if arg1.startswith("http"):
+            base_url = arg1
+            if len(sys.argv) > 2:
+                game_id = sys.argv[2]
+            if len(sys.argv) > 3:
+                size = int(sys.argv[3])
+        
+        # Case 2: First argument is Game ID (shortcut)
+        else:
+            game_id = arg1
+            if len(sys.argv) > 2:
+                size = int(sys.argv[2])
+    
+    # If no game_id provided via args, ask for it (optional)
+    if not game_id:
+        print("💡 Tip: You can add a unique Table ID/Name.")
+        user_input = input("Enter Game ID (press Enter to skip): ").strip()
+        if user_input:
+            game_id = user_input
+
+    # Construct final URL
+    final_url = base_url
+    if game_id:
+        separator = "&" if "?" in base_url else "?"
+        final_url = f"{base_url}{separator}game_id={game_id}"
+        print(f"🔗 Linked to Table ID: {game_id}")
     
     # Generate QR code
-    output = generate_qr(url, size=size)
+    filename = f"qr_{game_id}.png" if game_id else "subsoccer_instant_play_qr.png"
+    output = generate_qr(final_url, filename=filename, size=size)
     
     print("\n" + "=" * 60)
     print("📋 NEXT STEPS:")

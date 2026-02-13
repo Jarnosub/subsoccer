@@ -14,7 +14,7 @@
     <style>
         /* Fix navigation visibility */
         .section { display: none; }
-        .section.active { display: flex; justify-content: center; animation: fadeIn 0.3s; }
+        .section.active { display: flex; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
         /* Profile Controls Compact Style */
@@ -164,7 +164,7 @@
             <input type="text" id="auth-user" placeholder="Username">
             <input type="password" id="auth-pass" placeholder="Password">
             <button class="btn-red" onclick="handleAuth()">ENTER</button>
-            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
                 <span style="font-size: 0.75rem; color: var(--sub-gold); cursor: pointer;" onclick="toggleAuth(true)">Create Account</span>
             </div>
             <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
@@ -190,28 +190,6 @@
         🔊
     </button>
 </div>
-        <div class="nav-tabs">
-            <div class="tab" id="tab-profile" onclick="showPage('profile')">
-                <i class="fa-regular fa-user"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
-            </div>
-            <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
-                <i class="fa-solid fa-futbol"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Play</span>
-            </div>
-            <div class="tab" id="tab-events" onclick="showPage('events')">
-                <i class="fa-regular fa-calendar"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Events</span>
-            </div>
-            <div class="tab" id="tab-map" onclick="showPage('map')">
-                <i class="fa-regular fa-map"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Map</span>
-            </div>
-            <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">
-                <i class="fa-solid fa-chart-simple"></i>
-                <span style="font-size:0.65rem; margin-top:2px;">Rank</span>
-            </div>
-        </div>
 
         <div id="section-profile" class="section">
             <div class="container" style="text-align:center;">
@@ -353,7 +331,7 @@
             </div>
         </div>
 
-        <div id="section-map" class="section" style="height: calc(100vh - 180px); flex-direction: column;">
+        <div id="section-map" class="section">
             <h2 style="font-family: 'Russo One'; color: var(--sub-red); text-align: center; margin-bottom: 15px; font-size: 1rem; text-transform:uppercase; letter-spacing:1px;">Subsoccer Map</h2>
             <div id="public-game-map" style="width: 100%; flex-grow: 1; border-radius: 12px; border: 2px solid var(--sub-red);"></div>
         </div>
@@ -393,9 +371,6 @@
                 <div id="elo-preview" style="background:#000; padding:15px; border-radius:12px; border:1px solid #333; margin-bottom:20px; display:none; box-shadow: inset 0 0 15px rgba(255,255,255,0.05);">
                     <div style="font-size:0.65rem; color:#666; font-family:'Resolve'; letter-spacing:2px; margin-bottom:5px;">ELO PREDICTION</div>
                     <div id="elo-prediction-text"></div>
-                    <button onclick="clearQuickMatchPlayers()" class="clear-players-btn" title="Clear players and start fresh">
-                        🔄 New Players
-                    </button>
                 </div>
 
                 <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.2rem; height:60px;">Start Match</button>
@@ -405,7 +380,7 @@
                     <button class="btn-red" onclick="showPage('history')" style="flex:1; background:#333; font-size:0.85rem; padding:12px;">
                         📜 History
                     </button>
-                    <a href="instant-play.html" style="flex:1; text-decoration:none;">
+                    <a href="instant-play.html?game_id=QUICK-PLAY" style="flex:1; text-decoration:none;">
                         <button class="btn-red" style="width:100%; background:#333; font-size:0.85rem; padding:12px;">
                             ⚡ Instant Play
                         </button>
@@ -482,8 +457,8 @@
         </div>
 
         <div id="section-leaderboard" class="section">
-            <div class="container">
-                <h3 style="font-family:'Russo One'; text-transform:uppercase; margin: 0 0 20px 0; color:var(--sub-gold);">🏆 Top Players</h3>
+            <div class="container" style="margin-bottom: 30px;">
+                <h3 style="font-family:'Russo One'; text-transform:uppercase; margin: 0 0 10px 0; color:var(--sub-gold);">🏆 Top Players</h3>
                 <div id="lb-data"></div>
             </div>
         </div>
@@ -528,5 +503,29 @@
         <button id="pro-undo-btn" onclick="undoLastGoal()" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:var(--sub-gold); border:2px solid var(--sub-gold); padding:10px 25px; border-radius:25px; font-family:'Russo One'; font-size:0.85rem; cursor:pointer; display:none; z-index:100000; letter-spacing:1px;">↺ UNDO LAST GOAL</button>
     </div>
     <!-- END PRO MODE VIEW -->
+
+    <!-- Nav tabs at end of body to avoid Safari flex layout bug -->
+    <div class="nav-tabs" id="nav-tabs" style="display:none;">
+        <div class="tab" id="tab-profile" onclick="showPage('profile')">
+            <i class="fa-regular fa-user"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
+        </div>
+        <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
+            <i class="fa-solid fa-futbol"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Play</span>
+        </div>
+        <div class="tab" id="tab-events" onclick="showPage('events')">
+            <i class="fa-regular fa-calendar"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Events</span>
+        </div>
+        <div class="tab" id="tab-map" onclick="showPage('map')">
+            <i class="fa-regular fa-map"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Map</span>
+        </div>
+        <div class="tab" id="tab-leaderboard" onclick="showPage('leaderboard')">
+            <i class="fa-solid fa-chart-simple"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">Rank</span>
+        </div>
+    </div>
 </body>
 </html>
