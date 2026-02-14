@@ -175,17 +175,19 @@ header {
     position: fixed !important;
     top: 0 !important;
     right: 0 !important;
-    width: 280px !important;
+    /* Kavennetaan leveys kiinteäksi mobiilissa */
+    width: 280px !important; 
+    max-width: 80% !important; 
     height: 100vh !important;
-    background: rgba(10, 10, 10, 0.95) !important; /* Läpinäkyvä musta */
-    backdrop-filter: blur(20px) saturate(180%) !important; /* Lasiefekti */
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    background: rgba(10, 10, 10, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
     z-index: 10001 !important;
     display: none;
     flex-direction: column;
-    padding: 30px 20px;
-    border-left: 1px solid rgba(255, 215, 0, 0.2); /* Ohut kultainen reuna */
-    box-shadow: -15px 0 35px rgba(0,0,0,0.7);
+    padding: 30px 15px; /* Pienennetään sivupaddingia */
+    border-left: 1px solid rgba(255, 215, 0, 0.3);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.8);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -202,14 +204,14 @@ header {
 
 .menu-item {
     width: 100%;
-    padding: 16px 20px;
+    padding: 14px 15px !important;
     background: rgba(255, 255, 255, 0.03); /* Kevyt korostus pohjalla */
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 12px; /* Pyöristetyt kulmat */
     color: #eee;
     text-align: left;
     font-family: 'Resolve', sans-serif;
-    font-size: 0.95rem;
+    font-size: 0.85rem !important; /* Hieman pienempi teksti kapeammalle valikolle */
     cursor: pointer;
     text-transform: uppercase;
     display: flex;
@@ -699,20 +701,6 @@ input:focus, input:active {
 .game-controls-locked {
     pointer-events: none !important;
     opacity: 0.8; /* Pieni visuaalinen himmennys merkiksi lukituksesta */
-}
-
-@media (max-width: 768px) {
-    #settings-menu {
-        width: 200px !important; /* Pienennetty leveys (oli 280px) */
-        background: rgba(17, 17, 17, 0.95) !important; /* Hieman läpinäkyvyyttä */
-        backdrop-filter: blur(10px);
-        border-left: 1px solid var(--sub-gold) !important;
-    }
-    
-    .menu-item {
-        padding: 15px 20px !important; /* Lisää tilaa sormille mutta kapeammassa tilassa */
-        font-size: 0.85rem !important;
-    }
 }
 
 /* Fonttien vakautus mobiililaitteille */
