@@ -503,29 +503,32 @@ input, select, button {
 
 /* ILMOITUSTEN TYYLIT (TOAST) */
 #notification-container {
-    position: fixed;
-    bottom: 100px !important; /* Raise above navigation and buttons */
-    top: auto !important;
-    z-index: 1000; /* Ensure it appears above other elements */
+    position: fixed !important;
+    top: 75px !important; /* Siirto ylös logon alle */
+    bottom: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 90% !important;
+    max-width: 400px !important;
+    z-index: 99999 !important;
     display: flex;
     flex-direction: column;
     gap: 10px;
     align-items: center;
-    width: 100%;
     pointer-events: none;
 }
 
 .toast-notification {
     pointer-events: auto;
-    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.9) !important;
+    border-left: 4px solid var(--sub-gold) !important;
+    color: white !important;
+    padding: 12px 20px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
     border-radius: var(--sub-radius);
-    color: white;
-    background-color: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(4px);
     font-family: 'Open Sans', sans-serif;
     font-size: 0.8rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    border-left: 3px solid;
     opacity: 0;
     transform: translateY(20px);
     animation: toastSlideUp 0.3s ease-out forwards, toastFadeOut 0.5s 3.5s forwards;
@@ -699,4 +702,10 @@ input:focus, input:active {
         padding: 15px 20px !important; /* Lisää tilaa sormille mutta kapeammassa tilassa */
         font-size: 0.85rem !important;
     }
+}
+
+/* Fonttien vakautus mobiililaitteille */
+body, input, button, select, textarea, span, div, h1, h2, h3 {
+    font-family: 'Resolve', 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
 }
