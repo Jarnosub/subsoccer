@@ -1,9 +1,16 @@
 import { initApp } from './auth.js';
 import { checkLiveEventParam } from './events.js';
-import './ui.js';
+import './bracket-engine.js';
+import './match-service.js';
+import { setupGlobalErrorHandling } from './ui.js';
 import './script.js';
 import './tournament.js';
+import './quick-match.js';
+import './map.js';
+import './game-service.js';
 import './audio-engine.js';
+import './stats-service.js';
+import './card-generator.js';
 import './sound-effects.js';
 
 console.log('🚀 Subsoccer App Starting...');
@@ -11,6 +18,7 @@ console.log('🚀 Subsoccer App Starting...');
 // Käynnistä sovellus kun sivu on ladattu
 const start = () => {
     console.log('📱 DOM Ready - Initializing App...');
+    setupGlobalErrorHandling();
     checkLiveEventParam();
     initApp();
 };

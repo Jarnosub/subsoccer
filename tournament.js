@@ -1,5 +1,7 @@
 import { _supabase, state } from './config.js';
 import { showNotification, showPage, showVictoryAnimation, updatePoolUI, updateProfileCard } from './ui.js';
+import { BracketEngine } from './bracket-engine.js';
+import { MatchService } from './match-service.js';
 
 console.log('🏆 Tournament Module Loaded');
 
@@ -10,6 +12,8 @@ console.log('🏆 Tournament Module Loaded');
  */
 
 let rP = [], rW = [], finalists = [], bronzeContenders = [], bronzeWinner = null, initialPlayerCount = 0;
+let tournamentSessionGains = {}; // Seuraa kunkin pelaajan kokonaispisteitä turnauksen aikana
+let tournamentSessionElos = {};  // Seuraa pelaajien viimeisintä ELO-lukua
 
 export function startTournament() {
     if (state.pool.length < 2) return showNotification("Min 2 players for a tournament!", "error");
@@ -23,11 +27,12 @@ export function startTournament() {
         document.getElementById('tour-setup').style.display = 'none';
         document.getElementById('tour-engine').style.display = 'flex';
         document.getElementById('save-btn').style.display = 'none';
-        const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(state.pool.length)));
-        const byes = nextPowerOfTwo - state.pool.length;
+        const byes = BracketEngine.calculateByes(state.pool.length);
         let shuffledPlayers = [...state.pool].sort(() => Math.random() - 0.5);
         rP = shuffledPlayers;
         rW = []; finalists = []; bronzeContenders = []; bronzeWinner = null;
+        tournamentSessionGains = {};
+        tournamentSessionElos = {};
         drawRound(byes);
     } catch (e) {
         showNotification("Error starting tournament: " + e.message, "error");
@@ -40,18 +45,25 @@ export function drawRound(byes = 0) {
     if (finalists.length === 0) rW = [];
 
     if (finalists.length === 2) {
-        a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin-bottom:15px; font-size:0.8rem; color:#555; letter-spacing:2px;">Bronze Match</h3>`;
-        const bMatch = document.createElement('div');
-        bMatch.className = "bracket-match";
-        bMatch.style = "background:#0a0a0a; border:1px solid #222; border-radius:var(--sub-radius); margin-bottom:25px; width:100%; overflow:hidden;";
-        bMatch.innerHTML = `<div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); text-transform:uppercase;" onclick="pickBronzeWinner('${bronzeContenders[0]}', this)">${bronzeContenders[0]}</div><div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); border-top:1px solid #222; text-transform:uppercase;" onclick="pickBronzeWinner('${bronzeContenders[1]}', this)">${bronzeContenders[1]}</div>`;
-        a.appendChild(bMatch);
-        a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin-bottom:15px; font-size:0.8rem; color:var(--sub-gold); letter-spacing:2px;">Final</h3>`;
-        const fMatch = document.createElement('div');
-        fMatch.className = "bracket-match";
-        fMatch.style = "background:#0a0a0a; border:1px solid var(--sub-gold); border-radius:var(--sub-radius); width:100%; overflow:hidden;";
-        fMatch.innerHTML = `<div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); text-transform:uppercase;" onclick="pickWin(0, '${finalists[0]}', this)">${finalists[0]}</div><div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); border-top:1px solid #222; text-transform:uppercase;" onclick="pickWin(0, '${finalists[1]}', this)">${finalists[1]}</div>`;
-        a.appendChild(fMatch);
+        a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin-bottom:15px; font-size:0.8rem; color:#555; letter-spacing:2px; text-align:center;">Bronze Match</h3>`;
+        a.appendChild(BracketEngine.renderMatch(
+            bronzeContenders[0], 
+            bronzeContenders[1], 
+            0, 
+            bronzeWinner, 
+            'pickBronzeWinner', 
+            { isBronze: true }
+        ));
+
+        a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin-bottom:15px; font-size:0.8rem; color:var(--sub-gold); letter-spacing:2px; text-align:center;">Final</h3>`;
+        a.appendChild(BracketEngine.renderMatch(
+            finalists[0], 
+            finalists[1], 
+            0, 
+            rW[0], 
+            'pickWin', 
+            { isFinal: true }
+        ));
         checkCompletion();
         return;
     }
@@ -72,46 +84,63 @@ export function drawRound(byes = 0) {
 
     matches.forEach((match, index) => {
         const [p1, p2] = match;
-        const m = document.createElement('div');
-        m.className = "bracket-match";
-        m.style.background = "#0a0a0a"; m.style.border = "1px solid #222"; m.style.borderRadius = "var(--sub-radius)"; m.style.marginBottom = "10px"; m.style.width = "100%"; m.style.overflow = "hidden";
         const winnerIndex = byes + index;
-        if (!p2) { m.innerHTML = `<div style="padding:15px; opacity:0.5; font-family:var(--sub-name-font); text-transform:uppercase;">${p1} (BYE)</div>`; rW[winnerIndex] = p1; }
-        else { m.innerHTML = `<div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); text-transform:uppercase;" onclick="pickWin(${winnerIndex}, '${p1}', this)">${p1}</div><div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); border-top:1px solid #222; text-transform:uppercase;" onclick="pickWin(${winnerIndex}, '${p2}', this)">${p2}</div>`; }
-        a.appendChild(m);
+        
+        a.appendChild(BracketEngine.renderMatch(
+            p1, 
+            p2, 
+            winnerIndex, 
+            rW[winnerIndex], 
+            'pickWin'
+        ));
+        
+        if (!p2) rW[winnerIndex] = p1;
     });
 
     if (playersWithBye.length > 0) {
-        a.innerHTML += `<h4 style="font-family:'Russo One'; text-transform:uppercase; margin: 20px 0 10px 0; opacity: 0.7;">Byes (Next Round)</h4>`;
+        a.innerHTML += `<h4 style="font-family:var(--sub-name-font); text-transform:uppercase; margin: 20px 0 10px 0; opacity: 0.7; text-align:center;">Byes (Next Round)</h4>`;
         playersWithBye.forEach(p => {
             const byeEl = document.createElement('div');
-            byeEl.innerHTML = `<div style="padding:10px 15px; background: #0a0a0a; border:1px solid #222; border-radius:10px; margin-bottom:10px; width:100%; font-family:'Russo One'; opacity:0.7;">${p}</div>`;
+            byeEl.innerHTML = `<div style="padding:10px 15px; background: #0a0a0a; border:1px solid #222; border-radius:10px; margin-bottom:10px; width:100%; max-width:400px; font-family:var(--sub-name-font); opacity:0.7; margin:0 auto 10px;">${p}</div>`;
             a.appendChild(byeEl);
         });
     }
     checkCompletion();
 }
 
-export function pickWin(idx, n, e) {
+export async function pickWin(idx, n, e) {
     let p1, p2;
     if (finalists.length === 2) { p1 = finalists[0]; p2 = finalists[1]; }
     else {
-        const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(rP.length || 1)));
-        const byes = nextPowerOfTwo - rP.length;
-        const playersInMatches = rP.slice(byes);
-        const matchIndex = idx - byes;
-        p1 = playersInMatches[matchIndex * 2]; p2 = playersInMatches[matchIndex * 2 + 1];
+        const match = BracketEngine.getMatchPlayers(rP, rW, idx);
+        p1 = match.p1; p2 = match.p2;
     }
-    if (p1 && p2) { const tournamentName = "Tournament"; if (window.saveMatch) window.saveMatch(p1, p2, n, tournamentName); }
+    if (p1 && p2) { 
+        const result = await MatchService.recordMatch({
+            player1Name: p1, player2Name: p2, winnerName: n, 
+            tournamentId: state.currentTournamentId, tournamentName: "Tournament"
+        });
+
+        if (result.success) {
+            // Kumuloidaan pisteet ja päivitetään viimeisin ELO
+            tournamentSessionGains[n] = (tournamentSessionGains[n] || 0) + result.gain;
+            tournamentSessionElos[n] = result.newElo;
+        }
+    }
     rW[idx] = n;
     e.parentElement.querySelectorAll('div').forEach(d => { d.style.background = "transparent"; d.style.opacity = "0.5"; });
     e.style.background = "rgba(227, 6, 19, 0.4)"; e.style.opacity = "1";
     checkCompletion();
 }
 
-export function pickBronzeWinner(n, e) {
-    const tournamentName = "Tournament";
-    if (window.saveMatch) window.saveMatch(bronzeContenders[0], bronzeContenders[1], n, tournamentName + " (Bronze)");
+export async function pickBronzeWinner(idx, n, e) {
+    const result = await MatchService.recordMatch({
+        player1Name: bronzeContenders[0], player2Name: bronzeContenders[1], winnerName: n,
+        tournamentId: state.currentTournamentId, tournamentName: "Tournament (Bronze)"
+    });
+    if (result.success) {
+        tournamentSessionGains[n] = (tournamentSessionGains[n] || 0) + result.gain;
+    }
     bronzeWinner = n;
     e.parentElement.querySelectorAll('div').forEach(d => { d.style.background = "transparent"; d.style.opacity = "0.5"; });
     e.style.background = "rgba(255, 215, 0, 0.3)"; e.style.opacity = "1";
@@ -158,6 +187,17 @@ export async function saveTour() {
         const { error } = await _supabase.from('tournament_history').insert([dataToInsert]);
         if (error) throw error;
 
+        // Haetaan voittajan todellinen ELO ja saatu pistemäärä animaatiota varten
+        let winnerElo = 0;
+        let winnerGain = 0;
+        if (winnerName) {
+            // Haetaan tuorein ELO tietokannasta (rekisteröidyt) tai käytetään finaalin tulosta (vieraat)
+            const { data: p } = await _supabase.from('players').select('elo').eq('username', winnerName).maybeSingle();
+            
+            winnerElo = p ? p.elo : (tournamentSessionElos[winnerName] || 0);
+            winnerGain = tournamentSessionGains[winnerName] || 0;
+        }
+
         state.pool = []; 
         updatePoolUI();
         document.getElementById('tour-engine').style.display = 'none';
@@ -165,7 +205,15 @@ export async function saveTour() {
         showPage('history');
         showNotification('Tournament saved successfully!', 'success');
         
-        if (typeof showVictoryAnimation === 'function') showVictoryAnimation(winnerName, 0, 0);
+        if (typeof showVictoryAnimation === 'function') {
+            showVictoryAnimation(winnerName, winnerElo, winnerGain);
+        }
+
+        // Päivitetään kirjautuneen käyttäjän tila, jos hän voitti
+        if (state.user && winnerName === state.user.username) {
+            const { data } = await _supabase.from('players').select('*').eq('id', state.user.id).maybeSingle();
+            if (data) { state.user = data; updateProfileCard(); }
+        }
     } catch (error) {
         console.error('Error saving tournament:', error);
         showNotification('Failed to save tournament: ' + error.message, 'error');

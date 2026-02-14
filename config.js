@@ -17,7 +17,15 @@ export const state = {
     selLng: null,
     publicMap: null,
     editingGameId: null,
-    currentTournamentId: null
+    currentTournamentId: null,
+    // Quick Match & Pro Mode State
+    quickP1: null,
+    quickP2: null,
+    proModeActive: false,
+    proModeEnabled: false,
+    proScoreP1: 0,
+    proScoreP2: 0,
+    proGoalHistory: []
 };
 
 // Globaali pääsy debuggausta varten ja vanhoille scripteille

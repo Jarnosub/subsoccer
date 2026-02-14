@@ -1,4 +1,5 @@
 import { state, _supabase } from './config.js';
+import { CardGenerator } from './card-generator.js';
 
 // Swipe-toiminnallisuus muuttujat (siirretty alkuun ReferenceErrorin välttämiseksi)
 let touchStartX = 0;
@@ -342,6 +343,97 @@ export function cancelEditProfile() {
     document.getElementById('profile-dashboard-ui').style.display = 'block'; // Tuo napit takaisin
 }
 
+/**
+ * Keskitetty Modal-järjestelmä
+ */
+export function showModal(title, content, options = {}) {
+    const modalId = options.id || 'generic-modal';
+    let modal = document.getElementById(modalId);
+    
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        document.body.appendChild(modal);
+    }
+    
+    modal.className = 'modal-overlay';
+    const maxWidth = options.maxWidth || '500px';
+    const borderColor = options.borderColor || 'var(--sub-gold)';
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: ${maxWidth}; border-color: ${borderColor};">
+            <div class="modal-header">
+                <h3 style="color: ${borderColor};">${title}</h3>
+                <button class="modal-close" onclick="closeModal('${modalId}')">&times;</button>
+            </div>
+            <div class="modal-body">
+                ${content}
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    
+    // Sulje klikkaamalla taustaa
+    modal.onclick = (e) => {
+        if (e.target === modal) closeModal(modalId);
+    };
+
+    // Estä skrollaus taustalla
+    document.body.style.overflow = 'hidden';
+}
+
+export function closeModal(id = 'generic-modal') {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Palauta skrollaus jos muita modaaleja ei ole auki
+    const openModals = document.querySelectorAll('.modal-overlay[style*="display: flex"]');
+    if (openModals.length === 0) {
+        document.body.style.overflow = '';
+    }
+}
+
+export function showLoading(message = 'Loading...') {
+    let loader = document.getElementById('loading-overlay');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'loading-overlay';
+        loader.innerHTML = '<div class="spinner"></div><div id="loading-text" style="font-family:var(--sub-name-font); color:var(--sub-gold); letter-spacing:2px; text-transform:uppercase; font-size:0.8rem;"></div>';
+        document.body.appendChild(loader);
+    }
+    const textEl = document.getElementById('loading-text');
+    if (textEl) textEl.innerText = message;
+    loader.style.display = 'flex';
+}
+
+export function hideLoading() {
+    const loader = document.getElementById('loading-overlay');
+    if (loader) loader.style.display = 'none';
+}
+
+/**
+ * Globaali virheidenhallinta
+ */
+export function setupGlobalErrorHandling() {
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error("🚀 Subsoccer Global Error:", message, error);
+        // Estetään spämmäys, näytetään vain kriittiset
+        if (message.includes('Script error') || message.includes('ResizeObserver')) return false;
+        showNotification("An unexpected error occurred. Please refresh if the app behaves strangely.", "error");
+        return false;
+    };
+
+    window.onunhandledrejection = function(event) {
+        console.error("🚀 Subsoccer Promise Rejection:", event.reason);
+        const msg = event.reason?.message || "Network or Database error occurred.";
+        if (msg.includes('fetch')) showNotification("Connection lost. Please check your internet.", "error");
+        else showNotification(msg, "error");
+    };
+}
+
 // Globaalit kytkennät
 window.showPage = showPage;
 window.showNotification = showNotification;
@@ -352,6 +444,11 @@ window.loadUserProfile = loadUserProfile;
 window.showEditProfile = showEditProfile;
 window.cancelEditProfile = cancelEditProfile;
 window.showVictoryAnimation = showVictoryAnimation;
+window.showModal = showModal;
+window.closeModal = closeModal;
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.setupGlobalErrorHandling = setupGlobalErrorHandling;
 
 // ============================================================
 // MOVED FROM SCRIPT.JS TO BREAK CIRCULAR DEPENDENCIES
@@ -371,13 +468,13 @@ export function updatePoolUI() {
     }
     state.pool.forEach((name, index) => {
         const div = document.createElement('div');
-        div.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #0a0a0a; padding: 10px 15px; border-radius: var(--sub-radius); border: 1px solid #222;";
+        div.className = "sub-item-row";
         div.innerHTML = `
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="color: #444; font-family: var(--sub-name-font); font-size: 0.8rem; width: 20px;">${index + 1}.</span>
                 <span style="color: white; text-transform: uppercase; font-size: 0.9rem; font-family: var(--sub-name-font); letter-spacing:1px;">${name}</span>
             </div>
-            <button onclick="removeFromPool(${index})" style="background: #333; color: #888; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold;">-</button>
+            <button class="pool-remove-btn" onclick="removeFromPool(${index})">-</button>
         `;
         list.appendChild(div);
     });
@@ -434,36 +531,67 @@ export function updateAvatarPreview(url) {
 }
 
 export async function viewPlayerCard(targetUsername) {
-    const modal = document.getElementById('card-modal');
-    const container = document.getElementById('modal-card-container');
-    modal.style.display = 'flex';
-    container.innerHTML = '<p style="font-family:\'Russo One\'">LOADING CARD...</p>';
+    showModal('Player Card', '<p style="font-family:\'Resolve\'">LOADING CARD...</p>', { id: 'card-modal', maxWidth: '400px' });
+    
     const { data: p } = await _supabase.from('players').select('*').eq('username', targetUsername).maybeSingle();
     const { count: totalGames } = await _supabase.from('matches').select('*', { count: 'exact', head: true }).or(`player1.eq.${targetUsername},player2.eq.${targetUsername}`);
-    if (!p) return;
+    
+    if (!p) {
+        const body = document.querySelector('#card-modal .modal-body');
+        if (body) body.innerHTML = '<p>Player not found.</p>';
+        return;
+    }
+
     const wins = p.wins || 0;
     const losses = Math.max(0, (totalGames || 0) - wins);
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
     const rank = p.elo > 1600 ? "PRO" : "ROOKIE";
     const avatarUrl = p.avatar_url ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
-    container.innerHTML = `<div class="pro-card" style="margin:0;"><div class="card-inner-frame"><div class="card-header-stripe">${rank} CARD</div><div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div><div class="card-name-strip">${p.username}</div><div class="card-info-area"><div class="card-stats-row"><div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div><div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div><div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div><div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div></div><div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING</span></div><div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div></div></div></div></div>`;
+    
+    const html = `<div class="pro-card" style="margin:0; width:100% !important;"><div class="card-inner-frame"><div class="card-header-stripe">${rank} CARD</div><div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div><div class="card-name-strip">${p.username}</div><div class="card-info-area"><div class="card-stats-row"><div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div><div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div><div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div><div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div></div><div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Resolve';">REPRESENTING</span></div><div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Resolve';">CLUB: PRO</div></div></div></div></div>`;
+    
+    const body = document.querySelector('#card-modal .modal-body');
+    if (body) body.innerHTML = html;
 }
 
-export function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
+export function closeCardModal() { closeModal('card-modal'); }
+
+export async function showLevelUpCard(playerName, newElo) {
+    const isPro = newElo >= 1600;
+    const title = isPro ? "⭐ NEW PRO RANK REACHED!" : "📈 RANK UP!";
+    
+    const content = `
+        <div id="level-up-container" class="level-up-anim">
+            <div id="level-up-card-preview">
+                <!-- We reuse the player card view here -->
+                <p style="text-align:center; color:#888;">Generating your new card...</p>
+            </div>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="shareMyLevelUp('${playerName}')">
+                    <i class="fa fa-share-nodes"></i> SHARE CARD
+                </button>
+                <button class="btn-red" style="flex:1; background:#333;" onclick="closeModal('level-up-modal')">CLOSE</button>
+            </div>
+        </div>
+    `;
+    
+    showModal(title, content, { id: 'level-up-modal', maxWidth: '400px', borderColor: 'var(--sub-gold)' });
+    
+    // Render the card inside the modal
+    await viewPlayerCard(playerName);
+    const cardHtml = document.querySelector('#card-modal .modal-body').innerHTML;
+    document.getElementById('level-up-card-preview').innerHTML = cardHtml;
+    closeModal('card-modal');
+}
+
+window.shareMyLevelUp = async (playerName) => {
+    const dataUrl = await CardGenerator.capture('level-up-container');
+    if (dataUrl) CardGenerator.share(dataUrl, playerName);
+};
 
 export async function downloadFanCard() {
-    const cardElement = document.querySelector('.pro-card');
-    if (!cardElement) return showNotification("Card element not found", "error");
-    await document.fonts.load('1em Resolve');
-    showNotification("Generating high-res card...", "success");
-    try {
-        const canvas = await html2canvas(cardElement, { useCORS: true, allowTaint: true, backgroundColor: "#000000", scale: 4, logging: false });
-        const link = document.createElement('a');
-        link.download = `Subsoccer_ProCard_${state.user.username}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-        showNotification("Card saved to your device!", "success");
-    } catch (err) { console.error("Canvas error:", err); showNotification("Download failed. Check image permissions.", "error"); }
+    const dataUrl = await CardGenerator.capture('profile-card-container');
+    if (dataUrl) CardGenerator.share(dataUrl, state.user.username);
 }
 
 window.updatePoolUI = updatePoolUI;
@@ -475,3 +603,4 @@ window.updateAvatarPreview = updateAvatarPreview;
 window.viewPlayerCard = viewPlayerCard;
 window.closeCardModal = closeCardModal;
 window.downloadFanCard = downloadFanCard;
+window.showLevelUpCard = showLevelUpCard;

@@ -1,6 +1,7 @@
 import { showNotification, showPage, loadUserProfile, populateCountries, cancelEditProfile, updateGuestUI, updateProfileCard } from './ui.js';
 import { _supabase, state } from './config.js';
-import { fetchAllGames, initProModeUI, toggleAuth, initClaimResult, startQuickMatch } from './script.js';
+import { fetchAllGames } from './game-service.js';
+import { initProModeUI, initClaimResult, startQuickMatch } from './quick-match.js';
 
 export async function initApp() {
     try {
@@ -12,6 +13,11 @@ export async function initApp() {
     } catch (e) {
         console.error("Virhe alustuksessa:", e);
     }
+}
+
+export function toggleAuth(s) {
+    document.getElementById('login-form').style.display = s ? 'none' : 'block';
+    document.getElementById('signup-form').style.display = s ? 'block' : 'none';
 }
 
 export async function handleSignUp() {
@@ -28,7 +34,7 @@ export async function handleSignUp() {
     if(error) showNotification("Error: " + error.message, "error"); 
     else { 
         showNotification("Account created!", "success"); 
-        if (typeof toggleAuth === 'function') toggleAuth(false); 
+        toggleAuth(false); 
         initApp(); 
     }
 }
@@ -42,11 +48,17 @@ export async function handleAuth(event) {
         // Haetaan kaikki sarakkeet mukaan lukien uudet full_name, email, phone, city
         let { data, error } = await _supabase.from('players').select('*').eq('username', u).maybeSingle();
         
+        if (error) {
+            console.error("Supabase error:", error);
+            showNotification("Connection error. Please try again.", "error");
+            return;
+        }
+
         if(data && data.password === p) { 
             state.user = data; // Nyt state.user sisältää kaikki henkilötiedot
             startSession(); 
         } else {
-            showNotification("Login failed.", "error");
+            showNotification("Login failed. Check username or password.", "error");
         }
     } catch (e) {
         console.error("Login error:", e);
@@ -81,7 +93,10 @@ function startSession() {
     document.getElementById('auth-page').style.display = 'none'; 
     document.getElementById('app-content').style.display = 'flex'; 
     document.getElementById('nav-tabs').style.display = 'flex'; 
-    document.getElementById('menu-toggle-btn').style.display = 'block'; // Varmistetaan että nappi näkyy
+    const menuBtn = document.getElementById('menu-toggle-btn');
+    if (menuBtn) {
+        menuBtn.style.display = 'block';
+    }
     
     // Contextual UI for Guests
     const eventsTab = document.getElementById('tab-events');
@@ -282,3 +297,4 @@ window.handleLogout = handleLogout;
 window.initApp = initApp;
 window.saveProfile = saveProfile;
 window.previewAvatarFile = previewAvatarFile;
+window.toggleAuth = toggleAuth;
