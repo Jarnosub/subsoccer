@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;700&display=swap');
 @font-face {
     font-family: 'SubsoccerLogo';
     src: url('fonts/Subsoccer-2-Regular.otf') format('opentype');
@@ -14,8 +13,7 @@
 
 @font-face {
     font-family: 'Open Sans';
-    src: url('fonts/OpenSans-Regular.woff2') format('woff2'),
-         url('fonts/OpenSans-Regular.woff') format('woff');
+    src: url('fonts/OpenSans-Regular.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
@@ -53,25 +51,27 @@ header {
 .player-label { font-size: 0.85rem; font-weight: 400; color: #fff; }
 
 .clear-players-btn {
-    margin-top: 10px;
-    background: #333;
-    border: none;
-    color: #888;
-    padding: 6px 12px;
-    border-radius: var(--sub-radius);
+    margin-top: 15px;
+    padding: 10px 25px !important;
+    font-family: 'Resolve', sans-serif !important;
+    font-size: 0.9rem !important;
+    color: #888 !important;
+    background: transparent !important;
+    border: 1px dashed #444 !important;
+    border-radius: var(--sub-radius) !important;
     cursor: pointer;
-    font-size: 0.7rem;
-    font-family: 'Open Sans', sans-serif;
-    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
+
 .clear-players-btn:hover {
-    background: #444;
-    color: #aaa;
-    transform: scale(1.05);
-}
-.clear-players-btn:active {
-    transform: scale(0.95);
+    color: var(--sub-gold) !important;
+    border-color: #444 !important;
+    background: rgba(255, 255, 255, 0.03) !important;
 }
 .logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; letter-spacing: 1px; }
 
@@ -277,12 +277,70 @@ header {
 }
 
 /* Tummennetaan harmaata karttaa, jotta se sulautuu mustaan taustaan */
-#public-game-map {
-    filter: brightness(0.8) contrast(1.1) grayscale(0.5) !important;
-    background: var(--sub-black) !important;
-    border: 2px solid #222 !important;
+#public-game-map .leaflet-tile-pane {
+    filter: brightness(1.1) contrast(1.1) grayscale(0.2) !important;
 }
+
+#public-game-map {
+    background: var(--sub-black) !important;
+    border: 1px solid #222 !important;
+}
+
 /* Varmistetaan, että kustomoidut pallo-pinnit pysyvät kirkkaina kartan päällä */ .custom-div-icon { filter: brightness(1.2) !important; z-index: 1000 !important; }
+
+/* Leaflet Popup Styling - Pro Look */
+.leaflet-popup-content-wrapper {
+    background: #0a0a0a !important;
+    color: #fff !important;
+    border: 1px solid var(--sub-gold) !important;
+    border-radius: var(--sub-radius) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+    font-family: var(--sub-name-font) !important;
+}
+.leaflet-popup-tip {
+    background: var(--sub-gold) !important;
+}
+.leaflet-popup-content {
+    margin: 15px !important;
+    line-height: 1.4;
+}
+
+/* Locate Me Button Overlay */
+.map-locate-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(10, 10, 10, 0.9);
+    border: 1px solid #333;
+    color: #fff;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+.map-locate-btn:hover {
+    color: var(--sub-gold);
+    border-color: var(--sub-gold);
+    transform: scale(1.1);
+}
+
+/* Pulse animation for Verified markers */
+@keyframes markerPulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+}
+.verified-marker-pulse {
+    animation: markerPulse 2s infinite;
+    border-radius: 50%;
+}
 
 /* PLAYER CARD - VERTICAL ADJUSTMENTS */
 .pro-card {
@@ -888,4 +946,17 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     font-weight: bold;
     font-size: 1.2rem;
     border-radius: 2px;
+}
+
+/* Ranking-rivin korostus hoverilla */
+.ranking-row:hover {
+    background: #151515 !important;
+    border-color: rgba(255, 215, 0, 0.3) !important;
+    transform: translateX(5px);
+    cursor: pointer;
+}
+
+/* Podiumin animaatio */
+.podium-container div {
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

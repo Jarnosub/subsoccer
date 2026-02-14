@@ -1,6 +1,6 @@
-import { showNotification, showPage, loadUserProfile, populateCountries, cancelEditProfile } from './ui.js';
+import { showNotification, showPage, loadUserProfile, populateCountries, cancelEditProfile, updateGuestUI, updateProfileCard } from './ui.js';
 import { _supabase, state } from './config.js';
-import { fetchAllGames, updateGuestUI, updateProfileCard, initProModeUI, toggleAuth, initClaimResult, startQuickMatch } from './script.js';
+import { fetchAllGames, initProModeUI, toggleAuth, initClaimResult, startQuickMatch } from './script.js';
 
 export async function initApp() {
     try {
@@ -20,7 +20,7 @@ export async function handleSignUp() {
     
     if(!u || !p) return showNotification("Fill all fields", "error");
     // TARKISTUS: Onko nimi jo varattu?
-    const { data: existing } = await _supabase.from('players').select('id').eq('username', u).single();
+    const { data: existing } = await _supabase.from('players').select('id').eq('username', u).maybeSingle();
     if (existing) {
         return showNotification("Username already taken!", "error");
     }
@@ -38,14 +38,19 @@ export async function handleAuth(event) {
     const u = document.getElementById('auth-user').value.trim().toUpperCase();
     const p = document.getElementById('auth-pass').value;
     
-    // Haetaan kaikki sarakkeet mukaan lukien uudet full_name, email, phone, city
-    let { data, error } = await _supabase.from('players').select('*').eq('username', u).single();
-    
-    if(data && data.password === p) { 
-        state.user = data; // Nyt state.user sisältää kaikki henkilötiedot
-        startSession(); 
-    } else {
-        showNotification("Login failed.", "error");
+    try {
+        // Haetaan kaikki sarakkeet mukaan lukien uudet full_name, email, phone, city
+        let { data, error } = await _supabase.from('players').select('*').eq('username', u).maybeSingle();
+        
+        if(data && data.password === p) { 
+            state.user = data; // Nyt state.user sisältää kaikki henkilötiedot
+            startSession(); 
+        } else {
+            showNotification("Login failed.", "error");
+        }
+    } catch (e) {
+        console.error("Login error:", e);
+        showNotification("Login error: " + e.message, "error");
     }
 }
 
@@ -88,7 +93,7 @@ function startSession() {
     
     // Show Pro Mode only for developer (Jarno Saarinen)
     const proModeSection = document.getElementById('pro-mode-section');
-    if (proModeSection && state.user.username === 'Jarno Saarinen') {
+    if (proModeSection && state.user.username === 'JARNO SAARINEN') {
         proModeSection.style.display = 'block';
     }
     

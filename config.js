@@ -16,7 +16,8 @@ export const state = {
     selLat: null,
     selLng: null,
     publicMap: null,
-    editingGameId: null
+    editingGameId: null,
+    currentTournamentId: null
 };
 
 // Globaali pääsy debuggausta varten ja vanhoille scripteille

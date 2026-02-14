@@ -1,8 +1,7 @@
 import { _supabase, state } from './config.js';
-import { showNotification, showVictoryAnimation, populateGameSelect, showMatchMode } from './ui.js';
+import { showNotification, showVictoryAnimation, populateGameSelect, showMatchMode, updatePoolUI } from './ui.js';
 
 // --- Turnausmuuttujat ---
-let rP = [], rW = [], finalists = [], bronzeContenders = [], bronzeWinner = null, currentTournamentId = null, initialPlayerCount = 0;
 let quickP1 = null, quickP2 = null;
 
 // ============================================================
@@ -39,172 +38,15 @@ export function handleSearch(v) {
 export function addP() {
     const i = document.getElementById('add-p-input');
     const n = i.value.trim().toUpperCase();
-    if (n && !state.pool.includes(n)) { state.pool.push(n); updatePoolUI(); showNotification(`${n} added to pool`, 'success'); }
+    if (n && !state.pool.includes(n)) { state.pool.push(n); updatePoolUI(); }
     i.value = '';
     document.getElementById('search-results').style.display = 'none';
 }
 
 export function directAdd(n) {
-    if (!state.pool.includes(n)) { state.pool.push(n); updatePoolUI(); showNotification(`${n} added to pool`, 'success'); }
+    if (!state.pool.includes(n)) { state.pool.push(n); updatePoolUI(); }
     document.getElementById('add-p-input').value = '';
     document.getElementById('search-results').style.display = 'none';
-}
-
-export function updatePoolUI() {
-    const list = document.getElementById('pool-list');
-    const countSpan = document.getElementById('pool-count');
-    list.innerHTML = '';
-    if (state.pool.length === 0) {
-        const emptyMessage = document.createElement('div');
-        emptyMessage.innerText = "No players added.";
-        list.appendChild(emptyMessage);
-        if (countSpan) countSpan.innerText = 0;
-        return;
-    }
-    state.pool.forEach((name, index) => {
-        const div = document.createElement('div');
-        div.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #111; padding: 8px; border-radius: 8px; border: 1px solid #222;";
-        div.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: var(--sub-red); font-weight: bold; width: 20px;">${index + 1}.</span>
-                <span style="color: white; text-transform: uppercase; font-size: 0.8rem; font-family: 'Russo One';">${name}</span>
-            </div>
-            <button onclick="removeFromPool(${index})" style="background: #333; color: #888; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold;">-</button>
-        `;
-        list.appendChild(div);
-    });
-    if (countSpan) countSpan.innerText = state.pool.length;
-}
-
-export function removeFromPool(index) {
-    const removedPlayer = state.pool[index];
-    state.pool.splice(index, 1);
-    updatePoolUI();
-    showNotification(`${removedPlayer} removed from pool`, 'error');
-}
-
-export function clearPool() {
-    state.pool = [];
-    updatePoolUI();
-    showNotification('Player pool cleared', 'error');
-}
-
-export function updateGuestUI() {
-    document.getElementById('active-guests').innerHTML = state.sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join('');
-}
-
-// ============================================================
-// 3. PROFIILIKORTTI & AVATAR
-// ============================================================
-
-export function updateProfileCard() {
-    const container = document.getElementById('profile-card-container');
-    if (!container || !state.user) return;
-
-    const u = state.user;
-    
-    container.innerHTML = `
-        <div class="topps-collectible-card">
-            <img src="${u.avatar_url || 'https://via.placeholder.com/400x600'}" class="card-hero-image">
-            
-            <div class="card-overlay"></div>
-            
-            <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">
-                PRO CARD // 2026
-            </div>
-
-            <div class="card-content-bottom">
-                <div style="color:var(--sub-gold); font-size:0.7rem; letter-spacing:2px; margin-bottom:4px;">
-                    <i class="fa-solid fa-location-dot"></i> ${u.city || 'HELSINKI'}
-                </div>
-                <div class="card-player-name">${u.username}</div>
-                
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
-                    <div class="card-elo-badge">${u.elo || 1300} ELO</div>
-                    
-                    <div style="text-align:right;">
-                        <div style="color:#666; font-size:0.6rem; text-transform:uppercase;">Win Ratio</div>
-                        <div style="color:white; font-size:1rem;">${((u.wins / (Math.max(1, u.wins + (u.losses || 0)))) * 100).toFixed(0)}%</div>
-                    </div>
-                </div>
-            </div>
-
-            <div style="position:absolute; bottom:15px; right:15px; width:30px; height:30px; background:radial-gradient(circle, #ffd700, #b8860b); border-radius:50%; opacity:0.3; z-index:11; filter:blur(1px);"></div>
-        </div>
-        
-        <p style="text-align:center; color:#555; font-size:0.7rem; margin-top:10px;">
-            DESIGNED FOR THE SUBSOCCER PRO ECOSYSTEM
-        </p>
-    `;
-}
-
-export function updateAvatarPreview(url) {
-    const img = document.getElementById('avatar-preview');
-    if (img) {
-        img.src = url || 'placeholder-silhouette-5-wide.png';
-        img.onerror = () => { img.src = 'placeholder-silhouette-5-wide.png'; };
-    }
-}
-
-export async function viewPlayerCard(targetUsername) {
-    const modal = document.getElementById('card-modal');
-    const container = document.getElementById('modal-card-container');
-    modal.style.display = 'flex';
-    container.innerHTML = '<p style="font-family:\'Russo One\'">LOADING CARD...</p>';
-    const { data: p } = await _supabase.from('players').select('*').eq('username', targetUsername).single();
-    const { count: totalGames } = await _supabase.from('matches').select('*', { count: 'exact', head: true }).or(`player1.eq.${targetUsername},player2.eq.${targetUsername}`);
-    if (!p) return;
-    const wins = p.wins || 0;
-    const losses = Math.max(0, (totalGames || 0) - wins);
-    const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
-    const rank = p.elo > 1600 ? "PRO" : "ROOKIE";
-    const avatarUrl = p.avatar_url ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
-    container.innerHTML = `
-        <div class="pro-card" style="margin:0;">
-            <div class="card-inner-frame">
-                <div class="card-header-stripe">${rank} CARD</div>
-                <div class="card-image-area">
-                    <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                </div>
-                <div class="card-name-strip">${p.username}</div>
-                <div class="card-info-area">
-                    <div class="card-stats-row">
-                        <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div>
-                    </div>
-                    <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16">
-                            <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING</span>
-                        </div>
-                        <div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-export function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
-
-export async function downloadFanCard() {
-    const cardElement = document.querySelector('.pro-card');
-    if (!cardElement) return showNotification("Card element not found", "error");
-    await document.fonts.load('1em Resolve');
-    showNotification("Generating high-res card...", "success");
-    try {
-        const canvas = await html2canvas(cardElement, { useCORS: true, allowTaint: true, backgroundColor: "#000000", scale: 4, logging: false });
-        const link = document.createElement('a');
-        link.download = `Subsoccer_ProCard_${state.user.username}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-        showNotification("Card saved to your device!", "success");
-    } catch (err) {
-        console.error("Canvas error:", err);
-        showNotification("Download failed. Check image permissions.", "error");
-    }
 }
 
 // ============================================================
@@ -244,20 +86,44 @@ export async function fetchPublicGamesMap() {
     const { data } = await _supabase.from('games').select('*').eq('is_public', true);
     if (data) {
         state.publicMap.eachLayer((layer) => { if (layer instanceof L.Marker) state.publicMap.removeLayer(layer); });
+        
+        // Lisätään Locate Me -nappi jos sitä ei vielä ole
+        const mapContainer = document.getElementById('section-map');
+        if (mapContainer && !document.getElementById('map-locate-me')) {
+            const locateBtn = document.createElement('button');
+            locateBtn.id = 'map-locate-me';
+            locateBtn.className = 'map-locate-btn';
+            locateBtn.innerHTML = '<i class="fa-solid fa-crosshairs"></i>';
+            locateBtn.onclick = () => {
+                state.publicMap.locate({setView: true, maxZoom: 14});
+            };
+            mapContainer.style.position = 'relative';
+            mapContainer.appendChild(locateBtn);
+        }
+
         data.forEach(g => {
             if (g.latitude && g.longitude) {
                 // Different icon for verified games
                 const iconColor = g.verified ? 'var(--sub-gold)' : 'var(--sub-red)';
-                const verifiedBadge = g.verified ? '<span style="color:gold;">⭐</span> ' : '';
+                const verifiedBadge = g.verified ? '<div style="color:var(--sub-gold); font-size:0.6rem; font-weight:bold; margin-bottom:4px;">⭐ VERIFIED TABLE</div>' : '';
+                const verifiedClass = g.verified ? 'verified-marker-pulse' : '';
+                
                 const subsoccerIcon = L.divIcon({ 
-                    className: 'custom-div-icon', 
+                    className: `custom-div-icon ${verifiedClass}`, 
                     html: `<div style='background-color:${iconColor}; width:12px; height:12px; border-radius:50%; border:2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);'></div>`, 
                     iconSize: [16, 16], 
                     iconAnchor: [8, 8] 
                 });
+
                 L.marker([g.latitude, g.longitude], { icon: subsoccerIcon })
                     .addTo(state.publicMap)
-                    .bindPopup(`<div style="color:#000; font-family:'Resolve Sans';">${verifiedBadge}<b>${g.game_name.toLowerCase()}</b><br>${g.location}</div>`);
+                    .bindPopup(`<div style="min-width:160px;">
+                        ${verifiedBadge}
+                        <b style="font-size:1.1rem; text-transform:uppercase; color:#fff;">${g.game_name}</b>
+                        <div style="color:#888; font-size:0.75rem; margin-top:8px; text-transform:uppercase; letter-spacing:1px;">
+                            <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-right:5px;"></i>${g.location}
+                        </div>
+                    </div>`);
             }
         });
     }
@@ -552,15 +418,14 @@ export async function fetchLB() {
                            top3.length === 2 ? [top3[1], top3[0]] : 
                            [top3[0]];
         
-        html += '<div style="display:flex; align-items:flex-end; justify-content:center; gap:15px; margin-bottom:30px;">';
+        html += '<div style="display:flex; align-items:flex-end; justify-content:center; gap:10px; margin-bottom:40px; padding:0 10px;">';
         
         podiumOrder.forEach((player, displayIndex) => {
             const actualRank = top3.indexOf(player);
             const flag = player.country ? player.country.toLowerCase() : 'fi';
             const medals = ['🥇', '🥈', '🥉'];
-            const heights = ['180px', '140px', '120px'];
-            const colors = ['linear-gradient(135deg, #FFD700 0%, #d4af37 100%)', 'linear-gradient(135deg, #C0C0C0 0%, #8c8c8c 100%)', 'linear-gradient(135deg, #CD7F32 0%, #a85f1f 100%)'];
-            const glows = ['0 10px 30px rgba(255,215,0,0.5)', '0 8px 25px rgba(192,192,192,0.4)', '0 8px 25px rgba(205,127,50,0.4)'];
+            const heights = ['160px', '120px', '100px'];
+            const colors = ['var(--sub-gold)', '#C0C0C0', '#CD7F32'];
             
             // Only show if player exists in podiumOrder
             if (player) {
@@ -569,14 +434,14 @@ export async function fetchLB() {
                                  actualRank;
                 
                 html += `
-                    <div style="display:flex; flex-direction:column; align-items:center; flex:1; max-width:130px;">
-                        <div style="font-size:2.5rem; margin-bottom:8px;">${medals[rankIndex]}</div>
-                        <div style="background:#0a0a0a; padding:12px; border-radius:12px; width:100%; text-align:center; margin-bottom:10px; border:2px solid ${rankIndex === 0 ? 'var(--sub-gold)' : rankIndex === 1 ? '#C0C0C0' : '#CD7F32'};">
-                            <img src="https://flagcdn.com/w40/${flag}.png" style="height:16px; width:auto; margin-bottom:6px; border-radius:2px;">
-                            <div style="font-family:'Russo One'; font-size:0.85rem; color:#fff; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${player.username}</div>
-                            <div style="font-family:'Russo One'; font-size:1.2rem; color:${rankIndex === 0 ? 'var(--sub-gold)' : rankIndex === 1 ? '#C0C0C0' : '#CD7F32'};">${player.elo}</div>
+                    <div style="display:flex; flex-direction:column; align-items:center; flex:1; max-width:120px;">
+                        <div style="font-size:2rem; margin-bottom:5px;">${medals[rankIndex]}</div>
+                        <div style="background:#111; padding:10px; border-radius:var(--sub-radius); width:100%; text-align:center; margin-bottom:8px; border:1px solid ${colors[rankIndex]}; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+                            <img src="https://flagcdn.com/w40/${flag}.png" style="height:12px; width:auto; margin-bottom:5px; border-radius:1px;">
+                            <div style="font-family:var(--sub-name-font); font-size:0.75rem; color:#fff; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:uppercase;">${player.username}</div>
+                            <div style="font-family:var(--sub-name-font); font-size:1.1rem; color:${colors[rankIndex]}; font-weight:bold;">${player.elo}</div>
                         </div>
-                        <div style="background:${colors[rankIndex]}; height:${heights[rankIndex]}; width:100%; border-radius:8px 8px 0 0; box-shadow:${glows[rankIndex]};"></div>
+                        <div style="background:linear-gradient(to bottom, ${colors[rankIndex]}, transparent); height:${heights[rankIndex]}; width:100%; border-radius:var(--sub-radius) var(--sub-radius) 0 0; opacity:0.4;"></div>
                     </div>
                 `;
             }
@@ -587,18 +452,18 @@ export async function fetchLB() {
     
     // Rest of the players (4+)
     if (data.length > 3) {
-        html += '<h3 style="font-family:\'Russo One\'; color:#888; margin:15px 0 12px 0; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #222; padding-bottom:8px;">Rankings</h3>';
+        html += '<h3 style="font-family:var(--sub-name-font); color:#444; margin:20px 0 15px 0; font-size:0.75rem; text-transform:uppercase; letter-spacing:3px; text-align:center;">GLOBAL RANKINGS</h3>';
         html += data.slice(3).map((p, i) => {
             const flag = p.country ? p.country.toLowerCase() : 'fi';
             const rank = i + 4;
             return `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:#0a0a0a; border-radius:8px; margin-bottom:8px; border-left:3px solid #333; transition:all 0.2s;" onmouseover="this.style.background='#111'; this.style.borderLeftColor='var(--sub-red)';" onmouseout="this.style.background='#0a0a0a'; this.style.borderLeftColor='#333';">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <span style="color:#666; font-family:'Russo One'; font-size:0.85rem; min-width:35px;">#${rank}</span>
-                        <img src="https://flagcdn.com/w40/${flag}.png" style="height:16px; width:auto; border-radius:2px; opacity:0.9;">
-                        <span class="lb-name" onclick="viewPlayerCard('${p.username}')" style="cursor:pointer; color:#fff; font-family:'Open Sans'; font-size:0.95rem;">${p.username}</span>
+                <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid #333; transition:all 0.3s ease;" onclick="viewPlayerCard('${p.username}')">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <span style="color:#444; font-family:var(--sub-name-font); font-size:0.8rem; min-width:30px;">#${rank}</span>
+                        <img src="https://flagcdn.com/w40/${flag}.png" style="height:12px; width:auto; border-radius:1px;">
+                        <span class="lb-name" style="font-size:1rem !important;">${p.username}</span>
                     </div>
-                    <span class="lb-elo" style="font-family:'Russo One'; color:var(--sub-gold); font-size:1rem;">${p.elo}</span>
+                    <span class="lb-elo" style="font-size:1.1rem !important;">${p.elo}</span>
                 </div>
             `;
         }).join('');
@@ -640,13 +505,13 @@ export async function fetchHist() {
             const safeEventName = h.event_name ? h.event_name.replace(/"/g, '&quot;') : '';
             const safeGameId = h.game_id || '';
             return `
-                <div style="background:#000; padding:15px; border-radius:10px; border-left:4px solid var(--sub-gold); margin-bottom:10px; position: relative;">
-                    <div style="position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 1.2rem; z-index: 5;" onclick='event.stopPropagation(); replayTournament(${playersJsonString}, "${h.tournament_name}", "${safeEventName}", "${safeGameId}")'>🔄</div>
+                <div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px; position: relative; display:block; text-align:left;">
+                    <div style="position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1rem; z-index: 5; opacity:0.6;" onclick='event.stopPropagation(); replayTournament(${playersJsonString}, "${h.tournament_name}", "${safeEventName}", "${safeGameId}")'>🔄</div>
                     <div style="cursor:pointer;" onclick="document.getElementById('tour-matches-${uniqueTourId}').style.display = document.getElementById('tour-matches-${uniqueTourId}').style.display === 'none' ? 'block' : 'none';">
-                        <div style="font-family: 'Russo One', sans-serif; font-size: 1.1rem; margin-bottom: 8px; padding-right: 25px;">${h.tournament_name} <span style="font-size:0.7rem; color:#888; font-weight:normal;">${gameName ? '@ ' + gameName : ''}</span></div>
-                        <small>🏆 ${h.winner_name}</small>
-                        ${secondPlace}
-                        ${thirdPlace}
+                        <div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; padding-right: 35px; text-transform:uppercase; color:var(--sub-gold);">${h.tournament_name} <span style="font-size:0.65rem; color:#555; font-weight:normal; letter-spacing:1px;">${gameName ? '@ ' + gameName : ''}</span></div>
+                        <div style="font-family: var(--sub-body-font); font-size:0.85rem; color:#fff;">🏆 ${h.winner_name}</div>
+                        <div style="font-family: var(--sub-body-font); font-size:0.8rem; color:#888;">${secondPlace}</div>
+                        <div style="font-family: var(--sub-body-font); font-size:0.8rem; color:#888;">${thirdPlace}</div>
                     </div>
                     <div id="tour-matches-${uniqueTourId}" style="display:none; margin-top:10px;">${matchesHtml}</div>
                     <div style="position: absolute; bottom: 10px; right: 10px; font-size: 0.6rem; color: #666;">${formattedDate}</div>
@@ -678,14 +543,14 @@ export async function saveMatch(p1, p2, winner, tourName) {
             const { error: e2 } = await _supabase.from('players').update({ elo: newEloB }).eq('id', p2Data.id);
             if (e1 || e2) throw (e1 || e2);
             
-            const { data: winnerDb } = await _supabase.from('players').select('wins').eq('username', winner).single();
+            const { data: winnerDb } = await _supabase.from('players').select('wins').eq('username', winner).maybeSingle();
             if (winnerDb) {
                 const { error: e3 } = await _supabase.from('players').update({ wins: (winnerDb.wins || 0) + 1 }).eq('username', winner);
                 if (e3) throw e3;
             }
         }
         
-        const matchData = { player1: p1, player2: p2, winner: winner, tournament_name: tourName || null, tournament_id: currentTournamentId };
+        const matchData = { player1: p1, player2: p2, winner: winner, tournament_name: tourName || null, tournament_id: state.currentTournamentId || null };
         const { error } = await _supabase.from('matches').insert([matchData]);
         if (error) throw error;
     } catch (error) {
@@ -693,215 +558,6 @@ export async function saveMatch(p1, p2, winner, tourName) {
         showNotification('Failed to save match: ' + error.message, 'error');
         throw error;
     }
-}
-
-// ============================================================
-// 8. TURNAUSMOOTTORI
-// ============================================================
-
-export function startTournament() {
-    if (state.pool.length < 2) return showNotification("Min 2 players for a tournament!", "error");
-    try {
-        currentTournamentId = uuid.v4();
-        initialPlayerCount = state.pool.length;
-        document.getElementById('tour-setup').style.display = 'none';
-        document.getElementById('tour-engine').style.display = 'flex';
-        document.getElementById('save-btn').style.display = 'none';
-        const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(state.pool.length)));
-        const byes = nextPowerOfTwo - state.pool.length;
-        let shuffledPlayers = [...state.pool].sort(() => Math.random() - 0.5);
-        rP = shuffledPlayers;
-        rW = []; finalists = []; bronzeContenders = []; bronzeWinner = null;
-        drawRound(byes);
-    } catch (e) {
-        showNotification("Error starting tournament: " + e.message, "error");
-        console.error(e);
-    }
-}
-
-export function drawRound(byes = 0) {
-    const a = document.getElementById('bracket-area'); a.innerHTML = "";
-    if (finalists.length === 0) rW = [];
-
-    if (finalists.length === 2) {
-        a.innerHTML += `<h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom:10px;">Bronze Match</h3>`;
-        const bMatch = document.createElement('div');
-        bMatch.className = "bracket-match";
-        bMatch.style = "background:#111; border:1px solid #222; border-radius:10px; margin-bottom:20px; width:100%; overflow:hidden;";
-        bMatch.innerHTML = `<div style="padding:15px; cursor:pointer; font-family:'Russo One';" onclick="pickBronzeWinner('${bronzeContenders[0]}', this)">${bronzeContenders[0]}</div><div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222;" onclick="pickBronzeWinner('${bronzeContenders[1]}', this)">${bronzeContenders[1]}</div>`;
-        a.appendChild(bMatch);
-        a.innerHTML += `<h3 style="font-family:'Russo One'; text-transform:uppercase; margin-bottom:10px;">Final</h3>`;
-        const fMatch = document.createElement('div');
-        fMatch.className = "bracket-match";
-        fMatch.style = "background:#111; border:1px solid #222; border-radius:10px; width:100%; overflow:hidden;";
-        fMatch.innerHTML = `<div style="padding:15px; cursor:pointer; font-family:'Russo One';" onclick="pickWin(0, '${finalists[0]}', this)">${finalists[0]}</div><div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222;" onclick="pickWin(0, '${finalists[1]}', this)">${finalists[1]}</div>`;
-        a.appendChild(fMatch);
-        checkCompletion();
-        return;
-    }
-
-    if (rP.length === 1 && finalists.length === 0) {
-        a.innerHTML = `<div class="container" style="text-align:center;"><h2>🏆 WINNER: ${rP[0]}</h2></div>`;
-        if (bronzeWinner) a.innerHTML += `<div class="container" style="text-align:center; margin-top:10px;"><h3>🥉 Bronze: ${bronzeWinner}</h3></div>`;
-        document.getElementById('save-btn').style.display = 'block';
-        document.getElementById('next-rd-btn').style.display = 'none';
-        return;
-    }
-
-    const matches = [];
-    const playersWithBye = rP.slice(0, byes);
-    const playersInMatches = rP.slice(byes);
-    playersWithBye.forEach(p => rW.push(p));
-    for (let i = 0; i < playersInMatches.length; i += 2) matches.push([playersInMatches[i], playersInMatches[i+1]]);
-
-    matches.forEach((match, index) => {
-        const [p1, p2] = match;
-        const m = document.createElement('div');
-        m.className = "bracket-match";
-        m.style.background = "#111"; m.style.border = "1px solid #222"; m.style.borderRadius = "10px"; m.style.marginBottom = "10px"; m.style.width = "100%"; m.style.overflow = "hidden";
-        const winnerIndex = byes + index;
-        if (!p2) { m.innerHTML = `<div style="padding:15px; opacity:0.5; font-family:'Russo One';">${p1} (BYE)</div>`; rW[winnerIndex] = p1; }
-        else { m.innerHTML = `<div style="padding:15px; cursor:pointer; font-family:'Russo One';" onclick="pickWin(${winnerIndex}, '${p1}', this)">${p1}</div><div style="padding:15px; cursor:pointer; font-family:'Russo One'; border-top:1px solid #222;" onclick="pickWin(${winnerIndex}, '${p2}', this)">${p2}</div>`; }
-        a.appendChild(m);
-    });
-
-    if (playersWithBye.length > 0) {
-        a.innerHTML += `<h4 style="font-family:'Russo One'; text-transform:uppercase; margin: 20px 0 10px 0; opacity: 0.7;">Byes (Next Round)</h4>`;
-        playersWithBye.forEach(p => {
-            const byeEl = document.createElement('div');
-            byeEl.innerHTML = `<div style="padding:10px 15px; background: #0a0a0a; border:1px solid #222; border-radius:10px; margin-bottom:10px; width:100%; font-family:'Russo One'; opacity:0.7;">${p}</div>`;
-            a.appendChild(byeEl);
-        });
-    }
-    checkCompletion();
-}
-
-export function pickWin(idx, n, e) {
-    let p1, p2;
-    if (finalists.length === 2) { p1 = finalists[0]; p2 = finalists[1]; }
-    else {
-        const playersInMatches = rP.slice(Math.pow(2, Math.ceil(Math.log2(rP.length))) - rP.length);
-        const matchIndex = idx - (Math.pow(2, Math.ceil(Math.log2(rP.length))) - rP.length);
-        p1 = playersInMatches[matchIndex * 2]; p2 = playersInMatches[matchIndex * 2 + 1];
-    }
-    if (p1 && p2) { const tournamentName = "Tournament"; saveMatch(p1, p2, n, tournamentName); }
-    rW[idx] = n;
-    e.parentElement.querySelectorAll('div').forEach(d => { d.style.background = "transparent"; d.style.opacity = "0.5"; });
-    e.style.background = "rgba(227, 6, 19, 0.4)"; e.style.opacity = "1";
-    checkCompletion();
-}
-
-export function pickBronzeWinner(n, e) {
-    const tournamentName = "Tournament";
-    saveMatch(bronzeContenders[0], bronzeContenders[1], n, tournamentName + " (Bronze)");
-    bronzeWinner = n;
-    e.parentElement.querySelectorAll('div').forEach(d => { d.style.background = "transparent"; d.style.opacity = "0.5"; });
-    e.style.background = "rgba(255, 215, 0, 0.3)"; e.style.opacity = "1";
-    checkCompletion();
-}
-
-export function checkCompletion() {
-    const nextBtn = document.getElementById('next-rd-btn');
-    const byes = Math.pow(2, Math.ceil(Math.log2(rP.length))) - rP.length;
-    const matchesToPlay = (rP.length - byes) / 2;
-    const expectedWinners = byes + matchesToPlay;
-    const pickedWinners = rW.filter(w => w).length;
-    if (finalists.length === 2) {
-        if (rW[0] && bronzeWinner) { nextBtn.innerText = 'FINISH TOURNAMENT'; nextBtn.style.display = 'block'; }
-        else { nextBtn.style.display = 'none'; }
-    } else if (pickedWinners === expectedWinners && matchesToPlay > 0) { nextBtn.innerText = 'NEXT ROUND'; nextBtn.style.display = 'block'; }
-    else { nextBtn.style.display = 'none'; }
-}
-
-export function advanceRound() {
-    const nextBtn = document.getElementById('next-rd-btn');
-    if (nextBtn.innerText === 'FINISH TOURNAMENT') { rP = rW.filter(w => w); saveTour(); return; }
-    if (rP.length === 4) {
-        const losers = rP.filter(p => !rW.includes(p));
-        bronzeContenders = [...losers];
-        finalists = [...rW.filter(w => w)];
-        drawRound(); return;
-    }
-    rP = rW.filter(w => w);
-    const nextByes = Math.pow(2, Math.ceil(Math.log2(rP.length))) - rP.length;
-    document.getElementById('next-rd-btn').style.display = 'none';
-    drawRound(nextByes);
-}
-
-export async function saveTour() {
-    try {
-        const winnerName = rP[0];
-        const tournamentName = "Tournament";
-        const eventName = null;
-        const gameId = null;
-        let secondPlaceName = null;
-        
-        if (initialPlayerCount >= 2) {
-            const allFinalists = rP.length > 0 ? rP : finalists;
-            if (allFinalists.length > 0) {
-                const winner = allFinalists[0];
-                const allParticipantsInFinalRound = (initialPlayerCount === 4) ? finalists : state.pool;
-                secondPlaceName = allParticipantsInFinalRound.find(p => p !== winner) || null;
-            }
-        }
-        
-        const dataToInsert = { tournament_name: tournamentName, winner_name: winnerName, second_place_name: secondPlaceName, tournament_id: currentTournamentId, event_name: eventName, game_id: gameId };
-        if (bronzeWinner) dataToInsert.third_place_name = bronzeWinner;
-        
-        const { error } = await _supabase.from('tournament_history').insert([dataToInsert]);
-        if (error) {
-            console.error('Error saving tournament:', error);
-            showNotification('Error saving results: ' + error.message, 'error');
-            return;
-        }
-
-        // Add network check and delay for mobile
-        if (!navigator.onLine) {
-            showNotification('No network connection. Please try again later.', 'error');
-            return;
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 500)); // Add delay for UI updates on mobile
-        
-        state.pool = []; 
-        updatePoolUI();
-        document.getElementById('tour-engine').style.display = 'none';
-        document.getElementById('tour-setup').style.display = 'block';
-        showPage('history');
-        showNotification('Tournament saved successfully!', 'success');
-        
-        // Show victory animation
-        let winnerElo = 0;
-        let winnerGain = 0;
-        
-        if (winnerName) {
-            const { data: p } = await _supabase.from('players').select('elo').eq('username', winnerName).single();
-            if (p) winnerElo = p.elo;
-            
-            if (window.lastTournamentWinner === winnerName) {
-                winnerGain = window.lastTournamentEloGain || 0;
-            }
-        }
-        
-        if (typeof showVictoryAnimation === 'function') {
-            showVictoryAnimation(winnerName, winnerElo, winnerGain);
-        }
-        
-        if (winnerName === state.user.username) {
-            const { data } = await _supabase.from('players').select('*').eq('id', state.user.id).single();
-            if (data) { state.user = data; updateProfileCard(); }
-        }
-    } catch (error) {
-        console.error('Error saving tournament:', error);
-        showNotification('Failed to save tournament: ' + error.message, 'error');
-    }
-}
-
-export function replayTournament(players, tourName, eventName, gameId) {
-    state.pool = [...players];
-    showPage('tournament');
-    updatePoolUI();
-    showNotification(`Players for "${tourName}" loaded!`, 'success');
 }
 
 // ============================================================
@@ -983,8 +639,8 @@ export async function selectQuickPlayer(name, slot) {
 
 export async function updateEloPreview() {
     if (!quickP1 || !quickP2) return;
-    const { data: p1 } = await _supabase.from('players').select('id, elo').ilike('username', quickP1.trim()).single();
-    const { data: p2 } = await _supabase.from('players').select('id, elo').ilike('username', quickP2.trim()).single();
+    const { data: p1 } = await _supabase.from('players').select('id, elo').ilike('username', quickP1.trim()).maybeSingle();
+    const { data: p2 } = await _supabase.from('players').select('id, elo').ilike('username', quickP2.trim()).maybeSingle();
     const elo1 = p1 ? p1.elo : 1300, elo2 = p2 ? p2.elo : 1300;
     const id1 = p1 ? p1.id : 'guest1', id2 = p2 ? p2.id : 'guest2';
     const result = calculateNewElo({ id: id1, elo: elo1 }, { id: id2, elo: elo2 }, { id: id1 });
@@ -1052,8 +708,8 @@ export function handleQuickWinner(winnerName, btn) {
 export async function finalizeQuickMatch(winnerName, context = null) {
     try {
         const loserName = (winnerName === quickP1) ? quickP2 : quickP1;
-        let { data: p1Data } = await _supabase.from('players').select('*').eq('username', winnerName).single();
-        let { data: p2Data } = await _supabase.from('players').select('*').eq('username', loserName).single();
+        let { data: p1Data } = await _supabase.from('players').select('*').eq('username', winnerName).maybeSingle();
+        let { data: p2Data } = await _supabase.from('players').select('*').eq('username', loserName).maybeSingle();
         
         if (!p1Data) p1Data = { username: winnerName, elo: 1300, id: 'guest_' + winnerName, isGuest: true };
         if (!p2Data) p2Data = { username: loserName, elo: 1300, id: 'guest_' + loserName, isGuest: true };
@@ -1724,15 +1380,6 @@ window.toggleAuth = toggleAuth;
 window.handleSearch = handleSearch;
 window.addP = addP;
 window.directAdd = directAdd;
-window.updatePoolUI = updatePoolUI;
-window.removeFromPool = removeFromPool;
-window.clearPool = clearPool;
-window.updateGuestUI = updateGuestUI;
-window.updateProfileCard = updateProfileCard;
-window.updateAvatarPreview = updateAvatarPreview;
-window.viewPlayerCard = viewPlayerCard;
-window.closeCardModal = closeCardModal;
-window.downloadFanCard = downloadFanCard;
 window.initGameMap = initGameMap;
 window.setMapLocation = setMapLocation;
 window.fetchPublicGamesMap = fetchPublicGamesMap;
@@ -1756,14 +1403,6 @@ window.calculateNewElo = calculateNewElo;
 window.fetchLB = fetchLB;
 window.fetchHist = fetchHist;
 window.saveMatch = saveMatch;
-window.startTournament = startTournament;
-window.drawRound = drawRound;
-window.pickWin = pickWin;
-window.pickBronzeWinner = pickBronzeWinner;
-window.checkCompletion = checkCompletion;
-window.advanceRound = advanceRound;
-window.saveTour = saveTour;
-window.replayTournament = replayTournament;
 window.handleQuickSearch = handleQuickSearch;
 window.selectQuickPlayer = selectQuickPlayer;
 window.updateEloPreview = updateEloPreview;

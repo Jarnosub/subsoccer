@@ -113,27 +113,27 @@ function renderEventCard(event) {
     const typeColor = eventTypeColors[event.event_type] || '#888';
     
     return `
-        <div class="event-card" style="background:#111; border:1px solid #222; border-radius:4px; padding:20px; margin-bottom:20px; border-left:4px solid ${typeColor};">
+        <div class="event-card" style="background:#0a0a0a; border:1px solid #222; border-radius:var(--sub-radius); padding:20px; margin-bottom:20px; border-left:2px solid ${typeColor};">
             ${event.image_url ? `
                 <div style="width:100%; height:160px; background:url('${event.image_url}') center/cover; border-radius:2px; margin-bottom:15px; border:1px solid #333;"></div>
             ` : ''}
             
             <div style="margin-bottom:12px;">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-                    <span style="background:${typeColor}; color:#000; padding:3px 8px; border-radius:2px; font-size:0.65rem; font-family:'Resolve'; font-weight:bold; text-transform:uppercase;">
+                    <span style="background:${typeColor}; color:#000; padding:3px 8px; border-radius:2px; font-size:0.6rem; font-family:var(--sub-name-font); font-weight:bold; text-transform:uppercase; letter-spacing:1px;">
                         ${event.event_type}
                     </span>
-                    <span style="color:#666; font-size:0.8rem; font-family:'Resolve'; letter-spacing:1px;">
+                    <span style="color:#555; font-size:0.75rem; font-family:var(--sub-name-font); letter-spacing:1px;">
                         <i class="fa-solid fa-calendar-day" style="color:#444; margin-right:4px;"></i>
                         ${dayOfWeek}, ${dateStr} @ ${timeStr}
                     </span>
                 </div>
                 
-                <h3 style="font-family:'Resolve'; font-size:1.6rem; margin:0; color:#fff; letter-spacing:1px; text-transform:uppercase;">${event.event_name}</h3>
+                <h3 style="font-family:var(--sub-name-font); font-size:1.4rem; margin:0; color:#fff; letter-spacing:1px; text-transform:uppercase;">${event.event_name}</h3>
             </div>
             
             ${event.location ? `
-                <div style="font-size:0.85rem; color:#888; margin:8px 0; font-family:'Open Sans';">
+                <div style="font-size:0.8rem; color:#666; margin:8px 0; font-family:var(--sub-body-font); text-transform:uppercase; letter-spacing:1px;">
                     <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-right:6px;"></i> ${event.location.toUpperCase()}
                 </div>
             ` : ''}
@@ -1088,8 +1088,6 @@ async function addParticipantFromSearch(tournamentId) {
     }
     
     try {
-        showNotification('Adding player...', 'info');
-        
         // Check if player exists
         const { data: players, error: playerError } = await _supabase
             .from('players')
@@ -1131,11 +1129,6 @@ async function addParticipantFromSearch(tournamentId) {
             showNotification(`${playerName} is already registered!`, 'error');
             return;
         }
-        
-        showNotification(
-            `${playerName} added!${isNewPlayer ? ' (new player)' : ''}`, 
-            'success'
-        );
         
         // Clear input and refresh list
         input.value = '';
@@ -2253,12 +2246,13 @@ export async function editEvent(eventId) {
         // Close modal first
         closeEventModal();
         
-        // Show events page and form
+        // Show events page (this triggers loadEventsPage which clears the view to show loading spinner)
         showPage('events');
-        showCreateEventForm();
         
-        // Wait for form to be rendered
+        // Wait for loadEventsPage to finish rendering the form container before showing and populating it
         setTimeout(() => {
+            showCreateEventForm();
+
             // Populate form fields
             const nameInput = document.getElementById('event-name-input');
             const typeSelect = document.getElementById('event-type-select');
@@ -2268,6 +2262,7 @@ export async function editEvent(eventId) {
             const descInput = document.getElementById('event-desc-input');
             const colorInput = document.getElementById('event-color-input');
             const brandPreview = document.getElementById('brand-logo-preview');
+            const imagePreview = document.getElementById('event-image-preview');
             
             if (nameInput) nameInput.value = event.event_name || '';
             if (typeSelect) typeSelect.value = event.event_type || 'tournament';
@@ -2292,6 +2287,18 @@ export async function editEvent(eventId) {
                     <img src="${event.brand_logo_url}" style="height:40px; width:auto; margin-right:10px;">
                 `;
             }
+
+            // Näytetään nykyinen tapahtumakuva esikatselussa
+            if (imagePreview && event.image_url) {
+                imagePreview.innerHTML = `
+                    <div style="position:relative; width:100%; max-width:300px;">
+                        <img src="${event.image_url}" style="width:100%; border-radius:8px; border:2px solid var(--sub-gold);">
+                        <button onclick="clearEventImage()" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:1.2rem;">×</button>
+                    </div>
+                `;
+                const fileLabel = document.getElementById('event-image-label');
+                if (fileLabel) fileLabel.style.display = 'none';
+            }
             
             // Change button to UPDATE
             const createBtn = document.querySelector('#create-event-form button[onclick="createNewEvent()"]');
@@ -2305,7 +2312,7 @@ export async function editEvent(eventId) {
             if (formTitle) {
                 formTitle.innerHTML = '<i class="fa fa-edit"></i> Edit Event';
             }
-        }, 150);
+        }, 600); // Increased timeout to ensure loadEventsPage has finished rendering the container
         
     } catch (e) {
         console.error('Failed to load event for editing:', e);
@@ -2411,7 +2418,6 @@ window.closeEmailPrompt = closeEmailPrompt;
 window.saveEmailAndRegister = saveEmailAndRegister;
 window.shareLiveEventLink = shareLiveEventLink;
 window.viewLiveEvent = viewLiveEvent;
-window.viewLiveEvent = viewLiveEvent;
 
 // Check for live event URL parameter on page load
 // Wrap in DOMContentLoaded to ensure elements exist
@@ -2454,13 +2460,6 @@ export function checkLiveEventParam() {
             viewLiveEvent(liveEventId);
         }
     }
-}
-
-// Run immediately if DOM is already loaded, otherwise wait
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkLiveEventParam);
-} else {
-    checkLiveEventParam();
 }
 
 
@@ -2841,13 +2840,13 @@ async function saveEventMatch(player1, player2, winner) {
             .from('players')
             .select('id, elo, wins')
             .eq('username', player1)
-            .single();
+            .maybeSingle();
         
         const { data: p2Data } = await _supabase
             .from('players')
             .select('id, elo, wins')
             .eq('username', player2)
-            .single();
+            .maybeSingle();
         
         // Update ELO ratings if both players found
         if (p1Data && p2Data) {
