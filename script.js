@@ -854,7 +854,19 @@ export async function saveTour() {
         if (bronzeWinner) dataToInsert.third_place_name = bronzeWinner;
         
         const { error } = await _supabase.from('tournament_history').insert([dataToInsert]);
-        if (error) throw error;
+        if (error) {
+            console.error('Error saving tournament:', error);
+            showNotification('Error saving results: ' + error.message, 'error');
+            return;
+        }
+
+        // Add network check and delay for mobile
+        if (!navigator.onLine) {
+            showNotification('No network connection. Please try again later.', 'error');
+            return;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 500)); // Add delay for UI updates on mobile
         
         state.pool = []; 
         updatePoolUI();

@@ -213,12 +213,14 @@
     <div id="auth-page">
         <div id="login-form" class="container" style="text-align:center;">
             <h2 style="font-family:'Resolve'; margin-bottom: 25px;">PLAYER LOGIN</h2>
-            <input type="text" id="auth-user" placeholder="Username" autocomplete="username">
-            <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password">
-            <button class="btn-red" onclick="handleAuth()">LOG IN</button>
-            <div style="margin-top: 15px;">
-                <button onclick="toggleAuth(true)" style="width:100%; background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); color:var(--sub-gold); padding:12px; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.2s; text-transform:uppercase;">CREATE ACCOUNT</button>
-            </div>
+            <form id="auth-form-wrapper">
+                <input type="text" id="auth-user" placeholder="Username" autocomplete="username">
+                <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password">
+                <button class="btn-red" type="submit" onclick="handleAuth(event)">LOG IN</button>
+                <div style="margin-top: 15px;">
+                    <button onclick="toggleAuth(true)" style="width:100%; background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); color:var(--sub-gold); padding:12px; border-radius:8px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.2s; text-transform:uppercase;">CREATE ACCOUNT</button>
+                </div>
+            </form>
             <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
             <input type="text" id="guest-nick" placeholder="Guest Nickname">
             <button class="btn-red" style="background:#333;" onclick="handleGuest()">JOIN AS GUEST</button>

@@ -512,6 +512,20 @@
         <button class="play-again-btn" onclick="playAgain()">🎮 PLAY AGAIN</button>
     </div>
 
+    <!-- Add hybrid mode handling for Instant Play -->
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+
+        if (mode === 'casual') {
+            document.getElementById('save-stats-btn').style.display = 'none';
+            const endGameBtn = document.createElement('button');
+            endGameBtn.textContent = '🏁 END GAME';
+            endGameBtn.onclick = () => window.location.href = 'index.html';
+            document.getElementById('winner-overlay').appendChild(endGameBtn);
+        }
+    </script>
+
     <script>
         // Game state
         let scoreP1 = 0;

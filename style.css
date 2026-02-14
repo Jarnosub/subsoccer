@@ -12,6 +12,14 @@
     src: url('fonts/Resolve-RegularNrw.otf') format('opentype');
 }
 
+@font-face {
+    font-family: 'Open Sans';
+    src: url('fonts/OpenSans-Regular.woff2') format('woff2'),
+         url('fonts/OpenSans-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
 :root { 
     --sub-red: #E30613; --sub-black: #0a0a0a; --sub-white: #FFFFFF; --sub-gold: #FFD700; --sub-border: #333; 
     --sub-logo-font: 'SubsoccerLogo', sans-serif;
@@ -390,8 +398,9 @@ header {
 
 input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: var(--sub-radius) !important; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; }
 
-input, select, textarea {
-    font-size: 16px !important; /* Estää automaattisen zoomauksen mobiilissa */
+input, select, textarea, button {
+    font-size: 16px !important;
+    font-family: 'Open Sans', sans-serif !important; /* Ensure readable default font */
 }
 
 input, select, button {
@@ -495,12 +504,9 @@ input, select, button {
 /* ILMOITUSTEN TYYLIT (TOAST) */
 #notification-container {
     position: fixed;
-    bottom: 100px; /* Siirretty alas, navin yläpuolelle */
-    left: 50%;
-    transform: translateX(-50%);
-    top: auto;
-    right: auto;
-    z-index: 2000;
+    bottom: 100px !important; /* Raise above navigation and buttons */
+    top: auto !important;
+    z-index: 1000; /* Ensure it appears above other elements */
     display: flex;
     flex-direction: column;
     gap: 10px;

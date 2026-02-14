@@ -33,7 +33,8 @@ export async function handleSignUp() {
     }
 }
 
-export async function handleAuth() {
+export async function handleAuth(event) {
+    event.preventDefault(); // Prevent default form submission
     const u = document.getElementById('auth-user').value.trim().toUpperCase(), p = document.getElementById('auth-pass').value;
     let { data } = await _supabase.from('players').select('*').eq('username', u).single();
     if(data && data.password === p) { state.user = data; startSession(); } else showNotification("Login failed.", "error");
