@@ -154,41 +154,36 @@ export function showMatchMode(mode) {
     const tournamentSection = document.getElementById('tournament-section');
     const quickBtn = document.getElementById('btn-quick-match-mode');
     const tournamentBtn = document.getElementById('btn-tournament-mode');
+    const tourIcon = document.getElementById('tournament-icon-status');
     
     if (mode === 'quick') {
         quickSection.style.display = 'block';
         tournamentSection.style.display = 'none';
         
-        // Quick Match - active (red gradient)
+        // Quick Match - active
         quickBtn.style.background = 'linear-gradient(135deg, #E30613 0%, #c00510 100%)';
         quickBtn.style.color = '#fff';
         quickBtn.style.border = 'none';
-        quickBtn.style.boxShadow = '0 4px 15px rgba(227,6,19,0.3)';
-        quickBtn.querySelector('div:last-child').style.color = 'rgba(255,255,255,0.7)';
         
-        // Tournament - inactive (dark)
+        // Tournament - inactive
         tournamentBtn.style.background = '#1a1a1a';
         tournamentBtn.style.color = '#888';
         tournamentBtn.style.border = '2px solid #333';
-        tournamentBtn.style.boxShadow = 'none';
-        tournamentBtn.querySelector('div:last-child').style.color = '#666';
+        if (tourIcon) tourIcon.style.color = '#666';
     } else {
         quickSection.style.display = 'none';
         tournamentSection.style.display = 'block';
         
-        // Quick Match - inactive (dark)
+        // Quick Match - inactive
         quickBtn.style.background = '#1a1a1a';
         quickBtn.style.color = '#888';
         quickBtn.style.border = '2px solid #333';
-        quickBtn.style.boxShadow = 'none';
-        quickBtn.querySelector('div:last-child').style.color = '#666';
         
-        // Tournament - active (gold gradient)
+        // Tournament - active (Kultainen teema)
         tournamentBtn.style.background = 'linear-gradient(135deg, #FFD700 0%, #d4af37 100%)';
         tournamentBtn.style.color = '#000';
         tournamentBtn.style.border = 'none';
-        tournamentBtn.style.boxShadow = '0 4px 15px rgba(255,215,0,0.3)';
-        tournamentBtn.querySelector('div:last-child').style.color = 'rgba(0,0,0,0.6)';
+        if (tourIcon) tourIcon.style.color = '#000'; // Ikoni mustaksi kultaa vasten
     }
 }
 

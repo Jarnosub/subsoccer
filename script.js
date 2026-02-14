@@ -1657,7 +1657,7 @@ export function undoLastGoal() {
         navigator.vibrate(50);
     }
     
-    showNotification('Last goal undone', 'success');
+    showNotification('Last goal cancelled', 'success');
 }
 
 // ============================================================

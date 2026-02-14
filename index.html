@@ -237,8 +237,8 @@
     <!-- Navigation Tabs (Moved above app-content for desktop stability) -->
     <div class="nav-tabs" id="nav-tabs" style="display:none;">
         <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
-            <i class="fa-solid fa-futbol"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Play</span>
+            <i class="fas fa-trophy"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">OFFICIAL MATCH</span>
         </div>
         <div class="tab" id="tab-events" onclick="showPage('events')">
             <i class="fa-regular fa-calendar"></i>
@@ -409,19 +409,27 @@
                 <!-- Mode Selector Buttons -->
                 <div style="display:flex; gap:12px; margin-bottom:30px;">
                     <button id="btn-quick-match-mode" onclick="showMatchMode('quick')" onmouseover="if(this.style.background.includes('linear-gradient')) this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:linear-gradient(135deg, #E30613 0%, #c00510 100%); color:#fff; border:none; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 15px rgba(227,6,19,0.3); position:relative; overflow:hidden;">
-                        <div style="font-size:1.8rem; margin-bottom:4px;">⚽</div>
-                        <div style="font-size:0.95rem; letter-spacing:0.5px;">Quick Match</div>
-                        <div style="font-size:0.65rem; color:rgba(255,255,255,0.7); margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">1 vs 1 ranked game</div>
+                        <div style="font-size:1.8rem; margin-bottom:4px;"><i class="fas fa-trophy"></i></div>
+                        <div style="font-size:0.95rem; letter-spacing:0.5px;">OFFICIAL MATCH</div>
+                        <div style="font-size:0.65rem; color:rgba(255,255,255,0.7); margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">Official Ranked Game</div>
                     </button>
-                    <button id="btn-tournament-mode" onclick="showMatchMode('tournament')" onmouseover="if(this.style.background.includes('#1a1a1a')) this.style.background='#222'; else this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="if(!this.style.background.includes('linear-gradient')) this.style.background='#1a1a1a'; this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:#1a1a1a; color:#888; border:2px solid #333; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden;">
-                        <div style="font-size:1.8rem; margin-bottom:4px;">🏆</div>
-                        <div style="font-size:0.95rem; letter-spacing:0.5px;">Tournament</div>
+                    <button id="btn-tournament-mode" onclick="showMatchMode('tournament')" 
+                        onmouseover="if(this.style.background.includes('#1a1a1a')) this.style.background='#222'; else this.style.transform='translateY(-2px) scale(1.02)'" 
+                        onmouseout="if(!this.style.background.includes('linear-gradient')) this.style.background='#1a1a1a'; this.style.transform='translateY(0) scale(1)'" 
+                        style="flex:1; padding:18px 15px; background:#1a1a1a; color:#888; border:2px solid #333; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden;">
+                        
+                        <div style="font-size:1.5rem; margin-bottom:8px;">
+                            <i class="fa-solid fa-sitemap" id="tournament-icon-status"></i>
+                        </div>
+                        
+                        <div style="font-size:0.95rem; letter-spacing:0.5px; text-transform:uppercase;">Tournament</div>
                         <div style="font-size:0.65rem; color:#666; margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">Bracket competition</div>
                     </button>
                 </div>
 
                 <!-- QUICK MATCH SECTION -->
                 <div id="quick-match-section" style="display:block;">
+                    <h2 class="section-title" style="margin-top: 20px; font-size: 1.1rem; color: #888; letter-spacing: 2px;">MATCH SETUP</h2>
                 
                 <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
                     <div style="position:relative;">
@@ -443,7 +451,7 @@
                     </button>
                 </div>
 
-                <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.8rem; height:80px; margin-bottom: 20px; box-shadow: 0 0 25px rgba(227, 6, 19, 0.5); text-transform: uppercase; letter-spacing: 1px; border-radius: 4px;">START GAME</button>
+                <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size: 1.5rem; letter-spacing: 3px;">KICK OFF</button>
                 
                 <div style="display:flex; gap:10px; margin-top:5px;">
                     <a href="instant-play.html?game_id=QUICK-PLAY&mode=casual" style="flex:1; text-decoration:none;">
