@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Subsoccer Pro v70.2 Master</title>
+    <title>Subsoccer Pro v70.3 Master</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -156,7 +156,59 @@
 
     <div id="notification-container"></div>
 
-    <header><img src="logo.png" class="main-logo" alt="Subsoccer"></header>
+    <header>
+        <img src="logo.png" class="main-logo" alt="Subsoccer" style="height: 40px; width: auto;">
+        <button id="menu-toggle-btn" onclick="toggleSettingsMenu(event)">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Global Menu -->
+    <div id="settings-menu">
+        <div class="menu-header">SETTINGS</div>
+        
+        <!-- Navigation Items -->
+        <button onclick="showPage('leaderboard'); toggleSettingsMenu(event)" class="menu-item">
+            <i class="fa-solid fa-trophy" style="color:var(--sub-gold); width:25px;"></i> Ranking
+        </button>
+        <button onclick="showPage('map'); toggleSettingsMenu(event)" class="menu-item">
+            <i class="fa-solid fa-map-location-dot" style="color:var(--sub-gold); width:25px;"></i> Map
+        </button>
+        
+        <div class="menu-divider"></div>
+        
+        <!-- Settings Items -->
+        <button onclick="showPage('profile'); showEditProfile(); toggleSettingsMenu(event)" class="menu-item">
+            <i class="fa fa-edit" style="width:25px; color: #888;"></i> Edit Profile
+        </button>
+        <button onclick="toggleSoundEffects(); toggleSettingsMenu(event)" id="sound-toggle-btn" class="menu-item">
+            <i class="fa fa-volume-high" style="width:25px; color: #888;"></i> Sounds
+        </button>
+        
+        <div class="menu-divider"></div>
+
+        <button onclick="location.reload()" class="menu-item logout-item">
+            <i class="fa fa-sign-out" style="width:25px;"></i> Logout
+        </button>
+    </div>
+
+    <!-- Menu Logic (Inline fallback) -->
+    <script>
+        function toggleSettingsMenu(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('settings-menu');
+            menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('settings-menu');
+            const btn = document.getElementById('menu-toggle-btn');
+            if (menu && menu.style.display === 'flex' && !menu.contains(event.target) && !btn.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+    </script>
 
     <div id="auth-page">
         <div id="login-form" class="container" style="text-align:center;">

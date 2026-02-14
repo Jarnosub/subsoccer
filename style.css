@@ -21,8 +21,25 @@
 }
 
 body { font-family: var(--sub-body-font) !important; background-color: var(--sub-black); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-content: center; order: -2; }
-.main-logo { width: 130px !important; height: auto; }
+
+/* Header adjustments */
+header {
+    position: relative !important;
+    z-index: 2000;
+    width: 100%;
+    max-width: 450px; /* Sama kuin nav-tabs maksimileveys */
+    margin: 0 auto;   /* Keskittää koko header-alueen */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 0 !important;
+    order: -2;
+}
+
+.main-logo {
+    height: 40px !important;
+    width: auto !important;
+}
 
 #app-content { width: 100%; display: none; flex-direction: column; align-items: center; order: 0; }
 .player-label { font-size: 0.85rem; font-weight: 400; color: #fff; }
@@ -116,6 +133,78 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
         padding: 3px !important; 
     }
     
+}
+
+#menu-toggle-btn {
+    display: none;
+    position: absolute !important;
+    right: 10px !important; /* Lähellä containerin reunaa */
+    top: 50% !important;
+    transform: translateY(-50%) !important; /* Keskittää pystysuunnassa headeriin */
+    color: #ffffff !important;
+    font-size: 1.5rem !important;
+    z-index: 5001 !important;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+/* Settings Menu Styles */
+#settings-menu {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 280px !important;
+    height: 100vh !important;
+    background: #111 !important;
+    z-index: 10001 !important;
+    display: none; /* Tämä muutetaan JS:llä 'flex'iksi */
+    flex-direction: column;
+    padding: 20px;
+    border-left: 2px solid var(--sub-gold);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+}
+
+.menu-header {
+    padding: 15px;
+    border-bottom: 1px solid #333;
+    background: #111;
+    margin: 0;
+    font-family: var(--sub-name-font);
+    font-size: 0.9rem;
+    color: var(--sub-gold);
+    letter-spacing: 1px;
+}
+
+.menu-item {
+    width: 100%;
+    padding: 12px 15px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    text-align: left;
+    font-family: var(--sub-name-font);
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.menu-item:hover {
+    background: #222;
+    color: var(--sub-gold);
+}
+
+.menu-divider {
+    height: 1px;
+    background: #333;
+    margin: 5px 0;
+}
+
+.logout-item {
+    color: var(--sub-red) !important;
 }
 
 #logout-btn {

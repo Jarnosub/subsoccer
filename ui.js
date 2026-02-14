@@ -332,14 +332,6 @@ export function cancelEditProfile() {
     }
 }
 
-/**
- * Toggle settings menu visibility
- */
-export function toggleSettingsMenu() {
-    const menu = document.getElementById('settings-menu');
-    if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
-
 // Globaalit kytkennät
 window.showPage = showPage;
 window.showNotification = showNotification;
@@ -349,5 +341,4 @@ window.populateCountries = populateCountries;
 window.loadUserProfile = loadUserProfile;
 window.showEditProfile = showEditProfile;
 window.cancelEditProfile = cancelEditProfile;
-window.toggleSettingsMenu = toggleSettingsMenu;
 window.showVictoryAnimation = showVictoryAnimation;

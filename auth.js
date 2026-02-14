@@ -58,6 +58,7 @@ function startSession() {
     document.getElementById('auth-page').style.display = 'none'; 
     document.getElementById('app-content').style.display = 'flex'; 
     document.getElementById('nav-tabs').style.display = 'flex'; 
+    document.getElementById('menu-toggle-btn').style.display = 'block'; // Varmistetaan että nappi näkyy
     
     // Contextual UI for Guests
     const eventsTab = document.getElementById('tab-events');
