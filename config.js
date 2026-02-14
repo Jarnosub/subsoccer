@@ -25,7 +25,9 @@ export const state = {
     proModeEnabled: false,
     proScoreP1: 0,
     proScoreP2: 0,
-    proGoalHistory: []
+    proGoalHistory: [],
+    inventory: [], // Omistetut korttityypit
+    activeCardEdition: 'standard'
 };
 
 // Globaali pääsy debuggausta varten ja vanhoille scripteille

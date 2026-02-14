@@ -210,7 +210,7 @@ export function showCreateEventForm() {
                 </label>
                 
                 <div style="margin-bottom:15px;">
-                    <label style="font-size:0.8rem; color:#888; display:block; margin-bottom:5px;">Brand Logo (e.g. UEFA/FIFA)</label>
+                    <label style="font-size:0.8rem; color:#888; display:block; margin-bottom:5px;">Brand Logo (e.g. Tournament/Sponsor)</label>
                     <input type="file" id="brand-logo-input" accept="image/jpeg,image/png,image/webp" onchange="previewBrandLogo(this)" style="display:none;">
                     <label for="brand-logo-input" id="brand-logo-label" style="display:inline-block; padding:8px 15px; background:#333; color:#fff; border-radius:6px; cursor:pointer; font-size:0.8rem; border:1px solid #444;">
                         <i class="fa fa-upload"></i> Upload Logo

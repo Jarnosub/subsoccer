@@ -503,11 +503,21 @@ export function updateProfileCard() {
     const container = document.getElementById('profile-card-container');
     if (!container || !state.user) return;
     const u = state.user;
+    const editionClass = state.activeCardEdition !== 'standard' ? `card-${state.activeCardEdition}-edition` : '';
+    
+    const labels = {
+        'standard': 'PRO CARD',
+        'elite': 'ELITE SERIES',
+        'global': 'GLOBAL PRO',
+        'legendary-gold': 'LEGENDARY GOLD'
+    };
+    const editionLabel = labels[state.activeCardEdition] || 'PRO CARD';
+
     container.innerHTML = `
-        <div class="topps-collectible-card">
+        <div class="topps-collectible-card ${editionClass}">
             <img src="${u.avatar_url || 'https://via.placeholder.com/400x600'}" class="card-hero-image">
             <div class="card-overlay"></div>
-            <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">PRO CARD // 2026</div>
+            <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">${editionLabel} // 2026</div>
             <div class="card-content-bottom">
                 <div style="color:var(--sub-gold); font-size:0.7rem; letter-spacing:2px; margin-bottom:4px;"><i class="fa-solid fa-location-dot"></i> ${u.city || 'HELSINKI'}</div>
                 <div class="card-player-name">${u.username}</div>
@@ -518,7 +528,14 @@ export function updateProfileCard() {
             </div>
             <div style="position:absolute; bottom:15px; right:15px; width:30px; height:30px; background:radial-gradient(circle, #ffd700, #b8860b); border-radius:50%; opacity:0.3; z-index:11; filter:blur(1px);"></div>
         </div>
-        <p style="text-align:center; color:#555; font-size:0.7rem; margin-top:10px;">DESIGNED FOR THE SUBSOCCER PRO ECOSYSTEM</p>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="btn-red" style="flex:1; background:#222; font-size:0.7rem;" onclick="showCardShop()">
+                <i class="fa fa-shopping-cart"></i> UPGRADE CARD
+            </button>
+            <button class="btn-red" style="flex:1; font-size:0.7rem;" onclick="downloadFanCard()">
+                <i class="fa fa-download"></i> SAVE IMAGE
+            </button>
+        </div>
     `;
 }
 
@@ -594,6 +611,49 @@ export async function downloadFanCard() {
     if (dataUrl) CardGenerator.share(dataUrl, state.user.username);
 }
 
+/**
+ * Näyttää korttikaupan
+ */
+export function showCardShop() {
+    const editions = [
+        { id: 'elite', name: 'Elite Series Edition', price: '4.99€', color: '#003399' },
+        { id: 'global', name: 'Global Pro Edition', price: '4.99€', color: '#006400' },
+        { id: 'legendary-gold', name: 'Legendary Gold Edition', price: '9.99€', color: 'var(--sub-gold)' }
+    ];
+
+    const html = `
+        <div style="display:grid; gap:15px;">
+            ${editions.map(e => `
+                <div class="sub-card" style="border-left: 4px solid ${e.color}; display:flex; justify-content:space-between; align-items:center; padding:15px;">
+                    <div>
+                        <div style="font-family:var(--sub-name-font); color:#fff;">${e.name}</div>
+                        <div style="color:var(--sub-gold); font-size:0.9rem; font-weight:bold;">${e.price}</div>
+                    </div>
+                    <button class="btn-red" style="width:auto; padding:8px 15px; font-size:0.8rem;" onclick="purchaseEdition('${e.id}')">
+                        BUY NOW
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    showModal('SUBSOCCER COLLECTIBLE SHOP', html, { maxWidth: '450px' });
+}
+
+window.purchaseEdition = async (editionId) => {
+    // Tässä kohtaa tapahtuisi oikea maksuintegraatio (Stripe/PayPal)
+    showLoading('Processing transaction...');
+    
+    setTimeout(() => {
+        hideLoading();
+        state.activeCardEdition = editionId;
+        state.inventory.push(editionId);
+        updateProfileCard();
+        closeModal();
+        showNotification(`Successfully upgraded to ${editionId.toUpperCase()} Edition!`, 'success');
+    }, 1500);
+};
+
 window.updatePoolUI = updatePoolUI;
 window.removeFromPool = removeFromPool;
 window.clearPool = clearPool;
@@ -604,3 +664,4 @@ window.viewPlayerCard = viewPlayerCard;
 window.closeCardModal = closeCardModal;
 window.downloadFanCard = downloadFanCard;
 window.showLevelUpCard = showLevelUpCard;
+window.showCardShop = showCardShop;

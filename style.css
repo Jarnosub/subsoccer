@@ -185,10 +185,12 @@ header {
     z-index: 10001 !important;
     display: none;
     flex-direction: column;
-    padding: 30px 15px; /* Pienennetään sivupaddingia */
+    padding: 30px 15px calc(90px + env(safe-area-inset-bottom)) 15px; /* Estää logout-napin jäämisen navipalkin alle */
+    box-sizing: border-box;
     border-left: 1px solid rgba(255, 215, 0, 0.3);
     box-shadow: -10px 0 30px rgba(0,0,0,0.8);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
 }
 
 .menu-header {
@@ -1137,4 +1139,37 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     0% { left: -100%; }
     20% { left: 200%; }
     100% { left: 200%; }
+}
+
+/* SPECIAL EDITIONS - PRO STYLE */
+.card-elite-edition {
+    border-color: #003399 !important; /* Elite Blue */
+    background: linear-gradient(145deg, #001f4d, #000) !important;
+    box-shadow: 0 0 20px rgba(0, 51, 153, 0.5) !important;
+}
+.card-elite-edition .card-header-stripe {
+    background: #003399 !important;
+    color: #fff !important;
+    font-family: var(--sub-name-font) !important;
+}
+
+.card-global-edition {
+    border-color: #006400 !important; /* Global Green */
+    background: linear-gradient(145deg, #004d00, #000) !important;
+    box-shadow: 0 0 20px rgba(0, 100, 0, 0.5) !important;
+}
+.card-global-edition .card-header-stripe {
+    background: #006400 !important;
+    color: #fff !important;
+}
+
+.card-legendary-gold-edition {
+    border-color: var(--sub-gold) !important;
+    background: linear-gradient(145deg, #222, #000) !important;
+    animation: goldPulse 2s infinite alternate;
+}
+
+@keyframes goldPulse {
+    from { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+    to { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
 }

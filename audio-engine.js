@@ -12,10 +12,10 @@ let isListening = false;
 let detectionInterval = null;
 
 // Goal-specific audio signatures (Hz)
-const GOAL_1_FREQUENCY = 2000; // Player 1's goal emits 2000 Hz → Player 2 scores
-const GOAL_2_FREQUENCY = 3500; // Player 2's goal emits 3500 Hz → Player 1 scores
-const FREQUENCY_TOLERANCE = 200; // ±200 Hz detection window
-const DETECTION_THRESHOLD = 0.65; // Sensitivity (0.0 - 1.0), higher = less sensitive
+let GOAL_1_FREQUENCY = 2000; // Player 1's goal emits 2000 Hz → Player 2 scores
+let GOAL_2_FREQUENCY = 3500; // Player 2's goal emits 3500 Hz → Player 1 scores
+let FREQUENCY_TOLERANCE = 200; // ±200 Hz detection window
+let DETECTION_THRESHOLD = 0.65; // Sensitivity (0.0 - 1.0), higher = less sensitive
 const MIN_DURATION_MS = 100; // Minimum sound duration to avoid false positives
 const COOLDOWN_MS = 1500; // Cooldown between goal detections
 
@@ -23,6 +23,10 @@ const COOLDOWN_MS = 1500; // Cooldown between goal detections
 let lastDetectionTime = 0;
 let detectionStartTime = 0;
 let currentDetectedGoal = null;
+
+// Debug/Fine-tuning state
+let peakGoal1 = 0;
+let peakGoal2 = 0;
 
 /**
  * Initialize audio context (must be called after user interaction)
@@ -187,6 +191,10 @@ function analyzeFrequencies(dataArray, sampleRate) {
     goal1Intensity /= 255;
     goal2Intensity /= 255;
 
+    // Track peaks for fine-tuning
+    if (goal1Intensity > peakGoal1) peakGoal1 = goal1Intensity;
+    if (goal2Intensity > peakGoal2) peakGoal2 = goal2Intensity;
+
     // Determine which goal (if any) exceeded threshold
     if (goal1Intensity > DETECTION_THRESHOLD && goal1Intensity > goal2Intensity) {
         return 1; // Goal 1 sound detected → Player 2 scores
@@ -289,8 +297,29 @@ function getStatus() {
             goal2Frequency: GOAL_2_FREQUENCY,
             threshold: DETECTION_THRESHOLD,
             cooldown: COOLDOWN_MS
+        },
+        debug: {
+            peakGoal1: peakGoal1.toFixed(3),
+            peakGoal2: peakGoal2.toFixed(3)
         }
     };
+}
+
+/**
+ * Reset peak tracking
+ */
+function resetPeaks() {
+    peakGoal1 = 0;
+    peakGoal2 = 0;
+}
+
+/**
+ * Update target frequencies
+ */
+function setFrequencies(f1, f2) {
+    if (f1 > 0) GOAL_1_FREQUENCY = f1;
+    if (f2 > 0) GOAL_2_FREQUENCY = f2;
+    return true;
 }
 
 /**
@@ -311,7 +340,9 @@ window.audioEngine = {
     startListening,
     stopListening,
     getStatus,
-    setThreshold
+    setThreshold,
+    setFrequencies,
+    resetPeaks
 };
 
 console.log("🎵 Subsoccer Audio Engine loaded - Patented acoustic goal detection ready");

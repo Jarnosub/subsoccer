@@ -169,6 +169,7 @@ export function advanceRound() {
         const losers = rP.filter(p => !rW.includes(p));
         bronzeContenders = [...losers];
         finalists = [...rW.filter(w => w)];
+        rW = []; // Tyhjennetään voittajat, jotta finaaliin ei tule esivalittua voittajaa
         drawRound(); return;
     }
     rP = rW.filter(w => w);
