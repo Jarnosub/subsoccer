@@ -1,4 +1,4 @@
-import { showNotification, showPage, loadUserProfile, populateCountries } from './ui.js';
+import { showNotification, showPage, loadUserProfile, populateCountries, cancelEditProfile } from './ui.js';
 import { _supabase, state } from './config.js';
 import { fetchAllGames, updateGuestUI, updateProfileCard, initProModeUI, toggleAuth, initClaimResult, startQuickMatch } from './script.js';
 
@@ -34,10 +34,19 @@ export async function handleSignUp() {
 }
 
 export async function handleAuth(event) {
-    event.preventDefault(); // Prevent default form submission
-    const u = document.getElementById('auth-user').value.trim().toUpperCase(), p = document.getElementById('auth-pass').value;
-    let { data } = await _supabase.from('players').select('*').eq('username', u).single();
-    if(data && data.password === p) { state.user = data; startSession(); } else showNotification("Login failed.", "error");
+    event.preventDefault();
+    const u = document.getElementById('auth-user').value.trim().toUpperCase();
+    const p = document.getElementById('auth-pass').value;
+    
+    // Haetaan kaikki sarakkeet mukaan lukien uudet full_name, email, phone, city
+    let { data, error } = await _supabase.from('players').select('*').eq('username', u).single();
+    
+    if(data && data.password === p) { 
+        state.user = data; // Nyt state.user sisältää kaikki henkilötiedot
+        startSession(); 
+    } else {
+        showNotification("Login failed.", "error");
+    }
 }
 
 export function handleGuest() {
@@ -96,40 +105,6 @@ function startSession() {
         initClaimResult(p1, p2, gameId);
     } else {
         showPage('tournament'); 
-    }
-}
-
-export async function showEditProfile() { 
-    const fields = document.getElementById('profile-edit-fields'); 
-    if(!fields) return;
-    
-    if(fields.style.display === 'none' || fields.style.display === '') {
-        fields.style.display = 'block';
-        
-        // Show current avatar
-        if (typeof updateAvatarPreview === 'function') {
-            updateAvatarPreview(state.user.avatar_url || '');
-        }
-        
-        // Set country dropdown
-        document.getElementById('country-input').value = state.user.country || 'fi';
-        
-        // Set email input
-        const emailInput = document.getElementById('email-input');
-        if (emailInput) {
-            emailInput.value = state.user.email || '';
-        }
-        
-        // Clear file input
-        const fileInput = document.getElementById('avatar-file-input');
-        if (fileInput) fileInput.value = '';
-        const fileNameDiv = document.getElementById('avatar-file-name');
-        if (fileNameDiv) fileNameDiv.textContent = '';
-        
-        // Varmistetaan että maat on ladattu
-        if (typeof populateCountries === 'function') await populateCountries();
-    } else {
-        fields.style.display = 'none';
     }
 }
 
@@ -217,8 +192,12 @@ export async function saveProfile() {
         
         const fileInput = document.getElementById('avatar-file-input');
         const file = fileInput?.files[0];
+        
+        const fullName = document.getElementById('edit-full-name')?.value.trim();
+        const email = document.getElementById('edit-email')?.value.trim();
+        const phone = document.getElementById('edit-phone')?.value.trim();
+        const city = document.getElementById('edit-city')?.value.trim();
         const countryCode = document.getElementById('country-input')?.value.trim().toLowerCase();
-        const email = document.getElementById('email-input')?.value.trim();
         
         let avatarUrl = state.user.avatar_url; // Keep existing if no new file
         
@@ -243,10 +222,14 @@ export async function saveProfile() {
         }
         
         // Prepare updates
-        const updates = {};
-        if (avatarUrl && avatarUrl !== state.user.avatar_url) updates.avatar_url = avatarUrl;
-        if (countryCode && countryCode !== state.user.country) updates.country = countryCode;
-        if (email !== undefined && email !== state.user.email) updates.email = email || null;
+        const updates = {
+            full_name: fullName,
+            email: email,
+            phone: phone,
+            city: city,
+            country: countryCode,
+            avatar_url: avatarUrl
+        };
 
         if (Object.keys(updates).length === 0) {
             showNotification("Nothing to update", "error");
@@ -260,23 +243,20 @@ export async function saveProfile() {
         if (error) {
             showNotification("Error updating profile: " + error.message, "error");
         } else {
-            // Update local user object
-            if (avatarUrl) state.user.avatar_url = avatarUrl;
-            if (countryCode) state.user.country = countryCode;
-            if (email !== undefined) state.user.email = email || null;
-            
-            // Update UI
-            if (typeof updateProfileCard === 'function') updateProfileCard();
-            if (typeof updateAvatarPreview === 'function') updateAvatarPreview(state.user.avatar_url);
-            if (typeof loadUserProfile === 'function') loadUserProfile();
-            if (typeof cancelEditProfile === 'function') cancelEditProfile();
-            
-            showNotification("Profile updated!", "success");
-            
-            // Clear file input
-            if (fileInput) fileInput.value = '';
-            const fileNameDiv = document.getElementById('avatar-file-name');
-            if (fileNameDiv) fileNameDiv.textContent = '';
+            // TÄRKEÄÄ: Päivitetään globaali tila, jotta sovellus 'muistaa' uudet tiedot
+            state.user = { 
+                ...state.user, 
+                full_name: fullName, 
+                email: email, 
+                phone: phone, 
+                city: city, 
+                country: countryCode, 
+                avatar_url: avatarUrl 
+            };
+
+            cancelEditProfile(); // Sulkee lomakkeen
+            updateProfileCard(); // Päivittää visuaalisen kortin
+            showNotification("Profile updated successfully!", "success");
         }
     } catch (error) {
         console.error('Save profile error:', error);
@@ -296,5 +276,4 @@ window.handleGuest = handleGuest;
 window.handleLogout = handleLogout;
 window.initApp = initApp;
 window.saveProfile = saveProfile;
-window.showEditProfile = showEditProfile;
 window.previewAvatarFile = previewAvatarFile;

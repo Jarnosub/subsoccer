@@ -1,5 +1,5 @@
 import { state, _supabase } from './config.js';
-import { fetchLB, fetchHist, fetchMyGames, initGameMap, fetchPublicGamesMap, cancelEdit } from './script.js';
+import { fetchLB, fetchHist, fetchMyGames, initGameMap, fetchPublicGamesMap, cancelEdit, updateAvatarPreview, updateProfileCard } from './script.js';
 import { loadEventsPage } from './events.js';
 
 /**
@@ -79,11 +79,20 @@ export function showPage(p) {
     
     
     // Funktiot, jotka suoritetaan sivun vaihdon yhteydessä
-    if (p === 'profile') loadUserProfile();
+    if (p === 'profile') {
+        cancelEditProfile(); // Piilottaa lomakkeen aina kun välilehti vaihtuu
+        if(document.getElementById('profile-games-ui')) 
+            document.getElementById('profile-games-ui').style.display = 'none';
+        if(document.getElementById('profile-dashboard-ui')) 
+            document.getElementById('profile-dashboard-ui').style.display = 'block';
+        loadUserProfile();
+        if (typeof updateProfileCard === 'function') updateProfileCard();
+    }
     if (p === 'leaderboard') fetchLB();
     if (p === 'history') fetchHist();
     if (p === 'games') fetchMyGames();
-    if (p !== 'games') cancelEdit(); // Reset edit mode when leaving tab
+    if (p !== 'games' && typeof cancelEdit === 'function') cancelEdit(); 
+    if (p !== 'profile' && typeof cancelEditProfile === 'function') cancelEditProfile();
     if (p === 'map') fetchPublicGamesMap();
     if (p === 'events') loadEventsPage();
 
@@ -305,21 +314,24 @@ export async function loadUserProfile() {
  * Näyttää profiilin muokkauslomakkeen
  */
 export function showEditProfile() {
-    const editFields = document.getElementById('profile-edit-fields');
-    if (editFields) {
-        editFields.style.display = 'block';
-        
-        // Täytä lomake nykyisillä tiedoilla
-        const countryInput = document.getElementById('country-input');
-        const emailInput = document.getElementById('email-input');
-        
-        if (countryInput && state.user.country) {
-            countryInput.value = state.user.country;
-        }
-        if (emailInput && state.user.email) {
-            emailInput.value = state.user.email;
-        }
-    }
+    const fields = document.getElementById('profile-edit-fields'); 
+    if(!fields) return;
+    fields.style.display = 'block';
+    document.getElementById('profile-dashboard-ui').style.display = 'none'; // Piilota napit
+    
+    // Haetaan arvot state.userista (joka on nyt ladattu auth.js:ssä)
+    const mapping = {
+        'edit-full-name': state.user.full_name,
+        'edit-email': state.user.email,
+        'edit-phone': state.user.phone,
+        'edit-city': state.user.city,
+        'country-input': state.user.country
+    };
+
+    Object.entries(mapping).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || '';
+    });
 }
 
 /**
@@ -330,6 +342,7 @@ export function cancelEditProfile() {
     if (editFields) {
         editFields.style.display = 'none';
     }
+    document.getElementById('profile-dashboard-ui').style.display = 'block'; // Tuo napit takaisin
 }
 
 // Globaalit kytkennät

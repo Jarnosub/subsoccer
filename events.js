@@ -32,9 +32,11 @@ export async function loadEventsPage() {
     // Show loading state
     container.innerHTML = '<div style="text-align:center; padding:40px; color:#666;"><i class="fa fa-spinner fa-spin"></i> Loading events...</div>';
 
-    try {
-        // Fetch upcoming events
-        const { data: events, error } = await _supabase
+   try {
+        const now = new Date();
+
+        // Haetaan kaikki aktiiviset tapahtumat
+        const { data: allEvents, error } = await _supabase
             .from('events_with_participant_count')
             .select('*')
             .in('status', ['upcoming', 'ongoing'])
@@ -42,7 +44,12 @@ export async function loadEventsPage() {
 
         if (error) throw error;
 
-        renderEventsPage(events || []);
+        // Erotellaan tulevat ja menneet JavaScriptin puolella
+        const upcoming = (allEvents || []).filter(e => new Date(e.start_datetime) >= now);
+        const past = (allEvents || []).filter(e => new Date(e.start_datetime) < now);
+
+        // Yhdistetään: tulevat ensin, menneet lopussa
+        renderEventsPage([...upcoming, ...past]);
     } catch (e) {
         console.error('Failed to load events:', e);
         container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--sub-red);">Failed to load events</div>';

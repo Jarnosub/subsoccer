@@ -253,48 +253,13 @@
     <div id="app-content">
 
         <div id="section-profile" class="section">
-            <div class="container" style="text-align:center; position:relative;">
-                <!-- Avatar Section -->
-                <div style="margin: 20px auto 15px;">
-                    <img id="profile-avatar-display" src="placeholder-silhouette-5-wide.png" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:4px solid var(--sub-gold); box-shadow: 0 5px 20px rgba(255,215,0,0.3);">
-                </div>
-                
-                <!-- User Info -->
-                <h2 id="profile-username" style="font-family:'Resolve'; color:var(--sub-red); margin:10px 0 5px; font-size:1.5rem;">Player Name</h2>
-                <div id="profile-country" style="color:#888; font-size:0.9rem; margin-bottom:20px;">🌍 Country</div>
-                
-                <!-- Stats Grid -->
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; max-width:300px; margin-left:auto; margin-right:auto;">
-                    <div style="background:#000; padding:15px; border-radius:4px; border:1px solid #333;">
-                        <div style="font-size:0.7rem; color:#666; font-family:'Resolve'; margin-bottom:5px;">ELO RATING</div>
-                        <div id="profile-elo" style="font-size:1.8rem; color:var(--sub-gold); font-family:'Resolve';">1000</div>
-                    </div>
-                    <div style="background:#000; padding:15px; border-radius:4px; border:1px solid #333;">
-                        <div style="font-size:0.7rem; color:#666; font-family:'Resolve'; margin-bottom:5px;">MATCHES</div>
-                        <div id="profile-matches" style="font-size:1.8rem; color:#fff; font-family:'Resolve';">0</div>
-                    </div>
-                </div>
-                
-                <!-- Community Links -->
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:20px 0;">
-                    <button class="btn-red" onclick="showPage('leaderboard')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
-                        <i class="fa-solid fa-trophy" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
-                        GLOBAL RANKING
-                    </button>
-                    <button class="btn-red" onclick="showPage('map')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
-                        <i class="fa-solid fa-map-location-dot" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
-                        GAME MAP
-                    </button>
-                </div>
-                <button class="btn-red" onclick="showPage('history')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:10px; margin-bottom:20px; border-radius:4px;">
-                    <i class="fa-solid fa-clock-rotate-left"></i> Match History
-                </button>
+            <div class="container" style="text-align:center;">
+                <div id="profile-card-container"></div>
                 
                 <!-- Edit Profile Form (Hidden) -->
-                <div id="profile-edit-fields" style="display:none; margin-bottom:20px; background:#111; padding:15px; border-radius:4px; border:1px solid #222;">
-                    <h3 style="font-family:'Resolve'; color:var(--sub-gold); margin-bottom:15px; font-size:0.95rem; text-transform:uppercase; letter-spacing:1px;">Edit Profile</h3>
+                <div id="profile-edit-fields" style="display:none; background: #111; padding: 20px; border-radius: 8px; margin-top: 15px; border: 1px solid #222; text-align: left;">
                     
-                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #333;">
                         <img id="avatar-preview" src="placeholder-silhouette-5-wide.png" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--sub-gold);">
                         <div style="flex-grow:1;">
                             <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewAvatarFile(this)">
@@ -305,30 +270,66 @@
                         </div>
                     </div>
                     
-                    <select id="country-input" class="dark-select" style="margin-bottom:10px;">
-                        <option value="" disabled selected>Select Country</option>
-                    </select>
+                    <p style="color: var(--sub-gold); font-size: 0.8rem; margin-bottom: 15px; font-family: 'Open Sans'; text-align: left;">
+                        <i class="fas fa-id-card"></i> Official Federation Member Details
+                    </p>
                     
-                    <div style="margin-bottom:15px;">
-                        <label style="display:block; color:#888; font-size:0.85rem; margin-bottom:5px; font-family:'Open Sans'; text-align:left;">
-                            Email <span style="color:#666;">(optional, for tournaments)</span>
-                        </label>
-                        <input 
-                            type="email" 
-                            id="email-input" 
-                            placeholder="your.email@example.com"
-                            style="width:100%; padding:10px; background:#222; border:1px solid #333; border-radius:4px; color:white; font-family:'Open Sans';"
-                        />
+                    <h4 style="color:var(--sub-gold); font-size:0.7rem; border-bottom:1px solid #333; padding-bottom:5px; margin-top:15px;">👤 PERSONAL DETAILS</h4>
+                    
+                    <div class="edit-group" style="margin-bottom: 12px; text-align: left;">
+                        <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve'; letter-spacing: 1px; display: block; margin-bottom: 5px;">FULL NAME</label>
+                        <input type="text" id="edit-full-name" placeholder="Official Name">
                     </div>
                     
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn-red" onclick="saveProfile()" style="flex:1;">Save Changes</button>
-                        <button class="btn-red" onclick="cancelEditProfile()" style="flex:1; background:#333;">Cancel</button>
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                        <div style="flex: 1; text-align: left;">
+                            <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve';">EMAIL</label>
+                            <input type="email" id="edit-email" placeholder="Recovery Email">
+                        </div>
+                        <div style="flex: 1; text-align: left;">
+                            <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve';">PHONE</label>
+                            <input type="tel" id="edit-phone" placeholder="Contact No">
+                        </div>
                     </div>
+                    
+                    <h4 style="color:var(--sub-gold); font-size:0.7rem; border-bottom:1px solid #333; padding-bottom:5px; margin-top:15px;">📍 LOCATION</h4>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                        <div style="flex: 1; text-align: left;">
+                            <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve';">CITY</label>
+                            <input type="text" id="edit-city" placeholder="Home City">
+                        </div>
+                        <div style="flex: 1; text-align: left;">
+                            <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve';">COUNTRY</label>
+                            <select id="country-input" style="width:100%; padding:10px; background:#222; color:white; border:1px solid #444;"></select>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; gap:10px; margin-top: 20px;">
+                        <button onclick="saveProfile()" class="btn-red" style="flex: 2;">SAVE CHANGES</button>
+                        <button onclick="cancelEditProfile()" style="flex: 1; background: #333; color: white; border: none; border-radius: 4px; font-family: 'Resolve'; cursor: pointer;">CANCEL</button>
+                    </div>
+                </div>
+
+                <div id="profile-dashboard-ui">
+                    <!-- Community Links -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:20px 0;">
+                        <button class="btn-red" onclick="showPage('leaderboard')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
+                            <i class="fa-solid fa-trophy" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
+                            GLOBAL RANKING
+                        </button>
+                        <button class="btn-red" onclick="showPage('map')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
+                            <i class="fa-solid fa-map-location-dot" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
+                            GAME MAP
+                        </button>
+                    </div>
+                    <button class="btn-red" onclick="showPage('history')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:10px; margin-bottom:20px; border-radius:4px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Match History
+                    </button>
                 </div>
                 
                 <!-- My Games Section -->
-                <div style="border-top:1px solid #222; padding-top:20px; margin-top:10px;">
+                <div id="profile-games-ui" style="display:none; border-top:1px solid #222; padding-top:20px; margin-top:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h3 style="font-family:'Resolve'; margin:0; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">My Game Tables</h3>
                         <button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#333; border-radius:4px;" onclick="showPage('games')">

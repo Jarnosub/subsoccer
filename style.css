@@ -709,3 +709,15 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     font-family: 'Resolve', 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     -webkit-font-smoothing: antialiased;
 }
+
+/* Profile Edit Fields */
+#profile-edit-fields input, 
+#profile-edit-fields select {
+    font-size: 16px !important; /* Estää zoomauksen mobiilissa */
+    background: #222;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 12px !important;
+    margin-bottom: 15px !important;
+    border-radius: 4px;
+}

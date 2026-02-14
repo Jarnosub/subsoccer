@@ -98,16 +98,14 @@ export function updateGuestUI() {
 // ============================================================
 
 export async function updateProfileCard() {
-    const container = document.getElementById('section-profile');
-    if (!container) return;
-    const wins = state.user.wins || 0;
-    let totalGames = 0;
-    const { count } = await _supabase.from('matches').select('*', { count: 'exact', head: true }).or(`player1.eq.${state.user.username},player2.eq.${state.user.username}`);
-    if (count) totalGames = count;
-    const losses = Math.max(0, totalGames - wins);
-    const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
+    const container = document.getElementById('profile-card-container');
+    if (!container || !state.user) return;
+    
     const rank = state.user.elo > 1500 ? "PRO" : "ROOKIE";
-    const avatarUrl = state.user.avatar_url ? state.user.avatar_url : 'placeholder-silhouette-5-wide.png';
+    const avatarUrl = state.user.avatar_url || 'placeholder-silhouette-5-wide.png';
+    const city = state.user.city ? `${state.user.city}, ` : '';
+    const fullName = state.user.full_name || state.user.username;
+
     container.innerHTML = `
         <div class="pro-card">
             <div class="card-inner-frame">
@@ -115,31 +113,29 @@ export async function updateProfileCard() {
                 <div class="card-image-area">
                     <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                 </div>
-                <div class="card-name-strip">${state.user.username}</div>
+                <div class="card-name-strip">${fullName}</div>
                 <div class="card-info-area">
                     <div class="card-stats-row">
                         <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${state.user.elo}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div>
+                        <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${state.user.wins || 0}</div></div>
+                        <div class="card-stat-item"><div class="card-stat-label">ELO</div><div class="card-stat-value">PRO</div></div>
+                        <div class="card-stat-item"><div class="card-stat-label">CITY</div><div class="card-stat-value" style="font-size:0.8rem;">${state.user.city || '---'}</div></div>
                     </div>
                     <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:5px;">
                             <img src="https://flagcdn.com/w80/${(state.user.country || 'fi').toLowerCase()}.png" width="16">
-                            <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING</span>
+                            <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING ${city}${state.user.country?.toUpperCase() || 'FI'}</span>
                         </div>
                         <div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div>
                     </div>
                 </div>
             </div>
         </div>
-    `;
-    container.innerHTML += `
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px;">
-        <button class="btn-red" onclick="downloadFanCard()" style="background:var(--sub-gold) !important; color:#000 !important; font-family:'Resolve'; font-weight:bold; border:none; width:320px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <i class="fa-solid fa-camera" style="font-size:1.2rem;"></i> DOWNLOAD OFFICIAL FAN CARD
-        </button>
-    </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px;">
+            <button class="btn-red" onclick="downloadFanCard()" style="background:var(--sub-gold) !important; color:#000 !important; font-weight:bold; width:320px;">
+                <i class="fa-solid fa-camera"></i> DOWNLOAD OFFICIAL FAN CARD
+            </button>
+        </div>
     `;
 }
 
@@ -988,8 +984,8 @@ export async function selectQuickPlayer(name, slot) {
 
 export async function updateEloPreview() {
     if (!quickP1 || !quickP2) return;
-    const { data: p1 } = await _supabase.from('players').select('id, elo').eq('username', quickP1).single();
-    const { data: p2 } = await _supabase.from('players').select('id, elo').eq('username', quickP2).single();
+    const { data: p1 } = await _supabase.from('players').select('id, elo').ilike('username', quickP1.trim()).single();
+    const { data: p2 } = await _supabase.from('players').select('id, elo').ilike('username', quickP2.trim()).single();
     const elo1 = p1 ? p1.elo : 1300, elo2 = p2 ? p2.elo : 1300;
     const id1 = p1 ? p1.id : 'guest1', id2 = p2 ? p2.id : 'guest2';
     const result = calculateNewElo({ id: id1, elo: elo1 }, { id: id2, elo: elo2 }, { id: id1 });
