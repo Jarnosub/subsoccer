@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;700&display=swap');
 @font-face {
     font-family: 'SubsoccerLogo';
     src: url('fonts/Subsoccer-2-Regular.otf') format('opentype');
@@ -17,6 +17,7 @@
     --sub-logo-font: 'SubsoccerLogo', sans-serif;
     --sub-name-font: 'Resolve', sans-serif; /* Käytetään väljempää fonttia */
     --sub-body-font: 'ResolveRegular', sans-serif;
+    --sub-radius: 4px; /* Sharper corners for pro look */
 }
 
 body { font-family: var(--sub-body-font) !important; background-color: var(--sub-black); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
@@ -32,7 +33,7 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
     border: none;
     color: #888;
     padding: 6px 12px;
-    border-radius: 5px;
+    border-radius: var(--sub-radius);
     cursor: pointer;
     font-size: 0.7rem;
     font-family: 'Open Sans', sans-serif;
@@ -61,7 +62,7 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
     z-index: 10;
 }
 .tab { 
-    font-family: 'Russo One', sans-serif; 
+    font-family: var(--sub-name-font); 
     font-size: 0.8rem; 
     padding: 12px 6px; 
     cursor: pointer; 
@@ -161,7 +162,7 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
     display: flex !important;
     padding: 15px;
     box-sizing: border-box;
-    height: calc(100vh - 180px);
+    height: calc(100vh - 160px);
     flex-direction: column;
 }
 
@@ -191,7 +192,7 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
     width: 100%;
     height: 100%;
     border: 3px solid var(--sub-gold); /* Yellow border 2mm inside cut */
-    border-radius: 12px;
+    border-radius: var(--sub-radius);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -248,7 +249,7 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
     border-top: 1px solid #222;
     margin-top: auto;
     font-size: 0.7rem;
-    font-family: 'Russo One';
+    font-family: var(--sub-name-font);
 }
 
 /* SEARCH RESULTS STYLING */
@@ -258,7 +259,7 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
     left: 0 !important;
     width: calc(100% - 100px) !important; /* Sama leveys kuin syöttökentällä */
     background: #1a1a1a !important;
-    border: 1px solid var(--sub-red) !important;
+    border: 1px solid #333 !important;
     border-radius: 0 0 8px 8px !important;
     z-index: 99999 !important;
     display: none;
@@ -284,7 +285,7 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
     left: 0 !important;
     width: 100% !important;
     background: #1a1a1a !important;
-    border: 1px solid var(--sub-red) !important;
+    border: 1px solid #333 !important;
     border-radius: 0 0 8px 8px !important;
     z-index: 99999 !important;
     display: none;
@@ -292,13 +293,13 @@ header { width: 100%; padding: 15px 0 5px 0 !important; display: flex; justify-c
     overflow-y: auto !important;
 }
 
-.container { background: #111; padding: 15px !important; border-radius: 12px !important; border: 1px solid #222; width: 94% !important; max-width: 400px; box-sizing: border-box; margin: 15px auto 0; }
-.btn-red { width: 100%; padding: 12px !important; border-radius: 8px !important; border: none; font-family: var(--sub-name-font) !important; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1rem !important; }
+.container { background: #111; padding: 15px !important; border-radius: var(--sub-radius) !important; border: 1px solid #222; width: 94% !important; max-width: 400px; box-sizing: border-box; margin: 15px auto 0; }
+.btn-red { width: 100%; padding: 12px !important; border-radius: var(--sub-radius) !important; border: none; font-family: var(--sub-name-font) !important; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1rem !important; letter-spacing: 1px; font-weight: bold; }
 .btn-outline { font-family: var(--sub-name-font) !important; text-transform: uppercase; }
 .lb-name { font-family: 'ResolveNarrowReg', sans-serif !important; color: #FFFFFF !important; font-size: 1.1rem !important; letter-spacing: 1.5px !important; text-transform: uppercase; font-weight: 400 !important; font-stretch: normal !important; }
 .lb-elo { color: var(--sub-gold) !important; font-family: var(--sub-name-font) !important; font-size: 1.2rem !important; }
 
-input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: 8px !important; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; font-size: 1rem; }
+input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: var(--sub-radius) !important; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; font-size: 1rem; font-family: 'Open Sans', sans-serif; }
 #auth-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--sub-black); display: flex; flex-direction: column; align-items: center; z-index: 1000; padding-top: 80px; }
 
 #section-more h2, #section-more h3 { font-family: var(--sub-logo-font) !important; color: var(--sub-red); }
@@ -344,7 +345,7 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
     margin: 10px 0;
     background: #000;
     padding: 15px;
-    border-radius: 12px;
+    border-radius: var(--sub-radius);
     font-size: 0.8rem;
     text-align: left;
     color: #888;
@@ -373,8 +374,8 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
     background: var(--sub-red) !important;
     color: white !important;
     border: none !important;
-    border-radius: 8px !important;
-    font-family: 'Russo One', sans-serif !important;
+    border-radius: var(--sub-radius) !important;
+    font-family: var(--sub-name-font) !important;
     cursor: pointer !important;
 }
 
@@ -406,7 +407,7 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 
 .toast-notification {
     padding: 15px 20px;
-    border-radius: 8px;
+    border-radius: var(--sub-radius);
     color: white;
     font-family: 'Open Sans', sans-serif;
     font-size: 0.9rem;
@@ -468,7 +469,7 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
     color: #888 !important;
     background: transparent !important;
     border: 1px dashed #444 !important; /* Tehdään siitä selkeästi "toissijainen" toiminto */
-    border-radius: 8px !important;
+    border-radius: var(--sub-radius) !important;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -498,7 +499,7 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
     color: #888 !important;
     background: transparent !important;
     border: 1px dashed #444 !important;
-    border-radius: 8px !important;
+    border-radius: var(--sub-radius) !important;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -540,7 +541,7 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 
 #victory-elo-count {
     color: var(--sub-gold);
-    font-family: 'Russo One', sans-serif;
+    font-family: var(--sub-name-font);
     font-size: 4rem;
     animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }

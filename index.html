@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Subsoccer Pro v70.0 Master</title>
+    <title>Subsoccer Pro v70.2 Master</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -26,13 +26,13 @@
 
         /* Game Select Style */
         select.dark-select {
-            width: 100%; padding: 10px; margin-bottom: 10px; background: #111; border: 1px solid #222; color: #fff; border-radius: 5px; font-family: 'Open Sans', sans-serif; appearance: none; -webkit-appearance: none;
+            width: 100%; padding: 10px; margin-bottom: 10px; background: #111; border: 1px solid #222; color: #fff; border-radius: 4px; font-family: 'Open Sans', sans-serif; appearance: none; -webkit-appearance: none;
         }
 
         /* Compact Tournament Settings */
         .tour-settings-compact { margin-top: 5px; border-top: 1px solid #222; padding-top: 10px; }
         .tour-settings-compact input, .tour-settings-compact select {
-            padding: 6px 10px; margin-bottom: 5px; font-size: 0.85rem; height: 34px;
+            padding: 6px 10px; margin-bottom: 5px; font-size: 0.85rem; height: 34px; border-radius: 4px;
         }
 
         /* ============================================================ */
@@ -69,7 +69,7 @@
         }
 
         .pro-player-name {
-            font-family: 'Russo One';
+            font-family: 'Resolve';
             font-size: 1.2rem;
             color: #666;
             position: absolute;
@@ -78,7 +78,7 @@
         }
 
         .pro-score {
-            font-family: 'Russo One';
+            font-family: 'Resolve';
             font-size: 10rem;
             color: var(--sub-gold);
             text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
@@ -92,7 +92,7 @@
         }
 
         .pro-status {
-            font-family: 'Russo One';
+            font-family: 'Resolve';
             font-size: 0.9rem;
             color: var(--sub-red);
             position: absolute;
@@ -116,8 +116,8 @@
             color: #fff;
             border: 1px solid #444;
             padding: 10px 20px;
-            border-radius: 8px;
-            font-family: 'Russo One';
+            border-radius: 4px;
+            font-family: 'Resolve';
             font-size: 0.8rem;
             cursor: pointer;
             z-index: 100;
@@ -143,12 +143,12 @@
 
     <div id="victory-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgb(10,10,10) !important; z-index:9999999; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
         <div style="font-family:'SubsoccerLogo'; color:var(--sub-red); font-size:4rem; margin-bottom:10px; text-shadow: 0 0 20px rgba(227,6,19,0.5);">WINNER!</div>
-        <div id="victory-player-name" style="font-family:'Russo One'; color:#fff; font-size:2.5rem; margin-bottom:20px;">PLAYER NAME</div>
+        <div id="victory-player-name" style="font-family:'Resolve'; color:#fff; font-size:2.5rem; margin-bottom:20px;">PLAYER NAME</div>
         
-        <div style="background:#111; padding:30px; border-radius:20px; border:2px solid var(--sub-gold); box-shadow: 0 0 30px rgba(255,215,0,0.2);">
+        <div style="background:#111; padding:30px; border-radius:4px; border:2px solid var(--sub-gold); box-shadow: 0 0 30px rgba(255,215,0,0.2);">
             <div style="color:#888; font-family:'Resolve'; letter-spacing:2px; font-size:0.8rem;">NEW ELO RATING</div>
-            <div id="victory-elo-count" style="color:var(--sub-gold); font-family:'Russo One'; font-size:3.5rem;">1500</div>
-            <div id="victory-elo-gain" style="color:#4CAF50; font-family:'Russo One'; font-size:1.2rem; margin-top:5px;">+24 POINTS</div>
+            <div id="victory-elo-count" style="color:var(--sub-gold); font-family:'Resolve'; font-size:3.5rem;">1500</div>
+            <div id="victory-elo-gain" style="color:#4CAF50; font-family:'Resolve'; font-size:1.2rem; margin-top:5px;">+24 POINTS</div>
         </div>
 
         <button class="btn-red" onclick="closeVictoryOverlay()" style="margin-top:40px; width:200px;">Continue</button>
@@ -160,19 +160,19 @@
 
     <div id="auth-page">
         <div id="login-form" class="container" style="text-align:center;">
-            <h2 style="font-family:'Russo One'; margin-bottom: 25px;">PLAYER LOGIN</h2>
+            <h2 style="font-family:'Resolve'; margin-bottom: 25px;">PLAYER LOGIN</h2>
             <input type="text" id="auth-user" placeholder="Username">
             <input type="password" id="auth-pass" placeholder="Password">
             <button class="btn-red" onclick="handleAuth()">LOG IN</button>
             <div style="margin-top: 15px;">
-                <button onclick="toggleAuth(true)" style="width:100%; background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); color:var(--sub-gold); padding:12px; border-radius:8px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.2s; text-transform:uppercase;">CREATE ACCOUNT</button>
+                <button onclick="toggleAuth(true)" style="width:100%; background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); color:var(--sub-gold); padding:12px; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.2s; text-transform:uppercase;">CREATE ACCOUNT</button>
             </div>
             <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
             <input type="text" id="guest-nick" placeholder="Guest Nickname">
             <button class="btn-red" style="background:#333;" onclick="handleGuest()">JOIN AS GUEST</button>
         </div>
         <div id="signup-form" class="container" style="text-align:center; display:none;">
-            <h2 style="font-family:'Russo One';">CREATE ACCOUNT</h2>
+            <h2 style="font-family:'Resolve';">CREATE ACCOUNT</h2>
             <input type="text" id="reg-user" placeholder="Choose Username">
             <input type="password" id="reg-pass" placeholder="Choose Password">
             <button class="btn-red" onclick="handleSignUp()">REGISTER</button>
@@ -200,71 +200,51 @@
 
         <div id="section-profile" class="section">
             <div class="container" style="text-align:center; position:relative;">
-                <!-- Settings Toggle -->
-                <div style="position:absolute; top:15px; right:15px; z-index:10;">
-                    <button onclick="toggleSettingsMenu()" style="background:none; border:none; color:#666; font-size:1.2rem; cursor:pointer; padding:5px;">
-                        <i class="fa-solid fa-gear"></i>
-                    </button>
-                </div>
-
-                <!-- Settings Menu (Hidden) -->
-                <div id="settings-menu" style="display:none; margin-bottom:20px; background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #333;">
-                    <button onclick="showEditProfile()" style="width:100%; padding:12px; background:#333; border:none; border-radius:8px; color:#fff; margin-bottom:10px; font-family:'Russo One'; font-size:0.8rem; cursor:pointer; text-transform:uppercase;">
-                        <i class="fa fa-edit"></i> Edit Profile
-                    </button>
-                    <button onclick="toggleSoundEffects()" id="sound-toggle-btn" style="width:100%; padding:12px; background:#333; border:none; border-radius:8px; color:#fff; margin-bottom:10px; font-family:'Russo One'; font-size:0.8rem; cursor:pointer; text-transform:uppercase;">
-                        🔊 Sound Effects
-                    </button>
-                    <button onclick="location.reload()" style="width:100%; padding:12px; background:transparent; border:1px solid #333; border-radius:8px; color:#666; font-family:'Russo One'; font-size:0.8rem; cursor:pointer; text-transform:uppercase;">
-                        <i class="fa fa-sign-out"></i> Logout
-                    </button>
-                </div>
-
                 <!-- Avatar Section -->
                 <div style="margin: 20px auto 15px;">
                     <img id="profile-avatar-display" src="placeholder-silhouette-5-wide.png" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:4px solid var(--sub-gold); box-shadow: 0 5px 20px rgba(255,215,0,0.3);">
                 </div>
                 
                 <!-- User Info -->
-                <h2 id="profile-username" style="font-family:'Russo One'; color:var(--sub-red); margin:10px 0 5px; font-size:1.5rem;">Player Name</h2>
+                <h2 id="profile-username" style="font-family:'Resolve'; color:var(--sub-red); margin:10px 0 5px; font-size:1.5rem;">Player Name</h2>
                 <div id="profile-country" style="color:#888; font-size:0.9rem; margin-bottom:20px;">🌍 Country</div>
                 
                 <!-- Stats Grid -->
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; max-width:300px; margin-left:auto; margin-right:auto;">
-                    <div style="background:#000; padding:15px; border-radius:10px; border:1px solid #333;">
-                        <div style="font-size:0.7rem; color:#666; font-family:'Russo One'; margin-bottom:5px;">ELO RATING</div>
-                        <div id="profile-elo" style="font-size:1.8rem; color:var(--sub-gold); font-family:'Russo One';">1000</div>
+                    <div style="background:#000; padding:15px; border-radius:4px; border:1px solid #333;">
+                        <div style="font-size:0.7rem; color:#666; font-family:'Resolve'; margin-bottom:5px;">ELO RATING</div>
+                        <div id="profile-elo" style="font-size:1.8rem; color:var(--sub-gold); font-family:'Resolve';">1000</div>
                     </div>
-                    <div style="background:#000; padding:15px; border-radius:10px; border:1px solid #333;">
-                        <div style="font-size:0.7rem; color:#666; font-family:'Russo One'; margin-bottom:5px;">MATCHES</div>
-                        <div id="profile-matches" style="font-size:1.8rem; color:#fff; font-family:'Russo One';">0</div>
+                    <div style="background:#000; padding:15px; border-radius:4px; border:1px solid #333;">
+                        <div style="font-size:0.7rem; color:#666; font-family:'Resolve'; margin-bottom:5px;">MATCHES</div>
+                        <div id="profile-matches" style="font-size:1.8rem; color:#fff; font-family:'Resolve';">0</div>
                     </div>
                 </div>
                 
                 <!-- Community Links -->
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:20px 0;">
-                    <button class="btn-red" onclick="showPage('leaderboard')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px;">
+                    <button class="btn-red" onclick="showPage('leaderboard')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
                         <i class="fa-solid fa-trophy" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
                         GLOBAL RANKING
                     </button>
-                    <button class="btn-red" onclick="showPage('map')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px;">
+                    <button class="btn-red" onclick="showPage('map')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
                         <i class="fa-solid fa-map-location-dot" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
                         GAME MAP
                     </button>
                 </div>
-                <button class="btn-red" onclick="showPage('history')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:10px; margin-bottom:20px;">
+                <button class="btn-red" onclick="showPage('history')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:10px; margin-bottom:20px; border-radius:4px;">
                     <i class="fa-solid fa-clock-rotate-left"></i> Match History
                 </button>
                 
                 <!-- Edit Profile Form (Hidden) -->
-                <div id="profile-edit-fields" style="display:none; margin-bottom:20px; background:#111; padding:15px; border-radius:12px; border:1px solid #222;">
-                    <h3 style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:15px; font-size:0.95rem; text-transform:uppercase; letter-spacing:1px;">Edit Profile</h3>
+                <div id="profile-edit-fields" style="display:none; margin-bottom:20px; background:#111; padding:15px; border-radius:4px; border:1px solid #222;">
+                    <h3 style="font-family:'Resolve'; color:var(--sub-gold); margin-bottom:15px; font-size:0.95rem; text-transform:uppercase; letter-spacing:1px;">Edit Profile</h3>
                     
                     <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
                         <img id="avatar-preview" src="placeholder-silhouette-5-wide.png" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--sub-gold);">
                         <div style="flex-grow:1;">
                             <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewAvatarFile(this)">
-                            <label for="avatar-file-input" class="btn-red" style="display:block; text-align:center; padding:10px; cursor:pointer; background:var(--sub-gold); color:#000; font-size:0.85rem;">
+                            <label for="avatar-file-input" class="btn-red" style="display:block; text-align:center; padding:10px; cursor:pointer; background:var(--sub-gold); color:#000; font-size:0.85rem; border-radius:4px;">
                                 <i class="fa fa-camera"></i> Change Photo
                             </label>
                             <div id="avatar-file-name" style="font-size:0.7rem; color:#888; font-family:'Open Sans'; text-align:center; margin-top:5px; min-height:14px;"></div>
@@ -283,7 +263,7 @@
                             type="email" 
                             id="email-input" 
                             placeholder="your.email@example.com"
-                            style="width:100%; padding:10px; background:#222; border:1px solid #333; border-radius:6px; color:white; font-family:'Open Sans';"
+                            style="width:100%; padding:10px; background:#222; border:1px solid #333; border-radius:4px; color:white; font-family:'Open Sans';"
                         />
                     </div>
                     
@@ -296,8 +276,8 @@
                 <!-- My Games Section -->
                 <div style="border-top:1px solid #222; padding-top:20px; margin-top:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h3 style="font-family:'Russo One'; margin:0; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">My Game Tables</h3>
-                        <button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#333;" onclick="showPage('games')">
+                        <h3 style="font-family:'Resolve'; margin:0; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">My Game Tables</h3>
+                        <button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#333; border-radius:4px;" onclick="showPage('games')">
                             + Register New
                         </button>
                     </div>
@@ -308,14 +288,14 @@
 
         <div id="section-games" class="section">
             <div class="container">
-                <h3 style="font-family:'Russo One'; text-transform:uppercase; font-size:0.9rem; letter-spacing:1px;">Register New Game</h3>
+                <h3 style="font-family:'Resolve'; text-transform:uppercase; font-size:0.9rem; letter-spacing:1px;">Register New Game</h3>
                 
                 <!-- Serial Number - Primary Game Identifier -->
-                <div style="background:#1a1a1a; border:1px solid var(--sub-gold); border-radius:8px; padding:15px; margin-bottom:15px;">
+                <div style="background:#1a1a1a; border:1px solid var(--sub-gold); border-radius:4px; padding:15px; margin-bottom:15px;">
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
                         <span style="font-size:1.2rem;">🔑</span>
                         <div>
-                            <div style="font-family:'Russo One'; color:var(--sub-gold); font-size:0.9rem;">GAME SERIAL NUMBER</div>
+                            <div style="font-family:'Resolve'; color:var(--sub-gold); font-size:0.9rem;">GAME SERIAL NUMBER</div>
                             <div style="font-size:0.75rem; color:#999; margin-top:2px;">Found on your game's QR code sticker</div>
                         </div>
                     </div>
@@ -333,10 +313,10 @@
                     <input type="text" id="game-address-input" placeholder="Search Address (e.g. Helsinki)" style="margin-bottom:0;">
                     <button class="btn-red" style="width:auto; padding:0 15px; font-size:0.9rem;" onclick="searchLocation()">🔍</button>
                 </div>
-                <div id="map-picker" style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 10px; z-index: 1;"></div>
+                <div id="map-picker" style="height: 200px; width: 100%; border-radius: 4px; margin-bottom: 10px; z-index: 1;"></div>
                 <div id="location-confirm" style="font-size: 0.8rem; color: var(--sub-gold); margin-bottom: 15px; min-height: 1.2em;"></div>
 
-                <div style="display:flex; align-items:center; margin-bottom:20px; background:#111; padding:10px; border-radius:8px; border:1px solid #222;"><input type="checkbox" id="game-public-input" style="width:auto; margin:0 10px 0 0;"><label for="game-public-input" style="font-size:0.9rem; color:#ddd;">Make Public (Visible to everyone)</label></div>
+                <div style="display:flex; align-items:center; margin-bottom:20px; background:#111; padding:10px; border-radius:4px; border:1px solid #222;"><input type="checkbox" id="game-public-input" style="width:auto; margin:0 10px 0 0;"><label for="game-public-input" style="font-size:0.9rem; color:#ddd;">Make Public (Visible to everyone)</label></div>
 
                 <div id="game-form-actions">
                     <button id="btn-reg-game" class="btn-red" onclick="registerGame()">Register Game</button>
@@ -347,8 +327,8 @@
                 </div>
                 <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 style="font-family:'Russo One'; text-transform:uppercase; margin:0; font-size:0.9rem; letter-spacing:1px;">My Game Tables</h3>
-                    <button class="btn-red" style="font-size:0.75rem; padding:8px 15px; background:#333;" onclick="viewOwnershipRequests()">
+                    <h3 style="font-family:'Resolve'; text-transform:uppercase; margin:0; font-size:0.9rem; letter-spacing:1px;">My Game Tables</h3>
+                    <button class="btn-red" style="font-size:0.75rem; padding:8px 15px; background:#333; border-radius:4px;" onclick="viewOwnershipRequests()">
                         📬 Transfer Requests
                     </button>
                 </div>
@@ -358,14 +338,14 @@
 
         <div id="section-events" class="section">
             <div class="container">
-                <h3 style="font-family:'Russo One'; text-transform:uppercase; margin: 0 0 20px 0;">📅 EVENTS</h3>
+                <h3 style="font-family:'Resolve'; text-transform:uppercase; margin: 0 0 20px 0;">📅 EVENTS</h3>
                 <div id="events-view"></div>
             </div>
         </div>
 
         <div id="section-map" class="section">
-            <h2 style="font-family: 'Russo One'; color: var(--sub-red); text-align: center; margin-bottom: 15px; font-size: 1rem; text-transform:uppercase; letter-spacing:1px;">Subsoccer Map</h2>
-            <div id="public-game-map" style="width: 100%; flex-grow: 1; border-radius: 12px; border: 2px solid var(--sub-red);"></div>
+            <h2 style="font-family: 'Resolve'; color: var(--sub-red); text-align: center; margin-bottom: 15px; font-size: 1rem; text-transform:uppercase; letter-spacing:1px;">Subsoccer Map</h2>
+            <div id="public-game-map" style="width: 100%; flex-grow: 1; border-radius: 4px; border: 2px solid var(--sub-red);"></div>
         </div>
 
         <div id="section-tournament" class="section active">
@@ -373,12 +353,12 @@
                 
                 <!-- Mode Selector Buttons -->
                 <div style="display:flex; gap:12px; margin-bottom:30px;">
-                    <button id="btn-quick-match-mode" onclick="showMatchMode('quick')" onmouseover="if(this.style.background.includes('linear-gradient')) this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:linear-gradient(135deg, #E30613 0%, #c00510 100%); color:#fff; border:none; border-radius:12px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 15px rgba(227,6,19,0.3); position:relative; overflow:hidden;">
+                    <button id="btn-quick-match-mode" onclick="showMatchMode('quick')" onmouseover="if(this.style.background.includes('linear-gradient')) this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:linear-gradient(135deg, #E30613 0%, #c00510 100%); color:#fff; border:none; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 15px rgba(227,6,19,0.3); position:relative; overflow:hidden;">
                         <div style="font-size:1.8rem; margin-bottom:4px;">⚽</div>
                         <div style="font-size:0.95rem; letter-spacing:0.5px;">Quick Match</div>
                         <div style="font-size:0.65rem; color:rgba(255,255,255,0.7); margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">1 vs 1 ranked game</div>
                     </button>
-                    <button id="btn-tournament-mode" onclick="showMatchMode('tournament')" onmouseover="if(this.style.background.includes('#1a1a1a')) this.style.background='#222'; else this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="if(!this.style.background.includes('linear-gradient')) this.style.background='#1a1a1a'; this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:#1a1a1a; color:#888; border:2px solid #333; border-radius:12px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden;">
+                    <button id="btn-tournament-mode" onclick="showMatchMode('tournament')" onmouseover="if(this.style.background.includes('#1a1a1a')) this.style.background='#222'; else this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="if(!this.style.background.includes('linear-gradient')) this.style.background='#1a1a1a'; this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:#1a1a1a; color:#888; border:2px solid #333; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden;">
                         <div style="font-size:1.8rem; margin-bottom:4px;">🏆</div>
                         <div style="font-size:0.95rem; letter-spacing:0.5px;">Tournament</div>
                         <div style="font-size:0.65rem; color:#666; margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">Bracket competition</div>
@@ -393,14 +373,14 @@
                         <input type="text" id="p1-quick-search" placeholder="Player 1 (Home)" oninput="handleQuickSearch(this, 'p1')" style="margin-bottom:0;">
                         <div id="p1-results" class="quick-results"></div>
                     </div>
-                    <div style="color:var(--sub-gold); font-family:'Russo One'; font-size:1.2rem;">VS</div>
+                    <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1.2rem;">VS</div>
                     <div style="position:relative;">
                         <input type="text" id="p2-quick-search" placeholder="Player 2 (Away)" oninput="handleQuickSearch(this, 'p2')" style="margin-bottom:0;">
                         <div id="p2-results" class="quick-results"></div>
                     </div>
                 </div>
 
-                <div id="elo-preview" style="background:#000; padding:15px; border-radius:12px; border:1px solid #333; margin-bottom:20px; display:none; box-shadow: inset 0 0 15px rgba(255,255,255,0.05);">
+                <div id="elo-preview" style="background:#000; padding:15px; border-radius:4px; border:1px solid #333; margin-bottom:20px; display:none; box-shadow: inset 0 0 15px rgba(255,255,255,0.05);">
                     <div style="font-size:0.65rem; color:#666; font-family:'Resolve'; letter-spacing:2px; margin-bottom:5px;">ELO PREDICTION</div>
                     <div id="elo-prediction-text"></div>
                     <button onclick="clearQuickMatchPlayers()" class="clear-players-btn" title="Clear players and start fresh">
@@ -408,7 +388,7 @@
                     </button>
                 </div>
 
-                <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.8rem; height:80px; margin-bottom: 20px; box-shadow: 0 0 25px rgba(227, 6, 19, 0.5); text-transform: uppercase; letter-spacing: 1px;">START GAME</button>
+                <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size:1.8rem; height:80px; margin-bottom: 20px; box-shadow: 0 0 25px rgba(227, 6, 19, 0.5); text-transform: uppercase; letter-spacing: 1px; border-radius: 4px;">START GAME</button>
                 
                 <div style="display:flex; gap:10px; margin-top:5px;">
                     <a href="instant-play.html?game_id=QUICK-PLAY" style="flex:1; text-decoration:none;">
@@ -433,7 +413,7 @@
 
                         <!-- 2. Player Pool (Middle) -->
                         <div style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
-                            <span style="font-family:'Russo One'; font-size: 0.7rem; color: #666;">PLAYER POOL (<span id="pool-count">0</span>)</span>
+                            <span style="font-family:'Resolve'; font-size: 0.7rem; color: #666;">PLAYER POOL (<span id="pool-count">0</span>)</span>
                             <button style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;" onclick="clearPool()">CLEAR</button>
                         </div>
                         <div id="pool-list" style="flex-grow: 1; min-height: 100px;">No players added.</div>
@@ -453,13 +433,13 @@
                 <!-- Audio panels shown only when Pro Mode is checked -->
                 <div id="pro-mode-audio-panels" style="display:none; margin-top:12px;">
                         <!-- Audio Detection Status & Controls -->
-                        <div id="audio-status-panel" style="background:#111; padding:12px; border-radius:10px; border:1px solid #333; margin-bottom:10px;">
+                        <div id="audio-status-panel" style="background:#111; padding:12px; border-radius:4px; border:1px solid #333; margin-bottom:10px;">
                             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <div id="audio-indicator" style="width:10px; height:10px; border-radius:50%; background:#666;"></div>
-                                    <span style="font-family:'Russo One'; font-size:0.75rem; color:#fff;">AUDIO DETECTION</span>
+                                    <span style="font-family:'Resolve'; font-size:0.75rem; color:#fff;">AUDIO DETECTION</span>
                                 </div>
-                                <button id="toggle-audio-btn" onclick="toggleAudioDetection()" style="background:#333; color:#fff; border:none; padding:5px 12px; border-radius:5px; font-family:'Russo One'; font-size:0.7rem; cursor:pointer;">ACTIVATE</button>
+                                <button id="toggle-audio-btn" onclick="toggleAudioDetection()" style="background:#333; color:#fff; border:none; padding:5px 12px; border-radius:4px; font-family:'Resolve'; font-size:0.7rem; cursor:pointer;">ACTIVATE</button>
                             </div>
                             <div id="audio-frequency-display" style="font-size:0.65rem; color:#666; font-family:'Open Sans'; display:none;">
                                 <div>Goal 1: <span id="freq-goal1" style="color:var(--sub-gold);">0</span> Hz | Goal 2: <span id="freq-goal2" style="color:var(--sub-gold);">0</span> Hz</div>
@@ -467,11 +447,11 @@
                         </div>
 
                         <!-- Audio Recording Tool (Testing) -->
-                        <div id="audio-test-panel" style="background:#0a0a0a; padding:10px; border-radius:8px; border:1px dashed #333;">
-                            <div style="font-family:'Russo One'; font-size:0.7rem; color:#888; margin-bottom:8px; text-align:center;">🎙️ GOAL SOUND RECORDER (Testing)</div>
+                        <div id="audio-test-panel" style="background:#0a0a0a; padding:10px; border-radius:4px; border:1px dashed #333;">
+                            <div style="font-family:'Resolve'; font-size:0.7rem; color:#888; margin-bottom:8px; text-align:center;">🎙️ GOAL SOUND RECORDER (Testing)</div>
                             <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center;">
-                                <button onclick="recordGoalSound(1)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:5px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 1</button>
-                                <button onclick="recordGoalSound(2)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:5px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 2</button>
+                                <button onclick="recordGoalSound(1)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 1</button>
+                                <button onclick="recordGoalSound(2)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 2</button>
                             </div>
                             <div id="recording-status" style="font-size:0.65rem; color:#666; text-align:center; margin-top:5px; font-family:'Open Sans';"></div>
                         </div>
@@ -489,7 +469,7 @@
 
         <div id="section-leaderboard" class="section">
             <div class="container" style="margin-bottom: 30px;">
-                <h3 style="font-family:'Russo One'; text-transform:uppercase; margin: 0 0 10px 0; color:var(--sub-gold);">🏆 Top Players</h3>
+                <h3 style="font-family:'Resolve'; text-transform:uppercase; margin: 0 0 10px 0; color:var(--sub-gold);">🏆 Top Players</h3>
                 <div id="lb-data"></div>
             </div>
         </div>
@@ -501,7 +481,7 @@
 
     <div id="card-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:20000; justify-content:center; align-items:center; flex-direction:column;">
         <div id="modal-card-container"></div>
-        <button onclick="closeCardModal()" style="margin-top:20px; background:var(--sub-red); color:white; border:none; padding:10px 30px; border-radius:20px; font-family:'Russo One'; cursor:pointer;">Close</button>
+        <button onclick="closeCardModal()" style="margin-top:20px; background:var(--sub-red); color:white; border:none; padding:10px 30px; border-radius:4px; font-family:'Resolve'; cursor:pointer;">Close</button>
     </div>
 
     <!-- ============================================================ -->
@@ -510,38 +490,38 @@
     <div id="pro-mode-view">
         <!-- Rules Overlay inside Pro Mode -->
         <div id="pro-rules-overlay" class="rules-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:200; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-            <div class="rules-header" style="font-family:'Russo One'; font-size:2.5rem; color:var(--sub-gold); margin-bottom:30px; text-transform:uppercase; letter-spacing:2px;">OFFICIAL RULES</div>
+            <div class="rules-header" style="font-family:'Resolve'; font-size:2.5rem; color:var(--sub-gold); margin-bottom:30px; text-transform:uppercase; letter-spacing:2px;">OFFICIAL RULES</div>
             <div class="rules-list" style="display:flex; flex-direction:column; gap:15px; max-width:500px; width:90%; margin-bottom:40px;">
-                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:10px; border-left:4px solid var(--sub-red); text-align:left;">
-                    <span class="rule-number" style="font-family:'Russo One'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">1</span>
+                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:4px; border-left:4px solid var(--sub-red); text-align:left;">
+                    <span class="rule-number" style="font-family:'Resolve'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">1</span>
                     <div class="rule-text">
-                        <div class="rule-title" style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);">START</div>
+                        <div class="rule-title" style="font-family:'Resolve'; font-size:1.1rem; color:var(--sub-gold);">START</div>
                         <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">Winner of Rock/Paper/Scissors starts.</div>
                     </div>
                 </div>
-                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:10px; border-left:4px solid var(--sub-red); text-align:left;">
-                    <span class="rule-number" style="font-family:'Russo One'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">2</span>
+                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:4px; border-left:4px solid var(--sub-red); text-align:left;">
+                    <span class="rule-number" style="font-family:'Resolve'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">2</span>
                     <div class="rule-text">
-                        <div class="rule-title" style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);">KICK-OFF</div>
+                        <div class="rule-title" style="font-family:'Resolve'; font-size:1.1rem; color:var(--sub-gold);">KICK-OFF</div>
                         <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">Always inside your own goal area.</div>
                     </div>
                 </div>
-                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:10px; border-left:4px solid var(--sub-red); text-align:left;">
-                    <span class="rule-number" style="font-family:'Russo One'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">3</span>
+                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:4px; border-left:4px solid var(--sub-red); text-align:left;">
+                    <span class="rule-number" style="font-family:'Resolve'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">3</span>
                     <div class="rule-text">
-                        <div class="rule-title" style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);">POSITION</div>
+                        <div class="rule-title" style="font-family:'Resolve'; font-size:1.1rem; color:var(--sub-gold);">POSITION</div>
                         <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">You must be seated at all times.</div>
                     </div>
                 </div>
-                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:10px; border-left:4px solid var(--sub-red); text-align:left;">
-                    <span class="rule-number" style="font-family:'Russo One'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">4</span>
+                <div class="rule-item" style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:4px; border-left:4px solid var(--sub-red); text-align:left;">
+                    <span class="rule-number" style="font-family:'Resolve'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">4</span>
                     <div class="rule-text">
-                        <div class="rule-title" style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);">WINNER</div>
+                        <div class="rule-title" style="font-family:'Resolve'; font-size:1.1rem; color:var(--sub-gold);">WINNER</div>
                         <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">First to score 3 goals wins.</div>
                     </div>
                 </div>
             </div>
-            <button class="btn-red pulse-anim" onclick="acceptRulesAndStart()" style="width: auto !important; padding:15px 50px !important; font-size:1.2rem; border-radius:50px; box-shadow:0 0 20px rgba(227,6,19,0.4); margin-top: 20px;">I UNDERSTAND - PLAY</button>
+            <button class="btn-red pulse-anim" onclick="acceptRulesAndStart()" style="width: auto !important; padding:15px 50px !important; font-size:1.2rem; border-radius:4px; box-shadow:0 0 20px rgba(227,6,19,0.4); margin-top: 20px;">I UNDERSTAND - PLAY</button>
         </div>
 
         <div class="pro-player-side pro-player-left" onclick="addManualGoal(1)" style="cursor:pointer;">
@@ -561,7 +541,7 @@
         </div>
         
         <button class="pro-exit-btn" onclick="exitProMode()">✕ EXIT</button>
-        <button id="pro-undo-btn" onclick="undoLastGoal()" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:var(--sub-gold); border:2px solid var(--sub-gold); padding:10px 25px; border-radius:25px; font-family:'Russo One'; font-size:0.85rem; cursor:pointer; display:none; z-index:100000; letter-spacing:1px;">↺ UNDO LAST GOAL</button>
+        <button id="pro-undo-btn" onclick="undoLastGoal()" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:var(--sub-gold); border:2px solid var(--sub-gold); padding:10px 25px; border-radius:4px; font-family:'Resolve'; font-size:0.85rem; cursor:pointer; display:none; z-index:100000; letter-spacing:1px;">↺ UNDO LAST GOAL</button>
     </div>
     <!-- END PRO MODE VIEW -->
 
