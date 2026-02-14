@@ -177,85 +177,83 @@ header {
     right: 0 !important;
     width: 280px !important;
     height: 100vh !important;
-    background: #111 !important;
+    background: rgba(10, 10, 10, 0.95) !important; /* Läpinäkyvä musta */
+    backdrop-filter: blur(20px) saturate(180%) !important; /* Lasiefekti */
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
     z-index: 10001 !important;
-    display: none; /* Tämä muutetaan JS:llä 'flex'iksi */
+    display: none;
     flex-direction: column;
-    padding: 20px;
-    border-left: 2px solid var(--sub-gold);
-    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    padding: 30px 20px;
+    border-left: 1px solid rgba(255, 215, 0, 0.2); /* Ohut kultainen reuna */
+    box-shadow: -15px 0 35px rgba(0,0,0,0.7);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .menu-header {
-    padding: 15px;
-    border-bottom: 1px solid #333;
-    background: #111;
-    margin: 0;
-    font-family: var(--sub-name-font);
-    font-size: 0.9rem;
+    padding: 0 15px 25px 15px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-family: 'Resolve', sans-serif;
+    font-size: 1.2rem;
     color: var(--sub-gold);
-    letter-spacing: 1px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
 }
 
 .menu-item {
     width: 100%;
-    padding: 12px 15px;
-    background: transparent;
-    border: none;
-    color: #fff;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.03); /* Kevyt korostus pohjalla */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px; /* Pyöristetyt kulmat */
+    color: #eee;
     text-align: left;
-    font-family: var(--sub-name-font);
-    font-size: 0.9rem;
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.95rem;
     cursor: pointer;
     text-transform: uppercase;
     display: flex;
     align-items: center;
-    transition: background 0.2s;
+    gap: 15px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+
+.menu-item i {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+    color: var(--sub-gold);
+    opacity: 0.8;
 }
 
 .menu-item:hover {
-    background: #222;
-    color: var(--sub-gold);
+    background: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.3);
+    color: #fff;
+    transform: translateX(-5px); /* Pieni liike vasemmalle houkuttelee */
 }
 
 .menu-divider {
     height: 1px;
-    background: #333;
-    margin: 5px 0;
+    background: rgba(255,255,255,0.05);
+    margin: 20px 10px;
 }
 
 .logout-item {
+    margin-top: auto; /* Pakottaa logoutin valikon pohjalle */
+    background: rgba(227, 6, 19, 0.05);
+    border-color: rgba(227, 6, 19, 0.1);
     color: var(--sub-red) !important;
 }
 
-#logout-btn {
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 0.65rem;
-    cursor: pointer;
-    text-decoration: none;
-    padding: 2px 5px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.logout-item:hover {
+    background: var(--sub-red);
+    color: #fff !important;
 }
 
-#logout-btn:hover {
-    color: var(--sub-red);
-}
-
-#sound-toggle-btn {
-    background: transparent;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 5px;
-    opacity: 0.8;
-    transition: opacity 0.2s;
-}
-
-#sound-toggle-btn:hover {
-    opacity: 1;
+.logout-item i {
+    color: inherit;
 }
 
 .card-header-stripe, .event-title {
@@ -746,4 +744,160 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     padding: 20px;
     /* Pidetään tausta punaisena, mutta poistetaan mahdolliset moniväriset varjot */
     box-shadow: 0 4px 0px rgba(0,0,0,0.2); 
+}
+
+/* Yhtenäistetään kaikkien SETUP-näkymien ikonien koko */
+.section-title + div i, 
+#quick-match-section i,
+#tournament-section i {
+    font-size: 1.1rem;
+    vertical-align: middle;
+}
+
+/* Instant Play napin ikonin hienosäätö */
+.btn-red i.fa-bolt-lightning {
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
+}
+
+/* Keräilykortin päärakenne */
+.player-card-collectible {
+    background: linear-gradient(145deg, #111, #050505);
+    border: 3px solid var(--sub-gold);
+    border-radius: 15px;
+    padding: 15px;
+    width: 280px;
+    margin: 20px auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(255, 215, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+
+/* Kortin "hohto" -efekti */
+.player-card-collectible::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,215,0,0.05), transparent);
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+
+/* Pelaajan kuva/Avatar kortissa */
+.card-avatar-circle {
+    width: 120px;
+    height: 120px;
+    border: 4px solid var(--sub-gold);
+    border-radius: 50%;
+    margin: 10px auto;
+    background: #222;
+    object-fit: cover;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+/* Tilasto-osio kortin alareunassa */
+.card-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #222;
+}
+
+.stat-box {
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.6rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-family: 'Resolve', sans-serif;
+    font-size: 1.1rem;
+    color: var(--sub-white);
+}
+
+/* Topps-mittasuhteet ja tyyli */
+.topps-collectible-card {
+    width: 320px; /* Vastaa 2.5" x 3.5" suhdetta */
+    height: 448px;
+    background: #0a0a0a;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    border: 8px solid #1a1a1a; /* Ulkoreuna */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+    font-family: 'Resolve', sans-serif;
+    margin: 20px auto;
+}
+
+/* Kultainen sisäreuna (Chrome-tyyli) */
+.topps-collectible-card::after {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border: 2px solid var(--sub-gold);
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Suuri pelaajakuva */
+.card-hero-image {
+    width: 100%;
+    height: 75%; /* Kuva täyttää suurimman osan kortista */
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* Gradientti kuvan päällä nimeä varten */
+.card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, #000 20%, transparent);
+    z-index: 2;
+}
+
+/* Tekstielementit */
+.card-content-bottom {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    right: 15px;
+    z-index: 5;
+    text-align: left;
+}
+
+.card-player-name {
+    font-size: 2.2rem;
+    color: white;
+    text-transform: uppercase;
+    line-height: 0.9;
+    margin-bottom: 5px;
+}
+
+.card-elo-badge {
+    display: inline-block;
+    background: var(--sub-gold);
+    color: black;
+    padding: 2px 8px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 2px;
 }

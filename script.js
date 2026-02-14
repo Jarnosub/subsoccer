@@ -97,45 +97,44 @@ export function updateGuestUI() {
 // 3. PROFIILIKORTTI & AVATAR
 // ============================================================
 
-export async function updateProfileCard() {
+export function updateProfileCard() {
     const container = document.getElementById('profile-card-container');
     if (!container || !state.user) return;
-    
-    const rank = state.user.elo > 1500 ? "PRO" : "ROOKIE";
-    const avatarUrl = state.user.avatar_url || 'placeholder-silhouette-5-wide.png';
-    const city = state.user.city ? `${state.user.city}, ` : '';
-    const fullName = state.user.full_name || state.user.username;
 
+    const u = state.user;
+    
     container.innerHTML = `
-        <div class="pro-card">
-            <div class="card-inner-frame">
-                <div class="card-header-stripe">${rank} CARD</div>
-                <div class="card-image-area">
-                    <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+        <div class="topps-collectible-card">
+            <img src="${u.avatar_url || 'https://via.placeholder.com/400x600'}" class="card-hero-image">
+            
+            <div class="card-overlay"></div>
+            
+            <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">
+                PRO CARD // 2026
+            </div>
+
+            <div class="card-content-bottom">
+                <div style="color:var(--sub-gold); font-size:0.7rem; letter-spacing:2px; margin-bottom:4px;">
+                    <i class="fa-solid fa-location-dot"></i> ${u.city || 'HELSINKI'}
                 </div>
-                <div class="card-name-strip">${fullName}</div>
-                <div class="card-info-area">
-                    <div class="card-stats-row">
-                        <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${state.user.elo}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${state.user.wins || 0}</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">ELO</div><div class="card-stat-value">PRO</div></div>
-                        <div class="card-stat-item"><div class="card-stat-label">CITY</div><div class="card-stat-value" style="font-size:0.8rem;">${state.user.city || '---'}</div></div>
-                    </div>
-                    <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <img src="https://flagcdn.com/w80/${(state.user.country || 'fi').toLowerCase()}.png" width="16">
-                            <span style="color:#888; font-size:0.55rem; font-family:'Russo One';">REPRESENTING ${city}${state.user.country?.toUpperCase() || 'FI'}</span>
-                        </div>
-                        <div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Russo One';">CLUB: PRO</div>
+                <div class="card-player-name">${u.username}</div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
+                    <div class="card-elo-badge">${u.elo || 1300} ELO</div>
+                    
+                    <div style="text-align:right;">
+                        <div style="color:#666; font-size:0.6rem; text-transform:uppercase;">Win Ratio</div>
+                        <div style="color:white; font-size:1rem;">${((u.wins / (Math.max(1, u.wins + (u.losses || 0)))) * 100).toFixed(0)}%</div>
                     </div>
                 </div>
             </div>
+
+            <div style="position:absolute; bottom:15px; right:15px; width:30px; height:30px; background:radial-gradient(circle, #ffd700, #b8860b); border-radius:50%; opacity:0.3; z-index:11; filter:blur(1px);"></div>
         </div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px;">
-            <button class="btn-red" onclick="downloadFanCard()" style="background:var(--sub-gold) !important; color:#000 !important; font-weight:bold; width:320px;">
-                <i class="fa-solid fa-camera"></i> DOWNLOAD OFFICIAL FAN CARD
-            </button>
-        </div>
+        
+        <p style="text-align:center; color:#555; font-size:0.7rem; margin-top:10px;">
+            DESIGNED FOR THE SUBSOCCER PRO ECOSYSTEM
+        </p>
     `;
 }
 

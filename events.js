@@ -63,26 +63,27 @@ function renderEventsPage(events) {
     const container = document.getElementById('events-view');
     
     let html = `
+        <h2 class="section-title" style="margin-top: 20px; font-size: 1.1rem; color: #888; letter-spacing: 2px;">EVENT SETUP</h2>
+        
         <div style="text-align:center; margin-bottom:25px;">
-            <button class="btn-red" onclick="showCreateEventForm()" style="width:100%; max-width:300px; padding:12px;">
-                <i class="fa fa-plus"></i> Create Event
+            <button class="btn-red" onclick="showCreateEventForm()" style="width:100%; padding:14px; font-size:1.1rem; letter-spacing:1px; background:#1a1a1a; border:1px solid #333;">
+                <i class="fa-solid fa-calendar-plus" style="margin-right:8px; color:var(--sub-gold);"></i> CREATE EVENT
             </button>
         </div>
         
         <div id="create-event-form" style="display:none;"></div>
         
-        <h3 style="font-family:'Russo One'; text-transform:uppercase; margin:25px 0 15px 0; color:#fff; font-size:1rem; letter-spacing:1px; border-bottom:2px solid var(--sub-red); padding-bottom:8px;">
-            <i class="fa fa-calendar-days" style="color:var(--sub-gold);"></i> Upcoming Events
+        <h3 style="font-family:'Resolve'; text-transform:uppercase; margin:25px 0 15px 0; color:#666; font-size:0.75rem; letter-spacing:2px; border-bottom:1px solid #222; padding-bottom:8px;">
+            UPCOMING EVENTS
         </h3>
         <div id="events-list">
     `;
     
     if (events.length === 0) {
         html += `
-            <div style="text-align:center; padding:60px 20px; color:#666;">
-                <i class="fa fa-calendar-xmark" style="font-size:3rem; color:#333; margin-bottom:15px;"></i>
-                <div style="font-size:1.1rem; color:#888; margin-bottom:8px;">No upcoming events</div>
-                <div style="font-size:0.85rem; color:#666;">Create the first event and get the party started!</div>
+            <div style="text-align:center; padding:60px 20px; color:#444;">
+                <i class="fa-solid fa-calendar-xmark" style="font-size:3rem; margin-bottom:15px; opacity:0.2;"></i>
+                <div style="font-size:0.9rem; letter-spacing:1px;">NO UPCOMING EVENTS</div>
             </div>
         `;
     } else {
@@ -100,31 +101,9 @@ function renderEventsPage(events) {
  */
 function renderEventCard(event) {
     const startDate = new Date(event.start_datetime);
-    const endDate = event.end_datetime ? new Date(event.end_datetime) : null;
-    
-    let dateStr;
-    if (endDate && endDate.toDateString() !== startDate.toDateString()) {
-        // Multi-day event
-        const startDay = startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-        const endDay = endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        dateStr = `${startDay} - ${endDay}`;
-    } else {
-        // Single day event
-        dateStr = startDate.toLocaleDateString('en-GB', { 
-            day: '2-digit', 
-            month: 'short', 
-            year: 'numeric' 
-        });
-    }
-    
-    const timeStr = startDate.toLocaleTimeString('en-GB', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
-    
-    const registeredCount = event.registered_count || 0;
-    const maxParticipants = event.max_participants || 16;
-    const isFull = registeredCount >= maxParticipants;
+    const dayOfWeek = startDate.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
+    const dateStr = startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+    const timeStr = startDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     
     const eventTypeColors = {
         tournament: 'var(--sub-gold)',
@@ -133,49 +112,38 @@ function renderEventCard(event) {
     };
     const typeColor = eventTypeColors[event.event_type] || '#888';
     
-    // Format day of week
-    const dayOfWeek = startDate.toLocaleDateString('en-GB', { weekday: 'short' });
-    
     return `
-        <div class="event-card" style="background:#111; border:1px solid #333; border-radius:12px; padding:20px; margin-bottom:20px; border-left:4px solid ${typeColor};">
+        <div class="event-card" style="background:#111; border:1px solid #222; border-radius:4px; padding:20px; margin-bottom:20px; border-left:4px solid ${typeColor};">
             ${event.image_url ? `
-                <div style="width:100%; height:150px; background:url('${event.image_url}') center/cover; border-radius:8px; margin-bottom:15px;"></div>
+                <div style="width:100%; height:160px; background:url('${event.image_url}') center/cover; border-radius:2px; margin-bottom:15px; border:1px solid #333;"></div>
             ` : ''}
             
-            <!-- Event Header -->
-            <div style="margin-bottom:15px;">
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                    ${event.brand_logo_url ? `<img src="${event.brand_logo_url}" style="height:24px; width:auto; max-width:60px; object-fit:contain;" alt="Brand">` : ''}
-                    <span style="background:${typeColor}; color:#000; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-family:'Russo One'; text-transform:uppercase; letter-spacing:0.5px;">
+            <div style="margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                    <span style="background:${typeColor}; color:#000; padding:3px 8px; border-radius:2px; font-size:0.65rem; font-family:'Resolve'; font-weight:bold; text-transform:uppercase;">
                         ${event.event_type}
                     </span>
-                    <span style="color:#666; font-size:0.75rem;">•</span>
-                    <span style="color:#888; font-size:0.85rem; font-family:'Open Sans';">
-                        <i class="fa fa-calendar" style="color:var(--sub-gold); margin-right:4px;"></i>
-                        <strong style="color:#fff;">${dayOfWeek}, ${dateStr}</strong>
-                        ${!endDate || endDate.toDateString() === startDate.toDateString() ? ` at ${timeStr}` : ''}
+                    <span style="color:#666; font-size:0.8rem; font-family:'Resolve'; letter-spacing:1px;">
+                        <i class="fa-solid fa-calendar-day" style="color:#444; margin-right:4px;"></i>
+                        ${dayOfWeek}, ${dateStr} @ ${timeStr}
                     </span>
                 </div>
                 
-                <h3 style="font-family:'Russo One'; font-size:1.4rem; margin:0; color:#fff; line-height:1.2;">${event.event_name}</h3>
+                <h3 style="font-family:'Resolve'; font-size:1.6rem; margin:0; color:#fff; letter-spacing:1px; text-transform:uppercase;">${event.event_name}</h3>
             </div>
             
-            ${event.description ? `
-                <p style="font-size:0.9rem; color:#bbb; margin:12px 0; line-height:1.5;">${event.description}</p>
-            ` : ''}
-            
             ${event.location ? `
-                <div style="font-size:0.85rem; color:#888; margin:10px 0;">
-                    <i class="fa fa-location-dot" style="color:var(--sub-red);"></i> ${event.location}
+                <div style="font-size:0.85rem; color:#888; margin:8px 0; font-family:'Open Sans';">
+                    <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-right:6px;"></i> ${event.location.toUpperCase()}
                 </div>
             ` : ''}
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:15px; border-top:1px solid #222;">
-                <div style="font-size:0.85rem; color:#888;">
-                    <i class="fa fa-users"></i> ${registeredCount}/${maxParticipants} registered
+                <div style="font-size:0.75rem; color:#555; font-family:'Resolve'; letter-spacing:1px;">
+                    <i class="fa-solid fa-users"></i> ${event.registered_count || 0}/${event.max_participants || 16} PLAYERS
                 </div>
-                <button class="btn-red" style="padding:10px 24px; font-size:0.85rem;" onclick="viewEventDetails('${event.id}')">
-                    View Details
+                <button class="btn-red" style="padding:10px 20px; font-size:0.85rem; letter-spacing:2px; width:auto;" onclick="viewEventDetails('${event.id}')">
+                    VIEW DETAILS
                 </button>
             </div>
         </div>
