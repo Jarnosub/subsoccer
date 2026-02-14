@@ -19,11 +19,26 @@
 }
 
 :root { 
-    --sub-red: #E30613; --sub-black: #0a0a0a; --sub-white: #FFFFFF; --sub-gold: #FFD700; --sub-border: #333; 
+    --sub-red: #E30613; 
+    --sub-black: #0f1115; /* Hieman pehmeämpi musta mahdollistaa varjot */
+    --sub-white: #FFFFFF; 
+    --sub-gold: #FFD700; 
+    --sub-border: rgba(255, 255, 255, 0.1); 
+    --sub-surface: rgba(26, 29, 35, 0.8); /* Glassmorphism pinta */
     --sub-logo-font: 'SubsoccerLogo', sans-serif;
-    --sub-name-font: 'Resolve', sans-serif; /* Käytetään väljempää fonttia */
+    --sub-name-font: 'Resolve', sans-serif;
     --sub-body-font: 'ResolveRegular', sans-serif;
-    --sub-radius: 4px; /* Sharper corners for pro look */
+    --sub-radius: 12px; /* Modernimpi, pehmeämpi pyöristys */
+    --sub-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+}
+
+/* LIGHT THEME VARIABLES */
+.light-theme {
+    --sub-black: #f8f9fa;
+    --sub-white: #1a1d23;
+    --sub-surface: rgba(255, 255, 255, 0.9);
+    --sub-border: rgba(0, 0, 0, 0.1);
+    --sub-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
 }
 
 body { font-family: var(--sub-body-font) !important; background-color: var(--sub-black); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
@@ -1139,6 +1154,35 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     0% { left: -100%; }
     20% { left: 200%; }
     100% { left: 200%; }
+}
+
+/* 3D TILT & SHINE EFFECT */
+.pro-card, .topps-collectible-card {
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+    transform-style: preserve-3d;
+    will-change: transform;
+    position: relative;
+}
+
+.card-shine {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.3) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 15;
+    mix-blend-mode: overlay;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: inherit;
+}
+
+.pro-card:hover .card-shine, .topps-collectible-card:hover .card-shine {
+    opacity: 1;
+}
+
+/* Containers need perspective for 3D to work */
+#profile-card-container, .modal-body, #level-up-card-preview {
+    perspective: 1000px;
 }
 
 /* SPECIAL EDITIONS - PRO STYLE */

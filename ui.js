@@ -434,6 +434,57 @@ export function setupGlobalErrorHandling() {
     };
 }
 
+/**
+ * Alustaa 3D-tilt ja kiiltoefektin kortille
+ */
+export function initTiltEffect(card) {
+    if (!card) return;
+    
+    // Lisää kiilto-elementti jos sitä ei ole
+    if (!card.querySelector('.card-shine')) {
+        const shine = document.createElement('div');
+        shine.className = 'card-shine';
+        card.appendChild(shine);
+    }
+
+    const handleMove = (e) => {
+        const rect = card.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = (centerY - y) / 12; // Säädä voimakkuutta tästä
+        const rotateY = (x - centerX) / 12;
+        
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        card.style.setProperty('--x', `${x}px`);
+        card.style.setProperty('--y', `${y}px`);
+    };
+
+    const handleReset = () => {
+        card.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+    };
+
+    card.addEventListener('mousemove', handleMove);
+    card.addEventListener('mouseleave', handleReset);
+    card.addEventListener('touchmove', handleMove, { passive: true });
+    card.addEventListener('touchend', handleReset);
+}
+
+/**
+ * Vaihtaa vaalean ja tumman teeman välillä
+ */
+export function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-theme');
+    localStorage.setItem('subsoccer-theme', isLight ? 'light' : 'dark');
+    if (typeof updateProfileCard === 'function') updateProfileCard();
+}
+
 // Globaalit kytkennät
 window.showPage = showPage;
 window.showNotification = showNotification;
@@ -449,6 +500,8 @@ window.closeModal = closeModal;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
 window.setupGlobalErrorHandling = setupGlobalErrorHandling;
+window.toggleTheme = toggleTheme;
+window.initTiltEffect = initTiltEffect;
 
 // ============================================================
 // MOVED FROM SCRIPT.JS TO BREAK CIRCULAR DEPENDENCIES
@@ -537,6 +590,9 @@ export function updateProfileCard() {
             </button>
         </div>
     `;
+
+    const card = container.querySelector('.topps-collectible-card');
+    if (card) initTiltEffect(card);
 }
 
 export function updateAvatarPreview(url) {
@@ -569,6 +625,7 @@ export async function viewPlayerCard(targetUsername) {
     
     const body = document.querySelector('#card-modal .modal-body');
     if (body) body.innerHTML = html;
+    initTiltEffect(body.querySelector('.pro-card'));
 }
 
 export function closeCardModal() { closeModal('card-modal'); }
@@ -599,6 +656,9 @@ export async function showLevelUpCard(playerName, newElo) {
     const cardHtml = document.querySelector('#card-modal .modal-body').innerHTML;
     document.getElementById('level-up-card-preview').innerHTML = cardHtml;
     closeModal('card-modal');
+
+    const previewCard = document.querySelector('#level-up-card-preview .pro-card, #level-up-card-preview .topps-collectible-card');
+    if (previewCard) initTiltEffect(previewCard);
 }
 
 window.shareMyLevelUp = async (playerName) => {
@@ -650,7 +710,6 @@ window.purchaseEdition = async (editionId) => {
         state.inventory.push(editionId);
         updateProfileCard();
         closeModal();
-        showNotification(`Successfully upgraded to ${editionId.toUpperCase()} Edition!`, 'success');
     }, 1500);
 };
 

@@ -15,12 +15,20 @@ export const CardGenerator = {
         }
 
         try {
+            // Reset tilt before capture to avoid distortion in the image
+            const originalTransform = element.style.transform;
+            element.style.transform = 'none';
+
             await document.fonts.ready;
             const canvas = await html2canvas(element, {
                 useCORS: true,
                 scale: 3, // High resolution for social media
                 backgroundColor: "#0a0a0a"
             });
+
+            // Restore transform after capture
+            element.style.transform = originalTransform;
+
             return canvas.toDataURL('image/png');
         } catch (err) {
             console.error("Failed to generate card image:", err);
