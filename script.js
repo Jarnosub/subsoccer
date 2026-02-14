@@ -73,7 +73,7 @@ export function updatePoolUI() {
         `;
         list.appendChild(div);
     });
-    if (countSpan) countSpan.innerText = pool.length;
+    if (countSpan) countSpan.innerText = state.pool.length;
 }
 
 export function removeFromPool(index) {
@@ -1821,6 +1821,13 @@ export function initClaimResult(p1Score, p2Score, gameId) {
     }
     
     showNotification(`🏆 Victory! Who did you beat?`, 'success');
+    
+    // Poistetaan action ja score-parametrit osoiteriviltä ilman sivun latausta
+    const url = new URL(window.location);
+    url.searchParams.delete('action');
+    url.searchParams.delete('p1_score');
+    url.searchParams.delete('p2_score');
+    window.history.replaceState({}, document.title, url.pathname);
 }
 
 export async function saveClaimedResult(userScore, opponentScore, gameId) {
@@ -1834,6 +1841,20 @@ export async function saveClaimedResult(userScore, opponentScore, gameId) {
     
     // Save match using existing logic, passing gameId as context
     await finalizeQuickMatch(state.user.username, gameId ? `Instant Play: ${gameId}` : 'Instant Play');
+    
+    // Reset UI state (Button & Input)
+    const startBtn = document.getElementById('start-quick-match');
+    if (startBtn) {
+        startBtn.textContent = 'START GAME';
+        startBtn.onclick = startQuickMatch;
+        startBtn.style.background = '';
+        startBtn.style.color = '';
+    }
+    
+    const p1Input = document.getElementById('p1-quick-search');
+    if (p1Input) {
+        p1Input.disabled = false;
+    }
     
     // Clear URL params to prevent re-triggering
     window.history.replaceState({}, document.title, window.location.pathname);

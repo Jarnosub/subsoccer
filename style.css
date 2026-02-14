@@ -27,8 +27,8 @@ header {
     position: relative !important;
     z-index: 2000;
     width: 100%;
-    max-width: 450px; /* Sama kuin nav-tabs maksimileveys */
-    margin: 0 auto;   /* Keskittää koko header-alueen */
+    max-width: 450px !important; /* Sama kuin nav-tabs maksimileveys */
+    margin: 0 auto !important;   /* Keskittää koko header-alueen */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -388,7 +388,16 @@ header {
 .lb-name { font-family: 'ResolveNarrowReg', sans-serif !important; color: #FFFFFF !important; font-size: 1.1rem !important; letter-spacing: 1.5px !important; text-transform: uppercase; font-weight: 400 !important; font-stretch: normal !important; }
 .lb-elo { color: var(--sub-gold) !important; font-family: var(--sub-name-font) !important; font-size: 1.2rem !important; }
 
-input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: var(--sub-radius) !important; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; font-size: 1rem; font-family: 'Open Sans', sans-serif; }
+input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: var(--sub-radius) !important; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; }
+
+input, select, textarea {
+    font-size: 16px !important; /* Estää automaattisen zoomauksen mobiilissa */
+}
+
+input, select, button {
+    font-family: 'Resolve', sans-serif !important;
+}
+
 #auth-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--sub-black); display: flex; flex-direction: column; align-items: center; z-index: 1000; padding-top: 80px; }
 
 #section-more h2, #section-more h3 { font-family: var(--sub-logo-font) !important; color: var(--sub-red); }
@@ -486,52 +495,57 @@ input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; b
 /* ILMOITUSTEN TYYLIT (TOAST) */
 #notification-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    bottom: 100px; /* Siirretty alas, navin yläpuolelle */
+    left: 50%;
+    transform: translateX(-50%);
+    top: auto;
+    right: auto;
     z-index: 2000;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    align-items: center;
+    width: 100%;
+    pointer-events: none;
 }
 
 .toast-notification {
-    padding: 15px 20px;
+    pointer-events: auto;
+    padding: 10px 20px;
     border-radius: var(--sub-radius);
     color: white;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
     font-family: 'Open Sans', sans-serif;
-    font-size: 0.9rem;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    border-left: 5px solid;
+    font-size: 0.8rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    border-left: 3px solid;
     opacity: 0;
-    transform: translateX(100%);
-    animation: slideIn 0.5s forwards, fadeOut 0.5s 3.5s forwards;
+    transform: translateY(20px);
+    animation: toastSlideUp 0.3s ease-out forwards, toastFadeOut 0.5s 3.5s forwards;
 }
 
 .toast-notification.error {
-    background-color: #4d0000;
     border-color: var(--sub-red);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .toast-notification.success {
-    background-color: #00330d;
-    border-color: #28a745;
+    border-color: var(--sub-gold);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
-@keyframes slideIn {
+@keyframes toastSlideUp {
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
     }
 }
 
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
+@keyframes toastFadeOut {
     to {
         opacity: 0;
-        transform: translateX(100%);
+        transform: translateY(-10px);
     }
 }
 
@@ -665,4 +679,18 @@ input:focus, input:active {
 .game-controls-locked {
     pointer-events: none !important;
     opacity: 0.8; /* Pieni visuaalinen himmennys merkiksi lukituksesta */
+}
+
+@media (max-width: 768px) {
+    #settings-menu {
+        width: 200px !important; /* Pienennetty leveys (oli 280px) */
+        background: rgba(17, 17, 17, 0.95) !important; /* Hieman läpinäkyvyyttä */
+        backdrop-filter: blur(10px);
+        border-left: 1px solid var(--sub-gold) !important;
+    }
+    
+    .menu-item {
+        padding: 15px 20px !important; /* Lisää tilaa sormille mutta kapeammassa tilassa */
+        font-size: 0.85rem !important;
+    }
 }

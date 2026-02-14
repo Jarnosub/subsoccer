@@ -309,6 +309,24 @@
             z-index: 150; /* Above winner overlay */
             display: none;
         }
+        
+        /* Exit button */
+        .exit-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 400;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
 
         /* Rules Overlay */
         .rules-overlay {
@@ -411,6 +429,11 @@
         <p style="color: #666;">Turn your phone to landscape mode to play</p>
     </div>
 
+    <!-- Exit Button (SULJE) -->
+    <button onclick="window.location.href='index.html'" 
+            class="exit-btn"
+            style="position:fixed; top:20px; right:20px; z-index:2000; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.3); padding:8px 16px; border-radius:20px; font-family:'Open Sans', sans-serif; font-size:0.8rem; cursor:pointer; backdrop-filter:blur(5px);">✕ SULJE</button>
+
     <!-- Rules Overlay (Replaces Start Overlay) -->
     <div id="rules-overlay" class="rules-overlay">
         <div class="rules-header">OFFICIAL RULES</div>
@@ -484,7 +507,8 @@
     <div class="winner-overlay" id="winner-overlay">
         <div class="winner-text" id="winner-text">PLAYER 1 WINS!</div>
         <div class="winner-subtitle">First to 3 goals</div>
-        <button class="claim-victory-btn" onclick="claimVictory()">🏆 SAVE STATS & RANK UP</button>
+        <button id="claim-victory-btn" class="claim-victory-btn" onclick="claimVictory()">🏆 SAVE STATS & RANK UP</button>
+        <button id="end-game-btn" class="play-again-btn" style="display:none; background:#333; border:1px solid #555; margin-top:10px;" onclick="window.location.href='index.html'">🏁 END GAME</button>
         <button class="play-again-btn" onclick="playAgain()">🎮 PLAY AGAIN</button>
     </div>
 
@@ -645,6 +669,21 @@
         function showWinner(player) {
             document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
             document.getElementById('winner-overlay').classList.add('show');
+            
+            // Check mode (Casual vs Guest)
+            const urlParams = new URLSearchParams(window.location.search);
+            const isCasual = urlParams.get('mode') === 'casual';
+            
+            if (isCasual) {
+                // Logged in player (Casual)
+                document.getElementById('claim-victory-btn').style.display = 'none';
+                document.getElementById('end-game-btn').style.display = 'block';
+            } else {
+                // Guest (QR Code)
+                document.getElementById('claim-victory-btn').style.display = 'block';
+                document.getElementById('end-game-btn').style.display = 'none';
+            }
+            
             playCrowdCheer();
             startConfetti();
         }

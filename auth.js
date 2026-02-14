@@ -1,6 +1,6 @@
 import { showNotification, showPage, loadUserProfile, populateCountries } from './ui.js';
 import { _supabase, state } from './config.js';
-import { fetchAllGames, updateGuestUI, updateProfileCard, initProModeUI, toggleAuth, initClaimResult } from './script.js';
+import { fetchAllGames, updateGuestUI, updateProfileCard, initProModeUI, toggleAuth, initClaimResult, startQuickMatch } from './script.js';
 
 export async function initApp() {
     try {
@@ -55,6 +55,14 @@ export async function handleLogout() {
 }
 
 function startSession() { 
+    // Reset Quick Match UI to default state
+    const startBtn = document.getElementById('start-quick-match');
+    if (startBtn) {
+        startBtn.textContent = 'START GAME';
+        startBtn.style.background = ''; // Restore default CSS
+        startBtn.onclick = startQuickMatch; // Restore original function
+    }
+
     document.getElementById('auth-page').style.display = 'none'; 
     document.getElementById('app-content').style.display = 'flex'; 
     document.getElementById('nav-tabs').style.display = 'flex'; 
