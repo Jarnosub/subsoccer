@@ -97,7 +97,7 @@ header {
     width: 95%; 
     max-width: 450px; 
     border-bottom: 1px solid var(--sub-border); 
-    margin-bottom: 25px; 
+    margin: 0 auto 25px auto; 
     position: relative;
     z-index: 10;
 }
@@ -131,25 +131,30 @@ header {
     color: var(--sub-gold);
 }
 
-/* Mobile Navigation Bar */
+/* Floating Mobile Navigation */
 @media (max-width: 768px) {
     .nav-tabs {
         position: fixed !important;
-        bottom: 0 !important;
+        bottom: 20px !important; /* Kelluu irti alareunasta */
         left: 0 !important;
-        width: 100% !important;
-        height: 60px !important; /* Matala ja huomaamaton */
-        background: rgba(10, 10, 10, 0.98) !important;
-        backdrop-filter: blur(15px);
-        border-top: 0.5px solid rgba(255, 255, 255, 0.15) !important; /* Erittäin ohut viiva kuten iOS */
-        border-bottom: none !important;
-        padding: 5px 0 calc(5px + env(safe-area-inset-bottom)) 0 !important;
+        right: 0 !important;
+        margin: 0 auto !important; /* Keskittää fixed-elementin kun left/right on 0 */
+        width: 90% !important;
+        max-width: 450px !important;
+        height: 65px !important;
+        background: var(--sub-surface) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 1px solid var(--sub-border) !important;
+        border-radius: 30px !important; /* Täysin pyöreät päät */
+        box-shadow: var(--sub-shadow) !important;
+        padding: 0 10px !important;
         display: flex !important;
         visibility: visible !important;
         align-items: center !important;
         justify-content: space-around !important;
         z-index: 9999 !important;
-        margin: 0 !important; gap: 0;
+        gap: 0;
         box-sizing: border-box !important; /* Estää leveyden ylityksen paddingin takia */
     }
     .tab i {
@@ -159,10 +164,11 @@ header {
     }
     .tab { font-size: 1.6rem !important; padding: 0 !important; flex: 1; display: flex; justify-content: center; align-items: center; height: 100%; opacity: 0.4; color: #ffffff !important; border: none !important; }
 
-    .tab.active { opacity: 1; color: var(--sub-gold) !important; }
+    .tab.active { opacity: 1; color: var(--sub-gold) !important; position: relative; }
+    .tab.active::after { content: ''; position: absolute; bottom: 8px; width: 4px; height: 4px; background: var(--sub-gold); border-radius: 50%; }
 
     .tab.active i { transform: translateY(-2px); /* Pieni nosto korostukseksi */ }
-    #app-content { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+    #app-content { padding-bottom: 100px !important; }
     
     #sound-toggle-btn { 
         font-size: 1.1rem !important; 
