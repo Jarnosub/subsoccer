@@ -34,7 +34,7 @@ export const MatchService = {
     /**
      * Tallentaa ottelun, päivittää ELO-pisteet ja voittotilastot.
      */
-    async recordMatch({ player1Name, player2Name, winnerName, tournamentId = null, tournamentName = null }) {
+    async recordMatch({ player1Name, player2Name, winnerName, p1Score = null, p2Score = null, tournamentId = null, tournamentName = null }) {
         try {
             showLoading('Recording match...');
             
@@ -69,6 +69,8 @@ export const MatchService = {
                 player1: player1Name,
                 player2: player2Name,
                 winner: winnerName,
+                player1_score: p1Score,
+                player2_score: p2Score,
                 tournament_id: tournamentId,
                 tournament_name: tournamentName,
                 created_at: new Date().toISOString()

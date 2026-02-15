@@ -90,6 +90,13 @@ function startSession() {
         startBtn.onclick = startQuickMatch; // Restore original function
     }
 
+    // Update Instant Play link based on user type
+    const instantPlayLink = document.querySelector('a[href*="instant-play.html"]');
+    if (instantPlayLink) {
+        const userType = state.user.id === 'guest' ? 'guest' : 'registered';
+        instantPlayLink.href = `instant-play.html?game_id=QUICK-PLAY&mode=casual&user_type=${userType}`;
+    }
+
     document.getElementById('auth-page').style.display = 'none'; 
     document.getElementById('app-content').style.display = 'flex'; 
     document.getElementById('nav-tabs').style.display = 'flex'; 

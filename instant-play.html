@@ -13,6 +13,7 @@
             --sub-red: #FF0000;
             --sub-gold: #FFD700;
             --sub-black: #0a0a0a;
+            --sub-radius: 4px;
         }
         
         @font-face {
@@ -130,7 +131,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
             padding: 8px 15px;
-            border-radius: 25px;
+            border-radius: var(--sub-radius);
             font-family: 'Open Sans', sans-serif;
             font-size: 0.75rem;
             cursor: pointer;
@@ -153,12 +154,45 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(15, 17, 21, 0.8);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            gap: 20px; /* Hallitsee kaikkien elementtien välistystä keskitetysti */
             z-index: 100;
+        }
+
+        .winner-text, .winner-subtitle, .claim-victory-btn, .play-again-btn, .winner-motivation {
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out forwards;
+        }
+
+        .winner-text { animation-delay: 0.1s; }
+        .winner-subtitle { animation-delay: 0.3s; }
+        
+        .winner-motivation {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: var(--sub-radius);
+            padding: 20px;
+            max-width: 400px;
+            text-align: center;
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.5;
+            animation-delay: 0.6s;
+        }
+
+        #claim-victory-btn { animation: victorySlideUp 0.8s ease-out 1s forwards, pulse-gold 2s infinite 1.8s; }
+        #end-game-btn { animation-delay: 1s; }
+        /* Viimeinen nappi (New Game) ilmestyy viimeisenä */
+        .winner-overlay .play-again-btn:last-child { animation-delay: 1.2s; }
+
+        @keyframes victorySlideUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
         
         .winner-overlay.show {
@@ -168,14 +202,12 @@
         .winner-text {
             font-size: 4rem;
             color: var(--sub-gold);
-            margin-bottom: 20px;
             text-transform: uppercase;
         }
         
         .winner-subtitle {
             font-size: 1.5rem;
             color: #666;
-            margin-bottom: 40px;
         }
         
         .claim-victory-btn {
@@ -185,14 +217,12 @@
             padding: 15px 40px;
             font-size: 1.2rem;
             font-family: 'Subsoccer', sans-serif;
-            border-radius: 50px;
+            border-radius: var(--sub-radius);
             cursor: pointer;
             transition: all 0.3s;
-            margin-bottom: 15px;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
             text-transform: uppercase;
             font-weight: bold;
-            animation: pulse-gold 2s infinite;
         }
         
         .claim-victory-btn:hover {
@@ -213,7 +243,7 @@
             padding: 20px 50px;
             font-size: 1.5rem;
             font-family: 'Subsoccer', sans-serif;
-            border-radius: 50px;
+            border-radius: var(--sub-radius);
             cursor: pointer;
             transition: all 0.3s;
         }
@@ -335,7 +365,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.98);
+            background: rgba(15, 17, 21, 0.9);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             z-index: 300;
             display: flex;
             flex-direction: column;
@@ -370,7 +402,7 @@
             gap: 15px;
             background: rgba(255, 255, 255, 0.08);
             padding: 15px;
-            border-radius: 10px;
+            border-radius: var(--sub-radius);
             border-left: 4px solid var(--sub-red);
             text-align: left;
         }
@@ -408,7 +440,7 @@
             padding: 15px 50px;
             font-size: 1.5rem;
             font-family: 'Subsoccer', sans-serif;
-            border-radius: 50px;
+            border-radius: var(--sub-radius);
             cursor: pointer;
             transition: all 0.3s;
             text-transform: uppercase;
@@ -507,24 +539,14 @@
     <div class="winner-overlay" id="winner-overlay">
         <div class="winner-text" id="winner-text">PLAYER 1 WINS!</div>
         <div class="winner-subtitle">First to 3 goals</div>
-        <button id="claim-victory-btn" class="claim-victory-btn" onclick="claimVictory()">🏆 SAVE STATS & RANK UP</button>
-        <button id="end-game-btn" class="play-again-btn" style="display:none; background:#333; border:1px solid #555; margin-top:10px;" onclick="window.location.href='index.html'">🏁 END GAME</button>
-        <button class="play-again-btn" onclick="playAgain()">🎮 PLAY AGAIN</button>
+        <div id="winner-motivation" class="winner-motivation">
+            <span id="motivation-title" style="color:var(--sub-gold); font-weight:bold; font-size:1.1rem; display:block; margin-bottom:8px;">DON'T LOSE YOUR PROGRESS!</span>
+            <span id="motivation-body">Claim your ELO points now to enter the <strong>Global Rankings</strong> and unlock your official <strong>Subsoccer Pro Card</strong>.</span>
+        </div>
+        <button id="claim-victory-btn" class="claim-victory-btn" onclick="claimVictory()">SAVE RESULT & RANK UP</button>
+        <button id="end-game-btn" class="play-again-btn" style="display:none; background:#333; border:1px solid #555;" onclick="window.location.href='index.html'">END GAME</button>
+        <button class="play-again-btn" onclick="playAgain()">NEW GAME</button>
     </div>
-
-    <!-- Add hybrid mode handling for Instant Play -->
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const mode = urlParams.get('mode');
-
-        if (mode === 'casual') {
-            document.getElementById('save-stats-btn').style.display = 'none';
-            const endGameBtn = document.createElement('button');
-            endGameBtn.textContent = '🏁 END GAME';
-            endGameBtn.onclick = () => window.location.href = 'index.html';
-            document.getElementById('winner-overlay').appendChild(endGameBtn);
-        }
-    </script>
 
     <script>
         // Game state
@@ -687,15 +709,28 @@
             // Check mode (Casual vs Guest)
             const urlParams = new URLSearchParams(window.location.search);
             const isCasual = urlParams.get('mode') === 'casual';
+            const userType = urlParams.get('user_type') || 'guest';
             
-            if (isCasual) {
-                // Logged in player (Casual)
-                document.getElementById('claim-victory-btn').style.display = 'none';
-                document.getElementById('end-game-btn').style.display = 'block';
+            const motivationTitle = document.getElementById('motivation-title');
+            const motivationBody = document.getElementById('motivation-body');
+            const claimBtn = document.getElementById('claim-victory-btn');
+            const endBtn = document.getElementById('end-game-btn');
+            
+            // Varmistetaan että tallennusnappi on näkyvissä
+            claimBtn.style.display = 'block';
+
+            if (isCasual && userType === 'registered') {
+                // Registered player from app
+                motivationTitle.innerText = "MATCH COMPLETE!";
+                motivationBody.innerHTML = "Save this <strong>" + scoreP1 + "-" + scoreP2 + "</strong> victory to your profile to update your ELO and climb the leaderboard.";
+                claimBtn.innerText = "SAVE RESULT";
+                endBtn.style.display = 'block';
             } else {
-                // Guest (QR Code)
-                document.getElementById('claim-victory-btn').style.display = 'block';
-                document.getElementById('end-game-btn').style.display = 'none';
+                // Guest (QR Code or Guest in app)
+                motivationTitle.innerText = "DON'T LOSE YOUR PROGRESS!";
+                motivationBody.innerHTML = "Claim your ELO points now to enter the <strong>Global Rankings</strong> and unlock your official <strong>Subsoccer Pro Card</strong>.";
+                claimBtn.innerText = "SAVE STATS & RANK UP";
+                endBtn.style.display = 'none';
             }
             
             playCrowdCheer();

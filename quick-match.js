@@ -17,13 +17,25 @@ export function handleQuickSearch(input, slot) {
     if (!v) { resDiv.style.display = 'none'; return; }
     const combined = [...new Set([...state.allDbNames, ...state.sessionGuests])];
     const filtered = combined.filter(n => n.includes(v)).slice(0, 5);
-    resDiv.innerHTML = filtered.map(n => `<div class="search-item" onclick="selectQuickPlayer('${n}', '${slot}')">${n}</div>`).join('');
+    resDiv.innerHTML = filtered.map(n => `<div class="search-item" onclick="selectQuickPlayer('${n}', '${slot}')">${n}</div>`).join('') + 
+                       `<div class="search-item" style="color:var(--sub-gold);" onclick="selectQuickPlayer('${v}', '${slot}')">Add: "${v}"</div>`;
     resDiv.style.display = 'block';
 }
 
 export async function selectQuickPlayer(name, slot) {
-    document.getElementById(`${slot}-quick-search`).value = name;
-    document.getElementById(`${slot}-results`).style.display = 'none';
+    const inputId = slot === 'claim' ? 'claim-opponent-search' : `${slot}-quick-search`;
+    const resultsId = slot === 'claim' ? 'claim-results' : `${slot}-results`;
+    
+    const input = document.getElementById(inputId);
+    if (input) input.value = name;
+    
+    const results = document.getElementById(resultsId);
+    if (results) results.style.display = 'none';
+
+    if (slot === 'claim') {
+        state.quickP2 = name;
+        return;
+    }
     if (slot === 'p1') state.quickP1 = name; else state.quickP2 = name;
     if (state.quickP1 && state.quickP2) {
         updateEloPreview();
@@ -75,6 +87,8 @@ export async function finalizeQuickMatch(winnerName, context = null) {
             player1Name,
             player2Name,
             winnerName,
+            p1Score: state.proScoreP1,
+            p2Score: state.proScoreP2,
             tournamentName: context
         });
         
@@ -95,14 +109,28 @@ export function showVictory(name, newElo, gain, isGuest = false) {
     document.getElementById('victory-elo-count').innerText = newElo;
     document.getElementById('victory-elo-gain').innerText = `+${gain} POINTS`;
     const overlay = document.getElementById('victory-overlay');
+    
+    // Etsitään napit ja lisätään Pro-luokat
+    const buttons = overlay.querySelectorAll('button');
+    if (buttons.length >= 2) {
+        buttons[0].className = 'btn-red btn-victory-primary'; // New Game
+        buttons[0].innerText = 'NEW GAME';
+        buttons[1].className = 'btn-red btn-victory-secondary'; // End Game
+        buttons[1].innerText = 'END GAME';
+    }
+
     const oldMsg = document.getElementById('guest-upsell');
     if (oldMsg) oldMsg.remove();
     if (isGuest) {
         const msg = document.createElement('div');
         msg.id = 'guest-upsell';
-        msg.style = "margin-top: 20px; color: var(--sub-gold); font-family: 'Open Sans'; font-size: 0.85rem; max-width: 250px; background: rgba(255,215,0,0.1); padding: 10px; border-radius: 8px; border: 1px dashed var(--sub-gold);";
-        msg.innerHTML = "🔥 <strong>Great win!</strong> Create a free account to start climbing the official Global Leaderboard.";
-        overlay.querySelector('button').before(msg);
+        msg.className = 'fade-in';
+        msg.style = "margin-top: 25px; color: #fff; font-size: 0.85rem; max-width: 280px; background: rgba(255,215,0,0.1); padding: 15px; border-radius: var(--sub-radius); border: 1px solid rgba(255,215,0,0.2); text-align:center; line-height:1.4;";
+        msg.innerHTML = "<span style='color:var(--sub-gold); font-weight:bold; display:block; margin-bottom:5px;'>🔥 GREAT WIN!</span> Create a free account to save your progress and climb the Global Leaderboard.";
+        
+        // Lisätään viesti ennen nappeja
+        const controls = overlay.querySelector('.victory-controls') || overlay.querySelector('button').parentElement;
+        controls.before(msg);
     }
     overlay.style.display = 'flex';
 }
@@ -198,7 +226,12 @@ export async function startProMatch() {
     document.getElementById('pro-mode-view').style.display = 'flex';
     
     const rulesOverlay = document.getElementById('pro-rules-overlay');
-    if (rulesOverlay) { rulesOverlay.style.display = 'flex'; state.proModeActive = false; }
+    if (rulesOverlay) { 
+        rulesOverlay.style.display = 'flex'; 
+        state.proModeActive = false; 
+        const playBtn = rulesOverlay.querySelector('button');
+        if (playBtn) playBtn.innerText = 'I UNDERSTAND - PLAY';
+    }
     else { acceptRulesAndStart(); }
 }
 
@@ -349,54 +382,92 @@ export function toggleSoundEffects() {
 }
 
 export function initClaimResult(p1Score, p2Score, gameId) {
-    const userScore = Math.max(p1Score, p2Score);
-    const opponentScore = Math.min(p1Score, p2Score);
+    const uScore = Math.max(p1Score, p2Score);
+    const oScore = Math.min(p1Score, p2Score);
     const appContent = document.getElementById('app-content');
     if (appContent) appContent.style.display = 'flex';
     showMatchMode('quick');
-    const p1Input = document.getElementById('p1-quick-search');
-    const p2Input = document.getElementById('p2-quick-search');
-    if (p1Input) {
-        p1Input.value = state.user.username;
-        p1Input.disabled = true;
+    
+    const setupDiv = document.getElementById('quick-match-section');
+    if (setupDiv) {
+        // Piilotetaan normaali asetus ja näytetään Claim-näkymä
+        Array.from(setupDiv.children).forEach(child => {
+            if (child.id !== 'claim-result-container') child.style.display = 'none';
+        });
+
+        let claimUI = document.getElementById('claim-result-container');
+        if (!claimUI) {
+            claimUI = document.createElement('div');
+            claimUI.id = 'claim-result-container';
+            setupDiv.appendChild(claimUI);
+        }
+        
+        claimUI.className = 'sub-card fade-in';
+        claimUI.style.display = 'block';
+        claimUI.style.borderColor = 'var(--sub-gold)';
+        claimUI.style.marginTop = '20px';
+        claimUI.innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <div style="font-family:var(--sub-name-font); color:var(--sub-gold); font-size:1.1rem; letter-spacing:2px; margin-bottom:10px;">CLAIM YOUR VICTORY</div>
+                <div style="font-size:3.5rem; font-family:var(--sub-name-font); color:#fff; line-height:1;">${uScore} - ${oScore}</div>
+                <div style="color:#666; font-size:0.8rem; margin-top:10px; text-transform:uppercase; letter-spacing:1px;">Who was your opponent?</div>
+            </div>
+            
+            <div style="position:relative; margin-bottom:20px;">
+                <input type="text" id="claim-opponent-search" placeholder="Search opponent name..." oninput="handleQuickSearch(this, 'claim')" style="margin-bottom:0; border-color:var(--sub-gold);">
+                <div id="claim-results" class="quick-results"></div>
+            </div>
+            
+            <button class="btn-red" style="background:linear-gradient(135deg, var(--sub-gold), #d4a017); color:#000; font-size:1.1rem;" onclick="saveClaimedResult(${uScore}, ${oScore}, '${gameId}')">
+                CONFIRM & SAVE RESULT
+            </button>
+            
+            <button class="btn-red" style="background:transparent; border:1px solid #333; color:#555; margin-top:15px; font-size:0.8rem; padding:8px;" onclick="cancelClaimResult()">
+                CANCEL & DISCARD
+            </button>
+        `;
+        
         state.quickP1 = state.user.username;
+        setTimeout(() => document.getElementById('claim-opponent-search')?.focus(), 500);
     }
-    if (p2Input) {
-        p2Input.value = '';
-        p2Input.placeholder = "Enter Opponent Name";
-        p2Input.focus();
-    }
-    const startBtn = document.getElementById('start-quick-match');
-    if (startBtn) {
-        startBtn.textContent = `SAVE RESULT (${userScore}-${opponentScore})`;
-        startBtn.onclick = function() { saveClaimedResult(userScore, opponentScore, gameId); };
-        startBtn.style.background = 'linear-gradient(135deg, var(--sub-gold), #d4a017)';
-        startBtn.style.color = '#000';
-    }
-    showNotification(`🏆 Victory! Who did you beat?`, 'success');
+
+    showNotification(`🏆 Victory! Enter opponent name to save.`, 'success');
+    
+    // Puhdistetaan URL
     const url = new URL(window.location);
     url.searchParams.delete('action');
     url.searchParams.delete('p1_score');
     url.searchParams.delete('p2_score');
+    url.searchParams.delete('game_id');
     window.history.replaceState({}, document.title, url.pathname);
 }
 
-export async function saveClaimedResult(userScore, opponentScore, gameId) {
-    const p2Input = document.getElementById('p2-quick-search');
-    const opponentName = p2Input.value.trim().toUpperCase();
+export async function saveClaimedResult(uScore, oScore, gameId) {
+    const input = document.getElementById('claim-opponent-search');
+    const opponentName = input?.value.trim().toUpperCase();
     if (!opponentName) return showNotification("Enter opponent name", "error");
     if (opponentName === state.user.username) return showNotification("Cannot play against yourself", "error");
+    
     state.quickP2 = opponentName;
+    state.proScoreP1 = uScore;
+    state.proScoreP2 = oScore;
+    
     await finalizeQuickMatch(state.user.username, gameId ? `Instant Play: ${gameId}` : 'Instant Play');
-    const startBtn = document.getElementById('start-quick-match');
-    if (startBtn) {
-        startBtn.textContent = 'START GAME';
-        startBtn.onclick = startQuickMatch;
-        startBtn.style.background = '';
-        startBtn.style.color = '';
+    
+    cancelClaimResult();
+}
+
+export function cancelClaimResult() {
+    const setupDiv = document.getElementById('quick-match-section');
+    const claimUI = document.getElementById('claim-result-container');
+    if (claimUI) claimUI.style.display = 'none';
+    
+    if (setupDiv) {
+        Array.from(setupDiv.children).forEach(child => {
+            if (child.id !== 'claim-result-container') child.style.display = '';
+        });
     }
-    const p1Input = document.getElementById('p1-quick-search');
-    if (p1Input) p1Input.disabled = false;
+    
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 
@@ -421,3 +492,4 @@ window.handleQuickWinner = handleQuickWinner;
 window.toggleSoundEffects = toggleSoundEffects;
 window.initClaimResult = initClaimResult;
 window.saveClaimedResult = saveClaimedResult;
+window.cancelClaimResult = cancelClaimResult;

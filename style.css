@@ -28,7 +28,7 @@
     --sub-logo-font: 'SubsoccerLogo', sans-serif;
     --sub-name-font: 'Resolve', sans-serif;
     --sub-body-font: 'ResolveRegular', sans-serif;
-    --sub-radius: 12px; /* Modernimpi, pehmeämpi pyöristys */
+    --sub-radius: 4px; /* Terävämmät kulmat Pro-ilmettä varten */
     --sub-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
 
@@ -91,7 +91,7 @@ header {
 .logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; letter-spacing: 1px; }
 
 .nav-tabs { 
-    display: flex; 
+    display: none; /* Piilotettu ennen kirjautumista */
     justify-content: space-around; 
     gap: 12px; 
     width: 95%; 
@@ -146,10 +146,9 @@ header {
         backdrop-filter: blur(20px) !important;
         -webkit-backdrop-filter: blur(20px) !important;
         border: 1px solid var(--sub-border) !important;
-        border-radius: 30px !important; /* Täysin pyöreät päät */
+        border-radius: var(--sub-radius) !important; /* Yhtenäinen muun sovelluksen kanssa */
         box-shadow: var(--sub-shadow) !important;
         padding: 0 10px !important;
-        display: flex !important;
         visibility: visible !important;
         align-items: center !important;
         justify-content: space-around !important;
@@ -230,7 +229,7 @@ header {
     padding: 14px 15px !important;
     background: rgba(255, 255, 255, 0.03); /* Kevyt korostus pohjalla */
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px; /* Pyöristetyt kulmat */
+    border-radius: var(--sub-radius); /* Käytetään globaalia muuttujaa */
     color: #eee;
     text-align: left;
     font-family: 'Resolve', sans-serif;
@@ -740,19 +739,67 @@ input, select, button {
     left: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    background-color: #0a0a0a !important; /* Syvä musta */
+    background: var(--sub-surface) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
     z-index: 999999 !important; /* Korkein mahdollinen taso */
     display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 #victory-elo-count {
     color: var(--sub-gold);
     font-family: var(--sub-name-font);
     font-size: 4rem;
-    animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+    animation: victoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.victory-player-name {
+    font-family: var(--sub-name-font);
+    font-size: 2.5rem;
+    text-transform: uppercase;
+    color: #fff;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+    animation: victoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s both;
+}
+
+.victory-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 300px;
+    margin-top: 40px;
+    animation: victorySlideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
+}
+
+.btn-victory-primary {
+    background: linear-gradient(135deg, var(--sub-gold) 0%, #d4af37 100%) !important;
+    color: #000 !important;
+    font-weight: 900 !important;
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3) !important;
+}
+
+.btn-victory-secondary {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+}
+
+@keyframes victoryPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes victorySlideUp {
+    0% { transform: translateY(40px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes bounceIn {
@@ -810,7 +857,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     background-color: var(--sub-red) !important; /* Säilytetään punainen väri */
     color: white !important;
     border: none;
-    border-radius: 12px;
+    border-radius: var(--sub-radius);
     font-family: 'Resolve', sans-serif;
     font-size: 2rem;
     padding: 20px;

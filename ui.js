@@ -568,7 +568,7 @@ export function updateProfileCard() {
 
     container.innerHTML = `
         <div class="topps-collectible-card ${editionClass}">
-            <img src="${u.avatar_url || 'https://via.placeholder.com/400x600'}" class="card-hero-image">
+            <img src="${u.avatar_url || 'placeholder-silhouette-5-wide.png'}" class="card-hero-image" onerror="this.src='placeholder-silhouette-5-wide.png'">
             <div class="card-overlay"></div>
             <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">${editionLabel} // 2026</div>
             <div class="card-content-bottom">
