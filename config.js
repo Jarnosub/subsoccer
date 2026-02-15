@@ -59,4 +59,14 @@ export const subscribe = (prop, callback) => {
 window._appState = state;
 window._supabase = _supabase;
 
-export const isAdmin = () => state.user?.is_admin || state.user?.username === 'JARNO SAARINEN';
+/**
+ * Checks if the current user has administrative privileges.
+ * Fallback to hardcoded username for initial setup/recovery.
+ */
+export const isSuperAdmin = () => {
+    return state.user?.username === 'JARNO SAARINEN';
+};
+
+export const isAdmin = () => {
+    return !!state.user?.is_admin || isSuperAdmin();
+};

@@ -11,6 +11,10 @@
 DROP POLICY IF EXISTS "Authenticated users can view all events" ON public.events;
 DROP POLICY IF EXISTS "Organizers can update own events" ON public.events;
 DROP POLICY IF EXISTS "Organizers can delete own events" ON public.events;
+DROP POLICY IF EXISTS "Anyone can view events" ON public.events;
+DROP POLICY IF EXISTS "Anyone can create events" ON public.events;
+DROP POLICY IF EXISTS "Anyone can update events" ON public.events;
+DROP POLICY IF EXISTS "Anyone can delete events" ON public.events;
 
 -- Create new policies for custom auth system
 CREATE POLICY "Anyone can view events"

@@ -95,8 +95,9 @@ function updatePageUI(p) {
     // Funktiot, jotka suoritetaan sivun vaihdon yhteydessä
     if (p === 'profile') {
         cancelEditProfile(); // Piilottaa lomakkeen aina kun välilehti vaihtuu
-        if(document.getElementById('profile-games-ui')) 
-            document.getElementById('profile-games-ui').style.display = 'none';
+        const profileGamesUi = document.getElementById('profile-games-ui');
+        if(profileGamesUi) 
+            profileGamesUi.style.display = 'none'; // Piilotettu oletuksena, näytetään vain muokkaustilassa
         if(document.getElementById('profile-dashboard-ui')) 
             document.getElementById('profile-dashboard-ui').style.display = 'block';
         loadUserProfile();
@@ -301,6 +302,10 @@ export function showEditProfile() {
     fields.style.display = 'block';
     document.getElementById('profile-dashboard-ui').style.display = 'none'; // Piilota napit
     
+    // Näytetään pelipöydät vain muokkaustilassa
+    const profileGamesUi = document.getElementById('profile-games-ui');
+    if (profileGamesUi) profileGamesUi.style.display = state.user?.id === 'guest' ? 'none' : 'block';
+    
     populateCountries();
     
     // Haetaan arvot state.userista (joka on nyt ladattu auth.js:ssä)
@@ -328,6 +333,10 @@ export function cancelEditProfile() {
         editFields.style.display = 'none';
     }
     document.getElementById('profile-dashboard-ui').style.display = 'block'; // Tuo napit takaisin
+    
+    // Piilotetaan pelipöydät kun poistutaan muokkaustilasta
+    const profileGamesUi = document.getElementById('profile-games-ui');
+    if (profileGamesUi) profileGamesUi.style.display = 'none';
 }
 
 /**
@@ -411,6 +420,16 @@ export function toggleSettingsMenu(event) {
  * Setup all UI event listeners to remove inline onclicks.
  */
 export function setupUIListeners() {
+    // Logo link to official site
+    const logo = document.querySelector('.main-logo');
+    if (logo) {
+        logo.style.cursor = 'pointer';
+        logo.title = 'Visit subsoccer.com';
+        logo.addEventListener('click', () => window.open('https://www.subsoccer.com', '_blank'));
+    }
+
+    injectFooterLink();
+
     // Navigation Tabs
     document.querySelectorAll('.nav-tabs .tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -833,12 +852,15 @@ subscribe('user', () => {
         const eventsTab = document.getElementById('tab-events');
         if (eventsTab) eventsTab.style.display = state.user.id === 'guest' ? 'none' : 'flex';
         
+        const regGameBtn = document.getElementById('btn-profile-register-game');
+        if (regGameBtn) regGameBtn.style.display = state.user.id === 'guest' ? 'none' : 'block';
+
         // Moderator Menu Visibility
         const modMenu = document.getElementById('menu-item-moderator');
-        if (modMenu) modMenu.style.display = state.user.username === 'JARNO SAARINEN' ? 'flex' : 'none';
+        if (modMenu) modMenu.style.display = isAdmin() ? 'flex' : 'none';
 
         const proModeSection = document.getElementById('pro-mode-section');
-        if (proModeSection) proModeSection.style.display = state.user.username === 'JARNO SAARINEN' ? 'block' : 'none';
+        if (proModeSection) proModeSection.style.display = isAdmin() ? 'block' : 'none';
 
         // 3. Quick Match -näkymän nollaus
         const startBtn = document.getElementById('start-quick-match');
@@ -1119,4 +1141,18 @@ function showPartnerSplashScreen(logoUrl, bgColor) {
         splash.style.opacity = '0';
         setTimeout(() => splash.remove(), 800);
     }, 2000);
+}
+
+/**
+ * Injects a small footer link to the official site
+ */
+function injectFooterLink() {
+    const container = document.getElementById('app-content');
+    if (!container || document.getElementById('subsoccer-footer-link')) return;
+    
+    const footer = document.createElement('div');
+    footer.id = 'subsoccer-footer-link';
+    footer.className = 'subsoccer-footer';
+    footer.innerHTML = '<a href="https://www.subsoccer.com" target="_blank">WWW.SUBSOCCER.COM</a>';
+    container.appendChild(footer);
 }

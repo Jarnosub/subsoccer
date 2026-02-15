@@ -1,0 +1,5 @@
+id,username,password,wins,team,rank,avatar_url,created_at,elo,country,email,email_verified,full_name,phone,city,losses
+5031f839-7710-477b-ac80-c4999a212547,TEST_ORGANIZER,,2,'NONE','SILVER',,2026-02-15 16:33:27.326885+00,1315,,test@example.com,false,,,,1
+92ff4fd8-9c6c-4366-a08f-9240a88aa926,MINNA,,0,'NONE','SILVER',,2026-02-15 17:10:14.868454+00,1000,,,false,,,,0
+a1ce164a-0dba-4841-acd4-cf10bf2d7f8d,Jarno,,0,'NONE','SILVER',,2026-02-15 17:10:06.473717+00,1000,,,false,,,,0
+d265b935-b147-4ccb-adca-9030725128aa,TONI,,0,'NONE','SILVER',,2026-02-15 17:10:11.011867+00,1000,,,false,,,,0

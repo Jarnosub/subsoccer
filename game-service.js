@@ -74,6 +74,7 @@ export function initEditGame(id) {
     if (game.latitude && game.longitude) setMapLocation(game.latitude, game.longitude, game.location);
     document.getElementById('btn-reg-game').style.display = 'none';
     document.getElementById('btn-edit-group').style.display = 'flex';
+    state.currentPage = 'games'; // Vaihdetaan sivua jotta käyttäjä näkee kartan ja lomakkeen
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -124,7 +125,12 @@ export async function deleteGame(id) {
 }
 
 export async function fetchMyGames() {
-    if (state.user.id === 'guest') return;
+    const regSection = document.getElementById('game-registration-section');
+    if (state.user.id === 'guest') {
+        if (regSection) regSection.style.display = 'none';
+        return;
+    }
+    if (regSection) regSection.style.display = 'block';
     const { data } = await _supabase.from('games').select('*').eq('owner_id', state.user.id);
     state.myGames = data || [];
     const gameHTML = (data && data.length > 0) ? data.map(game => `
@@ -143,7 +149,14 @@ export async function fetchMyGames() {
     const list = document.getElementById('my-games-list');
     const profileList = document.getElementById('profile-games-list');
     if (list) list.innerHTML = gameHTML;
-    if (profileList) profileList.innerHTML = data.map(game => `<div style="background:#0a0a0a; padding:12px; border-radius:8px; margin-bottom:8px; border-left:3px solid ${game.verified ? 'var(--sub-gold)' : '#333'};"><div style="font-family:'Russo One'; font-size:0.9rem; color:#fff; margin-bottom:3px;">${game.verified ? '⭐ ' : ''}${game.game_name}</div><div style="font-size:0.75rem; color:#888;">${game.location}</div></div>`).join('');
+    if (profileList) profileList.innerHTML = data.map(game => `
+        <div style="background:#0a0a0a; padding:12px; border-radius:8px; margin-bottom:8px; border-left:3px solid ${game.verified ? 'var(--sub-gold)' : '#333'}; position: relative;">
+            <div style="position: absolute; top: 10px; right: 10px;">
+                <button onclick="initEditGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 0.8rem; color: var(--sub-gold); font-family: 'Resolve';">EDIT</button>
+            </div>
+            <div style="font-family:'Russo One'; font-size:0.9rem; color:#fff; margin-bottom:3px;">${game.verified ? '⭐ ' : ''}${game.game_name}</div>
+            <div style="font-size:0.75rem; color:#888;">${game.location}</div>
+        </div>`).join('');
 }
 
 export async function releaseGameOwnership(gameId) {

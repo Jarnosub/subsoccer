@@ -1,5 +1,5 @@
 import { showModal, showNotification, showLoading, hideLoading } from './ui-utils.js';
-import { _supabase } from './config.js';
+import { _supabase, state, isSuperAdmin } from './config.js';
 
 /**
  * MODERATOR SERVICE
@@ -191,22 +191,32 @@ export async function viewAllUsers() {
     try {
         const { data, error } = await _supabase
             .from('players')
-            .select('username, elo, wins, losses, country, created_at')
+            .select('id, username, elo, wins, losses, country, created_at, is_admin, email')
             .order('username');
 
         if (error) throw error;
 
+        // Suodatetaan pois vieraat (ne joilla ei ole sähköpostia)
+        const registeredUsers = data.filter(u => u.email);
+
         const html = `
             <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
-                ${data.map(u => `
-                    <div style="background:#111; padding:12px; border-radius:4px; margin-bottom:8px; border-left:3px solid var(--sub-gold); display:flex; justify-content:space-between; align-items:center;">
+                ${registeredUsers.map(u => `
+                    <div style="background:#111; padding:12px; border-radius:4px; margin-bottom:8px; border-left:3px solid ${u.is_admin ? 'var(--sub-gold)' : '#333'}; display:flex; justify-content:space-between; align-items:center;">
                         <div>
-                            <div style="font-family:'Resolve'; color:#fff; font-size:0.9rem;">${u.username}</div>
+                            <div style="font-family:'Resolve'; color:#fff; font-size:0.9rem;">
+                                ${u.is_admin ? '⭐ ' : ''}${u.username}
+                            </div>
                             <div style="font-size:0.7rem; color:#666;">${u.country?.toUpperCase() || 'FI'} • Joined ${new Date(u.created_at).toLocaleDateString()}</div>
+                            <div style="font-size:0.6rem; color:#444;">${u.email}</div>
                         </div>
-                        <div style="text-align:right;">
+                        <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">
                             <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1rem;">${u.elo}</div>
-                            <div style="font-size:0.6rem; color:#444;">W:${u.wins} L:${u.losses || 0}</div>
+                            <button class="btn-red" 
+                                    style="font-size:0.6rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : 'var(--sub-gold)'}; color:${u.is_admin ? '#fff' : '#000'}; border:none; width:auto; min-width:80px;"
+                                    onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
+                                ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
+                            </button>
                         </div>
                     </div>
                 `).join('')}
@@ -220,6 +230,42 @@ export async function viewAllUsers() {
         hideLoading();
     }
 }
+
+export async function toggleAdminStatus(userId, currentStatus) {
+    if (userId === state.user?.id) {
+        showNotification("You cannot change your own admin status", "error");
+        return;
+    }
+
+    // Estetään muiden adminien poistaminen, paitsi jos kyseessä on pääkäyttäjä
+    if (currentStatus && !isSuperAdmin()) {
+        showNotification("Vain pääkäyttäjä voi poistaa ylläpito-oikeuksia muilta admineilta", "error");
+        return;
+    }
+
+    const action = currentStatus ? 'revoke' : 'grant';
+    if (!confirm(`Are you sure you want to ${action} admin rights for this user?`)) return;
+
+    showLoading('Updating permissions...');
+    try {
+        const { error } = await _supabase
+            .from('players')
+            .update({ is_admin: !currentStatus })
+            .eq('id', userId);
+
+        if (error) throw error;
+
+        showNotification(`Admin rights ${currentStatus ? 'revoked' : 'granted'}!`, 'success');
+        // Päivitetään lista lennosta
+        viewAllUsers();
+    } catch (e) {
+        showNotification('Failed to update admin status: ' + e.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+window.toggleAdminStatus = toggleAdminStatus;
 
 export async function downloadSystemLogs() {
     const pwd = prompt("Syötä moderaattorin salasana ladataaksesi lokit:");

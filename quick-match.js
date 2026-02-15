@@ -1,4 +1,4 @@
-import { _supabase, state } from './config.js';
+import { _supabase, state, isAdmin } from './config.js';
 import { showNotification } from './ui-utils.js';
 import { MatchService } from './match-service.js';
 
@@ -172,7 +172,7 @@ export function clearQuickMatchPlayers() {
  */
 
 export function handleProModeClick() {
-    if (!state.user || state.user.username !== 'JARNO SAARINEN') {
+    if (!isAdmin()) {
         showNotification('Pro Mode is currently in beta', 'error');
         return;
     }
@@ -182,7 +182,7 @@ export function handleProModeClick() {
 export function initProModeUI() {
     const proSection = document.getElementById('pro-mode-section');
     if (!proSection) return;
-    if (!state.user || state.user.username !== 'JARNO SAARINEN') {
+    if (!isAdmin()) {
         proSection.classList.add('disabled');
     } else {
         proSection.classList.remove('disabled');
