@@ -17,8 +17,8 @@ export async function fetchAllGames() {
     }
 }
 
-export async function registerGame() {
-    const btn = event?.target;
+export async function registerGame(e) {
+    const btn = e?.currentTarget || e?.target;
     const originalText = btn ? btn.textContent : '';
     const serialNumber = document.getElementById('game-serial-input').value.trim();
     const gameName = document.getElementById('game-name-input').value.trim();
@@ -91,9 +91,9 @@ export function cancelEdit() {
     document.getElementById('btn-edit-group').style.display = 'none';
 }
 
-export async function updateGame() {
+export async function updateGame(e) {
     if (!state.editingGameId) return;
-    const btn = event?.target;
+    const btn = e?.currentTarget || e?.target;
     const originalText = btn ? btn.textContent : '';
     try {
         if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }

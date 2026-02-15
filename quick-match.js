@@ -17,8 +17,8 @@ export function handleQuickSearch(input, slot) {
     if (!v) { resDiv.style.display = 'none'; return; }
     const combined = [...new Set([...state.allDbNames, ...state.sessionGuests])];
     const filtered = combined.filter(n => n.includes(v)).slice(0, 5);
-    resDiv.innerHTML = filtered.map(n => `<div class="search-item" onclick="selectQuickPlayer('${n}', '${slot}')">${n}</div>`).join('') + 
-                       `<div class="search-item" style="color:var(--sub-gold);" onclick="selectQuickPlayer('${v}', '${slot}')">Add: "${v}"</div>`;
+    resDiv.innerHTML = filtered.map(n => `<div class="search-item" data-action="select-quick-player" data-player="${n}" data-slot="${slot}">${n}</div>`).join('') + 
+                       `<div class="search-item" style="color:var(--sub-gold);" data-action="select-quick-player" data-player="${v}" data-slot="${slot}">Add: "${v}"</div>`;
     resDiv.style.display = 'block';
 }
 
@@ -414,15 +414,15 @@ export function initClaimResult(p1Score, p2Score, gameId) {
             </div>
             
             <div style="position:relative; margin-bottom:20px;">
-                <input type="text" id="claim-opponent-search" placeholder="Search opponent name..." oninput="handleQuickSearch(this, 'claim')" style="margin-bottom:0; border-color:var(--sub-gold);">
+                <input type="text" id="claim-opponent-search" placeholder="Search opponent name..." style="margin-bottom:0; border-color:var(--sub-gold);">
                 <div id="claim-results" class="quick-results"></div>
             </div>
             
-            <button class="btn-red" style="background:linear-gradient(135deg, var(--sub-gold), #d4a017); color:#000; font-size:1.1rem;" onclick="saveClaimedResult(${uScore}, ${oScore}, '${gameId}')">
+            <button class="btn-red" id="btn-confirm-claim" data-score1="${uScore}" data-score2="${oScore}" data-game-id="${gameId}" style="background:linear-gradient(135deg, var(--sub-gold), #d4a017); color:#000; font-size:1.1rem;">
                 CONFIRM & SAVE RESULT
             </button>
             
-            <button class="btn-red" style="background:transparent; border:1px solid #333; color:#555; margin-top:15px; font-size:0.8rem; padding:8px;" onclick="cancelClaimResult()">
+            <button class="btn-red" id="btn-cancel-claim" style="background:transparent; border:1px solid #333; color:#555; margin-top:15px; font-size:0.8rem; padding:8px;">
                 CANCEL & DISCARD
             </button>
         `;

@@ -58,3 +58,5 @@ export const subscribe = (prop, callback) => {
 // Globaali pääsy debuggausta varten ja vanhoille scripteille
 window._appState = state;
 window._supabase = _supabase;
+
+export const isAdmin = () => state.user?.is_admin || state.user?.username === 'JARNO SAARINEN';

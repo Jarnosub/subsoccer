@@ -10,7 +10,7 @@ export async function initApp() {
         state.allDbNames = players ? players.map(p => p.username) : [];
         
         if (typeof fetchAllGames === 'function') await fetchAllGames();
-        if (window.populateCountries) window.populateCountries();
+        await populateCountries();
     } catch (e) {
         console.error("Virhe alustuksessa:", e);
     }
@@ -33,6 +33,32 @@ async function hashPassword(password) {
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Hakee maat Supabasesta ja täyttää pudotusvalikon.
+ */
+export async function populateCountries() {
+    const select = document.getElementById('country-input');
+    if (!select) return;
+
+    try {
+        const { data, error } = await _supabase.from('countries').select('name, code').order('name');
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            select.innerHTML = '<option value="" disabled selected>Select Country</option>';
+            data.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.code.toLowerCase();
+                opt.innerText = c.name;
+                select.appendChild(opt);
+            });
+        }
+    } catch (e) {
+        console.error("Maiden haku epäonnistui:", e);
+        select.innerHTML = '<option value="fi">Finland</option>'; // Fallback
+    }
 }
 
 export async function handleSignUp() {
@@ -93,6 +119,7 @@ export async function handleAuth(event) {
                 data.password = hashedPassword;
             }
             state.user = data; 
+            localStorage.setItem('subsoccer-user', JSON.stringify(data));
             // UI päivittyy automaattisesti ui.js:n subscribe-kuuntelijan kautta
         } else {
             showNotification("Login failed. Check username or password.", "error");
@@ -104,12 +131,15 @@ export async function handleAuth(event) {
 }
 
 export function handleGuest() {
-    const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST"; state.user = { username: g, id: 'guest', elo: 1300, wins: 0, losses: 0 };
+    const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST"; 
+    const guestUser = { username: g, id: 'guest', elo: 1300, wins: 0, losses: 0 };
+    state.user = guestUser;
+    localStorage.setItem('subsoccer-user', JSON.stringify(guestUser));
     if(!state.sessionGuests.includes(g)) state.sessionGuests.push(g);
-    // UI päivittyy automaattisesti
 }
 
 export async function handleLogout() {
+    localStorage.removeItem('subsoccer-user');
     if (_supabase) {
         const { error } = await _supabase.auth.signOut();
         if (error) console.error('Error logging out:', error);

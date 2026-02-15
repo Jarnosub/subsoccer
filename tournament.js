@@ -223,12 +223,3 @@ export function replayTournament(players, tourName) {
     state.currentPage = 'tournament';
     showNotification(`Players for "${tourName}" loaded!`, 'success');
 }
-
-window.startTournament = startTournament;
-window.drawRound = drawRound;
-window.pickWin = pickWin;
-window.pickBronzeWinner = pickBronzeWinner;
-window.checkCompletion = checkCompletion;
-window.advanceRound = advanceRound;
-window.saveTour = saveTour;
-window.replayTournament = replayTournament;

@@ -635,8 +635,8 @@ function showEventModal(event, tournaments, userRegistrations) {
                                             </div>
                                             <div style="font-size:0.8rem; color:${participantCount > 0 ? 'var(--sub-gold)' : '#666'}; margin-bottom:6px;">
                                                 <i class="fa fa-users"></i> ${participantCount} / ${maxParticipants} players
-                                                <button onclick="viewTournamentParticipants('${event.id}', '${t.id}', '${t.tournament_name || 'Tournament'}')" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;">View List</button>
-                                                ${participantCount >= 2 ? `<button onclick="viewTournamentBracket('${t.id}', \`${(t.tournament_name || 'Tournament').replace(/[`'"]/g, '')}\`, ${maxParticipants})" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;"><i class="fa fa-sitemap"></i> Bracket</button>` : ''}
+                                                <button data-action="view-participants" data-event-id="${event.id}" data-tour-id="${t.id}" data-name="${t.tournament_name || 'Tournament'}" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;">View List</button>
+                                                ${participantCount >= 2 ? `<button data-action="view-bracket" data-id="${t.id}" data-name="${(t.tournament_name || 'Tournament').replace(/[`'"]/g, '')}" data-max="${maxParticipants}" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;"><i class="fa fa-sitemap"></i> Bracket</button>` : ''}
                                             </div>
                                             <div style="display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;">
                                                 <div style="font-size:0.85rem; color:#aaa; white-space:nowrap;">
@@ -725,26 +725,26 @@ function showEventModal(event, tournaments, userRegistrations) {
                     
                     <div style="display:flex; gap:10px; margin-top:20px;">
                         ${isOrganizer ? `
-                            <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="showCreateTournamentForm('${event.id}', '${event.event_name}')">
+                            <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" data-action="show-create-tournament-form" data-event-id="${event.id}" data-event-name="${event.event_name}">
                                 <i class="fa fa-plus"></i> CREATE TOURNAMENT
                             </button>
-                            <button class="btn-red" style="flex:1; background:#FF9800; color:#fff;" onclick="editEvent('${event.id}')">
+                            <button class="btn-red" style="flex:1; background:#FF9800; color:#fff;" data-action="edit-event" data-id="${event.id}">
                                 <i class="fa fa-edit"></i> EDIT EVENT
                             </button>
-                            <button class="btn-red" style="flex:1; background:#c62828; color:#fff;" onclick="deleteEvent('${event.id}')">
+                            <button class="btn-red" style="flex:1; background:#c62828; color:#fff;" data-action="delete-event" data-id="${event.id}">
                                 <i class="fa fa-trash"></i> DELETE EVENT
                             </button>
-                            <button class="btn-red" style="flex:1; background:#2196F3; color:#fff;" onclick="window.open('?live=${event.id}', '_blank')">
+                            <button class="btn-red" style="flex:1; background:#2196F3; color:#fff;" data-action="open-public-display" data-id="${event.id}">
                                 <i class="fa fa-external-link-alt"></i> OPEN PUBLIC DISPLAY
                             </button>
                         ` : ''}
                     </div>
                     
                     <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button class="btn-red" style="flex:1; background:#4CAF50; padding:12px 25px;" onclick="shareLiveEventLink('${event.id}', '${event.event_name}')">
+                        <button class="btn-red" style="flex:1; background:#4CAF50; padding:12px 25px;" data-action="share-live-link" data-id="${event.id}" data-name="${event.event_name}">
                             <i class="fa fa-share-alt"></i> SHARE LIVE LINK
                         </button>
-                        <button class="btn-red" style="flex:1; background:#333; padding:12px 25px;" onclick="closeEventModal()">
+                        <button class="btn-red" style="flex:1; background:#333; padding:12px 25px;" data-action="close-event-modal">
                             <i class="fa fa-times"></i> CLOSE
                         </button>
                     </div>
@@ -1003,7 +1003,7 @@ export async function handleParticipantSearch(tournamentId) {
         if (players && players.length > 0) {
             players.forEach(player => {
                 html += `
-                    <div class="search-item" onclick="selectParticipantFromDropdown('${tournamentId}', '${player.username}')">
+                    <div class="search-item" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${player.username}">
                         <i class="fa-solid fa-user" style="margin-right:8px; color:var(--sub-gold);"></i>
                         ${player.username}
                     </div>
@@ -1014,7 +1014,7 @@ export async function handleParticipantSearch(tournamentId) {
         // Näytetään vieraspelaajat
         guestMatches.forEach(guest => {
             html += `
-                <div class="search-item" onclick="selectParticipantFromDropdown('${tournamentId}', '${guest}')">
+                <div class="search-item" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${guest}">
                     <i class="fa-solid fa-user-clock" style="margin-right:8px; color:#666;"></i>
                     ${guest} <small style="color:#444; margin-left:5px;">(GUEST)</small>
                 </div>
@@ -1023,7 +1023,7 @@ export async function handleParticipantSearch(tournamentId) {
         
         // Always show "Add as new player" option
         html += `
-            <div class="search-item" style="color:var(--sub-gold); border-top:1px solid #333;" onclick="selectParticipantFromDropdown('${tournamentId}', '${q}')">
+            <div class="search-item" style="color:var(--sub-gold); border-top:1px solid #333;" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${q}">
                 <i class="fa-solid fa-plus-circle" style="margin-right:8px;"></i>
                 Add: "${q}"
             </div>
@@ -1958,12 +1958,12 @@ export function shareLiveEventLink(eventId, eventName) {
                 </p>
                 <input type="text" value="${liveUrl}" readonly 
                        style="width:100%; padding:12px; background:#0a0a0a; border:1px solid #333; color:#fff; font-family:monospace; border-radius:6px; margin-bottom:20px; font-size:0.9rem;"
-                       onclick="this.select()">
+                       data-action="select-all">
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-red" style="flex:1; background:#4CAF50;" onclick="navigator.clipboard.writeText('${liveUrl}').then(() => { showNotification('Copied!', 'success'); this.parentElement.parentElement.parentElement.remove(); })">
+                    <button class="btn-red" style="flex:1; background:#4CAF50;" data-action="copy-live-link" data-url="${liveUrl}">
                         <i class="fa fa-copy"></i> COPY LINK
                     </button>
-                    <button class="btn-red" style="flex:1; background:#333;" onclick="this.parentElement.parentElement.parentElement.remove()">
+                    <button class="btn-red" style="flex:1; background:#333;" data-action="close-share-modal">
                         <i class="fa fa-times"></i> CLOSE
                     </button>
                 </div>
@@ -1999,11 +1999,6 @@ export async function viewLiveEvent(eventId) {
     
     try {
         console.log('Fetching event from Supabase...');
-        
-        // Check if _supabase is defined
-        if (typeof _supabase === 'undefined') {
-            throw new Error('Supabase client not initialized. Make sure config.js is loaded.');
-        }
         
         // Fetch event details
         const { data: event, error } = await _supabase
@@ -2236,75 +2231,76 @@ export async function editEvent(eventId) {
         // Show events page (this triggers loadEventsPage which clears the view to show loading spinner)
         state.currentPage = 'events';
         
-        // Wait for loadEventsPage to finish rendering the form container before showing and populating it
-        setTimeout(() => {
-            showCreateEventForm();
-
-            // Populate form fields
-            const nameInput = document.getElementById('event-name-input');
-            const typeSelect = document.getElementById('event-type-select');
-            const startInput = document.getElementById('event-start-input');
-            const endInput = document.getElementById('event-end-input');
-            const locationInput = document.getElementById('event-location-input');
-            const descInput = document.getElementById('event-desc-input');
-            const colorInput = document.getElementById('event-color-input');
-            const brandPreview = document.getElementById('brand-logo-preview');
-            const imagePreview = document.getElementById('event-image-preview');
-            
-            if (nameInput) nameInput.value = event.event_name || '';
-            if (typeSelect) typeSelect.value = event.event_type || 'tournament';
-            if (locationInput) locationInput.value = event.location || '';
-            if (descInput) descInput.value = event.description || '';
-            
-            // Format datetime for input field
-            if (startInput && event.start_datetime) {
-                const startDate = new Date(event.start_datetime);
-                startInput.value = startDate.toISOString().slice(0, 16);
+        // Käytetään MutationObserveria tai varmistetaan containerin olemassaolo
+        const checkAndPopulate = () => {
+            const formContainer = document.getElementById('create-event-form');
+            if (formContainer) {
+                populateEventForm(event);
+            } else {
+                setTimeout(checkAndPopulate, 50);
             }
-            if (endInput && event.end_datetime) {
-                const endDate = new Date(event.end_datetime);
-                endInput.value = endDate.toISOString().slice(0, 16);
-            }
-
-            if (colorInput && event.primary_color) {
-                colorInput.value = event.primary_color;
-            }
-            if (brandPreview && event.brand_logo_url) {
-                brandPreview.innerHTML = `
-                    <img src="${event.brand_logo_url}" style="height:40px; width:auto; margin-right:10px;">
-                `;
-            }
-
-            // Näytetään nykyinen tapahtumakuva esikatselussa
-            if (imagePreview && event.image_url) {
-                imagePreview.innerHTML = `
-                    <div style="position:relative; width:100%; max-width:300px;">
-                        <img src="${event.image_url}" style="width:100%; border-radius:8px; border:2px solid var(--sub-gold);">
-                        <button onclick="clearEventImage()" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:1.2rem;">×</button>
-                    </div>
-                `;
-                const fileLabel = document.getElementById('event-image-label');
-                if (fileLabel) fileLabel.style.display = 'none';
-            }
-            
-            // Change button to UPDATE
-            const createBtn = document.querySelector('#create-event-form button[onclick="createNewEvent()"]');
-            if (createBtn) {
-                createBtn.textContent = '✓ UPDATE EVENT';
-                createBtn.onclick = () => updateEventForm(eventId);
-            }
-            
-            // Change title
-            const formTitle = document.querySelector('#create-event-form h4');
-            if (formTitle) {
-                formTitle.innerHTML = '<i class="fa fa-edit"></i> Edit Event';
-            }
-        }, 600); // Increased timeout to ensure loadEventsPage has finished rendering the container
+        };
+        checkAndPopulate();
         
     } catch (e) {
         console.error('Failed to load event for editing:', e);
         showNotification('Failed to load event: ' + e.message, 'error');
     }
+}
+
+/**
+ * Helper to populate the event form with existing data
+ */
+function populateEventForm(event) {
+    showCreateEventForm();
+
+    const nameInput = document.getElementById('event-name-input');
+    const typeSelect = document.getElementById('event-type-select');
+    const startInput = document.getElementById('event-start-input');
+    const endInput = document.getElementById('event-end-input');
+    const locationInput = document.getElementById('event-location-input');
+    const descInput = document.getElementById('event-desc-input');
+    const colorInput = document.getElementById('event-color-input');
+    const brandPreview = document.getElementById('brand-logo-preview');
+    const imagePreview = document.getElementById('event-image-preview');
+    
+    if (nameInput) nameInput.value = event.event_name || '';
+    if (typeSelect) typeSelect.value = event.event_type || 'tournament';
+    if (locationInput) locationInput.value = event.location || '';
+    if (descInput) descInput.value = event.description || '';
+    
+    if (startInput && event.start_datetime) {
+        startInput.value = new Date(event.start_datetime).toISOString().slice(0, 16);
+    }
+    if (endInput && event.end_datetime) {
+        endInput.value = new Date(event.end_datetime).toISOString().slice(0, 16);
+    }
+
+    if (colorInput && event.primary_color) colorInput.value = event.primary_color;
+    
+    if (brandPreview && event.brand_logo_url) {
+        brandPreview.innerHTML = `<img src="${event.brand_logo_url}" style="height:40px; width:auto; margin-right:10px;">`;
+    }
+
+    if (imagePreview && event.image_url) {
+        imagePreview.innerHTML = `
+            <div style="position:relative; width:100%; max-width:300px;">
+                <img src="${event.image_url}" style="width:100%; border-radius:8px; border:2px solid var(--sub-gold);">
+                <button onclick="clearEventImage()" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:1.2rem;">×</button>
+            </div>
+        `;
+        const fileLabel = document.getElementById('event-image-label');
+        if (fileLabel) fileLabel.style.display = 'none';
+    }
+    
+    const createBtn = document.querySelector('#create-event-form button');
+    if (createBtn) {
+        createBtn.textContent = '✓ UPDATE EVENT';
+        createBtn.onclick = () => updateEventForm(event.id);
+    }
+    
+    const formTitle = document.querySelector('#create-event-form h4');
+    if (formTitle) formTitle.innerHTML = '<i class="fa fa-edit"></i> Edit Event';
 }
 
 /**
@@ -2571,7 +2567,7 @@ function showCompletedTournamentBracket(tournament) {
             ${a.outerHTML}
             
             <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid #333;">
-                <button onclick="closeBracketModal()" class="btn-red" style="padding:15px 40px;"><i class="fa fa-times"></i> CLOSE</button>
+                <button data-action="close-bracket-modal" class="btn-red" style="padding:15px 40px;"><i class="fa fa-times"></i> CLOSE</button>
             </div>
     `;
 
@@ -2663,7 +2659,7 @@ function showEventBracket(byes = 0) {
             ${a.outerHTML}
             
             <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid #333;">
-                ${nextBtnHtml}
+                <div id="event-bracket-controls">${nextBtnHtml}</div>
             </div>
     `;
 
@@ -2676,7 +2672,7 @@ function showEventBracket(byes = 0) {
 /**
  * Pick winner for a match
  */
-async function pickEventWinner(idx, playerName) {
+export async function pickEventWinner(idx, playerName) {
     // Save match to database
     const match = getCurrentEventMatch(idx);
     if (match.p1 && match.p2) {
@@ -2731,7 +2727,7 @@ function checkEventBracketCompletion() {
     );
 
     if (isComplete && (eventFinalists.length === 2 || eventRoundPlayers.length === 1)) {
-        return '<button onclick="finishEventTournament()" class="btn-red" style="padding:15px 40px;"><i class="fa fa-trophy"></i> FINISH TOURNAMENT</button>';
+        return '<button data-action="finish-event-tournament" class="btn-red" style="padding:15px 40px;"><i class="fa fa-trophy"></i> FINISH TOURNAMENT</button>';
     }
 
     const byes = BracketEngine.calculateByes(eventRoundPlayers.length);
@@ -2740,7 +2736,7 @@ function checkEventBracketCompletion() {
     const pickedWinners = eventRoundWinners.filter(w => w).length;
 
     if (pickedWinners === expectedWinners && matchesToPlay > 0) {
-        return '<button onclick="advanceEventRound()" class="btn-red" style="padding:15px 40px;">NEXT ROUND <i class="fa fa-arrow-right"></i></button>';
+        return '<button data-action="advance-event-round" class="btn-red" style="padding:15px 40px;">NEXT ROUND <i class="fa fa-arrow-right"></i></button>';
     }
     
     return '<small style="color:#666;">Select winners for all matches</small>';
@@ -2749,7 +2745,7 @@ function checkEventBracketCompletion() {
 /**
  * Advance to next round
  */
-function advanceEventRound() {
+export function advanceEventRound() {
     // Check if moving to finals
     if (eventRoundPlayers.length === 4) {
         const losers = eventRoundPlayers.filter(p => !eventRoundWinners.includes(p));
@@ -2772,7 +2768,7 @@ function advanceEventRound() {
 /**
  * Finish tournament and save to history
  */
-async function finishEventTournament() {
+export async function finishEventTournament() {
     try {
         console.log('finishEventTournament called');
         console.log('eventFinalists:', eventFinalists);
@@ -2837,7 +2833,7 @@ async function finishEventTournament() {
 /**
  * Close bracket modal
  */
-function closeBracketModal() {
+export function closeBracketModal() {
     closeModal('bracket-modal');
     
     // Reset bracket state
@@ -2848,11 +2844,3 @@ function closeBracketModal() {
     eventBronzeWinner = null;
     currentEventBracketParticipants = [];
 }
-
-// Export functions to window
-window.viewTournamentBracket = viewTournamentBracket;
-window.closeBracketModal = closeBracketModal;
-window.pickEventWinner = pickEventWinner;
-window.pickEventBronzeWinner = pickEventBronzeWinner;
-window.advanceEventRound = advanceEventRound;
-window.finishEventTournament = finishEventTournament;

@@ -3,6 +3,22 @@
  * Basic UI functions with no dependencies to break circular loops.
  */
 
+/**
+ * Tagged template for safe HTML rendering.
+ * Usage: container.innerHTML = safeHTML`<div>${userInput}</div>`;
+ */
+export function safeHTML(strings, ...values) {
+    const escape = (str) => String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    return strings.reduce((acc, str, i) => 
+        acc + str + (values[i] !== undefined ? escape(values[i]) : ''), '');
+}
+
 export function showNotification(message, type = 'error') {
     const container = document.getElementById('notification-container');
     if (!container) return;

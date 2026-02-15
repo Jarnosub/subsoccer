@@ -1,5 +1,5 @@
 import { _supabase, state } from './config.js';
-import { showLoading, hideLoading } from './ui-utils.js';
+import { showLoading, hideLoading, safeHTML } from './ui-utils.js';
 
 /**
  * ============================================================
@@ -42,7 +42,7 @@ export async function fetchLB() {
                                  top3.length === 1 ? 0 : 
                                  actualRank;
                 
-                html += `
+                html += safeHTML`
                     <div style="display:flex; flex-direction:column; align-items:center; flex:1; max-width:120px;">
                         <div style="font-size:2rem; margin-bottom:5px;">${medals[rankIndex]}</div>
                         <div data-username="${player.username}" style="background:#111; padding:10px; border-radius:var(--sub-radius); width:100%; text-align:center; margin-bottom:8px; border:1px solid ${colors[rankIndex]}; box-shadow: 0 10px 20px rgba(0,0,0,0.5); cursor:pointer;">
@@ -64,7 +64,7 @@ export async function fetchLB() {
         html += data.slice(3).map((p, i) => {
             const flag = p.country ? p.country.toLowerCase() : 'fi';
             const rank = i + 4;
-            return `
+            return safeHTML`
                 <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid #333; transition:all 0.3s ease;" data-username="${p.username}">
                     <div style="display:flex; align-items:center; gap:15px;">
                         <span style="color:#444; font-family:var(--sub-name-font); font-size:0.8rem; min-width:30px;">#${rank}</span>

@@ -8,7 +8,7 @@ export function handleSearch(v) {
     const r = document.getElementById('search-results');
     if (!v) { r.style.display = 'none'; return; }
     const q = v.toUpperCase(), combined = [...new Set([...state.allDbNames, ...state.sessionGuests])], f = combined.filter(n => n.includes(q) && !state.pool.includes(n));
-    r.innerHTML = f.map(n => `<div class="search-item" onclick="directAdd('${n}')">${n}</div>`).join('') + `<div class="search-item" onclick="directAdd('${q}')">Add: "${q}"</div>`;
+    r.innerHTML = f.map(n => `<div class="search-item" data-action="direct-add" data-name="${n}">${n}</div>`).join('') + `<div class="search-item" data-action="direct-add" data-name="${q}">Add: "${q}"</div>`;
     r.style.display = 'block';
 }
 
@@ -31,26 +31,35 @@ export function directAdd(n) {
 // ============================================================
 
 let wasOffline = false;
-setInterval(async () => {
+const checkConnection = async () => {
     const dot = document.getElementById('conn-dot');
     if (!dot) return;
-    try {
-        const { error } = await _supabase.from('players').select('username').limit(1);
-        if (error) throw error;
-        
-        if (wasOffline) {
-            if (window.showNotification) window.showNotification("Connection restored", "success");
-            wasOffline = false;
-        }
-        dot.classList.remove('dot-offline');
-    } catch (e) {
+
+    if (!navigator.onLine) {
         if (!wasOffline) {
-            if (window.showNotification) window.showNotification("Connection lost. Retrying...", "error");
+            if (window.showNotification) window.showNotification("No internet connection", "error");
             wasOffline = true;
         }
         dot.classList.add('dot-offline');
+        return;
     }
-}, 30000);
+
+    try {
+        // Tehdään kevyt haku vain jos oltiin offline-tilassa
+        if (wasOffline) {
+            const { error } = await _supabase.from('players').select('id').limit(1);
+            if (!error) {
+                if (window.showNotification) window.showNotification("Connection restored", "success");
+                wasOffline = false;
+                dot.classList.remove('dot-offline');
+            }
+        }
+    } catch (e) {}
+};
+
+setInterval(checkConnection, 30000);
+window.addEventListener('online', checkConnection);
+window.addEventListener('offline', checkConnection);
 
 // ============================================================
 // 11. GLOBAALIT KYTKENNÄT (window-objekti)

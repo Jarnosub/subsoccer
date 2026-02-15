@@ -63,12 +63,12 @@ export const BracketEngine = {
         const p2Style = currentWinner === p2 ? `background:${activeBg};` : '';
 
         m.innerHTML = `
-            <div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); text-transform:uppercase; transition:background 0.2s; ${p1Style}" 
-                 onclick="${onPick}(${winnerIndex}, '${p1}', this)">
+            <div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); text-transform:uppercase; transition:background 0.2s; ${p1Style}"
+                 data-action="bracket-pick" data-handler="${onPick}" data-index="${winnerIndex}" data-player="${p1}">
                 ${p1} ${currentWinner === p1 ? '✓' : ''}
             </div>
-            <div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); border-top:1px solid #222; text-transform:uppercase; transition:background 0.2s; ${p2Style}" 
-                 onclick="${onPick}(${winnerIndex}, '${p2}', this)">
+            <div style="padding:15px; cursor:pointer; font-family:var(--sub-name-font); border-top:1px solid #222; text-transform:uppercase; transition:background 0.2s; ${p2Style}"
+                 data-action="bracket-pick" data-handler="${onPick}" data-index="${winnerIndex}" data-player="${p2}">
                 ${p2} ${currentWinner === p2 ? '✓' : ''}
             </div>
         `;
@@ -95,5 +95,3 @@ export const BracketEngine = {
         return pickedWinners === expectedWinners && (matchesToPlay > 0 || players.length === 1);
     }
 };
-
-window.BracketEngine = BracketEngine;
