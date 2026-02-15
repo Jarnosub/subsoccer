@@ -1,27 +1,26 @@
-import { state, _supabase } from './config.js';
+import { state, _supabase, subscribe } from './config.js';
 import { CardGenerator } from './card-generator.js';
+import { showNotification, showLoading, hideLoading, handleAsync, showModal, closeModal } from './ui-utils.js';
+import { handleSearch, addP, directAdd } from './script.js';
+import { replayTournament } from './tournament.js';
+import { fetchLB, fetchHist } from './stats-service.js';
+import { fetchMyGames, cancelEdit, registerGame, updateGame, viewOwnershipRequests } from './game-service.js';
+import { fetchPublicGamesMap, initGameMap, searchLocation } from './map.js';
+import { loadEventsPage } from './events.js';
+import { 
+    handleQuickSearch, startQuickMatch, clearQuickMatchPlayers, 
+    handleProModeClick, toggleAudioDetection, recordGoalSound, acceptRulesAndStart, 
+    addManualGoal, exitProMode, undoLastGoal, initProModeUI, initClaimResult, toggleSoundEffects
+} from './quick-match.js';
+import { saveProfile, previewAvatarFile } from './auth.js';
+import { startTournament, advanceRound, saveTour } from './tournament.js';
+import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard } from './moderator-service.js';
 
 // Swipe-toiminnallisuus muuttujat (siirretty alkuun ReferenceErrorin välttämiseksi)
 let touchStartX = 0;
 let touchEndX = 0;
-const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard'];
+const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'moderator'];
 let currentPageIndex = 1; // Aloitetaan tournament-sivulta
-
-/**
- * Näyttää toast-tyyppisen ilmoituksen ruudun yläreunassa.
- * @param {string} message - Näytettävä viesti.
- * @param {string} [type='error'] - Ilmoituksen tyyppi ('success' tai 'error').
- */
-export function showNotification(message, type = 'error') {
-    const container = document.getElementById('notification-container');
-    const notification = document.createElement('div');
-    notification.className = `toast-notification ${type}`;
-    notification.innerText = message;
-    container.appendChild(notification);
-    setTimeout(() => {
-        notification.remove();
-    }, 4000); // Ilmoitus poistuu 4 sekunnin kuluttua
-}
 
 /**
  * Näyttää voittoanimaation overlayn.
@@ -60,6 +59,10 @@ export function showVictoryAnimation(winnerName, newElo, eloGain) {
  * @param {string} p - Näytettävän sivun ID ilman 'section-'-etuliitettä.
  */
 export function showPage(p) {
+    state.currentPage = p;
+}
+
+function updatePageUI(p) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('section-' + p).classList.add('active');
@@ -92,18 +95,18 @@ export function showPage(p) {
         loadUserProfile();
         if (typeof updateProfileCard === 'function') updateProfileCard();
     }
-    if (p === 'leaderboard' && window.fetchLB) window.fetchLB();
-    if (p === 'history' && window.fetchHist) window.fetchHist();
-    if (p === 'games' && window.fetchMyGames) window.fetchMyGames();
-    if (p !== 'games' && window.cancelEdit) window.cancelEdit(); 
+    if (p === 'leaderboard') fetchLB();
+    if (p === 'history') fetchHist();
+    if (p === 'games') fetchMyGames();
+    if (p !== 'games') cancelEdit(); 
     if (p !== 'profile') cancelEditProfile();
-    if (p === 'map' && window.fetchPublicGamesMap) window.fetchPublicGamesMap();
-    if (p === 'events' && window.loadEventsPage) window.loadEventsPage();
+    if (p === 'map') fetchPublicGamesMap();
+    if (p === 'events') loadEventsPage();
 
     // Alustaa kartan 'games'-sivulla
     if (p === 'games') {
         setTimeout(() => {
-            if (!state.gameMap && window.initGameMap) window.initGameMap();
+            if (!state.gameMap) initGameMap();
             else state.gameMap.invalidateSize();
         }, 200);
     }
@@ -323,7 +326,8 @@ export function showEditProfile() {
         'edit-email': state.user.email,
         'edit-phone': state.user.phone,
         'edit-city': state.user.city,
-        'country-input': state.user.country
+        'country-input': state.user.country,
+        'edit-password': '' // Tyhjennetään salasanakenttä aina avattaessa
     };
 
     Object.entries(mapping).forEach(([id, val]) => {
@@ -341,77 +345,6 @@ export function cancelEditProfile() {
         editFields.style.display = 'none';
     }
     document.getElementById('profile-dashboard-ui').style.display = 'block'; // Tuo napit takaisin
-}
-
-/**
- * Keskitetty Modal-järjestelmä
- */
-export function showModal(title, content, options = {}) {
-    const modalId = options.id || 'generic-modal';
-    let modal = document.getElementById(modalId);
-    
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = modalId;
-        document.body.appendChild(modal);
-    }
-    
-    modal.className = 'modal-overlay';
-    const maxWidth = options.maxWidth || '500px';
-    const borderColor = options.borderColor || 'var(--sub-gold)';
-    
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: ${maxWidth}; border-color: ${borderColor};">
-            <div class="modal-header">
-                <h3 style="color: ${borderColor};">${title}</h3>
-                <button class="modal-close" onclick="closeModal('${modalId}')">&times;</button>
-            </div>
-            <div class="modal-body">
-                ${content}
-            </div>
-        </div>
-    `;
-    
-    modal.style.display = 'flex';
-    
-    // Sulje klikkaamalla taustaa
-    modal.onclick = (e) => {
-        if (e.target === modal) closeModal(modalId);
-    };
-
-    // Estä skrollaus taustalla
-    document.body.style.overflow = 'hidden';
-}
-
-export function closeModal(id = 'generic-modal') {
-    const modal = document.getElementById(id);
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    
-    // Palauta skrollaus jos muita modaaleja ei ole auki
-    const openModals = document.querySelectorAll('.modal-overlay[style*="display: flex"]');
-    if (openModals.length === 0) {
-        document.body.style.overflow = '';
-    }
-}
-
-export function showLoading(message = 'Loading...') {
-    let loader = document.getElementById('loading-overlay');
-    if (!loader) {
-        loader = document.createElement('div');
-        loader.id = 'loading-overlay';
-        loader.innerHTML = '<div class="spinner"></div><div id="loading-text" style="font-family:var(--sub-name-font); color:var(--sub-gold); letter-spacing:2px; text-transform:uppercase; font-size:0.8rem;"></div>';
-        document.body.appendChild(loader);
-    }
-    const textEl = document.getElementById('loading-text');
-    if (textEl) textEl.innerText = message;
-    loader.style.display = 'flex';
-}
-
-export function hideLoading() {
-    const loader = document.getElementById('loading-overlay');
-    if (loader) loader.style.display = 'none';
 }
 
 /**
@@ -485,23 +418,188 @@ export function toggleTheme() {
     if (typeof updateProfileCard === 'function') updateProfileCard();
 }
 
-// Globaalit kytkennät
-window.showPage = showPage;
-window.showNotification = showNotification;
-window.showMatchMode = showMatchMode;
-window.toggleTournamentMode = toggleTournamentMode;
-window.populateCountries = populateCountries;
-window.loadUserProfile = loadUserProfile;
-window.showEditProfile = showEditProfile;
-window.cancelEditProfile = cancelEditProfile;
-window.showVictoryAnimation = showVictoryAnimation;
-window.showModal = showModal;
-window.closeModal = closeModal;
-window.showLoading = showLoading;
-window.hideLoading = hideLoading;
-window.setupGlobalErrorHandling = setupGlobalErrorHandling;
-window.toggleTheme = toggleTheme;
-window.initTiltEffect = initTiltEffect;
+export function toggleSettingsMenu(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById('settings-menu');
+    if (menu) menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+}
+
+/**
+ * Setup all UI event listeners to remove inline onclicks.
+ */
+export function setupUIListeners() {
+    // Navigation Tabs
+    document.querySelectorAll('.nav-tabs .tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const page = tab.getAttribute('data-page');
+            if (page) showPage(page);
+        });
+    });
+
+    // Settings Menu
+    document.getElementById('menu-toggle-btn')?.addEventListener('click', (e) => toggleSettingsMenu(e));
+    document.getElementById('menu-item-leaderboard')?.addEventListener('click', (e) => {
+        showPage('leaderboard');
+        toggleSettingsMenu(e);
+    });
+    document.getElementById('menu-item-map')?.addEventListener('click', (e) => {
+        showPage('map');
+        toggleSettingsMenu(e);
+    });
+    document.getElementById('menu-item-edit-profile')?.addEventListener('click', (e) => {
+        showPage('profile');
+        showEditProfile();
+        toggleSettingsMenu(e);
+    });
+    document.getElementById('menu-item-moderator')?.addEventListener('click', (e) => {
+        showPage('moderator');
+        toggleSettingsMenu(e);
+    });
+    document.getElementById('btn-mod-partner-gen')?.addEventListener('click', () => {
+        showPartnerLinkGenerator();
+    });
+    document.getElementById('btn-mod-view-users')?.addEventListener('click', () => {
+        viewAllUsers();
+    });
+    document.getElementById('btn-mod-download-logs')?.addEventListener('click', () => {
+        downloadSystemLogs();
+    });
+    document.getElementById('btn-mod-reset-lb')?.addEventListener('click', () => {
+        resetGlobalLeaderboard();
+    });
+    document.getElementById('sound-toggle-btn')?.addEventListener('click', (e) => {
+        toggleSoundEffects();
+        toggleSettingsMenu(e);
+    });
+
+    // Victory Overlay
+    document.getElementById('btn-victory-new-game')?.addEventListener('click', closeVictoryOverlay);
+    document.getElementById('btn-victory-end-game')?.addEventListener('click', closeVictoryOverlay);
+
+    // Profile Section
+    document.getElementById('avatar-file-input')?.addEventListener('change', (e) => previewAvatarFile(e.target));
+    document.getElementById('btn-save-profile')?.addEventListener('click', (e) => saveProfile(e));
+    document.getElementById('btn-cancel-edit-profile')?.addEventListener('click', cancelEditProfile);
+    document.getElementById('btn-profile-leaderboard')?.addEventListener('click', () => showPage('leaderboard'));
+    document.getElementById('btn-profile-map')?.addEventListener('click', () => showPage('map'));
+    document.getElementById('btn-profile-history')?.addEventListener('click', () => showPage('history'));
+    document.getElementById('btn-profile-register-game')?.addEventListener('click', () => showPage('games'));
+
+    // Games Section
+    document.getElementById('btn-search-location')?.addEventListener('click', () => searchLocation());
+    document.getElementById('btn-reg-game')?.addEventListener('click', () => registerGame());
+    document.getElementById('btn-update-game')?.addEventListener('click', () => updateGame());
+    document.getElementById('btn-cancel-edit-game')?.addEventListener('click', () => cancelEdit());
+    document.getElementById('btn-view-transfer-requests')?.addEventListener('click', () => viewOwnershipRequests());
+
+    // Quick Match Section
+    document.getElementById('btn-quick-match-mode')?.addEventListener('click', () => showMatchMode('quick'));
+    document.getElementById('btn-tournament-mode')?.addEventListener('click', () => showMatchMode('tournament'));
+    document.getElementById('p1-quick-search')?.addEventListener('input', (e) => handleQuickSearch(e.target, 'p1'));
+    document.getElementById('p2-quick-search')?.addEventListener('input', (e) => handleQuickSearch(e.target, 'p2'));
+    document.getElementById('btn-clear-quick-players')?.addEventListener('click', () => clearQuickMatchPlayers());
+    document.getElementById('start-quick-match')?.addEventListener('click', () => startQuickMatch());
+
+    // Tournament Section
+    document.getElementById('add-p-input')?.addEventListener('input', (e) => handleSearch(e.target.value));
+    document.getElementById('add-p-input')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addP();
+    });
+    document.getElementById('btn-add-player')?.addEventListener('click', () => addP());
+    document.getElementById('btn-clear-pool')?.addEventListener('click', () => clearPool());
+    document.getElementById('btn-start-tournament')?.addEventListener('click', () => startTournament());
+
+    // Pro Mode & Audio
+    document.getElementById('pro-mode-section')?.addEventListener('click', () => handleProModeClick());
+    document.getElementById('toggle-audio-btn')?.addEventListener('click', () => toggleAudioDetection());
+    document.getElementById('btn-record-goal-1')?.addEventListener('click', () => recordGoalSound(1));
+    document.getElementById('btn-record-goal-2')?.addEventListener('click', () => recordGoalSound(2));
+    document.getElementById('btn-accept-rules')?.addEventListener('click', () => acceptRulesAndStart());
+    document.getElementById('pro-player-left')?.addEventListener('click', () => addManualGoal(1));
+    document.getElementById('pro-player-right')?.addEventListener('click', () => addManualGoal(2));
+    document.getElementById('btn-exit-pro-mode')?.addEventListener('click', () => exitProMode());
+    document.getElementById('pro-undo-btn')?.addEventListener('click', () => undoLastGoal());
+
+    // Bracket Engine
+    document.getElementById('next-rd-btn')?.addEventListener('click', () => advanceRound());
+    document.getElementById('save-btn')?.addEventListener('click', () => saveTour());
+    document.getElementById('btn-close-card-modal')?.addEventListener('click', () => closeCardModal());
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (event) => {
+        const menu = document.getElementById('settings-menu');
+        const btn = document.getElementById('menu-toggle-btn');
+        if (menu && menu.style.display === 'flex' && !menu.contains(event.target) && !btn.contains(event.target)) {
+            menu.style.display = 'none';
+        }
+    });
+
+    // Event Delegation for dynamic elements
+    document.addEventListener('click', (e) => {
+        // 1. Player Cards (Leaderboard, Podium)
+        const playerTrigger = e.target.closest('[data-username]');
+        if (playerTrigger) {
+            viewPlayerCard(playerTrigger.dataset.username);
+            return;
+        }
+
+        // 2. Pool Removal
+        const removeBtn = e.target.closest('[data-remove-index]');
+        if (removeBtn) {
+            removeFromPool(parseInt(removeBtn.dataset.removeIndex));
+            return;
+        }
+
+        // 3. Guest Quick Add
+        const guestBadge = e.target.closest('[data-guest]');
+        if (guestBadge) {
+            directAdd(guestBadge.dataset.guest);
+            return;
+        }
+
+        // 4. Tournament History Toggle
+        const tourToggle = e.target.closest('[data-toggle-tournament]');
+        if (tourToggle) {
+            const el = document.getElementById(`tour-matches-${tourToggle.dataset.toggleTournament}`);
+            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            return;
+        }
+
+        // 5. Tournament Replay
+        const replayBtn = e.target.closest('[data-replay-players]');
+        if (replayBtn) {
+            replayTournament(JSON.parse(replayBtn.dataset.replayPlayers), replayBtn.dataset.replayName);
+            return;
+        }
+
+        // 6. Card Actions (Upgrade & Download)
+        const actionBtn = e.target.closest('[data-action]');
+        if (actionBtn) {
+            const action = actionBtn.dataset.action;
+            if (action === 'show-card-shop') showCardShop();
+            if (action === 'download-card') downloadFanCard();
+            return;
+        }
+
+        // 7. Purchase Edition
+        const purchaseBtn = e.target.closest('[data-edition-id]');
+        if (purchaseBtn) {
+            purchaseEdition(purchaseBtn.dataset.editionId);
+            return;
+        }
+
+        // 8. Share Level Up
+        const shareBtn = e.target.closest('[data-share-level-up]');
+        if (shareBtn) {
+            const playerName = shareBtn.dataset.shareLevelUp;
+            (async () => {
+                const dataUrl = await CardGenerator.capture('level-up-container');
+                if (dataUrl) CardGenerator.share(dataUrl, playerName);
+            })();
+            return;
+        }
+    });
+}
 
 // ============================================================
 // MOVED FROM SCRIPT.JS TO BREAK CIRCULAR DEPENDENCIES
@@ -527,7 +625,7 @@ export function updatePoolUI() {
                 <span style="color: #444; font-family: var(--sub-name-font); font-size: 0.8rem; width: 20px;">${index + 1}.</span>
                 <span style="color: white; text-transform: uppercase; font-size: 0.9rem; font-family: var(--sub-name-font); letter-spacing:1px;">${name}</span>
             </div>
-            <button class="pool-remove-btn" onclick="removeFromPool(${index})">-</button>
+            <button class="pool-remove-btn" data-remove-index="${index}">-</button>
         `;
         list.appendChild(div);
     });
@@ -549,7 +647,7 @@ export function clearPool() {
 
 export function updateGuestUI() {
     const el = document.getElementById('active-guests');
-    if (el) el.innerHTML = state.sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" onclick="directAdd('${g}')">${g}</span>`).join('');
+    if (el) el.innerHTML = state.sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" data-guest="${g}">${g}</span>`).join('');
 }
 
 export function updateProfileCard() {
@@ -564,28 +662,34 @@ export function updateProfileCard() {
         'global': 'GLOBAL PRO',
         'legendary-gold': 'LEGENDARY GOLD'
     };
-    const editionLabel = labels[state.activeCardEdition] || 'PRO CARD';
+    const editionLabel = state.brand ? 'PARTNER EDITION' : (labels[state.activeCardEdition] || 'PRO CARD');
+    const overlayBg = state.brand ? 'var(--sub-red)' : '#000';
+    const overlayHeight = state.brand ? '30%' : '40%';
 
     container.innerHTML = `
         <div class="topps-collectible-card ${editionClass}">
-            <img src="${u.avatar_url || 'placeholder-silhouette-5-wide.png'}" class="card-hero-image" onerror="this.src='placeholder-silhouette-5-wide.png'">
-            <div class="card-overlay"></div>
+            <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" class="card-hero-image" referrerpolicy="no-referrer" onerror="this.src='placeholder-silhouette-5-wide.png'">
+            <div class="card-overlay" style="background: ${overlayBg}; height: ${overlayHeight}; border-top: ${state.brand ? '3px solid var(--sub-gold)' : 'none'}; box-shadow: 0 -5px 15px rgba(0,0,0,0.3);"></div>
             <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">${editionLabel} // 2026</div>
             <div class="card-content-bottom">
-                <div style="color:var(--sub-gold); font-size:0.7rem; letter-spacing:2px; margin-bottom:4px;"><i class="fa-solid fa-location-dot"></i> ${u.city || 'HELSINKI'}</div>
+                <div style="color:var(--sub-gold); font-size:0.75rem; letter-spacing:2px; margin-bottom:4px; font-weight:bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"><i class="fa-solid fa-location-dot"></i> ${u.city || 'HELSINKI'}</div>
                 <div class="card-player-name">${u.username}</div>
                 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
                     <div class="card-elo-badge">${u.elo || 1300} ELO</div>
-                    <div style="text-align:right;"><div style="color:#666; font-size:0.6rem; text-transform:uppercase;">Win Ratio</div><div style="color:white; font-size:1rem;">${((u.wins / (Math.max(1, u.wins + (u.losses || 0)))) * 100).toFixed(0)}%</div></div>
+                    <div style="text-align:right;"><div style="color:white; font-size:0.6rem; text-transform:uppercase;">Win Ratio</div><div style="color:white; font-size:1rem;">${((u.wins / (Math.max(1, u.wins + (u.losses || 0)))) * 100).toFixed(0)}%</div></div>
                 </div>
             </div>
-            <div style="position:absolute; bottom:15px; right:15px; width:30px; height:30px; background:radial-gradient(circle, #ffd700, #b8860b); border-radius:50%; opacity:0.3; z-index:11; filter:blur(1px);"></div>
+            ${state.brandLogo ? `
+                <img src="${state.brandLogo}" style="position:absolute; bottom: 80px; right: 15px; z-index: 11; max-width: 60px; max-height: 35px; object-fit: contain;">
+            ` : `
+                <div style="position:absolute; bottom:15px; right:15px; width:30px; height:30px; background:radial-gradient(circle, #ffd700, #b8860b); border-radius:50%; opacity:0.3; z-index:11; filter:blur(1px);"></div>
+            `}
         </div>
         <div style="display:flex; gap:10px; margin-top:15px;">
-            <button class="btn-red" style="flex:1; background:#222; font-size:0.7rem;" onclick="showCardShop()">
+            <button class="btn-red" style="flex:1; background:#222; font-size:0.7rem;" data-action="show-card-shop">
                 <i class="fa fa-shopping-cart"></i> UPGRADE CARD
             </button>
-            <button class="btn-red" style="flex:1; font-size:0.7rem;" onclick="downloadFanCard()">
+            <button class="btn-red" style="flex:1; font-size:0.7rem;" data-action="download-card">
                 <i class="fa fa-download"></i> SAVE IMAGE
             </button>
         </div>
@@ -594,6 +698,94 @@ export function updateProfileCard() {
     const card = container.querySelector('.topps-collectible-card');
     if (card) initTiltEffect(card);
 }
+
+/**
+ * Reactive UI: Automatically update components when state changes.
+ */
+subscribe('user', () => {
+    try {
+        if (!state.user) return;
+        
+        // Tarkistetaan ollaanko vasta kirjautumassa sisään (auth-sivu on vielä näkyvissä)
+        const isInitialLogin = document.getElementById('auth-page').style.display !== 'none';
+
+        // 1. Käyttöliittymän siirtymä (Häivytä kirjautuminen, näytä sovellus)
+        const authPage = document.getElementById('auth-page');
+        const appContent = document.getElementById('app-content');
+        const navTabs = document.getElementById('nav-tabs');
+        const menuBtn = document.getElementById('menu-toggle-btn');
+        
+        if (authPage) authPage.style.display = 'none';
+        if (appContent) appContent.style.display = 'flex';
+        if (navTabs) navTabs.style.setProperty('display', 'flex', 'important');
+        if (menuBtn) menuBtn.style.display = 'block';
+
+        // 2. Kontekstuaalinen UI (Vieraat vs Rekisteröityneet)
+        const eventsTab = document.getElementById('tab-events');
+        if (eventsTab) eventsTab.style.display = state.user.id === 'guest' ? 'none' : 'flex';
+        
+        // Moderator Menu Visibility
+        const modMenu = document.getElementById('menu-item-moderator');
+        if (modMenu) modMenu.style.display = state.user.username === 'JARNO SAARINEN' ? 'flex' : 'none';
+
+        const proModeSection = document.getElementById('pro-mode-section');
+        if (proModeSection) proModeSection.style.display = state.user.username === 'JARNO SAARINEN' ? 'block' : 'none';
+
+        // 3. Quick Match -näkymän nollaus
+        const startBtn = document.getElementById('start-quick-match');
+        if (startBtn) {
+            startBtn.textContent = 'START GAME';
+            startBtn.style.background = '';
+        }
+
+        // 4. Instant Play -linkin päivitys
+        const instantPlayLink = document.querySelector('a[href*="instant-play.html"]');
+        if (instantPlayLink) {
+            const userType = state.user.id === 'guest' ? 'guest' : 'registered';
+            instantPlayLink.href = `instant-play.html?game_id=QUICK-PLAY&mode=casual&user_type=${userType}`;
+        }
+
+        // 5. Komponenttien päivitys
+        updateProfileCard();
+        updateGuestUI();
+        initProModeUI();
+
+        // 6. Navigointi (Vain ensimmäisellä kirjautumisella, ei profiilin päivityksen yhteydessä)
+        if (isInitialLogin) {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('action') === 'claim_result') {
+                const p1 = parseInt(params.get('p1_score')) || 0;
+                const p2 = parseInt(params.get('p2_score')) || 0;
+                const gameId = params.get('game_id');
+                initClaimResult(p1, p2, gameId);
+            } else {
+                state.currentPage = 'tournament';
+            }
+        }
+    } catch (err) {
+        console.error("Error in user state subscription:", err);
+    }
+});
+
+subscribe('currentPage', (p) => {
+    updatePageUI(p);
+});
+
+subscribe('activeCardEdition', () => {
+    updateProfileCard();
+});
+
+subscribe('pool', () => {
+    updatePoolUI();
+});
+
+subscribe('allGames', () => {
+    populateGameSelect();
+});
+
+subscribe('victoryData', (data) => {
+    if (data) showVictoryAnimation(data.winnerName, data.winnerElo, data.winnerGain);
+});
 
 export function updateAvatarPreview(url) {
     const img = document.getElementById('avatar-preview');
@@ -607,7 +799,6 @@ export async function viewPlayerCard(targetUsername) {
     showModal('Player Card', '<p style="font-family:\'Resolve\'">LOADING CARD...</p>', { id: 'card-modal', maxWidth: '400px' });
     
     const { data: p } = await _supabase.from('players').select('*').eq('username', targetUsername).maybeSingle();
-    const { count: totalGames } = await _supabase.from('matches').select('*', { count: 'exact', head: true }).or(`player1.eq.${targetUsername},player2.eq.${targetUsername}`);
     
     if (!p) {
         const body = document.querySelector('#card-modal .modal-body');
@@ -616,12 +807,13 @@ export async function viewPlayerCard(targetUsername) {
     }
 
     const wins = p.wins || 0;
-    const losses = Math.max(0, (totalGames || 0) - wins);
+    const losses = p.losses || 0;
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
     const rank = p.elo > 1600 ? "PRO" : "ROOKIE";
-    const avatarUrl = p.avatar_url ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
+    const cardHeader = state.brand ? "PARTNER" : rank;
+    const avatarUrl = (p.avatar_url && p.avatar_url.trim() !== '') ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
     
-    const html = `<div class="pro-card" style="margin:0; width:100% !important;"><div class="card-inner-frame"><div class="card-header-stripe">${rank} CARD</div><div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div><div class="card-name-strip">${p.username}</div><div class="card-info-area"><div class="card-stats-row"><div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div><div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div><div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div><div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div></div><div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Resolve';">REPRESENTING</span></div><div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Resolve';">CLUB: PRO</div></div></div></div></div>`;
+    const html = `<div class="pro-card" style="margin:0; width:100% !important;"><div class="card-inner-frame"><div class="card-header-stripe">${cardHeader} CARD</div><div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div><div class="card-name-strip">${p.username}</div><div class="card-info-area"><div class="card-stats-row"><div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div><div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div><div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div><div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div></div><div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Resolve';">REPRESENTING</span></div>${state.brandLogo ? `<img src="${state.brandLogo}" style="height:22px; width:auto; object-fit:contain;">` : `<div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Resolve';">CLUB: PRO</div>`}</div></div></div></div></div>`;
     
     const body = document.querySelector('#card-modal .modal-body');
     if (body) body.innerHTML = html;
@@ -641,7 +833,7 @@ export async function showLevelUpCard(playerName, newElo) {
                 <p style="text-align:center; color:#888;">Generating your new card...</p>
             </div>
             <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="shareMyLevelUp('${playerName}')">
+                <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" data-share-level-up="${playerName}">
                     <i class="fa fa-share-nodes"></i> SHARE CARD
                 </button>
                 <button class="btn-red" style="flex:1; background:#333;" onclick="closeModal('level-up-modal')">CLOSE</button>
@@ -660,11 +852,6 @@ export async function showLevelUpCard(playerName, newElo) {
     const previewCard = document.querySelector('#level-up-card-preview .pro-card, #level-up-card-preview .topps-collectible-card');
     if (previewCard) initTiltEffect(previewCard);
 }
-
-window.shareMyLevelUp = async (playerName) => {
-    const dataUrl = await CardGenerator.capture('level-up-container');
-    if (dataUrl) CardGenerator.share(dataUrl, playerName);
-};
 
 export async function downloadFanCard() {
     const dataUrl = await CardGenerator.capture('profile-card-container');
@@ -689,7 +876,7 @@ export function showCardShop() {
                         <div style="font-family:var(--sub-name-font); color:#fff;">${e.name}</div>
                         <div style="color:var(--sub-gold); font-size:0.9rem; font-weight:bold;">${e.price}</div>
                     </div>
-                    <button class="btn-red" style="width:auto; padding:8px 15px; font-size:0.8rem;" onclick="purchaseEdition('${e.id}')">
+                    <button class="btn-red" style="width:auto; padding:8px 15px; font-size:0.8rem;" data-edition-id="${e.id}">
                         BUY NOW
                     </button>
                 </div>
@@ -700,27 +887,117 @@ export function showCardShop() {
     showModal('SUBSOCCER COLLECTIBLE SHOP', html, { maxWidth: '450px' });
 }
 
-window.purchaseEdition = async (editionId) => {
-    // Tässä kohtaa tapahtuisi oikea maksuintegraatio (Stripe/PayPal)
-    showLoading('Processing transaction...');
-    
-    setTimeout(() => {
-        hideLoading();
-        state.activeCardEdition = editionId;
-        state.inventory.push(editionId);
-        updateProfileCard();
-        closeModal();
-    }, 1500);
-};
+export async function purchaseEdition(editionId) {
+    await handleAsync(new Promise(resolve => {
+        setTimeout(() => {
+            state.activeCardEdition = editionId;
+            state.inventory.push(editionId);
+            closeModal();
+            resolve(true);
+        }, 1500);
+    }), 'Edition purchased successfully!');
+}
 
-window.updatePoolUI = updatePoolUI;
-window.removeFromPool = removeFromPool;
-window.clearPool = clearPool;
-window.updateGuestUI = updateGuestUI;
-window.updateProfileCard = updateProfileCard;
-window.updateAvatarPreview = updateAvatarPreview;
-window.viewPlayerCard = viewPlayerCard;
-window.closeCardModal = closeCardModal;
-window.downloadFanCard = downloadFanCard;
-window.showLevelUpCard = showLevelUpCard;
-window.showCardShop = showCardShop;
+/**
+ * Personoi sovelluksen brändin mukaan (esim. Coca-Cola värit)
+ * Käyttö: ?brand=partner
+ */
+export function applyBranding() {
+    const params = new URLSearchParams(window.location.search);
+    const brandFromUrl = params.get('brand');
+    const logoFromUrl = params.get('logo');
+    const colorFromUrl = params.get('color');
+    
+    // Mahdollisuus nollata brändäys (?brand=none)
+    if (brandFromUrl === 'none') {
+        localStorage.removeItem('subsoccer-brand');
+        localStorage.removeItem('subsoccer-logo');
+        localStorage.removeItem('subsoccer-color');
+        state.brand = null;
+        state.brandLogo = null;
+        return;
+    }
+
+    // Haetaan tallennettu brändi tai käytetään URL-parametria
+    const brandId = brandFromUrl || localStorage.getItem('subsoccer-brand');
+    const logoUrl = logoFromUrl || localStorage.getItem('subsoccer-logo');
+    const colorHex = colorFromUrl || localStorage.getItem('subsoccer-color');
+
+    if (brandFromUrl && brandFromUrl !== 'none') {
+        localStorage.setItem('subsoccer-brand', brandFromUrl);
+        state.brand = brandFromUrl;
+    }
+    if (logoFromUrl && logoFromUrl !== '') {
+        localStorage.setItem('subsoccer-logo', logoFromUrl);
+        state.brandLogo = logoFromUrl;
+    }
+    if (colorFromUrl && colorFromUrl !== '') {
+        localStorage.setItem('subsoccer-color', colorFromUrl);
+    }
+    
+    if (brandId) {
+        state.brand = brandId;
+        state.brandLogo = logoUrl;
+        
+        // Käytetään annettua väriä tai oletus-partner-punaista
+        let primaryColor = colorHex ? (colorHex.startsWith('#') ? colorHex : '#' + colorHex) : null;
+        if (!primaryColor && brandId === 'partner') primaryColor = '#F40009';
+
+        if (primaryColor) {
+            document.documentElement.style.setProperty('--sub-red', primaryColor);
+            document.documentElement.style.setProperty('--sub-gold', '#FFFFFF'); 
+        }
+        
+        const logo = document.querySelector('.main-logo');
+        if (logo) {
+            if (logoUrl) {
+                logo.src = logoUrl;
+                logo.style.filter = 'none';
+            } else {
+                logo.style.filter = 'brightness(0) invert(1)';
+            }
+            logo.style.opacity = '1';
+            logo.style.display = 'block';
+        }
+
+        // Näytetään splash screen vain jos tultiin suoralla linkillä
+        if (brandFromUrl) {
+            showPartnerSplashScreen(logoUrl, primaryColor);
+        }
+        console.log(`🤝 Branding Applied: ${brandId}`);
+    } else {
+        // Palautetaan oletusilme (Subsoccer)
+        document.documentElement.style.setProperty('--sub-red', '#E30613');
+        document.documentElement.style.setProperty('--sub-gold', '#FFD700');
+        const logo = document.querySelector('.main-logo');
+        if (logo) {
+            logo.src = 'logo.png';
+            logo.style.filter = 'none';
+        }
+    }
+}
+
+function showPartnerSplashScreen(logoUrl, bgColor) {
+    const splash = document.createElement('div');
+    splash.id = 'partner-splash';
+    splash.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: ${bgColor || '#F40009'}; z-index: 100000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        color: white; font-family: 'Resolve', sans-serif;
+        transition: opacity 0.8s ease-out;
+    `;
+    splash.innerHTML = `
+        <div style="font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 20px; opacity: 0.8;">SUBSOCCER</div>
+        ${logoUrl ? `<img src="${logoUrl}" style="max-height: 80px; margin-bottom: 20px;">` : ''}
+        <div style="font-size: 2.5rem; font-weight: bold; letter-spacing: 2px; text-align: center; padding: 0 20px; line-height: 1.1;">
+            OFFICIAL<br>PARTNER
+        </div>
+        <div style="margin-top: 40px; width: 40px; height: 2px; background: white; opacity: 0.5;"></div>
+    `;
+    document.body.appendChild(splash);
+    setTimeout(() => {
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 800);
+    }, 2000);
+}

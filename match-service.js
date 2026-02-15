@@ -1,5 +1,5 @@
 import { _supabase, state } from './config.js';
-import { showNotification, showLoading, hideLoading } from './ui.js';
+import { showNotification, showLoading, hideLoading } from './ui-utils.js';
 
 /**
  * Keskitetty palvelu otteluiden hallintaan ja ELO-laskentaan.
@@ -51,32 +51,49 @@ export const MatchService = {
             
             const gain = (winnerName === player1Name ? newEloA : newEloB) - winnerData.elo;
 
-            // Päivitetään rekisteröityjen pelaajien tiedot
+            // Päivitetään pelaajien tiedot (ELO + voitot/häviöt) yhdellä kutsulla
             if (!p1.isGuest) {
-                await _supabase.from('players').update({ elo: newEloA }).eq('id', p1.id);
+                const p1Updates = { elo: parseInt(newEloA) };
+                if (winnerName === player1Name) p1Updates.wins = (p1.wins || 0) + 1;
+                else p1Updates.losses = (p1.losses || 0) + 1;
+                const { error: p1Err } = await _supabase.from('players').update(p1Updates).eq('id', p1.id);
+                if (p1Err) console.error("Error updating player 1 stats:", p1Err);
             }
             if (!p2.isGuest) {
-                await _supabase.from('players').update({ elo: newEloB }).eq('id', p2.id);
-            }
-            
-            // Kasvatetaan voittajan voittomäärää
-            if (!winnerData.isGuest) {
-                await _supabase.from('players').update({ wins: (winnerData.wins || 0) + 1 }).eq('id', winnerData.id);
+                const p2Updates = { elo: parseInt(newEloB) };
+                if (winnerName === player2Name) p2Updates.wins = (p2.wins || 0) + 1;
+                else p2Updates.losses = (p2.losses || 0) + 1;
+                const { error: p2Err } = await _supabase.from('players').update(p2Updates).eq('id', p2.id);
+                if (p2Err) console.error("Error updating player 2 stats:", p2Err);
             }
 
-            // Lisätään ottelutallenne
-            const { error } = await _supabase.from('matches').insert([{
+            // Lisätään ottelutallenne - yritetään ensin kaikilla tiedoilla
+            const matchData = {
                 player1: player1Name,
                 player2: player2Name,
                 winner: winnerName,
-                player1_score: p1Score,
-                player2_score: p2Score,
-                tournament_id: tournamentId,
-                tournament_name: tournamentName,
                 created_at: new Date().toISOString()
-            }]);
+            };
 
-            if (error) throw error;
+            // Lisätään valinnaiset kentät vain jos ne on määritelty
+            if (p1Score !== null) matchData.player1_score = p1Score;
+            if (p2Score !== null) matchData.player2_score = p2Score;
+            if (tournamentId) matchData.tournament_id = tournamentId;
+            if (tournamentName) matchData.tournament_name = tournamentName;
+
+            const { error: matchError } = await _supabase.from('matches').insert([matchData]);
+
+            if (matchError) {
+                console.warn("Primary match record failed (likely missing columns), trying fallback:", matchError);
+                // Fallback: yritetään tallentaa vain perusmääritelmät jos uudet sarakkeet puuttuvat
+                const { error: fallbackError } = await _supabase.from('matches').insert([{
+                    player1: player1Name,
+                    player2: player2Name,
+                    winner: winnerName,
+                    created_at: new Date().toISOString()
+                }]);
+                if (fallbackError) throw fallbackError;
+            }
 
             // Tallennetaan globaalisti animaatioita varten
             window.lastTournamentEloGain = gain;

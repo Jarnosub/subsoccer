@@ -1,5 +1,5 @@
 import { _supabase, state } from './config.js';
-import { showNotification, showPage, showModal, closeModal, showLoading, hideLoading } from './ui.js';
+import { showNotification, showModal, closeModal, showLoading, hideLoading } from './ui-utils.js';
 import { BracketEngine } from './bracket-engine.js';
 import { MatchService } from './match-service.js';
 
@@ -2234,7 +2234,7 @@ export async function editEvent(eventId) {
         closeEventModal();
         
         // Show events page (this triggers loadEventsPage which clears the view to show loading spinner)
-        showPage('events');
+        state.currentPage = 'events';
         
         // Wait for loadEventsPage to finish rendering the form container before showing and populating it
         setTimeout(() => {

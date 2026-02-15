@@ -1,4 +1,4 @@
-import { showNotification } from './ui.js';
+import { showNotification } from './ui-utils.js';
 
 /**
  * CardGenerator Service

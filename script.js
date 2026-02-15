@@ -1,5 +1,4 @@
 import { _supabase, state } from './config.js';
-import { updatePoolUI, showNotification } from './ui.js';
 
 // ============================================================
 // 2. PELAAJAPOOLIN HALLINTA (haku, lisäys, poisto)
@@ -16,18 +15,17 @@ export function handleSearch(v) {
 export function addP() {
     const i = document.getElementById('add-p-input');
     const n = i.value.trim().toUpperCase();
-    if (n && !state.pool.includes(n)) { state.pool.push(n); updatePoolUI(); }
+    if (n && !state.pool.includes(n)) { state.pool = [...state.pool, n]; }
     i.value = '';
     document.getElementById('search-results').style.display = 'none';
 }
 
 export function directAdd(n) {
-    if (!state.pool.includes(n)) { state.pool.push(n); updatePoolUI(); }
+    if (!state.pool.includes(n)) { state.pool = [...state.pool, n]; }
     document.getElementById('add-p-input').value = '';
     document.getElementById('search-results').style.display = 'none';
 }
 
-    const serialNumber = document.getElementById('game-serial-input').value.trim();
 // ============================================================
 // 10. CONNECTION WATCHDOG
 // ============================================================
@@ -41,13 +39,13 @@ setInterval(async () => {
         if (error) throw error;
         
         if (wasOffline) {
-            showNotification("Connection restored", "success");
+            if (window.showNotification) window.showNotification("Connection restored", "success");
             wasOffline = false;
         }
         dot.classList.remove('dot-offline');
     } catch (e) {
         if (!wasOffline) {
-            showNotification("Connection lost. Retrying...", "error");
+            if (window.showNotification) window.showNotification("Connection lost. Retrying...", "error");
             wasOffline = true;
         }
         dot.classList.add('dot-offline');

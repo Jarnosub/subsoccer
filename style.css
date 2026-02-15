@@ -91,90 +91,64 @@ header {
 .logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; letter-spacing: 1px; }
 
 .nav-tabs { 
-    display: none; /* Piilotettu ennen kirjautumista */
-    justify-content: space-around; 
-    gap: 12px; 
-    width: 95%; 
-    max-width: 450px; 
-    border-bottom: 1px solid var(--sub-border); 
-    margin: 0 auto 25px auto; 
-    position: relative;
-    z-index: 10;
+    display: none !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 90% !important;
+    max-width: 450px !important;
+    height: 65px !important;
+    background: var(--sub-surface) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid var(--sub-border) !important;
+    border-radius: var(--sub-radius) !important;
+    box-shadow: var(--sub-shadow) !important;
+    padding: 0 10px !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    z-index: 9999 !important;
+    gap: 0;
+    box-sizing: border-box !important;
 }
 .tab { 
-    font-family: var(--sub-name-font); 
-    font-size: 0.8rem; 
-    padding: 12px 6px; 
-    cursor: pointer; 
-    opacity: 0.4; 
-    text-transform: uppercase; 
-    color: var(--sub-white); 
-    border-bottom: 3px solid transparent;
+    font-family: var(--sub-name-font);
+    font-size: 1.6rem !important;
+    padding: 0 !important;
+    flex: 1;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 3px;
+    height: 100%;
+    opacity: 0.6;
+    color: #ffffff !important;
+    border: none !important;
+    cursor: pointer;
 }
-.tab i { 
-    font-size: 1.1rem;
-    color: var(--sub-white); /* Ikonit ovat aina valkoisia/kultaisia */
-    margin-bottom: 4px;
-    transition: color 0.3s ease;
+.tab i {
+    display: block;
+    transition: transform 0.2s ease;
 }
-.tab.active { 
-    opacity: 1; 
-    color: var(--sub-gold); /* Aktiivinen ikoni loistaa kultaisena */
-    border-bottom-color: var(--sub-gold); 
+.tab.active {
+    opacity: 1;
+    color: var(--sub-gold) !important;
+    position: relative;
 }
-
+.tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    width: 4px;
+    height: 4px;
+    background: var(--sub-gold);
+    border-radius: 50%;
+}
 .tab.active i {
-    color: var(--sub-gold);
+    transform: translateY(-2px);
 }
 
-/* Floating Mobile Navigation */
-@media (max-width: 768px) {
-    .nav-tabs {
-        position: fixed !important;
-        bottom: 20px !important; /* Kelluu irti alareunasta */
-        left: 0 !important;
-        right: 0 !important;
-        margin: 0 auto !important; /* Keskittää fixed-elementin kun left/right on 0 */
-        width: 90% !important;
-        max-width: 450px !important;
-        height: 65px !important;
-        background: var(--sub-surface) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        border: 1px solid var(--sub-border) !important;
-        border-radius: var(--sub-radius) !important; /* Yhtenäinen muun sovelluksen kanssa */
-        box-shadow: var(--sub-shadow) !important;
-        padding: 0 10px !important;
-        visibility: visible !important;
-        align-items: center !important;
-        justify-content: space-around !important;
-        z-index: 9999 !important;
-        gap: 0;
-        box-sizing: border-box !important; /* Estää leveyden ylityksen paddingin takia */
-    }
-    .tab i {
-        font-size: 1.6rem !important; /* Maltillinen, tyylikäs koko */
-        display: block;
-        transition: transform 0.2s ease;
-    }
-    .tab { font-size: 1.6rem !important; padding: 0 !important; flex: 1; display: flex; justify-content: center; align-items: center; height: 100%; opacity: 0.4; color: #ffffff !important; border: none !important; }
-
-    .tab.active { opacity: 1; color: var(--sub-gold) !important; position: relative; }
-    .tab.active::after { content: ''; position: absolute; bottom: 8px; width: 4px; height: 4px; background: var(--sub-gold); border-radius: 50%; }
-
-    .tab.active i { transform: translateY(-2px); /* Pieni nosto korostukseksi */ }
-    #app-content { padding-bottom: 100px !important; }
-    
-    #sound-toggle-btn { 
-        font-size: 1.1rem !important; 
-        padding: 3px !important; 
-    }
-    
-}
+#app-content { padding-bottom: 100px !important; }
 
 #menu-toggle-btn {
     display: none;
@@ -965,7 +939,8 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     content: '';
     position: absolute;
     inset: 5px;
-    border: 2px solid var(--sub-gold);
+    border: 2px solid var(--sub-gold) !important;
+    background: transparent !important;
     border-radius: 8px;
     pointer-events: none;
     z-index: 10;

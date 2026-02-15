@@ -1,5 +1,5 @@
 import { _supabase, state } from './config.js';
-import { showNotification, showPage, showVictoryAnimation, updatePoolUI, updateProfileCard } from './ui.js';
+import { showNotification } from './ui-utils.js';
 import { BracketEngine } from './bracket-engine.js';
 import { MatchService } from './match-service.js';
 
@@ -200,20 +200,17 @@ export async function saveTour() {
         }
 
         state.pool = []; 
-        updatePoolUI();
         document.getElementById('tour-engine').style.display = 'none';
         document.getElementById('tour-setup').style.display = 'block';
-        showPage('history');
+        state.currentPage = 'history';
         showNotification('Tournament saved successfully!', 'success');
         
-        if (typeof showVictoryAnimation === 'function') {
-            showVictoryAnimation(winnerName, winnerElo, winnerGain);
-        }
+        state.victoryData = { winnerName, winnerElo, winnerGain };
 
         // Päivitetään kirjautuneen käyttäjän tila, jos hän voitti
         if (state.user && winnerName === state.user.username) {
             const { data } = await _supabase.from('players').select('*').eq('id', state.user.id).maybeSingle();
-            if (data) { state.user = data; updateProfileCard(); }
+            if (data) { state.user = data; }
         }
     } catch (error) {
         console.error('Error saving tournament:', error);
@@ -223,8 +220,7 @@ export async function saveTour() {
 
 export function replayTournament(players, tourName) {
     state.pool = [...players];
-    showPage('tournament');
-    updatePoolUI();
+    state.currentPage = 'tournament';
     showNotification(`Players for "${tourName}" loaded!`, 'success');
 }
 

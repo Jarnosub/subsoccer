@@ -1,5 +1,5 @@
 import { _supabase, state } from './config.js';
-import { showNotification } from './ui.js';
+import { showNotification } from './ui-utils.js';
 
 /**
  * ============================================================

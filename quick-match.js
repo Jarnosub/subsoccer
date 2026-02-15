@@ -1,5 +1,5 @@
 import { _supabase, state } from './config.js';
-import { showNotification, showPage, updateProfileCard, showMatchMode } from './ui.js';
+import { showNotification } from './ui-utils.js';
 import { MatchService } from './match-service.js';
 
 /**
@@ -149,7 +149,7 @@ export function closeVictoryOverlay() {
     document.getElementById('audio-test-panel').style.display = 'none';
     if (window.fetchLB) window.fetchLB();
     if (window.fetchHist) window.fetchHist();
-    showPage('tournament');
+    state.currentPage = 'tournament';
 }
 
 export function handleQuickWinner(winnerName, btn) {

@@ -152,8 +152,8 @@
         </div>
 
         <div class="victory-controls">
-            <button class="btn-red btn-victory-primary" onclick="closeVictoryOverlay()">NEW GAME</button>
-            <button class="btn-red btn-victory-secondary" onclick="closeVictoryOverlay()">END GAME</button>
+            <button id="btn-victory-new-game" class="btn-red btn-victory-primary">NEW GAME</button>
+            <button id="btn-victory-end-game" class="btn-red btn-victory-secondary">END GAME</button>
         </div>
     </div>
 
@@ -161,7 +161,7 @@
 
     <header>
         <img src="logo.png" class="main-logo" alt="Subsoccer" style="height: 40px; width: auto;">
-        <button id="menu-toggle-btn" onclick="toggleSettingsMenu(event)">
+        <button id="menu-toggle-btn">
             <i class="fa-solid fa-bars"></i>
         </button>
     </header>
@@ -171,46 +171,32 @@
         <div class="menu-header">SETTINGS</div>
         
         
-        <button onclick="showPage('leaderboard'); toggleSettingsMenu(event)" class="menu-item">
+        <button id="menu-item-leaderboard" class="menu-item">
             <i class="fa-solid fa-ranking-star"></i> GLOBAL RANKING
         </button>
         
-        <button onclick="showPage('map'); toggleSettingsMenu(event)" class="menu-item">
+        <button id="menu-item-map" class="menu-item">
             <i class="fa-solid fa-earth-europe"></i> GAME MAP
         </button>
         
         <div class="menu-divider"></div>
         
-        <button onclick="showPage('profile'); showEditProfile(); toggleSettingsMenu(event)" class="menu-item">
+        <button id="menu-item-moderator" class="menu-item" style="display:none; border-color:var(--sub-gold); background:rgba(255,215,0,0.05);">
+            <i class="fa-solid fa-user-shield"></i> MODERATOR TOOLS
+        </button>
+
+        <button id="menu-item-edit-profile" class="menu-item">
             <i class="fa-solid fa-user-gear"></i> EDIT PROFILE
         </button>
         
-        <button onclick="toggleSoundEffects(); toggleSettingsMenu(event)" id="sound-toggle-btn" class="menu-item">
+        <button id="sound-toggle-btn" class="menu-item">
             <i class="fa-solid fa-volume-high"></i> SOUNDS: ON
         </button>
 
-        <button onclick="location.reload()" class="menu-item logout-item">
+        <button id="btn-logout" class="menu-item logout-item">
             <i class="fa-solid fa-right-from-bracket"></i> LOG OUT
         </button>
     </div>
-
-    <!-- Menu Logic (Inline fallback) -->
-    <script>
-        function toggleSettingsMenu(event) {
-            if (event) event.stopPropagation();
-            const menu = document.getElementById('settings-menu');
-            menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
-        }
-
-        // Close menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const menu = document.getElementById('settings-menu');
-            const btn = document.getElementById('menu-toggle-btn');
-            if (menu && menu.style.display === 'flex' && !menu.contains(event.target) && !btn.contains(event.target)) {
-                menu.style.display = 'none';
-            }
-        });
-    </script>
 
     <div id="auth-page">
         <div id="login-form" class="container" style="text-align:center;">
@@ -218,35 +204,35 @@
             <form id="auth-form-wrapper">
                 <input type="text" id="auth-user" placeholder="Username" autocomplete="username">
                 <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password">
-                <button class="btn-red" type="submit" onclick="handleAuth(event)">LOG IN</button>
+                <button id="btn-login" class="btn-red" type="submit">LOG IN</button>
                 <div style="margin-top: 15px;">
-                    <button onclick="toggleAuth(true)" style="width:100%; background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); color:var(--sub-gold); padding:12px; border-radius:8px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.2s; text-transform:uppercase;">CREATE ACCOUNT</button>
+                    <button id="btn-show-signup" style="width:100%; background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); color:var(--sub-gold); padding:12px; border-radius:8px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.2s; text-transform:uppercase;">CREATE ACCOUNT</button>
                 </div>
             </form>
             <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
             <input type="text" id="guest-nick" placeholder="Guest Nickname">
-            <button class="btn-red" style="background:#333;" onclick="handleGuest()">JOIN AS GUEST</button>
+            <button id="btn-guest-login" class="btn-red" style="background:#333;">JOIN AS GUEST</button>
         </div>
         <div id="signup-form" class="container" style="text-align:center; display:none;">
             <h2 style="font-family:'Resolve';">CREATE ACCOUNT</h2>
             <input type="text" id="reg-user" placeholder="Choose Username" autocomplete="username">
             <input type="password" id="reg-pass" placeholder="Choose Password" autocomplete="new-password">
-            <button class="btn-red" onclick="handleSignUp()">REGISTER</button>
-            <div style="margin-top: 15px;"><span style="font-size: 0.75rem; color: #666; cursor: pointer;" onclick="toggleAuth(false)">Back to Login</span></div>
+            <button id="btn-register" class="btn-red">REGISTER</button>
+            <div style="margin-top: 15px;"><span id="link-back-to-login" style="font-size: 0.75rem; color: #666; cursor: pointer;">Back to Login</span></div>
         </div>
     </div>
 
     <!-- Navigation Tabs (Moved above app-content for desktop stability) -->
     <div class="nav-tabs" id="nav-tabs" style="display:none;">
-        <div class="tab active" id="tab-tournament" onclick="showPage('tournament')">
+        <div class="tab active" id="tab-tournament" data-page="tournament">
             <i class="fas fa-trophy"></i>
             <span style="font-size:0.65rem; margin-top:2px;">OFFICIAL MATCH</span>
         </div>
-        <div class="tab" id="tab-events" onclick="showPage('events')">
+        <div class="tab" id="tab-events" data-page="events">
             <i class="fa-regular fa-calendar"></i>
             <span style="font-size:0.65rem; margin-top:2px;">Events</span>
         </div>
-        <div class="tab" id="tab-profile" onclick="showPage('profile')">
+        <div class="tab" id="tab-profile" data-page="profile">
             <i class="fa-regular fa-user"></i>
             <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
         </div>
@@ -264,7 +250,7 @@
                     <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #333;">
                         <img id="avatar-preview" src="placeholder-silhouette-5-wide.png" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--sub-gold);">
                         <div style="flex-grow:1;">
-                            <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewAvatarFile(this)">
+                            <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp" style="display:none;">
                             <label for="avatar-file-input" class="btn-red" style="display:block; text-align:center; padding:10px; cursor:pointer; background:var(--sub-gold); color:#000; font-size:0.85rem; border-radius:4px;">
                                 <i class="fa fa-camera"></i> Change Photo
                             </label>
@@ -307,25 +293,32 @@
                         </div>
                     </div>
                     
+                    <h4 style="color:var(--sub-gold); font-size:0.7rem; border-bottom:1px solid #333; padding-bottom:5px; margin-top:15px;">🔐 SECURITY</h4>
+                    
+                    <div class="edit-group" style="margin-bottom: 12px; text-align: left;">
+                        <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve'; letter-spacing: 1px; display: block; margin-bottom: 5px;">NEW PASSWORD</label>
+                        <input type="password" id="edit-password" placeholder="Leave empty to keep current">
+                    </div>
+                    
                     <div style="display:flex; gap:10px; margin-top: 20px;">
-                        <button onclick="saveProfile()" class="btn-red" style="flex: 2;">SAVE CHANGES</button>
-                        <button onclick="cancelEditProfile()" style="flex: 1; background: #333; color: white; border: none; border-radius: 4px; font-family: 'Resolve'; cursor: pointer;">CANCEL</button>
+                        <button id="btn-save-profile" class="btn-red" style="flex: 2;">SAVE CHANGES</button>
+                        <button id="btn-cancel-edit-profile" style="flex: 1; background: #333; color: white; border: none; border-radius: 4px; font-family: 'Resolve'; cursor: pointer;">CANCEL</button>
                     </div>
                 </div>
 
                 <div id="profile-dashboard-ui">
                     <!-- Community Links -->
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:20px 0;">
-                        <button class="btn-red" onclick="showPage('leaderboard')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
+                        <button id="btn-profile-leaderboard" class="btn-red" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
                             <i class="fa-solid fa-trophy" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
                             GLOBAL RANKING
                         </button>
-                        <button class="btn-red" onclick="showPage('map')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
+                        <button id="btn-profile-map" class="btn-red" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
                             <i class="fa-solid fa-map-location-dot" style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
                             GAME MAP
                         </button>
                     </div>
-                    <button class="btn-red" onclick="showPage('history')" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:10px; margin-bottom:20px; border-radius:4px;">
+                    <button id="btn-profile-history" class="btn-red" style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:10px; margin-bottom:20px; border-radius:4px;">
                         <i class="fa-solid fa-clock-rotate-left"></i> Match History
                     </button>
                 </div>
@@ -334,12 +327,23 @@
                 <div id="profile-games-ui" style="display:none; border-top:1px solid #222; padding-top:20px; margin-top:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h3 style="font-family:'Resolve'; margin:0; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">My Game Tables</h3>
-                        <button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#333; border-radius:4px;" onclick="showPage('games')">
+                        <button id="btn-profile-register-game" class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#333; border-radius:4px;">
                             + Register New
                         </button>
                     </div>
                     <div id="profile-games-list" style="text-align:left;"></div>
                 </div>
+            </div>
+        </div>
+
+        <div id="section-moderator" class="section">
+            <div class="container">
+                <h3 style="font-family:'Resolve'; text-transform:uppercase; color:var(--sub-gold); letter-spacing:2px;">🛡️ Moderator Tools</h3>
+                <p style="font-size:0.8rem; color:#666; margin-bottom:20px;">System administration for Jarno Saarinen</p>
+                <button id="btn-mod-partner-gen" class="btn-red" style="margin-bottom:10px; background:var(--sub-gold); color:#000; border:none;">🤝 PARTNER LINK GENERATOR</button>
+                <button id="btn-mod-view-users" class="btn-red" style="margin-bottom:10px; background:#222; border:1px solid #333;">VIEW ALL REGISTERED USERS</button>
+                <button id="btn-mod-download-logs" class="btn-red" style="margin-bottom:10px; background:#222; border:1px solid #333;">DOWNLOAD SYSTEM LOGS</button>
+                <button id="btn-mod-reset-lb" class="btn-red" style="margin-bottom:10px; background:#222; border:1px solid #333;">RESET GLOBAL LEADERBOARD</button>
             </div>
         </div>
 
@@ -368,7 +372,7 @@
                 <!-- Location & Map -->
                 <div style="display:flex; gap:5px; margin-bottom:10px;">
                     <input type="text" id="game-address-input" placeholder="Search Address (e.g. Helsinki)" style="margin-bottom:0;">
-                    <button class="btn-red" style="width:auto; padding:0 15px; font-size:0.9rem;" onclick="searchLocation()">🔍</button>
+                    <button id="btn-search-location" class="btn-red" style="width:auto; padding:0 15px; font-size:0.9rem;">🔍</button>
                 </div>
                 <div id="map-picker" style="height: 200px; width: 100%; border-radius: 4px; margin-bottom: 10px; z-index: 1;"></div>
                 <div id="location-confirm" style="font-size: 0.8rem; color: var(--sub-gold); margin-bottom: 15px; min-height: 1.2em;"></div>
@@ -376,16 +380,16 @@
                 <div style="display:flex; align-items:center; margin-bottom:20px; background:#111; padding:10px; border-radius:4px; border:1px solid #222;"><input type="checkbox" id="game-public-input" style="width:auto; margin:0 10px 0 0;"><label for="game-public-input" style="font-size:0.9rem; color:#ddd;">Make Public (Visible to everyone)</label></div>
 
                 <div id="game-form-actions">
-                    <button id="btn-reg-game" class="btn-red" onclick="registerGame()">Register Game</button>
+                    <button id="btn-reg-game" class="btn-red">Register Game</button>
                     <div id="btn-edit-group" style="display:none; gap:10px;">
-                        <button class="btn-red" style="background:var(--sub-gold); color:#000;" onclick="updateGame()">Update Game</button>
-                        <button class="btn-red" style="background:#333;" onclick="cancelEdit()">Cancel</button>
+                        <button id="btn-update-game" class="btn-red" style="background:var(--sub-gold); color:#000;">Update Game</button>
+                        <button id="btn-cancel-edit-game" class="btn-red" style="background:#333;">Cancel</button>
                     </div>
                 </div>
                 <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h3 style="font-family:'Resolve'; text-transform:uppercase; margin:0; font-size:0.9rem; letter-spacing:1px;">My Game Tables</h3>
-                    <button class="btn-red" style="font-size:0.75rem; padding:8px 15px; background:#333; border-radius:4px;" onclick="viewOwnershipRequests()">
+                    <button id="btn-view-transfer-requests" class="btn-red" style="font-size:0.75rem; padding:8px 15px; background:#333; border-radius:4px;">
                         📬 Transfer Requests
                     </button>
                 </div>
@@ -410,12 +414,12 @@
                 
                 <!-- Mode Selector Buttons -->
                 <div style="display:flex; gap:12px; margin-bottom:30px;">
-                    <button id="btn-quick-match-mode" onclick="showMatchMode('quick')" onmouseover="if(this.style.background.includes('linear-gradient')) this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:linear-gradient(135deg, #E30613 0%, #c00510 100%); color:#fff; border:none; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 15px rgba(227,6,19,0.3); position:relative; overflow:hidden;">
+                    <button id="btn-quick-match-mode" onmouseover="if(this.style.background.includes('linear-gradient')) this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform='translateY(0) scale(1)'" style="flex:1; padding:18px 15px; background:linear-gradient(135deg, #E30613 0%, #c00510 100%); color:#fff; border:none; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 15px rgba(227,6,19,0.3); position:relative; overflow:hidden;">
                         <div style="font-size:1.8rem; margin-bottom:4px;"><i class="fas fa-trophy"></i></div>
                         <div style="font-size:0.95rem; letter-spacing:0.5px;">OFFICIAL MATCH</div>
                         <div style="font-size:0.65rem; color:rgba(255,255,255,0.7); margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">Official Ranked Game</div>
                     </button>
-                    <button id="btn-tournament-mode" onclick="showMatchMode('tournament')" 
+                    <button id="btn-tournament-mode" 
                         onmouseover="if(this.style.background.includes('#1a1a1a')) this.style.background='#222'; else this.style.transform='translateY(-2px) scale(1.02)'" 
                         onmouseout="if(!this.style.background.includes('linear-gradient')) this.style.background='#1a1a1a'; this.style.transform='translateY(0) scale(1)'" 
                         style="flex:1; padding:18px 15px; background:#1a1a1a; color:#888; border:2px solid #333; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden;">
@@ -435,12 +439,12 @@
                 
                 <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
                     <div style="position:relative;">
-                        <input type="text" id="p1-quick-search" placeholder="Player 1 (Home)" oninput="handleQuickSearch(this, 'p1')" style="margin-bottom:0;">
+                        <input type="text" id="p1-quick-search" placeholder="Player 1 (Home)" style="margin-bottom:0;">
                         <div id="p1-results" class="quick-results"></div>
                     </div>
                     <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1.2rem;">VS</div>
                     <div style="position:relative;">
-                        <input type="text" id="p2-quick-search" placeholder="Player 2 (Away)" oninput="handleQuickSearch(this, 'p2')" style="margin-bottom:0;">
+                        <input type="text" id="p2-quick-search" placeholder="Player 2 (Away)" style="margin-bottom:0;">
                         <div id="p2-results" class="quick-results"></div>
                     </div>
                 </div>
@@ -448,12 +452,12 @@
                 <div id="elo-preview" style="background:#000; padding:15px; border-radius:4px; border:1px solid #333; margin-bottom:20px; display:none; box-shadow: inset 0 0 15px rgba(255,255,255,0.05);">
                     <div style="font-size:0.65rem; color:#666; font-family:'Resolve'; letter-spacing:2px; margin-bottom:5px;">ELO PREDICTION</div>
                     <div id="elo-prediction-text"></div>
-                    <button onclick="clearQuickMatchPlayers()" class="clear-players-btn" title="Clear players and start fresh">
+                    <button id="btn-clear-quick-players" class="clear-players-btn" title="Clear players and start fresh">
                         🔄 New Players
                     </button>
                 </div>
 
-                <button class="btn-red" id="start-quick-match" onclick="startQuickMatch()" style="font-size: 1.5rem; letter-spacing: 3px;">KICK OFF</button>
+                <button class="btn-red" id="start-quick-match" style="font-size: 1.5rem; letter-spacing: 3px;">KICK OFF</button>
                 
                 <div style="display:flex; gap:10px; margin-top:5px;">
                     <a href="instant-play.html?game_id=QUICK-PLAY&mode=casual" style="flex:1; text-decoration:none;">
@@ -472,8 +476,8 @@
                         
                         <!-- 1. Add Players (Top Priority) -->
                         <div class="add-player-input-group" style="position: relative;">
-                            <input type="text" id="add-p-input" placeholder="Search or add guest..." oninput="handleSearch(this.value)" onkeypress="if(event.key === 'Enter') addP()">
-                            <button class="add-guest-btn" onclick="addP()">+ Add</button>
+                            <input type="text" id="add-p-input" placeholder="Search or add guest...">
+                            <button id="btn-add-player" class="add-guest-btn">+ Add</button>
                             <div id="search-results"></div>
                         </div>
                         <div id="active-guests" style="margin-bottom:10px; text-align:left;"></div>
@@ -481,16 +485,16 @@
                         <!-- 2. Player Pool (Middle) -->
                         <div style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
                             <span style="font-family:'Resolve'; font-size: 0.7rem; color: #666;">PLAYER POOL (<span id="pool-count">0</span>)</span>
-                            <button style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;" onclick="clearPool()">CLEAR</button>
+                            <button id="btn-clear-pool" style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;">CLEAR</button>
                         </div>
                         <div id="pool-list" style="flex-grow: 1; min-height: 100px;">No players added.</div>
 
                         <!-- 3. Generate Tournament -->
-                        <button class="btn-red" style="margin-top: 15px;" onclick="startTournament()">Generate Brackets</button>
+                        <button id="btn-start-tournament" class="btn-red" style="margin-top: 15px;">Generate Brackets</button>
                 </div>
 
                 <!-- Pro Mode (Developer Only) -->
-                <div id="pro-mode-section" class="pro-mode-toggle" onclick="handleProModeClick()" style="margin-top:40px; display:none;">
+                <div id="pro-mode-section" class="pro-mode-toggle" style="margin-top:40px; display:none;">
                     <input type="checkbox" id="pro-mode-toggle" style="width:16px; height:16px; margin-right:8px; pointer-events:none; accent-color:#666; opacity:0.7;">
                     <i class="fa-solid fa-bolt" style="font-size:0.75rem; opacity:0.6; margin-right:8px;"></i>
                     <span>Pro Mode - Acoustic Live Scoring</span>
@@ -506,7 +510,7 @@
                                     <div id="audio-indicator" style="width:10px; height:10px; border-radius:50%; background:#666;"></div>
                                     <span style="font-family:'Resolve'; font-size:0.75rem; color:#fff;">AUDIO DETECTION</span>
                                 </div>
-                                <button id="toggle-audio-btn" onclick="toggleAudioDetection()" style="background:#333; color:#fff; border:none; padding:5px 12px; border-radius:4px; font-family:'Resolve'; font-size:0.7rem; cursor:pointer;">ACTIVATE</button>
+                                <button id="toggle-audio-btn" style="background:#333; color:#fff; border:none; padding:5px 12px; border-radius:4px; font-family:'Resolve'; font-size:0.7rem; cursor:pointer;">ACTIVATE</button>
                             </div>
                             <div id="audio-frequency-display" style="font-size:0.65rem; color:#666; font-family:'Open Sans'; display:none;">
                                 <div>Goal 1: <span id="freq-goal1" style="color:var(--sub-gold);">0</span> Hz | Goal 2: <span id="freq-goal2" style="color:var(--sub-gold);">0</span> Hz</div>
@@ -517,8 +521,8 @@
                         <div id="audio-test-panel" style="background:#0a0a0a; padding:10px; border-radius:4px; border:1px dashed #333;">
                             <div style="font-family:'Resolve'; font-size:0.7rem; color:#888; margin-bottom:8px; text-align:center;">🎙️ GOAL SOUND RECORDER (Testing)</div>
                             <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center;">
-                                <button onclick="recordGoalSound(1)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 1</button>
-                                <button onclick="recordGoalSound(2)" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 2</button>
+                                <button id="btn-record-goal-1" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 1</button>
+                                <button id="btn-record-goal-2" style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍 Record Goal 2</button>
                             </div>
                             <div id="recording-status" style="font-size:0.65rem; color:#666; text-align:center; margin-top:5px; font-family:'Open Sans';"></div>
                         </div>
@@ -529,8 +533,8 @@
             
             <div id="tour-engine" style="display:none; width:100%; max-width:450px; flex-direction:column; align-items:center;">
                 <div id="bracket-area" style="width:100%;"></div>
-                <button id="next-rd-btn" class="btn-red" style="display:none; margin-top:15px;" onclick="advanceRound()">Next Round</button>
-                <button id="save-btn" class="btn-red" style="display:none; background:var(--sub-gold)!important; color:#000!important; margin-top:15px;" onclick="saveTour()">Save Results</button>
+                <button id="next-rd-btn" class="btn-red" style="display:none; margin-top:15px;">Next Round</button>
+                <button id="save-btn" class="btn-red" style="display:none; background:var(--sub-gold)!important; color:#000!important; margin-top:15px;">Save Results</button>
             </div>
         </div>
 
@@ -548,7 +552,7 @@
 
     <div id="card-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:20000; justify-content:center; align-items:center; flex-direction:column;">
         <div id="modal-card-container"></div>
-        <button onclick="closeCardModal()" style="margin-top:20px; background:var(--sub-red); color:white; border:none; padding:10px 30px; border-radius:4px; font-family:'Resolve'; cursor:pointer;">Close</button>
+        <button id="btn-close-card-modal" style="margin-top:20px; background:var(--sub-red); color:white; border:none; padding:10px 30px; border-radius:4px; font-family:'Resolve'; cursor:pointer;">Close</button>
     </div>
 
     <!-- ============================================================ -->
@@ -588,10 +592,10 @@
                     </div>
                 </div>
             </div>
-            <button class="btn-red pulse-anim" onclick="acceptRulesAndStart()" style="width: auto !important; padding:15px 50px !important; font-size:1.2rem; border-radius:4px; box-shadow:0 0 20px rgba(227,6,19,0.4); margin-top: 20px;">I UNDERSTAND - PLAY</button>
+            <button id="btn-accept-rules" class="btn-red pulse-anim" style="width: auto !important; padding:15px 50px !important; font-size:1.2rem; border-radius:4px; box-shadow:0 0 20px rgba(227,6,19,0.4); margin-top: 20px;">I UNDERSTAND - PLAY</button>
         </div>
 
-        <div class="pro-player-side pro-player-left" onclick="addManualGoal(1)" style="cursor:pointer;">
+        <div id="pro-player-left" class="pro-player-side pro-player-left" style="cursor:pointer;">
             <div class="pro-player-name" id="pro-p1-name">PLAYER 1</div>
             <div class="pro-score" id="pro-p1-score">0</div>
             <div class="pro-goals-visual" id="pro-p1-goals">○○○</div>
@@ -600,15 +604,15 @@
         
         <div class="pro-divider"></div>
         
-        <div class="pro-player-side pro-player-right" onclick="addManualGoal(2)" style="cursor:pointer;">
+        <div id="pro-player-right" class="pro-player-side pro-player-right" style="cursor:pointer;">
             <div class="pro-player-name" id="pro-p2-name">PLAYER 2</div>
             <div class="pro-score" id="pro-p2-score">0</div>
             <div class="pro-goals-visual" id="pro-p2-goals">○○○</div>
             <div class="pro-status" id="pro-p2-status"></div>
         </div>
         
-        <button class="pro-exit-btn" onclick="exitProMode()">✕ EXIT</button>
-        <button id="pro-undo-btn" onclick="undoLastGoal()" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:var(--sub-gold); border:2px solid var(--sub-gold); padding:10px 25px; border-radius:4px; font-family:'Resolve'; font-size:0.85rem; cursor:pointer; display:none; z-index:100000; letter-spacing:1px;">↺ UNDO LAST GOAL</button>
+        <button id="btn-exit-pro-mode" class="pro-exit-btn">✕ EXIT</button>
+        <button id="pro-undo-btn" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:var(--sub-gold); border:2px solid var(--sub-gold); padding:10px 25px; border-radius:4px; font-family:'Resolve'; font-size:0.85rem; cursor:pointer; display:none; z-index:100000; letter-spacing:1px;">↺ UNDO LAST GOAL</button>
     </div>
     <!-- END PRO MODE VIEW -->
 

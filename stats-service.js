@@ -1,6 +1,5 @@
 import { _supabase, state } from './config.js';
-import { viewPlayerCard, showLoading, hideLoading } from './ui.js';
-import { replayTournament } from './tournament.js';
+import { showLoading, hideLoading } from './ui-utils.js';
 
 /**
  * ============================================================
@@ -46,7 +45,7 @@ export async function fetchLB() {
                 html += `
                     <div style="display:flex; flex-direction:column; align-items:center; flex:1; max-width:120px;">
                         <div style="font-size:2rem; margin-bottom:5px;">${medals[rankIndex]}</div>
-                        <div style="background:#111; padding:10px; border-radius:var(--sub-radius); width:100%; text-align:center; margin-bottom:8px; border:1px solid ${colors[rankIndex]}; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+                        <div data-username="${player.username}" style="background:#111; padding:10px; border-radius:var(--sub-radius); width:100%; text-align:center; margin-bottom:8px; border:1px solid ${colors[rankIndex]}; box-shadow: 0 10px 20px rgba(0,0,0,0.5); cursor:pointer;">
                             <img src="https://flagcdn.com/w40/${flag}.png" style="height:12px; width:auto; margin-bottom:5px; border-radius:1px;">
                             <div style="font-family:var(--sub-name-font); font-size:0.75rem; color:#fff; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:uppercase;">${player.username}</div>
                             <div style="font-family:var(--sub-name-font); font-size:1.1rem; color:${colors[rankIndex]}; font-weight:bold;">${player.elo}</div>
@@ -66,7 +65,7 @@ export async function fetchLB() {
             const flag = p.country ? p.country.toLowerCase() : 'fi';
             const rank = i + 4;
             return `
-                <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid #333; transition:all 0.3s ease;" onclick="viewPlayerCard('${p.username}')">
+                <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid #333; transition:all 0.3s ease;" data-username="${p.username}">
                     <div style="display:flex; align-items:center; gap:15px;">
                         <span style="color:#444; font-family:var(--sub-name-font); font-size:0.8rem; min-width:30px;">#${rank}</span>
                         <img src="https://flagcdn.com/w40/${flag}.png" style="height:12px; width:auto; border-radius:1px;">
@@ -114,7 +113,7 @@ export async function fetchHist() {
             const matchesHtml = tourMatches.map(m => `<div style="background:#111; padding:10px; border-radius:5px; margin-top:5px; font-size:0.8rem;"><b>${m.winner}</b> defeated ${m.winner === m.player1 ? m.player2 : m.player1}</div>`).join('');
             const date = new Date(h.created_at);
             const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
-            return `<div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px; position: relative; display:block; text-align:left;"><div style="position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1rem; z-index: 5; opacity:0.6;" onclick='event.stopPropagation(); replayTournament(${playersJsonString}, "${h.tournament_name}")'>🔄</div><div style="cursor:pointer;" onclick="const el = document.getElementById('tour-matches-${h.tournament_id}'); el.style.display = el.style.display === 'none' ? 'block' : 'none';"><div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${h.tournament_name}</div><div style="font-family: var(--sub-body-font); font-size:0.85rem; color:#fff;">🏆 ${h.winner_name}</div></div><div id="tour-matches-${h.tournament_id}" style="display:none; margin-top:10px;">${matchesHtml}</div><div style="position: absolute; bottom: 10px; right: 10px; font-size: 0.6rem; color: #666;">${formattedDate}</div></div>`;
+            return `<div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px; position: relative; display:block; text-align:left;"><div style="position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1rem; z-index: 5; opacity:0.6;" data-replay-players='${playersJsonString}' data-replay-name="${h.tournament_name}">🔄</div><div style="cursor:pointer;" data-toggle-tournament="${h.tournament_id}"><div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${h.tournament_name}</div><div style="font-family: var(--sub-body-font); font-size:0.85rem; color:#fff;">🏆 ${h.winner_name}</div></div><div id="tour-matches-${h.tournament_id}" style="display:none; margin-top:10px;">${matchesHtml}</div><div style="position: absolute; bottom: 10px; right: 10px; font-size: 0.6rem; color: #666;">${formattedDate}</div></div>`;
         }).join('');
         html += `</div>`;
     }
@@ -124,6 +123,3 @@ export async function fetchHist() {
         hideLoading();
     }
 }
-
-window.fetchLB = fetchLB;
-window.fetchHist = fetchHist;

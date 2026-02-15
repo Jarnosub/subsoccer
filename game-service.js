@@ -1,5 +1,5 @@
 import { _supabase, state } from './config.js';
-import { showNotification, populateGameSelect, showModal, closeModal } from './ui.js';
+import { showNotification, showModal, closeModal } from './ui-utils.js';
 import { setMapLocation } from './map.js';
 
 /**
@@ -12,7 +12,6 @@ export async function fetchAllGames() {
     try {
         const { data } = await _supabase.from('games').select('id, game_name');
         state.allGames = data || [];
-        populateGameSelect();
     } catch (e) {
         console.error(e);
     }

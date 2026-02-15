@@ -2,7 +2,7 @@ import { initApp } from './auth.js';
 import { checkLiveEventParam } from './events.js';
 import './bracket-engine.js';
 import './match-service.js';
-import { setupGlobalErrorHandling } from './ui.js';
+import { setupGlobalErrorHandling, setupUIListeners, applyBranding } from './ui.js';
 import './script.js';
 import './tournament.js';
 import './quick-match.js';
@@ -20,6 +20,8 @@ const start = () => {
     console.log('📱 DOM Ready - Initializing App...');
     setupGlobalErrorHandling();
     checkLiveEventParam();
+    applyBranding();
+    setupUIListeners();
     initApp();
 };
 

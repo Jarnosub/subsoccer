@@ -1,15 +1,16 @@
-import { showNotification, showPage, loadUserProfile, populateCountries, cancelEditProfile, updateGuestUI, updateProfileCard } from './ui.js';
 import { _supabase, state } from './config.js';
+import { showNotification } from './ui-utils.js';
 import { fetchAllGames } from './game-service.js';
-import { initProModeUI, initClaimResult, startQuickMatch } from './quick-match.js';
+import { startQuickMatch } from './quick-match.js';
 
 export async function initApp() {
     try {
+        setupAuthListeners();
         const { data: players } = await _supabase.from('players').select('username');
         state.allDbNames = players ? players.map(p => p.username) : [];
         
         if (typeof fetchAllGames === 'function') await fetchAllGames();
-        if (typeof populateCountries === 'function') await populateCountries();
+        if (window.populateCountries) window.populateCountries();
     } catch (e) {
         console.error("Virhe alustuksessa:", e);
     }
@@ -18,6 +19,20 @@ export async function initApp() {
 export function toggleAuth(s) {
     document.getElementById('login-form').style.display = s ? 'none' : 'block';
     document.getElementById('signup-form').style.display = s ? 'block' : 'none';
+}
+
+/**
+ * Luo turvallisen SHA-256 tiivisteen salasanasta.
+ */
+async function hashPassword(password) {
+    if (!window.crypto || !crypto.subtle) {
+        console.error("SHA-256 hashing requires a secure context (HTTPS or localhost).");
+        throw new Error("Insecure context: Hashing failed");
+    }
+    const msgUint8 = new TextEncoder().encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export async function handleSignUp() {
@@ -30,7 +45,16 @@ export async function handleSignUp() {
     if (existing) {
         return showNotification("Username already taken!", "error");
     }
-    const { error } = await _supabase.from('players').insert([{ username: u, password: p, elo: 1300, wins: 0 }]);
+    const hashedPassword = await hashPassword(p);
+    
+    const userData = { 
+        username: u, 
+        password: hashedPassword, 
+        elo: 1300, wins: 0, losses: 0,
+        acquired_via: state.brand // Tallennetaan brändi, jonka kautta käyttäjä tuli
+    };
+
+    const { error } = await _supabase.from('players').insert([userData]);
     if(error) showNotification("Error: " + error.message, "error"); 
     else { 
         showNotification("Account created!", "success"); 
@@ -40,13 +64,13 @@ export async function handleSignUp() {
 }
 
 export async function handleAuth(event) {
-    event.preventDefault();
+    if (event && event.preventDefault) event.preventDefault();
     const u = document.getElementById('auth-user').value.trim().toUpperCase();
     const p = document.getElementById('auth-pass').value;
     
     try {
-        // Haetaan kaikki sarakkeet mukaan lukien uudet full_name, email, phone, city
-        let { data, error } = await _supabase.from('players').select('*').eq('username', u).maybeSingle();
+        // Käytetään ilike-hakua, jotta kirjainkoko ei estä vanhojen käyttäjien löytymistä
+        let { data, error } = await _supabase.from('players').select('*').ilike('username', u).maybeSingle();
         
         if (error) {
             console.error("Supabase error:", error);
@@ -54,9 +78,22 @@ export async function handleAuth(event) {
             return;
         }
 
-        if(data && data.password === p) { 
-            state.user = data; // Nyt state.user sisältää kaikki henkilötiedot
-            startSession(); 
+        if (!data) {
+            showNotification("User not found.", "error");
+            return;
+        }
+
+        const hashedPassword = await hashPassword(p);
+
+        // Tarkistetaan täsmääkö tiiviste TAI selväkielinen salasana (migraatiotuki)
+        if(data.password === hashedPassword || data.password === p) { 
+            // Jos käyttäjä kirjautui vielä vanhalla selväkielisellä salasanalla, päivitetään se tiivisteeksi
+            if (data.password === p) {
+                await _supabase.from('players').update({ password: hashedPassword }).eq('id', data.id);
+                data.password = hashedPassword;
+            }
+            state.user = data; 
+            // UI päivittyy automaattisesti ui.js:n subscribe-kuuntelijan kautta
         } else {
             showNotification("Login failed. Check username or password.", "error");
         }
@@ -67,8 +104,9 @@ export async function handleAuth(event) {
 }
 
 export function handleGuest() {
-    const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST"; state.user = { username: g, id: 'guest', elo: 1300, wins: 0 };
-    if(!state.sessionGuests.includes(g)) state.sessionGuests.push(g); startSession();
+    const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST"; state.user = { username: g, id: 'guest', elo: 1300, wins: 0, losses: 0 };
+    if(!state.sessionGuests.includes(g)) state.sessionGuests.push(g);
+    // UI päivittyy automaattisesti
 }
 
 export async function handleLogout() {
@@ -78,60 +116,6 @@ export async function handleLogout() {
         window.location.reload();
     } else {
         window.location.reload();
-    }
-}
-
-function startSession() { 
-    // Reset Quick Match UI to default state
-    const startBtn = document.getElementById('start-quick-match');
-    if (startBtn) {
-        startBtn.textContent = 'START GAME';
-        startBtn.style.background = ''; // Restore default CSS
-        startBtn.onclick = startQuickMatch; // Restore original function
-    }
-
-    // Update Instant Play link based on user type
-    const instantPlayLink = document.querySelector('a[href*="instant-play.html"]');
-    if (instantPlayLink) {
-        const userType = state.user.id === 'guest' ? 'guest' : 'registered';
-        instantPlayLink.href = `instant-play.html?game_id=QUICK-PLAY&mode=casual&user_type=${userType}`;
-    }
-
-    document.getElementById('auth-page').style.display = 'none'; 
-    document.getElementById('app-content').style.display = 'flex'; 
-    document.getElementById('nav-tabs').style.display = 'flex'; 
-    const menuBtn = document.getElementById('menu-toggle-btn');
-    if (menuBtn) {
-        menuBtn.style.display = 'block';
-    }
-    
-    // Contextual UI for Guests
-    const eventsTab = document.getElementById('tab-events');
-    if (state.user.id === 'guest') {
-        if (eventsTab) eventsTab.style.display = 'none';
-    } else {
-        if (eventsTab) eventsTab.style.display = 'flex';
-    }
-    
-    // Show Pro Mode only for developer (Jarno Saarinen)
-    const proModeSection = document.getElementById('pro-mode-section');
-    if (proModeSection && state.user.username === 'JARNO SAARINEN') {
-        proModeSection.style.display = 'block';
-    }
-    
-    if (typeof updateProfileCard === 'function') updateProfileCard(); 
-    if (typeof updateGuestUI === 'function') updateGuestUI(); 
-    if (typeof initProModeUI === 'function') initProModeUI(); 
-    
-    // Check for claim result params
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('action') === 'claim_result') {
-        const p1 = parseInt(params.get('p1_score')) || 0;
-        const p2 = parseInt(params.get('p2_score')) || 0;
-        const gameId = params.get('game_id');
-        initClaimResult(p1, p2, gameId);
-    } else {
-        showPage('tournament'); 
     }
 }
 
@@ -163,8 +147,8 @@ export function previewAvatarFile(input) {
     // Preview image
     const reader = new FileReader();
     reader.onload = (e) => {
-        if (typeof updateAvatarPreview === 'function') {
-            updateAvatarPreview(e.target.result);
+        if (window.updateAvatarPreview) {
+            window.updateAvatarPreview(e.target.result);
         }
     };
     reader.readAsDataURL(file);
@@ -207,8 +191,17 @@ async function uploadPlayerAvatar(file) {
     }
 }
 
-export async function saveProfile() {
-    const btn = event?.target;
+/**
+ * Generoi AI-avatar (Placeholder tulevaa integraatiota varten)
+ */
+async function generateAiAvatar(imageUrl) {
+    console.log("AI Stylizing image:", imageUrl);
+    // Tähän tulee myöhemmin kutsu AI-rajapintaan
+    return imageUrl;
+}
+
+export async function saveProfile(e) {
+    const btn = e?.target || (window.event ? window.event.target : null);
     const originalText = btn ? btn.textContent : '';
     
     try {
@@ -225,14 +218,23 @@ export async function saveProfile() {
         const phone = document.getElementById('edit-phone')?.value.trim();
         const city = document.getElementById('edit-city')?.value.trim();
         const countryCode = document.getElementById('country-input')?.value.trim().toLowerCase();
+        const newPassword = document.getElementById('edit-password')?.value.trim();
         
         let avatarUrl = state.user.avatar_url; // Keep existing if no new file
+        const useAiStylize = document.getElementById('use-ai-style-checkbox')?.checked;
         
         // Upload new avatar if file selected
         if (file) {
             try {
                 if (btn) btn.textContent = 'Uploading photo...';
-                avatarUrl = await uploadPlayerAvatar(file);
+                const uploadedUrl = await uploadPlayerAvatar(file);
+                
+                if (useAiStylize) {
+                    if (btn) btn.textContent = 'AI Stylizing...';
+                    avatarUrl = await generateAiAvatar(uploadedUrl);
+                } else {
+                    avatarUrl = uploadedUrl;
+                }
             } catch (uploadError) {
                 showNotification('Failed to upload photo: ' + uploadError.message, 'error');
                 return;
@@ -258,6 +260,12 @@ export async function saveProfile() {
             avatar_url: avatarUrl
         };
 
+        // Jos uusi salasana on annettu, tiivistetään se
+        if (newPassword) {
+            if (btn) btn.textContent = 'Securing...';
+            updates.password = await hashPassword(newPassword);
+        }
+
         if (Object.keys(updates).length === 0) {
             showNotification("Nothing to update", "error");
             return;
@@ -280,9 +288,9 @@ export async function saveProfile() {
                 country: countryCode, 
                 avatar_url: avatarUrl 
             };
+            localStorage.setItem('subsoccer-user', JSON.stringify(state.user));
 
-            cancelEditProfile(); // Sulkee lomakkeen
-            updateProfileCard(); // Päivittää visuaalisen kortin
+            // UI päivittyy automaattisesti state.user muutoksesta
             showNotification("Profile updated successfully!", "success");
         }
     } catch (error) {
@@ -296,12 +304,22 @@ export async function saveProfile() {
     }
 }
 
-// Globaalit kytkennät HTML:ää varten
-window.handleAuth = handleAuth;
-window.handleSignUp = handleSignUp;
-window.handleGuest = handleGuest;
-window.handleLogout = handleLogout;
-window.initApp = initApp;
-window.saveProfile = saveProfile;
-window.previewAvatarFile = previewAvatarFile;
-window.toggleAuth = toggleAuth;
+/**
+ * Programmatic event listeners. 
+ * Removes the need for 'window.xxx' and inline 'onclick' in HTML.
+ */
+export function setupAuthListeners() {
+    const loginForm = document.getElementById('auth-form-wrapper');
+    if (loginForm) loginForm.addEventListener('submit', handleAuth);
+    document.getElementById('btn-show-signup')?.addEventListener('click', () => toggleAuth(true));
+    document.getElementById('btn-register')?.addEventListener('click', handleSignUp);
+    document.getElementById('link-back-to-login')?.addEventListener('click', () => toggleAuth(false));
+    document.getElementById('btn-guest-login')?.addEventListener('click', handleGuest);
+    document.getElementById('btn-logout')?.addEventListener('click', () => location.reload());
+
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleSignUp();
+    });
+}
