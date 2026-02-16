@@ -9,15 +9,10 @@ export async function initApp() {
     try {
         setupAuthListeners();
 
-        // Tarkistetaan onko olemassa oleva istunto
-        const { data: { session } } = await _supabase.auth.getSession();
-        if (session) {
-            await refreshUserProfile(session.user.id);
-        }
-
-        // Kuunnellaan kirjautumistilan muutoksia
+        // Luotetaan onAuthStateChange-tapahtumaan alustuksessa.
+        // Supabase laukaisee INITIAL_SESSION tai SIGNED_IN automaattisesti.
         _supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session) {
+            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
                 await refreshUserProfile(session.user.id);
             } else if (event === 'SIGNED_OUT') {
                 state.user = null;
@@ -54,10 +49,17 @@ async function hashPassword(password) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+let lastRefreshedId = null;
+let isRefreshing = false;
+
 /**
  * Helper to fetch profile data and update state
  */
 async function refreshUserProfile(userId) {
+    if (lastRefreshedId === userId || isRefreshing) return;
+    isRefreshing = true;
+    lastRefreshedId = userId;
+
     try {
         const { data: profile, error } = await _supabase
             .from('players')
@@ -66,6 +68,7 @@ async function refreshUserProfile(userId) {
             .maybeSingle();
         
         if (error) {
+            if (error.message?.includes('AbortError')) return;
             console.error("Tietokantavirhe profiilia haettaessa (406?):", error);
             return; // Älä kirjaudu ulos, jos kyseessä on yhteys/skeemavirhe
         }
@@ -99,14 +102,18 @@ async function refreshUserProfile(userId) {
                 state.user = created;
                 localStorage.setItem('subsoccer-user', JSON.stringify(created));
             } else {
+                if (createErr?.message?.includes('AbortError')) return;
                 console.error("Profiilin automaattinen luonti epäonnistui:", createErr);
                 showNotification("Profiilin luonti epäonnistui: " + (createErr?.message || "RLS Error"), "error");
-                // Odota 5 sekuntia ennen uloskirjausta, jotta ehdit lukea virheen
-                setTimeout(() => handleLogout(), 5000);
+                
+                // Estetään silmukka: kirjaudu ulos vain jos kyseessä ei ole keskeytys
+                if (createErr) setTimeout(() => handleLogout(), 5000);
             }
         }
     } catch (e) {
         console.error("Odottamaton virhe profiilin päivityksessä:", e);
+    } finally {
+        isRefreshing = false;
     }
 }
 
@@ -268,11 +275,18 @@ export async function handleSignUp() {
 
 export async function handleAuth(event) {
     if (event && event.preventDefault) event.preventDefault();
+    
+    const btn = document.getElementById('btn-login');
+    if (btn && btn.disabled) return; // Estetään useat klikkaukset
+    
+    const originalText = btn ? btn.textContent : 'LOG IN';
+    if (btn) { btn.disabled = true; btn.textContent = 'LOGGING IN...'; }
+
     const input = document.getElementById('auth-user').value.replace(/\s+/g, ' ').trim();
     const p = document.getElementById('auth-pass').value;
     
     try {
-        console.log("--- LOGIN ATTEMPT (Localhost) ---");
+        console.log("--- LOGIN ATTEMPT ---", window.location.hostname);
         console.log("Input:", input);
         // 1. Yritetään ensin kirjautua sähköpostilla (uusi tapa)
         if (input.includes('@')) {
@@ -323,6 +337,7 @@ export async function handleAuth(event) {
             .ilike('username', input);
             
         if (nameErr) {
+            if (nameErr.message?.includes('AbortError')) return; // Ohitetaan keskeytykset
             console.error("Database error (check RLS policies):", nameErr);
             throw new Error("Database connection error. Please check your permissions.");
         }
@@ -345,11 +360,12 @@ export async function handleAuth(event) {
             const migratedMatch = nameMatches.find(m => isUuid(m.id) && m.email);
             if (migratedMatch) {
                 console.log("Migrated record found, attempting Auth login for:", migratedMatch.email);
-                const { error: authErr } = await _supabase.auth.signInWithPassword({
+                const { data: authData, error: authErr } = await _supabase.auth.signInWithPassword({
                     email: migratedMatch.email,
                     password: p
                 });
                 if (!authErr) {
+                    console.log("Auth login successful for:", migratedMatch.email);
                     showNotification("Welcome back!", "success");
                     return;
                 }
@@ -371,6 +387,8 @@ export async function handleAuth(event) {
         console.error("Login error:", e);
         const msg = e.message || "An error occurred during login.";
         showNotification(msg.includes("Invalid login credentials") ? "Invalid email or password." : msg, "error");
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = originalText; }
     }
 }
 
@@ -408,6 +426,16 @@ export function handleGuest() {
 
 export async function handleLogout() {
     localStorage.removeItem('subsoccer-user');
+    
+    // Estetään loputon uudelleenlataussilmukka (max 1 lataus per 2 sekuntia)
+    const lastLogout = sessionStorage.getItem('last-logout-time');
+    const now = Date.now();
+    if (lastLogout && (now - parseInt(lastLogout)) < 2000) {
+        console.warn("Uudelleenlataussilmukka estetty.");
+        return;
+    }
+    sessionStorage.setItem('last-logout-time', now.toString());
+
     if (_supabase) {
         const { error } = await _supabase.auth.signOut();
         if (error) console.error('Error logging out:', error);

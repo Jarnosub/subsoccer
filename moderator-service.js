@@ -1,5 +1,5 @@
 import { showModal, showNotification, showLoading, hideLoading } from './ui-utils.js';
-import { _supabase, state, isSuperAdmin } from './config.js';
+import { _supabase, state, isSuperAdmin, isAdmin } from './config.js';
 
 /**
  * MODERATOR SERVICE
@@ -268,11 +268,8 @@ export async function toggleAdminStatus(userId, currentStatus) {
 window.toggleAdminStatus = toggleAdminStatus;
 
 export async function downloadSystemLogs() {
-    const pwd = prompt("Syötä moderaattorin salasana ladataaksesi lokit:");
-    if (pwd === null) return;
-    
-    if (pwd !== "admin123") {
-        showNotification("Väärä salasana!", "error");
+    if (!isAdmin()) {
+        showNotification("Access denied: Admin privileges required.", "error");
         return;
     }
 
@@ -318,11 +315,8 @@ export async function downloadSystemLogs() {
 }
 
 export async function resetGlobalLeaderboard() {
-    const pwd = prompt("Syötä moderaattorin salasana vahvistaaksesi nollauksen:");
-    if (pwd === null) return; // Käyttäjä peruutti
-    
-    if (pwd !== "admin123") { // Voit vaihtaa tämän haluamaasi salasanaan
-        showNotification("Väärä salasana!", "error");
+    if (!isAdmin()) {
+        showNotification("Access denied: Admin privileges required.", "error");
         return;
     }
 
