@@ -35,6 +35,39 @@ const initialState = {
     victoryData: null // Tallentaa voittotiedot animaatiota varten
 };
 
+export const resetFullState = () => {
+    state.user = null; // Vaihe C: Varmista tilan nollaus
+    state.pool = [];
+    state.sessionGuests = [];
+    state.allDbNames = [];
+    state.allGames = [];
+    state.countries = [];
+    state.myGames = [];
+    state.gameMap = null;
+    state.gameMarker = null;
+    state.selLat = null;
+    state.selLng = null;
+    state.publicMap = null;
+    state.editingGameId = null;
+    state.currentTournamentId = null;
+    state.quickP1 = null;
+    state.quickP2 = null;
+    state.proModeActive = false;
+    state.proModeEnabled = false;
+    state.proScoreP1 = 0;
+    state.proScoreP2 = 0;
+    state.proGoalHistory = [];
+    state.inventory = [];
+    state.activeCardEdition = 'standard';
+    state.brand = null;
+    state.brandLogo = null;
+    state.currentPage = 'tournament';
+    state.victoryData = null;
+
+    localStorage.clear(); // Vaihe C: Tyhjennä välimuisti
+    sessionStorage.clear(); // Vaihe C: Tyhjennä istuntodata
+};
+
 const listeners = {};
 
 /**

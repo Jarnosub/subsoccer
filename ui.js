@@ -419,7 +419,11 @@ export function toggleSettingsMenu(event) {
 /**
  * Setup all UI event listeners to remove inline onclicks.
  */
+let isUIInitialized = false;
 export function setupUIListeners() {
+    if (isUIInitialized) return;
+    isUIInitialized = true;
+
     // Logo link to official site
     const logo = document.querySelector('.main-logo');
     if (logo) {

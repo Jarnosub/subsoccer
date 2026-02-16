@@ -1,24 +1,30 @@
-import { _supabase, state } from './config.js';
+import { _supabase, state, resetFullState } from './config.js';
 import { showNotification } from './ui-utils.js';
 import { fetchAllGames } from './game-service.js';
 import { startQuickMatch } from './quick-match.js';
 
 const isUuid = (val) => val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
 
+let isAuthListenerSet = false;
+
 export async function initApp() {
     try {
         setupAuthListeners();
 
-        // Luotetaan onAuthStateChange-tapahtumaan alustuksessa.
-        // Supabase laukaisee INITIAL_SESSION tai SIGNED_IN automaattisesti.
-        _supabase.auth.onAuthStateChange(async (event, session) => {
-            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-                await refreshUserProfile(session.user.id);
-            } else if (event === 'SIGNED_OUT') {
-                state.user = null;
-                localStorage.removeItem('subsoccer-user');
-            }
-        });
+        if (!isAuthListenerSet) {
+            _supabase.auth.onAuthStateChange(async (event, session) => {
+                console.log("🔐 Auth State Change:", event, session ? "Session active" : "No session");
+                if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+                    console.log("👤 User session active, refreshing profile...");
+                    await refreshUserProfile(session.user.id);
+                } else if (event === 'SIGNED_OUT') {
+                    state.user = null;
+                    console.log("👋 Session cleared.");
+                    localStorage.removeItem('subsoccer-user');
+                }
+            });
+            isAuthListenerSet = true;
+        }
 
         const { data: players } = await _supabase.from('players').select('username');
         state.allDbNames = players ? players.map(p => p.username) : [];
@@ -62,21 +68,22 @@ async function refreshUserProfile(userId) {
     lastRefreshedId = userId;
 
     try {
-        const { data: profile, error } = await _supabase
+        console.log("🔄 Fetching profile for ID:", userId);
+        const { data, error } = await _supabase
             .from('players')
             .select('*')
-            .eq('id', userId)
-            .maybeSingle();
+            .eq('id', userId);
+        
+        const profile = data?.[0]; // Otetaan manuaalisesti ensimmäinen tulos
         
         if (error) {
             if (error.message?.includes('AbortError')) return;
             console.error("Tietokantavirhe profiilia haettaessa (406?):", error);
-            // Jos profiilia ei saada ladattua, kirjaudutaan ulos jotta vältetään jumiutuminen vialliseen istuntoon
-            await _supabase.auth.signOut();
             return;
         }
 
         if (profile) {
+            console.log("✅ Player profile found:", profile.username);
             state.user = profile;
             localStorage.setItem('subsoccer-user', JSON.stringify(profile));
         } else {
@@ -108,8 +115,6 @@ async function refreshUserProfile(userId) {
                 if (createErr?.message?.includes('AbortError')) return;
                 console.error("Profiilin automaattinen luonti epäonnistui:", createErr);
                 showNotification("Profiilin luonti epäonnistui: " + (createErr?.message || "RLS Error"), "error");
-                // Pakotetaan uloskirjautuminen viallisen istunnon siivoamiseksi
-                await _supabase.auth.signOut();
             }
         }
     } catch (e) {
@@ -287,10 +292,14 @@ export async function handleSignUp() {
 
 export async function handleAuth(event) {
     if (event && event.preventDefault) event.preventDefault();
-    console.log("Login attempt started...");
     
+    resetFullState(); // Vaihe A: Puhdistetaan vanha tila ja välimuisti
+
     const btn = document.getElementById('btn-login');
-    if (btn && btn.disabled) return; // Estetään useat klikkaukset
+    if (btn && btn.disabled) {
+        console.warn("⚠️ Login already in progress, ignoring duplicate attempt.");
+        return;
+    }
     
     const originalText = btn ? btn.textContent : 'LOG IN';
     
@@ -305,7 +314,7 @@ export async function handleAuth(event) {
             return;
         }
 
-        console.log("--- LOGIN ATTEMPT ---", window.location.hostname);
+        console.log("🚀 Auth attempt started for:", input);
         
         // Pakotettu siivous: poistetaan Supabasen tokenit LocalStoragesta ennen uutta yritystä.
         // Tämä vastaa ohjelmallisesti selainhistorian/välimuistin tyhjentämistä.
@@ -322,12 +331,15 @@ export async function handleAuth(event) {
         console.log("Input:", input);
         // 1. Yritetään ensin kirjautua sähköpostilla (uusi tapa)
         if (input.includes('@')) {
+            console.log("📧 Attempting email login via Supabase Auth...");
+            console.log("3. Supabase Auth alkaa");
             const { data: authData, error } = await _supabase.auth.signInWithPassword({
                 email: input,
                 password: p
             });
             
             if (!error) {
+                console.log("✅ Email login successful");
                 showNotification("Welcome back!", "success");
                 return;
             }
@@ -362,13 +374,15 @@ export async function handleAuth(event) {
         }
 
         // 2. Tarkistetaan players-taulu (käyttäjänimellä)
-        console.log("Searching players table by username...");
+        console.log("1. Aloitetaan haku");
+        console.log("🔍 Searching players table by username...");
         
         // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
         let { data: nameMatches, error: nameErr } = await _supabase
             .from('players').select('*').ilike('username', input);
             
-        console.log("Search completed. Matches found:", nameMatches?.length || 0);
+        console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
+        if (nameMatches && nameMatches.length > 0) console.log("2. Pelaaja löytyi");
 
         if (nameErr) {
             if (nameErr.message?.includes('AbortError')) return; // Ohitetaan keskeytykset
@@ -387,7 +401,7 @@ export async function handleAuth(event) {
         }
 
         if (nameMatches && nameMatches.length > 0) {
-            console.log(`Found ${nameMatches.length} matching records. Checking passwords...`);
+            console.log(`🔑 Found ${nameMatches.length} matching records. Checking credentials...`);
             const hashed = await hashPassword(p);
             
             // 1. Kokeillaan ensin migroituja tilejä (UUID + Email)
@@ -459,34 +473,16 @@ export function handleGuest() {
 }
 
 export async function handleLogout() {
-    // Tyhjennetään sovelluksen tila välittömästi
-    state.user = null;
-    lastRefreshedId = null; // Varmistaa, että seuraava kirjautuminen lataa profiilin uudestaan
-    
-    // Estetään loputon uudelleenlataussilmukka (max 1 lataus per 2 sekuntia)
-    const lastLogout = sessionStorage.getItem('last-logout-time');
-    const now = Date.now();
-    if (lastLogout && (now - parseInt(lastLogout)) < 2000) {
-        console.warn("Uudelleenlataussilmukka estetty.");
-        return;
-    }
-    sessionStorage.setItem('last-logout-time', now.toString());
-
     if (_supabase) {
         try {
-            await _supabase.auth.signOut({ scope: 'global' }); // Kirjaa ulos kaikista istunnoista
+            await _supabase.auth.signOut();
         } catch (error) {
             console.error('Error logging out:', error);
         }
     }
-
-    // Perusteellinen siivous localStorageen (tokenit ja käyttäjädata)
-    localStorage.removeItem('subsoccer-user');
-    Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('sb-') || key.includes('supabase')) localStorage.removeItem(key);
-    });
-
-    window.location.reload();
+    
+    resetFullState();
+    window.location.replace('index.html');
 }
 
 /**
@@ -685,8 +681,19 @@ export async function saveProfile(e) {
  * Removes the need for 'window.xxx' and inline 'onclick' in HTML.
  */
 export function setupAuthListeners() {
-    const loginForm = document.getElementById('login-form') || document.getElementById('auth-form-wrapper');
-    if (loginForm) loginForm.addEventListener('submit', handleAuth);
+    const loginForm = document.getElementById('auth-form-wrapper');
+    if (loginForm) {
+        // Vaihe B: Estä tuplakytkennät korvaamalla elementti kloonilla
+        const newForm = loginForm.cloneNode(true);
+        loginForm.parentNode.replaceChild(newForm, loginForm);
+        
+        newForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            handleAuth(e);
+        });
+    }
+
     document.getElementById('btn-show-signup')?.addEventListener('click', () => toggleAuth(true));
     document.getElementById('btn-register')?.addEventListener('click', handleSignUp);
     document.getElementById('link-back-to-login')?.addEventListener('click', () => toggleAuth(false));
@@ -701,8 +708,12 @@ export function setupAuthListeners() {
     });
 
     const signupForm = document.getElementById('signup-form');
-    if (signupForm) signupForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        handleSignUp();
-    });
+    if (signupForm && !signupForm.dataset.authBound) {
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            handleSignUp();
+        });
+        signupForm.dataset.authBound = "true";
+    }
 }
