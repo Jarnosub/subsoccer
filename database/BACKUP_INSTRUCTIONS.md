@@ -1,26 +1,25 @@
-# 🛡️ Varmuuskopiointiohjeet
+# ️ Kehitys- ja Varmuuskopiointiohjeet (Supabase CLI)
 
-Tämä projekti (`ujxmmrsmdwrgcwatdhvx`) on Supabasen ilmaisella tasolla, joten automaattisia varmuuskopioita ei ole. Tee varmuuskopio aina ennen suuria muutoksia.
+Tämä projekti (`ujxmmrsmdwrgcwatdhvx`) käyttää ammattimaista työnkulkua. Tietokantaa hallitaan koodina (Migrations), ei manuaalisesti Dashboardin kautta.
 
-## 1. Datan varmuuskopiointi (Table Editor)
-1. Mene Supabase Dashboard -> Table Editor.
-2. Valitse taulu (esim. `players` tai `games`).
-3. Klikkaa **Export to CSV**.
-*Tee tämä jokaiselle taululle, jossa on tärkeää dataa.*
+## 🚀 1. Supabase CLI:n käyttöönotto (Tärkein)
 
-## 2. Rakenteen ja asetusten varmuuskopiointi (SQL)
-Säilytä aina uusin versio `database/master_fix.sql` tai vastaavasta tiedostosta. Jos teet muutoksia Dashboardin UI:n kautta (esim. lisäät sarakkeen), muista päivittää se myös SQL-tiedostoon.
+Supabase CLI mahdollistaa tietokannan rakenteen hakemisen paikalliseksi koodiksi.
 
-Voit myös hakea nykyisen rakenteen SQL-muodossa:
-1. Mene **Database** -> **Functions** tai **Tables**.
-2. Supabase ei tarjoa suoraa "Dump"-nappia Dashboardilla, joten CLI on tähän paras.
-
-## 3. Täydellinen varmuuskopio (Supabase CLI)
-Tämä on varmin tapa tallentaa kaikki (taulut, RLS-oikeudet, näkymät).
-
-**Komento:**
+### Asennus (Mac):
 ```bash
-supabase db dump --project-ref ujxmmrsmdwrgcwatdhvx -f backup_pvm.sql
+brew install supabase/tap/supabase
+```
+
+### Alustus:
+1. Kirjaudu sisään: `supabase login`
+2. Alusta projekti: `supabase init`
+3. Linkitä live-projektiin: `supabase link --project-ref ujxmmrsmdwrgcwatdhvx`
+
+### Rakenteen haku (Schema Pull):
+Tämä komento hakee live-tietokannan rakenteen ja luo siitä migraatiotiedoston:
+```bash
+supabase db pull
 ```
 
 ## 4. Ennen "Production Ready" -siirtoa

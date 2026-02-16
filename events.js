@@ -162,6 +162,10 @@ export function showCreateEventForm() {
     const formContainer = document.getElementById('create-event-form');
     if (!formContainer) return;
     
+    // Asetetaan oletusajat: alku nyt, loppu +2h
+    const now = new Date();
+    const minTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
     formContainer.style.display = 'block';
     formContainer.innerHTML = `
         <div style="background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px; margin-bottom:20px;">
@@ -186,12 +190,12 @@ export function showCreateEventForm() {
                 <div style="display:flex; gap:12px;">
                     <div style="flex:1; min-width:0;">
                         <label style="font-size:0.8rem; color:#888; display:block; margin-bottom:5px;">Start Date & Time *</label>
-                        <input type="datetime-local" id="event-start-input" 
+                        <input type="datetime-local" id="event-start-input" min="${minTime}" step="900"
                             style="width:100%; max-width:none; height:38px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.85rem; line-height:1.2; box-sizing:border-box;">
                     </div>
                     <div style="flex:1; min-width:0;">
                         <label style="font-size:0.8rem; color:#888; display:block; margin-bottom:5px;">End Date & Time (optional)</label>
-                        <input type="datetime-local" id="event-end-input" 
+                        <input type="datetime-local" id="event-end-input" min="${minTime}" step="900"
                             style="width:100%; max-width:none; height:38px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.85rem; line-height:1.2; box-sizing:border-box;">
                     </div>
                 </div>
@@ -250,6 +254,14 @@ export function showCreateEventForm() {
     
     // Scroll to form
     formContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Lisätään logiikka loppuajan synkronointiin
+    document.getElementById('event-start-input').addEventListener('change', (e) => {
+        const endInput = document.getElementById('event-end-input');
+        if (endInput) {
+            endInput.min = e.target.value;
+        }
+    });
 }
 
 /**
@@ -648,9 +660,6 @@ function showEventModal(event, tournaments, userRegistrations) {
                                             </div>
                                         </div>
                                         <div style="text-align:right;">
-                                            <div style="font-size:0.75rem; color:var(--sub-gold); font-weight:bold; margin-bottom:4px;">
-                                                ${t.tournament_type?.toUpperCase() || 'ELIMINATION'}
-                                            </div>
                                             ${t.status === 'completed' ? `
                                                 <div style="font-size:0.7rem; color:#4CAF50;">
                                                     <i class="fa fa-check-circle"></i> COMPLETED
@@ -1237,37 +1246,24 @@ export async function showCreateTournamentForm(eventId, eventName) {
                         <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
                             START TIME *
                         </label>
-                        <input type="datetime-local" id="tournament-start-input" value="${defaultTime}"
+                        <input type="datetime-local" id="tournament-start-input" value="${defaultTime}" min="${defaultTime}" step="900"
                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
                     <div>
                         <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
                             END TIME <span style="color:#666;">(opt.)</span>
                         </label>
-                        <input type="datetime-local" id="tournament-end-input" value="${defaultTime}"
+                        <input type="datetime-local" id="tournament-end-input" value="${defaultTime}" min="${defaultTime}" step="900"
                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
                 </div>
                 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-                    <div>
-                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                            MAX PLAYERS
-                        </label>
-                        <input type="number" id="tournament-max-input" value="8" min="2" max="32"
-                               style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                    </div>
-                    <div>
-                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                            TYPE
-                        </label>
-                        <select id="tournament-type-select" 
-                                style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                            <option value="elimination">Elimination</option>
-                            <option value="swiss">Swiss System</option>
-                            <option value="round_robin">Round Robin</option>
-                        </select>
-                    </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
+                        MAX PLAYERS
+                    </label>
+                    <input type="number" id="tournament-max-input" value="8" min="2" max="32"
+                           style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
                 </div>
                 
                 <div style="display:flex; gap:10px; margin-top:20px;">
@@ -1302,6 +1298,14 @@ export async function showCreateTournamentForm(eventId, eventName) {
             console.log('✅ Auto-selected first game:', state.allGames[0].game_name, 'ID:', state.allGames[0].id);
         }
     }
+
+    // Synkronointi turnauslomakkeelle
+    document.getElementById('tournament-start-input').addEventListener('change', (e) => {
+        const endInput = document.getElementById('tournament-end-input');
+        if (endInput) {
+            endInput.min = e.target.value;
+        }
+    });
 }
 
 /**
@@ -1734,7 +1738,7 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
                         <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
                             START TIME <span style="color:#666;">(opt.)</span>
                         </label>
-                        <input type="datetime-local" id="tournament-start-input"
+                        <input type="datetime-local" id="tournament-start-input" step="900"
                                value="${tournament.start_datetime ? new Date(tournament.start_datetime).toISOString().slice(0, 16) : ''}"
                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
@@ -1742,31 +1746,18 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
                         <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
                             END TIME <span style="color:#666;">(opt.)</span>
                         </label>
-                        <input type="datetime-local" id="tournament-end-input"
+                        <input type="datetime-local" id="tournament-end-input" step="900"
                                value="${tournament.end_datetime ? new Date(tournament.end_datetime).toISOString().slice(0, 16) : ''}"
                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
                 </div>
                 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-                    <div>
-                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                            MAX PLAYERS
-                        </label>
-                        <input type="number" id="tournament-max-input" value="${tournament.max_participants || 8}" min="2" max="32"
-                               style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                    </div>
-                    <div>
-                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                            TYPE
-                        </label>
-                        <select id="tournament-type-select" 
-                                style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                            <option value="elimination" ${tournament.tournament_type === 'elimination' ? 'selected' : ''}>Elimination</option>
-                            <option value="swiss" ${tournament.tournament_type === 'swiss' ? 'selected' : ''}>Swiss System</option>
-                            <option value="round_robin" ${tournament.tournament_type === 'round_robin' ? 'selected' : ''}>Round Robin</option>
-                        </select>
-                    </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
+                        MAX PLAYERS
+                    </label>
+                    <input type="number" id="tournament-max-input" value="${tournament.max_participants || 8}" min="2" max="32"
+                           style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
                 </div>
                 
                 <div style="display:flex; gap:10px; margin-top:20px;">
@@ -1804,6 +1795,14 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
     if (endInput && tournament.end_datetime) {
         endInput.value = new Date(tournament.end_datetime).toISOString().slice(0, 16);
     }
+
+    // Synkronointi muokkauslomakkeelle
+    document.getElementById('tournament-start-input').addEventListener('change', (e) => {
+        const endInput = document.getElementById('tournament-end-input');
+        if (endInput) {
+            endInput.min = e.target.value;
+        }
+    });
 }
 
 /**

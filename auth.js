@@ -9,6 +9,16 @@ export async function initApp() {
     try {
         setupAuthListeners();
 
+        // Välitön yhteystesti Supabaseen - käsitellään keskeytykset hiljaisesti
+        _supabase.from('players').select('id', { count: 'exact', head: true }).limit(1).then(({ error }) => {
+            if (error) {
+                if (error.message?.includes('AbortError')) return;
+                console.error("🛑 Supabase Connection Test Failed:", error.message);
+            } else {
+                console.log("✅ Supabase Connection Healthy");
+            }
+        }).catch(() => {}); // Estetään unhandled rejection jos yhteys katkeaa heti
+
         // Luotetaan onAuthStateChange-tapahtumaan alustuksessa.
         // Supabase laukaisee INITIAL_SESSION tai SIGNED_IN automaattisesti.
         _supabase.auth.onAuthStateChange(async (event, session) => {
@@ -20,8 +30,9 @@ export async function initApp() {
             }
         });
 
-        const { data: players } = await _supabase.from('players').select('username');
+        const { data: players } = await _supabase.from('players').select('username').limit(1000);
         state.allDbNames = players ? players.map(p => p.username) : [];
+        console.log("✅ initApp: Players loaded", state.allDbNames.length);
         
         if (typeof fetchAllGames === 'function') await fetchAllGames();
         await populateCountries();
@@ -106,8 +117,8 @@ async function refreshUserProfile(userId) {
                 console.error("Profiilin automaattinen luonti epäonnistui:", createErr);
                 showNotification("Profiilin luonti epäonnistui: " + (createErr?.message || "RLS Error"), "error");
                 
-                // Estetään silmukka: kirjaudu ulos vain jos kyseessä ei ole keskeytys
-                if (createErr) setTimeout(() => handleLogout(), 5000);
+                // Älä kirjaudu ulos automaattisesti, jotta vältetään uudelleenlataussilmukka.
+                // Käyttäjä voi yrittää uudelleen tai kirjautua ulos käsin.
             }
         }
     } catch (e) {
@@ -284,6 +295,12 @@ export async function handleAuth(event) {
 
     const input = document.getElementById('auth-user').value.replace(/\s+/g, ' ').trim();
     const p = document.getElementById('auth-pass').value;
+
+    if (!input || !p) {
+        showNotification("Please enter both username/email and password", "error");
+        if (btn) { btn.disabled = false; btn.textContent = originalText; }
+        return;
+    }
     
     try {
         console.log("--- LOGIN ATTEMPT ---", window.location.hostname);
@@ -329,27 +346,49 @@ export async function handleAuth(event) {
             throw error;
         }
 
-        // 2. Tarkistetaan players-taulu (käyttäjänimellä)
-        console.log("Searching players table by username...");
-        let { data: nameMatches, error: nameErr } = await _supabase
-            .from('players')
-            .select('*')
-            .ilike('username', input);
-            
-        if (nameErr) {
-            if (nameErr.message?.includes('AbortError')) return; // Ohitetaan keskeytykset
-            console.error("Database error (check RLS policies):", nameErr);
-            throw new Error("Database connection error. Please check your permissions.");
+        // 2. Tarkistetaan players-taulu (käyttäjänimellä - case-insensitive)
+        console.log("Searching players table by username (ilike)...");
+        
+        let nameMatches = null;
+        let nameErr = null;
+        let attempts = 0;
+        const maxAttempts = 2;
+
+        while (attempts < maxAttempts) {
+            attempts++;
+            try {
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("TIMEOUT")), 15000)
+                );
+
+                const response = await Promise.race([
+                    _supabase.from('players').select('id, username, email, password').ilike('username', input).limit(1),
+                    timeoutPromise
+                ]);
+
+                nameMatches = response.data;
+                nameErr = response.error;
+                break; // Onnistui, poistutaan silmukasta
+            } catch (err) {
+                if (err.message === "TIMEOUT" && attempts < maxAttempts) {
+                    console.log(`Attempt ${attempts} timed out, retrying while database wakes up...`);
+                    continue;
+                }
+                throw new Error("Supabase timeout: The server is taking too long to respond. Please try again in a few seconds.");
+            }
         }
 
-        if (!nameMatches || nameMatches.length === 0) {
-            console.log("Direct search failed, trying fuzzy search...");
-            const fuzzyInput = input.replace(/\s+/g, '%');
-            const { data: fuzzyMatches } = await _supabase
-                .from('players')
-                .select('*')
-                .ilike('username', fuzzyInput);
-            nameMatches = fuzzyMatches || [];
+        console.log("Search result:", { count: nameMatches?.length, error: nameErr });
+
+        if (nameErr) {
+            if (nameErr.message?.includes('AbortError') || nameErr.code === 'FETCH_ERROR') {
+                console.warn("Network error or browser interference detected. Clearing local session...");
+                localStorage.removeItem('subsoccer-user');
+                showNotification("Connection issue detected. If this persists, please disable ad-blockers.", "info");
+                return;
+            }
+            console.error("Database error:", nameErr);
+            throw new Error("Database connection error. Please check your permissions.");
         }
 
         if (nameMatches && nameMatches.length > 0) {
@@ -426,19 +465,23 @@ export function handleGuest() {
 
 export async function handleLogout() {
     localStorage.removeItem('subsoccer-user');
+    state.user = null;
     
     // Estetään loputon uudelleenlataussilmukka (max 1 lataus per 2 sekuntia)
     const lastLogout = sessionStorage.getItem('last-logout-time');
     const now = Date.now();
     if (lastLogout && (now - parseInt(lastLogout)) < 2000) {
-        console.warn("Uudelleenlataussilmukka estetty.");
-        return;
+        console.warn("Uudelleenlataussilmukka estetty, mutta varmistetaan uloskirjaus.");
+    } else {
+        sessionStorage.setItem('last-logout-time', now.toString());
     }
-    sessionStorage.setItem('last-logout-time', now.toString());
 
     if (_supabase) {
-        const { error } = await _supabase.auth.signOut();
-        if (error) console.error('Error logging out:', error);
+        try {
+            await _supabase.auth.signOut();
+        } catch (e) {
+            console.error('Error during signOut:', e);
+        }
         window.location.reload();
     } else {
         window.location.reload();

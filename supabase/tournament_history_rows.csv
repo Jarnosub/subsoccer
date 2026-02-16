@@ -1,3 +1,0 @@
-id,created_at,tournament_name,winner_name,third_place_name,second_place_name,tournament_id,event_name,game_id,losses,matches_played,avatar_url,event_id,organizer_id,tournament_type,max_participants,status,start_datetime,end_datetime
-30daf664-740e-4aef-ab04-49ba602afb74,2026-02-15 17:06:37.862+00,Day 1,,,,4ec7e3e3-94a4-4111-b2f0-9e90659afd8f,,9a7df0a9-a5c0-4ace-b955-ce472c5f3580,0,0,,676bf816-4b15-491c-9a46-17e32b3b131f,5031f839-7710-477b-ac80-c4999a212547,elimination,8,scheduled,2026-02-15 19:06:00+00,2026-02-15 19:06:00+00
-debd01ac-5fc1-4513-94ff-9331fa94520e,2026-02-15 16:59:19.616461+00,Tournament,2,TEST_ORGANIZER,,528fbbc7-4ed3-43cf-94e1-bc777bf81816,,,0,0,,,,elimination,8,scheduled,,
