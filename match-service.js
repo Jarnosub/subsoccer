@@ -4,6 +4,8 @@ import { showNotification, showLoading, hideLoading } from './ui-utils.js';
 /**
  * Keskitetty palvelu otteluiden hallintaan ja ELO-laskentaan.
  */
+const isUuid = (val) => val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
+
 export const MatchService = {
     /**
      * Laskee uudet ELO-pisteet kahdelle pelaajalle.
@@ -39,8 +41,8 @@ export const MatchService = {
             showLoading('Recording match...');
             
             // Haetaan pelaajien tiedot tietokannasta
-            let { data: p1Data } = await _supabase.from('players').select('*').eq('username', player1Name).maybeSingle();
-            let { data: p2Data } = await _supabase.from('players').select('*').eq('username', player2Name).maybeSingle();
+            let { data: p1Data } = await _supabase.from('players').select('*').ilike('username', player1Name).maybeSingle();
+            let { data: p2Data } = await _supabase.from('players').select('*').ilike('username', player2Name).maybeSingle();
 
             // Käsitellään vieraspelaajat (ei tietokannassa)
             const p1 = p1Data || { id: 'guest_' + player1Name, username: player1Name, elo: 1300, isGuest: true };
@@ -48,52 +50,31 @@ export const MatchService = {
             
             const winnerData = winnerName === player1Name ? p1 : p2;
             const { newEloA, newEloB } = this.calculateNewElo(p1, p2, winnerData.id);
-            
-            const gain = (winnerName === player1Name ? newEloA : newEloB) - winnerData.elo;
+            const newElo = (winnerName === player1Name ? newEloA : newEloB);
+            const gain = newElo - winnerData.elo;
 
-            // Päivitetään pelaajien tiedot (ELO + voitot/häviöt) yhdellä kutsulla
-            if (!p1.isGuest) {
-                const p1Updates = { elo: parseInt(newEloA) };
-                if (winnerName === player1Name) p1Updates.wins = (p1.wins || 0) + 1;
-                else p1Updates.losses = (p1.losses || 0) + 1;
-                const { error: p1Err } = await _supabase.from('players').update(p1Updates).eq('id', p1.id);
-                if (p1Err) console.error("Error updating player 1 stats:", p1Err);
-            }
-            if (!p2.isGuest) {
-                const p2Updates = { elo: parseInt(newEloB) };
-                if (winnerName === player2Name) p2Updates.wins = (p2.wins || 0) + 1;
-                else p2Updates.losses = (p2.losses || 0) + 1;
-                const { error: p2Err } = await _supabase.from('players').update(p2Updates).eq('id', p2.id);
-                if (p2Err) console.error("Error updating player 2 stats:", p2Err);
-            }
+            const p1EloFinal = parseInt(newEloA) || 1300;
+            const p2EloFinal = parseInt(newEloB) || 1300;
 
-            // Lisätään ottelutallenne - yritetään ensin kaikilla tiedoilla
-            const matchData = {
-                player1: player1Name,
-                player2: player2Name,
-                winner: winnerName,
-                created_at: new Date().toISOString()
-            };
-
-            // Lisätään valinnaiset kentät vain jos ne on määritelty
-            if (p1Score !== null) matchData.player1_score = p1Score;
-            if (p2Score !== null) matchData.player2_score = p2Score;
-            if (tournamentId) matchData.tournament_id = tournamentId;
-            if (tournamentName) matchData.tournament_name = tournamentName;
-
-            const { error: matchError } = await _supabase.from('matches').insert([matchData]);
-
-            if (matchError) {
-                console.warn("Primary match record failed (likely missing columns), trying fallback:", matchError);
-                // Fallback: yritetään tallentaa vain perusmääritelmät jos uudet sarakkeet puuttuvat
-                const { error: fallbackError } = await _supabase.from('matches').insert([{
+            // Käytetään RPC-kutsua atomisuuden varmistamiseksi (SQL-funktio record_quick_match_v1)
+            const { error: rpcError } = await _supabase.rpc('record_quick_match_v1', {
+                p1_id: (p1.isGuest || !isUuid(p1.id)) ? null : p1.id,
+                p2_id: (p2.isGuest || !isUuid(p2.id)) ? null : p2.id,
+                p1_new_elo: p1EloFinal,
+                p2_new_elo: p2EloFinal,
+                p1_won: winnerName === player1Name,
+                match_data: {
                     player1: player1Name,
                     player2: player2Name,
                     winner: winnerName,
-                    created_at: new Date().toISOString()
-                }]);
-                if (fallbackError) throw fallbackError;
-            }
+                    player1_score: p1Score,
+                    player2_score: p2Score,
+                    tournament_id: isUuid(tournamentId) ? tournamentId : null,
+                    tournament_name: tournamentName
+                }
+            });
+
+            if (rpcError) throw rpcError;
 
             // Tallennetaan globaalisti animaatioita varten
             window.lastTournamentEloGain = gain;
@@ -101,12 +82,11 @@ export const MatchService = {
 
             // Check for Level Up Milestones
             const oldElo = winnerData.elo || 1300;
-            const newElo = (winnerName === player1Name ? newEloA : newEloB);
             if (Math.floor(newElo / 100) > Math.floor(oldElo / 100) || (oldElo < 1600 && newElo >= 1600)) {
                 setTimeout(() => { if (window.showLevelUpCard) window.showLevelUpCard(winnerName, newElo); }, 2000);
             }
 
-            return { success: true, newElo: (winnerName === player1Name ? newEloA : newEloB), gain, isGuest: winnerData.isGuest };
+            return { success: true, newElo, gain, isGuest: winnerData.isGuest };
         } catch (error) {
             console.error('MatchService Error:', error);
             showNotification('Failed to record match', 'error');

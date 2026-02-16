@@ -9,16 +9,6 @@ export async function initApp() {
     try {
         setupAuthListeners();
 
-        // Välitön yhteystesti Supabaseen - käsitellään keskeytykset hiljaisesti
-        _supabase.from('players').select('id', { count: 'exact', head: true }).limit(1).then(({ error }) => {
-            if (error) {
-                if (error.message?.includes('AbortError')) return;
-                console.error("🛑 Supabase Connection Test Failed:", error.message);
-            } else {
-                console.log("✅ Supabase Connection Healthy");
-            }
-        }).catch(() => {}); // Estetään unhandled rejection jos yhteys katkeaa heti
-
         // Luotetaan onAuthStateChange-tapahtumaan alustuksessa.
         // Supabase laukaisee INITIAL_SESSION tai SIGNED_IN automaattisesti.
         _supabase.auth.onAuthStateChange(async (event, session) => {
@@ -30,7 +20,7 @@ export async function initApp() {
             }
         });
 
-        const { data: players } = await _supabase.from('players').select('username').limit(1000);
+        const { data: players } = await _supabase.from('players').select('username');
         state.allDbNames = players ? players.map(p => p.username) : [];
         console.log("✅ initApp: Players loaded", state.allDbNames.length);
         
@@ -81,7 +71,9 @@ async function refreshUserProfile(userId) {
         if (error) {
             if (error.message?.includes('AbortError')) return;
             console.error("Tietokantavirhe profiilia haettaessa (406?):", error);
-            return; // Älä kirjaudu ulos, jos kyseessä on yhteys/skeemavirhe
+            // Jos profiilia ei saada ladattua, kirjaudutaan ulos jotta vältetään jumiutuminen vialliseen istuntoon
+            await _supabase.auth.signOut();
+            return;
         }
 
         if (profile) {
@@ -105,7 +97,7 @@ async function refreshUserProfile(userId) {
 
             const { data: created, error: createErr } = await _supabase
                 .from('players')
-                .upsert(newProfile, { onConflict: 'email' })
+                .upsert(newProfile, { onConflict: 'id' })
                 .select()
                 .maybeSingle();
 
@@ -116,9 +108,8 @@ async function refreshUserProfile(userId) {
                 if (createErr?.message?.includes('AbortError')) return;
                 console.error("Profiilin automaattinen luonti epäonnistui:", createErr);
                 showNotification("Profiilin luonti epäonnistui: " + (createErr?.message || "RLS Error"), "error");
-                
-                // Älä kirjaudu ulos automaattisesti, jotta vältetään uudelleenlataussilmukka.
-                // Käyttäjä voi yrittää uudelleen tai kirjautua ulos käsin.
+                // Pakotetaan uloskirjautuminen viallisen istunnon siivoamiseksi
+                await _supabase.auth.signOut();
             }
         }
     } catch (e) {
@@ -135,23 +126,33 @@ export async function populateCountries() {
     const select = document.getElementById('country-input');
     if (!select) return;
 
+    // Käytetään välimuistia, jos tiedot on jo haettu
+    if (state.countries && state.countries.length > 0) {
+        renderCountryOptions(select, state.countries);
+        return;
+    }
+
     try {
         const { data, error } = await _supabase.from('countries').select('name, code').order('name');
         if (error) throw error;
-
         if (data && data.length > 0) {
-            select.innerHTML = '<option value="" disabled selected>Select Country</option>';
-            data.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.code.toLowerCase();
-                opt.innerText = c.name;
-                select.appendChild(opt);
-            });
+            state.countries = data;
+            renderCountryOptions(select, data);
         }
     } catch (e) {
         console.error("Maiden haku epäonnistui:", e);
         select.innerHTML = '<option value="fi">Finland</option>'; // Fallback
     }
+}
+
+function renderCountryOptions(select, countries) {
+    select.innerHTML = '<option value="" disabled selected>Select Country</option>';
+    countries.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.code.toLowerCase();
+        opt.innerText = c.name;
+        select.appendChild(opt);
+    });
 }
 
 export async function handleSignUp() {
@@ -266,10 +267,10 @@ export async function handleSignUp() {
             profileError = finalError;
         } else {
             // NEW USER: Luodaan kokonaan uusi pelaaja
-            const { error } = await _supabase.from('players').insert([{
+            const { error } = await _supabase.from('players').upsert({
                 id: authData.user.id, username: u, email: email,
                 elo: 1300, wins: 0, losses: 0, acquired_via: state.brand
-            }]);
+            }, { onConflict: 'id' });
             profileError = error;
         }
         
@@ -286,24 +287,38 @@ export async function handleSignUp() {
 
 export async function handleAuth(event) {
     if (event && event.preventDefault) event.preventDefault();
+    console.log("Login attempt started...");
     
     const btn = document.getElementById('btn-login');
     if (btn && btn.disabled) return; // Estetään useat klikkaukset
     
     const originalText = btn ? btn.textContent : 'LOG IN';
-    if (btn) { btn.disabled = true; btn.textContent = 'LOGGING IN...'; }
-
-    const input = document.getElementById('auth-user').value.replace(/\s+/g, ' ').trim();
-    const p = document.getElementById('auth-pass').value;
-
-    if (!input || !p) {
-        showNotification("Please enter both username/email and password", "error");
-        if (btn) { btn.disabled = false; btn.textContent = originalText; }
-        return;
-    }
     
     try {
+        if (btn) { btn.disabled = true; btn.textContent = 'LOGGING IN...'; }
+
+        const input = document.getElementById('auth-user')?.value.replace(/\s+/g, ' ').trim();
+        const p = document.getElementById('auth-pass')?.value;
+
+        if (!input || !p) {
+            showNotification("Please enter both username/email and password", "error");
+            return;
+        }
+
         console.log("--- LOGIN ATTEMPT ---", window.location.hostname);
+        
+        // Pakotettu siivous: poistetaan Supabasen tokenit LocalStoragesta ennen uutta yritystä.
+        // Tämä vastaa ohjelmallisesti selainhistorian/välimuistin tyhjentämistä.
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('sb-') || key.includes('supabase')) {
+                localStorage.removeItem(key);
+            }
+        });
+
+        try {
+            await _supabase.auth.signOut();
+        } catch (e) { console.warn("Initial signOut failed:", e); }
+
         console.log("Input:", input);
         // 1. Yritetään ensin kirjautua sähköpostilla (uusi tapa)
         if (input.includes('@')) {
@@ -322,7 +337,7 @@ export async function handleAuth(event) {
             const { data: emailMatches, error: emailErr } = await _supabase
                 .from('players')
                 .select('*')
-                .eq('email', input);
+                .ilike('email', input);
                 
             if (!emailErr && emailMatches && emailMatches.length > 0) {
                 const hashed = await hashPassword(p);
@@ -346,49 +361,29 @@ export async function handleAuth(event) {
             throw error;
         }
 
-        // 2. Tarkistetaan players-taulu (käyttäjänimellä - case-insensitive)
-        console.log("Searching players table by username (ilike)...");
+        // 2. Tarkistetaan players-taulu (käyttäjänimellä)
+        console.log("Searching players table by username...");
         
-        let nameMatches = null;
-        let nameErr = null;
-        let attempts = 0;
-        const maxAttempts = 2;
-
-        while (attempts < maxAttempts) {
-            attempts++;
-            try {
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error("TIMEOUT")), 15000)
-                );
-
-                const response = await Promise.race([
-                    _supabase.from('players').select('id, username, email, password').ilike('username', input).limit(1),
-                    timeoutPromise
-                ]);
-
-                nameMatches = response.data;
-                nameErr = response.error;
-                break; // Onnistui, poistutaan silmukasta
-            } catch (err) {
-                if (err.message === "TIMEOUT" && attempts < maxAttempts) {
-                    console.log(`Attempt ${attempts} timed out, retrying while database wakes up...`);
-                    continue;
-                }
-                throw new Error("Supabase timeout: The server is taking too long to respond. Please try again in a few seconds.");
-            }
-        }
-
-        console.log("Search result:", { count: nameMatches?.length, error: nameErr });
+        // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
+        let { data: nameMatches, error: nameErr } = await _supabase
+            .from('players').select('*').ilike('username', input);
+            
+        console.log("Search completed. Matches found:", nameMatches?.length || 0);
 
         if (nameErr) {
-            if (nameErr.message?.includes('AbortError') || nameErr.code === 'FETCH_ERROR') {
-                console.warn("Network error or browser interference detected. Clearing local session...");
-                localStorage.removeItem('subsoccer-user');
-                showNotification("Connection issue detected. If this persists, please disable ad-blockers.", "info");
-                return;
-            }
-            console.error("Database error:", nameErr);
+            if (nameErr.message?.includes('AbortError')) return; // Ohitetaan keskeytykset
+            console.error("Database error (check RLS policies):", nameErr);
             throw new Error("Database connection error. Please check your permissions.");
+        }
+
+        if (!nameMatches || nameMatches.length === 0) {
+            console.log("Direct search failed, trying fuzzy search...");
+            const fuzzyInput = input.replace(/\s+/g, '%');
+            const { data: fuzzyMatches } = await _supabase
+                .from('players')
+                .select('*')
+                .ilike('username', fuzzyInput);
+            nameMatches = fuzzyMatches || [];
         }
 
         if (nameMatches && nameMatches.length > 0) {
@@ -464,28 +459,34 @@ export function handleGuest() {
 }
 
 export async function handleLogout() {
-    localStorage.removeItem('subsoccer-user');
+    // Tyhjennetään sovelluksen tila välittömästi
     state.user = null;
+    lastRefreshedId = null; // Varmistaa, että seuraava kirjautuminen lataa profiilin uudestaan
     
     // Estetään loputon uudelleenlataussilmukka (max 1 lataus per 2 sekuntia)
     const lastLogout = sessionStorage.getItem('last-logout-time');
     const now = Date.now();
     if (lastLogout && (now - parseInt(lastLogout)) < 2000) {
-        console.warn("Uudelleenlataussilmukka estetty, mutta varmistetaan uloskirjaus.");
-    } else {
-        sessionStorage.setItem('last-logout-time', now.toString());
+        console.warn("Uudelleenlataussilmukka estetty.");
+        return;
     }
+    sessionStorage.setItem('last-logout-time', now.toString());
 
     if (_supabase) {
         try {
-            await _supabase.auth.signOut();
-        } catch (e) {
-            console.error('Error during signOut:', e);
+            await _supabase.auth.signOut({ scope: 'global' }); // Kirjaa ulos kaikista istunnoista
+        } catch (error) {
+            console.error('Error logging out:', error);
         }
-        window.location.reload();
-    } else {
-        window.location.reload();
     }
+
+    // Perusteellinen siivous localStorageen (tokenit ja käyttäjädata)
+    localStorage.removeItem('subsoccer-user');
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) localStorage.removeItem(key);
+    });
+
+    window.location.reload();
 }
 
 /**
@@ -684,13 +685,20 @@ export async function saveProfile(e) {
  * Removes the need for 'window.xxx' and inline 'onclick' in HTML.
  */
 export function setupAuthListeners() {
-    const loginForm = document.getElementById('auth-form-wrapper');
+    const loginForm = document.getElementById('login-form') || document.getElementById('auth-form-wrapper');
     if (loginForm) loginForm.addEventListener('submit', handleAuth);
     document.getElementById('btn-show-signup')?.addEventListener('click', () => toggleAuth(true));
     document.getElementById('btn-register')?.addEventListener('click', handleSignUp);
     document.getElementById('link-back-to-login')?.addEventListener('click', () => toggleAuth(false));
     document.getElementById('btn-guest-login')?.addEventListener('click', handleGuest);
-    document.getElementById('btn-logout')?.addEventListener('click', () => handleLogout());
+    
+    // Kytketään kaikki uloskirjautumispainikkeet
+    document.querySelectorAll('.logout-item, #btn-logout').forEach(el => {
+        el.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleLogout();
+        });
+    });
 
     const signupForm = document.getElementById('signup-form');
     if (signupForm) signupForm.addEventListener('submit', (e) => {

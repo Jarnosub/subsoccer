@@ -170,7 +170,7 @@ export function showCreateEventForm() {
     formContainer.innerHTML = `
         <div style="background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px; margin-bottom:20px;">
             <h4 style="font-family:var(--sub-name-font); text-transform:uppercase; margin:0 0 20px 0; color:var(--sub-gold); font-size:1.1rem; letter-spacing:2px;">
-                <i class="fa fa-plus-circle"></i> Create New Event
+                <i class="fa fa-plus-circle" style="margin-right:8px;"></i> Create New Event
             </h4>
             
             <input type="text" id="event-name-input" placeholder="Event Name *" 
@@ -185,7 +185,7 @@ export function showCreateEventForm() {
             
             <div style="margin-bottom:15px;">
                 <label style="font-size:0.95rem; color:#aaa; display:block; margin-bottom:10px; font-weight:600;">
-                    <i class="fa fa-calendar" style="color:var(--sub-gold);"></i> EVENT DATES
+                    <i class="fa fa-calendar" style="color:var(--sub-gold); margin-right:8px;"></i> EVENT DATES
                 </label>
                 <div style="display:flex; gap:12px;">
                     <div style="flex:1; min-width:0;">
@@ -210,7 +210,7 @@ export function showCreateEventForm() {
             <!-- Branding Section -->
             <div style="margin-bottom:20px; padding:15px; background:#111; border:1px solid #333; border-radius:8px;">
                 <label style="font-size:0.9rem; color:#aaa; display:block; margin-bottom:10px; font-weight:600;">
-                    <i class="fa fa-star" style="color:var(--sub-gold);"></i> EVENT BRANDING
+                    <i class="fa fa-star" style="color:var(--sub-gold); margin-right:8px;"></i> EVENT BRANDING
                 </label>
                 
                 <div style="margin-bottom:15px;">
@@ -581,14 +581,14 @@ function showEventModal(event, tournaments, userRegistrations) {
                     
                     <div style="display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
                         <div style="font-size:0.9rem; color:var(--sub-gold); text-transform:uppercase; letter-spacing:1px;">
-                            <i class="fa fa-tag"></i> ${event.event_type}
+                            <i class="fa fa-tag" style="margin-right:8px;"></i> ${event.event_type}
                         </div>
                         <div style="font-size:0.9rem; color:#888;">
-                            <i class="fa fa-calendar"></i> ${dateStr}
+                            <i class="fa fa-calendar" style="margin-right:8px;"></i> ${dateStr}
                         </div>
                         ${!endDate || endDate.toDateString() === startDate.toDateString() ? `
                             <div style="font-size:0.9rem; color:#888;">
-                                <i class="fa fa-clock"></i> ${timeStr}
+                                <i class="fa fa-clock" style="margin-right:8px;"></i> ${timeStr}
                             </div>
                         ` : ''}
                     </div>
@@ -831,7 +831,7 @@ export async function viewTournamentParticipants(eventId, tournamentId, tourname
                     <!-- Add Player Section (Search + Dropdown) -->
                     <div style="background:linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); border:2px solid var(--sub-gold); border-radius:10px; padding:20px; margin-bottom:25px; box-shadow: 0 4px 15px rgba(227,6,19,0.2);">
                         <div style="font-family:'Russo One'; font-size:1rem; color:var(--sub-gold); margin-bottom:15px; text-align:center; text-transform:uppercase; letter-spacing:1px;">
-                            <i class="fa fa-user-plus"></i> Add Player
+                            <i class="fa fa-user-plus" style="margin-right:8px;"></i> Add Player
                         </div>
                         
                         <div style="position: relative;">
@@ -1215,11 +1215,11 @@ export async function showCreateTournamentForm(eventId, eventName) {
             <div style="max-width:500px; margin:0 auto; background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px;">
                 
                 <h2 style="font-family:var(--sub-name-font); font-size:1.1rem; margin:0 0 20px 0; color:var(--sub-gold); text-align:center; text-transform:uppercase; letter-spacing:2px;">
-                    <i class="fa fa-trophy"></i> CREATE TOURNAMENT
+                    <i class="fa fa-trophy" style="margin-right:8px;"></i> CREATE TOURNAMENT
                 </h2>
                 
                 <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888;">
-                    <i class="fa fa-calendar"></i> Event: <span style="color:#fff;">${eventName}</span>
+                    <i class="fa fa-calendar" style="margin-right:8px;"></i> Event: <span style="color:#fff;">${eventName}</span>
                 </div>
                 
                 <div style="margin-bottom:15px;">
@@ -1438,7 +1438,7 @@ export function showEmailPrompt(eventId, tournamentId) {
                 padding: 30px;
             ">
                 <h3 style="color: var(--sub-gold); margin-top: 0; text-align: center;">
-                    <i class="fa fa-envelope"></i> Email Required
+                    <i class="fa fa-envelope" style="margin-right:8px;"></i> Email Required
                 </h3>
                 <p style="color: #ccc; margin-bottom: 20px; text-align: center;">
                     Tournament participation requires an email address for notifications and updates.
@@ -1950,7 +1950,7 @@ export function shareLiveEventLink(eventId, eventName) {
         modal.innerHTML = `
             <div style="background:#1a1a1a; border:2px solid var(--sub-gold); border-radius:12px; padding:30px; max-width:500px; width:100%;">
                 <h2 style="font-family:'Russo One'; color:var(--sub-gold); margin-bottom:20px; text-align:center;">
-                    <i class="fa fa-share-alt"></i> LIVE EVENT LINK
+                    <i class="fa fa-share-alt" style="margin-right:8px;"></i> LIVE EVENT LINK
                 </h2>
                 <p style="color:#ccc; margin-bottom:15px; text-align:center;">
                     Share this link to display live tournament results on screens or other devices.
@@ -2518,6 +2518,12 @@ export async function viewTournamentBracket(tournamentId, tournamentName, maxPar
         eventBronzeContenders = [];
         eventBronzeWinner = null;
         
+        // Jos vain 2 pelaajaa, siirrytään suoraan finaaliin
+        if (shuffledPlayers.length === 2) {
+            eventFinalists = [...shuffledPlayers];
+            eventRoundPlayers = [];
+        }
+
         // Calculate byes
         const byes = BracketEngine.calculateByes(players.length);
         console.log('About to show bracket with byes:', byes);
@@ -2587,7 +2593,8 @@ function showEventBracket(byes = 0) {
     // Handle final round (with bronze match)
     if (eventFinalists.length === 2) {
         // Bronze Match
-        a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin-bottom:10px; color:#CD7F32; text-align:center; font-size:0.8rem; letter-spacing:2px;">🥉 BRONZE MATCH</h3>`;
+        if (eventBronzeContenders.length === 2) {
+            a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin-bottom:10px; color:#CD7F32; text-align:center; font-size:0.8rem; letter-spacing:2px;">🥉 BRONZE MATCH</h3>`;
         a.appendChild(BracketEngine.renderMatch(
             eventBronzeContenders[0], 
             eventBronzeContenders[1], 
@@ -2596,6 +2603,7 @@ function showEventBracket(byes = 0) {
             'pickEventBronzeWinner', 
             { isBronze: true }
         ));
+        }
         
         // Final
         a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin-bottom:10px; color:var(--sub-gold); text-align:center; font-size:0.8rem; letter-spacing:2px;">🏆 FINAL</h3>`;
@@ -2745,18 +2753,29 @@ function checkEventBracketCompletion() {
  * Advance to next round
  */
 export function advanceEventRound() {
+    const winners = eventRoundWinners.filter(w => w);
+
     // Check if moving to finals
     if (eventRoundPlayers.length === 4) {
-        const losers = eventRoundPlayers.filter(p => !eventRoundWinners.includes(p));
+        const losers = eventRoundPlayers.filter(p => !winners.includes(p));
         eventBronzeContenders = [...losers];
-        eventFinalists = [...eventRoundWinners.filter(w => w)];
+        eventFinalists = [...winners];
         eventRoundWinners = [];
         showEventBracket();
         return;
     }
     
+    // Jos jäljellä on tasan 2 voittajaa, he ovat finalistit (ilman pronssiottelua)
+    if (winners.length === 2) {
+        eventFinalists = [...winners];
+        eventRoundPlayers = [];
+        eventRoundWinners = [];
+        showEventBracket();
+        return;
+    }
+
     // Advance winners to next round
-    eventRoundPlayers = eventRoundWinners.filter(w => w);
+    eventRoundPlayers = winners;
     eventRoundWinners = [];
     
     const nextByes = BracketEngine.calculateByes(eventRoundPlayers.length);

@@ -10,6 +10,7 @@ const initialState = {
     sessionGuests: [],
     allDbNames: [],
     allGames: [],
+    countries: [], // Välimuisti maille
     myGames: [],
     gameMap: null,
     gameMarker: null,
