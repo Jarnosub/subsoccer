@@ -1301,3 +1301,35 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 .fade-in {
     animation: appFadeIn 0.6s ease-out forwards;
 }
+
+.feedback-footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 30px 0;
+    margin-bottom: 100px; /* Jättää tilaa kiinteälle alavalikolle */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.feedback-btn {
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--sub-gold);
+    border: 1px solid var(--sub-gold);
+    padding: 12px 24px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.feedback-btn:hover {
+    background: var(--sub-gold);
+    color: #000;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+}
