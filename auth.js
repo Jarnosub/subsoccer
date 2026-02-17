@@ -13,10 +13,13 @@ export async function initApp() {
 
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
-                console.log("🔐 Auth State Change:", event, session ? "Session active" : "No session");
+                console.log("🔑 Auth event triggered:", event);
+                console.log(" Auth State Change:", event, session ? "Session active" : "No session");
                 if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-                    console.log("👤 User session active, refreshing profile...");
-                    await refreshUserProfile(session.user.id);
+                    if (!state.user || state.user.id !== session.user.id) {
+                        console.log("👤 User session active, refreshing profile...");
+                        await refreshUserProfile(session.user.id);
+                    }
                 } else if (event === 'SIGNED_OUT') {
                     state.user = null;
                     console.log("👋 Session cleared.");
@@ -293,6 +296,13 @@ export async function handleSignUp() {
 export async function handleAuth(event) {
     if (event && event.preventDefault) event.preventDefault();
     
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+            localStorage.removeItem(key);
+        }
+    });
+    await _supabase.auth.signOut().catch(() => {});
+
     resetFullState(); // Vaihe A: Puhdistetaan vanha tila ja välimuisti
 
     const btn = document.getElementById('btn-login');
@@ -316,18 +326,6 @@ export async function handleAuth(event) {
 
         console.log("🚀 Auth attempt started for:", input);
         
-        // Pakotettu siivous: poistetaan Supabasen tokenit LocalStoragesta ennen uutta yritystä.
-        // Tämä vastaa ohjelmallisesti selainhistorian/välimuistin tyhjentämistä.
-        Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('sb-') || key.includes('supabase')) {
-                localStorage.removeItem(key);
-            }
-        });
-
-        try {
-            await _supabase.auth.signOut();
-        } catch (e) { console.warn("Initial signOut failed:", e); }
-
         console.log("Input:", input);
         // 1. Yritetään ensin kirjautua sähköpostilla (uusi tapa)
         if (input.includes('@')) {

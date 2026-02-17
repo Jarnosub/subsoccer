@@ -20,7 +20,7 @@
 
 :root { 
     --sub-red: #E30613; 
-    --sub-black: #0f1115; /* Hieman pehmeämpi musta mahdollistaa varjot */
+    --sub-black: #0a0a0a; /* Sophisticated dark gray background */
     --sub-white: #FFFFFF; 
     --sub-gold: #FFD700; 
     --sub-border: rgba(255, 255, 255, 0.1); 
@@ -118,6 +118,7 @@ header {
     padding: 0 !important;
     flex: 1;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100%;
@@ -134,15 +135,6 @@ header {
     opacity: 1;
     color: var(--sub-gold) !important;
     position: relative;
-}
-.tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: 8px;
-    width: 4px;
-    height: 4px;
-    background: var(--sub-gold);
-    border-radius: 50%;
 }
 .tab.active i {
     transform: translateY(-2px);
@@ -460,13 +452,13 @@ header {
     overflow-y: auto !important;
 }
 
-.container { background: #111; padding: 15px !important; border-radius: var(--sub-radius) !important; border: 1px solid #222; width: 94% !important; max-width: 400px; box-sizing: border-box; margin: 15px auto 0; }
+.container { background: #141414; padding: 15px !important; border-radius: var(--sub-radius) !important; border: 1px solid #222; width: 94% !important; max-width: 400px; box-sizing: border-box; margin: 15px auto 0; }
 .btn-red { width: 100%; padding: 12px !important; border-radius: var(--sub-radius) !important; border: none; font-family: var(--sub-name-font) !important; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1rem !important; letter-spacing: 1px; font-weight: bold; }
 .btn-outline { font-family: var(--sub-name-font) !important; text-transform: uppercase; }
 .lb-name { font-family: 'ResolveNarrowReg', sans-serif !important; color: #FFFFFF !important; font-size: 1.1rem !important; letter-spacing: 1.5px !important; text-transform: uppercase; font-weight: 400 !important; font-stretch: normal !important; }
 .lb-elo { color: var(--sub-gold) !important; font-family: var(--sub-name-font) !important; font-size: 1.2rem !important; }
 
-input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: var(--sub-radius) !important; border: 1px solid var(--sub-border); background: #000; color: #fff; box-sizing: border-box; }
+input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: var(--sub-radius) !important; border: 1px solid var(--sub-border); background: #1c1c1c; color: #fff; box-sizing: border-box; }
 
 input, select, textarea, button {
     font-size: 16px !important;
@@ -520,7 +512,7 @@ input, select, button {
 #pool-list {
     flex-grow: 0 !important; min-height: 50px !important; height: auto !important; overflow-y: visible !important;
     margin: 10px 0;
-    background: #000;
+    background: #141414;
     padding: 15px;
     border-radius: var(--sub-radius);
     font-size: 0.8rem;
@@ -668,8 +660,10 @@ input, select, button {
 }
 
 .tour-mode-toggle i {
-    font-size: 0.75rem;
-    opacity: 0.6;
+    font-size: 0.9rem;
+    color: var(--sub-gold) !important;
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
 }
 
 /* Pro Mode toggle - matches Tournament Mode style */
@@ -852,6 +846,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
 }
 
+
 /* Keräilykortin päärakenne */
 .player-card-collectible {
     background: linear-gradient(145deg, #111, #050505);
@@ -1026,7 +1021,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 }
 
 .modal-content {
-    background: #0a0a0a;
+    background: #141414;
     border: 2px solid var(--sub-gold);
     border-radius: 12px;
     width: 100%;
@@ -1112,8 +1107,10 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 
 /* PRO UI COMPONENTS */
 .sub-card {
-    background: #0a0a0a;
-    border: 1px solid #222;
+    background: rgba(20, 20, 20, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--sub-radius);
     padding: 20px;
     margin-bottom: 20px;
@@ -1129,7 +1126,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
-    background: #0a0a0a;
+    background: #161616;
     padding: 12px 15px;
     border-radius: var(--sub-radius);
     border: 1px solid #222;

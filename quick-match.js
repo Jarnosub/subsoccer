@@ -11,15 +11,34 @@ import { MatchService } from './match-service.js';
 const PRO_MODE_WIN_SCORE = 3;
 let isMatchEnding = false;
 
-export function handleQuickSearch(input, slot) {
-    const v = input.value.toUpperCase();
+export async function handleQuickSearch(input, slot) {
+    const v = input.value.trim().toUpperCase();
     const resDiv = document.getElementById(`${slot}-results`);
     if (!v) { resDiv.style.display = 'none'; return; }
-    const combined = [...new Set([...state.allDbNames, ...state.sessionGuests])];
-    const filtered = combined.filter(n => n.includes(v)).slice(0, 5);
-    resDiv.innerHTML = filtered.map(n => `<div class="search-item" data-action="select-quick-player" data-player="${n}" data-slot="${slot}">${n}</div>`).join('') + 
-                       `<div class="search-item" style="color:var(--sub-gold);" data-action="select-quick-player" data-player="${v}" data-slot="${slot}">Add: "${v}"</div>`;
-    resDiv.style.display = 'block';
+
+    try {
+        const { data: foundPlayers, error } = await _supabase
+            .from('players')
+            .select('username')
+            .ilike('username', `%${v}%`)
+            .limit(5);
+
+        if (error) throw error;
+
+        const dbNames = foundPlayers ? foundPlayers.map(p => p.username) : [];
+        
+        const guestMatches = state.sessionGuests
+            .filter(g => g.includes(v) && !dbNames.includes(g))
+            .slice(0, 5);
+
+        const combined = [...dbNames, ...guestMatches];
+
+        resDiv.innerHTML = combined.map(n => `<div class="search-item" data-action="select-quick-player" data-player="${n}" data-slot="${slot}">${n}</div>`).join('') + 
+                           `<div class="search-item" style="color:var(--sub-gold);" data-action="select-quick-player" data-player="${v}" data-slot="${slot}">Add: "${v}"</div>`;
+        resDiv.style.display = 'block';
+    } catch (e) {
+        console.error("Quick search failed:", e);
+    }
 }
 
 export async function selectQuickPlayer(name, slot) {

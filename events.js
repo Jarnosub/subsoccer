@@ -28,6 +28,7 @@ let currentEventBracketParticipants = [];
  * Load events page - main entry point
  */
 export async function loadEventsPage() {
+    console.log("📅 Event system ready");
     const container = document.getElementById('events-view');
     if (!container) return;
 
@@ -127,7 +128,7 @@ function renderEventCard(event) {
                         ${event.event_type}
                     </span>
                     <span style="color:#555; font-size:0.75rem; font-family:var(--sub-name-font); letter-spacing:1px;">
-                        <i class="fa-solid fa-calendar-day" style="color:#444; margin-right:4px;"></i>
+                        <i class="fa-solid fa-calendar-day" style="color:#444; margin-right:8px;"></i>
                         ${dayOfWeek}, ${dateStr} @ ${timeStr}
                     </span>
                 </div>
@@ -137,13 +138,13 @@ function renderEventCard(event) {
             
             ${event.location ? `
                 <div style="font-size:0.8rem; color:#666; margin:8px 0; font-family:var(--sub-body-font); text-transform:uppercase; letter-spacing:1px;">
-                    <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-right:6px;"></i> ${event.location.toUpperCase()}
+                    <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-right:8px;"></i> ${event.location.toUpperCase()}
                 </div>
             ` : ''}
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:15px; border-top:1px solid #222;">
                 <div style="font-size:0.75rem; color:#555; font-family:'Resolve'; letter-spacing:1px;">
-                    <i class="fa-solid fa-users"></i> ${event.registered_count || 0}/${event.max_participants || 16} PLAYERS
+                    <i class="fa-solid fa-users" style="margin-right:8px;"></i> ${event.registered_count || 0}/${event.max_participants || 16} PLAYERS
                 </div>
                 <button class="btn-red" style="padding:10px 20px; font-size:0.85rem; letter-spacing:2px; width:auto;" onclick="viewEventDetails('${event.id}')">
                     VIEW DETAILS
@@ -643,10 +644,10 @@ function showEventModal(event, tournaments, userRegistrations) {
                                                 ${t.tournament_name || 'Tournament'}
                                             </div>
                                             <div style="font-size:0.8rem; color:#888; margin-bottom:6px;">
-                                                <i class="fa fa-gamepad"></i> ${t.game?.game_name || 'Unknown Table'}${t.game?.location ? ` - ${t.game.location}` : ''}
+                                                <i class="fa fa-gamepad" style="margin-right:8px;"></i> ${t.game?.game_name || 'Unknown Table'}${t.game?.location ? ` - ${t.game.location}` : ''}
                                             </div>
                                             <div style="font-size:0.8rem; color:${participantCount > 0 ? 'var(--sub-gold)' : '#666'}; margin-bottom:6px;">
-                                                <i class="fa fa-users"></i> ${participantCount} / ${maxParticipants} players
+                                                <i class="fa fa-users" style="margin-right:8px;"></i> ${participantCount} / ${maxParticipants} players
                                                 <button data-action="view-participants" data-event-id="${event.id}" data-tour-id="${t.id}" data-name="${t.tournament_name || 'Tournament'}" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;">View List</button>
                                                 ${participantCount >= 2 ? `<button data-action="view-bracket" data-id="${t.id}" data-name="${(t.tournament_name || 'Tournament').replace(/[`'"]/g, '')}" data-max="${maxParticipants}" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;"><i class="fa fa-sitemap"></i> Bracket</button>` : ''}
                                             </div>
