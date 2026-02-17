@@ -62,7 +62,6 @@
         
         .player-left {
             background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
-            transform: rotate(180deg); /* Käännetään Pelaaja 1 puoli vastakkain istumista varten */
         }
         
         .player-right {
@@ -112,10 +111,6 @@
         
         .goal-flash {
             animation: goalFlash 0.5s ease-in-out;
-        }
-        
-        .player-left.goal-flash {
-            animation: goalFlashRotated 0.5s ease-in-out;
         }
         
         /* Center divider - Golden gradient */
@@ -281,6 +276,13 @@
             }
             .player-label {
                 top: 15px;
+            }
+            /* Pystyasennossa käännetään ylempi pelaaja (Pelaaja 1) tabletop-pelaamista varten */
+            .player-left {
+                transform: rotate(180deg);
+            }
+            .player-left.goal-flash {
+                animation: goalFlashRotated 0.5s ease-in-out;
             }
         }
 
