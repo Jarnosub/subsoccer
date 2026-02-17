@@ -848,7 +848,12 @@ subscribe('user', () => {
         const menuBtn = document.getElementById('menu-toggle-btn');
         
         if (authPage) authPage.style.display = 'none';
-        if (appContent) appContent.style.display = 'flex';
+        if (appContent) {
+            appContent.style.display = 'flex';
+            appContent.classList.remove('fade-in');
+            void appContent.offsetWidth; // Pakotetaan reflow animaation uudelleenkäynnistämiseksi
+            appContent.classList.add('fade-in');
+        }
         if (navTabs) navTabs.style.setProperty('display', 'flex', 'important');
         if (menuBtn) menuBtn.style.display = 'block';
 
