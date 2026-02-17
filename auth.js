@@ -10,19 +10,23 @@ let isAuthListenerSet = false;
 export async function initApp() {
     try {
         setupAuthListeners();
+        
+        // PAKOTETTU TARKISTUS: Haetaan istunto heti, jotta ei tarvita refreshia
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (session && (!state.user || state.user.id !== session.user.id)) {
+            console.log("🚀 Session found immediately, refreshing profile...");
+            await refreshUserProfile(session.user.id);
+        }
 
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
                 console.log("🔑 Auth event triggered:", event);
-                console.log(" Auth State Change:", event, session ? "Session active" : "No session");
                 if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
                     if (!state.user || state.user.id !== session.user.id) {
-                        console.log("👤 User session active, refreshing profile...");
                         await refreshUserProfile(session.user.id);
                     }
                 } else if (event === 'SIGNED_OUT') {
                     state.user = null;
-                    console.log("👋 Session cleared.");
                     localStorage.removeItem('subsoccer-user');
                 }
             });
