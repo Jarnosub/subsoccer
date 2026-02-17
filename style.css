@@ -461,6 +461,11 @@ header {
 
 input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: var(--sub-radius) !important; border: 1px solid var(--sub-border); background: #1c1c1c; color: #fff; box-sizing: border-box; }
 
+input::placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    text-transform: uppercase;
+}
+
 input, select, textarea, button {
     font-size: 16px !important;
     font-family: 'Open Sans', sans-serif !important; /* Ensure readable default font */
