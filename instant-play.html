@@ -253,41 +253,21 @@
             transform: scale(1.1);
         }
         
-        /* Landscape mode message */
-        .landscape-message {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--sub-black);
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 200;
-            text-align: center;
-            padding: 20px;
-        }
-        
         @media (orientation: portrait) {
-            .landscape-message {
-                display: flex;
-            }
             .scoreboard {
-                display: none;
+                flex-direction: column;
             }
-        }
-        
-        .rotate-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            animation: rotate 2s infinite;
-        }
-        
-        @keyframes rotate {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(90deg); }
+            .center-divider {
+                width: 100%;
+                height: 2px;
+                background: linear-gradient(to right, transparent, var(--sub-gold), transparent);
+            }
+            .score {
+                font-size: 7rem;
+            }
+            .player-label {
+                top: 15px;
+            }
         }
 
         /* Table ID display */
@@ -454,13 +434,6 @@
     </style>
 </head>
 <body>
-    <!-- Landscape mode reminder -->
-    <div class="landscape-message">
-        <div class="rotate-icon">📱</div>
-        <h2 style="color: var(--sub-red); margin-bottom: 10px;">ROTATE YOUR DEVICE</h2>
-        <p style="color: #666;">Turn your phone to landscape mode to play</p>
-    </div>
-
     <!-- Exit Button (SULJE) -->
     <button onclick="window.location.href='index.html'" 
             class="exit-btn"
@@ -566,13 +539,6 @@
         
         // Initialize
         window.addEventListener('load', () => {
-            // Try to lock to landscape
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(() => {
-                    console.log('Orientation lock not supported');
-                });
-            }
-
             // Check for Game ID in URL
             const urlParams = new URLSearchParams(window.location.search);
             // Use URL param or default to 'QUICK-PLAY'
