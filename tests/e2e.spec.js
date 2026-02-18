@@ -14,7 +14,7 @@ test.describe('Subsoccer Pro E2E', () => {
         // Assuming the app is running locally on port 8080 (classic Live Server port)
         // Adjust if needed, e.g., http://localhost:3000
         // Use relative path if simplified for file:// access, but Playwright works best with http
-        await page.goto('http://127.0.0.1:8080/index.html');
+        await page.goto('http://127.0.0.1:8081/index.html');
     });
 
     test('SCENARIO 1: Registration and Profile Update', async ({ page }) => {

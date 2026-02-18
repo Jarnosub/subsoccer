@@ -54,11 +54,6 @@ export function showVictoryAnimation(winnerName, newElo, eloGain) {
     }
     
     overlay.style.display = 'flex';
-    
-    // Soita äänet
-    if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
-        window.soundEffects.playCrowdCheer();
-    }
 }
 
 /**

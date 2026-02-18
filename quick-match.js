@@ -113,7 +113,6 @@ export async function finalizeQuickMatch(winnerName, context = null) {
         
         if (result.success) {
             if (window.audioEngine) window.audioEngine.stopListening();
-            if (window.soundEffects) window.soundEffects.playCrowdCheer();
             showVictory(winnerName, result.newElo, result.gain, result.isGuest);
         }
     } catch (error) {
@@ -152,6 +151,11 @@ export function showVictory(name, newElo, gain, isGuest = false) {
         controls.before(msg);
     }
     overlay.style.display = 'flex';
+
+    // Soita yleisön hurraus kun ELO-pisteet ilmoitetaan
+    if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
+        window.soundEffects.playCrowdCheer();
+    }
 }
 
 export function cancelQuickMatch() {
@@ -280,11 +284,9 @@ function handleGoalDetectedPro(playerNumber) {
     
     if (state.proScoreP1 >= PRO_MODE_WIN_SCORE) {
         isMatchEnding = true;
-        if (window.soundEffects) window.soundEffects.playCrowdCheer();
         setTimeout(() => finishProMatch(state.quickP1), 1500);
     } else if (state.proScoreP2 >= PRO_MODE_WIN_SCORE) {
         isMatchEnding = true;
-        if (window.soundEffects) window.soundEffects.playCrowdCheer();
         setTimeout(() => finishProMatch(state.quickP2), 1500);
     }
 }

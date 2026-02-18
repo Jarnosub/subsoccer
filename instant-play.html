@@ -583,6 +583,7 @@
         }
     </style>
 </head>
+<script src="sound-effects.js"></script>
 
 <body>
     <!-- Exit Button (SULJE) -->
@@ -689,7 +690,6 @@
         let currentGameId = null;
         let WIN_SCORE = 3;
         let lastGoalTime = 0;
-        const sounds = window.soundEffects;
 
         // Initialize
         window.addEventListener('load', () => {
@@ -738,8 +738,8 @@
             }
 
             // Resume audio context (browsers block audio until user interaction)
-            if (sounds && sounds.audioContext && sounds.audioContext.state === 'suspended') {
-                sounds.audioContext.resume();
+            if (window.soundEffects && window.soundEffects.audioContext && window.soundEffects.audioContext.state === 'suspended') {
+                window.soundEffects.audioContext.resume();
             }
         }
 
@@ -771,7 +771,7 @@
             goalHistory.push(player);
 
             // Play sound
-            if (sounds) sounds.playGoalSound();
+            if (window.soundEffects) window.soundEffects.playGoalSound();
 
             // Haptic feedback
             if (navigator.vibrate) {
@@ -834,7 +834,11 @@
                 endBtn.style.display = 'none';
             }
 
-            if (sounds) sounds.playCrowdCheer();
+            // Soita yleisön hurraus voiton hetkellä
+            if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
+                window.soundEffects.playCrowdCheer();
+            }
+
             startConfetti();
         }
 
@@ -895,7 +899,7 @@
         // Toggle sound
         function toggleSound(btn) {
             soundEnabled = !soundEnabled;
-            if (sounds) sounds.setEnabled(soundEnabled);
+            if (window.soundEffects) window.soundEffects.setEnabled(soundEnabled);
             btn.textContent = soundEnabled ? '🔊 Sound' : '🔇 Muted';
         }
 
