@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,24 +11,29 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
-            --sub-red: #FF0000;
+            --sub-red: #E30613;
             --sub-gold: #FFD700;
             --sub-black: #0a0a0a;
             --sub-radius: 4px;
         }
-        
+
         @font-face {
             font-family: 'Subsoccer';
             src: url('fonts/Subsoccer-2-Regular.otf') format('opentype');
         }
-        
+
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-        
+
         body {
             font-family: 'Subsoccer', sans-serif;
             background: var(--sub-black);
@@ -35,19 +41,20 @@
             overflow: hidden;
             width: 100vw;
             height: 100vh;
-            height: 100dvh; /* Adapts to address bar on mobile */
+            height: 100dvh;
+            /* Adapts to address bar on mobile */
             display: flex;
             user-select: none;
             -webkit-user-select: none;
         }
-        
+
         /* Scoreboard - Split screen */
         .scoreboard {
             display: flex;
             width: 100%;
             height: 100%;
         }
-        
+
         /* Player sides - Pro Mode styling */
         .player-side {
             flex: 1;
@@ -59,15 +66,15 @@
             border: 2px solid #222;
             cursor: pointer;
         }
-        
+
         .player-left {
             background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
         }
-        
+
         .player-right {
             background: linear-gradient(135deg, #0a0a0a 0%, #0a0a1a 100%);
         }
-        
+
         /* Player label */
         .player-label {
             font-family: 'Subsoccer', sans-serif;
@@ -78,7 +85,7 @@
             letter-spacing: 2px;
             text-transform: uppercase;
         }
-        
+
         /* Score display */
         .score {
             font-family: 'Subsoccer', sans-serif;
@@ -87,32 +94,54 @@
             text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
             line-height: 1;
         }
-        
+
         /* Goal visualization (○○○) */
         .goals-visual {
             font-size: 2rem;
             margin-top: 20px;
             letter-spacing: 10px;
         }
-        
+
         /* Goal flash animation */
         @keyframes goalFlash {
-            0% { background: var(--sub-red); transform: scale(1); }
-            50% { background: var(--sub-gold); transform: scale(1.05); }
-            100% { background: var(--sub-red); transform: scale(1); }
+            0% {
+                background: var(--sub-red);
+                transform: scale(1);
+            }
+
+            50% {
+                background: var(--sub-gold);
+                transform: scale(1.05);
+            }
+
+            100% {
+                background: var(--sub-red);
+                transform: scale(1);
+            }
         }
-        
+
         /* Erillinen animaatio käännetylle puolelle, jotta se ei pyörähdä takaisin */
         @keyframes goalFlashRotated {
-            0% { background: var(--sub-red); transform: rotate(180deg) scale(1); }
-            50% { background: var(--sub-gold); transform: rotate(180deg) scale(1.05); }
-            100% { background: var(--sub-red); transform: rotate(180deg) scale(1); }
+            0% {
+                background: var(--sub-red);
+                transform: rotate(180deg) scale(1);
+            }
+
+            50% {
+                background: var(--sub-gold);
+                transform: rotate(180deg) scale(1.05);
+            }
+
+            100% {
+                background: var(--sub-red);
+                transform: rotate(180deg) scale(1);
+            }
         }
-        
+
         .goal-flash {
             animation: goalFlash 0.5s ease-in-out;
         }
-        
+
         /* Center divider - Golden gradient */
         .center-divider {
             width: 2px;
@@ -120,7 +149,7 @@
             background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
             box-shadow: 0 0 20px var(--sub-gold);
         }
-        
+
         /* Controls overlay */
         .controls {
             position: absolute;
@@ -131,29 +160,38 @@
             gap: 8px;
             z-index: 20;
         }
-        
+
         .control-btn {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 8px 15px;
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: var(--sub-gold);
+            padding: 12px 20px;
             border-radius: var(--sub-radius);
-            font-family: 'Open Sans', sans-serif;
-            font-size: 0.75rem;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
-        
+
         .control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--sub-gold);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.2);
         }
-        
+
+
+
         .control-btn:active {
             transform: scale(0.95);
         }
-        
+
         /* Winner overlay */
         .winner-overlay {
             position: absolute;
@@ -174,14 +212,23 @@
             overflow-y: auto;
         }
 
-        .winner-text, .winner-subtitle, .claim-victory-btn, .play-again-btn, .winner-motivation {
+        .winner-text,
+        .winner-subtitle,
+        .claim-victory-btn,
+        .play-again-btn,
+        .winner-motivation {
             opacity: 0;
             animation: victorySlideUp 0.8s ease-out forwards;
         }
 
-        .winner-text { animation-delay: 0.1s; }
-        .winner-subtitle { animation-delay: 0.3s; }
-        
+        .winner-text {
+            animation-delay: 0.1s;
+        }
+
+        .winner-subtitle {
+            animation-delay: 0.3s;
+        }
+
         .winner-motivation {
             background: rgba(255, 215, 0, 0.1);
             border: 1px solid rgba(255, 215, 0, 0.3);
@@ -194,31 +241,46 @@
             animation-delay: 0.6s;
         }
 
-        #claim-victory-btn { animation: victorySlideUp 0.8s ease-out 1s forwards, pulse-gold 2s infinite 1.8s; }
-        #end-game-btn { animation-delay: 1s; }
+        #claim-victory-btn {
+            animation: victorySlideUp 0.8s ease-out 1s forwards, pulse-gold 2s infinite 1.8s;
+        }
+
+        #end-game-btn {
+            animation-delay: 1s;
+        }
+
         /* Viimeinen nappi (New Game) ilmestyy viimeisenä */
-        .winner-overlay .play-again-btn:last-child { animation-delay: 1.2s; }
+        .winner-overlay .play-again-btn:last-child {
+            animation-delay: 1.2s;
+        }
 
         @keyframes victorySlideUp {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         .winner-overlay.show {
             display: flex;
         }
-        
+
         .winner-text {
             font-size: 4rem;
             color: var(--sub-gold);
             text-transform: uppercase;
         }
-        
+
         .winner-subtitle {
             font-size: 1.5rem;
             color: #666;
         }
-        
+
         .claim-victory-btn {
             background: linear-gradient(135deg, var(--sub-gold) 0%, #e6c200 100%);
             border: none;
@@ -233,18 +295,26 @@
             text-transform: uppercase;
             font-weight: bold;
         }
-        
+
         .claim-victory-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
         }
-        
+
         @keyframes pulse-gold {
-            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+            }
         }
-        
+
         .play-again-btn {
             background: var(--sub-red);
             border: none;
@@ -256,33 +326,38 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .play-again-btn:hover {
-            background: #cc0000;
+            background: #c00510;
             transform: scale(1.1);
         }
-        
+
         @media (orientation: portrait) {
             .scoreboard {
                 flex-direction: column;
             }
+
             .center-divider {
                 width: 100%;
                 height: 2px;
                 background: linear-gradient(to right, transparent, var(--sub-gold), transparent);
             }
+
             .score {
                 font-size: 7rem;
             }
+
             .player-label {
                 top: 15px;
             }
-            /* Pystyasennossa käännetään ylempi pelaaja (Pelaaja 1) tabletop-pelaamista varten */
+
+            /* Pystyasennossa EI käännetä pelaajaa, vaan pidetään numerot luettavissa (päällekkäin) */
             .player-left {
-                transform: rotate(180deg);
+                transform: none;
             }
+
             .player-left.goal-flash {
-                animation: goalFlashRotated 0.5s ease-in-out;
+                animation: goalFlash 0.5s ease-in-out;
             }
         }
 
@@ -292,19 +367,24 @@
                 gap: 10px;
                 padding: 15px;
             }
+
             .winner-text {
                 font-size: 2.5rem;
             }
+
             .winner-subtitle {
                 font-size: 1rem;
             }
+
             .winner-motivation {
                 padding: 10px 15px;
                 font-size: 0.8rem;
                 max-width: 600px;
                 margin: 0;
             }
-            .claim-victory-btn, .play-again-btn {
+
+            .claim-victory-btn,
+            .play-again-btn {
                 padding: 10px 30px;
                 font-size: 1rem;
             }
@@ -325,7 +405,22 @@
             background: rgba(0, 0, 0, 0.5);
             padding: 4px 10px;
             border-radius: 10px;
-            display: none; /* Hidden by default */
+            display: none;
+            /* Hidden by default */
+        }
+
+        /* Game Logo Overlay */
+        .game-logo {
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 35px;
+            width: auto;
+            z-index: 15;
+            opacity: 0.9;
+            pointer-events: none;
+            filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
         }
 
         /* Start Overlay (Click to Fullscreen) */
@@ -335,7 +430,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0, 0, 0, 0.95);
             z-index: 300;
             display: flex;
             flex-direction: column;
@@ -343,11 +438,25 @@
             align-items: center;
             text-align: center;
         }
+
         .pulse-anim {
             animation: pulse 1.5s infinite;
         }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
         /* Confetti Canvas */
         #confetti-canvas {
             position: fixed;
@@ -356,10 +465,11 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 150; /* Above winner overlay */
+            z-index: 150;
+            /* Above winner overlay */
             display: none;
         }
-        
+
         /* Exit button */
         .exit-btn {
             position: absolute;
@@ -469,18 +579,23 @@
 
         .play-btn:hover {
             transform: scale(1.05);
-            background: #ff1a1a;
+            background: #c00510;
         }
     </style>
 </head>
+
 <body>
     <!-- Exit Button (SULJE) -->
-    <button onclick="window.location.href='index.html'" 
-            class="exit-btn"
-            style="position:fixed; top:20px; right:20px; z-index:2000; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.3); padding:8px 16px; border-radius:20px; font-family:'Open Sans', sans-serif; font-size:0.8rem; cursor:pointer; backdrop-filter:blur(5px);">✕ SULJE</button>
+    <button onclick="window.location.href='index.html'" class="exit-btn"
+        style="position:fixed; top:20px; right:20px; z-index:2000; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.3); padding:8px 16px; border-radius:20px; font-family:'Open Sans', sans-serif; font-size:0.8rem; cursor:pointer; backdrop-filter:blur(5px);">✕
+        SULJE</button>
+
+    <!-- Game Logo -->
+    <img src="logo.png" class="game-logo" alt="Subsoccer">
 
     <!-- Rules Overlay (Replaces Start Overlay) -->
     <div id="rules-overlay" class="rules-overlay">
+        <img src="logo.png" style="height: 50px; width: auto; margin-bottom: 20px;" alt="Subsoccer">
         <div class="rules-header">OFFICIAL RULES</div>
         <div class="rules-list">
             <div class="rule-item">
@@ -529,17 +644,17 @@
             <div class="score" id="score-p1">0</div>
             <div class="goals-visual" id="goals-p1">○○○</div>
         </div>
-        
+
         <!-- Center divider -->
         <div class="center-divider"></div>
-        
+
         <!-- Player 2 (Right) -->
         <div class="player-side player-right" onclick="addGoal(2)">
             <div class="player-label">Player 2</div>
             <div class="score" id="score-p2">0</div>
             <div class="goals-visual" id="goals-p2">○○○</div>
         </div>
-        
+
         <!-- Controls -->
         <div class="controls">
             <button class="control-btn" onclick="resetGame()">🔄 Reset</button>
@@ -547,17 +662,21 @@
             <button class="control-btn" onclick="undoGoal()">↩️ Undo</button>
         </div>
     </div>
-    
+
     <!-- Winner overlay -->
     <div class="winner-overlay" id="winner-overlay">
         <div class="winner-text" id="winner-text">PLAYER 1 WINS!</div>
         <div class="winner-subtitle">First to 3 goals</div>
         <div id="winner-motivation" class="winner-motivation">
-            <span id="motivation-title" style="color:var(--sub-gold); font-weight:bold; font-size:1.1rem; display:block; margin-bottom:8px;">DON'T LOSE YOUR PROGRESS!</span>
-            <span id="motivation-body">Claim your ELO points now to enter the <strong>Global Rankings</strong> and unlock your official <strong>Subsoccer Pro Card</strong>.</span>
+            <span id="motivation-title"
+                style="color:var(--sub-gold); font-weight:bold; font-size:1.1rem; display:block; margin-bottom:8px;">DON'T
+                LOSE YOUR PROGRESS!</span>
+            <span id="motivation-body">Claim your ELO points now to enter the <strong>Global Rankings</strong> and
+                unlock your official <strong>Subsoccer Pro Card</strong>.</span>
         </div>
         <button id="claim-victory-btn" class="claim-victory-btn" onclick="claimVictory()">SAVE RESULT & RANK UP</button>
-        <button id="end-game-btn" class="play-again-btn" style="display:none; background:#333; border:1px solid #555;" onclick="window.location.href='index.html'">END GAME</button>
+        <button id="end-game-btn" class="play-again-btn" style="display:none; background:#333; border:1px solid #555;"
+            onclick="window.location.href='index.html'">END GAME</button>
         <button class="play-again-btn" onclick="playAgain()">NEW GAME</button>
     </div>
 
@@ -568,15 +687,10 @@
         let goalHistory = []; // For undo
         let soundEnabled = true;
         let currentGameId = null;
-        const WIN_SCORE = 3;
-        
-        // Audio context for sound effects
-        let audioContext = null;
-        
-        // Custom audio files (MP3/WAV)
-        let goalAudio = null;
-        let crowdAudio = null;
-        
+        let WIN_SCORE = 3;
+        let lastGoalTime = 0;
+        const sounds = window.soundEffects;
+
         // Initialize
         window.addEventListener('load', () => {
             // Check for Game ID in URL
@@ -584,55 +698,32 @@
             // Use URL param or default to 'QUICK-PLAY'
             const gameId = urlParams.get('game_id') || 'QUICK-PLAY';
             
+            // Allow setting win score via URL (e.g. ?win_score=5)
+            const urlWinScore = urlParams.get('win_score');
+            if (urlWinScore) WIN_SCORE = parseInt(urlWinScore);
+
             currentGameId = gameId;
             document.getElementById('table-id-value').textContent = gameId;
             document.getElementById('table-id-display').style.display = 'block';
-            
+
             // Re-try scroll on orientation change (helps hide address bar when placing in holder)
             window.addEventListener('orientationchange', () => {
                 setTimeout(() => {
                     window.scrollTo(0, 1);
                 }, 300);
             });
-            
-            // Initialize audio
-            if (window.AudioContext || window.webkitAudioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            
-            // Try to load custom sounds (if available)
-            try {
-                goalAudio = new Audio('sounds/goal.mp3');
-                crowdAudio = new Audio('sounds/crowd.mp3');
-                
-                // Preload
-                goalAudio.load();
-                crowdAudio.load();
-                
-                // Fallback to synthesized if custom sounds fail
-                goalAudio.onerror = () => {
-                    console.log('Custom goal sound not found, using synthesized');
-                    goalAudio = null;
-                };
-                crowdAudio.onerror = () => {
-                    console.log('Custom crowd sound not found, using synthesized');
-                    crowdAudio = null;
-                };
-            } catch (e) {
-                console.log('Could not load custom sounds');
-            }
         });
-        
+
         // Enter Fullscreen and Start
         function enterFullscreenGame() {
             const elem = document.documentElement;
 
             // Hide overlay immediately to ensure game starts
             document.getElementById('rules-overlay').style.display = 'none';
-            
+
             // Scroll to hide address bar (iOS hack)
             window.scrollTo(0, 1);
-            
+
             // Try to request fullscreen
             try {
                 if (elem.requestFullscreen) {
@@ -647,17 +738,21 @@
             }
 
             // Resume audio context (browsers block audio until user interaction)
-            if (audioContext && audioContext.state === 'suspended') {
-                audioContext.resume();
+            if (sounds && sounds.audioContext && sounds.audioContext.state === 'suspended') {
+                sounds.audioContext.resume();
             }
         }
-        
+
         // Add goal
         function addGoal(player) {
-            if (document.getElementById('winner-overlay').classList.contains('show')) {
+            const now = Date.now();
+            // Estä liian nopeat peräkkäiset maalit (800ms viive)
+            if (document.getElementById('winner-overlay').classList.contains('show') || (now - lastGoalTime < 800)) {
                 return; // Game ended
             }
             
+            lastGoalTime = now;
+
             // Update score
             if (player === 1) {
                 scoreP1++;
@@ -668,21 +763,21 @@
                 document.getElementById('score-p2').textContent = scoreP2;
                 flashGoal(2);
             }
-            
+
             // Update goal visualization
             updateGoalVisuals();
-            
+
             // Add to history for undo
             goalHistory.push(player);
-            
+
             // Play sound
-            playGoalSound();
-            
+            if (sounds) sounds.playGoalSound();
+
             // Haptic feedback
             if (navigator.vibrate) {
                 navigator.vibrate([100, 50, 100]);
             }
-            
+
             // Check for winner
             if (scoreP1 >= WIN_SCORE) {
                 setTimeout(() => showWinner(1), 800);
@@ -690,7 +785,7 @@
                 setTimeout(() => showWinner(2), 800);
             }
         }
-        
+
         // Update goal visualizations (●○○)
         function updateGoalVisuals() {
             const p1Goals = '●'.repeat(scoreP1) + '○'.repeat(WIN_SCORE - scoreP1);
@@ -698,7 +793,7 @@
             document.getElementById('goals-p1').textContent = p1Goals;
             document.getElementById('goals-p2').textContent = p2Goals;
         }
-        
+
         // Flash effect when goal scored
         function flashGoal(player) {
             const side = player === 1 ? '.player-left' : '.player-right';
@@ -706,22 +801,22 @@
             element.classList.add('goal-flash');
             setTimeout(() => element.classList.remove('goal-flash'), 500);
         }
-        
+
         // Show winner
         function showWinner(player) {
             document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
             document.getElementById('winner-overlay').classList.add('show');
-            
+
             // Check mode (Casual vs Guest)
             const urlParams = new URLSearchParams(window.location.search);
             const isCasual = urlParams.get('mode') === 'casual';
             const userType = urlParams.get('user_type') || 'guest';
-            
+
             const motivationTitle = document.getElementById('motivation-title');
             const motivationBody = document.getElementById('motivation-body');
             const claimBtn = document.getElementById('claim-victory-btn');
             const endBtn = document.getElementById('end-game-btn');
-            
+
             // Varmistetaan että tallennusnappi on näkyvissä
             claimBtn.style.display = 'block';
 
@@ -738,18 +833,18 @@
                 claimBtn.innerText = "SAVE STATS & RANK UP";
                 endBtn.style.display = 'none';
             }
-            
-            playCrowdCheer();
+
+            if (sounds) sounds.playCrowdCheer();
             startConfetti();
         }
-        
+
         // Play again
         function playAgain() {
             resetGame();
             document.getElementById('winner-overlay').classList.remove('show');
             stopConfetti();
         }
-        
+
         // Claim victory (Redirect to main app)
         function claimVictory() {
             // Construct URL parameters
@@ -758,11 +853,11 @@
             params.append('p1_score', scoreP1);
             params.append('p2_score', scoreP2);
             params.append('game_id', currentGameId || 'QUICK-PLAY');
-            
+
             // Redirect to main app with data
             window.location.href = `index.html?${params.toString()}`;
         }
-        
+
         // Reset game
         function resetGame() {
             scoreP1 = 0;
@@ -774,11 +869,11 @@
             document.getElementById('winner-overlay').classList.remove('show');
             stopConfetti();
         }
-        
+
         // Undo last goal
         function undoGoal() {
             if (goalHistory.length === 0) return;
-            
+
             const lastPlayer = goalHistory.pop();
             if (lastPlayer === 1) {
                 scoreP1 = Math.max(0, scoreP1 - 1);
@@ -787,121 +882,28 @@
                 scoreP2 = Math.max(0, scoreP2 - 1);
                 document.getElementById('score-p2').textContent = scoreP2;
             }
-            
+
             // Update goal visualization
             updateGoalVisuals();
-            
+
             // Haptic feedback
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
         }
-        
+
         // Toggle sound
         function toggleSound(btn) {
             soundEnabled = !soundEnabled;
+            if (sounds) sounds.setEnabled(soundEnabled);
             btn.textContent = soundEnabled ? '🔊 Sound' : '🔇 Muted';
         }
-        
-        // Play goal sound
-        function playGoalSound() {
-            if (!soundEnabled) return;
-            
-            // Try custom sound first (MP3)
-            if (goalAudio) {
-                goalAudio.currentTime = 0;
-                goalAudio.volume = 0.7;
-                goalAudio.play().catch(e => {
-                    // Fallback to synthesized
-                    synthesizeGoalSound();
-                });
-            } else {
-                // Use synthesized sound
-                synthesizeGoalSound();
-            }
-        }
-        
-        // Synthesized goal sound (fallback)
-        function synthesizeGoalSound() {
-            if (!audioContext || !soundEnabled) return;
-            
-            const now = audioContext.currentTime;
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(220, now);
-            
-            gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(0.3, now + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-            
-            osc.start(now);
-            osc.stop(now + 0.3);
-        }
-        
-        // Play crowd cheer
-        function playCrowdCheer() {
-            if (!soundEnabled) return;
-            
-            // Try custom sound first (MP3)
-            if (crowdAudio) {
-                crowdAudio.currentTime = 0;
-                crowdAudio.volume = 0.7;
-                crowdAudio.play().catch(e => {
-                    // Fallback to synthesized
-                    synthesizeCrowdCheer();
-                });
-            } else {
-                // Use synthesized sound
-                synthesizeCrowdCheer();
-            }
-        }
-        
-        // Synthesized crowd cheer (fallback)
-        function synthesizeCrowdCheer() {
-            if (!audioContext || !soundEnabled) return;
-            
-            const now = audioContext.currentTime;
-            const duration = 1.5;
-            
-            // Create noise
-            const bufferSize = audioContext.sampleRate * duration;
-            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-            const data = buffer.getChannelData(0);
-            
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
-            }
-            
-            const noise = audioContext.createBufferSource();
-            noise.buffer = buffer;
-            
-            const filter = audioContext.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.value = 1000;
-            
-            const gain = audioContext.createGain();
-            gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(0.15, now + 0.1);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-            
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioContext.destination);
-            
-            noise.start(now);
-            noise.stop(now + duration);
-        }
-        
+
         // Handle acoustic detection if available
-        window.handleGoalDetected = function(playerNumber) {
+        window.handleGoalDetected = function (playerNumber) {
             addGoal(playerNumber);
         };
-        
+
         // Confetti Effect
         const confettiCanvas = document.getElementById('confetti-canvas');
         const ctx = confettiCanvas.getContext('2d');
@@ -918,7 +920,7 @@
             return {
                 x: Math.random() * confettiCanvas.width,
                 y: -10,
-                color: ['#FF0000', '#FFD700', '#FFFFFF'][Math.floor(Math.random() * 3)],
+                color: ['#E30613', '#FFD700', '#FFFFFF'][Math.floor(Math.random() * 3)],
                 size: Math.random() * 8 + 4,
                 speedY: Math.random() * 3 + 2,
                 speedX: Math.random() * 2 - 1,
@@ -929,21 +931,21 @@
 
         function updateConfetti() {
             ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-            
+
             if (particles.length < 100) particles.push(createParticle());
 
             particles.forEach((p, i) => {
                 p.y += p.speedY;
                 p.x += p.speedX;
                 p.rotation += p.rotationSpeed;
-                
+
                 ctx.save();
                 ctx.translate(p.x, p.y);
                 ctx.rotate(p.rotation * Math.PI / 180);
                 ctx.fillStyle = p.color;
-                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
                 ctx.restore();
-                
+
                 if (p.y > confettiCanvas.height) particles[i] = createParticle();
             });
             animationId = requestAnimationFrame(updateConfetti);
@@ -955,11 +957,12 @@
             particles = [];
             updateConfetti();
         }
-        
+
         function stopConfetti() {
             confettiCanvas.style.display = 'none';
             if (animationId) cancelAnimationFrame(animationId);
         }
     </script>
 </body>
+
 </html>

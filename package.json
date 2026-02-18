@@ -1,0 +1,11 @@
+{
+    "name": "subsoccer-pro",
+    "version": "1.0.0",
+    "description": "Subsoccer Pro E2E Tests",
+    "scripts": {
+      "test": "npx playwright test"
+    },
+    "devDependencies": {
+      "@playwright/test": "^1.40.0"
+    }
+}

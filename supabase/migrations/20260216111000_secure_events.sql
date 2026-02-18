@@ -13,6 +13,8 @@ DROP POLICY IF EXISTS "Public events are viewable by everyone" ON public.events;
 DROP POLICY IF EXISTS "Authenticated users can view all events" ON public.events;
 DROP POLICY IF EXISTS "Organizers can update own events" ON public.events;
 DROP POLICY IF EXISTS "Organizers can delete own events" ON public.events;
+DROP POLICY IF EXISTS "Users can create events" ON public.events;
+DROP POLICY IF EXISTS "Organizers or admins can update events" ON public.events;
 
 -- 2. Sallitaan kaikkien nähdä tapahtumat (tarvitaan Live-linkkejä varten)
 CREATE POLICY "Anyone can view events" 

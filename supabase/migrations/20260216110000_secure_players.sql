@@ -8,6 +8,8 @@ DROP POLICY IF EXISTS "Public Access" ON public.players;
 DROP POLICY IF EXISTS "Anyone can view players" ON public.players;
 DROP POLICY IF EXISTS "Anyone can insert players" ON public.players;
 DROP POLICY IF EXISTS "Anyone can update players" ON public.players;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.players;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.players;
 
 -- 2. Sallitaan kaikkien nähdä pelaajien perustiedot (Leaderboard & Profiilit)
 CREATE POLICY "Anyone can view players" 

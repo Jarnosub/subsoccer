@@ -14,13 +14,13 @@ export async function initApp() {
         // PAKOTETTU TARKISTUS: Haetaan istunto heti, jotta ei tarvita refreshia
         const { data: { session } } = await _supabase.auth.getSession();
         if (session && (!state.user || state.user.id !== session.user.id)) {
-            console.log("🚀 Session found immediately, refreshing profile...");
+            // console.log("🚀 Session found immediately, refreshing profile...");
             await refreshUserProfile(session.user.id);
         }
 
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
-                console.log("🔑 Auth event triggered:", event);
+                // console.log("🔑 Auth event triggered:", event);
                 if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
                     if (!state.user || state.user.id !== session.user.id) {
                         await refreshUserProfile(session.user.id);
@@ -35,7 +35,7 @@ export async function initApp() {
 
         const { data: players } = await _supabase.from('players').select('username');
         state.allDbNames = players ? players.map(p => p.username) : [];
-        console.log("✅ initApp: Players loaded", state.allDbNames.length);
+        // console.log("✅ initApp: Players loaded", state.allDbNames.length);
         
         if (typeof fetchAllGames === 'function') await fetchAllGames();
         await populateCountries();
@@ -75,7 +75,7 @@ async function refreshUserProfile(userId) {
     lastRefreshedId = userId;
 
     try {
-        console.log("🔄 Fetching profile for ID:", userId);
+        // console.log("🔄 Fetching profile for ID:", userId);
         const { data, error } = await _supabase
             .from('players')
             .select('*')
@@ -90,7 +90,7 @@ async function refreshUserProfile(userId) {
         }
 
         if (profile) {
-            console.log("✅ Player profile found:", profile.username);
+            // console.log("✅ Player profile found:", profile.username);
             state.user = profile;
             localStorage.setItem('subsoccer-user', JSON.stringify(profile));
         } else {
@@ -328,9 +328,9 @@ export async function handleAuth(event) {
             return;
         }
 
-        console.log("🚀 Auth attempt started for:", input);
+        // console.log("🚀 Auth attempt started for:", input);
         
-        console.log("Input:", input);
+        // console.log("Input:", input);
         // 1. Yritetään ensin kirjautua sähköpostilla (uusi tapa)
         if (input.includes('@')) {
             console.log("📧 Attempting email login via Supabase Auth...");
