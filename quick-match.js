@@ -373,14 +373,91 @@ function startFrequencyMonitor() {
         const status = window.audioEngine.getStatus();
         document.getElementById('freq-goal1').textContent = status.settings.goal1Frequency;
         document.getElementById('freq-goal2').textContent = status.settings.goal2Frequency;
+
+        // Update visual meter
+        const meterBar = document.getElementById('audio-meter-bar');
+        const thresholdLine = document.getElementById('audio-threshold-line');
+        if (meterBar && thresholdLine) {
+            const maxIntensity = Math.max(status.debug.currentG1, status.debug.currentG2);
+            meterBar.style.width = (maxIntensity * 100) + '%';
+            thresholdLine.style.left = (status.settings.threshold * 100) + '%';
+            
+            // Change color to green if it hits the threshold
+            if (maxIntensity >= status.settings.threshold) {
+                meterBar.style.background = '#4CAF50';
+            } else {
+                meterBar.style.background = 'var(--sub-gold)';
+            }
+        }
     }, 100);
 }
 
 export async function recordGoalSound(goalNumber) {
     const statusDiv = document.getElementById('recording-status');
-    showNotification(`🔴 Recording Goal ${goalNumber} sound...`, 'info');
-    // Tähän voisi lisätä varsinaisen tallennuslogiikan jos tarpeen, 
-    // mutta pidetään se nyt yksinkertaisena.
+    const btn = document.getElementById(`btn-record-goal-${goalNumber}`);
+    if (!statusDiv || !btn) return;
+
+    const originalText = btn.innerHTML;
+    
+    // Varmistetaan että kuuntelu on päällä
+    if (!window.audioEngine.getStatus().isListening) {
+        showNotification("Aktivoi äänitunnistus ensin", "error");
+        return;
+    }
+
+    // Käyttöliittymäpalaute: Aloitetaan kuuntelu
+    btn.innerHTML = "KUUNNELLAAN... 🎙️";
+    btn.style.background = "var(--sub-gold)";
+    btn.style.color = "#000";
+    statusDiv.innerHTML = "NAPAUTA PÖYTÄÄ NYT";
+    statusDiv.style.color = "var(--sub-gold)";
+    statusDiv.style.fontWeight = "bold";
+    statusDiv.style.transition = "all 0.2s";
+
+    window.audioEngine.resetPeaks();
+    let lastPeak = 0;
+
+    // Seurataan piikkejä 3 sekunnin ajan
+    const checkInterval = setInterval(() => {
+        const status = window.audioEngine.getStatus();
+        const currentPeak = goalNumber === 1 ? status.debug.peakGoal1 : status.debug.peakGoal2;
+        
+        // Jos uusi piikki havaitaan (yli 0.05 intensiteetti)
+        if (currentPeak > lastPeak && currentPeak > 0.05) {
+            lastPeak = currentPeak;
+            statusDiv.style.color = "#4CAF50";
+            statusDiv.innerHTML = `⚡ ÄÄNI HAVAITTU: ${currentPeak.toFixed(2)}`;
+            statusDiv.style.transform = "scale(1.1)";
+            
+            // Palautetaan väri pienen viiveen jälkeen
+            setTimeout(() => {
+                if (statusDiv) {
+                    statusDiv.style.transform = "scale(1)";
+                    statusDiv.style.color = "var(--sub-gold)";
+                }
+            }, 200);
+        }
+    }, 50);
+
+    setTimeout(() => {
+        clearInterval(checkInterval);
+        btn.innerHTML = originalText;
+        btn.style.background = "";
+        btn.style.color = "";
+        
+        const finalStatus = window.audioEngine.getStatus();
+        const peak = goalNumber === 1 ? finalStatus.debug.peakGoal1 : finalStatus.debug.peakGoal2;
+        
+        statusDiv.style.fontWeight = "normal";
+        statusDiv.style.color = "#888";
+        statusDiv.innerHTML = `Valmis. Korkein piikki: <span style="color:white">${peak.toFixed(2)}</span> (Kynnys: ${finalStatus.settings.threshold})`;
+        
+        if (peak < 0.1) {
+            showNotification("Ääntä ei havaittu. Tarkista mikrofoni.", "error");
+        } else {
+            showNotification(`Maali ${goalNumber} kalibroitu!`, "success");
+        }
+    }, 3000);
 }
 
 export function toggleSoundEffects() {

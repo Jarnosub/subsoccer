@@ -1,5 +1,5 @@
 import { initApp } from './auth.js';
-import { checkLiveEventParam } from './events.js';
+import { checkLiveEventParam } from './events-v3-final.js';
 import './bracket-engine.js';
 import './match-service.js';
 import { setupGlobalErrorHandling, setupUIListeners, applyBranding } from './ui.js';

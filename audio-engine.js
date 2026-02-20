@@ -16,7 +16,7 @@ let GOAL_1_FREQUENCY = 2000; // Player 1's goal emits 2000 Hz → Player 2 score
 let GOAL_2_FREQUENCY = 3500; // Player 2's goal emits 3500 Hz → Player 1 scores
 let FREQUENCY_TOLERANCE = 200; // ±200 Hz detection window
 let DETECTION_THRESHOLD = 0.65; // Sensitivity (0.0 - 1.0), higher = less sensitive
-const MIN_DURATION_MS = 100; // Minimum sound duration to avoid false positives
+const MIN_DURATION_MS = 50; // Reduced for sharper impact detection
 const COOLDOWN_MS = 1500; // Cooldown between goal detections
 
 // Detection state
@@ -27,6 +27,8 @@ let currentDetectedGoal = null;
 // Debug/Fine-tuning state
 let peakGoal1 = 0;
 let peakGoal2 = 0;
+let currentG1 = 0;
+let currentG2 = 0;
 
 /**
  * Initialize audio context (must be called after user interaction)
@@ -65,9 +67,9 @@ async function startListening() {
         // Request microphone access
         const constraints = {
             audio: {
-                echoCancellation: false, // We want to hear the goal sounds clearly
-                noiseSuppression: false,
-                autoGainControl: false
+                echoCancellation: { ideal: false },
+                noiseSuppression: { ideal: false },
+                autoGainControl: { ideal: false }
             }
         };
 
@@ -84,6 +86,7 @@ async function startListening() {
         startDetectionLoop();
 
         console.log("🎙️ Acoustic goal detection ACTIVE");
+        updateUIStatus(true);
         return { success: true, message: "Goal detection activated" };
 
     } catch (error) {
@@ -124,6 +127,7 @@ function stopListening() {
     }
 
     isListening = false;
+    updateUIStatus(false);
     console.log("🎙️ Acoustic goal detection STOPPED");
 }
 
@@ -145,14 +149,15 @@ function startDetectionLoop() {
         const detectedGoal = analyzeFrequencies(dataArray, sampleRate);
 
         if (detectedGoal) {
-            handleGoalSound(detectedGoal);
-        } else {
-            // Reset if no detection
-            currentDetectedGoal = null;
-            detectionStartTime = 0;
+            // Simplified logic for prototype: trigger immediately if threshold met and not in cooldown
+            const now = Date.now();
+            if (now - lastDetectionTime > COOLDOWN_MS) {
+                confirmGoal(detectedGoal);
+                lastDetectionTime = now;
+            }
         }
 
-    }, 50); // Check every 50ms
+    }, 30); // Faster polling for better transient capture
 }
 
 /**
@@ -173,27 +178,34 @@ function analyzeFrequencies(dataArray, sampleRate) {
     const goal2BinStart = Math.floor((GOAL_2_FREQUENCY - FREQUENCY_TOLERANCE) / binWidth);
     const goal2BinEnd = Math.ceil((GOAL_2_FREQUENCY + FREQUENCY_TOLERANCE) / binWidth);
 
-    // Calculate average intensity in each frequency range
+    // Find peak intensity in each frequency range (more robust for impact sounds)
     let goal1Intensity = 0;
     let goal2Intensity = 0;
     
     for (let i = goal1BinStart; i <= goal1BinEnd && i < bufferLength; i++) {
-        goal1Intensity += dataArray[i];
+        if (dataArray[i] > goal1Intensity) goal1Intensity = dataArray[i];
     }
-    goal1Intensity /= (goal1BinEnd - goal1BinStart + 1);
     
     for (let i = goal2BinStart; i <= goal2BinEnd && i < bufferLength; i++) {
-        goal2Intensity += dataArray[i];
+        if (dataArray[i] > goal2Intensity) goal2Intensity = dataArray[i];
     }
-    goal2Intensity /= (goal2BinEnd - goal2BinStart + 1);
 
     // Normalize to 0-1 range
     goal1Intensity /= 255;
     goal2Intensity /= 255;
 
+    // Store for UI monitoring
+    currentG1 = goal1Intensity;
+    currentG2 = goal2Intensity;
+
     // Track peaks for fine-tuning
     if (goal1Intensity > peakGoal1) peakGoal1 = goal1Intensity;
     if (goal2Intensity > peakGoal2) peakGoal2 = goal2Intensity;
+
+    // Debug-logaus testauksen helpottamiseksi
+    if (goal1Intensity > 0.1 || goal2Intensity > 0.1) {
+        console.log(`G1: ${goal1Intensity.toFixed(2)} | G2: ${goal2Intensity.toFixed(2)} | Threshold: ${DETECTION_THRESHOLD}`);
+    }
 
     // Determine which goal (if any) exceeded threshold
     if (goal1Intensity > DETECTION_THRESHOLD && goal1Intensity > goal2Intensity) {
@@ -286,6 +298,40 @@ function playConfirmationSound() {
 }
 
 /**
+ * Update UI indicator if it exists in the DOM
+ */
+function updateUIStatus(active) {
+    const indicator = document.getElementById('audio-indicator');
+    const toggleBtn = document.getElementById('toggle-audio-btn');
+    const freqDisplay = document.getElementById('audio-frequency-display');
+    const meterWrapper = document.getElementById('audio-meter-wrapper');
+    const instantMeter = document.getElementById('audio-meter-container');
+
+    if (indicator) {
+        indicator.style.backgroundColor = active ? '#4CAF50' : '#f44336';
+        indicator.style.boxShadow = active ? '0 0 10px #4CAF50' : 'none';
+        indicator.title = active ? 'Microphone Active' : 'Microphone Off';
+    }
+
+    if (toggleBtn) {
+        toggleBtn.textContent = active ? 'DEACTIVATE' : 'ACTIVATE';
+        toggleBtn.style.backgroundColor = active ? '#c62828' : '#333';
+    }
+
+    if (freqDisplay) {
+        freqDisplay.style.display = active ? 'block' : 'none';
+    }
+
+    if (meterWrapper) {
+        meterWrapper.style.display = active ? 'block' : 'none';
+    }
+
+    if (instantMeter) {
+        instantMeter.style.display = active ? 'block' : 'none';
+    }
+}
+
+/**
  * Get current listening status
  */
 function getStatus() {
@@ -299,8 +345,10 @@ function getStatus() {
             cooldown: COOLDOWN_MS
         },
         debug: {
-            peakGoal1: peakGoal1.toFixed(3),
-            peakGoal2: peakGoal2.toFixed(3)
+            peakGoal1: peakGoal1,
+            peakGoal2: peakGoal2,
+            currentG1: currentG1,
+            currentG2: currentG2
         }
     };
 }

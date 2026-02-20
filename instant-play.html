@@ -332,6 +332,51 @@
             transform: scale(1.1);
         }
 
+        /* Audio status indicator (The "light") */
+        .audio-status {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #f44336; /* Default red (off) */
+            z-index: 2000;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        /* Audio Intensity Meter for Testing */
+        .audio-meter-overlay {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            z-index: 1000;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: none; /* Hidden by default, shown when audio active */
+        }
+        #audio-meter-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--sub-gold);
+            transition: width 0.1s ease-out;
+        }
+        #audio-threshold-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--sub-red);
+            left: 65%; /* Matches 0.65 threshold */
+        }
+
         @media (orientation: portrait) {
             .scoreboard {
                 flex-direction: column;
@@ -583,9 +628,19 @@
         }
     </style>
 </head>
+<script src="audio-engine.js"></script>
 <script src="sound-effects.js"></script>
 
 <body>
+    <!-- Audio Status Indicator -->
+    <div id="audio-indicator" class="audio-status" title="Microphone Status"></div>
+
+    <!-- Audio Meter for Calibration -->
+    <div id="audio-meter-container" class="audio-meter-overlay">
+        <div id="audio-meter-fill"></div>
+        <div id="audio-threshold-marker"></div>
+    </div>
+
     <!-- Exit Button (SULJE) -->
     <button onclick="window.location.href='index.html'" class="exit-btn"
         style="position:fixed; top:20px; right:20px; z-index:2000; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.3); padding:8px 16px; border-radius:20px; font-family:'Open Sans', sans-serif; font-size:0.8rem; cursor:pointer; backdrop-filter:blur(5px);">✕
@@ -603,28 +658,21 @@
                 <span class="rule-number">1</span>
                 <div class="rule-text">
                     <div class="rule-title">START</div>
-                    <div class="rule-desc">The winner of Rock/Paper/Scissors gets to start.</div>
+                    <div class="rule-desc">The winner of Rock/Paper/Scissors starts.</div>
                 </div>
             </div>
             <div class="rule-item">
                 <span class="rule-number">2</span>
                 <div class="rule-text">
                     <div class="rule-title">KICK-OFF</div>
-                    <div class="rule-desc">Always inside your own goal area.</div>
+                    <div class="rule-desc">Kick-off must be taken inside your own goal area.</div>
                 </div>
             </div>
             <div class="rule-item">
                 <span class="rule-number">3</span>
                 <div class="rule-text">
-                    <div class="rule-title">POSITION</div>
-                    <div class="rule-desc">You must be seated at all times.</div>
-                </div>
-            </div>
-            <div class="rule-item">
-                <span class="rule-number">4</span>
-                <div class="rule-text">
                     <div class="rule-title">WINNER</div>
-                    <div class="rule-desc">The first one to score 3 goals is the winner.</div>
+                    <div class="rule-desc">The first player to score 3 goals wins.</div>
                 </div>
             </div>
         </div>
@@ -697,7 +745,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             // Use URL param or default to 'QUICK-PLAY'
             const gameId = urlParams.get('game_id') || 'QUICK-PLAY';
-            
+
             // Allow setting win score via URL (e.g. ?win_score=5)
             const urlWinScore = urlParams.get('win_score');
             if (urlWinScore) WIN_SCORE = parseInt(urlWinScore);
@@ -741,6 +789,24 @@
             if (window.soundEffects && window.soundEffects.audioContext && window.soundEffects.audioContext.state === 'suspended') {
                 window.soundEffects.audioContext.resume();
             }
+
+            // Start acoustic detection
+            if (window.audioEngine) {
+                window.audioEngine.startListening();
+                
+                // Start visual meter updates
+                const meterContainer = document.getElementById('audio-meter-container');
+                const meterFill = document.getElementById('audio-meter-fill');
+                if (meterContainer) meterContainer.style.display = 'block';
+                
+                setInterval(() => {
+                    const status = window.audioEngine.getStatus();
+                    const maxIntensity = Math.max(status.debug.currentG1, status.debug.currentG2);
+                    if (meterFill) meterFill.style.width = (maxIntensity * 100) + '%';
+                    if (maxIntensity > status.settings.threshold) meterFill.style.background = '#4CAF50';
+                    else meterFill.style.background = 'var(--sub-gold)';
+                }, 50);
+            }
         }
 
         // Add goal
@@ -750,7 +816,7 @@
             if (document.getElementById('winner-overlay').classList.contains('show') || (now - lastGoalTime < 800)) {
                 return; // Game ended
             }
-            
+
             lastGoalTime = now;
 
             // Update score

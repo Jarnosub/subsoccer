@@ -3,9 +3,13 @@
     "version": "1.0.0",
     "description": "Subsoccer Pro E2E Tests",
     "scripts": {
-      "test": "npx playwright test"
+        "test": "npm run test:e2e",
+        "test:e2e": "npx playwright test",
+        "test:unit": "vitest run"
     },
     "devDependencies": {
-      "@playwright/test": "^1.40.0"
+        "@playwright/test": "^1.40.0",
+        "jsdom": "^28.1.0",
+        "vitest": "^4.0.18"
     }
 }

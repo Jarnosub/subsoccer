@@ -1,4 +1,4 @@
-import { _supabase, state } from './config.js';
+import { _supabase, state, isAdmin } from './config.js';
 import { showNotification, showModal, closeModal, showLoading, hideLoading } from './ui-utils.js';
 import { BracketEngine } from './bracket-engine.js';
 import { MatchService } from './match-service.js';
@@ -12,7 +12,8 @@ import { MatchService } from './match-service.js';
 
 let selectedEventImage = null;
 let selectedBrandLogo = null;
-let currentEventId = null;
+// MARKER: UNIQUE_FILE_IDENTITY_CHECK_A1
+export let currentEventId = null;
 let currentEventTournamentId = null;
 let currentEventTournamentName = null;
 
@@ -34,12 +35,12 @@ export async function loadEventsPage() {
 
     showLoading('Loading Events...');
 
-   try {
+    try {
         const now = new Date();
 
         // Haetaan kaikki aktiiviset tapahtumat
         const { data: allEvents, error } = await _supabase
-            .from('events_with_participant_count')
+            .from('events')
             .select('*')
             .in('status', ['upcoming', 'ongoing'])
             .order('start_datetime', { ascending: true });
@@ -65,7 +66,7 @@ export async function loadEventsPage() {
  */
 function renderEventsPage(events) {
     const container = document.getElementById('events-view');
-    
+
     let html = `
         <h2 class="section-title" style="margin-top: 20px; font-size: 0.8rem; color: #555; letter-spacing: 3px; font-family: var(--sub-name-font);">EVENT SETUP</h2>
         
@@ -82,7 +83,7 @@ function renderEventsPage(events) {
         </h3>
         <div id="events-list">
     `;
-    
+
     if (events.length === 0) {
         html += `
             <div style="text-align:center; padding:60px 20px; color:#444;">
@@ -95,7 +96,7 @@ function renderEventsPage(events) {
             html += renderEventCard(event);
         });
     }
-    
+
     html += '</div>';
     container.innerHTML = html;
 }
@@ -108,14 +109,14 @@ function renderEventCard(event) {
     const dayOfWeek = startDate.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
     const dateStr = startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
     const timeStr = startDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    
+
     const eventTypeColors = {
         tournament: 'var(--sub-gold)',
         league: '#4CAF50',
         casual: '#888'
     };
     const typeColor = eventTypeColors[event.event_type] || '#888';
-    
+
     return `
         <div class="event-card sub-card" style="border-left: 2px solid ${typeColor};">
             ${event.image_url ? `
@@ -162,7 +163,7 @@ export function showCreateEventForm() {
     selectedBrandLogo = null;
     const formContainer = document.getElementById('create-event-form');
     if (!formContainer) return;
-    
+
     // Asetetaan oletusajat: alku nyt, loppu +2h
     const now = new Date();
     const minTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -216,7 +217,7 @@ export function showCreateEventForm() {
                 
                 <div style="margin-bottom:15px;">
                     <label style="font-size:0.8rem; color:#888; display:block; margin-bottom:5px;">Brand Logo (e.g. Tournament/Sponsor)</label>
-                    <input type="file" id="brand-logo-input" accept="image/jpeg,image/png,image/webp" onchange="previewBrandLogo(this)" style="display:none;">
+                    <input type="file" id="brand-logo-input" accept="image/jpeg,image/png,image/webp" style="display:none;">
                     <label for="brand-logo-input" id="brand-logo-label" style="display:inline-block; padding:8px 15px; background:#333; color:#fff; border-radius:6px; cursor:pointer; font-size:0.8rem; border:1px solid #444;">
                         <i class="fa fa-upload"></i> Upload Logo
                     </label>
@@ -230,9 +231,7 @@ export function showCreateEventForm() {
             </div>
 
             <div style="margin-bottom:20px;">
-                <input type="file" id="event-image-input" accept="image/jpeg,image/png,image/webp" 
-                    onchange="previewEventImage(this)" 
-                    style="display:none;">
+                <input type="file" id="event-image-input" accept="image/jpeg,image/png,image/webp" style="display:none;">
                 <label for="event-image-input" id="event-image-label" 
                     style="display:block; padding:14px; background:var(--sub-red); color:#fff; border-radius:8px; cursor:pointer; font-size:1rem; font-family:var(--sub-name-font); text-transform:uppercase; text-align:center; transition:all 0.2s;">
                     <i class="fa fa-upload"></i> CHOOSE IMAGE
@@ -241,18 +240,18 @@ export function showCreateEventForm() {
             </div>
             
             <div style="display:flex; gap:12px; margin-top:25px;">
-                <button class="btn-red" onclick="createNewEvent()" style="flex:1; padding:14px; font-size:1rem;">
+                <button class="btn-red" data-action="create-event" style="flex:1; padding:14px; font-size:1rem;">
                     <i class="fa fa-check"></i> CREATE EVENT
                 </button>
-                <button class="btn-red" onclick="hideCreateEventForm()" style="flex:1; padding:14px; font-size:1rem; background:#333;">
+                <button class="btn-red" data-action="hide-create-event-form" style="flex:1; padding:14px; font-size:1rem; background:#333;">
                     <i class="fa fa-times"></i> CANCEL
                 </button>
             </div>
         </div>
     `;
-    
+
     // No need to populate game select anymore - removed from form
-    
+
     // Scroll to form
     formContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -285,10 +284,10 @@ export function previewEventImage(input) {
     const preview = document.getElementById('event-image-preview');
     const fileLabel = document.getElementById('event-image-label');
     if (!preview) return;
-    
+
     if (input.files && input.files[0]) {
         selectedEventImage = input.files[0];
-        
+
         // Validate file size (5MB max)
         if (selectedEventImage.size > 5 * 1024 * 1024) {
             showNotification('Image too large. Max 5MB allowed.', 'error');
@@ -297,10 +296,10 @@ export function previewEventImage(input) {
             preview.innerHTML = '';
             return;
         }
-        
+
         // Hide the file input button
         if (fileLabel) fileLabel.style.display = 'none';
-        
+
         // Show preview
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -335,10 +334,10 @@ export function previewBrandLogo(input) {
     const preview = document.getElementById('brand-logo-preview');
     const fileLabel = document.getElementById('brand-logo-label');
     if (!preview) return;
-    
+
     if (input.files && input.files[0]) {
         selectedBrandLogo = input.files[0];
-        
+
         if (selectedBrandLogo.size > 2 * 1024 * 1024) {
             showNotification('Logo too large. Max 2MB allowed.', 'error');
             input.value = '';
@@ -346,7 +345,7 @@ export function previewBrandLogo(input) {
             preview.innerHTML = '';
             return;
         }
-        
+
         const reader = new FileReader();
         reader.onload = (e) => {
             preview.innerHTML = `
@@ -371,16 +370,16 @@ export function clearBrandLogo() {
  */
 export async function createNewEvent() {
     console.log('createNewEvent() called'); // DEBUG
-    
+
     // Check if user is logged in - use 'user' not 'user'
     if (!state.user) {
         console.log('User not logged in'); // DEBUG
         showNotification('You must be logged in to create events', 'error');
         return;
     }
-    
+
     console.log('User logged in:', state.user.id); // DEBUG
-    
+
     // Get form values
     const eventName = document.getElementById('event-name-input')?.value.trim();
     const eventType = document.getElementById('event-type-select')?.value;
@@ -389,20 +388,20 @@ export async function createNewEvent() {
     const description = document.getElementById('event-desc-input')?.value.trim();
     const location = document.getElementById('event-location-input')?.value.trim() || null;
     const primaryColor = document.getElementById('event-color-input')?.value;
-    
+
     console.log('Form values:', { eventName, eventType, startDatetime, endDatetime, description, location }); // DEBUG
-    
+
     // Validate required fields
     if (!eventName || !startDatetime) {
         console.log('Validation failed'); // DEBUG
         showNotification('Please fill required fields (Event Name, Start Time)', 'error');
         return;
     }
-    
+
     try {
         let imageUrl = null;
         let brandLogoUrl = null;
-        
+
         // Upload image if selected
         if (selectedEventImage) {
             console.log('Uploading image...'); // DEBUG
@@ -415,7 +414,7 @@ export async function createNewEvent() {
             showNotification('Uploading logo...', 'success');
             brandLogoUrl = await uploadEventImage(selectedBrandLogo); // Reuse same upload function
         }
-        
+
         // Create event in database
         const eventData = {
             event_name: eventName,
@@ -433,25 +432,25 @@ export async function createNewEvent() {
             // Note: max_participants removed - will be per-tournament
             // Note: game_id removed - will be per-tournament
         };
-        
+
         console.log('Creating event with data:', eventData); // DEBUG
-        
+
         const { data: event, error } = await _supabase
             .from('events')
             .insert(eventData)
             .select()
             .single();
-        
+
         if (error) {
             console.error('Database error:', error); // DEBUG
             throw error;
         }
-        
+
         console.log('Event created successfully:', event); // DEBUG
         showNotification('Event created successfully! 🎉', 'success');
         hideCreateEventForm();
         loadEventsPage(); // Reload events list
-        
+
     } catch (e) {
         console.error('Failed to create event:', e);
         showNotification('Failed to create event: ' + e.message, 'error');
@@ -463,24 +462,24 @@ export async function createNewEvent() {
  */
 async function uploadEventImage(file) {
     const fileName = `${state.user.id}-${Date.now()}.${file.name.split('.').pop()}`;
-    
+
     const { data, error } = await _supabase.storage
         .from('event-images')
         .upload(fileName, file, {
             cacheControl: '3600',
             upsert: false
         });
-    
+
     if (error) {
         console.error('Upload failed:', error);
         throw new Error('Image upload failed');
     }
-    
+
     // Get public URL
     const { data: { publicUrl } } = _supabase.storage
         .from('event-images')
         .getPublicUrl(fileName);
-    
+
     return publicUrl;
 }
 
@@ -488,35 +487,58 @@ async function uploadEventImage(file) {
  * View event details and registration
  */
 export async function viewEventDetails(eventId) {
+    console.log("🔍 FETCHING EVENT DETAILS FOR:", eventId, "V2_FIX_JOIN");
     try {
-        // Fetch event details
+        // Fetch base event details
         const { data: event, error } = await _supabase
-            .from('events_with_participant_count')
+            .from('events')
             .select('*')
             .eq('id', eventId)
             .single();
-        
+
         if (error) throw error;
-        
-        // Fetch tournaments linked to this event WITH participant counts
-        const { data: tournaments, error: tournamentsError } = await _supabase
+
+        // Fetch organizer username separately (fail-safe)
+        if (event.organizer_id) {
+            const { data: userData } = await _supabase
+                .from('players')
+                .select('username')
+                .eq('id', event.organizer_id)
+                .single();
+            event.organizer = userData || { username: 'System' };
+        } else {
+            event.organizer = { username: 'System' };
+        }
+
+        // Fetch delegated moderators
+        let moderators = [];
+        const { data: mods, error: modError } = await _supabase
+            .from('event_moderators')
+            .select('player_id')
+            .eq('event_id', eventId);
+
+        if (modError) {
+            console.warn('Moderator feature might not be fully configured (SQL not run?):', modError.message);
+            moderators = [];
+        } else {
+            moderators = mods ? mods.map(m => m.player_id) : [];
+        }
+
+        // Fetch tournaments for this event with participant counts
+        const { data: tournaments, error: tourError } = await _supabase
             .from('tournament_history')
-            .select(`
-                *,
-                game:games(game_name, location),
-                participants:event_registrations(count)
-            `)
+            .select('*, game:games(game_name, location), participants:event_registrations(count)')
             .eq('event_id', eventId)
-            .order('created_at', { ascending: false });
-        
-        if (tournamentsError) throw tournamentsError;
-        
+            .eq('participants.status', 'registered');
+
+        if (tourError) throw tourError;
+
         // Add participant count to each tournament
         const tournamentsWithCounts = (tournaments || []).map(t => ({
             ...t,
             participant_count: t.participants?.[0]?.count || 0
         }));
-        
+
         // Fetch user's tournament registrations if logged in
         let userRegistrations = [];
         if (state.user) {
@@ -527,10 +549,10 @@ export async function viewEventDetails(eventId) {
                 .eq('player_id', state.user.id);
             userRegistrations = regs || [];
         }
-        
+
         // Show modal
-        showEventModal(event, tournamentsWithCounts || [], userRegistrations);
-        
+        showEventModal(event, tournamentsWithCounts || [], userRegistrations, moderators);
+
     } catch (e) {
         console.error('Failed to load event details:', e);
         showNotification('Failed to load event details', 'error');
@@ -538,167 +560,200 @@ export async function viewEventDetails(eventId) {
 }
 
 /**
+ * Check if current user can moderate this event
+ */
+function canModerateEvent(event, moderators = []) {
+    if (!state.user) return false;
+    if (isAdmin()) return true; // Global admin
+    if (event.organizer_id === state.user.id) return true; // Creator
+    return moderators.includes(state.user.id); // Delegated moderator
+}
+
+/**
  * Show event details modal
  */
-function showEventModal(event, tournaments, userRegistrations) {
+function showEventModal(event, tournaments, userRegistrations, moderators = []) {
     const startDate = new Date(event.start_datetime);
     const endDate = event.end_datetime ? new Date(event.end_datetime) : null;
-    
+
     let dateStr;
     if (endDate && endDate.toDateString() !== startDate.toDateString()) {
         // Multi-day event
-        const startFull = startDate.toLocaleDateString('en-GB', { 
+        const startFull = startDate.toLocaleDateString('en-GB', {
             weekday: 'long', day: '2-digit', month: 'long'
         });
-        const endFull = endDate.toLocaleDateString('en-GB', { 
+        const endFull = endDate.toLocaleDateString('en-GB', {
             weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
         });
         dateStr = `${startFull} - ${endFull}`;
     } else {
-        dateStr = startDate.toLocaleDateString('en-GB', { 
+        dateStr = startDate.toLocaleDateString('en-GB', {
             weekday: 'long',
-            day: '2-digit', 
-            month: 'long', 
-            year: 'numeric' 
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
         });
     }
-    
-    const timeStr = startDate.toLocaleTimeString('en-GB', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+
+    const timeStr = startDate.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit'
     });
-    
-    const isOrganizer = state.user && event.organizer_id === state.user.id;
-    
+
+    const isOrganizer = canModerateEvent(event, moderators);
+
     let modalHtml = `
-        <div style="background:#0a0a0a; border-radius:12px; overflow:hidden;">
+        <div style="background:var(--sub-black); border-radius:var(--sub-radius); overflow:hidden; border: 1px solid var(--sub-border); box-shadow: var(--sub-shadow);">
                 
                 ${event.image_url ? `
-                    <div style="width:100%; height:200px; background:url('${event.image_url}') center/cover;"></div>
+                    <div style="width:100%; height:220px; background:url('${event.image_url}') center/cover; border-bottom: 2px solid var(--sub-red);"></div>
                 ` : ''}
                 
-                <div style="padding:20px;">
-                    <h2 style="font-family:var(--sub-name-font); font-size:1.5rem; margin:0 0 10px 0; color:#fff; text-transform:uppercase; letter-spacing:1px;">${event.event_name}</h2>
+                <div style="padding:32px;">
+                    <h2 class="sub-heading-premium" style="font-size:1.8rem; margin:0 0 10px 0;">${event.event_name}</h2>
                     
-                    <div style="display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
-                        <div style="font-size:0.9rem; color:var(--sub-gold); text-transform:uppercase; letter-spacing:1px;">
+                    <div style="font-size:0.85rem; color:#aaa; margin-bottom:24px; display:flex; align-items:center; gap:8px; text-transform: uppercase; letter-spacing: 1px;">
+                        <i class="fa fa-user-circle" style="color:var(--sub-red);"></i> Organizer: 
+                        <span style="color:var(--sub-white); font-weight:bold;">${event.organizer?.username || 'System'}</span>
+                    </div>
+
+                    <div style="display:flex; gap:20px; margin-bottom:24px; flex-wrap:wrap;">
+                        <div class="sub-gold-text" style="font-size:0.9rem;">
                             <i class="fa fa-tag" style="margin-right:8px;"></i> ${event.event_type}
                         </div>
-                        <div style="font-size:0.9rem; color:#888;">
-                            <i class="fa fa-calendar" style="margin-right:8px;"></i> ${dateStr}
+                        <div style="font-size:0.9rem; color:#eee; font-family: var(--sub-name-font); letter-spacing: 1px;">
+                            <i class="fa fa-calendar" style="margin-right:8px; color: var(--sub-red);"></i> ${dateStr}
                         </div>
                         ${!endDate || endDate.toDateString() === startDate.toDateString() ? `
-                            <div style="font-size:0.9rem; color:#888;">
-                                <i class="fa fa-clock" style="margin-right:8px;"></i> ${timeStr}
+                            <div style="font-size:0.9rem; color:#eee; font-family: var(--sub-name-font); letter-spacing: 1px;">
+                                <i class="fa fa-clock" style="margin-right:8px; color: var(--sub-red);"></i> ${timeStr}
                             </div>
                         ` : ''}
                     </div>
                     
+                    <div class="sub-divider"></div>
+
                     ${event.location ? `
-                        <div style="background:#111; border:1px solid #222; border-radius:8px; padding:12px; margin-bottom:15px;">
-                            <div style="font-size:0.85rem; color:#888; margin-bottom:5px;">📍 LOCATION</div>
-                            <div style="font-size:1rem; color:#fff;">${event.location}</div>
+                        <div style="margin-bottom:24px;">
+                            <div style="font-size:0.75rem; color:var(--sub-red); margin-bottom:8px; font-family: var(--sub-name-font); letter-spacing: 1.5px; text-transform: uppercase;">LOCATION</div>
+                            <div style="font-size:1.1rem; color:#fff; font-family: var(--sub-name-font);">${event.location}</div>
                         </div>
                     ` : ''}
                     
                     ${event.description ? `
-                        <div style="background:#111; border:1px solid #222; border-radius:8px; padding:12px; margin-bottom:15px;">
-                            <div style="font-size:0.85rem; color:#888; margin-bottom:5px;">ℹ️ DESCRIPTION</div>
-                            <p style="font-size:0.9rem; color:#ccc; margin:0; line-height:1.5;">${event.description}</p>
+                        <div style="margin-bottom:24px;">
+                            <div style="font-size:0.75rem; color:var(--sub-red); margin-bottom:8px; font-family: var(--sub-name-font); letter-spacing: 1.5px; text-transform: uppercase;">DESCRIPTION</div>
+                            <p style="font-size:0.95rem; color:#ccc; margin:0; line-height:1.6;">${event.description}</p>
+                        </div>
+                    ` : ''}
+
+                    ${event.organizer_id === state.user?.id || isAdmin() ? `
+                        <div class="sub-card-premium" data-event-id="${event.id}" style="margin-bottom:24px; border-left:4px solid var(--sub-red); padding: 16px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <div style="font-size:0.85rem; color:#fff; font-weight:bold; font-family: var(--sub-name-font); letter-spacing: 1px;">🛡️ MODERATORS</div>
+                                <button data-action="toggle-moderator-search" data-event-id="${event.id}" 
+                                    class="btn-red"
+                                    style="padding:6px 12px; font-size:0.75rem; width: auto;">
+                                    + ADD MODERATOR
+                                </button>
+                            </div>
+                            <div id="event-moderators-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                                <!-- Moderators will be loaded here -->
+                            </div>
+                            <div id="moderator-search-container" style="display:none; background:var(--sub-black); padding:12px; border:1px solid var(--sub-border);">
+                                <input type="text" id="mod-search-input" placeholder="Search player name..." 
+                                    style="width:100%; padding:10px; background:var(--sub-charcoal); border:1px solid var(--sub-border); color:#fff; font-size:0.85rem; box-sizing:border-box; outline: none;">
+                                <div id="mod-search-results" style="max-height:150px; overflow-y:auto; margin-top:8px;"></div>
+                            </div>
                         </div>
                     ` : ''}
                     
-                    <div style="background:#111; border:1px solid #222; border-radius:8px; padding:12px; margin-bottom:15px;">
-                        <div style="font-size:0.85rem; color:#888; margin-bottom:8px;">🏆 TOURNAMENTS</div>
+                    <div style="margin-bottom:24px;">
+                        <div style="font-size:0.75rem; color:var(--sub-red); margin-bottom:12px; font-family: var(--sub-name-font); letter-spacing: 1.5px; text-transform: uppercase;">🏆 TOURNAMENTS</div>
+
                         ${tournaments.length === 0 ? `
-                            <div style="text-align:center; padding:30px 20px; color:#666;">
-                                <i class="fa fa-trophy" style="font-size:2rem; color:#333; margin-bottom:10px; display:block;"></i>
-                                <div style="font-size:0.85rem;">No tournaments created yet</div>
-                                ${isOrganizer ? `<div style="font-size:0.75rem; margin-top:5px; color:#888;">Create tournaments during the event</div>` : ''}
+                            <div style="text-align:center; padding:40px 24px; color:#666; background: var(--sub-charcoal); border: 1px dashed var(--sub-border);">
+                                <i class="fa fa-trophy" style="font-size:2rem; color:#333; margin-bottom:12px; display:block;"></i>
+                                <div style="font-size:0.85rem; font-family: var(--sub-name-font); letter-spacing: 1px;">NO TOURNAMENTS CREATED YET</div>
+                                ${isOrganizer ? `<div style="font-size:0.75rem; margin-top:8px; color:#888;">Create tournaments during the event</div>` : ''}
                             </div>
                         ` : tournaments.map(t => {
-                            const isUserRegistered = userRegistrations.some(r => r.tournament_id === t.id);
-                            // Use start_datetime if available, otherwise created_at
-                            const tDate = t.start_datetime ? new Date(t.start_datetime) : new Date(t.created_at);
-                            
-                            // Format date and time compactly for mobile
-                            const dateStr = tDate.toLocaleDateString('en-GB', { 
-                                day: 'numeric', 
-                                month: 'short'
-                            });
-                            const timeStr = tDate.toLocaleTimeString('en-GB', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                            });
-                            
-                            // Get participant count for this tournament
-                            const participantCount = t.participant_count || 0;
-                            const maxParticipants = t.max_participants || 8;
-                            const isFull = participantCount >= maxParticipants;
-                            
-                            return `
-                                <div style="background:#0a0a0a; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:8px;">
-                                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
+        const isUserRegistered = userRegistrations.some(r => r.tournament_id === t.id);
+        const tDate = t.start_datetime ? new Date(t.start_datetime) : new Date(t.created_at);
+
+        const dateStr = tDate.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short'
+        });
+        const timeStr = tDate.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const participantCount = t.participant_count || 0;
+        const maxParticipants = t.max_participants || 8;
+        const isFull = participantCount >= maxParticipants;
+
+        return `
+                                <div class="sub-card-premium" style="margin-bottom:12px; padding: 20px; border-left: 2px solid ${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? 'var(--sub-red)' : 'var(--sub-border)'};">
+                                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
                                         <div style="flex:1;">
-                                            <div style="font-size:1rem; color:#fff; font-weight:bold; margin-bottom:6px;">
+                                            <div style="font-size:1.1rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 1px; margin-bottom:8px;">
                                                 ${t.tournament_name || 'Tournament'}
                                             </div>
-                                            <div style="font-size:0.8rem; color:#888; margin-bottom:6px;">
-                                                <i class="fa fa-gamepad" style="margin-right:8px;"></i> ${t.game?.game_name || 'Unknown Table'}${t.game?.location ? ` - ${t.game.location}` : ''}
+                                            <div style="font-size:0.8rem; color:#aaa; margin-bottom:8px; text-transform: uppercase; letter-spacing: 1px;">
+                                                <i class="fa fa-gamepad" style="margin-right:8px; color: var(--sub-red);"></i> ${t.game?.game_name || 'Unknown Table'}${t.game?.location ? ` - ${t.game.location}` : ''}
                                             </div>
-                                            <div style="font-size:0.8rem; color:${participantCount > 0 ? 'var(--sub-gold)' : '#666'}; margin-bottom:6px;">
-                                                <i class="fa fa-users" style="margin-right:8px;"></i> ${participantCount} / ${maxParticipants} players
-                                                <button data-action="view-participants" data-event-id="${event.id}" data-tour-id="${t.id}" data-name="${t.tournament_name || 'Tournament'}" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;">View List</button>
-                                                ${participantCount >= 2 ? `<button data-action="view-bracket" data-id="${t.id}" data-name="${(t.tournament_name || 'Tournament').replace(/[`'"]/g, '')}" data-max="${maxParticipants}" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:underline; font-size:0.8rem; margin-left:5px;"><i class="fa fa-sitemap"></i> Bracket</button>` : ''}
-                                            </div>
-                                            <div style="display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;">
-                                                <div style="font-size:0.85rem; color:#aaa; white-space:nowrap;">
-                                                    <i class="fa fa-calendar" style="color:#666; margin-right:4px;"></i>${dateStr}
-                                                </div>
-                                                <div style="font-size:1rem; color:var(--sub-gold); font-weight:600; white-space:nowrap;">
-                                                    <i class="fa fa-clock" style="margin-right:4px;"></i>${timeStr}
-                                                </div>
+                                            <div style="font-size:0.85rem; color:#fff; font-family: var(--sub-name-font); display: flex; align-items: center; gap: 12px;">
+                                                <span><i class="fa fa-users" style="color:var(--sub-red); margin-right:6px;"></i> ${participantCount} / ${maxParticipants}</span>
+                                                <button data-action="view-participants" data-event-id="${event.id}" data-tour-id="${t.id}" data-name="${t.tournament_name || 'Tournament'}" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:none; font-size:0.75rem; font-weight: bold; border: 1px solid rgba(255, 215, 0, 0.2); padding: 2px 6px; border-radius: 2px;">VIEW LIST</button>
+                                                ${participantCount >= 2 ? `<button data-action="view-bracket" data-id="${t.id}" data-name="${(t.tournament_name || 'Tournament').replace(/[`'"]/g, '')}" data-max="${maxParticipants}" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:none; font-size:0.75rem; font-weight: bold; border: 1px solid rgba(76, 175, 80, 0.2); padding: 2px 6px; border-radius: 2px;">BRACKET</button>` : ''}
                                             </div>
                                         </div>
                                         <div style="text-align:right;">
                                             ${t.status === 'completed' ? `
-                                                <div style="font-size:0.7rem; color:#4CAF50;">
+                                                <div style="font-size:0.7rem; color:#4CAF50; font-family: var(--sub-name-font); letter-spacing: 1px;">
                                                     <i class="fa fa-check-circle"></i> COMPLETED
                                                 </div>
                                             ` : t.status === 'ongoing' ? `
-                                                <div style="font-size:0.7rem; color:#FF9800;">
-                                                    <i class="fa fa-spinner"></i> ONGOING
+                                                <div class="sub-badge-live">
+                                                    LIVE
                                                 </div>
                                             ` : `
-                                                <div style="font-size:0.7rem; color:#666;">
-                                                    <i class="fa fa-calendar"></i> SCHEDULED
+                                                <div style="font-size:0.7rem; color:#888; font-family: var(--sub-name-font); letter-spacing: 1px;">
+                                                    SCHEDULED
                                                 </div>
                                             `}
+                                            
+                                            <div style="margin-top:12px; font-size:1rem; color:var(--sub-gold); font-family: var(--sub-name-font); font-weight:bold;">
+                                                <i class="fa fa-clock" style="margin-right:4px; font-size: 0.8rem;"></i>${timeStr}
+                                            </div>
                                         </div>
                                     </div>
                                     
                                     ${t.status === 'completed' && (t.winner_name || t.second_place_name || t.third_place_name) ? `
-                                        <div style="background:#111; border:1px solid var(--sub-gold); border-radius:6px; padding:10px; margin-top:10px;">
-                                            <div style="font-size:0.75rem; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">
-                                                <i class="fa fa-trophy"></i> Results
+                                        <div style="background:var(--sub-black); border:1px solid rgba(255, 215, 0, 0.2); border-radius:var(--sub-radius); padding:16px; margin-top:12px;">
+                                            <div style="font-size:0.7rem; color:var(--sub-gold); margin-bottom:12px; text-transform:uppercase; letter-spacing:1.5px; font-family: var(--sub-name-font); font-weight: bold;">
+                                                FINAL STANDINGS
                                             </div>
                                             ${t.winner_name ? `
-                                                <div style="font-size:0.85rem; color:var(--sub-gold); margin-bottom:4px;">
-                                                    🏆 ${t.winner_name}
+                                                <div style="font-size:0.95rem; color:var(--sub-white); font-family: var(--sub-name-font); margin-bottom:6px;">
+                                                    <span style="color:var(--sub-gold);">🏆</span> ${t.winner_name}
                                                 </div>
                                             ` : ''}
                                             ${t.second_place_name ? `
-                                                <div style="font-size:0.85rem; color:#999; margin-bottom:4px;">
-                                                    🥈 ${t.second_place_name}
+                                                <div style="font-size:0.85rem; color:#aaa; font-family: var(--sub-name-font); margin-bottom:4px;">
+                                                    <span style="color:#C0C0C0;">🥈</span> ${t.second_place_name}
                                                 </div>
                                             ` : ''}
                                             ${t.third_place_name ? `
-                                                <div style="font-size:0.85rem; color:#CD7F32; margin-bottom:4px;">
-                                                    🥉 ${t.third_place_name}
+                                                <div style="font-size:0.85rem; color:#aaa; font-family: var(--sub-name-font);">
+                                                    <span style="color:#CD7F32;">🥉</span> ${t.third_place_name}
                                                 </div>
                                             ` : ''}
                                         </div>
                                     ` : ''}
+
                                     
                                     ${isOrganizer ? `
                                         <div style="display:flex; gap:8px; margin-top:8px;">
@@ -724,7 +779,7 @@ function showEventModal(event, tournaments, userRegistrations) {
                                     ` : ''}
                                 </div>
                             `;
-                        }).join('')}
+    }).join('')}
                     </div>
                     
                     ${isOrganizer ? `
@@ -761,7 +816,7 @@ function showEventModal(event, tournaments, userRegistrations) {
                 </div>
         </div>
     `;
-    
+
     showModal(event.event_name, modalHtml, { id: 'event-modal', maxWidth: '600px' });
 }
 
@@ -778,25 +833,25 @@ export async function deleteEvent(eventId) {
         showNotification('You must be logged in', 'error');
         return;
     }
-    
+
     const confirmDelete = confirm('Are you sure you want to delete this event? This will also delete all tournaments and registrations associated with it.');
     if (!confirmDelete) return;
-    
+
     try {
         // Delete event (CASCADE will delete related tournaments and registrations)
         const { error } = await _supabase
             .from('events')
             .delete()
             .eq('id', eventId);
-        
+
         if (error) throw error;
-        
+
         showNotification('Event deleted successfully!', 'success');
         closeEventModal();
-        
+
         // Reload events list
         loadEventsPage();
-        
+
     } catch (e) {
         console.error('Failed to delete event:', e);
         showNotification('Failed to delete event: ' + e.message, 'error');
@@ -820,29 +875,29 @@ export async function viewTournamentParticipants(eventId, tournamentId, tourname
             `)
             .eq('tournament_id', tournamentId)
             .eq('status', 'registered');
-        
+
         if (error) throw error;
-        
+
         // Build participant list HTML
         let participantsHtml = `
-                    <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888; text-align:center;">
-                        <strong style="color:#fff;">${tournamentName || 'Tournament'}</strong>
+                    <div style="background:var(--sub-charcoal); border-bottom:1px solid var(--sub-border); padding:16px; margin-bottom:15px; font-size:0.85rem; color:#aaa; text-align:center; font-family: var(--sub-name-font); letter-spacing: 1px;">
+                        CURRENT ROSTER: <strong style="color:var(--sub-white);">${tournamentName || 'Tournament'}</strong>
                     </div>
                     
                     <!-- Add Player Section (Search + Dropdown) -->
-                    <div style="background:linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); border:2px solid var(--sub-gold); border-radius:10px; padding:20px; margin-bottom:25px; box-shadow: 0 4px 15px rgba(227,6,19,0.2);">
-                        <div style="font-family:'Russo One'; font-size:1rem; color:var(--sub-gold); margin-bottom:15px; text-align:center; text-transform:uppercase; letter-spacing:1px;">
-                            <i class="fa fa-user-plus" style="margin-right:8px;"></i> Add Player
+                    <div class="sub-card-premium" style="margin-bottom:32px; border-bottom:4px solid var(--sub-red);">
+                        <div class="sub-heading-premium" style="font-size:1.1rem; color:var(--sub-white); margin-bottom:16px; text-align:center;">
+                            <i class="fa fa-user-plus" style="margin-right:8px; color: var(--sub-red);"></i> REGISTER PLAYER
                         </div>
                         
-                        <div style="position: relative;">
+                        <div style="position: relative; margin-bottom: 16px;">
                             <input type="text" 
                                    id="participant-search-${tournamentId}" 
-                                   placeholder="Search or type new name..."
+                                   placeholder="Search existing or type new name..."
                                    autocomplete="off"
-                                   style="width:100%; padding:18px 20px; background:#000; border:2px solid #444; border-radius:8px; color:#fff; font-size:1.1rem; font-family:'Roboto', sans-serif; margin-bottom:12px; box-sizing:border-box; transition: all 0.3s ease;"
-                                   onfocus="this.style.borderColor='var(--sub-gold)'; this.style.background='#0a0a0a';"
-                                   onblur="setTimeout(() => { this.style.borderColor='#444'; this.style.background='#000'; }, 200);"
+                                   style="width:100%; padding:16px; background:var(--sub-black); border:1px solid var(--sub-border); border-radius:var(--sub-radius); color:#fff; font-size:1rem; font-family: var(--sub-body-font); box-sizing:border-box; outline: none; transition: border-color 0.3s;"
+                                   onfocus="this.style.borderColor='var(--sub-red)';"
+                                   onblur="setTimeout(() => { this.style.borderColor='var(--sub-border)'; }, 200);"
                                    oninput="handleParticipantSearch('${tournamentId}')"
                                    onkeypress="if(event.key==='Enter') addParticipantFromSearch('${tournamentId}')">
                             
@@ -853,79 +908,73 @@ export async function viewTournamentParticipants(eventId, tournamentId, tourname
                                 width: 100%;
                                 max-height: 250px;
                                 overflow-y: auto;
-                                background: #111;
-                                border: 2px solid var(--sub-gold);
-                                border-radius: 8px;
-                                margin-top: -10px;
+                                background: var(--sub-black);
+                                border: 1px solid var(--sub-red);
+                                border-radius: var(--sub-radius);
+                                margin-top: 4px;
                                 z-index: 10003;
-                                box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+                                box-shadow: var(--sub-shadow);
                             "></div>
                         </div>
                         
                         <button class="btn-red" 
-                                style="width:100%; padding:15px; background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:1rem; border:none; border-radius:8px; cursor:pointer; text-transform:uppercase; letter-spacing:1px; transition: all 0.2s ease;"
-                                onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 5px 20px rgba(227,6,19,0.4)';"
-                                onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+                                style="width:100%; padding:16px; font-family:var(--sub-name-font); font-size:1rem; border-radius:var(--sub-radius); letter-spacing:2px;"
                                 onclick="addParticipantFromSearch('${tournamentId}')">
-                            <i class="fa fa-plus"></i> ADD PLAYER
+                            ADD TO TOURNAMENT
                         </button>
-                        <div style="font-size:0.8rem; color:#888; margin-top:12px; text-align:center;">
-                            💡 Search existing or add new guest players
-                        </div>
                     </div>
                     
                     ${registrations && registrations.length > 0 ? `
                         <div style="margin-bottom:20px;">
-                            <div style="font-size:0.85rem; color:#888; margin-bottom:10px;">
-                                ${registrations.length} PARTICIPANT${registrations.length !== 1 ? 'S' : ''}
+                            <div style="font-size:0.75rem; color:var(--sub-red); margin-bottom:12px; font-family: var(--sub-name-font); letter-spacing: 1.5px; text-transform: uppercase;">
+                                ${registrations.length} PLAYER${registrations.length !== 1 ? 'S' : ''} REGISTERED
                             </div>
-                            ${registrations.map((reg, index) => {
-                                const player = reg.player;
-                                const displayName = player?.username || 'Unknown';
-                                const isRegistered = !!player;
-                                const flagEmoji = player?.country ? getFlagEmoji(player.country) : '';
-                                
-                                return `
-                                    <div style="background:#0a0a0a; border:1px solid #222; border-radius:var(--sub-radius); padding:12px; margin-bottom:8px; display:flex; align-items:center; gap:12px;">
-                                        <div style="font-size:0.8rem; color:#444; font-family:var(--sub-name-font); min-width:30px;">
-                                            #${index + 1}
+                            <div style="display: grid; gap: 8px;">
+                                ${registrations.map((reg, index) => {
+            const player = reg.player;
+            const displayName = player?.username || 'Unknown';
+            const flagEmoji = player?.country ? getFlagEmoji(player.country) : '';
+
+            return `
+                                    <div style="background:var(--sub-charcoal); border:1px solid var(--sub-border); border-radius:var(--sub-radius); padding:16px; display:flex; align-items:center; gap:16px;">
+                                        <div style="font-size:0.8rem; color:#444; font-family:var(--sub-name-font); min-width:30px; font-weight: bold;">
+                                            ${(index + 1).toString().padStart(2, '0')}
                                         </div>
                                         ${player?.avatar_url ? `
-                                            <img src="${player.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #333;">
+                                            <img src="${player.avatar_url}" style="width:40px; height:40px; border-radius:2px; object-fit:cover; border:1px solid var(--sub-border);">
                                         ` : `
-                                            <div style="width:36px; height:36px; border-radius:50%; background:#111; display:flex; align-items:center; justify-content:center; border:1px solid #333;">
-                                                <i class="fa fa-user" style="color:#666;"></i>
+                                            <div style="width:40px; height:40px; border-radius:2px; background:var(--sub-black); display:flex; align-items:center; justify-content:center; border:1px solid var(--sub-border);">
+                                                <i class="fa fa-user" style="color:var(--sub-red); opacity: 0.5;"></i>
                                             </div>
                                         `}
                                         <div style="flex:1;">
-                                            <div style="font-size:0.95rem; color:#fff; font-weight:bold;">
-                                                ${flagEmoji} ${displayName}
+                                            <div style="font-size:1rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 0.5px;">
+                                                ${flagEmoji} ${displayName.toUpperCase()}
                                             </div>
                                         </div>
                                         <button onclick="removeTournamentParticipant('${reg.id}', '${tournamentId}')" 
-                                                style="background:none; border:1px solid #666; color:#666; padding:8px 12px; border-radius:6px; cursor:pointer; transition:all 0.2s;"
-                                                onmouseover="this.style.borderColor='var(--sub-red)'; this.style.color='var(--sub-red)';"
-                                                onmouseout="this.style.borderColor='#666'; this.style.color='#666';">
+                                                style="background:none; border:1px solid #333; color:#666; width: 36px; height: 36px; border-radius:var(--sub-radius); cursor:pointer; transition:all 0.2s;"
+                                                onmouseover="this.style.borderColor='var(--sub-red)'; this.style.color='var(--sub-red)'; this.style.background='rgba(193, 39, 45, 0.1)';"
+                                                onmouseout="this.style.borderColor='#333'; this.style.color='#666'; this.style.background='none';">
                                             <i class="fa fa-trash"></i>
                                         </button>
                                     </div>
                                 `;
-                            }).join('')}
+        }).join('')}
+                            </div>
                         </div>
                     ` : `
-                        <div style="text-align:center; padding:40px; color:#666;">
-                            <i class="fa fa-users" style="font-size:3rem; margin-bottom:10px; opacity:0.3;"></i>
-                            <p>No participants yet</p>
-                            <p style="font-size:0.85rem;">Add players above to start</p>
+                        <div style="text-align:center; padding:60px; color:#444; background: var(--sub-charcoal); border: 1px dashed var(--sub-border); border-radius: var(--sub-radius);">
+                            <i class="fa fa-users" style="font-size:3rem; margin-bottom:16px; opacity:0.1;"></i>
+                            <div style="font-size:0.9rem; font-family: var(--sub-name-font); letter-spacing: 1px;">NO PARTICIPANTS YET</div>
                         </div>
-                    `}
-        `;
-        
-        showModal('MANAGE PARTICIPANTS', participantsHtml, { 
-            id: 'participants-modal', 
-            maxWidth: '500px' 
+                    `}`;
+
+        showModal('MANAGE PARTICIPANTS', participantsHtml, {
+            id: 'participants-modal',
+            maxWidth: '500px'
         });
-        
+
     } catch (e) {
         console.error('Failed to load participants:', e);
         showNotification('Failed to load participants: ' + e.message, 'error');
@@ -939,22 +988,22 @@ export async function removeTournamentParticipant(registrationId, tournamentId) 
     if (!confirm('Remove this participant?')) {
         return;
     }
-    
+
     try {
         const { error } = await _supabase
             .from('event_registrations')
             .delete()
             .eq('id', registrationId);
-        
+
         if (error) throw error;
-        
+
         showNotification('Participant removed', 'success');
-        
+
         // Reload participant list
         const tournamentNameDiv = document.querySelector('#participants-modal strong');
         const tournamentName = tournamentNameDiv?.textContent || 'Tournament';
         await viewTournamentParticipants(currentEventId, tournamentId, tournamentName);
-        
+
     } catch (e) {
         console.error('Failed to remove participant:', e);
         showNotification('Failed to remove participant: ' + e.message, 'error');
@@ -966,7 +1015,7 @@ export async function removeTournamentParticipant(registrationId, tournamentId) 
  */
 export function closeParticipantsModal() {
     closeModal('participants-modal');
-    
+
     // Refresh event details to update participant count
     if (currentEventId) {
         viewEventDetails(currentEventId);
@@ -979,18 +1028,18 @@ export function closeParticipantsModal() {
 export async function handleParticipantSearch(tournamentId) {
     const input = document.getElementById(`participant-search-${tournamentId}`);
     const dropdown = document.getElementById(`search-dropdown-${tournamentId}`);
-    
+
     if (!input || !dropdown) return;
-    
+
     const searchValue = input.value.trim();
-    
+
     if (!searchValue) {
         dropdown.style.display = 'none';
         return;
     }
 
     const q = searchValue.toUpperCase();
-    
+
     try {
         // Haetaan tietokannasta
         const { data: players, error } = await _supabase
@@ -998,50 +1047,50 @@ export async function handleParticipantSearch(tournamentId) {
             .select('id, username')
             .ilike('username', `%${q}%`)
             .limit(5);
-        
+
         if (error) throw error;
 
         // Haetaan myös istunnon vieraspelaajista
         const guestMatches = state.sessionGuests
             .filter(g => g.includes(q) && !players.some(p => p.username === g))
             .slice(0, 5);
-        
+
         // Build dropdown HTML
         let html = '';
-        
+
         // Show existing players
         if (players && players.length > 0) {
             players.forEach(player => {
                 html += `
-                    <div class="search-item" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${player.username}">
-                        <i class="fa-solid fa-user" style="margin-right:8px; color:var(--sub-gold);"></i>
+            <div class="search-item" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${player.username}">
+                <i class="fa-solid fa-user" style="margin-right:8px; color:var(--sub-gold);"></i>
                         ${player.username}
                     </div>
-                `;
+            `;
             });
         }
 
         // Näytetään vieraspelaajat
         guestMatches.forEach(guest => {
             html += `
-                <div class="search-item" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${guest}">
-                    <i class="fa-solid fa-user-clock" style="margin-right:8px; color:#666;"></i>
+            <div class="search-item" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${guest}">
+                <i class="fa-solid fa-user-clock" style="margin-right:8px; color:#666;"></i>
                     ${guest} <small style="color:#444; margin-left:5px;">(GUEST)</small>
                 </div>
             `;
         });
-        
+
         // Always show "Add as new player" option
         html += `
             <div class="search-item" style="color:var(--sub-gold); border-top:1px solid #333;" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${q}">
                 <i class="fa-solid fa-plus-circle" style="margin-right:8px;"></i>
-                Add: "${q}"
+        Add: "${q}"
             </div>
-        `;
-        
+            `;
+
         dropdown.innerHTML = html;
         dropdown.style.display = 'block';
-        
+
     } catch (e) {
         console.error('Search failed:', e);
     }
@@ -1053,15 +1102,15 @@ export async function handleParticipantSearch(tournamentId) {
 export function selectParticipantFromDropdown(tournamentId, playerName) {
     const input = document.getElementById(`participant-search-${tournamentId}`);
     const dropdown = document.getElementById(`search-dropdown-${tournamentId}`);
-    
+
     if (input) {
         input.value = playerName;
     }
-    
+
     if (dropdown) {
         dropdown.style.display = 'none';
     }
-    
+
     // Immediately add the selected player
     addParticipantFromSearch(tournamentId);
 }
@@ -1071,31 +1120,31 @@ export function selectParticipantFromDropdown(tournamentId, playerName) {
  */
 export async function addParticipantFromSearch(tournamentId) {
     const input = document.getElementById(`participant-search-${tournamentId}`);
-    
+
     if (!input) {
         showNotification('Input field not found', 'error');
         return;
     }
-    
+
     const playerName = input.value.trim();
-    
+
     if (!playerName) {
         showNotification('Please enter a name', 'error');
         return;
     }
-    
+
     try {
         // Check if player exists
         const { data: players, error: playerError } = await _supabase
             .from('players')
             .select('id, username')
             .ilike('username', playerName);
-        
+
         if (playerError) throw playerError;
-        
+
         let playerId;
         let isNewPlayer = false;
-        
+
         if (players && players.length > 0) {
             // Use existing player
             playerId = players[0].id;
@@ -1103,40 +1152,40 @@ export async function addParticipantFromSearch(tournamentId) {
             // Create new guest player using SQL function
             const { data: result, error: createError } = await _supabase
                 .rpc('create_guest_player', { p_username: playerName });
-            
+
             if (createError) {
-                showNotification(`Failed to create player: ${createError.message}`, 'error');
+                showNotification(`Failed to create player: ${createError.message} `, 'error');
                 return;
             }
-            
+
             playerId = result;
             isNewPlayer = true;
         }
-        
+
         // Add to tournament using SQL function (bypasses RLS)
         const { data: success, error } = await _supabase
             .rpc('add_tournament_participant', {
                 p_tournament_id: tournamentId,
                 p_player_id: playerId
             });
-        
+
         if (error) throw error;
-        
+
         if (!success) {
             showNotification(`${playerName} is already registered!`, 'error');
             return;
         }
-        
+
         // Clear input and refresh list
         input.value = '';
         const dropdown = document.getElementById(`search-dropdown-${tournamentId}`);
         if (dropdown) dropdown.style.display = 'none';
-        
+
         // Refresh participants list
         const tournamentNameEl = document.querySelector(`#participants-modal strong`);
         const tournamentName = tournamentNameEl?.textContent || 'Tournament';
         await viewTournamentParticipants(currentEventId, tournamentId, tournamentName);
-        
+
     } catch (e) {
         console.error('Failed to add participant:', e);
         showNotification('Failed to add participant: ' + e.message, 'error');
@@ -1160,125 +1209,125 @@ export async function showCreateTournamentForm(eventId, eventName) {
     console.log('Event ID:', eventId);
     console.log('Event Name:', eventName);
     console.log('User:', state.user);
-    
+
     if (!state.user) {
         console.log('❌ User not logged in');
         showNotification('You must be logged in to create tournaments', 'error');
         return;
     }
-    
+
     console.log('All games available:', state.allGames);
-    
+
     // Ensure games are loaded before showing form
     if (!state.allGames || state.allGames.length === 0) {
         console.log('⏳ Fetching games from database...');
         showNotification('Loading game tables...', 'success');
-        
+
         const { data: games, error } = await _supabase
             .from('games')
             .select('*')
             .eq('is_public', true)
             .order('game_name');
-        
+
         if (error) {
             console.error('❌ Failed to load game tables:', error);
             showNotification('Failed to load game tables: ' + error.message, 'error');
             return;
         }
-        
+
         if (!games || games.length === 0) {
             console.warn('⚠️ No game tables found in database');
             showNotification('No game tables available. Please create a table first in Tournament Mode.', 'error');
             return;
         }
-        
+
         state.allGames = games;
         console.log('✅ Loaded', games.length, 'game tables:', games);
     }
-    
+
     // Generate game options from loaded games
     console.log('All games data:', state.allGames);
-    
-    const gameOptions = '<option value="" disabled selected>Select Game Table</option>' + 
+
+    const gameOptions = '<option value="" disabled selected>Select Game Table</option>' +
         state.allGames.map(g => {
             const displayText = g.location ? `${g.game_name} - ${g.location}` : g.game_name;
             return `<option value="${g.id}">${displayText}</option>`;
         }).join('');
-    
+
     console.log('✅ Generated game options:', gameOptions.length, 'characters');
-    
+
     // Set default time to current time
     const now = new Date();
     const defaultTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    
+
     const formHtml = `
-        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; overflow-y:auto; padding:20px; box-sizing:border-box;">
-            <div style="max-width:500px; margin:0 auto; background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px;">
-                
-                <h2 style="font-family:var(--sub-name-font); font-size:1.1rem; margin:0 0 20px 0; color:var(--sub-gold); text-align:center; text-transform:uppercase; letter-spacing:2px;">
-                    <i class="fa fa-trophy" style="margin-right:8px;"></i> CREATE TOURNAMENT
-                </h2>
-                
-                <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888;">
-                    <i class="fa fa-calendar" style="margin-right:8px;"></i> Event: <span style="color:#fff;">${eventName}</span>
-                </div>
-                
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                        TOURNAMENT NAME <span style="color:#666;">(optional)</span>
-                    </label>
-                    <input type="text" id="tournament-name-input" 
-                           placeholder="e.g., Morning Finals, Day 1 Eliminations..."
-                           style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                </div>
-                
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                        GAME TABLE *
-                    </label>
-                    <select id="tournament-game-select" 
+            <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; overflow-y:auto; padding:20px; box-sizing:border-box;">
+                <div style="max-width:500px; margin:0 auto; background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px;">
+
+                    <h2 style="font-family:var(--sub-name-font); font-size:1.1rem; margin:0 0 20px 0; color:var(--sub-gold); text-align:center; text-transform:uppercase; letter-spacing:2px;">
+                        <i class="fa fa-trophy" style="margin-right:8px;"></i> CREATE TOURNAMENT
+                    </h2>
+
+                    <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888;">
+                        <i class="fa fa-calendar" style="margin-right:8px;"></i> Event: <span style="color:#fff;">${eventName}</span>
+                    </div>
+
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
+                            TOURNAMENT NAME <span style="color:#666;">(optional)</span>
+                        </label>
+                        <input type="text" id="tournament-name-input"
+                            placeholder="e.g., Morning Finals, Day 1 Eliminations..."
                             style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                        ${gameOptions}
-                    </select>
-                </div>
-                
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:15px;">
-                    <div>
-                        <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
-                            START TIME *
-                        </label>
-                        <input type="datetime-local" id="tournament-start-input" value="${defaultTime}" min="${defaultTime}" step="900"
-                               style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
-                    <div>
-                        <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
-                            END TIME <span style="color:#666;">(opt.)</span>
+
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
+                            GAME TABLE *
                         </label>
-                        <input type="datetime-local" id="tournament-end-input" value="${defaultTime}" min="${defaultTime}" step="900"
-                               style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                        <select id="tournament-game-select"
+                            style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
+                            ${gameOptions}
+                        </select>
                     </div>
-                </div>
-                
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                        MAX PLAYERS
-                    </label>
-                    <input type="number" id="tournament-max-input" value="8" min="2" max="32"
-                           style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                </div>
-                
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="createTournament('${eventId}')">
-                        <i class="fa fa-check"></i> CREATE
-                    </button>
-                    <button class="btn-red" style="flex:1; background:#333;" onclick="closeTournamentForm()">
-                        <i class="fa fa-times"></i> CANCEL
-                    </button>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:15px;">
+                        <div>
+                            <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
+                                START TIME *
+                            </label>
+                            <input type="datetime-local" id="tournament-start-input" value="${defaultTime}" min="${defaultTime}" step="900"
+                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
+                                END TIME <span style="color:#666;">(opt.)</span>
+                            </label>
+                            <input type="datetime-local" id="tournament-end-input" value="${defaultTime}" min="${defaultTime}" step="900"
+                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
+                            MAX PLAYERS
+                        </label>
+                        <input type="number" id="tournament-max-input" value="8" min="2" max="32"
+                            style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="createTournament('${eventId}')">
+                            <i class="fa fa-check"></i> CREATE
+                        </button>
+                        <button class="btn-red" style="flex:1; background:#333;" onclick="closeTournamentForm()">
+                            <i class="fa fa-times"></i> CANCEL
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
-    
+            `;
+
     let formContainer = document.getElementById('tournament-form-modal');
     if (!formContainer) {
         formContainer = document.createElement('div');
@@ -1290,7 +1339,7 @@ export async function showCreateTournamentForm(eventId, eventName) {
     }
     formContainer.innerHTML = formHtml;
     console.log('✅ Tournament form rendered successfully');
-    
+
     // Auto-select first game if available
     if (state.allGames && state.allGames.length > 0) {
         const gameSelect = document.getElementById('tournament-game-select');
@@ -1324,44 +1373,58 @@ export async function createTournament(eventId) {
     console.log('=== CREATE TOURNAMENT CALLED ===');
     console.log('Event ID:', eventId);
     console.log('User:', state.user);
-    
+
     if (!state.user) {
-        console.log('❌ User not logged in');
         showNotification('You must be logged in', 'error');
         return;
     }
-    
-    const tournamentName = document.getElementById('tournament-name-input')?.value.trim() || null;
-    const gameId = document.getElementById('tournament-game-select')?.value;
-    const startDatetime = document.getElementById('tournament-start-input')?.value;
-    const endDatetime = document.getElementById('tournament-end-input')?.value || null;
-    const maxParticipants = parseInt(document.getElementById('tournament-max-input')?.value) || 8;
-    const tournamentType = document.getElementById('tournament-type-select')?.value || 'elimination';
-    
-    console.log('Form values:', {
-        tournamentName,
-        gameId,
-        startDatetime,
-        endDatetime,
-        maxParticipants,
-        tournamentType
-    });
-    
-    if (!gameId) {
-        console.log('❌ No game selected');
-        showNotification('Please select a game table', 'error');
-        return;
-    }
-    
-    if (!startDatetime) {
-        console.log('❌ No start time selected');
-        showNotification('Please select start time', 'error');
-        return;
-    }
-    
-    console.log('✅ Validation passed, creating tournament...');
-    
+
     try {
+        // Fetch event with moderators
+        const { data: event, error: eventError } = await _supabase
+            .from('events')
+            .select('*, moderators:event_moderators(player_id)')
+            .eq('id', eventId)
+            .single();
+
+        if (eventError || !event) throw new Error('Event not found');
+        const moderators = event.moderators ? event.moderators.map(m => m.player_id) : [];
+
+        if (!canModerateEvent(event, moderators)) {
+            showNotification('You are not authorized to create tournaments for this event', 'error');
+            return;
+        }
+
+        const tournamentName = document.getElementById('tournament-name-input')?.value.trim() || null;
+        const gameId = document.getElementById('tournament-game-select')?.value;
+        const startDatetime = document.getElementById('tournament-start-input')?.value;
+        const endDatetime = document.getElementById('tournament-end-input')?.value || null;
+        const maxParticipants = parseInt(document.getElementById('tournament-max-input')?.value) || 8;
+        const tournamentType = document.getElementById('tournament-type-select')?.value || 'elimination';
+
+        console.log('Form values:', {
+            tournamentName,
+            gameId,
+            startDatetime,
+            endDatetime,
+            maxParticipants,
+            tournamentType
+        });
+
+        if (!gameId) {
+            console.log('❌ No game selected');
+            showNotification('Please select a game table', 'error');
+            return;
+        }
+
+        if (!startDatetime) {
+            console.log('❌ No start time selected');
+            showNotification('Please select start time', 'error');
+            return;
+        }
+
+        console.log('✅ Validation passed, creating tournament...');
+
         // Create tournament in tournament_history
         const tournamentData = {
             event_id: eventId,
@@ -1375,29 +1438,29 @@ export async function createTournament(eventId) {
             status: 'scheduled',
             created_at: new Date().toISOString()
         };
-        
+
         console.log('Tournament data to insert:', tournamentData);
-        
+
         const { data: tournament, error } = await _supabase
             .from('tournament_history')
             .insert(tournamentData)
             .select()
             .single();
-        
+
         console.log('Supabase response:', { tournament, error });
-        
+
         if (error) {
             console.log('❌ Database error:', error);
             throw error;
         }
-        
+
         console.log('✅ Tournament created successfully:', tournament);
         showNotification('Tournament created successfully!', 'success');
         closeTournamentForm();
-        
+
         // Reload event details to show new tournament
         viewEventDetails(eventId);
-        
+
     } catch (e) {
         console.error('❌ EXCEPTION in createTournament:', e);
         console.error('Error details:', {
@@ -1419,27 +1482,10 @@ export async function createTournament(eventId) {
  */
 export function showEmailPrompt(eventId, tournamentId) {
     const modalHtml = `
-        <div style="
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            padding: 20px;
-        ">
-            <div style="
-                background: #222;
-                border: 2px solid var(--sub-gold);
-                border-radius: 8px;
-                max-width: 400px;
-                width: 100%;
-                padding: 30px;
-            ">
-                <h3 style="color: var(--sub-gold); margin-top: 0; text-align: center;">
-                    <i class="fa fa-envelope" style="margin-right:8px;"></i> Email Required
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px;">
+            <div style="background: #222; border: 2px solid var(--sub-gold); border-radius: 8px; max-width: 400px; width: 100%; padding: 30px;">
+            <h3 style="color: var(--sub-gold); margin-top: 0; text-align: center;">
+                <i class="fa fa-envelope" style="margin-right:8px;"></i> Email Required
                 </h3>
                 <p style="color: #ccc; margin-bottom: 20px; text-align: center;">
                     Tournament participation requires an email address for notifications and updates.
@@ -1488,10 +1534,10 @@ export function showEmailPrompt(eventId, tournamentId) {
                         Save & Register
                     </button>
                 </div>
-            </div>
+                </div>
         </div>
-    `;
-    
+            `;
+
     let modal = document.getElementById('email-prompt-modal');
     if (!modal) {
         modal = document.createElement('div');
@@ -1517,41 +1563,41 @@ export function closeEmailPrompt() {
 export async function saveEmailAndRegister(eventId, tournamentId) {
     const emailInput = document.getElementById('email-prompt-input');
     const email = emailInput?.value?.trim();
-    
+
     if (!email) {
         showNotification('Please enter your email address', 'error');
         return;
     }
-    
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         showNotification('Please enter a valid email address', 'error');
         return;
     }
-    
+
     try {
         // Update player's email
         const { error } = await _supabase
             .from('players')
             .update({ email: email })
             .eq('id', state.user.id);
-        
+
         if (error) throw error;
-        
+
         // Update local user object
         state.user.email = email;
-        
+
         closeEmailPrompt();
-        
+
         // Show success notification with longer duration
         showNotification('✅ Email saved! You can now register for tournaments.', 'success');
-        
+
         // Small delay to let user see the notification before registration proceeds
         setTimeout(() => {
             registerForTournament(eventId, tournamentId);
         }, 800);
-        
+
     } catch (e) {
         console.error('Failed to save email:', e);
         showNotification('Failed to save email: ' + e.message, 'error');
@@ -1566,16 +1612,16 @@ export async function registerForTournament(eventId, tournamentId) {
         showNotification('You must be logged in to register', 'error');
         return;
     }
-    
+
     // Check if user has email - required for tournament participation
     if (!state.user.email) {
         showEmailPrompt(eventId, tournamentId);
         return;
     }
-    
+
     try {
         console.log('Registering:', { eventId, tournamentId, playerId: state.user.id });
-        
+
         // Register in event_registrations (links event, tournament, and player)
         const { data, error } = await _supabase
             .from('event_registrations')
@@ -1586,7 +1632,7 @@ export async function registerForTournament(eventId, tournamentId) {
                 status: 'registered'
             })
             .select();
-        
+
         if (error) {
             console.error('Registration error:', error);
             if (error.code === '23505') { // Unique constraint violation
@@ -1600,13 +1646,13 @@ export async function registerForTournament(eventId, tournamentId) {
             }
             return;
         }
-        
+
         console.log('Registration successful:', data);
         showNotification('Successfully registered!', 'success');
-        
+
         // Reload event details
         viewEventDetails(eventId);
-        
+
     } catch (e) {
         console.error('Failed to register:', e);
         showNotification('Failed to register: ' + e.message, 'error');
@@ -1618,7 +1664,7 @@ export async function registerForTournament(eventId, tournamentId) {
  */
 export async function unregisterFromTournament(eventId, tournamentId) {
     if (!state.user) return;
-    
+
     try {
         const { error } = await _supabase
             .from('event_registrations')
@@ -1626,14 +1672,14 @@ export async function unregisterFromTournament(eventId, tournamentId) {
             .eq('event_id', eventId)
             .eq('tournament_id', tournamentId)
             .eq('player_id', state.user.id);
-        
+
         if (error) throw error;
-        
+
         showNotification('Registration cancelled', 'success');
-        
+
         // Reload event details
         viewEventDetails(eventId);
-        
+
     } catch (e) {
         console.error('Failed to unregister:', e);
         showNotification('Failed to unregister: ' + e.message, 'error');
@@ -1648,7 +1694,7 @@ export async function editTournament(tournamentId, eventId, eventName) {
         showNotification('You must be logged in', 'error');
         return;
     }
-    
+
     try {
         // Fetch current tournament data
         const { data: tournament, error } = await _supabase
@@ -1656,12 +1702,30 @@ export async function editTournament(tournamentId, eventId, eventName) {
             .select('*')
             .eq('id', tournamentId)
             .single();
-        
+
         if (error) throw error;
-        
+
+        // Fetch event with moderators
+        const { data: event, error: eventError } = await _supabase
+            .from('events')
+            .select('*, moderators:event_moderators(player_id)')
+            .eq('id', eventId)
+            .single();
+
+        if (!eventError && event) {
+            const moderators = event.moderators ? event.moderators.map(m => m.player_id) : [];
+            if (!canModerateEvent(event, moderators)) {
+                showNotification('You are not authorized to edit this tournament', 'error');
+                return;
+            }
+        } else if (tournament.organizer_id !== state.user.id && !isAdmin()) {
+            showNotification('You are not authorized to edit this tournament', 'error');
+            return;
+        }
+
         // Show edit form with current values
         await showEditTournamentForm(tournament, eventId, eventName);
-        
+
     } catch (e) {
         console.error('Failed to load tournament:', e);
         showNotification('Failed to load tournament', 'error');
@@ -1684,95 +1748,95 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
         state.allGames = games || [];
         console.log('Loaded', state.allGames.length, 'games');
     }
-    
+
     if (state.allGames.length === 0) {
         showNotification('No game tables available. Create a table first in Tournament Mode.', 'error');
         return;
     }
-    
+
     console.log('All games:', state.allGames.map(g => ({ id: g.id, name: g.game_name })));
     console.log('Tournament game_id:', tournament.game_id);
-    
+
     // Get available game tables
     const gameOptions = state.allGames.map(g => {
         const isSelected = g.id === tournament.game_id;
-        console.log(`Game ${g.game_name}: ${g.id} - ${isSelected ? 'SELECTED' : 'not selected'}`);
-        const displayText = g.location ? `${g.game_name} - ${g.location}` : g.game_name;
+        console.log(`Game ${g.game_name}: ${g.id} - ${isSelected ? 'SELECTED' : 'not selected'} `);
+        const displayText = g.location ? `${g.game_name} - ${g.location} ` : g.game_name;
         return `<option value="${g.id}" ${isSelected ? 'selected' : ''}>${displayText}</option>`;
     }).join('');
-    
+
     console.log('Generated gameOptions HTML length:', gameOptions.length);
-    
+
     const formHtml = `
-        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; overflow-y:auto; padding:20px; box-sizing:border-box;">
-            <div style="max-width:500px; margin:0 auto; background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px;">
-                
-                <h2 style="font-family:'Russo One'; font-size:1.3rem; margin:0 0 20px 0; color:var(--sub-gold); text-align:center;">
-                    <i class="fa fa-edit"></i> EDIT TOURNAMENT
-                </h2>
-                
-                <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888;">
-                    <i class="fa fa-calendar"></i> Event: <span style="color:#fff;">${eventName}</span>
-                </div>
-                
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                        TOURNAMENT NAME <span style="color:#666;">(optional)</span>
-                    </label>
-                    <input type="text" id="tournament-name-input" value="${tournament.tournament_name || ''}"
-                           placeholder="e.g., Morning Finals, Day 1 Eliminations..."
-                           style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                </div>
-                
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                        GAME TABLE *
-                    </label>
-                    <select id="tournament-game-select" 
+            <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; overflow-y:auto; padding:20px; box-sizing:border-box;">
+                <div style="max-width:500px; margin:0 auto; background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px;">
+
+                    <h2 style="font-family:'Russo One'; font-size:1.3rem; margin:0 0 20px 0; color:var(--sub-gold); text-align:center;">
+                        <i class="fa fa-edit"></i> EDIT TOURNAMENT
+                    </h2>
+
+                    <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888;">
+                        <i class="fa fa-calendar"></i> Event: <span style="color:#fff;">${eventName}</span>
+                    </div>
+
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
+                            TOURNAMENT NAME <span style="color:#666;">(optional)</span>
+                        </label>
+                        <input type="text" id="tournament-name-input" value="${tournament.tournament_name || ''}"
+                            placeholder="e.g., Morning Finals, Day 1 Eliminations..."
                             style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                        ${gameOptions}
-                    </select>
-                </div>
-                
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:15px;">
-                    <div>
-                        <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
-                            START TIME <span style="color:#666;">(opt.)</span>
-                        </label>
-                        <input type="datetime-local" id="tournament-start-input" step="900"
-                               value="${tournament.start_datetime ? new Date(tournament.start_datetime).toISOString().slice(0, 16) : ''}"
-                               style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
                     </div>
-                    <div>
-                        <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
-                            END TIME <span style="color:#666;">(opt.)</span>
+
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
+                            GAME TABLE *
                         </label>
-                        <input type="datetime-local" id="tournament-end-input" step="900"
-                               value="${tournament.end_datetime ? new Date(tournament.end_datetime).toISOString().slice(0, 16) : ''}"
-                               style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                        <select id="tournament-game-select"
+                            style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
+                            ${gameOptions}
+                        </select>
                     </div>
-                </div>
-                
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
-                        MAX PLAYERS
-                    </label>
-                    <input type="number" id="tournament-max-input" value="${tournament.max_participants || 8}" min="2" max="32"
-                           style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
-                </div>
-                
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="saveTournamentEdit('${tournament.id}', '${eventId}')">
-                        <i class="fa fa-save"></i> SAVE CHANGES
-                    </button>
-                    <button class="btn-red" style="flex:1; background:#333;" onclick="closeTournamentForm()">
-                        <i class="fa fa-times"></i> CANCEL
-                    </button>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:15px;">
+                        <div>
+                            <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
+                                START TIME <span style="color:#666;">(opt.)</span>
+                            </label>
+                            <input type="datetime-local" id="tournament-start-input" step="900"
+                                value="${tournament.start_datetime ? new Date(tournament.start_datetime).toISOString().slice(0, 16) : ''}"
+                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
+                                END TIME <span style="color:#666;">(opt.)</span>
+                            </label>
+                            <input type="datetime-local" id="tournament-end-input" step="900"
+                                value="${tournament.end_datetime ? new Date(tournament.end_datetime).toISOString().slice(0, 16) : ''}"
+                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">
+                            MAX PLAYERS
+                        </label>
+                        <input type="number" id="tournament-max-input" value="${tournament.max_participants || 8}" min="2" max="32"
+                            style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9rem;">
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" onclick="saveTournamentEdit('${tournament.id}', '${eventId}')">
+                            <i class="fa fa-save"></i> SAVE CHANGES
+                        </button>
+                        <button class="btn-red" style="flex:1; background:#333;" onclick="closeTournamentForm()">
+                            <i class="fa fa-times"></i> CANCEL
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
-    
+            `;
+
     let formContainer = document.getElementById('tournament-form-modal');
     if (!formContainer) {
         formContainer = document.createElement('div');
@@ -1780,13 +1844,13 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
         document.body.appendChild(formContainer);
     }
     formContainer.innerHTML = formHtml;
-    
+
     // Set form values immediately after DOM is created
     const gameSelect = document.getElementById('tournament-game-select');
     if (gameSelect && tournament.game_id) {
         gameSelect.value = tournament.game_id;
     }
-    
+
     // Set datetime values
     const startInput = document.getElementById('tournament-start-input');
     const endInput = document.getElementById('tournament-end-input');
@@ -1811,62 +1875,76 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
  */
 export async function saveTournamentEdit(tournamentId, eventId) {
     console.log('saveTournamentEdit called with:', { tournamentId, eventId });
-    
+
     if (!state.user) {
         console.log('User not logged in');
         showNotification('You must be logged in', 'error');
         return;
     }
-    
+
     console.log('User:', state.user.username);
-    
+
     const nameInput = document.getElementById('tournament-name-input');
     const gameSelect = document.getElementById('tournament-game-select');
     const startInput = document.getElementById('tournament-start-input');
     const endInput = document.getElementById('tournament-end-input');
     const maxInput = document.getElementById('tournament-max-input');
     const typeSelect = document.getElementById('tournament-type-select');
-    
-    console.log('Form elements found:', {
-        nameInput: !!nameInput,
-        gameSelect: !!gameSelect,
-        startInput: !!startInput,
-        endInput: !!endInput,
-        maxInput: !!maxInput,
-        typeSelect: !!typeSelect
-    });
-    
-    if (gameSelect) {
-        console.log('Game select options count:', gameSelect.options.length);
-        console.log('Game select value:', gameSelect.value);
-        console.log('Game select selectedIndex:', gameSelect.selectedIndex);
-        if (gameSelect.selectedIndex >= 0) {
-            console.log('Selected option:', gameSelect.options[gameSelect.selectedIndex]?.text);
-        }
-    }
-    
-    const tournamentName = nameInput?.value.trim() || null;
-    const gameId = gameSelect?.value;
-    const startDatetime = startInput?.value;
-    const endDatetime = endInput?.value || null;
-    const maxParticipants = parseInt(maxInput?.value) || 8;
-    const tournamentType = typeSelect?.value || 'elimination';
-    
-    console.log('Form values:', {
-        tournamentName, gameId, startDatetime, endDatetime, maxParticipants, tournamentType
-    });
-    
-    if (!gameId) {
-        console.log('No game ID selected');
-        showNotification('Please select a game table', 'error');
-        return;
-    }
-    
-    // Note: start_datetime is not required for edit (can be null for old tournaments)
-    
+
     try {
+        // Fetch event with moderators to check permission
+        const { data: event, error: eventError } = await _supabase
+            .from('events')
+            .select('*, moderators:event_moderators(player_id)')
+            .eq('id', eventId)
+            .single();
+
+        if (!eventError && event) {
+            const moderators = event.moderators ? event.moderators.map(m => m.player_id) : [];
+            if (!canModerateEvent(event, moderators)) {
+                showNotification('You are not authorized to edit this tournament', 'error');
+                return;
+            }
+        }
+        console.log('Form elements found:', {
+            nameInput: !!nameInput,
+            gameSelect: !!gameSelect,
+            startInput: !!startInput,
+            endInput: !!endInput,
+            maxInput: !!maxInput,
+            typeSelect: !!typeSelect
+        });
+
+        if (gameSelect) {
+            console.log('Game select options count:', gameSelect.options.length);
+            console.log('Game select value:', gameSelect.value);
+            console.log('Game select selectedIndex:', gameSelect.selectedIndex);
+            if (gameSelect.selectedIndex >= 0) {
+                console.log('Selected option:', gameSelect.options[gameSelect.selectedIndex]?.text);
+            }
+        }
+
+        const tournamentName = nameInput?.value.trim() || null;
+        const gameId = gameSelect?.value;
+        const startDatetime = startInput?.value;
+        const endDatetime = endInput?.value || null;
+        const maxParticipants = parseInt(maxInput?.value) || 8;
+        const tournamentType = typeSelect?.value || 'elimination';
+
+        console.log('Form values:', {
+            tournamentName, gameId, startDatetime, endDatetime, maxParticipants, tournamentType
+        });
+
+        if (!gameId) {
+            console.log('No game ID selected');
+            showNotification('Please select a game table', 'error');
+            return;
+        }
+
+        // Note: start_datetime is not required for edit (can be null for old tournaments)
+
         console.log('Saving tournament edit...');
-        
+
         const { data, error } = await _supabase
             .from('tournament_history')
             .update({
@@ -1879,18 +1957,18 @@ export async function saveTournamentEdit(tournamentId, eventId) {
             })
             .eq('id', tournamentId)
             .select();
-        
+
         if (error) {
             console.error('Database error:', error);
             throw error;
         }
-        
+
         console.log('Tournament updated successfully:', data);
-        
+
         showNotification('Tournament updated successfully!', 'success');
         closeTournamentForm();
         viewEventDetails(eventId);
-        
+
     } catch (e) {
         console.error('Failed to update tournament:', e);
         if (e.message && e.message.includes('column')) {
@@ -1909,22 +1987,49 @@ export async function deleteTournament(tournamentId, eventId) {
         showNotification('You must be logged in', 'error');
         return;
     }
-    
-    if (!confirm('Are you sure you want to delete this tournament? This action cannot be undone.')) {
-        return;
-    }
-    
+
     try {
+        // Fetch tournament to check data
+        const { data: tournament, error: tourError } = await _supabase
+            .from('tournament_history')
+            .select('*')
+            .eq('id', tournamentId)
+            .single();
+
+        if (tourError || !tournament) throw new Error('Tournament not found');
+
+        // Fetch event with moderators
+        const { data: event, error: eventError } = await _supabase
+            .from('events')
+            .select('*, moderators:event_moderators(player_id)')
+            .eq('id', eventId)
+            .single();
+
+        if (!eventError && event) {
+            const moderators = event.moderators ? event.moderators.map(m => m.player_id) : [];
+            if (!canModerateEvent(event, moderators)) {
+                showNotification('You are not authorized to delete this tournament', 'error');
+                return;
+            }
+        } else if (tournament.organizer_id !== state.user.id && !isAdmin()) {
+            showNotification('You are not authorized to delete this tournament', 'error');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete this tournament? This action cannot be undone.')) {
+            return;
+        }
+
         const { error } = await _supabase
             .from('tournament_history')
             .delete()
             .eq('id', tournamentId);
-        
+
         if (error) throw error;
-        
+
         showNotification('Tournament deleted successfully', 'success');
         viewEventDetails(eventId);
-        
+
     } catch (e) {
         console.error('Failed to delete tournament:', e);
         showNotification('Failed to delete tournament: ' + e.message, 'error');
@@ -1940,7 +2045,7 @@ export async function deleteTournament(tournamentId, eventId) {
  */
 export function shareLiveEventLink(eventId, eventName) {
     const liveUrl = `${window.location.origin}${window.location.pathname}?live=${eventId}`;
-    
+
     // Copy to clipboard
     navigator.clipboard.writeText(liveUrl).then(() => {
         showNotification('Live link copied to clipboard!', 'success');
@@ -1978,7 +2083,7 @@ export function shareLiveEventLink(eventId, eventName) {
  */
 export async function viewLiveEvent(eventId) {
     console.log('viewLiveEvent called with ID:', eventId);
-    
+
     // Ensure live content container exists
     let content = document.getElementById('live-content');
     if (!content) {
@@ -1988,7 +2093,7 @@ export async function viewLiveEvent(eventId) {
         document.body.appendChild(content);
         console.log('Created live-content container');
     }
-    
+
     // Show loading state
     content.innerHTML = `
         <div style="text-align:center; padding:40px; color:#fff;">
@@ -1996,53 +2101,60 @@ export async function viewLiveEvent(eventId) {
             <p style="margin-top:20px; font-size:1.2rem;">Loading event...</p>
         </div>
     `;
-    
+
     try {
         console.log('Fetching event from Supabase...');
-        
+
         // Fetch event details
         const { data: event, error } = await _supabase
             .from('events')
             .select('*')
             .eq('id', eventId)
             .single();
-        
+
         console.log('Event fetch result:', { event, error });
-        
+
         if (error) throw error;
         if (!event) throw new Error('Event not found');
-        
+
         console.log('Fetching tournaments...');
-        
+
         // Fetch tournaments
         const { data: tournaments, error: tournamentsError } = await _supabase
             .from('tournament_history')
             .select(`
                 *,
-                game:games(game_name, location),
-                participants:event_registrations(count)
+                game: games(game_name, location)
             `)
             .eq('event_id', eventId)
             .order('start_datetime', { ascending: true });
-        
-        console.log('Tournaments fetch result:', { tournaments, error: tournamentsError });
-        
+
         if (tournamentsError) throw tournamentsError;
-        
-        console.log('Displaying live view...');
-        
-        // Apply Event Branding
-        if (event.brand_logo_url) {
-            const header = document.querySelector('header');
-            const logo = document.querySelector('.main-logo');
-            if (header && logo) {
-                header.style.display = 'flex'; // Ensure header is visible
-                logo.src = event.brand_logo_url;
-                logo.style.maxHeight = '80px';
-                logo.style.width = 'auto';
+
+        // Fetch participant counts for each tournament separately to be safe
+        if (tournaments && tournaments.length > 0) {
+            for (let t of tournaments) {
+                const { count } = await _supabase
+                    .from('event_registrations')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('tournament_id', t.id);
+                t.computed_participant_count = count || 0;
+            }
+
+            // Fetch matches for each tournament to build the live bracket
+            for (let t of tournaments) {
+                const { data: matches, error: matchesError } = await _supabase
+                    .from('matches')
+                    .select('*')
+                    .eq('tournament_id', t.id)
+                    .order('created_at', { ascending: true });
+                t.matches = matches || [];
             }
         }
-        
+
+        console.log('Displaying live view...');
+
+
         if (event.primary_color) {
             // Update theme color variable
             document.documentElement.style.setProperty('--sub-gold', event.primary_color);
@@ -2050,7 +2162,7 @@ export async function viewLiveEvent(eventId) {
 
         // Display live view
         showLiveEventView(event, tournaments || []);
-        
+
         // Auto-refresh every 10 seconds
         if (window.liveEventRefreshInterval) {
             clearInterval(window.liveEventRefreshInterval);
@@ -2058,9 +2170,9 @@ export async function viewLiveEvent(eventId) {
         window.liveEventRefreshInterval = setInterval(() => {
             viewLiveEvent(eventId);
         }, 10000);
-        
+
         console.log('Live event view loaded successfully');
-        
+
     } catch (e) {
         console.error('Failed to load live event:', e);
         content.innerHTML = `
@@ -2077,6 +2189,60 @@ export async function viewLiveEvent(eventId) {
 }
 
 /**
+ * Render a TV-friendly bracket diagram for the live view
+ */
+function renderLiveBracketHtml(t) {
+    const matches = t.matches || [];
+    if (matches.length === 0) {
+        return `
+            <div style="text-align:center; padding:30px; color:#444; border:1px dashed #222; border-radius:8px;">
+                <i class="fa fa-sitemap" style="font-size:1.5rem; margin-bottom:10px; opacity:0.3;"></i>
+                <div style="font-family:var(--sub-name-font); font-size:0.8rem; letter-spacing:1px;">AWAITING BRACKET GENERATION</div>
+            </div>
+        `;
+    }
+
+    // Helper to render a single match box in the bracket
+    const renderMatchBox = (m) => {
+        if (!m) return '<div style="width:140px; height:60px; border:1px dashed #222; margin-bottom:10px; border-radius:4px; opacity:0.3;"></div>';
+        return `
+            <div style="background:#111; border:1px solid #333; border-radius:4px; margin-bottom:10px; width:140px; font-size:0.75rem; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.3);">
+                <div style="padding:6px 10px; border-bottom:1px solid #222; display:flex; justify-content:space-between; color:${m.winner === m.player1 ? 'var(--sub-gold)' : '#fff'}; font-weight:${m.winner === m.player1 ? 'bold' : 'normal'}">
+                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px;">${m.player1}</span>
+                    <span>${m.player1_score !== null ? m.player1_score : ''}</span>
+                </div>
+                <div style="padding:6px 10px; display:flex; justify-content:space-between; color:${m.winner === m.player2 ? 'var(--sub-gold)' : '#fff'}; font-weight:${m.winner === m.player2 ? 'bold' : 'normal'}">
+                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px;">${m.player2}</span>
+                    <span>${m.player2_score !== null ? m.player2_score : ''}</span>
+                </div>
+            </div>
+        `;
+    };
+
+    // Organize matches into rounds (assuming standard 8-player elimination for now)
+    const qf = matches.slice(0, 4);
+    const sf = matches.slice(4, 6);
+    const final = matches.slice(6, 7);
+
+    return `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:15px; padding:10px 0; overflow-x:auto;">
+            <!-- Quarter Finals -->
+            <div style="display:flex; flex-direction:column; justify-content:space-around; height:200px;">
+                ${qf.length > 0 ? qf.map(m => renderMatchBox(m)).join('') : [1,2,3,4].map(() => renderMatchBox(null)).join('')}
+            </div>
+            <!-- Semi Finals -->
+            <div style="display:flex; flex-direction:column; justify-content:space-around; height:200px;">
+                ${sf.length > 0 ? sf.map(m => renderMatchBox(m)).join('') : [1,2].map(() => renderMatchBox(null)).join('')}
+            </div>
+            <!-- Final -->
+            <div style="display:flex; flex-direction:column; justify-content:center; height:200px;">
+                ${final.length > 0 ? renderMatchBox(final[0]) : renderMatchBox(null)}
+            </div>
+        </div>
+    `;
+}
+
+/**
  * Show live event view
  */
 function showLiveEventView(event, tournaments) {
@@ -2087,118 +2253,136 @@ function showLiveEventView(event, tournaments) {
         month: 'long',
         year: 'numeric'
     });
-    
+
     const content = document.getElementById('live-content') || document.getElementById('content') || document.body;
     content.innerHTML = `
-        <div style="max-width:1200px; margin:0 auto; padding:20px;">
-            <!-- Event Header -->
-            <div style="text-align:center; margin-bottom:40px; padding:30px; background:#0a0a0a; border-radius:12px; border:2px solid var(--sub-gold);">
-                ${event.image_url ? `
-                    <img src="${event.image_url}" style="max-width:200px; height:auto; border-radius:8px; margin-bottom:20px;">
-                ` : ''}
-                <h1 style="font-family:'Russo One'; color:var(--sub-gold); font-size:2.5rem; margin-bottom:10px; text-transform:uppercase;">
+        <div style="max-width:1400px; margin:0 auto; padding:40px 20px; font-family: var(--sub-body-font); background: var(--sub-black); min-height: 100vh;">
+            <!-- Broadcast Header -->
+            <div style="text-align:center; margin-bottom:60px; padding:40px; background:var(--sub-charcoal); border-radius:var(--sub-radius); border-bottom: 4px solid var(--sub-red); box-shadow: var(--sub-shadow); position: relative; overflow: hidden;">
+                <!-- Decorative element -->
+                <div style="position: absolute; top:0; left:0; width: 100%; height: 100%; background: radial-gradient(circle at 50% -20%, rgba(193, 39, 45, 0.15), transparent); pointer-events: none;"></div>
+
+                ${event.brand_logo_url ? `
+                    <div style="background: rgba(255,255,255,0.05); display: inline-block; padding: 10px 20px; border-radius: 4px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.1);">
+                        <img src="${event.brand_logo_url}" style="max-height:80px; width:auto; display:block;">
+                    </div>
+                ` : `
+                    <div style="margin-bottom: 24px;">
+                        <span style="font-family: 'Resolve'; color: var(--sub-red); font-size: 0.8rem; letter-spacing: 5px; opacity: 0.5;">POWERED BY</span>
+                        <div style="font-family: var(--sub-logo-font); color: var(--sub-red); font-size: 2.5rem; letter-spacing: 2px;">SUBSOCCER</div>
+                    </div>
+                `}
+
+                <h1 class="sub-heading-premium" style="font-size:3.5rem; margin-bottom:16px; line-height: 1;">
                     ${event.event_name}
                 </h1>
-                <div style="font-size:1.2rem; color:#ccc; margin-bottom:10px;">
-                    <i class="fa fa-calendar"></i> ${dateStr}
-                </div>
-                ${event.location ? `
-                    <div style="font-size:1rem; color:#999;">
-                        <i class="fa fa-map-marker"></i> ${event.location}
+                
+                <div style="display: flex; justify-content: center; gap: 30px; align-items: center; flex-wrap: wrap;">
+                    <div style="font-size:1.2rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 2px; text-transform: uppercase;">
+                        <i class="fa fa-calendar" style="color: var(--sub-red); margin-right: 10px;"></i> ${dateStr}
                     </div>
-                ` : ''}
-                ${event.description ? `
-                    <p style="color:#aaa; margin-top:15px; max-width:600px; margin-left:auto; margin-right:auto;">
-                        ${event.description}
-                    </p>
-                ` : ''}
-                <div style="margin-top:20px; font-size:0.9rem; color:#666;">
-                    <i class="fa fa-sync"></i> Auto-refreshing every 10 seconds
+                    ${event.location ? `
+                        <div style="font-size:1.2rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 2px; text-transform: uppercase;">
+                            <i class="fa fa-map-marker" style="color: var(--sub-red); margin-right: 10px;"></i> ${event.location}
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div style="margin-top:30px; display: flex; justify-content: center; gap: 15px;">
+                    <div class="sub-badge-live" style="font-size: 0.9rem; padding: 6px 16px;">
+                        <i class="fa fa-broadcast-tower"></i> BROADCASTING LIVE
+                    </div>
                 </div>
             </div>
             
-            <!-- Tournaments -->
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:20px;">
+            <!-- Tournament Grid -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(400px, 1fr)); gap:30px;">
                 ${tournaments.map(t => {
-                    const tDate = new Date(t.start_datetime);
-                    const timeStr = tDate.toLocaleTimeString('en-GB', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                    });
-                    const participantCount = t.participants?.[0]?.count || 0;
-                    
-                    return `
-                        <div style="background:#0a0a0a; border:2px solid ${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? '#FF9800' : '#333'}; border-radius:12px; padding:20px;">
-                            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:15px;">
-                                <div>
-                                    <h2 style="font-family:'Russo One'; color:#fff; font-size:1.5rem; margin-bottom:8px;">
-                                        ${t.tournament_name || 'Tournament'}
+        const tDate = new Date(t.start_datetime);
+        const timeStr = tDate.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const participantCount = t.computed_participant_count || 0;
+
+        return `
+                        <div class="sub-card-premium" style="border-top: 4px solid ${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? 'var(--sub-red)' : '#333'}; position: relative; display: flex; flex-direction: column;">
+                            
+                            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:24px;">
+                                <div style="flex: 1;">
+                                    <div style="font-size:0.8rem; color:var(--sub-red); font-family: var(--sub-name-font); letter-spacing: 2px; margin-bottom: 8px; text-transform: uppercase;">
+                                        ${t.game?.game_name || 'Tournament'}
+                                    </div>
+                                    <h2 class="sub-heading-premium" style="font-size:1.8rem; margin:0; line-height: 1.2;">
+                                        ${t.tournament_name || 'Unofficial Match'}
                                     </h2>
-                                    <div style="font-size:0.9rem; color:#888; margin-bottom:5px;">
-                                        <i class="fa fa-gamepad"></i> ${t.game?.game_name || 'Unknown'}
-                                    </div>
-                                    <div style="font-size:0.9rem; color:var(--sub-gold);">
-                                        <i class="fa fa-clock"></i> ${timeStr} • <i class="fa fa-users"></i> ${participantCount} players
-                                    </div>
                                 </div>
-                                <div style="text-align:right;">
-                                    <div style="font-size:0.8rem; color:${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? '#FF9800' : '#666'}; font-weight:bold;">
-                                        ${t.status === 'completed' ? '✓ COMPLETED' : t.status === 'ongoing' ? '▶ ONGOING' : '⏱ SCHEDULED'}
+                                <div style="text-align:right; margin-left: 20px;">
+                                    ${t.status === 'ongoing' ? `
+                                        <div class="sub-badge-live">LIVE</div>
+                                    ` : `
+                                        <div style="font-size:0.8rem; color:${t.status === 'completed' ? '#4CAF50' : '#666'}; font-family: var(--sub-name-font); letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold;">
+                                            ${t.status === 'completed' ? 'Finished' : 'Upcoming'}
+                                        </div>
+                                    `}
+                                    <div style="margin-top:10px; font-size:1.8rem; color:var(--sub-gold); font-family: var(--sub-name-font); font-weight:bold;">
+                                        ${timeStr}
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="sub-divider" style="margin: 0 0 24px 0;"></div>
                             
-                            ${t.status === 'completed' && (t.winner_name || t.second_place_name || t.third_place_name) ? `
-                                <div style="background:#111; border:2px solid var(--sub-gold); border-radius:8px; padding:20px; margin-top:15px;">
-                                    <div style="font-size:0.85rem; color:#888; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px; text-align:center;">
-                                        <i class="fa fa-trophy"></i> FINAL RESULTS
+                            <div style="flex: 1;">
+                                ${t.status === 'completed' || t.status === 'ongoing' ? `
+                                    <div style="margin-bottom:20px;">
+                                        ${renderLiveBracketHtml(t)}
                                     </div>
-                                    ${t.winner_name ? `
-                                        <div style="font-size:1.3rem; color:var(--sub-gold); margin-bottom:10px; text-align:center; font-family:'Russo One';">
-                                            🏆 ${t.winner_name}
+                                    ${t.status === 'completed' ? `
+                                        <div style="background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); border-radius:4px; padding:15px; text-align:center;">
+                                            <div style="color:var(--sub-gold); font-family:var(--sub-name-font); font-size:1.2rem;">🏆 WINNER: ${t.winner_name}</div>
                                         </div>
-                                    ` : ''}
-                                    ${t.second_place_name ? `
-                                        <div style="font-size:1.1rem; color:#C0C0C0; margin-bottom:10px; text-align:center; font-family:'Russo One';">
-                                            🥈 ${t.second_place_name}
+                                    ` : `
+                                        <div style="background:rgba(193, 39, 45, 0.05); border:1px solid rgba(193, 39, 45, 0.2); border-radius:var(--sub-radius); padding:20px; text-align:center;">
+                                        <div class="sub-badge-live" style="margin-bottom: 20px;">MATCH IN PROGRESS</div>
+                                        <div style="color:#fff; font-size:1.2rem; font-family: var(--sub-name-font); letter-spacing: 1px;">
+                                            ${participantCount} PLAYERS COMPETING
                                         </div>
-                                    ` : ''}
-                                    ${t.third_place_name ? `
-                                        <div style="font-size:1rem; color:#CD7F32; text-align:center; font-family:'Russo One';">
-                                            🥉 ${t.third_place_name}
+                                        <div style="font-size:0.9rem; color:#666; margin-top:15px; font-family: var(--sub-name-font);">
+                                            Live results will be displayed here soon
                                         </div>
-                                    ` : ''}
-                                </div>
-                            ` : t.status === 'ongoing' ? `
-                                <div style="background:#1a1a1a; border:1px solid #FF9800; border-radius:8px; padding:15px; margin-top:15px; text-align:center;">
-                                    <div style="color:#FF9800; font-size:1rem;">
-                                        <i class="fa fa-spinner fa-spin"></i> TOURNAMENT IN PROGRESS
+                                        </div>
+                                    `}
+                                ` : `
+                                    <div style="background:rgba(255, 255, 255, 0.02); border:1px solid var(--sub-border); border-radius:var(--sub-radius); padding:40px 20px; text-align:center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                                        <div style="color:var(--sub-gold); font-size:1.5rem; font-family: var(--sub-name-font); margin-bottom: 10px;">PRE-MATCH</div>
+                                        <div style="color:#666; font-size:1rem; font-family: var(--sub-name-font); letter-spacing: 1px; text-transform: uppercase;">
+                                            Registration open: ${participantCount} players joined
+                                        </div>
                                     </div>
-                                    <div style="color:#666; font-size:0.85rem; margin-top:5px;">
-                                        Results will appear here when completed
-                                    </div>
-                                </div>
-                            ` : `
-                                <div style="background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:15px; margin-top:15px; text-align:center;">
-                                    <div style="color:#666; font-size:1rem;">
-                                        <i class="fa fa-calendar"></i> STARTING SOON
-                                    </div>
-                                </div>
-                            `}
+                                `}
+                            </div>
                         </div>
                     `;
-                }).join('')}
+    }).join('')}
             </div>
             
             ${tournaments.length === 0 ? `
-                <div style="text-align:center; padding:60px; color:#666;">
-                    <i class="fa fa-trophy" style="font-size:4rem; margin-bottom:20px; opacity:0.3;"></i>
-                    <h3>No Tournaments Yet</h3>
-                    <p>Tournaments will appear here when created</p>
+                <div style="text-align:center; padding:100px 20px; color:#444; background: var(--sub-charcoal); border: 1px dashed var(--sub-border); border-radius: var(--sub-radius);">
+                    <i class="fa fa-trophy" style="font-size:5rem; margin-bottom:30px; opacity:0.1;"></i>
+                    <h3 class="sub-heading-premium" style="font-size: 2rem; opacity: 0.3;">Live Broadcaster standby</h3>
+                    <p style="font-size: 1.2rem; opacity: 0.5;">Awaiting tournament schedule from organizer</p>
                 </div>
-            ` : ''}
+            ` : ''
+        }
+
+            <!-- Footer -->
+            <div style="text-align:center; margin-top:80px; padding-top:40px; border-top: 1px solid var(--sub-border);">
+                <div style="font-family: var(--sub-logo-font); color: rgba(255,255,255,0.2); font-size: 1.5rem; letter-spacing: 1px;">SUBSOCCER PRO</div>
+                <div style="margin-top:10px; font-size:0.8rem; color:#444; font-family: var(--sub-name-font); letter-spacing: 2px;">OFFICIAL TOURNAMENT BROADCAST SYSTEM</div>
+            </div>
         </div>
-    `;
+            `;
 }
 
 /**
@@ -2209,7 +2393,7 @@ export async function editEvent(eventId) {
         showNotification('You must be logged in', 'error');
         return;
     }
-    
+
     try {
         // Fetch event details
         const { data: event, error } = await _supabase
@@ -2217,31 +2401,35 @@ export async function editEvent(eventId) {
             .select('*')
             .eq('id', eventId)
             .single();
-        
+
         if (error) throw error;
-        
+
         if (event.organizer_id !== state.user.id) {
             showNotification('You are not authorized to edit this event', 'error');
             return;
         }
-        
+
         // Close modal first
         closeEventModal();
-        
+
         // Show events page (this triggers loadEventsPage which clears the view to show loading spinner)
         state.currentPage = 'events';
-        
-        // Käytetään MutationObserveria tai varmistetaan containerin olemassaolo
+
+        // Wait for loading to finish and form container to be ready
         const checkAndPopulate = () => {
             const formContainer = document.getElementById('create-event-form');
-            if (formContainer) {
-                populateEventForm(event);
+            const loading = document.getElementById('loading-overlay');
+
+            // Wait if loading is active (loadEventsPage is running) OR if form container is not yet in DOM
+            if ((loading && loading.style.display !== 'none') || !formContainer) {
+                setTimeout(checkAndPopulate, 100);
             } else {
-                setTimeout(checkAndPopulate, 50);
+                populateEventForm(event);
+                formContainer.scrollIntoView({ behavior: 'smooth' });
             }
         };
         checkAndPopulate();
-        
+
     } catch (e) {
         console.error('Failed to load event for editing:', e);
         showNotification('Failed to load event: ' + e.message, 'error');
@@ -2263,12 +2451,12 @@ function populateEventForm(event) {
     const colorInput = document.getElementById('event-color-input');
     const brandPreview = document.getElementById('brand-logo-preview');
     const imagePreview = document.getElementById('event-image-preview');
-    
+
     if (nameInput) nameInput.value = event.event_name || '';
     if (typeSelect) typeSelect.value = event.event_type || 'tournament';
     if (locationInput) locationInput.value = event.location || '';
     if (descInput) descInput.value = event.description || '';
-    
+
     if (startInput && event.start_datetime) {
         startInput.value = new Date(event.start_datetime).toISOString().slice(0, 16);
     }
@@ -2277,7 +2465,7 @@ function populateEventForm(event) {
     }
 
     if (colorInput && event.primary_color) colorInput.value = event.primary_color;
-    
+
     if (brandPreview && event.brand_logo_url) {
         brandPreview.innerHTML = `<img src="${event.brand_logo_url}" style="height:40px; width:auto; margin-right:10px;">`;
     }
@@ -2286,19 +2474,19 @@ function populateEventForm(event) {
         imagePreview.innerHTML = `
             <div style="position:relative; width:100%; max-width:300px;">
                 <img src="${event.image_url}" style="width:100%; border-radius:8px; border:2px solid var(--sub-gold);">
-                <button onclick="clearEventImage()" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:1.2rem;">×</button>
-            </div>
+                    <button onclick="clearEventImage()" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:1.2rem;">×</button>
+                </div>
         `;
         const fileLabel = document.getElementById('event-image-label');
         if (fileLabel) fileLabel.style.display = 'none';
     }
-    
-    const createBtn = document.querySelector('#create-event-form button');
-    if (createBtn) {
-        createBtn.textContent = '✓ UPDATE EVENT';
-        createBtn.onclick = () => updateEventForm(event.id);
+
+    const updateBtn = document.querySelector('#create-event-form button[data-action="create-event"]');
+    if (updateBtn) {
+        updateBtn.innerHTML = '<i class="fa fa-save"></i> SAVE CHANGES';
+        updateBtn.onclick = () => updateEventForm(event.id);
     }
-    
+
     const formTitle = document.querySelector('#create-event-form h4');
     if (formTitle) formTitle.innerHTML = '<i class="fa fa-edit"></i> Edit Event';
 }
@@ -2311,7 +2499,7 @@ export async function updateEventForm(eventId) {
         showNotification('You must be logged in', 'error');
         return;
     }
-    
+
     // Get form values
     const eventName = document.getElementById('event-name-input')?.value.trim();
     const eventType = document.getElementById('event-type-select')?.value;
@@ -2320,13 +2508,13 @@ export async function updateEventForm(eventId) {
     const description = document.getElementById('event-desc-input')?.value.trim();
     const location = document.getElementById('event-location-input')?.value.trim() || null;
     const primaryColor = document.getElementById('event-color-input')?.value;
-    
+
     // Validate required fields
     if (!eventName || !startDatetime) {
         showNotification('Please fill required fields (Event Name, Start Time)', 'error');
         return;
     }
-    
+
     try {
         let imageUrl = undefined;
         let brandLogoUrl = undefined;
@@ -2335,7 +2523,7 @@ export async function updateEventForm(eventId) {
             showNotification('Uploading new image...', 'success');
             imageUrl = await uploadEventImage(selectedEventImage);
         }
-        
+
         if (selectedBrandLogo) {
             showNotification('Uploading new logo...', 'success');
             brandLogoUrl = await uploadEventImage(selectedBrandLogo);
@@ -2357,13 +2545,13 @@ export async function updateEventForm(eventId) {
         const { error } = await _supabase.from('events').update(updates)
             .eq('id', eventId)
             .eq('organizer_id', state.user.id); // Security check
-        
+
         if (error) throw error;
-        
+
         showNotification('Event updated successfully!', 'success');
         hideCreateEventForm();
         loadEventsPage();
-        
+
     } catch (e) {
         console.error('Failed to update event:', e);
         showNotification('Failed to update event: ' + e.message, 'error');
@@ -2413,35 +2601,28 @@ export function checkLiveEventParam() {
         const liveEventId = urlParams.get('live');
         if (liveEventId) {
             console.log('Live event ID detected:', liveEventId);
-            
-            // Hide auth page and app content
-            const authPage = document.getElementById('auth-page');
-            const appContent = document.getElementById('app-content');
-            const header = document.querySelector('header');
-            const navTabs = document.querySelector('.nav-tabs');
-            
-            if (authPage) {
-                authPage.style.display = 'none';
-                console.log('Auth page hidden');
-            }
-            if (appContent) {
-                appContent.style.display = 'none';
-                console.log('App content hidden');
-            }
-            if (header) header.style.display = 'none';
-            if (navTabs) navTabs.style.display = 'none';
-            
+
+            // Activate live mode via CSS class
+            document.body.classList.add('live-mode');
+
             // Create live content container if it doesn't exist
             let liveContainer = document.getElementById('live-content');
             if (!liveContainer) {
                 liveContainer = document.createElement('div');
                 liveContainer.id = 'live-content';
-                liveContainer.style.cssText = 'width:100%; min-height:100vh; padding:20px; box-sizing:border-box;';
+                liveContainer.style.cssText = 'width:100%; min-height:100vh; padding:20px; box-sizing:border-box; background:#000; color:#fff;';
                 document.body.appendChild(liveContainer);
                 console.log('Live container created');
             }
-            
-            // Load live view
+
+            // Explicitly ensure other modals/overlays are closed
+            const overlays = ['.modal-overlay', '#victory-overlay', '#loading-overlay'];
+            overlays.forEach(selector => {
+                const el = document.querySelector(selector);
+                if (el) el.style.display = 'none';
+            });
+
+            // Load live view content
             console.log('Loading live event view...');
             viewLiveEvent(liveEventId);
         }
@@ -2463,22 +2644,22 @@ export async function viewTournamentBracket(tournamentId, tournamentName, maxPar
     try {
         currentEventTournamentId = tournamentId;
         currentEventTournamentName = tournamentName;
-        
+
         // First, check if tournament is completed
         const { data: tournament, error: tournamentError } = await _supabase
             .from('tournament_history')
             .select('status, winner_name, second_place_name, third_place_name')
             .eq('id', tournamentId)
             .single();
-        
+
         if (tournamentError) throw tournamentError;
-        
+
         // If completed, show final results
         if (tournament && tournament.status === 'completed') {
             showCompletedTournamentBracket(tournament);
             return;
         }
-        
+
         // Update status to 'ongoing' if it's scheduled
         if (tournament && tournament.status === 'scheduled') {
             await _supabase
@@ -2486,31 +2667,31 @@ export async function viewTournamentBracket(tournamentId, tournamentName, maxPar
                 .update({ status: 'ongoing' })
                 .eq('id', tournamentId);
         }
-        
+
         // Fetch participants from event_registrations
         const { data: registrations, error } = await _supabase
             .from('event_registrations')
             .select(`
-                player_id,
-                players:player_id(id, username)
-            `)
+        player_id,
+            players: player_id(id, username)
+                `)
             .eq('tournament_id', tournamentId)
             .eq('status', 'registered');
-        
+
         if (error) throw error;
-        
+
         console.log('Fetched registrations:', registrations);
-        
+
         if (!registrations || registrations.length < 2) {
             showNotification('Not enough players (minimum 2 required)', 'error');
             return;
         }
-        
+
         // Extract player usernames and shuffle
         const players = registrations.map(r => r.players.username);
         console.log('Players:', players);
         const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
-        
+
         // Initialize bracket state
         currentEventBracketParticipants = shuffledPlayers;
         eventRoundPlayers = [...shuffledPlayers];
@@ -2518,7 +2699,7 @@ export async function viewTournamentBracket(tournamentId, tournamentName, maxPar
         eventFinalists = [];
         eventBronzeContenders = [];
         eventBronzeWinner = null;
-        
+
         // Jos vain 2 pelaajaa, siirrytään suoraan finaaliin
         if (shuffledPlayers.length === 2) {
             eventFinalists = [...shuffledPlayers];
@@ -2528,10 +2709,10 @@ export async function viewTournamentBracket(tournamentId, tournamentName, maxPar
         // Calculate byes
         const byes = BracketEngine.calculateByes(players.length);
         console.log('About to show bracket with byes:', byes);
-        
+
         // Show bracket
         showEventBracket(byes);
-        
+
     } catch (error) {
         console.error('Error loading bracket:', error);
         showNotification('Failed to load bracket: ' + error.message, 'error');
@@ -2545,7 +2726,7 @@ function showCompletedTournamentBracket(tournament) {
     const a = document.createElement('div');
     a.id = 'bracket-area';
     a.style.textAlign = 'center';
-    
+
     // Show final results
     if (tournament.third_place_name) {
         // Tournament had bronze match
@@ -2554,32 +2735,32 @@ function showCompletedTournamentBracket(tournament) {
             tournament.third_place_name, null, 0, tournament.third_place_name, '', { isBronze: true }
         ));
     }
-    
+
     // Final
     a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin:10px 0 15px 0; color:var(--sub-gold); text-align:center; font-size:0.75rem; letter-spacing:2px;">🏆 FINAL</h3>`;
     a.appendChild(BracketEngine.renderMatch(
         tournament.winner_name, tournament.second_place_name, 0, tournament.winner_name, '', { isFinal: true }
     ));
-    
+
     // Winner announcement
     a.innerHTML += `
-        <div style="text-align:center; margin-top:30px; padding:20px; background:rgba(255,215,0,0.05); border-radius:var(--sub-radius); border:1px dashed rgba(255,215,0,0.2);">
+            <div style="text-align:center; margin-top:30px; padding:20px; background:rgba(255,215,0,0.05); border-radius:var(--sub-radius); border:1px dashed rgba(255,215,0,0.2);">
             <div style="font-family:var(--sub-name-font); color:var(--sub-gold); font-size:1.4rem; text-transform:uppercase; letter-spacing:2px;">🏆 ${tournament.winner_name}</div>
             <div style="font-family:var(--sub-name-font); color:#555; font-size:0.7rem; margin-top:5px; letter-spacing:1px;">OFFICIAL EVENT WINNER</div>
         </div>
-    `;
-    
+            `;
+
     const modalContent = `
             ${a.outerHTML}
-            
-            <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid #333;">
-                <button data-action="close-bracket-modal" class="btn-red" style="padding:15px 40px;"><i class="fa fa-times"></i> CLOSE</button>
-            </div>
-    `;
 
-    showModal(currentEventTournamentName, modalContent, { 
-        id: 'bracket-modal', 
-        maxWidth: '600px' 
+        <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid #333;">
+            <button data-action="close-bracket-modal" class="btn-red" style="padding:15px 40px;"><i class="fa fa-times"></i> CLOSE</button>
+        </div>
+        `;
+
+    showModal(currentEventTournamentName, modalContent, {
+        id: 'bracket-modal',
+        maxWidth: '600px'
     });
 }
 
@@ -2590,33 +2771,33 @@ function showEventBracket(byes = 0) {
     console.log('showEventBracket called with byes:', byes, 'eventRoundPlayers:', eventRoundPlayers);
     const a = document.createElement('div');
     a.id = 'bracket-area';
-    
+
     // Handle final round (with bronze match)
     if (eventFinalists.length === 2) {
         // Bronze Match
         if (eventBronzeContenders.length === 2) {
             a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin-bottom:10px; color:#CD7F32; text-align:center; font-size:0.8rem; letter-spacing:2px;">🥉 BRONZE MATCH</h3>`;
-        a.appendChild(BracketEngine.renderMatch(
-            eventBronzeContenders[0], 
-            eventBronzeContenders[1], 
-            0, 
-            eventBronzeWinner, 
-            'pickEventBronzeWinner', 
-            { isBronze: true }
-        ));
+            a.appendChild(BracketEngine.renderMatch(
+                eventBronzeContenders[0],
+                eventBronzeContenders[1],
+                0,
+                eventBronzeWinner,
+                'pickEventBronzeWinner',
+                { isBronze: true }
+            ));
         }
-        
+
         // Final
         a.innerHTML += `<h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin-bottom:10px; color:var(--sub-gold); text-align:center; font-size:0.8rem; letter-spacing:2px;">🏆 FINAL</h3>`;
         a.appendChild(BracketEngine.renderMatch(
-            eventFinalists[0], 
-            eventFinalists[1], 
-            0, 
-            eventRoundWinners[0], 
-            'pickEventWinner', 
+            eventFinalists[0],
+            eventFinalists[1],
+            0,
+            eventRoundWinners[0],
+            'pickEventWinner',
             { isFinal: true }
         ));
-    } 
+    }
     // Handle single winner
     else if (eventRoundPlayers.length === 1 && eventFinalists.length === 0) {
         a.innerHTML = `
@@ -2624,7 +2805,7 @@ function showEventBracket(byes = 0) {
                 <h2 style="font-family:var(--sub-name-font); color:var(--sub-gold); text-transform:uppercase; letter-spacing:2px;">🏆 WINNER: ${eventRoundPlayers[0]}</h2>
                 ${eventBronzeWinner ? `<h3 style="font-family:var(--sub-name-font); color:#CD7F32; margin-top:10px; text-transform:uppercase; font-size:0.9rem;">🥉 Bronze: ${eventBronzeWinner}</h3>` : ''}
             </div>
-        `;
+            `;
     }
     // Handle regular rounds
     else {
@@ -2638,14 +2819,14 @@ function showEventBracket(byes = 0) {
             const winnerIndex = byes + i;
             const match = BracketEngine.getMatchPlayers(eventRoundPlayers, eventRoundWinners, winnerIndex);
             a.appendChild(BracketEngine.renderMatch(
-                match.p1, 
-                match.p2, 
-                winnerIndex, 
-                eventRoundWinners[winnerIndex], 
+                match.p1,
+                match.p2,
+                winnerIndex,
+                eventRoundWinners[winnerIndex],
                 'pickEventWinner'
             ));
         }
-        
+
         // Show BYE players if any
         if (playersWithBye.length > 0) {
             a.innerHTML += `<h4 style="font-family:var(--sub-name-font); text-transform:uppercase; margin: 20px 0 10px 0; opacity: 0.5; text-align:center; font-size:0.75rem; letter-spacing:2px;">Byes (Next Round)</h4>`;
@@ -2656,24 +2837,24 @@ function showEventBracket(byes = 0) {
             });
         }
     }
-    
+
     // Create/update modal
     let modal = document.getElementById('bracket-modal');
     const isComplete = eventRoundPlayers.length === 1 && eventFinalists.length === 0;
-    
+
     const nextBtnHtml = checkEventBracketCompletion();
 
     const modalContent = `
             ${a.outerHTML}
-            
-            <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid #333;">
-                <div id="event-bracket-controls">${nextBtnHtml}</div>
-            </div>
-    `;
 
-    showModal(currentEventTournamentName, modalContent, { 
-        id: 'bracket-modal', 
-        maxWidth: '600px' 
+        <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid #333;">
+            <div id="event-bracket-controls">${nextBtnHtml}</div>
+        </div>
+        `;
+
+    showModal(currentEventTournamentName, modalContent, {
+        id: 'bracket-modal',
+        maxWidth: '600px'
     });
 }
 
@@ -2686,12 +2867,12 @@ export async function pickEventWinner(idx, playerName) {
     if (match.p1 && match.p2) {
         await saveEventMatch(match.p1, match.p2, playerName);
     }
-    
+
     eventRoundWinners[idx] = playerName;
-    
+
     // Recalculate byes for current state
     const byes = BracketEngine.calculateByes(eventRoundPlayers.length);
-    
+
     showEventBracket(byes);
 }
 
@@ -2729,8 +2910,8 @@ async function saveEventMatch(player1, player2, winner) {
  */
 function checkEventBracketCompletion() {
     const isComplete = BracketEngine.isRoundComplete(
-        eventRoundPlayers, 
-        eventRoundWinners, 
+        eventRoundPlayers,
+        eventRoundWinners,
         eventFinalists.length
     );
 
@@ -2746,7 +2927,7 @@ function checkEventBracketCompletion() {
     if (pickedWinners === expectedWinners && matchesToPlay > 0) {
         return '<button data-action="advance-event-round" class="btn-red" style="padding:15px 40px;">NEXT ROUND <i class="fa fa-arrow-right"></i></button>';
     }
-    
+
     return '<small style="color:#666;">Select winners for all matches</small>';
 }
 
@@ -2765,7 +2946,7 @@ export function advanceEventRound() {
         showEventBracket();
         return;
     }
-    
+
     // Jos jäljellä on tasan 2 voittajaa, he ovat finalistit (ilman pronssiottelua)
     if (winners.length === 2) {
         eventFinalists = [...winners];
@@ -2778,9 +2959,9 @@ export function advanceEventRound() {
     // Advance winners to next round
     eventRoundPlayers = winners;
     eventRoundWinners = [];
-    
+
     const nextByes = BracketEngine.calculateByes(eventRoundPlayers.length);
-    
+
     showEventBracket(nextByes);
 }
 
@@ -2795,10 +2976,10 @@ export async function finishEventTournament() {
         console.log('eventRoundPlayers:', eventRoundPlayers);
         console.log('eventBronzeWinner:', eventBronzeWinner);
         console.log('currentEventTournamentId:', currentEventTournamentId);
-        
+
         // Determine winner and second place based on current state
         let winnerName, secondPlaceName;
-        
+
         if (eventFinalists.length === 2) {
             // Final has been played
             winnerName = eventRoundWinners[0];
@@ -2808,10 +2989,10 @@ export async function finishEventTournament() {
             winnerName = eventRoundPlayers[0];
             secondPlaceName = currentEventBracketParticipants.find(p => p !== winnerName);
         }
-        
+
         console.log('Winner:', winnerName);
         console.log('Second place:', secondPlaceName);
-        
+
         // Update tournament_history table with results
         const updateData = {
             winner_name: winnerName,
@@ -2819,30 +3000,30 @@ export async function finishEventTournament() {
             status: 'completed',
             end_datetime: new Date().toISOString()
         };
-        
+
         if (eventBronzeWinner) {
             updateData.third_place_name = eventBronzeWinner;
         }
-        
+
         console.log('Update data:', updateData);
-        
+
         const { error } = await _supabase
             .from('tournament_history')
             .update(updateData)
             .eq('id', currentEventTournamentId);
-        
+
         console.log('Update error:', error);
-        
+
         if (error) throw error;
-        
+
         showNotification('Tournament completed successfully!', 'success');
         closeBracketModal();
-        
+
         // Refresh event details if we have the event ID
         if (currentEventId) {
             viewEventDetails(currentEventId);
         }
-        
+
     } catch (error) {
         console.error('Error finishing tournament:', error);
         showNotification('Failed to save tournament: ' + error.message, 'error');
@@ -2854,7 +3035,7 @@ export async function finishEventTournament() {
  */
 export function closeBracketModal() {
     closeModal('bracket-modal');
-    
+
     // Reset bracket state
     eventRoundPlayers = [];
     eventRoundWinners = [];
@@ -2862,4 +3043,129 @@ export function closeBracketModal() {
     eventBronzeContenders = [];
     eventBronzeWinner = null;
     currentEventBracketParticipants = [];
+}
+
+/**
+ * Load and display moderator list
+ */
+async function loadModeratorList(eventId, moderatorIds = []) {
+    const list = document.getElementById('event-moderators-list');
+    if (!list) return;
+
+    if (moderatorIds.length === 0) {
+        list.innerHTML = '<span style="color:#666; font-size:0.75rem;">No delegated moderators</span>';
+        return;
+    }
+
+    try {
+        const { data: players } = await _supabase
+            .from('players')
+            .select('id, username')
+            .in('id', moderatorIds);
+
+        list.innerHTML = (players || []).map(p => `
+            <div style="background:#222; border-radius:15px; padding:4px 10px; display:flex; align-items:center; gap:8px; border:1px solid #444;">
+                <span style="font-size:0.8rem; color:#fff;">${p.username}</span>
+                <button data-action="remove-moderator" data-event-id="${eventId}" data-player-id="${p.id}" 
+                    style="background:none; border:none; color:var(--sub-red); cursor:pointer; padding:0; font-size:0.8rem;">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            `).join('');
+    } catch (e) {
+        console.error('Failed to load moderator details:', e);
+    }
+}
+
+/**
+ * Search players to add as moderators
+ */
+export async function searchModerators(query, eventId) {
+    const resultsContainer = document.getElementById('mod-search-results');
+    if (!resultsContainer || query.length < 2) {
+        if (resultsContainer) resultsContainer.innerHTML = '';
+        return;
+    }
+
+    try {
+        const { data: players } = await _supabase
+            .from('players')
+            .select('id, username')
+            .ilike('username', `%${query}%`)
+            .limit(5);
+
+        resultsContainer.innerHTML = (players || []).map(p => `
+            <div style="padding:8px; border-bottom:1px solid #222; display:flex; justify-content:space-between; align-items:center;">
+                <span style="color:#fff; font-size:0.85rem;">${p.username}</span>
+                <button data-action="add-moderator" data-event-id="${eventId}" data-player-id="${p.id}" data-username="${p.username}"
+                    style="background:var(--sub-red); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:0.75rem; cursor:pointer;">
+                    ADD
+                </button>
+            </div>
+            `).join('') || '<div style="padding:8px; color:#666; font-size:0.85rem;">No players found</div>';
+    } catch (e) {
+        console.error('Search failed:', e);
+    }
+}
+
+/**
+ * Add a moderator to an event
+ */
+export async function addModerator(eventId, playerId, username) {
+    try {
+        const { error } = await _supabase
+            .from('event_moderators')
+            .insert({ event_id: eventId, player_id: playerId });
+
+        if (error) {
+            if (error.code === '23505') {
+                showNotification('Player is already a moderator', 'warning');
+            } else {
+                throw error;
+            }
+        } else {
+            showNotification(`${username} added as moderator`, 'success');
+            // Refresh details to update list
+            viewEventDetails(eventId);
+        }
+    } catch (e) {
+        console.error('Failed to add moderator:', e);
+        if (e.message?.includes('404') || e.code === '42P01') {
+            showNotification('Moderator system not configured. Please run the SQL script.', 'error');
+        } else {
+            showNotification('Failed to add moderator: ' + e.message, 'error');
+        }
+    }
+}
+
+/**
+ * Remove a moderator from an event
+ */
+export async function removeModerator(eventId, playerId) {
+    try {
+        const { error } = await _supabase
+            .from('event_moderators')
+            .delete()
+            .eq('event_id', eventId)
+            .eq('player_id', playerId);
+
+        if (error) throw error;
+
+        showNotification('Moderator removed', 'success');
+        viewEventDetails(eventId);
+    } catch (e) {
+        console.error('Failed to remove moderator:', e);
+        if (e.message?.includes('404') || e.code === '42P01') {
+            showNotification('Moderator system not configured. Please run the SQL script.', 'error');
+        } else {
+            showNotification('Failed to remove moderator: ' + e.message, 'error');
+        }
+    }
+}
+
+// Auto-check for live event mode on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkLiveEventParam);
+} else {
+    checkLiveEventParam();
 }

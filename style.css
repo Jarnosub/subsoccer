@@ -2,9 +2,17 @@
     font-family: 'SubsoccerLogo';
     src: url('fonts/Subsoccer-2-Regular.otf') format('opentype');
 }
-@font-face { font-family: 'Resolve'; /* Vaihdettu Condensed -> Narrow */ src: url('fonts/Resolve-BoldNrw.otf') format('opentype'); }
 
-@font-face { font-family: 'ResolveRegular'; src: url('fonts/Resolve-RegularCn.otf') format('opentype'); }
+@font-face {
+    font-family: 'Resolve';
+    /* Vaihdettu Condensed -> Narrow */
+    src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'ResolveRegular';
+    src: url('fonts/Resolve-RegularCn.otf') format('opentype');
+}
 
 @font-face {
     font-family: 'ResolveNarrowReg';
@@ -18,18 +26,20 @@
     font-style: normal;
 }
 
-:root { 
-    --sub-red: #E30613; 
-    --sub-black: #0a0a0a; /* Sophisticated dark gray background */
-    --sub-white: #FFFFFF; 
-    --sub-gold: #FFD700; 
-    --sub-border: rgba(255, 255, 255, 0.1); 
-    --sub-surface: rgba(26, 29, 35, 0.8); /* Glassmorphism pinta */
+:root {
+    --sub-red: #C1272D;
+    --sub-black: #000000;
+    --sub-charcoal: #0a0a0a;
+    --sub-white: #FFFFFF;
+    --sub-gold: #FFD700;
+    --sub-border: rgba(255, 255, 255, 0.08);
+    --sub-surface: rgba(16, 16, 16, 0.95);
     --sub-logo-font: 'SubsoccerLogo', sans-serif;
     --sub-name-font: 'Resolve', sans-serif;
     --sub-body-font: 'ResolveRegular', sans-serif;
-    --sub-radius: 4px; /* Terävämmät kulmat Pro-ilmettä varten */
-    --sub-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+    --sub-radius: 2px;
+    /* Sharp, professional corners */
+    --sub-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
 }
 
 /* LIGHT THEME VARIABLES */
@@ -41,15 +51,27 @@
     --sub-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
 }
 
-body { font-family: var(--sub-body-font) !important; background-color: var(--sub-black); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+body {
+    font-family: var(--sub-body-font) !important;
+    background-color: var(--sub-black);
+    color: #fff;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
 
 /* Header adjustments */
 header {
     position: relative !important;
     z-index: 2000;
     width: 100%;
-    max-width: 450px !important; /* Sama kuin nav-tabs maksimileveys */
-    margin: 0 auto !important;   /* Keskittää koko header-alueen */
+    max-width: 450px !important;
+    /* Sama kuin nav-tabs maksimileveys */
+    margin: 0 auto !important;
+    /* Keskittää koko header-alueen */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -63,8 +85,19 @@ header {
     width: auto !important;
 }
 
-#app-content { width: 100%; display: none; flex-direction: column; align-items: center; order: 0; }
-.player-label { font-size: 0.85rem; font-weight: 400; color: #fff; }
+#app-content {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    order: 0;
+}
+
+.player-label {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #fff;
+}
 
 .clear-players-btn {
     margin-top: 15px;
@@ -89,9 +122,16 @@ header {
     border-color: #444 !important;
     background: rgba(255, 255, 255, 0.03) !important;
 }
-.logout-link { display: block; font-size: 0.6rem; color: #666; cursor: pointer; letter-spacing: 1px; }
 
-.nav-tabs { 
+.logout-link {
+    display: block;
+    font-size: 0.6rem;
+    color: #666;
+    cursor: pointer;
+    letter-spacing: 1px;
+}
+
+.nav-tabs {
     display: none !important;
     position: fixed !important;
     bottom: 20px !important;
@@ -113,7 +153,8 @@ header {
     gap: 0;
     box-sizing: border-box !important;
 }
-.tab { 
+
+.tab {
     font-family: var(--sub-name-font);
     font-size: 1.6rem !important;
     padding: 0 !important;
@@ -128,27 +169,34 @@ header {
     border: none !important;
     cursor: pointer;
 }
+
 .tab i {
     display: block;
     transition: transform 0.2s ease;
 }
+
 .tab.active {
     opacity: 1;
     color: var(--sub-gold) !important;
     position: relative;
 }
+
 .tab.active i {
     transform: translateY(-2px);
 }
 
-#app-content { padding-bottom: 100px !important; }
+#app-content {
+    padding-bottom: 100px !important;
+}
 
 #menu-toggle-btn {
     display: none;
     position: absolute !important;
-    right: 10px !important; /* Lähellä containerin reunaa */
+    right: 10px !important;
+    /* Lähellä containerin reunaa */
     top: 50% !important;
-    transform: translateY(-50%) !important; /* Keskittää pystysuunnassa headeriin */
+    transform: translateY(-50%) !important;
+    /* Keskittää pystysuunnassa headeriin */
     color: #ffffff !important;
     font-size: 1.5rem !important;
     z-index: 5001 !important;
@@ -163,8 +211,8 @@ header {
     top: 0 !important;
     right: 0 !important;
     /* Kavennetaan leveys kiinteäksi mobiilissa */
-    width: 280px !important; 
-    max-width: 80% !important; 
+    width: 280px !important;
+    max-width: 80% !important;
     height: 100vh !important;
     background: rgba(10, 10, 10, 0.98) !important;
     backdrop-filter: blur(20px) !important;
@@ -172,10 +220,11 @@ header {
     z-index: 10001 !important;
     display: none;
     flex-direction: column;
-    padding: 30px 15px calc(90px + env(safe-area-inset-bottom)) 15px; /* Estää logout-napin jäämisen navipalkin alle */
+    padding: 30px 15px calc(90px + env(safe-area-inset-bottom)) 15px;
+    /* Estää logout-napin jäämisen navipalkin alle */
     box-sizing: border-box;
     border-left: 1px solid rgba(255, 215, 0, 0.3);
-    box-shadow: -10px 0 30px rgba(0,0,0,0.8);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow-y: auto;
 }
@@ -183,7 +232,7 @@ header {
 .menu-header {
     padding: 0 15px 25px 15px;
     margin-bottom: 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     font-family: 'Resolve', sans-serif;
     font-size: 1.2rem;
     color: var(--sub-gold);
@@ -194,13 +243,16 @@ header {
 .menu-item {
     width: 100%;
     padding: 14px 15px !important;
-    background: rgba(255, 255, 255, 0.03); /* Kevyt korostus pohjalla */
+    background: rgba(255, 255, 255, 0.03);
+    /* Kevyt korostus pohjalla */
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: var(--sub-radius); /* Käytetään globaalia muuttujaa */
+    border-radius: var(--sub-radius);
+    /* Käytetään globaalia muuttujaa */
     color: #eee;
     text-align: left;
     font-family: 'Resolve', sans-serif;
-    font-size: 0.85rem !important; /* Hieman pienempi teksti kapeammalle valikolle */
+    font-size: 0.85rem !important;
+    /* Hieman pienempi teksti kapeammalle valikolle */
     cursor: pointer;
     text-transform: uppercase;
     display: flex;
@@ -222,17 +274,19 @@ header {
     background: rgba(255, 215, 0, 0.1);
     border-color: rgba(255, 215, 0, 0.3);
     color: #fff;
-    transform: translateX(-5px); /* Pieni liike vasemmalle houkuttelee */
+    transform: translateX(-5px);
+    /* Pieni liike vasemmalle houkuttelee */
 }
 
 .menu-divider {
     height: 1px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     margin: 20px 10px;
 }
 
 .logout-item {
-    margin-top: auto; /* Pakottaa logoutin valikon pohjalle */
+    margin-top: auto;
+    /* Pakottaa logoutin valikon pohjalle */
     background: rgba(227, 6, 19, 0.05);
     border-color: rgba(227, 6, 19, 0.1);
     color: var(--sub-red) !important;
@@ -247,16 +301,28 @@ header {
     color: inherit;
 }
 
-.card-header-stripe, .event-title {
+.card-header-stripe,
+.event-title {
     font-family: 'SubsoccerLogo' !important;
     color: var(--sub-red) !important;
     letter-spacing: 1px;
 }
 
-.section { width: 100%; display: none; flex-direction: column; align-items: center; }
-.section:not(.active) { display: none !important; height: 0 !important; overflow: hidden !important; }
-.section.active { 
-    display: flex; 
+.section {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+}
+
+.section:not(.active) {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+.section.active {
+    display: flex;
     animation: fadeInEffect 0.4s ease-out forwards;
 }
 
@@ -278,7 +344,11 @@ header {
     border: 1px solid #222 !important;
 }
 
-/* Varmistetaan, että kustomoidut pallo-pinnit pysyvät kirkkaina kartan päällä */ .custom-div-icon { filter: brightness(1.2) !important; z-index: 1000 !important; }
+/* Varmistetaan, että kustomoidut pallo-pinnit pysyvät kirkkaina kartan päällä */
+.custom-div-icon {
+    filter: brightness(1.2) !important;
+    z-index: 1000 !important;
+}
 
 /* Leaflet Popup Styling - Pro Look */
 .leaflet-popup-content-wrapper {
@@ -286,12 +356,14 @@ header {
     color: #fff !important;
     border: 1px solid var(--sub-gold) !important;
     border-radius: var(--sub-radius) !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
     font-family: var(--sub-name-font) !important;
 }
+
 .leaflet-popup-tip {
     background: var(--sub-gold) !important;
 }
+
 .leaflet-popup-content {
     margin: 15px !important;
     line-height: 1.4;
@@ -315,8 +387,9 @@ header {
     justify-content: center;
     font-size: 1.2rem;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
+
 .map-locate-btn:hover {
     color: var(--sub-gold);
     border-color: var(--sub-gold);
@@ -325,10 +398,19 @@ header {
 
 /* Pulse animation for Verified markers */
 @keyframes markerPulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6); }
-    70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    }
 }
+
 .verified-marker-pulse {
     animation: markerPulse 2s infinite;
     border-radius: 50%;
@@ -336,41 +418,65 @@ header {
 
 /* PLAYER CARD - VERTICAL ADJUSTMENTS */
 .pro-card {
-    width: 360px !important; /* 320px + 40px bleed */
-    height: 488px !important; /* 448px + 40px bleed */
+    width: 360px !important;
+    /* 320px + 40px bleed */
+    height: 488px !important;
+    /* 448px + 40px bleed */
     background: #000 !important;
-    padding: 20px !important; /* 4-5mm bleed area */
+    padding: 20px !important;
+    /* 4-5mm bleed area */
     border: none !important;
     border-radius: 0 !important;
     display: flex;
     flex-direction: column;
     box-sizing: border-box !important;
     margin: 10px auto;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
 }
+
 .card-inner-frame {
     width: 100%;
     height: 100%;
-    border: 3px solid var(--sub-gold); /* Yellow border 2mm inside cut */
+    border: 3px solid var(--sub-gold);
+    /* Yellow border 2mm inside cut */
     border-radius: var(--sub-radius);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     background: #000;
 }
+
 /* Yläpalkki Rookie-tekstille */
-.card-header-stripe { height: 30px; background: #000; display: flex; align-items: center; justify-content: center; font-family: var(--sub-logo-font) !important; font-size: 0.8rem !important; color: var(--sub-gold); letter-spacing: 1px; text-transform: uppercase; }
+.card-header-stripe {
+    height: 30px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sub-logo-font) !important;
+    font-size: 0.8rem !important;
+    color: var(--sub-gold);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
 
 .card-image-area {
-    width: 320px !important;
-    height: 320px !important; /* Täydellinen neliö */
+    width: 100% !important;
+    max-width: 320px;
+    aspect-ratio: 1 / 1;
+    /* Täydellinen neliö */
     background: #111;
     border-bottom: 2px solid var(--sub-gold);
     overflow: hidden;
+    margin: 0 auto;
 }
+
 .card-image-area img {
-    width: 100%; height: 100%; object-fit: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
+
 .card-name-strip {
     background: var(--sub-red);
     color: #fff;
@@ -378,29 +484,52 @@ header {
     padding: 2px 0 !important;
     font-family: 'Resolve', sans-serif !important;
     font-stretch: normal !important;
-    letter-spacing: 0.05em !important; /* Kortissa saa olla vielä enemmän arvokkuutta */
+    letter-spacing: 0.05em !important;
+    /* Kortissa saa olla vielä enemmän arvokkuutta */
     text-transform: uppercase;
     font-size: 2.2rem !important;
     line-height: 1.1;
-    padding: 8px 0 !important; /* Safe zone padding */
+    padding: 8px 0 !important;
+    /* Safe zone padding */
 }
+
 .card-info-area {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end; /* Pakottaa sisällön alas */
+    justify-content: flex-end;
+    /* Pakottaa sisällön alas */
     background: #000;
-    padding: 15px 20px !important; /* Safe zone padding */
+    padding: 15px 20px !important;
+    /* Safe zone padding */
 }
+
 .card-stats-row {
     display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr 1fr; /* Neljä saraketta */
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    /* Neljä saraketta */
     gap: 2px;
     padding: 5px 0 !important;
 }
-.card-stat-item { text-align: center; }
-.card-stat-label { font-size: 0.6rem; color: #888; text-transform: uppercase; font-family: var(--sub-name-font) !important; }
-.card-stat-value { font-family: var(--sub-name-font) !important; font-size: 1.4rem; color: #fff; text-transform: uppercase; }
+
+.card-stat-item {
+    text-align: center;
+}
+
+.card-stat-label {
+    font-size: 0.6rem;
+    color: #888;
+    text-transform: uppercase;
+    font-family: var(--sub-name-font) !important;
+}
+
+.card-stat-value {
+    font-family: var(--sub-name-font) !important;
+    font-size: 1.4rem;
+    color: #fff;
+    text-transform: uppercase;
+}
+
 .card-bottom-row {
     display: flex;
     justify-content: space-between;
@@ -413,11 +542,13 @@ header {
 }
 
 /* SEARCH RESULTS STYLING */
-#search-results { 
+#search-results {
     position: absolute !important;
-    top: 100% !important; /* Tippuu suoraan syöttökentän alta */
+    top: 100% !important;
+    /* Tippuu suoraan syöttökentän alta */
     left: 0 !important;
-    width: calc(100% - 100px) !important; /* Sama leveys kuin syöttökentällä */
+    width: calc(100% - 100px) !important;
+    /* Sama leveys kuin syöttökentällä */
     background: #1a1a1a !important;
     border: 1px solid #333 !important;
     border-radius: 0 0 8px 8px !important;
@@ -426,18 +557,29 @@ header {
     max-height: 200px !important;
     overflow-y: auto !important;
 }
-.search-item { 
-    padding: 12px 15px !important; 
-    border-bottom: 1px solid #222; cursor: pointer; font-size: 0.9rem; text-align: left; transition: background 0.2s; 
+
+.search-item {
+    padding: 12px 15px !important;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: left;
+    transition: background 0.2s;
     font-family: 'Resolve', sans-serif !important;
-    font-stretch: normal !important; /* Estää fontin puristumisen */
-    letter-spacing: 0.02em !important; /* Lisää hieman hengittävyyttä */
+    font-stretch: normal !important;
+    /* Estää fontin puristumisen */
+    letter-spacing: 0.02em !important;
+    /* Lisää hieman hengittävyyttä */
     text-transform: uppercase;
     font-weight: 500;
     color: #fff !important;
     text-decoration: none !important;
 }
-.search-item:hover { background: #222; color: var(--sub-red); }
+
+.search-item:hover {
+    background: #222;
+    color: var(--sub-red);
+}
 
 .quick-results {
     position: absolute !important;
@@ -453,31 +595,104 @@ header {
     overflow-y: auto !important;
 }
 
-.container { background: #141414; padding: 15px !important; border-radius: var(--sub-radius) !important; border: 1px solid #222; width: 94% !important; max-width: 400px; box-sizing: border-box; margin: 15px auto 0; }
-.btn-red { width: 100%; padding: 12px !important; border-radius: var(--sub-radius) !important; border: none; font-family: var(--sub-name-font) !important; text-transform: uppercase; cursor: pointer; background: var(--sub-red); color: white; font-size: 1rem !important; letter-spacing: 1px; font-weight: bold; }
-.btn-outline { font-family: var(--sub-name-font) !important; text-transform: uppercase; }
-.lb-name { font-family: 'ResolveNarrowReg', sans-serif !important; color: #FFFFFF !important; font-size: 1.1rem !important; letter-spacing: 1.5px !important; text-transform: uppercase; font-weight: 400 !important; font-stretch: normal !important; }
-.lb-elo { color: var(--sub-gold) !important; font-family: var(--sub-name-font) !important; font-size: 1.2rem !important; }
+.container {
+    background: #141414;
+    padding: 15px !important;
+    border-radius: var(--sub-radius) !important;
+    border: 1px solid #222;
+    width: 94% !important;
+    max-width: 400px;
+    box-sizing: border-box;
+    margin: 15px auto 0;
+}
 
-input { width: 100%; padding: 10px !important; margin-bottom: 12px !important; border-radius: var(--sub-radius) !important; border: 1px solid var(--sub-border); background: #1c1c1c; color: #fff; box-sizing: border-box; }
+.btn-red {
+    width: 100%;
+    padding: 12px !important;
+    border-radius: var(--sub-radius) !important;
+    border: none;
+    font-family: var(--sub-name-font) !important;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: var(--sub-red);
+    color: white;
+    font-size: 1rem !important;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.btn-outline {
+    font-family: var(--sub-name-font) !important;
+    text-transform: uppercase;
+}
+
+.lb-name {
+    font-family: 'ResolveNarrowReg', sans-serif !important;
+    color: #FFFFFF !important;
+    font-size: 1.1rem !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase;
+    font-weight: 400 !important;
+    font-stretch: normal !important;
+}
+
+.lb-elo {
+    color: var(--sub-gold) !important;
+    font-family: var(--sub-name-font) !important;
+    font-size: 1.2rem !important;
+}
+
+input {
+    width: 100%;
+    padding: 10px !important;
+    margin-bottom: 12px !important;
+    border-radius: var(--sub-radius) !important;
+    border: 1px solid var(--sub-border);
+    background: #1c1c1c;
+    color: #fff;
+    box-sizing: border-box;
+}
 
 input::placeholder {
     color: rgba(255, 255, 255, 0.8) !important;
     text-transform: uppercase;
 }
 
-input, select, textarea, button {
+input,
+select,
+textarea,
+button {
     font-size: 16px !important;
-    font-family: 'Open Sans', sans-serif !important; /* Ensure readable default font */
+    font-family: 'Open Sans', sans-serif !important;
+    /* Ensure readable default font */
 }
 
-input, select, button {
+input,
+select,
+button {
     font-family: 'Resolve', sans-serif !important;
 }
 
-#auth-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--sub-black); display: flex; flex-direction: column; align-items: center; z-index: 1000; padding-top: 80px; }
+#auth-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--sub-black);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+    padding-top: 80px;
+}
 
-#section-more h2, #section-more h3 { font-family: var(--sub-logo-font) !important; color: var(--sub-red); }
+#section-more h2,
+#section-more h3 {
+    font-family: var(--sub-logo-font) !important;
+    color: var(--sub-red);
+}
+
 /* Connection Light */
 .connection-dot {
     width: 8px;
@@ -490,6 +705,7 @@ input, select, button {
     transition: 0.3s;
     vertical-align: middle;
 }
+
 .dot-offline {
     background-color: #ff0000 !important;
     box-shadow: 0 0 8px #ff0000 !important;
@@ -505,7 +721,8 @@ input, select, button {
 }
 
 .tour-setup-header {
-    flex-shrink: 0; /* Header doesn't shrink */
+    flex-shrink: 0;
+    /* Header doesn't shrink */
 }
 
 .tour-setup-body {
@@ -516,7 +733,10 @@ input, select, button {
 }
 
 #pool-list {
-    flex-grow: 0 !important; min-height: 50px !important; height: auto !important; overflow-y: visible !important;
+    flex-grow: 0 !important;
+    min-height: 50px !important;
+    height: auto !important;
+    overflow-y: visible !important;
     margin: 10px 0;
     background: #141414;
     padding: 15px;
@@ -527,8 +747,10 @@ input, select, button {
 }
 
 .tour-setup-footer {
-    flex-shrink: 0; /* Footer doesn't shrink */
-    position: relative; /* For positioning search results */
+    flex-shrink: 0;
+    /* Footer doesn't shrink */
+    position: relative;
+    /* For positioning search results */
     padding-top: 10px;
 }
 
@@ -538,7 +760,10 @@ input, select, button {
     width: 100% !important;
 }
 
-#add-p-input { flex-grow: 1 !important; margin-bottom: 0 !important; }
+#add-p-input {
+    flex-grow: 1 !important;
+    margin-bottom: 0 !important;
+}
 
 .add-guest-btn {
     position: static !important;
@@ -572,7 +797,8 @@ input, select, button {
 /* ILMOITUSTEN TYYLIT (TOAST) */
 #notification-container {
     position: fixed !important;
-    top: 75px !important; /* Siirto ylös logon alle */
+    top: 75px !important;
+    /* Siirto ylös logon alle */
     bottom: auto !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
@@ -592,7 +818,7 @@ input, select, button {
     border-left: 4px solid var(--sub-gold) !important;
     color: white !important;
     padding: 12px 20px !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
     border-radius: var(--sub-radius);
     backdrop-filter: blur(4px);
     font-family: 'Open Sans', sans-serif;
@@ -643,12 +869,16 @@ input, select, button {
 /* Tournament Mode -napin hienovaraisempi tyyli */
 .tour-mode-toggle {
     margin-top: 15px;
-    padding: 10px 25px !important; /* Hieman enemmän tilaa sormille */
-    font-family: 'Resolve', sans-serif !important; /* Vaihdetaan Russo Onesta luettavampaan mutta tyylikkääseen */
-    font-size: 0.9rem !important; /* Pidetään hieman isompana kuten pyysit */
+    padding: 10px 25px !important;
+    /* Hieman enemmän tilaa sormille */
+    font-family: 'Resolve', sans-serif !important;
+    /* Vaihdetaan Russo Onesta luettavampaan mutta tyylikkääseen */
+    font-size: 0.9rem !important;
+    /* Pidetään hieman isompana kuten pyysit */
     color: #888 !important;
     background: transparent !important;
-    border: 1px dashed #444 !important; /* Tehdään siitä selkeästi "toissijainen" toiminto */
+    border: 1px dashed #444 !important;
+    /* Tehdään siitä selkeästi "toissijainen" toiminto */
     border-radius: var(--sub-radius) !important;
     cursor: pointer;
     display: inline-flex;
@@ -660,7 +890,8 @@ input, select, button {
 }
 
 .tour-mode-toggle:hover {
-    color: var(--sub-gold) !important; /* Korostuu kullalla vasta kun hiiri on päällä */
+    color: var(--sub-gold) !important;
+    /* Korostuu kullalla vasta kun hiiri on päällä */
     border-color: #444 !important;
     background: rgba(255, 255, 255, 0.03) !important;
 }
@@ -716,7 +947,8 @@ input, select, button {
     background: var(--sub-surface) !important;
     backdrop-filter: blur(25px) !important;
     -webkit-backdrop-filter: blur(25px) !important;
-    z-index: 999999 !important; /* Korkein mahdollinen taso */
+    z-index: 999999 !important;
+    /* Korkein mahdollinen taso */
     display: none;
     flex-direction: column;
     align-items: center;
@@ -767,23 +999,45 @@ input, select, button {
 }
 
 @keyframes victoryPop {
-    0% { transform: scale(0.5); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 @keyframes victorySlideUp {
-    0% { transform: translateY(40px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
+    0% {
+        transform: translateY(40px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 @keyframes bounceIn {
-    0% { transform: scale(0.3); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* Varmistetaan että Quick Matchin punaiset reunat eivät "vuoda" läpi */
-.quick-match-container, input:focus {
-    z-index: 1; 
+.quick-match-container,
+input:focus {
+    z-index: 1;
 }
 
 .card-player-name {
@@ -791,12 +1045,14 @@ input, select, button {
 }
 
 /* style.css: Lisää loppuun */
-#victory-overlay, .quick-winner-overlay {
+#victory-overlay,
+.quick-winner-overlay {
     background-color: #0a0a0a !important;
 }
 
 /* style.css loppuun */
-input:focus, input:active {
+input:focus,
+input:active {
     outline: none !important;
     box-shadow: none !important;
     -webkit-tap-highlight-color: transparent;
@@ -805,19 +1061,30 @@ input:focus, input:active {
 /* ESTÄÄ KLIKKAUKSET HETI KUN PELI PÄÄTTYY */
 .game-controls-locked {
     pointer-events: none !important;
-    opacity: 0.8; /* Pieni visuaalinen himmennys merkiksi lukituksesta */
+    opacity: 0.8;
+    /* Pieni visuaalinen himmennys merkiksi lukituksesta */
 }
 
 /* Fonttien vakautus mobiililaitteille */
-body, input, button, select, textarea, span, div, h1, h2, h3 {
+body,
+input,
+button,
+select,
+textarea,
+span,
+div,
+h1,
+h2,
+h3 {
     font-family: 'Resolve', 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     -webkit-font-smoothing: antialiased;
 }
 
 /* Profile Edit Fields */
-#profile-edit-fields input, 
+#profile-edit-fields input,
 #profile-edit-fields select {
-    font-size: 16px !important; /* Estää zoomauksen mobiilissa */
+    font-size: 16px !important;
+    /* Estää zoomauksen mobiilissa */
     background: #222;
     border: 1px solid #333;
     color: #fff;
@@ -828,7 +1095,8 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 
 /* Official Match -näkymän painikkeet */
 .score-btn {
-    background-color: var(--sub-red) !important; /* Säilytetään punainen väri */
+    background-color: var(--sub-red) !important;
+    /* Säilytetään punainen väri */
     color: white !important;
     border: none;
     border-radius: var(--sub-radius);
@@ -836,11 +1104,11 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     font-size: 2rem;
     padding: 20px;
     /* Pidetään tausta punaisena, mutta poistetaan mahdolliset moniväriset varjot */
-    box-shadow: 0 4px 0px rgba(0,0,0,0.2); 
+    box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2);
 }
 
 /* Yhtenäistetään kaikkien SETUP-näkymien ikonien koko */
-.section-title + div i, 
+.section-title+div i,
 #quick-match-section i,
 #tournament-section i {
     font-size: 1.1rem;
@@ -861,7 +1129,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     padding: 15px;
     width: 280px;
     margin: 20px auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(255, 215, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(255, 215, 0, 0.1);
     position: relative;
     overflow: hidden;
     text-align: center;
@@ -875,7 +1143,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255,215,0,0.05), transparent);
+    background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.05), transparent);
     transform: rotate(45deg);
     pointer-events: none;
 }
@@ -889,7 +1157,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     margin: 10px auto;
     background: #222;
     object-fit: cover;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 /* Tilasto-osio kortin alareunassa */
@@ -923,14 +1191,16 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 
 /* Topps-mittasuhteet ja tyyli */
 .topps-collectible-card {
-    width: 320px; /* Vastaa 2.5" x 3.5" suhdetta */
+    width: 320px;
+    /* Vastaa 2.5" x 3.5" suhdetta */
     height: 448px;
     background: #0a0a0a;
     border-radius: 12px;
     position: relative;
     overflow: hidden;
-    border: 8px solid #1a1a1a; /* Ulkoreuna */
-    box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+    border: 8px solid #1a1a1a;
+    /* Ulkoreuna */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9);
     font-family: 'Resolve', sans-serif;
     margin: 20px auto;
 }
@@ -950,7 +1220,8 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 /* Suuri pelaajakuva */
 .card-hero-image {
     width: 100%;
-    height: 75%; /* Kuva täyttää suurimman osan kortista */
+    height: 75%;
+    /* Kuva täyttää suurimman osan kortista */
     object-fit: cover;
     position: absolute;
     top: 0;
@@ -1013,8 +1284,10 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 /* MODAL SYSTEM - PRO LOOK */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.92);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -1034,7 +1307,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
     animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1064,18 +1337,29 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     line-height: 1;
 }
 
-.modal-body { padding: 20px; }
+.modal-body {
+    padding: 20px;
+}
 
 @keyframes modalFadeIn {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 /* LOADING INDICATOR */
 #loading-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
@@ -1097,8 +1381,13 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* UTILITY ANIMATIONS */
@@ -1107,8 +1396,15 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 }
 
 @keyframes fadeInEffect {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* PRO UI COMPONENTS */
@@ -1162,8 +1458,15 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 }
 
 @keyframes levelUpPop {
-    0% { transform: scale(0.5) rotateY(-30deg); opacity: 0; }
-    100% { transform: scale(1) rotateY(0); opacity: 1; }
+    0% {
+        transform: scale(0.5) rotateY(-30deg);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1) rotateY(0);
+        opacity: 1;
+    }
 }
 
 .topps-collectible-card {
@@ -1173,22 +1476,33 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 .topps-collectible-card::before {
     content: '';
     position: absolute;
-    top: 0; left: -100%;
-    width: 50%; height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
     transform: skewX(-25deg);
     animation: cardGlimmer 3s infinite;
     z-index: 12;
 }
 
 @keyframes cardGlimmer {
-    0% { left: -100%; }
-    20% { left: 200%; }
-    100% { left: 200%; }
+    0% {
+        left: -100%;
+    }
+
+    20% {
+        left: 200%;
+    }
+
+    100% {
+        left: 200%;
+    }
 }
 
 /* 3D TILT & SHINE EFFECT */
-.pro-card, .topps-collectible-card {
+.pro-card,
+.topps-collectible-card {
     transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
     transform-style: preserve-3d;
     will-change: transform;
@@ -1197,8 +1511,11 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 
 .card-shine {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.3) 0%, transparent 60%);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.3) 0%, transparent 60%);
     pointer-events: none;
     z-index: 15;
     mix-blend-mode: overlay;
@@ -1207,21 +1524,26 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     border-radius: inherit;
 }
 
-.pro-card:hover .card-shine, .topps-collectible-card:hover .card-shine {
+.pro-card:hover .card-shine,
+.topps-collectible-card:hover .card-shine {
     opacity: 1;
 }
 
 /* Containers need perspective for 3D to work */
-#profile-card-container, .modal-body, #level-up-card-preview {
+#profile-card-container,
+.modal-body,
+#level-up-card-preview {
     perspective: 1000px;
 }
 
 /* SPECIAL EDITIONS - PRO STYLE */
 .card-elite-edition {
-    border-color: #003399 !important; /* Elite Blue */
+    border-color: #003399 !important;
+    /* Elite Blue */
     background: linear-gradient(145deg, #001f4d, #000) !important;
     box-shadow: 0 0 20px rgba(0, 51, 153, 0.5) !important;
 }
+
 .card-elite-edition .card-header-stripe {
     background: #003399 !important;
     color: #fff !important;
@@ -1229,10 +1551,12 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 }
 
 .card-global-edition {
-    border-color: #006400 !important; /* Global Green */
+    border-color: #006400 !important;
+    /* Global Green */
     background: linear-gradient(145deg, #004d00, #000) !important;
     box-shadow: 0 0 20px rgba(0, 100, 0, 0.5) !important;
 }
+
 .card-global-edition .card-header-stripe {
     background: #006400 !important;
     color: #fff !important;
@@ -1245,8 +1569,13 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 }
 
 @keyframes goldPulse {
-    from { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
-    to { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
+    from {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+
+    to {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    }
 }
 
 .subsoccer-footer {
@@ -1257,6 +1586,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     font-size: 0.7rem;
     letter-spacing: 2px;
 }
+
 .subsoccer-footer a {
     color: inherit;
     text-decoration: none;
@@ -1270,6 +1600,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     margin-top: 5px;
     opacity: 0.8;
 }
+
 .beta-label {
     background: transparent;
     color: #fff;
@@ -1279,6 +1610,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     letter-spacing: 1px;
     text-transform: uppercase;
 }
+
 .beta-date {
     color: #fff;
     font-size: 0.6rem;
@@ -1289,15 +1621,17 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
 }
 
 @keyframes appFadeIn {
-    from { 
-        opacity: 0; 
-        transform: translateY(5px); 
+    from {
+        opacity: 0;
+        transform: translateY(5px);
     }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
+
 .fade-in {
     animation: appFadeIn 0.6s ease-out forwards;
 }
@@ -1307,9 +1641,11 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     display: flex;
     justify-content: center;
     padding: 30px 0;
-    margin-bottom: 100px; /* Jättää tilaa kiinteälle alavalikolle */
+    margin-bottom: 100px;
+    /* Jättää tilaa kiinteälle alavalikolle */
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
+
 .feedback-btn {
     background: rgba(255, 215, 0, 0.1);
     color: var(--sub-gold);
@@ -1324,7 +1660,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     align-items: center;
     gap: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .feedback-btn:hover {
@@ -1338,6 +1674,7 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     border: 1px dashed rgba(255, 215, 0, 0.3) !important;
     position: relative;
 }
+
 .status-rookie::after {
     content: "ROOKIE EDITION";
     position: absolute;
@@ -1348,4 +1685,84 @@ body, input, button, select, textarea, span, div, h1, h2, h3 {
     letter-spacing: 2px;
     font-weight: 900;
     opacity: 0.6;
+}
+
+/* LIVE MODE OVERRIDES */
+body.live-mode header,
+body.live-mode #app-content,
+body.live-mode .nav-tabs,
+body.live-mode #settings-menu,
+body.live-mode #auth-page,
+body.live-mode .feedback-footer,
+body.live-mode #victory-overlay,
+body.live-mode #card-modal {
+    display: none !important;
+}
+
+body.live-mode {
+    background: var(--sub-black);
+    overflow-x: hidden;
+}
+
+/* BRAND UTILITIES */
+.sub-heading-premium {
+    font-family: var(--sub-name-font);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--sub-white);
+}
+
+.sub-card-premium {
+    background: var(--sub-charcoal);
+    border: 1px solid var(--sub-border);
+    border-radius: var(--sub-radius);
+    padding: 24px;
+    box-shadow: var(--sub-shadow);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.sub-card-premium:hover {
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+.sub-badge-live {
+    background: var(--sub-red);
+    color: #fff;
+    padding: 4px 12px;
+    font-family: var(--sub-name-font);
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    font-weight: bold;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    animation: live-pulse 2s infinite;
+}
+
+@keyframes live-pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.sub-gold-text {
+    color: var(--sub-gold);
+    font-family: var(--sub-name-font);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sub-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--sub-border), transparent);
+    margin: 20px 0;
 }

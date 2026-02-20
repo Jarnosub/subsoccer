@@ -5,18 +5,19 @@ import { handleSearch, addP, directAdd } from './script.js';
 import { fetchLB, fetchHist } from './stats-service.js';
 import { fetchMyGames, cancelEdit, registerGame, updateGame, viewOwnershipRequests } from './game-service.js';
 import { fetchPublicGamesMap, initGameMap, searchLocation } from './map.js';
-import { 
-    loadEventsPage, viewTournamentBracket, pickEventWinner, pickEventBronzeWinner, 
+import {
+    loadEventsPage, viewTournamentBracket, pickEventWinner, pickEventBronzeWinner,
     advanceEventRound, finishEventTournament, closeBracketModal, viewTournamentParticipants,
     showCreateEventForm, viewEventDetails, editTournament, deleteTournament, unregisterFromTournament,
     registerForTournament, showCreateTournamentForm, editEvent, deleteEvent, shareLiveEventLink, closeEventModal,
     addParticipantFromSearch, removeTournamentParticipant, selectParticipantFromDropdown, createTournament,
     closeTournamentForm, saveTournamentEdit, clearEventImage, updateEventForm, handleParticipantSearch,
-    hideCreateEventForm, clearBrandLogo, previewBrandLogo, previewEventImage, createNewEvent, closeEmailPrompt, saveEmailAndRegister
-} from './events.js';
-import { 
-    handleQuickSearch, startQuickMatch, clearQuickMatchPlayers, 
-    handleProModeClick, toggleAudioDetection, recordGoalSound, acceptRulesAndStart, 
+    hideCreateEventForm, clearBrandLogo, previewBrandLogo, previewEventImage, createNewEvent, closeEmailPrompt, saveEmailAndRegister,
+    addModerator, removeModerator, searchModerators
+} from './events-v3-final.js';
+import {
+    handleQuickSearch, startQuickMatch, clearQuickMatchPlayers,
+    handleProModeClick, toggleAudioDetection, recordGoalSound, acceptRulesAndStart,
     addManualGoal, exitProMode, undoLastGoal, initProModeUI, initClaimResult, toggleSoundEffects, selectQuickPlayer, saveClaimedResult, cancelClaimResult, closeVictoryOverlay
 } from './quick-match.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
@@ -38,11 +39,11 @@ let currentPageIndex = 1; // Aloitetaan tournament-sivulta
 export function showVictoryAnimation(winnerName, newElo, eloGain) {
     const overlay = document.getElementById('victory-overlay');
     if (!overlay) return;
-    
+
     const nameEl = document.getElementById('victory-player-name');
     const eloEl = document.getElementById('victory-elo-count');
     const gainEl = document.getElementById('victory-elo-gain');
-    
+
     if (nameEl) nameEl.innerText = winnerName || 'Winner';
     if (eloEl) eloEl.innerText = newElo || '';
     if (gainEl) {
@@ -52,7 +53,7 @@ export function showVictoryAnimation(winnerName, newElo, eloGain) {
             gainEl.innerText = `${prefix}${val} POINTS`;
         }
     }
-    
+
     overlay.style.display = 'flex';
 }
 
@@ -68,32 +69,32 @@ function updatePageUI(p) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('section-' + p).classList.add('active');
-    
+
     // Map sub-pages to main tabs
     let tabId = 'tab-' + p;
     if (p === 'map' || p === 'leaderboard' || p === 'history') {
         tabId = 'tab-profile'; // Map and Rank are now under Profile context
     }
-    
+
     const t = document.getElementById(tabId);
     if (t) {
         t.classList.add('active');
     }
-    
+
     // Update currentPageIndex for swipe navigation
     const pageIdx = ['profile', 'tournament', 'events', 'map', 'leaderboard'].indexOf(p);
     if (pageIdx !== -1) {
         currentPageIndex = pageIdx;
     }
-    
-    
+
+
     // Funktiot, jotka suoritetaan sivun vaihdon yhteydessä
     if (p === 'profile') {
         cancelEditProfile(); // Piilottaa lomakkeen aina kun välilehti vaihtuu
         const profileGamesUi = document.getElementById('profile-games-ui');
-        if(profileGamesUi) 
+        if (profileGamesUi)
             profileGamesUi.style.display = 'none'; // Piilotettu oletuksena, näytetään vain muokkaustilassa
-        if(document.getElementById('profile-dashboard-ui')) 
+        if (document.getElementById('profile-dashboard-ui'))
             document.getElementById('profile-dashboard-ui').style.display = 'block';
         loadUserProfile();
         if (typeof updateProfileCard === 'function') updateProfileCard();
@@ -101,7 +102,7 @@ function updatePageUI(p) {
     if (p === 'leaderboard') fetchLB();
     if (p === 'history') fetchHist();
     if (p === 'games') fetchMyGames();
-    if (p !== 'games') cancelEdit(); 
+    if (p !== 'games') cancelEdit();
     if (p !== 'profile') cancelEditProfile();
     if (p === 'map') fetchPublicGamesMap();
     if (p === 'events') loadEventsPage();
@@ -139,17 +140,17 @@ export function showMatchMode(mode) {
     const quickBtn = document.getElementById('btn-quick-match-mode');
     const tournamentBtn = document.getElementById('btn-tournament-mode');
     const tourIcon = document.getElementById('tournament-icon-status');
-    
+
     if (mode === 'quick') {
         quickSection.style.display = 'block';
         tournamentSection.style.display = 'none';
-        
+
         // Quick Match - active
         quickBtn.style.background = 'linear-gradient(135deg, #E30613 0%, #c00510 100%)';
         quickBtn.style.color = '#fff';
         quickBtn.style.border = 'none';
         quickBtn.style.boxShadow = 'none';
-        
+
         // Tournament - inactive
         tournamentBtn.style.background = '#1a1a1a';
         tournamentBtn.style.color = '#888';
@@ -159,13 +160,13 @@ export function showMatchMode(mode) {
     } else {
         quickSection.style.display = 'none';
         tournamentSection.style.display = 'block';
-        
+
         // Quick Match - inactive
         quickBtn.style.background = '#1a1a1a';
         quickBtn.style.color = '#888';
         quickBtn.style.border = '2px solid #333';
         quickBtn.style.boxShadow = '0 0 15px rgba(227, 6, 19, 0.3)'; // Punainen hohde
-        
+
         // Tournament - active (Kultainen teema)
         tournamentBtn.style.background = 'linear-gradient(135deg, #FFD700 0%, #d4af37 100%)';
         tournamentBtn.style.color = '#000';
@@ -189,7 +190,7 @@ export function toggleTournamentMode() {
 function handleSwipe() {
     const swipeThreshold = 50; // Minimimatka pikseleinä
     const diff = touchStartX - touchEndX;
-    
+
     if (Math.abs(diff) > swipeThreshold) {
         if (diff > 0) {
             // Swipe vasemmalle -> seuraava sivu
@@ -210,11 +211,11 @@ function handleSwipe() {
 function initSwipeListener() {
     const appContent = document.getElementById('app-content');
     if (!appContent) return;
-    
+
     appContent.addEventListener('touchstart', (e) => {
         touchStartX = e.changedTouches[0].screenX;
     }, { passive: true });
-    
+
     appContent.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
@@ -233,7 +234,7 @@ if (document.readyState === 'loading') {
  */
 export async function loadUserProfile() {
     if (!state.user || !state.user.id) return;
-    
+
     // Päivitä avatar
     const avatarEl = document.getElementById('profile-avatar-display');
     const previewEl = document.getElementById('avatar-preview');
@@ -243,19 +244,19 @@ export async function loadUserProfile() {
     if (previewEl && state.user.avatar_url) {
         previewEl.src = state.user.avatar_url;
     }
-    
+
     // Päivitä nimi
     const usernameEl = document.getElementById('profile-username');
     if (usernameEl) {
         usernameEl.innerText = state.user.username || 'Player';
     }
-    
+
     // Päivitä nimi headeriin
     const headerNameEl = document.getElementById('user-display-name');
     if (headerNameEl) {
         headerNameEl.innerText = state.user.username || 'Player';
     }
-    
+
     // Päivitä maa
     const countryEl = document.getElementById('profile-country');
     if (countryEl && state.user.country) {
@@ -263,13 +264,13 @@ export async function loadUserProfile() {
     } else if (countryEl) {
         countryEl.innerText = '🌍 Set your country';
     }
-    
+
     // Päivitä ELO
     const eloEl = document.getElementById('profile-elo');
     if (eloEl) {
         eloEl.innerText = state.user.elo || 1000;
     }
-    
+
     // Hae otteluiden määrä
     const matchesEl = document.getElementById('profile-matches');
     if (matchesEl && state.user.id !== 'guest') {
@@ -277,13 +278,13 @@ export async function loadUserProfile() {
             const { count } = await _supabase
                 .from('matches')
                 .select('*', { count: 'exact', head: true })
-                .or(`player1.eq.${state.user.username},player2.eq.${state.user.username}`);
+                .or(`player1.eq.${state.user.username}, player2.eq.${state.user.username} `);
             matchesEl.innerText = count || 0;
-        } catch(e) {
+        } catch (e) {
             matchesEl.innerText = '0';
         }
     }
-    
+
     // Lataa pelit
     fetchMyGames();
 }
@@ -292,17 +293,17 @@ export async function loadUserProfile() {
  * Näyttää profiilin muokkauslomakkeen
  */
 export function showEditProfile() {
-    const fields = document.getElementById('profile-edit-fields'); 
-    if(!fields) return;
+    const fields = document.getElementById('profile-edit-fields');
+    if (!fields) return;
     fields.style.display = 'block';
     document.getElementById('profile-dashboard-ui').style.display = 'none'; // Piilota napit
-    
+
     // Näytetään pelipöydät vain muokkaustilassa
     const profileGamesUi = document.getElementById('profile-games-ui');
     if (profileGamesUi) profileGamesUi.style.display = state.user?.id === 'guest' ? 'none' : 'block';
-    
+
     populateCountries();
-    
+
     // Haetaan arvot state.userista (joka on nyt ladattu auth.js:ssä)
     const mapping = {
         'edit-full-name': state.user.full_name,
@@ -328,7 +329,7 @@ export function cancelEditProfile() {
         editFields.style.display = 'none';
     }
     document.getElementById('profile-dashboard-ui').style.display = 'block'; // Tuo napit takaisin
-    
+
     // Piilotetaan pelipöydät kun poistutaan muokkaustilasta
     const profileGamesUi = document.getElementById('profile-games-ui');
     if (profileGamesUi) profileGamesUi.style.display = 'none';
@@ -338,7 +339,7 @@ export function cancelEditProfile() {
  * Globaali virheidenhallinta
  */
 export function setupGlobalErrorHandling() {
-    window.onerror = function(message, source, lineno, colno, error) {
+    window.onerror = function (message, source, lineno, colno, error) {
         console.error("🚀 Subsoccer Global Error:", message, error);
         // Estetään spämmäys, näytetään vain kriittiset
         if (message.includes('Script error') || message.includes('ResizeObserver')) return false;
@@ -346,7 +347,7 @@ export function setupGlobalErrorHandling() {
         return false;
     };
 
-    window.onunhandledrejection = function(event) {
+    window.onunhandledrejection = function (event) {
         console.error("🚀 Subsoccer Promise Rejection:", event.reason);
         const msg = event.reason?.message || "Network or Database error occurred.";
         if (msg.includes('fetch')) showNotification("Connection lost. Please check your internet.", "error");
@@ -359,7 +360,7 @@ export function setupGlobalErrorHandling() {
  */
 export function initTiltEffect(card) {
     if (!card) return;
-    
+
     // Lisää kiilto-elementti jos sitä ei ole
     if (!card.querySelector('.card-shine')) {
         const shine = document.createElement('div');
@@ -371,19 +372,19 @@ export function initTiltEffect(card) {
         const rect = card.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
+
         const x = clientX - rect.left;
         const y = clientY - rect.top;
-        
+
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        
+
         const rotateX = (centerY - y) / 12; // Säädä voimakkuutta tästä
         const rotateY = (x - centerX) / 12;
-        
+
         card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-        card.style.setProperty('--x', `${x}px`);
-        card.style.setProperty('--y', `${y}px`);
+        card.style.setProperty('--x', `${x} px`);
+        card.style.setProperty('--y', `${y} px`);
     };
 
     const handleReset = () => {
@@ -644,6 +645,19 @@ export function setupUIListeners() {
                 return;
             }
             if (act === 'close-share-modal') { eventAction.closest('div[style*="position:fixed"]').remove(); return; }
+            if (act === 'toggle-moderator-search') {
+                const container = document.getElementById('moderator-search-container');
+                if (container) container.style.display = container.style.display === 'none' ? 'block' : 'none';
+                return;
+            }
+            if (act === 'add-moderator') {
+                addModerator(eventId, eventAction.dataset.playerId, eventAction.dataset.username);
+                return;
+            }
+            if (act === 'remove-moderator') {
+                removeModerator(eventId, eventAction.dataset.playerId);
+                return;
+            }
         }
 
         // 1. Player Cards (Leaderboard, Podium)
@@ -670,7 +684,7 @@ export function setupUIListeners() {
         // 4. Tournament History Toggle
         const tourToggle = e.target.closest('[data-toggle-tournament]');
         if (tourToggle) {
-            const el = document.getElementById(`tour-matches-${tourToggle.dataset.toggleTournament}`);
+            const el = document.getElementById(`tour - matches - ${tourToggle.dataset.toggleTournament} `);
             if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
             return;
         }
@@ -719,6 +733,10 @@ export function setupUIListeners() {
         if (e.target.id && e.target.id.startsWith('participant-search-')) {
             const tourId = e.target.id.replace('participant-search-', '');
             handleParticipantSearch(tourId);
+        }
+        if (e.target.id === 'mod-search-input') {
+            const eventId = e.target.closest('[data-event-id]')?.dataset.eventId;
+            if (eventId) searchModerators(e.target.value, eventId);
         }
     });
 
@@ -781,9 +799,9 @@ export function updateProfileCard() {
     const container = document.getElementById('profile-card-container');
     if (!container || !state.user) return;
     const u = state.user;
-    const editionClass = state.activeCardEdition !== 'standard' ? `card-${state.activeCardEdition}-edition` : '';
+    const editionClass = state.activeCardEdition !== 'standard' ? `card - ${state.activeCardEdition} -edition` : '';
     const rookieClass = ((u.wins || 0) + (u.losses || 0)) < 5 ? 'status-rookie' : '';
-    
+
     const labels = {
         'standard': 'PRO CARD',
         'elite': 'ELITE SERIES',
@@ -795,7 +813,7 @@ export function updateProfileCard() {
     const overlayHeight = state.brand ? '30%' : '40%';
 
     container.innerHTML = `
-        <div class="topps-collectible-card ${editionClass} ${rookieClass}" style="background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;">
+    <div class="topps-collectible-card ${editionClass} ${rookieClass}" style="background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;">
             <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" class="card-hero-image" referrerpolicy="no-referrer" onerror="this.src='placeholder-silhouette-5-wide.png'">
             <div class="card-overlay" style="background: ${overlayBg}; height: ${overlayHeight}; border-top: ${state.brand ? '3px solid var(--sub-gold)' : 'none'}; box-shadow: 0 -5px 15px rgba(0,0,0,0.3);"></div>
             <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">${editionLabel} // 2026</div>
@@ -821,7 +839,7 @@ export function updateProfileCard() {
                 <i class="fa fa-download"></i> SAVE IMAGE
             </button>
         </div>
-    `;
+`;
 
     const card = container.querySelector('.topps-collectible-card');
     if (card) initTiltEffect(card);
@@ -833,16 +851,31 @@ export function updateProfileCard() {
 subscribe('user', () => {
     try {
         if (!state.user) return;
-        
+
         // Tarkistetaan ollaanko vasta kirjautumassa sisään (auth-sivu on vielä näkyvissä)
         const isInitialLogin = document.getElementById('auth-page').style.display !== 'none';
 
-        // 1. Käyttöliittymän siirtymä (Häivytä kirjautuminen, näytä sovellus)
         const authPage = document.getElementById('auth-page');
         const appContent = document.getElementById('app-content');
         const navTabs = document.getElementById('nav-tabs');
         const menuBtn = document.getElementById('menu-toggle-btn');
-        
+        const header = document.querySelector('header');
+
+        const params = new URLSearchParams(window.location.search);
+        const liveId = params.get('live');
+
+        // JOS OLLAAN LIVE-TILASSA: Piilotetaan kaikki muu ja poistutaan funktiosta
+        if (liveId) {
+            document.body.classList.add('live-mode');
+            if (authPage) authPage.style.display = 'none';
+            if (appContent) appContent.style.display = 'none';
+            if (navTabs) navTabs.style.display = 'none';
+            if (menuBtn) menuBtn.style.display = 'none';
+            if (header) header.style.display = 'none';
+            return; // Estetään normaalin UI:n latautuminen
+        }
+
+        // 1. Normaali käyttöliittymän siirtymä
         if (authPage) authPage.style.display = 'none';
         if (appContent) {
             appContent.style.display = 'flex';
@@ -856,7 +889,7 @@ subscribe('user', () => {
         // 2. Kontekstuaalinen UI (Vieraat vs Rekisteröityneet)
         const eventsTab = document.getElementById('tab-events');
         if (eventsTab) eventsTab.style.display = state.user.id === 'guest' ? 'none' : 'flex';
-        
+
         const regGameBtn = document.getElementById('btn-profile-register-game');
         if (regGameBtn) regGameBtn.style.display = state.user.id === 'guest' ? 'none' : 'block';
 
@@ -888,7 +921,6 @@ subscribe('user', () => {
 
         // 6. Navigointi (Vain ensimmäisellä kirjautumisella, ei profiilin päivityksen yhteydessä)
         if (isInitialLogin) {
-            const params = new URLSearchParams(window.location.search);
             if (params.get('action') === 'claim_result') {
                 const p1 = parseInt(params.get('p1_score')) || 0;
                 const p2 = parseInt(params.get('p2_score')) || 0;
@@ -933,9 +965,9 @@ export function updateAvatarPreview(url) {
 
 export async function viewPlayerCard(targetUsername) {
     showModal('Player Card', '<p style="font-family:\'Resolve\'">LOADING CARD...</p>', { id: 'card-modal', maxWidth: '400px' });
-    
+
     const { data: p } = await _supabase.from('players').select('*').eq('username', targetUsername).maybeSingle();
-    
+
     if (!p) {
         const body = document.querySelector('#card-modal .modal-body');
         if (body) body.innerHTML = '<p>Player not found.</p>';
@@ -949,9 +981,9 @@ export async function viewPlayerCard(targetUsername) {
     const cardHeader = state.brand ? "PARTNER" : rank;
     const avatarUrl = (p.avatar_url && p.avatar_url.trim() !== '') ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
     const rookieClass = (wins + losses) < 5 ? 'status-rookie' : '';
-    
-    const html = `<div class="pro-card ${rookieClass}" style="margin:0; width:100% !important; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;"><div class="card-inner-frame"><div class="card-header-stripe">${cardHeader} CARD</div><div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div><div class="card-name-strip">${p.username}</div><div class="card-info-area"><div class="card-stats-row"><div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div><div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div><div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div><div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div></div><div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Resolve';">REPRESENTING</span></div>${state.brandLogo ? `<img src="${state.brandLogo}" style="height:22px; width:auto; object-fit:contain;">` : `<div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Resolve';">CLUB: PRO</div>`}</div></div></div></div></div>`;
-    
+
+    const html = `<div class="pro-card ${rookieClass}" style="margin:0; width:100% !important; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;"><div class="card-inner-frame"><div class="card-header-stripe">${cardHeader} CARD</div><div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div><div class="card-name-strip">${p.username}</div><div class="card-info-area"><div class="card-stats-row"><div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div><div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div><div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div><div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div></div><div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Resolve';">REPRESENTING</span></div>${state.brandLogo ? `<img src="${state.brandLogo}" style="height:22px; width:auto; object-fit:contain;">` : `<div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Resolve';">CLUB: PRO</div>`}</div></div></div></div>`;
+
     const body = document.querySelector('#card-modal .modal-body');
     if (body) body.innerHTML = html;
     initTiltEffect(body.querySelector('.pro-card'));
@@ -962,9 +994,9 @@ export function closeCardModal() { closeModal('card-modal'); }
 export async function showLevelUpCard(playerName, newElo) {
     const isPro = newElo >= 1600;
     const title = isPro ? "⭐ NEW PRO RANK REACHED!" : "📈 RANK UP!";
-    
+
     const content = `
-        <div id="level-up-container" class="level-up-anim">
+    <div id="level-up-container" class="level-up-anim">
             <div id="level-up-card-preview">
                 <!-- We reuse the player card view here -->
                 <p style="text-align:center; color:#888;">Generating your new card...</p>
@@ -977,9 +1009,9 @@ export async function showLevelUpCard(playerName, newElo) {
             </div>
         </div>
     `;
-    
+
     showModal(title, content, { id: 'level-up-modal', maxWidth: '400px', borderColor: 'var(--sub-gold)' });
-    
+
     // Render the card inside the modal
     await viewPlayerCard(playerName);
     const cardHtml = document.querySelector('#card-modal .modal-body').innerHTML;
@@ -1006,8 +1038,8 @@ export function showCardShop() {
     ];
 
     const html = `
-        <div style="display:grid; gap:15px;">
-            ${editions.map(e => `
+    <div style="display:grid; gap:15px;">
+        ${editions.map(e => `
                 <div class="sub-card" style="border-left: 4px solid ${e.color}; display:flex; justify-content:space-between; align-items:center; padding:15px;">
                     <div>
                         <div style="font-family:var(--sub-name-font); color:#fff;">${e.name}</div>
@@ -1017,7 +1049,8 @@ export function showCardShop() {
                         BUY NOW
                     </button>
                 </div>
-            `).join('')}
+            `).join('')
+        }
         </div>
     `;
 
@@ -1044,7 +1077,24 @@ export function applyBranding() {
     const brandFromUrl = params.get('brand');
     const logoFromUrl = params.get('logo');
     const colorFromUrl = params.get('color');
-    
+
+    const liveId = params.get('live');
+
+    // Jos ollaan live-näkymässä, piilotetaan globaalit elementit heti ja poistutaan
+    if (liveId) {
+        document.body.classList.add('live-mode');
+        const header = document.querySelector('header');
+        const appContent = document.getElementById('app-content');
+        const navTabs = document.getElementById('nav-tabs');
+        const authPage = document.getElementById('auth-page');
+
+        if (header) header.style.display = 'none';
+        if (appContent) appContent.style.display = 'none';
+        if (navTabs) navTabs.style.display = 'none';
+        if (authPage) authPage.style.display = 'none';
+        return; // Ei sovelleta globaalia brändäystä live-näkymään
+    }
+
     // Mahdollisuus nollata brändäys (?brand=none)
     if (brandFromUrl === 'none') {
         localStorage.removeItem('subsoccer-brand');
@@ -1063,9 +1113,9 @@ export function applyBranding() {
     // Lisätään hienovarainen hiilikuitukuvio taustalle (Subtle Carbon Fiber)
     document.body.style.backgroundColor = '#0a0a0a';
     document.body.style.backgroundImage = `
-        linear-gradient(45deg, #0d0d0d 25%, transparent 25%), 
-        linear-gradient(-45deg, #0d0d0d 25%, transparent 25%), 
-        linear-gradient(45deg, transparent 75%, #0d0d0d 75%), 
+        linear-gradient(45deg, #0d0d0d 25%, transparent 25%),
+        linear-gradient(-45deg, #0d0d0d 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #0d0d0d 75%),
         linear-gradient(-45deg, transparent 75%, #0d0d0d 75%)
     `;
     document.body.style.backgroundSize = '8px 8px';
@@ -1081,20 +1131,20 @@ export function applyBranding() {
     if (colorFromUrl && colorFromUrl !== '') {
         localStorage.setItem('subsoccer-color', colorFromUrl);
     }
-    
+
     if (brandId) {
         state.brand = brandId;
         state.brandLogo = logoUrl;
-        
+
         // Käytetään annettua väriä tai oletus-partner-punaista
         let primaryColor = colorHex ? (colorHex.startsWith('#') ? colorHex : '#' + colorHex) : null;
         if (!primaryColor && brandId === 'partner') primaryColor = '#F40009';
 
         if (primaryColor) {
             document.documentElement.style.setProperty('--sub-red', primaryColor);
-            document.documentElement.style.setProperty('--sub-gold', '#FFFFFF'); 
+            document.documentElement.style.setProperty('--sub-gold', '#FFFFFF');
         }
-        
+
         const logo = document.querySelector('.main-logo');
         if (logo) {
             if (logoUrl) {
@@ -1111,7 +1161,7 @@ export function applyBranding() {
         if (brandFromUrl) {
             showPartnerSplashScreen(logoUrl, primaryColor);
         }
-        console.log(`🤝 Branding Applied: ${brandId}`);
+        console.log(`🤝 Branding Applied: ${brandId} `);
     } else {
         // Palautetaan oletusilme (Subsoccer)
         document.documentElement.style.setProperty('--sub-red', '#E30613');
@@ -1133,15 +1183,15 @@ function showPartnerSplashScreen(logoUrl, bgColor) {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         color: white; font-family: 'Resolve', sans-serif;
         transition: opacity 0.8s ease-out;
-    `;
+`;
     splash.innerHTML = `
-        <div style="font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 20px; opacity: 0.8;">SUBSOCCER</div>
+    <div style="font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 20px; opacity: 0.8;">SUBSOCCER</div>
         ${logoUrl ? `<img src="${logoUrl}" style="max-height: 80px; margin-bottom: 20px;">` : ''}
         <div style="font-size: 2.5rem; font-weight: bold; letter-spacing: 2px; text-align: center; padding: 0 20px; line-height: 1.1;">
             OFFICIAL<br>PARTNER
         </div>
         <div style="margin-top: 40px; width: 40px; height: 2px; background: white; opacity: 0.5;"></div>
-    `;
+`;
     document.body.appendChild(splash);
     setTimeout(() => {
         splash.style.opacity = '0';
@@ -1155,7 +1205,7 @@ function showPartnerSplashScreen(logoUrl, bgColor) {
 function injectFooterLink() {
     const container = document.getElementById('app-content');
     if (!container || document.getElementById('subsoccer-footer-link')) return;
-    
+
     const footer = document.createElement('div');
     footer.id = 'subsoccer-footer-link';
     footer.className = 'subsoccer-footer';

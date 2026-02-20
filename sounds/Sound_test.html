@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>Subsoccer Remote</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: white;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #FFD700;
+            letter-spacing: 2px;
+            margin-bottom: 50px;
+            text-transform: uppercase;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .btn {
+            width: 250px;
+            height: 250px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.2s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .p1 {
+            background: #C1272D; /* Subsoccer punainen */
+            color: white;
+        }
+
+        .p2 {
+            background: #333;
+            color: white;
+            border: 3px solid #FFD700;
+        }
+
+        .freq-label {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            font-weight: normal;
+        }
+
+        .footer {
+            margin-top: 50px;
+            color: #555;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Subsoccer Test Remote</h1>
+
+    <div class="button-container">
+        <button class="btn p1" onclick="playTone(2000)">
+            PLAYER 1
+            <span class="freq-label">2000 Hz</span>
+        </button>
+
+        <button class="btn p2" onclick="playTone(3500)">
+            PLAYER 2
+            <span class="freq-label">3500 Hz</span>
+        </button>
+    </div>
+
+    <p class="footer">Käytä tätä puhelimen vieressä testataksesi äänitunnistusta.</p>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTone(freq) {
+            // Aktivoi audio jos se on unitilassa (selainten vaatimus)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+            // Äänen muotoilu (ADSR-tyylinen nopea nousu ja lasku)
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.7, audioCtx.currentTime + 0.02); 
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.6);
+            
+            console.log("Playing frequency: " + freq + "Hz");
+        }
+    </script>
+</body>
+</html>

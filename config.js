@@ -1,7 +1,31 @@
 const _URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
 const _KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
 
-export const _supabase = window.supabase.createClient(_URL, _KEY);
+// Varmista Supabase-asiakkaan alustus ympäristöstä riippuen
+let supabaseClient;
+if (typeof window !== 'undefined' && window.supabase) {
+    supabaseClient = window.supabase.createClient(_URL, _KEY);
+} else {
+    // Mock tai tyhjä objekti testejä varten jos supabase-js ei ole ladattu
+    supabaseClient = {
+        from: () => ({
+            select: () => ({ eq: () => ({ maybeSingle: () => ({ data: null, error: null }) }) }),
+            insert: () => ({ data: null, error: null }),
+            update: () => ({ eq: () => ({ data: null, error: null }) }),
+            delete: () => ({ eq: () => ({ data: null, error: null }) }),
+        }),
+        auth: {
+            getSession: async () => ({ data: { session: null } }),
+            getUser: async () => ({ data: { user: null } }),
+            onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
+            signOut: async () => { },
+        },
+        storage: { from: () => ({ upload: async () => ({}), getPublicUrl: () => ({}) }) },
+    };
+}
+
+export const _supabase = supabaseClient;
+
 
 // Jaettu tila (Shared State) - Kaikki globaalit muuttujat tähän
 const initialState = {
