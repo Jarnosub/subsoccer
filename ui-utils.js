@@ -3,20 +3,38 @@
  * Basic UI functions with no dependencies to break circular loops.
  */
 
+export class SafeString {
+    constructor(html) { this.html = html; }
+    toString() { return this.html; }
+}
+
+export function unsafeHTML(html) {
+    return new SafeString(html);
+}
+
 /**
  * Tagged template for safe HTML rendering.
  * Usage: container.innerHTML = safeHTML`<div>${userInput}</div>`;
  */
 export function safeHTML(strings, ...values) {
-    const escape = (str) => String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    const escape = (val) => {
+        if (val instanceof SafeString) return val.html;
+        if (Array.isArray(val)) return val.map(escape).join('');
+        if (typeof val !== 'string') return val;
+        return val
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
 
-    return strings.reduce((acc, str, i) => 
-        acc + str + (values[i] !== undefined ? escape(values[i]) : ''), '');
+    const result = strings.reduce((acc, str, i) => {
+        const value = values[i];
+        return acc + str + (value !== undefined ? escape(value) : '');
+    }, '');
+
+    return new SafeString(result);
 }
 
 export function showNotification(message, type = 'error') {

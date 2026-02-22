@@ -10,6 +10,7 @@ import { MatchService } from './match-service.js';
 
 const PRO_MODE_WIN_SCORE = 3;
 let isMatchEnding = false;
+let finishMatchTimer = null;
 
 export async function handleQuickSearch(input, slot) {
     const v = input.value.trim().toUpperCase();
@@ -58,7 +59,7 @@ export async function selectQuickPlayer(name, slot) {
     if (slot === 'p1') state.quickP1 = name; else state.quickP2 = name;
     if (state.quickP1 && state.quickP2) {
         updateEloPreview();
-        if (state.proModeEnabled) {
+        if (state.proModeEnabled && isAdmin()) {
             document.getElementById('audio-status-panel').style.display = 'block';
             document.getElementById('audio-test-panel').style.display = 'block';
         }
@@ -84,6 +85,9 @@ export async function startQuickMatch() {
     if (!state.quickP1 || !state.quickP2) return showNotification("Select both players!", "error");
     if (state.quickP1 === state.quickP2) return showNotification("Select different players!", "error");
     
+    // Force disable Pro Mode for non-admins to prevent accidental audio requests
+    if (!isAdmin()) state.proModeEnabled = false;
+
     if (state.proModeEnabled) { startProMatch(); return; }
     
     state.proScoreP1 = 0; state.proScoreP2 = 0; state.proGoalHistory = [];
@@ -221,7 +225,7 @@ export function toggleProMode() {
     const startBtn = document.getElementById('start-quick-match');
     const audioPanels = document.getElementById('pro-mode-audio-panels');
     
-    if (state.proModeEnabled) {
+    if (state.proModeEnabled && isAdmin()) {
         startBtn.textContent = '⚡ START PRO MATCH';
         startBtn.style.background = 'linear-gradient(135deg, var(--sub-gold), #d4a017)';
         startBtn.style.color = '#000';
@@ -284,10 +288,10 @@ function handleGoalDetectedPro(playerNumber) {
     
     if (state.proScoreP1 >= PRO_MODE_WIN_SCORE) {
         isMatchEnding = true;
-        setTimeout(() => finishProMatch(state.quickP1), 1500);
+        finishMatchTimer = setTimeout(() => finishProMatch(state.quickP1), 1500);
     } else if (state.proScoreP2 >= PRO_MODE_WIN_SCORE) {
         isMatchEnding = true;
-        setTimeout(() => finishProMatch(state.quickP2), 1500);
+        finishMatchTimer = setTimeout(() => finishProMatch(state.quickP2), 1500);
     }
 }
 
@@ -313,7 +317,15 @@ function updateProScore() {
 }
 
 export function undoLastGoal() {
-    if (!state.proModeActive || isMatchEnding || state.proGoalHistory.length === 0) return;
+    // Sallitaan undo vaikka peli olisi päättymässä (isMatchEnding), jotta virheellisen voittomaalin voi perua
+    if (!state.proModeActive || state.proGoalHistory.length === 0) return;
+    
+    // Jos peli oli päättymässä, perutaan lopetus
+    if (isMatchEnding) {
+        clearTimeout(finishMatchTimer);
+        isMatchEnding = false;
+    }
+
     const lastGoal = state.proGoalHistory.pop();
     if (lastGoal.player === 1) state.proScoreP1 = Math.max(0, state.proScoreP1 - 1);
     else state.proScoreP2 = Math.max(0, state.proScoreP2 - 1);
@@ -346,21 +358,19 @@ export function handleGoalDetected(playerNumber) {
 }
 
 export async function toggleAudioDetection() {
+    if (!isAdmin()) return;
     if (!window.audioEngine) return showNotification('Audio engine not loaded', 'error');
     const status = window.audioEngine.getStatus();
     const btn = document.getElementById('toggle-audio-btn');
-    const indicator = document.getElementById('audio-indicator');
     
     if (status.isListening) {
         window.audioEngine.stopListening();
         btn.textContent = 'ACTIVATE'; btn.style.background = '#333';
-        indicator.style.background = '#666'; indicator.style.boxShadow = 'none';
         document.getElementById('audio-frequency-display').style.display = 'none';
     } else {
         const result = await window.audioEngine.startListening();
         if (result.success) {
             btn.textContent = 'DEACTIVATE'; btn.style.background = 'var(--sub-red)';
-            indicator.style.background = '#4CAF50'; indicator.style.boxShadow = '0 0 10px #4CAF50';
             document.getElementById('audio-frequency-display').style.display = 'block';
             startFrequencyMonitor();
         } else showNotification(result.message, 'error');
@@ -516,13 +526,15 @@ export function initClaimResult(p1Score, p2Score, gameId) {
                 <div id="claim-results" class="quick-results"></div>
             </div>
             
-            <button class="btn-red" id="btn-confirm-claim" data-score1="${uScore}" data-score2="${oScore}" data-game-id="${gameId}" style="background:linear-gradient(135deg, var(--sub-gold), #d4a017); color:#000; font-size:1.1rem;">
-                CONFIRM & SAVE RESULT
-            </button>
-            
-            <button class="btn-red" id="btn-cancel-claim" style="background:transparent; border:1px solid #333; color:#555; margin-top:15px; font-size:0.8rem; padding:8px;">
-                CANCEL & DISCARD
-            </button>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn-red" id="btn-confirm-claim" data-score1="${uScore}" data-score2="${oScore}" data-game-id="${gameId}" style="flex:1; background:linear-gradient(135deg, var(--sub-gold), #d4a017); color:#000; font-size:1rem;">
+                    CONFIRM
+                </button>
+                
+                <button class="btn-red" id="btn-cancel-claim" style="flex:1; padding:14px; font-size:1rem; background:#333;">
+                    <i class="fa fa-times"></i> CLOSE
+                </button>
+            </div>
         `;
         
         state.quickP1 = state.user.username;

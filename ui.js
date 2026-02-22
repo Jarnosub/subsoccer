@@ -420,6 +420,14 @@ export function setupUIListeners() {
     if (isUIInitialized) return;
     isUIInitialized = true;
 
+    // FORCE REMOVE INDICATORS ON STARTUP
+    const audioInd = document.getElementById('audio-indicator');
+    if (audioInd) audioInd.remove();
+    const connDot = document.getElementById('conn-dot');
+    if (connDot) connDot.remove();
+    const thresholdLine = document.getElementById('audio-threshold-line');
+    if (thresholdLine) thresholdLine.remove();
+
     // Logo link to official site
     const logo = document.querySelector('.main-logo');
     if (logo) {
@@ -861,6 +869,27 @@ subscribe('user', () => {
         const menuBtn = document.getElementById('menu-toggle-btn');
         const header = document.querySelector('header');
 
+        // Helper to update admin interface elements
+        const updateAdminInterface = () => {
+            const isUserAdmin = isAdmin();
+            const modMenu = document.getElementById('menu-item-moderator');
+            if (modMenu) modMenu.style.display = isUserAdmin ? 'flex' : 'none';
+
+            const proModeSection = document.getElementById('pro-mode-section');
+            if (proModeSection) proModeSection.style.display = isUserAdmin ? 'block' : 'none';
+
+            // Aggressively remove indicators from DOM
+            const audioIndicator = document.getElementById('audio-indicator');
+            if (audioIndicator) audioIndicator.remove();
+
+            const connDot = document.getElementById('conn-dot');
+            if (connDot) connDot.remove();
+
+            // Remove audio meter elements based on user findings
+            const thresholdLine = document.getElementById('audio-threshold-line');
+            if (thresholdLine) thresholdLine.remove();
+        };
+
         const params = new URLSearchParams(window.location.search);
         const liveId = params.get('live');
 
@@ -893,12 +922,7 @@ subscribe('user', () => {
         const regGameBtn = document.getElementById('btn-profile-register-game');
         if (regGameBtn) regGameBtn.style.display = state.user.id === 'guest' ? 'none' : 'block';
 
-        // Moderator Menu Visibility
-        const modMenu = document.getElementById('menu-item-moderator');
-        if (modMenu) modMenu.style.display = isAdmin() ? 'flex' : 'none';
-
-        const proModeSection = document.getElementById('pro-mode-section');
-        if (proModeSection) proModeSection.style.display = isAdmin() ? 'block' : 'none';
+        updateAdminInterface();
 
         // 3. Quick Match -näkymän nollaus
         const startBtn = document.getElementById('start-quick-match');

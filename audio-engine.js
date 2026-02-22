@@ -34,6 +34,7 @@ let currentG2 = 0;
  * Initialize audio context (must be called after user interaction)
  */
 function initAudioContext() {
+    if (audioContext) return true;
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         analyserNode = audioContext.createAnalyser();
@@ -62,6 +63,11 @@ async function startListening() {
             if (!initialized) {
                 return { success: false, message: "Failed to initialize audio system" };
             }
+        }
+
+        // Varmistetaan että audioyhteys on aktiivinen (tärkeää suspend/resume-logiikassa)
+        if (audioContext.state === 'suspended') {
+            await audioContext.resume();
         }
 
         // Request microphone access
@@ -112,6 +118,11 @@ function stopListening() {
         sourceNode.disconnect();
         sourceNode = null;
     }
+    
+    // Disconnect analyser to be safe
+    if (analyserNode) {
+        analyserNode.disconnect();
+    }
 
     // Stop microphone stream
     if (microphoneStream) {
@@ -119,11 +130,9 @@ function stopListening() {
         microphoneStream = null;
     }
 
-    // Close audio context (optional, can be reused)
-    if (audioContext && audioContext.state !== 'closed') {
-        audioContext.close();
-        audioContext = null;
-        analyserNode = null;
+    // Älä sulje (close) kontekstia, vaan keskeytä se, jotta se voidaan aktivoida uudelleen
+    if (audioContext && audioContext.state === 'running') {
+        audioContext.suspend();
     }
 
     isListening = false;
@@ -148,14 +157,8 @@ function startDetectionLoop() {
         // Check for goal signatures
         const detectedGoal = analyzeFrequencies(dataArray, sampleRate);
 
-        if (detectedGoal) {
-            // Simplified logic for prototype: trigger immediately if threshold met and not in cooldown
-            const now = Date.now();
-            if (now - lastDetectionTime > COOLDOWN_MS) {
-                confirmGoal(detectedGoal);
-                lastDetectionTime = now;
-            }
-        }
+        // Käytetään handleGoalSound-funktiota, joka hoitaa keston tarkistuksen ja nollauksen
+        handleGoalSound(detectedGoal);
 
     }, 30); // Faster polling for better transient capture
 }
@@ -223,6 +226,13 @@ function analyzeFrequencies(dataArray, sampleRate) {
  */
 function handleGoalSound(goalNumber) {
     const now = Date.now();
+
+    // Jos ääntä ei tunnisteta, nollataan tunnistustila
+    if (goalNumber === null) {
+        currentDetectedGoal = null;
+        detectionStartTime = 0;
+        return;
+    }
 
     // Check cooldown period
     if (now - lastDetectionTime < COOLDOWN_MS) {
@@ -301,17 +311,10 @@ function playConfirmationSound() {
  * Update UI indicator if it exists in the DOM
  */
 function updateUIStatus(active) {
-    const indicator = document.getElementById('audio-indicator');
     const toggleBtn = document.getElementById('toggle-audio-btn');
     const freqDisplay = document.getElementById('audio-frequency-display');
     const meterWrapper = document.getElementById('audio-meter-wrapper');
     const instantMeter = document.getElementById('audio-meter-container');
-
-    if (indicator) {
-        indicator.style.backgroundColor = active ? '#4CAF50' : '#f44336';
-        indicator.style.boxShadow = active ? '0 0 10px #4CAF50' : 'none';
-        indicator.title = active ? 'Microphone Active' : 'Microphone Off';
-    }
 
     if (toggleBtn) {
         toggleBtn.textContent = active ? 'DEACTIVATE' : 'ACTIVATE';

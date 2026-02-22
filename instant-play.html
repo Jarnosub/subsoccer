@@ -332,21 +332,6 @@
             transform: scale(1.1);
         }
 
-        /* Audio status indicator (The "light") */
-        .audio-status {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: #f44336; /* Default red (off) */
-            z-index: 2000;
-            border: 1px solid rgba(255,255,255,0.3);
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            pointer-events: none;
-        }
-
         /* Audio Intensity Meter for Testing */
         .audio-meter-overlay {
             position: fixed;
@@ -627,24 +612,30 @@
             background: #c00510;
         }
     </style>
+    <script src="audio-engine.js"></script>
+    <script src="sound-effects.js"></script>
 </head>
-<script src="audio-engine.js"></script>
-<script src="sound-effects.js"></script>
 
 <body>
-    <!-- Audio Status Indicator -->
-    <div id="audio-indicator" class="audio-status" title="Microphone Status"></div>
-
     <!-- Audio Meter for Calibration -->
     <div id="audio-meter-container" class="audio-meter-overlay">
         <div id="audio-meter-fill"></div>
         <div id="audio-threshold-marker"></div>
     </div>
 
-    <!-- Exit Button (SULJE) -->
-    <button onclick="window.location.href='index.html'" class="exit-btn"
-        style="position:fixed; top:20px; right:20px; z-index:2000; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.3); padding:8px 16px; border-radius:20px; font-family:'Open Sans', sans-serif; font-size:0.8rem; cursor:pointer; backdrop-filter:blur(5px);">✕
-        SULJE</button>
+    <!-- Exit Button (CLOSE) -->
+    <button onclick="window.location.href='index.html'"
+        style="position:fixed; top:20px; right:20px; z-index:2000;
+               display:flex; align-items:center; gap:8px;
+               background:rgba(0,0,0,0.6); color:white;
+               border:1px solid rgba(255,255,255,0.3);
+               padding:8px 14px; border-radius:20px;
+               font-family:'Open Sans', sans-serif; font-size:0.8rem;
+               cursor:pointer; backdrop-filter:blur(5px);
+               white-space:nowrap;">
+        <span style="font-size:1rem; line-height:1;">✕</span>
+        <span style="letter-spacing:0.06em;">CLOSE</span>
+    </button>
 
     <!-- Game Logo -->
     <img src="logo.png" class="game-logo" alt="Subsoccer">
@@ -708,6 +699,7 @@
         <div class="controls">
             <button class="control-btn" onclick="resetGame()">🔄 Reset</button>
             <button class="control-btn" onclick="toggleSound(this)">🔊 Sound</button>
+            <button class="control-btn" onclick="toggleMic(this)">🎤 Mic OFF</button>
             <button class="control-btn" onclick="undoGoal()">↩️ Undo</button>
         </div>
     </div>
@@ -735,6 +727,7 @@
         let scoreP2 = 0;
         let goalHistory = []; // For undo
         let soundEnabled = true;
+        let micEnabled = false;
         let currentGameId = null;
         let WIN_SCORE = 3;
         let lastGoalTime = 0;
@@ -790,16 +783,12 @@
                 window.soundEffects.audioContext.resume();
             }
 
-            // Start acoustic detection
+            // Setup visual meter updates (but don't start listening yet)
             if (window.audioEngine) {
-                window.audioEngine.startListening();
-                
-                // Start visual meter updates
-                const meterContainer = document.getElementById('audio-meter-container');
                 const meterFill = document.getElementById('audio-meter-fill');
-                if (meterContainer) meterContainer.style.display = 'block';
                 
                 setInterval(() => {
+                    if (!micEnabled) return;
                     const status = window.audioEngine.getStatus();
                     const maxIntensity = Math.max(status.debug.currentG1, status.debug.currentG2);
                     if (meterFill) meterFill.style.width = (maxIntensity * 100) + '%';
@@ -969,8 +958,29 @@
             btn.textContent = soundEnabled ? '🔊 Sound' : '🔇 Muted';
         }
 
+        // Toggle Microphone
+        function toggleMic(btn) {
+            micEnabled = !micEnabled;
+            if (micEnabled) {
+                if (window.audioEngine) window.audioEngine.startListening();
+                btn.textContent = '🎤 Mic ON';
+                btn.style.borderColor = 'var(--sub-gold)';
+                document.getElementById('audio-meter-container').style.display = 'block';
+            } else {
+                // Try to stop if method exists, otherwise just rely on flag
+                if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') window.audioEngine.stopListening();
+                btn.textContent = '🎤 Mic OFF';
+                btn.style.borderColor = 'rgba(255, 215, 0, 0.3)';
+                document.getElementById('audio-meter-container').style.display = 'none';
+            }
+        }
+
         // Handle acoustic detection if available
         window.handleGoalDetected = function (playerNumber) {
+            // Sallitaan maalin lisäys testausta varten vaikka mikrofoni olisi pois päältä
+            if (!micEnabled) {
+                console.warn("⚠️ Maali tunnistettu (Mic OFF) - Testitila");
+            }
             addGoal(playerNumber);
         };
 

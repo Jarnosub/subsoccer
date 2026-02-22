@@ -1,5 +1,5 @@
 import { _supabase, state, isAdmin } from './config.js';
-import { showNotification, showModal, closeModal, showLoading, hideLoading } from './ui-utils.js';
+import { showNotification, showModal, closeModal, showLoading, hideLoading, safeHTML, unsafeHTML } from './ui-utils.js';
 import { BracketEngine } from './bracket-engine.js';
 import { MatchService } from './match-service.js';
 
@@ -10,6 +10,19 @@ import { MatchService } from './match-service.js';
  * ============================================================
  */
 
+// Apufunktio päivämäärän muotoiluun input-kenttää varten
+const formatForInput = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
+
+// Apufunktio ajan pyöristämiseen seuraavaan 15 minuutin intervaliin
+const getRoundedTime = (date = new Date(), minutes = 15) => {
+    const ms = 1000 * 60 * minutes;
+    return new Date(Math.ceil(date.getTime() / ms) * ms);
+};
+
 let selectedEventImage = null;
 let selectedBrandLogo = null;
 // MARKER: UNIQUE_FILE_IDENTITY_CHECK_A1
@@ -18,6 +31,7 @@ let currentEventTournamentId = null;
 let currentEventTournamentName = null;
 
 // Bracket state variables (in-memory, like Tournament Mode)
+const bracketStateCache = {};
 let eventRoundPlayers = [];
 let eventRoundWinners = [];
 let eventFinalists = [];
@@ -66,8 +80,16 @@ export async function loadEventsPage() {
  */
 function renderEventsPage(events) {
     const container = document.getElementById('events-view');
+    if (!container) return;
 
-    let html = `
+    const eventsList = events.length === 0 ? safeHTML`
+            <div style="text-align:center; padding:60px 20px; color:#444;">
+                <i class="fa-solid fa-calendar-xmark" style="font-size:3rem; margin-bottom:15px; opacity:0.2;"></i>
+                <div style="font-size:0.9rem; letter-spacing:1px;">NO UPCOMING EVENTS</div>
+            </div>
+    ` : events.map(event => renderEventCard(event));
+
+    container.innerHTML = safeHTML`
         <h2 class="section-title" style="margin-top: 20px; font-size: 0.8rem; color: #555; letter-spacing: 3px; font-family: var(--sub-name-font);">EVENT SETUP</h2>
         
         <div style="text-align:center; margin-bottom:25px;">
@@ -82,23 +104,9 @@ function renderEventsPage(events) {
             UPCOMING EVENTS
         </h3>
         <div id="events-list">
+            ${eventsList}
+        </div>
     `;
-
-    if (events.length === 0) {
-        html += `
-            <div style="text-align:center; padding:60px 20px; color:#444;">
-                <i class="fa-solid fa-calendar-xmark" style="font-size:3rem; margin-bottom:15px; opacity:0.2;"></i>
-                <div style="font-size:0.9rem; letter-spacing:1px;">NO UPCOMING EVENTS</div>
-            </div>
-        `;
-    } else {
-        events.forEach(event => {
-            html += renderEventCard(event);
-        });
-    }
-
-    html += '</div>';
-    container.innerHTML = html;
 }
 
 /**
@@ -117,11 +125,9 @@ function renderEventCard(event) {
     };
     const typeColor = eventTypeColors[event.event_type] || '#888';
 
-    return `
+    return safeHTML`
         <div class="event-card sub-card" style="border-left: 2px solid ${typeColor};">
-            ${event.image_url ? `
-                <div style="width:100%; height:160px; background:url('${event.image_url}') center/cover; border-radius:2px; margin-bottom:15px; border:1px solid #333;"></div>
-            ` : ''}
+            ${event.image_url ? safeHTML`<div style="width:100%; height:160px; background:url('${event.image_url}') center/cover; border-radius:2px; margin-bottom:15px; border:1px solid #333;"></div>` : ''}
             
             <div style="margin-bottom:12px;">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
@@ -137,7 +143,7 @@ function renderEventCard(event) {
                 <h3 style="font-family:var(--sub-name-font); font-size:1.4rem; margin:0; color:#fff; letter-spacing:1px; text-transform:uppercase;">${event.event_name}</h3>
             </div>
             
-            ${event.location ? `
+            ${event.location ? safeHTML`
                 <div style="font-size:0.8rem; color:#666; margin:8px 0; font-family:var(--sub-body-font); text-transform:uppercase; letter-spacing:1px;">
                     <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-right:8px;"></i> ${event.location.toUpperCase()}
                 </div>
@@ -147,7 +153,7 @@ function renderEventCard(event) {
                 <div style="font-size:0.75rem; color:#555; font-family:'Resolve'; letter-spacing:1px;">
                     <i class="fa-solid fa-users" style="margin-right:8px;"></i> ${event.registered_count || 0}/${event.max_participants || 16} PLAYERS
                 </div>
-                <button class="btn-red" style="padding:10px 20px; font-size:0.85rem; letter-spacing:2px; width:auto;" onclick="viewEventDetails('${event.id}')">
+                <button class="btn-red" style="padding:10px 20px; font-size:0.85rem; letter-spacing:2px; width:auto;" data-action="view-event-details" data-id="${event.id}">
                     VIEW DETAILS
                 </button>
             </div>
@@ -158,21 +164,30 @@ function renderEventCard(event) {
 /**
  * Show create event form
  */
-export function showCreateEventForm() {
-    selectedEventImage = null;
-    selectedBrandLogo = null;
+export function showCreateEventForm(eventData = null) {
+    if (!eventData) {
+        selectedEventImage = null;
+        selectedBrandLogo = null;
+    }
     const formContainer = document.getElementById('create-event-form');
     if (!formContainer) return;
 
-    // Asetetaan oletusajat: alku nyt, loppu +2h
     const now = new Date();
-    const minTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    const startTime = getRoundedTime(now);
+    const minTime = formatForInput(startTime);
+    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+    const defaultEndTime = formatForInput(endTime);
+
+    const action = eventData ? 'update-event-form' : 'create-event';
+    const btnText = eventData ? '<i class="fa fa-save"></i> SAVE CHANGES' : '<i class="fa fa-check"></i> CREATE EVENT';
+    const dataId = eventData ? `data-id="${eventData.id}"` : '';
+    const title = eventData ? '<i class="fa fa-edit"></i> Edit Event' : '<i class="fa fa-plus-circle"></i> Create New Event';
 
     formContainer.style.display = 'block';
     formContainer.innerHTML = `
         <div style="background:#0a0a0a; border:2px solid var(--sub-gold); border-radius:12px; padding:25px; margin-bottom:20px;">
             <h4 style="font-family:var(--sub-name-font); text-transform:uppercase; margin:0 0 20px 0; color:var(--sub-gold); font-size:1.1rem; letter-spacing:2px;">
-                <i class="fa fa-plus-circle" style="margin-right:8px;"></i> Create New Event
+                ${title}
             </h4>
             
             <input type="text" id="event-name-input" placeholder="Event Name *" 
@@ -192,13 +207,13 @@ export function showCreateEventForm() {
                 <div style="display:flex; gap:12px;">
                     <div style="flex:1; min-width:0;">
                         <label style="font-size:0.8rem; color:#888; display:block; margin-bottom:5px;">Start Date & Time *</label>
-                        <input type="datetime-local" id="event-start-input" min="${minTime}" step="900"
-                            style="width:100%; max-width:none; height:38px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.85rem; line-height:1.2; box-sizing:border-box;">
+                        <input type="datetime-local" id="event-start-input" value="${minTime}" min="${minTime}" step="900"
+                            style="width:100%; padding:12px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:1rem; box-sizing:border-box; color-scheme: dark;">
                     </div>
                     <div style="flex:1; min-width:0;">
                         <label style="font-size:0.8rem; color:#888; display:block; margin-bottom:5px;">End Date & Time (optional)</label>
-                        <input type="datetime-local" id="event-end-input" min="${minTime}" step="900"
-                            style="width:100%; max-width:none; height:38px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.85rem; line-height:1.2; box-sizing:border-box;">
+                        <input type="datetime-local" id="event-end-input" value="${defaultEndTime}" min="${minTime}" step="900"
+                            style="width:100%; padding:12px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:1rem; box-sizing:border-box; color-scheme: dark;">
                     </div>
                 </div>
             </div>
@@ -240,8 +255,8 @@ export function showCreateEventForm() {
             </div>
             
             <div style="display:flex; gap:12px; margin-top:25px;">
-                <button class="btn-red" data-action="create-event" style="flex:1; padding:14px; font-size:1rem;">
-                    <i class="fa fa-check"></i> CREATE EVENT
+                <button class="btn-red" data-action="${action}" ${dataId} style="flex:1; padding:14px; font-size:1rem;">
+                    ${btnText}
                 </button>
                 <button class="btn-red" data-action="hide-create-event-form" style="flex:1; padding:14px; font-size:1rem; background:#333;">
                     <i class="fa fa-times"></i> CANCEL
@@ -260,6 +275,9 @@ export function showCreateEventForm() {
         const endInput = document.getElementById('event-end-input');
         if (endInput) {
             endInput.min = e.target.value;
+            const startDate = new Date(e.target.value);
+            const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+            endInput.value = formatForInput(endDate);
         }
     });
 }
@@ -369,16 +387,18 @@ export function clearBrandLogo() {
  * Create new event
  */
 export async function createNewEvent() {
-    console.log('createNewEvent() called'); // DEBUG
-
     // Check if user is logged in - use 'user' not 'user'
     if (!state.user) {
-        console.log('User not logged in'); // DEBUG
         showNotification('You must be logged in to create events', 'error');
         return;
     }
 
-    console.log('User logged in:', state.user.id); // DEBUG
+    const btn = document.querySelector('button[data-action="create-event"]');
+    if (btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> CREATING...';
+    }
 
     // Get form values
     const eventName = document.getElementById('event-name-input')?.value.trim();
@@ -389,12 +409,10 @@ export async function createNewEvent() {
     const location = document.getElementById('event-location-input')?.value.trim() || null;
     const primaryColor = document.getElementById('event-color-input')?.value;
 
-    console.log('Form values:', { eventName, eventType, startDatetime, endDatetime, description, location }); // DEBUG
-
     // Validate required fields
     if (!eventName || !startDatetime) {
-        console.log('Validation failed'); // DEBUG
         showNotification('Please fill required fields (Event Name, Start Time)', 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-check"></i> CREATE EVENT'; }
         return;
     }
 
@@ -404,7 +422,6 @@ export async function createNewEvent() {
 
         // Upload image if selected
         if (selectedEventImage) {
-            console.log('Uploading image...'); // DEBUG
             showNotification('Uploading image...', 'success');
             imageUrl = await uploadEventImage(selectedEventImage);
         }
@@ -433,8 +450,6 @@ export async function createNewEvent() {
             // Note: game_id removed - will be per-tournament
         };
 
-        console.log('Creating event with data:', eventData); // DEBUG
-
         const { data: event, error } = await _supabase
             .from('events')
             .insert(eventData)
@@ -442,11 +457,9 @@ export async function createNewEvent() {
             .single();
 
         if (error) {
-            console.error('Database error:', error); // DEBUG
             throw error;
         }
 
-        console.log('Event created successfully:', event); // DEBUG
         showNotification('Event created successfully! 🎉', 'success');
         hideCreateEventForm();
         loadEventsPage(); // Reload events list
@@ -454,6 +467,8 @@ export async function createNewEvent() {
     } catch (e) {
         console.error('Failed to create event:', e);
         showNotification('Failed to create event: ' + e.message, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-check"></i> CREATE EVENT'; }
     }
 }
 
@@ -922,6 +937,9 @@ export async function viewTournamentParticipants(eventId, tournamentId, tourname
                                 onclick="addParticipantFromSearch('${tournamentId}')">
                             ADD TO TOURNAMENT
                         </button>
+                        <div style="font-size:0.7rem; color:#666; text-align:center; margin-top:10px;">
+                            (Players are added immediately upon clicking "Add to Tournament")
+                        </div>
                     </div>
                     
                     ${registrations && registrations.length > 0 ? `
@@ -1205,22 +1223,13 @@ function getFlagEmoji(countryCode) {
  * Show create tournament form
  */
 export async function showCreateTournamentForm(eventId, eventName) {
-    console.log('=== SHOW CREATE TOURNAMENT FORM ===');
-    console.log('Event ID:', eventId);
-    console.log('Event Name:', eventName);
-    console.log('User:', state.user);
-
     if (!state.user) {
-        console.log('❌ User not logged in');
         showNotification('You must be logged in to create tournaments', 'error');
         return;
     }
 
-    console.log('All games available:', state.allGames);
-
     // Ensure games are loaded before showing form
     if (!state.allGames || state.allGames.length === 0) {
-        console.log('⏳ Fetching games from database...');
         showNotification('Loading game tables...', 'success');
 
         const { data: games, error } = await _supabase
@@ -1242,23 +1251,20 @@ export async function showCreateTournamentForm(eventId, eventName) {
         }
 
         state.allGames = games;
-        console.log('✅ Loaded', games.length, 'game tables:', games);
     }
 
     // Generate game options from loaded games
-    console.log('All games data:', state.allGames);
-
     const gameOptions = '<option value="" disabled selected>Select Game Table</option>' +
         state.allGames.map(g => {
             const displayText = g.location ? `${g.game_name} - ${g.location}` : g.game_name;
             return `<option value="${g.id}">${displayText}</option>`;
         }).join('');
 
-    console.log('✅ Generated game options:', gameOptions.length, 'characters');
-
-    // Set default time to current time
     const now = new Date();
-    const defaultTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    const startTime = getRoundedTime(now);
+    const defaultStartTime = formatForInput(startTime);
+    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+    const defaultEndTime = formatForInput(endTime);
 
     const formHtml = `
             <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; overflow-y:auto; padding:20px; box-sizing:border-box;">
@@ -1294,17 +1300,17 @@ export async function showCreateTournamentForm(eventId, eventName) {
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:15px;">
                         <div>
                             <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
-                                START TIME *
+                                <i class="fa fa-clock" style="color:var(--sub-gold);"></i> START TIME *
                             </label>
-                            <input type="datetime-local" id="tournament-start-input" value="${defaultTime}" min="${defaultTime}" step="900"
-                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                            <input type="datetime-local" id="tournament-start-input" value="${defaultStartTime}" min="${defaultStartTime}" step="900"
+                                style="width:100%; padding:12px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:1rem; box-sizing:border-box; color-scheme: dark;">
                         </div>
                         <div>
                             <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
-                                END TIME <span style="color:#666;">(opt.)</span>
+                                <i class="fa fa-flag-checkered"></i> END TIME
                             </label>
-                            <input type="datetime-local" id="tournament-end-input" value="${defaultTime}" min="${defaultTime}" step="900"
-                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                            <input type="datetime-local" id="tournament-end-input" value="${defaultEndTime}" min="${defaultStartTime}" step="900"
+                                style="width:100%; padding:12px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:1rem; box-sizing:border-box; color-scheme: dark;">
                         </div>
                     </div>
 
@@ -1333,19 +1339,15 @@ export async function showCreateTournamentForm(eventId, eventName) {
         formContainer = document.createElement('div');
         formContainer.id = 'tournament-form-modal';
         document.body.appendChild(formContainer);
-        console.log('✅ Created new form container');
     } else {
-        console.log('✅ Using existing form container');
     }
     formContainer.innerHTML = formHtml;
-    console.log('✅ Tournament form rendered successfully');
 
     // Auto-select first game if available
     if (state.allGames && state.allGames.length > 0) {
         const gameSelect = document.getElementById('tournament-game-select');
         if (gameSelect) {
             gameSelect.value = state.allGames[0].id;
-            console.log('✅ Auto-selected first game:', state.allGames[0].game_name, 'ID:', state.allGames[0].id);
         }
     }
 
@@ -1354,6 +1356,9 @@ export async function showCreateTournamentForm(eventId, eventName) {
         const endInput = document.getElementById('tournament-end-input');
         if (endInput) {
             endInput.min = e.target.value;
+            const startDate = new Date(e.target.value);
+            const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+            endInput.value = formatForInput(endDate);
         }
     });
 }
@@ -1370,10 +1375,6 @@ export function closeTournamentForm() {
  * Create tournament
  */
 export async function createTournament(eventId) {
-    console.log('=== CREATE TOURNAMENT CALLED ===');
-    console.log('Event ID:', eventId);
-    console.log('User:', state.user);
-
     if (!state.user) {
         showNotification('You must be logged in', 'error');
         return;
@@ -1402,28 +1403,15 @@ export async function createTournament(eventId) {
         const maxParticipants = parseInt(document.getElementById('tournament-max-input')?.value) || 8;
         const tournamentType = document.getElementById('tournament-type-select')?.value || 'elimination';
 
-        console.log('Form values:', {
-            tournamentName,
-            gameId,
-            startDatetime,
-            endDatetime,
-            maxParticipants,
-            tournamentType
-        });
-
         if (!gameId) {
-            console.log('❌ No game selected');
             showNotification('Please select a game table', 'error');
             return;
         }
 
         if (!startDatetime) {
-            console.log('❌ No start time selected');
             showNotification('Please select start time', 'error');
             return;
         }
-
-        console.log('✅ Validation passed, creating tournament...');
 
         // Create tournament in tournament_history
         const tournamentData = {
@@ -1439,22 +1427,16 @@ export async function createTournament(eventId) {
             created_at: new Date().toISOString()
         };
 
-        console.log('Tournament data to insert:', tournamentData);
-
         const { data: tournament, error } = await _supabase
             .from('tournament_history')
             .insert(tournamentData)
             .select()
             .single();
 
-        console.log('Supabase response:', { tournament, error });
-
         if (error) {
-            console.log('❌ Database error:', error);
             throw error;
         }
 
-        console.log('✅ Tournament created successfully:', tournament);
         showNotification('Tournament created successfully!', 'success');
         closeTournamentForm();
 
@@ -1648,6 +1630,7 @@ export async function registerForTournament(eventId, tournamentId) {
         }
 
         console.log('Registration successful:', data);
+        showNotification(`${playerName} added to tournament!`, 'success');
         showNotification('Successfully registered!', 'success');
 
         // Reload event details
@@ -1801,19 +1784,19 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:15px;">
                         <div>
                             <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
-                                START TIME <span style="color:#666;">(opt.)</span>
+                                <i class="fa fa-clock" style="color:var(--sub-gold);"></i> START TIME *
                             </label>
-                            <input type="datetime-local" id="tournament-start-input" step="900"
-                                value="${tournament.start_datetime ? new Date(tournament.start_datetime).toISOString().slice(0, 16) : ''}"
-                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                            <input type="datetime-local" id="tournament-start-input" step="900" 
+                                value="${formatForInput(tournament.start_datetime)}"
+                                style="width:100%; padding:12px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:1rem; box-sizing:border-box; color-scheme: dark;">
                         </div>
                         <div>
                             <label style="display:block; font-size:0.8rem; color:#888; margin-bottom:5px;">
-                                END TIME <span style="color:#666;">(opt.)</span>
+                                <i class="fa fa-flag-checkered"></i> END TIME
                             </label>
                             <input type="datetime-local" id="tournament-end-input" step="900"
-                                value="${tournament.end_datetime ? new Date(tournament.end_datetime).toISOString().slice(0, 16) : ''}"
-                                style="width:100%; height:36px; padding:6px 8px; background:#111; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.8rem; max-width:100%;">
+                                value="${formatForInput(tournament.end_datetime)}"
+                                style="width:100%; padding:12px; background:#111; border:1px solid #333; border-radius:8px; color:#fff; font-size:1rem; box-sizing:border-box; color-scheme: dark;">
                         </div>
                     </div>
 
@@ -1866,6 +1849,9 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
         const endInput = document.getElementById('tournament-end-input');
         if (endInput) {
             endInput.min = e.target.value;
+            const startDate = new Date(e.target.value);
+            const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+            endInput.value = formatForInput(endDate);
         }
     });
 }
@@ -1874,15 +1860,10 @@ async function showEditTournamentForm(tournament, eventId, eventName) {
  * Save tournament edit
  */
 export async function saveTournamentEdit(tournamentId, eventId) {
-    console.log('saveTournamentEdit called with:', { tournamentId, eventId });
-
     if (!state.user) {
-        console.log('User not logged in');
         showNotification('You must be logged in', 'error');
         return;
     }
-
-    console.log('User:', state.user.username);
 
     const nameInput = document.getElementById('tournament-name-input');
     const gameSelect = document.getElementById('tournament-game-select');
@@ -1906,24 +1887,6 @@ export async function saveTournamentEdit(tournamentId, eventId) {
                 return;
             }
         }
-        console.log('Form elements found:', {
-            nameInput: !!nameInput,
-            gameSelect: !!gameSelect,
-            startInput: !!startInput,
-            endInput: !!endInput,
-            maxInput: !!maxInput,
-            typeSelect: !!typeSelect
-        });
-
-        if (gameSelect) {
-            console.log('Game select options count:', gameSelect.options.length);
-            console.log('Game select value:', gameSelect.value);
-            console.log('Game select selectedIndex:', gameSelect.selectedIndex);
-            if (gameSelect.selectedIndex >= 0) {
-                console.log('Selected option:', gameSelect.options[gameSelect.selectedIndex]?.text);
-            }
-        }
-
         const tournamentName = nameInput?.value.trim() || null;
         const gameId = gameSelect?.value;
         const startDatetime = startInput?.value;
@@ -1931,19 +1894,12 @@ export async function saveTournamentEdit(tournamentId, eventId) {
         const maxParticipants = parseInt(maxInput?.value) || 8;
         const tournamentType = typeSelect?.value || 'elimination';
 
-        console.log('Form values:', {
-            tournamentName, gameId, startDatetime, endDatetime, maxParticipants, tournamentType
-        });
-
         if (!gameId) {
-            console.log('No game ID selected');
             showNotification('Please select a game table', 'error');
             return;
         }
 
         // Note: start_datetime is not required for edit (can be null for old tournaments)
-
-        console.log('Saving tournament edit...');
 
         const { data, error } = await _supabase
             .from('tournament_history')
@@ -1962,8 +1918,6 @@ export async function saveTournamentEdit(tournamentId, eventId) {
             console.error('Database error:', error);
             throw error;
         }
-
-        console.log('Tournament updated successfully:', data);
 
         showNotification('Tournament updated successfully!', 'success');
         closeTournamentForm();
@@ -2081,7 +2035,7 @@ export function shareLiveEventLink(eventId, eventName) {
 /**
  * View live event (public view for screens/TVs)
  */
-export async function viewLiveEvent(eventId) {
+export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
     console.log('viewLiveEvent called with ID:', eventId);
 
     // Ensure live content container exists
@@ -2095,12 +2049,14 @@ export async function viewLiveEvent(eventId) {
     }
 
     // Show loading state
-    content.innerHTML = `
-        <div style="text-align:center; padding:40px; color:#fff;">
-            <i class="fa fa-spinner fa-spin" style="font-size:3rem; color:var(--sub-gold);"></i>
-            <p style="margin-top:20px; font-size:1.2rem;">Loading event...</p>
-        </div>
-    `;
+    if (!isBackgroundUpdate) {
+        content.innerHTML = `
+            <div style="text-align:center; padding:40px; color:#fff;">
+                <i class="fa fa-spinner fa-spin" style="font-size:3rem; color:var(--sub-gold);"></i>
+                <p style="margin-top:20px; font-size:1.2rem;">Loading event...</p>
+            </div>
+        `;
+    }
 
     try {
         console.log('Fetching event from Supabase...');
@@ -2116,6 +2072,27 @@ export async function viewLiveEvent(eventId) {
 
         if (error) throw error;
         if (!event) throw new Error('Event not found');
+
+        // Update page title and Open Graph meta tags for social sharing
+        if (!isBackgroundUpdate) {
+            document.title = `LIVE: ${event.event_name}`;
+            
+            const setMeta = (prop, val) => {
+                if (!val) return;
+                let meta = document.querySelector(`meta[property="${prop}"]`);
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.setAttribute('property', prop);
+                    document.head.appendChild(meta);
+                }
+                meta.setAttribute('content', val);
+            };
+
+            setMeta('og:title', event.event_name);
+            setMeta('og:description', event.description || 'Follow live tournament results.');
+            setMeta('og:url', window.location.href);
+            if (event.image_url) setMeta('og:image', event.image_url);
+        }
 
         console.log('Fetching tournaments...');
 
@@ -2152,6 +2129,28 @@ export async function viewLiveEvent(eventId) {
             }
         }
 
+        // FETCH PLAYER DATA FOR LIVE PODIUMS
+        // Kerätään kaikkien päättyneiden turnausten voittajat ja haetaan heidän kuvansa
+        const completedTournaments = tournaments.filter(t => t.status === 'completed');
+        let playerMap = {};
+        
+        if (completedTournaments.length > 0) {
+            const names = [...new Set(completedTournaments.flatMap(t => 
+                [t.winner_name, t.second_place_name, t.third_place_name]
+            ).filter(n => n))];
+
+            if (names.length > 0) {
+                const { data: players } = await _supabase
+                    .from('players')
+                    .select('username, avatar_url, country, elo')
+                    .in('username', names);
+                
+                if (players) {
+                    players.forEach(p => { playerMap[p.username.toLowerCase()] = p; });
+                }
+            }
+        }
+
         console.log('Displaying live view...');
 
 
@@ -2161,14 +2160,14 @@ export async function viewLiveEvent(eventId) {
         }
 
         // Display live view
-        showLiveEventView(event, tournaments || []);
+        showLiveEventView(event, tournaments || [], playerMap);
 
         // Auto-refresh every 10 seconds
         if (window.liveEventRefreshInterval) {
             clearInterval(window.liveEventRefreshInterval);
         }
         window.liveEventRefreshInterval = setInterval(() => {
-            viewLiveEvent(eventId);
+            viewLiveEvent(eventId, true);
         }, 10000);
 
         console.log('Live event view loaded successfully');
@@ -2193,59 +2192,190 @@ export async function viewLiveEvent(eventId) {
  */
 function renderLiveBracketHtml(t) {
     const matches = t.matches || [];
-    if (matches.length === 0) {
+    
+    // Calculate unique players from matches if participant count is missing
+    const uniquePlayers = new Set();
+    matches.forEach(m => {
+        if(m.player1) uniquePlayers.add(m.player1);
+        if(m.player2) uniquePlayers.add(m.player2);
+    });
+    
+    // Use the larger of registered count or actual players in matches
+    const participantCount = Math.max(t.computed_participant_count || 0, uniquePlayers.size);
+    
+    if (participantCount < 2) {
         return `
             <div style="text-align:center; padding:30px; color:#444; border:1px dashed #222; border-radius:8px;">
-                <i class="fa fa-sitemap" style="font-size:1.5rem; margin-bottom:10px; opacity:0.3;"></i>
-                <div style="font-family:var(--sub-name-font); font-size:0.8rem; letter-spacing:1px;">AWAITING BRACKET GENERATION</div>
+                <i class="fa fa-users" style="font-size:2rem; margin-bottom:15px; opacity:0.3;"></i>
+                <div style="font-family:var(--sub-name-font); font-size:0.9rem; letter-spacing:1px;">WAITING FOR PLAYERS</div>
+                <div style="font-size:0.75rem; color:#666; margin-top:5px;">${participantCount} joined so far</div>
             </div>
         `;
     }
 
-    // Helper to render a single match box in the bracket
-    const renderMatchBox = (m) => {
-        if (!m) return '<div style="width:140px; height:60px; border:1px dashed #222; margin-bottom:10px; border-radius:4px; opacity:0.3;"></div>';
+    // 1. Calculate Bracket Dimensions (Next Power of 2)
+    let nextPow2 = 2;
+    while (nextPow2 < participantCount) nextPow2 *= 2;
+    
+    // Cap at 32 to prevent UI explosion
+    if (nextPow2 > 32) nextPow2 = 32;
+    
+    const totalRounds = Math.log2(nextPow2);
+    
+    // 2. Sort matches into rounds
+    const playerHistory = {};
+    const roundBuckets = Array.from({length: totalRounds}, () => []);
+    
+    // Sort matches by time
+    const sortedMatches = [...matches].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    
+    sortedMatches.forEach(m => {
+        const p1 = m.player1 || 'Unknown';
+        const p2 = m.player2 || 'Unknown';
+        const p1Round = playerHistory[p1] || 0;
+        const p2Round = playerHistory[p2] || 0;
+        
+        // Match belongs to the round index equal to the max previous games played by participants
+        let currentRound = Math.max(p1Round, p2Round);
+        
+        // Safety cap
+        if (currentRound >= totalRounds) currentRound = totalRounds - 1;
+        
+        roundBuckets[currentRound].push(m);
+        
+        // Increment history
+        playerHistory[p1] = currentRound + 1;
+        playerHistory[p2] = currentRound + 1;
+    });
+
+    // 3. Render Columns
+    let html = '<div style="display:flex; gap:30px; overflow-x:auto; padding:20px 0; align-items: flex-start;">';
+    
+    // Helper for rendering a match box
+    const renderBox = (m) => {
+        const isWinner1 = m.winner === m.player1;
+        const isWinner2 = m.winner === m.player2;
+        const p1Score = m.player1_score !== null ? m.player1_score : '';
+        const p2Score = m.player2_score !== null ? m.player2_score : '';
+        
+        // Determine border color based on state
+        let borderColor = '#333';
+        if (m.winner) borderColor = '#555'; // Completed
+        
         return `
-            <div style="background:#111; border:1px solid #333; border-radius:4px; margin-bottom:10px; width:140px; font-size:0.75rem; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.3);">
-                <div style="padding:6px 10px; border-bottom:1px solid #222; display:flex; justify-content:space-between; color:${m.winner === m.player1 ? 'var(--sub-gold)' : '#fff'}; font-weight:${m.winner === m.player1 ? 'bold' : 'normal'}">
-                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px;">${m.player1}</span>
-                    <span>${m.player1_score !== null ? m.player1_score : ''}</span>
+            <div class="bracket-match-card" style="background:#111; border:1px solid ${borderColor}; border-radius:6px; overflow:hidden; min-width:240px; box-shadow:0 4px 15px rgba(0,0,0,0.3); position:relative;">
+                <!-- Player 1 -->
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; border-bottom:1px solid #222; position:relative; ${isWinner1 ? 'background:rgba(255,215,0,0.1);' : ''}">
+                    ${isWinner1 ? '<div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--sub-gold); box-shadow:0 0 8px var(--sub-gold);"></div>' : ''}
+                    <span style="color:${isWinner1 ? '#fff' : '#888'}; font-weight:${isWinner1 ? 'bold' : 'normal'}; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; font-family:var(--sub-name-font); padding-left:${isWinner1 ? '6px' : '0'}; text-transform:uppercase; letter-spacing:0.5px;">${m.player1}</span>
+                    <span style="color:${isWinner1 ? 'var(--sub-gold)' : '#555'}; font-family:'Russo One'; font-size:1.1rem; text-shadow:${isWinner1 ? '0 0 10px rgba(255,215,0,0.3)' : 'none'};">${p1Score}</span>
                 </div>
-                <div style="padding:6px 10px; display:flex; justify-content:space-between; color:${m.winner === m.player2 ? 'var(--sub-gold)' : '#fff'}; font-weight:${m.winner === m.player2 ? 'bold' : 'normal'}">
-                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px;">${m.player2}</span>
-                    <span>${m.player2_score !== null ? m.player2_score : ''}</span>
+                <!-- Player 2 -->
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; position:relative; ${isWinner2 ? 'background:rgba(255,215,0,0.1);' : ''}">
+                    ${isWinner2 ? '<div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--sub-gold); box-shadow:0 0 8px var(--sub-gold);"></div>' : ''}
+                    <span style="color:${isWinner2 ? '#fff' : '#888'}; font-weight:${isWinner2 ? 'bold' : 'normal'}; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; font-family:var(--sub-name-font); padding-left:${isWinner2 ? '6px' : '0'}; text-transform:uppercase; letter-spacing:0.5px;">${m.player2}</span>
+                    <span style="color:${isWinner2 ? 'var(--sub-gold)' : '#555'}; font-family:'Russo One'; font-size:1.1rem; text-shadow:${isWinner2 ? '0 0 10px rgba(255,215,0,0.3)' : 'none'};">${p2Score}</span>
                 </div>
             </div>
         `;
     };
 
-    // Organize matches into rounds (assuming standard 8-player elimination for now)
-    const qf = matches.slice(0, 4);
-    const sf = matches.slice(4, 6);
-    const final = matches.slice(6, 7);
-
-    return `
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:15px; padding:10px 0; overflow-x:auto;">
-            <!-- Quarter Finals -->
-            <div style="display:flex; flex-direction:column; justify-content:space-around; height:200px;">
-                ${qf.length > 0 ? qf.map(m => renderMatchBox(m)).join('') : [1,2,3,4].map(() => renderMatchBox(null)).join('')}
-            </div>
-            <!-- Semi Finals -->
-            <div style="display:flex; flex-direction:column; justify-content:space-around; height:200px;">
-                ${sf.length > 0 ? sf.map(m => renderMatchBox(m)).join('') : [1,2].map(() => renderMatchBox(null)).join('')}
-            </div>
-            <!-- Final -->
-            <div style="display:flex; flex-direction:column; justify-content:center; height:200px;">
-                ${final.length > 0 ? renderMatchBox(final[0]) : renderMatchBox(null)}
-            </div>
+    // Helper for empty slot
+    const renderEmpty = () => `
+        <div style="background:rgba(255,255,255,0.03); border:1px dashed #333; border-radius:6px; height:86px; min-width:240px; display:flex; align-items:center; justify-content:center;">
+            <span style="color:#444; font-size:0.75rem; letter-spacing:2px; font-family:var(--sub-name-font); font-weight:bold;">TBD</span>
         </div>
     `;
+
+    for (let r = 0; r < totalRounds; r++) {
+        const roundCapacity = nextPow2 / Math.pow(2, r + 1);
+        let matchesInRound = roundBuckets[r] || [];
+        
+        // Filter out Bronze match from the final round
+        if (r === totalRounds - 1 && r > 0) {
+            try {
+                const prevRoundMatches = roundBuckets[r-1] || [];
+                const prevRoundWinners = new Set(prevRoundMatches.map(m => m.winner).filter(w => w));
+                const prevRoundLosers = new Set();
+                
+                prevRoundMatches.forEach(m => {
+                    if (m.winner) {
+                        prevRoundLosers.add(m.player1 === m.winner ? m.player2 : m.player1);
+                    }
+                });
+                
+                if (prevRoundWinners.size > 0) {
+                    // Find the match where players are winners (or byes) and NOT losers
+                    let finalMatch = matchesInRound.find(m => {
+                        if (!m.player1 || !m.player2) return false;
+                        const p1IsWinner = prevRoundWinners.has(m.player1);
+                        const p2IsWinner = prevRoundWinners.has(m.player2);
+                        const p1IsLoser = prevRoundLosers.has(m.player1);
+                        const p2IsLoser = prevRoundLosers.has(m.player2);
+                        return (p1IsWinner || p2IsWinner) && !p1IsLoser && !p2IsLoser;
+                    });
+
+                    // If no active final match found, but we have winners, create a placeholder
+                    if (!finalMatch) {
+                        const winners = Array.from(prevRoundWinners);
+                        if (winners.length >= 1) {
+                            finalMatch = {
+                                player1: winners[0],
+                                player2: winners[1] || 'TBD',
+                                player1_score: null,
+                                player2_score: null,
+                                winner: null
+                            };
+                        }
+                    }
+
+                    matchesInRound = finalMatch ? [finalMatch] : [];
+                }
+            } catch (e) {
+                console.warn("Error filtering final round:", e);
+            }
+        }
+        
+        let colTitle = `ROUND ${r + 1}`;
+        if (r === totalRounds - 1) colTitle = "FINALS";
+        else if (r === totalRounds - 2) colTitle = "SEMI FINALS";
+        else if (r === totalRounds - 3) colTitle = "QUARTER FINALS";
+        
+        let columnContent = '';
+        
+        for (let i = 0; i < roundCapacity; i++) {
+            const match = matchesInRound[i];
+            if (match) {
+                columnContent += renderBox(match);
+            } else {
+                columnContent += renderEmpty();
+            }
+        }
+
+        html += `
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <div style="text-align:center; color:#555; font-size:0.75rem; margin-bottom:5px; font-family:var(--sub-name-font); letter-spacing:2px; text-transform:uppercase;">${colTitle}</div>
+                <div style="display:flex; flex-direction:column; gap:15px; justify-content:space-around; flex:1;">
+                    ${columnContent}
+                </div>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+
+    return html;
+}
+
+// Wrap the output in SafeString to prevent double-escaping
+function renderLiveBracketHtmlSafe(t) {
+    return unsafeHTML(renderLiveBracketHtml(t));
 }
 
 /**
  * Show live event view
  */
-function showLiveEventView(event, tournaments) {
+function showLiveEventView(event, tournaments, playerMap = {}) {
     const startDate = new Date(event.start_datetime);
     const dateStr = startDate.toLocaleDateString('en-GB', {
         weekday: 'long',
@@ -2254,13 +2384,89 @@ function showLiveEventView(event, tournaments) {
         year: 'numeric'
     });
 
+    // Helper to render podium card in live view
+    const renderLivePodiumCard = (name, rankIcon, color, place) => {
+        if (!name) return '';
+        // Case-insensitive lookup from the map we fetched
+        const p = playerMap[name.toLowerCase()] || { username: name, elo: '-', country: null, avatar_url: null };
+        const flag = p.country ? p.country.toLowerCase() : 'fi';
+        
+        const avatarHtml = p.avatar_url 
+            ? `<img src="${p.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">`
+            : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #151515; color: #333; font-size: 2.5rem;"><i class="fa fa-user"></i></div>`;
+
+        // Slightly smaller card for live view grid
+        return `
+            <div data-username="${p.username}" style="cursor: pointer; display:flex; flex-direction:column; align-items:center; margin: 0 5px; position: relative; z-index: ${4-place}; ${place === 1 ? 'transform: scale(1.1); margin-bottom: 10px;' : ''}">
+                <div style="font-size: 1.5rem; margin-bottom: 5px; filter: drop-shadow(0 0 10px ${color});">${rankIcon}</div>
+                
+                <div style="width: 100px; height: 160px; background: #0a0a0a; border: 2px solid ${color}; border-radius: 6px; position: relative; overflow: hidden; box-shadow: 0 0 15px ${color}40; display: flex; flex-direction: column;">
+                    <!-- Header -->
+                    <div style="background: ${color}; color: #000; padding: 2px 0; text-align: center; font-family: var(--sub-name-font); font-weight: bold; font-size: 0.5rem; letter-spacing: 1px;">
+                        ${place === 1 ? 'WINNER' : (place === 2 ? '2ND' : '3RD')}
+                    </div>
+                    
+                    <!-- Image -->
+                    <div style="flex: 1; position: relative; overflow: hidden; background: #151515;">
+                        ${avatarHtml}
+                    </div>
+                    
+                    <!-- Info -->
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 8px 4px; box-sizing: border-box; text-align: center;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 3px; margin-bottom: 1px;">
+                            <img src="https://flagcdn.com/w40/${flag}.png" style="height: 8px; border-radius: 1px;">
+                            <div style="color: #fff; font-family: var(--sub-name-font); font-size: 0.65rem; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;">
+                                ${p.username}
+                            </div>
+                        </div>
+                        <div style="color: ${color}; font-family: 'Russo One'; font-size: 0.9rem;">
+                            ${p.elo}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
     const content = document.getElementById('live-content') || document.getElementById('content') || document.body;
-    content.innerHTML = `
-        <div style="max-width:1400px; margin:0 auto; padding:40px 20px; font-family: var(--sub-body-font); background: var(--sub-black); min-height: 100vh;">
+    
+    // Inject styles for live view
+    const liveStyles = `
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+            
+            @keyframes pulse-live-badge {
+                0% { box-shadow: 0 0 0 0 rgba(227, 6, 19, 0.7); }
+                70% { box-shadow: 0 0 0 8px rgba(227, 6, 19, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(227, 6, 19, 0); }
+            }
+            
+            .live-badge-pulse {
+                animation: pulse-live-badge 2s infinite;
+            }
+            
+            .glass-panel {
+                background: #0a0a0a;
+                border: 1px solid #222;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            }
+            
+            .bracket-match-card {
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            
+            .bracket-match-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+                border-color: #555 !important;
+            }
+        </style>
+    `;
+
+    content.innerHTML = liveStyles + `
+        <div style="max-width:1600px; margin:0 auto; padding:40px 20px; font-family: var(--sub-body-font); background: var(--sub-black); min-height: 100vh;">
             <!-- Broadcast Header -->
-            <div style="text-align:center; margin-bottom:60px; padding:40px; background:var(--sub-charcoal); border-radius:var(--sub-radius); border-bottom: 4px solid var(--sub-red); box-shadow: var(--sub-shadow); position: relative; overflow: hidden;">
-                <!-- Decorative element -->
-                <div style="position: absolute; top:0; left:0; width: 100%; height: 100%; background: radial-gradient(circle at 50% -20%, rgba(193, 39, 45, 0.15), transparent); pointer-events: none;"></div>
+            <div class="glass-panel" style="text-align:center; margin-bottom:60px; padding:50px; border-radius:16px; border-bottom: 4px solid var(--sub-red); position: relative; overflow: hidden;">
 
                 ${event.brand_logo_url ? `
                     <div style="background: rgba(255,255,255,0.05); display: inline-block; padding: 10px 20px; border-radius: 4px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.1);">
@@ -2289,7 +2495,7 @@ function showLiveEventView(event, tournaments) {
                 </div>
 
                 <div style="margin-top:30px; display: flex; justify-content: center; gap: 15px;">
-                    <div class="sub-badge-live" style="font-size: 0.9rem; padding: 6px 16px;">
+                    <div class="sub-badge-live live-badge-pulse" style="font-size: 0.9rem; padding: 8px 20px; border-radius: 30px; letter-spacing: 2px;">
                         <i class="fa fa-broadcast-tower"></i> BROADCASTING LIVE
                     </div>
                 </div>
@@ -2306,7 +2512,7 @@ function showLiveEventView(event, tournaments) {
         const participantCount = t.computed_participant_count || 0;
 
         return `
-                        <div class="sub-card-premium" style="border-top: 4px solid ${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? 'var(--sub-red)' : '#333'}; position: relative; display: flex; flex-direction: column;">
+                        <div class="glass-panel" style="border-top: 4px solid ${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? 'var(--sub-red)' : '#333'}; position: relative; display: flex; flex-direction: column; padding: 30px; border-radius: 12px; margin-bottom: 40px;">
                             
                             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:24px;">
                                 <div style="flex: 1;">
@@ -2336,11 +2542,16 @@ function showLiveEventView(event, tournaments) {
                             <div style="flex: 1;">
                                 ${t.status === 'completed' || t.status === 'ongoing' ? `
                                     <div style="margin-bottom:20px;">
-                                        ${renderLiveBracketHtml(t)}
+                                        ${renderLiveBracketHtmlSafe(t)}
                                     </div>
                                     ${t.status === 'completed' ? `
-                                        <div style="background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); border-radius:4px; padding:15px; text-align:center;">
-                                            <div style="color:var(--sub-gold); font-family:var(--sub-name-font); font-size:1.2rem;">🏆 WINNER: ${t.winner_name}</div>
+                                        <div style="background:linear-gradient(to bottom, rgba(255, 215, 0, 0.1), rgba(0,0,0,0.6)); border:1px solid var(--sub-gold); border-radius:12px; padding:30px; text-align:center; box-shadow: 0 15px 40px rgba(0,0,0,0.6);">
+                                            <div style="color:var(--sub-gold); font-family:var(--sub-name-font); font-size:0.7rem; letter-spacing:5px; margin-bottom:15px; text-transform:uppercase; opacity:0.7;">Tournament Podium</div>
+                                            <div style="display:flex; justify-content:center; align-items:flex-end; gap:15px;">
+                                                ${renderLivePodiumCard(t.second_place_name, '🥈', '#C0C0C0', 2)}
+                                                ${renderLivePodiumCard(t.winner_name, '🏆', 'var(--sub-gold)', 1)}
+                                                ${renderLivePodiumCard(t.third_place_name, '🥉', '#CD7F32', 3)}
+                                            </div>
                                         </div>
                                     ` : `
                                         <div style="background:rgba(193, 39, 45, 0.05); border:1px solid rgba(193, 39, 45, 0.2); border-radius:var(--sub-radius); padding:20px; text-align:center;">
@@ -2440,7 +2651,7 @@ export async function editEvent(eventId) {
  * Helper to populate the event form with existing data
  */
 function populateEventForm(event) {
-    showCreateEventForm();
+    showCreateEventForm(event);
 
     const nameInput = document.getElementById('event-name-input');
     const typeSelect = document.getElementById('event-type-select');
@@ -2480,15 +2691,6 @@ function populateEventForm(event) {
         const fileLabel = document.getElementById('event-image-label');
         if (fileLabel) fileLabel.style.display = 'none';
     }
-
-    const updateBtn = document.querySelector('#create-event-form button[data-action="create-event"]');
-    if (updateBtn) {
-        updateBtn.innerHTML = '<i class="fa fa-save"></i> SAVE CHANGES';
-        updateBtn.onclick = () => updateEventForm(event.id);
-    }
-
-    const formTitle = document.querySelector('#create-event-form h4');
-    if (formTitle) formTitle.innerHTML = '<i class="fa fa-edit"></i> Edit Event';
 }
 
 /**
@@ -2498,6 +2700,13 @@ export async function updateEventForm(eventId) {
     if (!state.user) {
         showNotification('You must be logged in', 'error');
         return;
+    }
+
+    const btn = document.querySelector(`button[data-action="update-event-form"][data-id="${eventId}"]`);
+    if (btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> SAVING...';
     }
 
     // Get form values
@@ -2512,6 +2721,7 @@ export async function updateEventForm(eventId) {
     // Validate required fields
     if (!eventName || !startDatetime) {
         showNotification('Please fill required fields (Event Name, Start Time)', 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-save"></i> SAVE CHANGES'; }
         return;
     }
 
@@ -2555,6 +2765,8 @@ export async function updateEventForm(eventId) {
     } catch (e) {
         console.error('Failed to update event:', e);
         showNotification('Failed to update event: ' + e.message, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-save"></i> SAVE CHANGES'; }
     }
 }
 
@@ -2656,7 +2868,17 @@ export async function viewTournamentBracket(tournamentId, tournamentName, maxPar
 
         // If completed, show final results
         if (tournament && tournament.status === 'completed') {
-            showCompletedTournamentBracket(tournament);
+            // Fetch player details for podium (ELO, Avatar, Country)
+            const names = [tournament.winner_name, tournament.second_place_name, tournament.third_place_name].filter(n => n);
+            let players = [];
+            if (names.length > 0) {
+                const { data } = await _supabase
+                    .from('players')
+                    .select('username, elo, country, avatar_url')
+                    .in('username', names);
+                players = data || [];
+            }
+            showCompletedTournamentBracket(tournament, players);
             return;
         }
 
@@ -2690,20 +2912,37 @@ export async function viewTournamentBracket(tournamentId, tournamentName, maxPar
         // Extract player usernames and shuffle
         const players = registrations.map(r => r.players.username);
         console.log('Players:', players);
-        const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
 
-        // Initialize bracket state
-        currentEventBracketParticipants = shuffledPlayers;
-        eventRoundPlayers = [...shuffledPlayers];
-        eventRoundWinners = [];
-        eventFinalists = [];
-        eventBronzeContenders = [];
-        eventBronzeWinner = null;
+        // TÄRKEÄ KORJAUS: Tarkistetaan onko turnauksen rakenne jo muistissa
+        if (bracketStateCache[tournamentId]) {
+            const cache = bracketStateCache[tournamentId];
+            currentEventBracketParticipants = cache.currentEventBracketParticipants;
+            eventRoundPlayers = cache.eventRoundPlayers;
+            eventRoundWinners = cache.eventRoundWinners;
+            eventFinalists = cache.eventFinalists;
+            eventBronzeContenders = cache.eventBronzeContenders;
+            eventBronzeWinner = cache.eventBronzeWinner;
+        } else {
+            // Luodaan uusi rakenne vain jos sitä ei ole aiemmin avattu
+            const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
+            currentEventBracketParticipants = shuffledPlayers;
+            eventRoundPlayers = [...shuffledPlayers];
+            eventRoundWinners = [];
+            eventFinalists = [];
+            eventBronzeContenders = [];
+            eventBronzeWinner = null;
 
-        // Jos vain 2 pelaajaa, siirrytään suoraan finaaliin
-        if (shuffledPlayers.length === 2) {
-            eventFinalists = [...shuffledPlayers];
-            eventRoundPlayers = [];
+            // Jos vain 2 pelaajaa, siirrytään suoraan finaaliin
+            if (shuffledPlayers.length === 2) {
+                eventFinalists = [...shuffledPlayers];
+                eventRoundPlayers = [];
+            }
+            
+            // Tallennetaan muistiin
+            bracketStateCache[tournamentId] = {
+                currentEventBracketParticipants, eventRoundPlayers, eventRoundWinners, 
+                eventFinalists, eventBronzeContenders, eventBronzeWinner
+            };
         }
 
         // Calculate byes
@@ -2722,7 +2961,7 @@ export async function viewTournamentBracket(tournamentId, tournamentName, maxPar
 /**
  * Show completed tournament results
  */
-function showCompletedTournamentBracket(tournament) {
+function showCompletedTournamentBracket(tournament, players = []) {
     const a = document.createElement('div');
     a.id = 'bracket-area';
     a.style.textAlign = 'center';
@@ -2742,13 +2981,83 @@ function showCompletedTournamentBracket(tournament) {
         tournament.winner_name, tournament.second_place_name, 0, tournament.winner_name, '', { isFinal: true }
     ));
 
-    // Winner announcement
+    // Podium Logic with Player Cards
+    // FIX: Case-insensitive lookup to ensure avatar is found even if casing differs
+    const getPlayer = (name) => players.find(p => p.username.toLowerCase() === name.toLowerCase()) || { username: name, elo: '-', country: null, avatar_url: null };
+    
+    const winner = getPlayer(tournament.winner_name);
+    const second = tournament.second_place_name ? getPlayer(tournament.second_place_name) : null;
+    const third = tournament.third_place_name ? getPlayer(tournament.third_place_name) : null;
+
+    const renderCard = (p, rankIcon, color, place) => {
+        if (!p) return '';
+        const flag = p.country ? p.country.toLowerCase() : 'fi';
+        
+        // Card styles
+        const cardStyle = `
+            width: 140px;
+            height: 220px;
+            background: #0a0a0a;
+            border: 2px solid ${color};
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 15px ${color}40;
+            display: flex;
+            flex-direction: column;
+        `;
+
+        const avatarHtml = p.avatar_url 
+            ? `<img src="${p.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">`
+            : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #151515; color: #333; font-size: 3rem;"><i class="fa fa-user"></i></div>`;
+
+        return `
+            <div data-username="${p.username}" style="cursor: pointer; display:flex; flex-direction:column; align-items:center; margin: 0 8px; position: relative; z-index: ${4-place}; ${place === 1 ? 'transform: scale(1.15); margin-bottom: 15px;' : ''}">
+                <div style="font-size: 2rem; margin-bottom: 8px; filter: drop-shadow(0 0 10px ${color}); animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) ${place * 0.2}s both;">${rankIcon}</div>
+                
+                <div class="podium-card" style="${cardStyle}">
+                    <!-- Header -->
+                    <div style="background: ${color}; color: #000; padding: 3px 0; text-align: center; font-family: var(--sub-name-font); font-weight: bold; font-size: 0.6rem; letter-spacing: 1px;">
+                        ${place === 1 ? 'CHAMPION' : (place === 2 ? 'FINALIST' : '3RD PLACE')}
+                    </div>
+                    
+                    <!-- Image Area -->
+                    <div style="flex: 1; position: relative; overflow: hidden;">
+                        ${avatarHtml}
+                        <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: linear-gradient(to top, #000 0%, transparent 100%);"></div>
+                    </div>
+                    
+                    <!-- Info Area -->
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 12px 8px; box-sizing: border-box; text-align: center;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 2px;">
+                            <img src="https://flagcdn.com/w40/${flag}.png" style="height: 10px; border-radius: 1px;">
+                            <div style="color: #fff; font-family: var(--sub-name-font); font-size: 0.75rem; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${p.username}
+                            </div>
+                        </div>
+                        <div style="color: ${color}; font-family: 'Russo One'; font-size: 1.2rem; text-shadow: 0 2px 8px rgba(0,0,0,0.8);">
+                            ${p.elo}
+                        </div>
+                        <div style="color: #666; font-size: 0.55rem; letter-spacing: 1px; font-family: var(--sub-name-font);">ELO RATING</div>
+                    </div>
+                </div>
+                
+                <!-- Reflection -->
+                <div style="width: 120px; height: 15px; background: radial-gradient(ellipse at center, ${color}60 0%, transparent 70%); margin-top: 15px; filter: blur(6px); opacity: 0.6;"></div>
+            </div>
+        `;
+    };
+
     a.innerHTML += `
-            <div style="text-align:center; margin-top:30px; padding:20px; background:rgba(255,215,0,0.05); border-radius:var(--sub-radius); border:1px dashed rgba(255,215,0,0.2);">
-            <div style="font-family:var(--sub-name-font); color:var(--sub-gold); font-size:1.4rem; text-transform:uppercase; letter-spacing:2px;">🏆 ${tournament.winner_name}</div>
-            <div style="font-family:var(--sub-name-font); color:#555; font-size:0.7rem; margin-top:5px; letter-spacing:1px;">OFFICIAL EVENT WINNER</div>
+        <div style="margin-top:40px; margin-bottom:20px;">
+            <div style="font-family:var(--sub-name-font); color:#888; font-size:0.8rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:20px;">Tournament Podium</div>
+            <div style="display:flex; align-items:flex-end; justify-content:center; gap:15px;">
+                ${renderCard(second, '🥈', '#C0C0C0', 2)}
+                ${renderCard(winner, '🏆', 'var(--sub-gold)', 1)}
+                ${renderCard(third, '🥉', '#CD7F32', 3)}
+            </div>
         </div>
-            `;
+    `;
 
     const modalContent = `
             ${a.outerHTML}
@@ -2867,6 +3176,7 @@ export async function pickEventWinner(idx, playerName) {
     if (match.p1 && match.p2) {
         await saveEventMatch(match.p1, match.p2, playerName);
     }
+    showNotification(`${playerName} wins! Match recorded.`, 'success');
 
     eventRoundWinners[idx] = playerName;
 
@@ -2882,6 +3192,7 @@ export async function pickEventWinner(idx, playerName) {
 export async function pickEventBronzeWinner(idx, playerName) {
     await saveEventMatch(eventBronzeContenders[0], eventBronzeContenders[1], playerName);
     eventBronzeWinner = playerName;
+    showNotification(`${playerName} wins bronze match! Match recorded.`, 'success');
     showEventBracket();
 }
 

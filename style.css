@@ -1766,3 +1766,14 @@ body.live-mode {
     background: linear-gradient(90deg, transparent, var(--sub-border), transparent);
     margin: 20px 0;
 }
+
+/* FORCE HIDE AUDIO INDICATOR GLOBALLY */
+#audio-indicator, 
+#conn-dot, 
+.connection-dot,
+#audio-threshold-line,
+#audio-meter-wrapper,
+#audio-meter-container,
+#audio-frequency-display {
+    display: none !important;
+}

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer Sound System Diagnostic</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-family: 'Open Sans', sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #FFD700; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .panel {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        button {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        button:hover { background: #444; border-color: #FFD700; }
+        button.primary { background: #E30613; border-color: #E30613; }
+        button.primary:hover { background: #c00510; }
+        
+        #console-log {
+            background: #000;
+            color: #0f0;
+            font-family: monospace;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            border-radius: 4px;
+            border: 1px solid #333;
+            white-space: pre-wrap;
+        }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #111; }
+        .log-error { color: #ff5555; }
+        .log-warn { color: #ffaa00; }
+    </style>
+</head>
+<body>
+    <h1>🔊 Sound System Diagnostic</h1>
+
+    <div class="panel">
+        <h3>1. Initialization</h3>
+        <p>Browsers require user interaction to start audio.</p>
+        <button onclick="initAudio()" class="primary">▶️ Initialize Audio Engine</button>
+        <span id="audio-status">Status: 🔴 Suspended/Not Started</span>
+    </div>
+
+    <div class="panel">
+        <h3>2. Sound Tests</h3>
+        <button onclick="window.soundEffects.playGoalSound()">⚽ Play Goal Sound</button>
+        <button onclick="window.soundEffects.playCrowdCheer()">👏 Play Crowd Cheer</button>
+        <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
+        <label>Volume: <input type="range" min="0" max="1" step="0.1" value="0.7" oninput="window.soundEffects.setVolume(this.value)"></label>
+    </div>
+
+    <div class="panel">
+        <h3>3. System Log</h3>
+        <div id="console-log"></div>
+    </div>
+
+    <!-- Load Sound System -->
+    <script src="sound-effects.js"></script>
+
+    <script>
+        // Redirect console logging to screen
+        const logEl = document.getElementById('console-log');
+        
+        function logToScreen(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            if (type === 'error') div.className += ' log-error';
+            if (type === 'warn') div.className += ' log-warn';
+            
+            const time = new Date().toLocaleTimeString();
+            div.textContent = `[${time}] ${msg}`;
+            
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Override console methods
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            logToScreen(args.join(' '));
+        };
+
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            logToScreen(args.join(' '), 'warn');
+        };
+
+        const originalError = console.error;
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            logToScreen(args.join(' '), 'error');
+        };
+
+        // Init function
+        function initAudio() {
+            if (!window.soundEffects || !window.soundEffects.audioContext) {
+                console.error("SoundEffects system not loaded properly.");
+                return;
+            }
+
+            const ctx = window.soundEffects.audioContext;
+            if (ctx.state === 'suspended') {
+                ctx.resume().then(() => {
+                    console.log("✅ AudioContext resumed successfully!");
+                    updateStatus();
+                }).catch(e => console.error("Resume failed:", e));
+            } else {
+                console.log("ℹ️ AudioContext state is: " + ctx.state);
+                updateStatus();
+            }
+            
+            // Try to play a silent sound to unlock iOS audio
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            gain.gain.value = 0;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(0);
+            osc.stop(0.1);
+        }
+
+        function updateStatus() {
+            const statusEl = document.getElementById('audio-status');
+            if (window.soundEffects && window.soundEffects.audioContext && window.soundEffects.audioContext.state === 'running') {
+                statusEl.innerHTML = "Status: 🟢 Running (Active)";
+                statusEl.style.color = "#4CAF50";
+            } else {
+                statusEl.innerHTML = "Status: 🔴 Suspended/Closed";
+                statusEl.style.color = "#f44336";
+            }
+        }
+
+        // Check status periodically
+        setInterval(updateStatus, 1000);
+
+        console.log("Diagnostic tool loaded. Click 'Initialize Audio Engine' to start.");
+    </script>
+</body>
+</html>
