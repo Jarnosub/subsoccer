@@ -123,10 +123,12 @@ function renderEventsPage(events) {
 
     container.innerHTML = safeHTML`
         ${setupHtml}
-        <h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin:25px 0 15px 0; color:#444; font-size:0.75rem; letter-spacing:3px; border-bottom:1px solid #222; padding-bottom:8px; text-align:center;">
-            UPCOMING EVENTS
-        </h3>
-        <div id="events-list">
+        <div style="display:flex; align-items:center; gap:15px; margin:30px 0 20px 0;">
+            <div style="height:1px; background:#333; flex:1;"></div>
+            <div style="font-family:var(--sub-name-font); color:#666; font-size:0.8rem; letter-spacing:2px;">UPCOMING EVENTS</div>
+            <div style="height:1px; background:#333; flex:1;"></div>
+        </div>
+        <div id="events-list" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
             ${eventsList}
         </div>
     `;
@@ -149,32 +151,46 @@ function renderEventCard(event) {
     const typeColor = eventTypeColors[event.event_type] || '#888';
 
     return safeHTML`
-        <div class="event-card sub-card" style="border-left: 2px solid ${typeColor};">
-            ${event.image_url ? safeHTML`<div style="width:100%; height:160px; background:url('${event.image_url}') center/cover; border-radius:2px; margin-bottom:15px; border:1px solid #333;"></div>` : ''}
+        <div class="event-card sub-card" style="padding:0; overflow:hidden; border:1px solid #333; transition:transform 0.2s; position:relative; background:#111;">
+            ${event.image_url ? safeHTML`
+                <div style="height:180px; background:url('${event.image_url}') center/cover; position:relative;">
+                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%);"></div>
+                    <div style="position:absolute; top:15px; right:15px;">
+                        <span class="sub-badge" style="background:${typeColor}; color:#000; box-shadow:0 4px 10px rgba(0,0,0,0.5);">
+                            ${event.event_type}
+                        </span>
+                    </div>
+                </div>
+            ` : safeHTML`
+                <div style="height:100px; background:linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%); position:relative; border-bottom:1px solid #333;">
+                    <div style="position:absolute; top:15px; right:15px;">
+                        <span class="sub-badge" style="background:${typeColor}; color:#000;">
+                            ${event.event_type}
+                        </span>
+                    </div>
+                </div>
+            `}
             
-            <div style="margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-                    <span class="sub-badge" style="background:${typeColor}; color:#000;">
-                        ${event.event_type}
-                    </span>
-                    <span style="color:#555; font-size:0.75rem; font-family:var(--sub-name-font); letter-spacing:1px;">
-                        <i class="fa-solid fa-calendar-day" style="color:#444; margin-right:8px;"></i>
-                        ${dayOfWeek}, ${dateStr} @ ${timeStr}
-                    </span>
+            <div style="padding:20px;">
+                <div style="margin-bottom:5px; font-size:0.75rem; color:var(--sub-gold); font-family:var(--sub-name-font); letter-spacing:1px; text-transform:uppercase;">
+                    ${dateStr} @ ${timeStr}
                 </div>
                 
-                <h3 style="font-family:var(--sub-name-font); font-size:1.4rem; margin:0; color:#fff; letter-spacing:1px; text-transform:uppercase;">${event.event_name}</h3>
-            </div>
-            
-            ${event.location ? safeHTML`
-                <div style="font-size:0.8rem; color:#666; margin:8px 0; font-family:var(--sub-body-font); text-transform:uppercase; letter-spacing:1px;">
-                    <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-right:8px;"></i> ${event.location.toUpperCase()}
-                </div>
-            ` : ''}
-            
-            <div style="margin-top:15px; padding-top:15px; border-top:1px solid #222;">
-                <button class="btn-red" style="width:100%; padding:12px; font-size:0.9rem; letter-spacing:2px;" data-action="view-event-details" data-id="${event.id}">
-                    VIEW DETAILS
+                <h3 style="font-family:var(--sub-name-font); font-size:1.4rem; margin:0 0 10px 0; color:#fff; letter-spacing:1px; text-transform:uppercase; line-height:1.1;">
+                    ${event.event_name}
+                </h3>
+                
+                ${event.location ? safeHTML`
+                    <div style="font-size:0.85rem; color:#888; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-location-dot" style="color:var(--sub-red);"></i> ${event.location.toUpperCase()}
+                    </div>
+                ` : ''}
+                
+                <button class="btn-red" style="width:100%; padding:14px; font-size:0.9rem; letter-spacing:2px; background:#222; border:1px solid #333; transition:all 0.2s;" 
+                    onmouseover="this.style.background='var(--sub-red)'; this.style.borderColor='var(--sub-red)';" 
+                    onmouseout="this.style.background='#222'; this.style.borderColor='#333';"
+                    data-action="view-event-details" data-id="${event.id}">
+                    VIEW EVENT
                 </button>
             </div>
         </div>
@@ -642,44 +658,54 @@ function showEventModal(event, tournaments, userRegistrations, moderators = []) 
         <div style="background:var(--sub-black); border-radius:var(--sub-radius); overflow:hidden; border: 1px solid var(--sub-border); box-shadow: var(--sub-shadow);">
                 
                 ${event.image_url ? `
-                    <div style="width:100%; height:220px; background:url('${event.image_url}') center/cover; border-bottom: 2px solid var(--sub-red);"></div>
-                ` : ''}
+                    <div style="width:100%; height:250px; background:url('${event.image_url}') center/cover; position:relative;">
+                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:linear-gradient(to bottom, transparent 0%, var(--sub-black) 100%);"></div>
+                        <div style="position:absolute; bottom:20px; left:20px; right:20px;">
+                            <div style="background:var(--sub-red); color:#fff; padding:4px 10px; font-size:0.7rem; font-family:var(--sub-name-font); display:inline-block; margin-bottom:10px; border-radius:2px; text-transform:uppercase; letter-spacing:1px;">${event.event_type}</div>
+                            <h2 style="font-family:var(--sub-name-font); font-size:2.2rem; margin:0; color:#fff; text-transform:uppercase; letter-spacing:1px; line-height:1; text-shadow:0 2px 10px rgba(0,0,0,0.5);">${event.event_name}</h2>
+                        </div>
+                    </div>
+                ` : `
+                    <div style="padding:30px 30px 10px 30px; border-bottom:1px solid #222;">
+                        <div style="background:var(--sub-red); color:#fff; padding:4px 10px; font-size:0.7rem; font-family:var(--sub-name-font); display:inline-block; margin-bottom:10px; border-radius:2px; text-transform:uppercase; letter-spacing:1px;">${event.event_type}</div>
+                        <h2 style="font-family:var(--sub-name-font); font-size:2rem; margin:0; color:#fff; text-transform:uppercase; letter-spacing:1px;">${event.event_name}</h2>
+                    </div>
+                `}
                 
-                <div style="padding:32px;">
-                    <h2 class="sub-heading-premium" style="font-size:1.8rem; margin:0 0 10px 0;">${event.event_name}</h2>
-                    
-                    <div style="font-size:0.85rem; color:#aaa; margin-bottom:24px; display:flex; align-items:center; gap:8px; text-transform: uppercase; letter-spacing: 1px;">
-                        <i class="fa fa-user-circle" style="color:var(--sub-red);"></i> Organizer: 
-                        <span style="color:var(--sub-white); font-weight:bold;">${event.organizer?.username || 'System'}</span>
-                    </div>
-
-                    <div style="display:flex; gap:20px; margin-bottom:24px; flex-wrap:wrap;">
-                        <div class="sub-gold-text" style="font-size:0.9rem;">
-                            <i class="fa fa-tag" style="margin-right:8px;"></i> ${event.event_type}
-                        </div>
-                        <div style="font-size:0.9rem; color:#eee; font-family: var(--sub-name-font); letter-spacing: 1px;">
-                            <i class="fa fa-calendar" style="margin-right:8px; color: var(--sub-red);"></i> ${dateStr}
-                        </div>
-                        ${!endDate || endDate.toDateString() === startDate.toDateString() ? `
-                            <div style="font-size:0.9rem; color:#eee; font-family: var(--sub-name-font); letter-spacing: 1px;">
-                                <i class="fa fa-clock" style="margin-right:8px; color: var(--sub-red);"></i> ${timeStr}
+                <div style="padding:30px;">
+                    <!-- Meta Grid -->
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px; background:#111; padding:20px; border-radius:8px; border:1px solid #222;">
+                        <div>
+                            <div style="font-size:0.7rem; color:#666; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px;">Date & Time</div>
+                            <div style="color:#fff; font-family:var(--sub-name-font); font-size:0.95rem;">
+                                <i class="fa fa-calendar" style="color:var(--sub-gold); margin-right:8px;"></i> ${dateStr}
                             </div>
-                        ` : ''}
-                    </div>
-                    
-                    <div class="sub-divider"></div>
-
-                    ${event.location ? `
-                        <div style="margin-bottom:24px;">
-                            <div style="font-size:0.75rem; color:var(--sub-red); margin-bottom:8px; font-family: var(--sub-name-font); letter-spacing: 1.5px; text-transform: uppercase;">LOCATION</div>
-                            <div style="font-size:1.1rem; color:#fff; font-family: var(--sub-name-font);">${event.location}</div>
+                            ${(!endDate || endDate.toDateString() === startDate.toDateString()) ? `
+                                <div style="color:#888; font-family:var(--sub-name-font); font-size:0.85rem; margin-top:4px; margin-left:24px;">
+                                    ${timeStr}
+                                </div>
+                            ` : ''}
                         </div>
-                    ` : ''}
-                    
+                        
+                        <div>
+                            <div style="font-size:0.7rem; color:#666; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px;">Location</div>
+                            <div style="color:#fff; font-family:var(--sub-name-font); font-size:0.95rem;">
+                                <i class="fa fa-map-marker-alt" style="color:var(--sub-red); margin-right:8px;"></i> ${event.location || 'TBA'}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div style="font-size:0.7rem; color:#666; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px;">Organizer</div>
+                            <div style="color:#fff; font-family:var(--sub-name-font); font-size:0.95rem;">
+                                <i class="fa fa-user-circle" style="color:#888; margin-right:8px;"></i> ${event.organizer?.username || 'System'}
+                            </div>
+                        </div>
+                    </div>
+
                     ${event.description ? `
-                        <div style="margin-bottom:24px;">
-                            <div style="font-size:0.75rem; color:var(--sub-red); margin-bottom:8px; font-family: var(--sub-name-font); letter-spacing: 1.5px; text-transform: uppercase;">DESCRIPTION</div>
-                            <p style="font-size:0.95rem; color:#ccc; margin:0; line-height:1.6;">${event.description}</p>
+                        <div style="margin-bottom:30px;">
+                            <div style="font-size:0.75rem; color:var(--sub-gold); margin-bottom:10px; font-family: var(--sub-name-font); letter-spacing: 1.5px; text-transform: uppercase;">ABOUT EVENT</div>
+                            <p style="font-size:0.95rem; color:#ccc; margin:0; line-height:1.6; font-family:'Open Sans';">${event.description}</p>
                         </div>
                     ` : ''}
 
@@ -731,90 +757,76 @@ function showEventModal(event, tournaments, userRegistrations, moderators = []) 
         const isFull = participantCount >= maxParticipants;
 
         return `
-                                <div class="sub-card-premium" style="margin-bottom:12px; padding: 20px; border-left: 2px solid ${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? 'var(--sub-red)' : 'var(--sub-border)'};">
-                                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
-                                        <div style="flex:1;">
-                                            <div style="font-size:1.1rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 1px; margin-bottom:8px;">
-                                                ${t.tournament_name || 'Tournament'}
-                                            </div>
-                                            <div style="font-size:0.8rem; color:#aaa; margin-bottom:8px; text-transform: uppercase; letter-spacing: 1px;">
-                                                <i class="fa fa-gamepad" style="margin-right:8px; color: var(--sub-red);"></i> ${t.game?.game_name || 'Unknown Table'}${t.game?.location ? ` - ${t.game.location}` : ''}
-                                            </div>
-                                            <div style="font-size:0.85rem; color:#fff; font-family: var(--sub-name-font); display: flex; align-items: center; gap: 12px;">
-                                                <span><i class="fa fa-users" style="color:var(--sub-red); margin-right:6px;"></i> ${participantCount} / ${maxParticipants}</span>
-                                                <button data-action="view-participants" data-event-id="${event.id}" data-tour-id="${t.id}" data-name="${t.tournament_name || 'Tournament'}" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:none; font-size:0.75rem; font-weight: bold; border: 1px solid rgba(255, 215, 0, 0.2); padding: 2px 6px; border-radius: 2px;">VIEW LIST</button>
-                                                ${participantCount >= 2 ? `<button data-action="view-bracket" data-id="${t.id}" data-name="${(t.tournament_name || 'Tournament').replace(/[`'"]/g, '')}" data-max="${maxParticipants}" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:none; font-size:0.75rem; font-weight: bold; border: 1px solid rgba(76, 175, 80, 0.2); padding: 2px 6px; border-radius: 2px;">BRACKET</button>` : ''}
-                                            </div>
-                                        </div>
-                                        <div style="text-align:right;">
-                                            ${t.status === 'completed' ? `
-                                                <div style="font-size:0.7rem; color:#4CAF50; font-family: var(--sub-name-font); letter-spacing: 1px;">
-                                                    <i class="fa fa-check-circle"></i> COMPLETED
-                                                </div>
-                                            ` : t.status === 'ongoing' ? `
-                                                <div class="sub-badge-live">
-                                                    LIVE
-                                                </div>
-                                            ` : `
-                                                <div style="font-size:0.7rem; color:#888; font-family: var(--sub-name-font); letter-spacing: 1px;">
-                                                    SCHEDULED
-                                                </div>
-                                            `}
-                                            
-                                            <div style="margin-top:12px; font-size:1rem; color:var(--sub-gold); font-family: var(--sub-name-font); font-weight:bold;">
-                                                <i class="fa fa-clock" style="margin-right:4px; font-size: 0.8rem;"></i>${timeStr}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    ${t.status === 'completed' && (t.winner_name || t.second_place_name || t.third_place_name) ? `
-                                        <div style="background:var(--sub-black); border:1px solid rgba(255, 215, 0, 0.2); border-radius:var(--sub-radius); padding:16px; margin-top:12px;">
-                                            <div style="font-size:0.7rem; color:var(--sub-gold); margin-bottom:12px; text-transform:uppercase; letter-spacing:1.5px; font-family: var(--sub-name-font); font-weight: bold;">
-                                                FINAL STANDINGS
-                                            </div>
-                                            ${t.winner_name ? `
-                                                <div style="font-size:0.95rem; color:var(--sub-white); font-family: var(--sub-name-font); margin-bottom:6px;">
-                                                    <span style="color:var(--sub-gold);">🏆</span> ${t.winner_name}
-                                                </div>
-                                            ` : ''}
-                                            ${t.second_place_name ? `
-                                                <div style="font-size:0.85rem; color:#aaa; font-family: var(--sub-name-font); margin-bottom:4px;">
-                                                    <span style="color:#C0C0C0;">🥈</span> ${t.second_place_name}
-                                                </div>
-                                            ` : ''}
-                                            ${t.third_place_name ? `
-                                                <div style="font-size:0.85rem; color:#aaa; font-family: var(--sub-name-font);">
-                                                    <span style="color:#CD7F32;">🥉</span> ${t.third_place_name}
-                                                </div>
-                                            ` : ''}
-                                        </div>
-                                    ` : ''}
+            <div style="background:#111; border:1px solid #333; border-radius:8px; margin-bottom:15px; overflow:hidden;">
+                <div style="padding:15px 20px; display:flex; justify-content:space-between; align-items:center; background:#161616; border-bottom:1px solid #222;">
+                    <div>
+                        <div style="font-size:0.7rem; color:var(--sub-gold); font-family:var(--sub-name-font); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;">
+                            ${t.game?.game_name || 'Tournament Table'}
+                        </div>
+                        <div style="font-size:1.1rem; color:#fff; font-family:var(--sub-name-font); letter-spacing:1px;">
+                            ${t.tournament_name || 'Tournament'}
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.2rem; font-family:var(--sub-name-font); color:#fff;">${timeStr}</div>
+                        ${t.status === 'ongoing' ? '<span class="sub-badge-live">LIVE</span>' : 
+                          t.status === 'completed' ? '<span style="color:#4CAF50; font-size:0.7rem; font-weight:bold;">COMPLETED</span>' : 
+                          '<span style="color:#666; font-size:0.7rem;">SCHEDULED</span>'}
+                    </div>
+                </div>
+                
+                <div style="padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div style="font-size:0.85rem; color:#888;">
+                            <i class="fa fa-users" style="margin-right:6px;"></i> ${participantCount} / ${maxParticipants} Players
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                             <button data-action="view-participants" data-event-id="${event.id}" data-tour-id="${t.id}" data-name="${t.tournament_name || 'Tournament'}" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; text-decoration:none; font-size:0.75rem; font-weight:bold; border:1px solid rgba(255,215,0,0.2); padding:4px 10px; border-radius:4px;">ROSTER</button>
+                             ${participantCount >= 2 ? `<button data-action="view-bracket" data-id="${t.id}" data-name="${(t.tournament_name || 'Tournament').replace(/[`'"]/g, '')}" data-max="${maxParticipants}" style="background:none; border:none; color:#4CAF50; cursor:pointer; text-decoration:none; font-size:0.75rem; font-weight:bold; border:1px solid rgba(76,175,80,0.2); padding:4px 10px; border-radius:4px;">BRACKET</button>` : ''}
+                        </div>
+                    </div>
 
-                                    
-                                    ${isOrganizer ? `
-                                        <div style="display:flex; gap:8px; margin-top:8px;">
-                                            <button class="btn-red" style="flex:1; padding:8px; font-size:0.85rem; background:#FF9800;" 
-                                                    onclick="editTournament('${t.id}', '${event.id}', '${event.event_name}')">
-                                                <i class="fa fa-edit"></i> EDIT
-                                            </button>
-                                            <button class="btn-red" style="flex:1; padding:8px; font-size:0.85rem; background:#f44336;" 
-                                                    onclick="deleteTournament('${t.id}', '${event.id}')">
-                                                <i class="fa fa-trash"></i> DELETE
-                                            </button>
-                                        </div>
-                                    ` : ''}
-                                    
-                                    ${t.status !== 'completed' && state.user && !isOrganizer && state.user.id !== 'spectator' ? `
-                                        <button class="btn-red" 
-                                                ${isFull && !isUserRegistered ? 'disabled' : ''}
-                                                style="width:100%; padding:8px; font-size:0.85rem; margin-top:8px; ${isUserRegistered ? 'background:#4CAF50;' : (isFull ? 'background:#444; cursor:not-allowed; opacity:0.7;' : '')}" 
-                                                onclick="${isUserRegistered ? `unregisterFromTournament('${event.id}', '${t.id}')` : (isFull ? '' : `registerForTournament('${event.id}', '${t.id}')`)}">
-                                            <i class="fa fa-${isUserRegistered ? 'check' : (isFull ? 'ban' : 'user-plus')}"></i> 
-                                            ${isUserRegistered ? 'REGISTERED ✓' : (isFull ? 'TOURNAMENT FULL' : 'REGISTER')}
-                                        </button>
-                                    ` : ''}
+                    ${t.status === 'completed' && (t.winner_name || t.second_place_name || t.third_place_name) ? `
+                        <div style="background:rgba(255,215,0,0.05); border:1px solid rgba(255,215,0,0.2); padding:12px; border-radius:4px; display:flex; align-items:center; gap:15px;">
+                            <div style="font-size:1.5rem;">🏆</div>
+                            <div>
+                                <div style="font-size:0.6rem; color:var(--sub-gold); text-transform:uppercase; letter-spacing:1px;">Winner</div>
+                                <div style="font-size:1rem; color:#fff; font-family:var(--sub-name-font);">${t.winner_name}</div>
+                            </div>
+                            ${t.second_place_name ? `
+                                <div style="border-left:1px solid rgba(255,255,255,0.1); padding-left:15px;">
+                                    <div style="font-size:0.6rem; color:#C0C0C0; text-transform:uppercase; letter-spacing:1px;">2nd Place</div>
+                                    <div style="font-size:0.9rem; color:#ccc; font-family:var(--sub-name-font);">${t.second_place_name}</div>
                                 </div>
-                            `;
+                            ` : ''}
+                        </div>
+                    ` : ''}
+
+                    ${isOrganizer ? `
+                        <div style="display:flex; gap:8px; margin-top:15px; border-top:1px solid #222; padding-top:15px;">
+                            <button class="btn-red" style="flex:1; padding:8px; font-size:0.8rem; background:#333; border:1px solid #444;" 
+                                    onclick="editTournament('${t.id}', '${event.id}', '${event.event_name}')">
+                                <i class="fa fa-edit"></i> EDIT
+                            </button>
+                            <button class="btn-red" style="flex:1; padding:8px; font-size:0.8rem; background:#333; border:1px solid #444; color:var(--sub-red);" 
+                                    onclick="deleteTournament('${t.id}', '${event.id}')">
+                                <i class="fa fa-trash"></i> DELETE
+                            </button>
+                        </div>
+                    ` : ''}
+                    
+                    ${t.status !== 'completed' && state.user && !isOrganizer && state.user.id !== 'spectator' ? `
+                        <button class="btn-red" 
+                                ${isFull && !isUserRegistered ? 'disabled' : ''}
+                                style="width:100%; padding:12px; font-size:0.9rem; margin-top:15px; ${isUserRegistered ? 'background:#4CAF50;' : (isFull ? 'background:#444; cursor:not-allowed; opacity:0.7;' : 'background:var(--sub-red);')}" 
+                                onclick="${isUserRegistered ? `unregisterFromTournament('${event.id}', '${t.id}')` : (isFull ? '' : `registerForTournament('${event.id}', '${t.id}')`)}">
+                            <i class="fa fa-${isUserRegistered ? 'check' : (isFull ? 'ban' : 'user-plus')}"></i> 
+                            ${isUserRegistered ? 'REGISTERED ✓' : (isFull ? 'TOURNAMENT FULL' : 'REGISTER')}
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
     }).join('')}
                     </div>
                     
