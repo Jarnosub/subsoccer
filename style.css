@@ -732,20 +732,6 @@ button {
     overflow: visible !important;
 }
 
-#pool-list {
-    flex-grow: 0 !important;
-    min-height: 50px !important;
-    height: auto !important;
-    overflow-y: visible !important;
-    margin: 10px 0;
-    background: #141414;
-    padding: 15px;
-    border-radius: var(--sub-radius);
-    font-size: 0.8rem;
-    text-align: left;
-    color: #888;
-}
-
 .tour-setup-footer {
     flex-shrink: 0;
     /* Footer doesn't shrink */
@@ -763,20 +749,6 @@ button {
 #add-p-input {
     flex-grow: 1 !important;
     margin-bottom: 0 !important;
-}
-
-.add-guest-btn {
-    position: static !important;
-    transform: none !important;
-    white-space: nowrap !important;
-    padding: 0 20px !important;
-    height: 48px !important;
-    background: var(--sub-red) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: var(--sub-radius) !important;
-    font-family: var(--sub-name-font) !important;
-    cursor: pointer !important;
 }
 
 #tour-engine {
@@ -1776,4 +1748,151 @@ body.live-mode {
 #audio-meter-container,
 #audio-frequency-display {
     display: none !important;
+}
+
+/* MOBILE OPTIMIZATIONS */
+@media (max-width: 480px) {
+    .btn-red {
+        padding: 10px !important;
+        font-size: 0.9rem !important;
+    }
+
+    .tour-mode-toggle,
+    .pro-mode-toggle {
+        padding: 8px 15px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .score-btn {
+        padding: 15px !important;
+        font-size: 1.5rem !important;
+    }
+}
+
+/* PRO MODE CONTROLS (Unified Style) */
+.pro-control-btn {
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.pro-control-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--sub-gold);
+    transform: scale(1.05);
+}
+
+.pro-control-btn.active {
+    background: rgba(227, 6, 19, 0.2);
+    border-color: var(--sub-red);
+    color: var(--sub-red);
+}
+
+.pro-control-btn.top-right {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+}
+
+.pro-controls-bar {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 1000;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* BRACKET ENGINE STYLES (Tournament Mode) */
+#bracket-area {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    align-items: center;
+    padding: 10px 0;
+}
+
+/* Match Container */
+#bracket-area > div {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 8px;
+    width: 100%;
+    max-width: 350px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* Player Element */
+#bracket-area > div > div {
+    background: #1a1a1a;
+    padding: 12px 15px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.9rem;
+    color: #ccc;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    user-select: none;
+}
+
+#bracket-area > div > div:hover {
+    background: #222;
+    border-color: #555;
+    color: #fff;
+    transform: translateX(2px);
+}
+
+/* Winner State */
+#bracket-area > div > div.match-winner {
+    background: linear-gradient(135deg, var(--sub-gold) 0%, #d4af37 100%) !important;
+    color: #000 !important;
+    border-color: var(--sub-gold) !important;
+    font-weight: bold;
+    opacity: 1 !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+#bracket-area > div > div.match-winner::after {
+    content: '\f00c'; /* FontAwesome check */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+/* Loser State */
+#bracket-area > div > div.match-loser {
+    opacity: 0.4 !important;
+    background: #0a0a0a !important;
+    border-color: #222 !important;
+    color: #666 !important;
 }

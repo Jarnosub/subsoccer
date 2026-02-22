@@ -128,8 +128,17 @@ export async function pickWin(idx, n, e) {
         }
     }
     rW[idx] = n;
-    e.parentElement.querySelectorAll('div').forEach(d => { d.style.background = "transparent"; d.style.opacity = "0.5"; });
-    e.style.background = "rgba(227, 6, 19, 0.4)"; e.style.opacity = "1";
+    
+    // Visual update using classes instead of inline styles
+    e.parentElement.querySelectorAll('div').forEach(d => { 
+        d.classList.remove('match-winner');
+        d.classList.add('match-loser');
+        d.style.background = ""; // Clear old inline styles
+        d.style.opacity = "";
+    });
+    e.classList.remove('match-loser');
+    e.classList.add('match-winner');
+    
     checkCompletion();
 }
 
@@ -142,8 +151,16 @@ export async function pickBronzeWinner(idx, n, e) {
         tournamentSessionGains[n] = (tournamentSessionGains[n] || 0) + result.gain;
     }
     bronzeWinner = n;
-    e.parentElement.querySelectorAll('div').forEach(d => { d.style.background = "transparent"; d.style.opacity = "0.5"; });
-    e.style.background = "rgba(255, 215, 0, 0.3)"; e.style.opacity = "1";
+    
+    e.parentElement.querySelectorAll('div').forEach(d => { 
+        d.classList.remove('match-winner');
+        d.classList.add('match-loser');
+        d.style.background = "";
+        d.style.opacity = "";
+    });
+    e.classList.remove('match-loser');
+    e.classList.add('match-winner');
+    
     checkCompletion();
 }
 

@@ -2497,7 +2497,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
             <!-- Broadcast Header -->
             <div class="glass-panel" style="text-align:center; margin-bottom:25px; padding:20px; border-radius:12px; border-bottom: 2px solid var(--sub-red); position: relative; overflow: hidden;">
 
-                <button onclick="closeLiveView()" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:50%; width:40px; height:40px; cursor:pointer; z-index:100; font-size:1.2rem; transition:background 0.2s;" onmouseover="this.style.background='var(--sub-red)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                <button onclick="closeLiveView()" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; z-index:100; font-size:1rem; transition:background 0.2s;" onmouseover="this.style.background='var(--sub-red)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                     <i class="fa fa-times"></i>
                 </button>
 

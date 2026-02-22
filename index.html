@@ -95,10 +95,13 @@
             left: 0;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             background: #0a0a0a;
             z-index: 99999999;
             display: none;
             flex-direction: row;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .pro-player-side {
@@ -120,7 +123,7 @@
         }
 
         .pro-player-name {
-            font-family: 'Resolve';
+            font-family: 'SubsoccerLogo', sans-serif;
             font-size: 1.2rem;
             color: #666;
             position: absolute;
@@ -129,7 +132,7 @@
         }
 
         .pro-score {
-            font-family: 'Resolve';
+            font-family: 'SubsoccerLogo', sans-serif;
             font-size: 10rem;
             color: var(--sub-gold);
             text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
@@ -608,14 +611,7 @@
                             PLAYERS</button>
                     </div>
 
-                    <button class="btn-red" id="start-quick-match" style="font-size: 1.5rem; letter-spacing: 2px;">⚡ START PRO MATCH</button>
-
-                    <a href="instant-play.html?game_id=QUICK-PLAY&mode=casual" style="text-decoration:none;">
-                        <button class="tour-mode-toggle"
-                            style="width:100%; display: flex; justify-content: center; align-items: center; padding:15px;">
-                            INSTANT PLAY
-                        </button>
-                    </a>
+                    <button class="btn-red" id="start-quick-match" style="font-size: 1.5rem; letter-spacing: 2px;">START MATCH</button>
 
                 </div>
 
@@ -624,33 +620,41 @@
                     <h2 class="section-title"
                         style="margin-top: 20px; font-size: 1.1rem; color: #888; letter-spacing: 2px;">TOURNAMENT SETUP
                     </h2>
-
-
-                    <!-- 1. Add Players (Top Priority) -->
-                    <div class="add-player-input-group" style="position: relative;">
-                        <input type="text" id="add-p-input" placeholder="Search or add guest...">
-                        <button id="btn-add-player" class="add-guest-btn">+ Add</button>
-                        <div id="search-results"></div>
+                    
+                    <!-- Add Player Card -->
+                    <div style="background:#1a1a1a; padding:15px; border-radius:4px; border:1px solid #333; margin-bottom:15px; text-align:left;">
+                        <div style="font-size:0.7rem; color:#666; font-family:'Resolve'; letter-spacing:1px; margin-bottom:8px; text-transform:uppercase;">Add Participants</div>
+                        
+                        <div class="add-player-input-group" style="position: relative; display:flex; gap:8px;">
+                            <input type="text" id="add-p-input" placeholder="Player Name..." style="margin-bottom:0; background:#0a0a0a; border-color:#444; flex-grow:1;">
+                            <button id="btn-add-player" class="btn-red" style="width:auto; padding:0 20px; font-size:0.9rem;">ADD</button>
+                            <div id="search-results"></div>
+                        </div>
+                        <div id="active-guests" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;"></div>
                     </div>
-                    <div id="active-guests" style="margin-bottom:10px; text-align:left;"></div>
 
-                    <!-- 2. Player Pool (Middle) -->
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; border-top:1px solid #222; padding-top:10px;">
-                        <span style="font-family:'Resolve'; font-size: 0.7rem; color: #666;">PLAYER POOL (<span
-                                id="pool-count">0</span>)</span>
-                        <button id="btn-clear-pool"
-                            style="background:none; color:var(--sub-red); border:none; font-size:0.6rem; cursor:pointer;">CLEAR</button>
+                    <!-- Roster Card -->
+                    <div style="background:#000; border:1px solid #333; border-radius:4px; overflow:hidden; margin-bottom:20px;">
+                        <div style="background:#1a1a1a; padding:10px 15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-family:'Resolve'; font-size:0.75rem; color:#fff; letter-spacing:1px;">ROSTER (<span id="pool-count" style="color:var(--sub-gold);">0</span>)</span>
+                            <button id="btn-clear-pool" style="background:none; border:none; color:#666; font-size:0.7rem; cursor:pointer; text-transform:uppercase; letter-spacing:1px; transition:color 0.2s;" onmouseover="this.style.color='var(--sub-red)'" onmouseout="this.style.color='#666'">
+                                <i class="fa fa-trash"></i> CLEAR
+                            </button>
+                        </div>
+                        
+                        <div id="pool-list" style="padding:10px; min-height:150px; max-height:400px; overflow-y:auto; background:#0a0a0a;">
+                            <!-- Empty state handled by JS -->
+                        </div>
                     </div>
-                    <div id="pool-list" style="flex-grow: 1; min-height: 100px;">No players added.</div>
 
-                    <!-- 3. Generate Tournament -->
-                    <button id="btn-start-tournament" class="btn-red" style="margin-top: 15px;">Generate
-                        Brackets</button>
+                    <!-- Start Button -->
+                    <button id="btn-start-tournament" class="btn-red" style="font-size: 1.5rem; letter-spacing: 2px; background: linear-gradient(135deg, var(--sub-gold), #d4a017); color: #000; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);">
+                        START TOURNAMENT
+                    </button>
                 </div>
 
                 <!-- Pro Mode (Developer Only) -->
-                <div id="pro-mode-section" class="pro-mode-toggle" style="margin-top:40px; display:none;">
+                <div id="pro-mode-section" class="pro-mode-toggle" style="margin-top:40px; display:none !important;">
                     <input type="checkbox" id="pro-mode-toggle"
                         style="width:16px; height:16px; margin-right:8px; pointer-events:none; accent-color:#666; opacity:0.7;">
                     <i class="fa-solid fa-bolt" style="font-size:0.75rem; opacity:0.6; margin-right:8px;"></i>
@@ -819,10 +823,18 @@
             <div class="pro-status" id="pro-p2-status"></div>
         </div>
 
-        <button id="btn-exit-pro-mode" class="pro-exit-btn">✕ EXIT</button>
-        <button id="pro-undo-btn"
-            style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#333; color:var(--sub-gold); border:2px solid var(--sub-gold); padding:10px 25px; border-radius:4px; font-family:'Resolve'; font-size:0.85rem; cursor:pointer; display:none; z-index:100000; letter-spacing:1px;">↺
-            UNDO LAST GOAL</button>
+        <!-- Close Button (Top Right) -->
+        <button id="btn-exit-pro-mode" class="pro-control-btn top-right">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- Bottom Control Bar -->
+        <div class="pro-controls-bar">
+            <button id="btn-pro-undo" class="pro-control-btn" title="Undo Last Goal"><i class="fa-solid fa-rotate-left"></i></button>
+            <button id="btn-pro-reset" class="pro-control-btn" title="Reset Match"><i class="fa-solid fa-arrows-rotate"></i></button>
+            <button id="btn-pro-mic" class="pro-control-btn" title="Toggle Mic"><i class="fa-solid fa-microphone-slash"></i></button>
+            <button id="btn-pro-sound" class="pro-control-btn" title="Toggle Sound"><i class="fa-solid fa-volume-high"></i></button>
+        </div>
     </div>
     <!-- END PRO MODE VIEW -->
 

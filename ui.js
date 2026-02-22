@@ -18,7 +18,7 @@ import {
 import {
     handleQuickSearch, startQuickMatch, clearQuickMatchPlayers,
     handleProModeClick, toggleAudioDetection, recordGoalSound, acceptRulesAndStart,
-    addManualGoal, exitProMode, undoLastGoal, initProModeUI, initClaimResult, toggleSoundEffects, selectQuickPlayer, saveClaimedResult, cancelClaimResult, closeVictoryOverlay
+    addManualGoal, exitProMode, undoLastGoal, resetProMatch, initProModeUI, initClaimResult, toggleSoundEffects, selectQuickPlayer, saveClaimedResult, cancelClaimResult, closeVictoryOverlay
 } from './quick-match.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
 import { startTournament, advanceRound, saveTour, replayTournament, pickWin, pickBronzeWinner } from './tournament.js';
@@ -532,7 +532,10 @@ export function setupUIListeners() {
     document.getElementById('pro-player-left')?.addEventListener('click', () => addManualGoal(1));
     document.getElementById('pro-player-right')?.addEventListener('click', () => addManualGoal(2));
     document.getElementById('btn-exit-pro-mode')?.addEventListener('click', () => exitProMode());
-    document.getElementById('pro-undo-btn')?.addEventListener('click', () => undoLastGoal());
+    document.getElementById('btn-pro-undo')?.addEventListener('click', () => undoLastGoal());
+    document.getElementById('btn-pro-reset')?.addEventListener('click', () => resetProMatch());
+    document.getElementById('btn-pro-mic')?.addEventListener('click', () => toggleAudioDetection());
+    document.getElementById('btn-pro-sound')?.addEventListener('click', () => toggleSoundEffects());
 
     // Bracket Engine
     document.getElementById('next-rd-btn')?.addEventListener('click', () => advanceRound());
@@ -764,21 +767,27 @@ export function updatePoolUI() {
     if (!list) return;
     list.innerHTML = '';
     if (state.pool.length === 0) {
-        const emptyMessage = document.createElement('div');
-        emptyMessage.innerText = "No players added.";
-        list.appendChild(emptyMessage);
+        list.innerHTML = `
+            <div style="text-align:center; color:#444; padding:30px 0; font-size:0.8rem;">
+                <i class="fa fa-users" style="font-size:2rem; margin-bottom:10px; opacity:0.3;"></i><br>
+                Add players to start
+            </div>
+        `;
         if (countSpan) countSpan.innerText = 0;
         return;
     }
     state.pool.forEach((name, index) => {
         const div = document.createElement('div');
         div.className = "sub-item-row";
+        div.style.cssText = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #161616; padding: 10px 15px; border-radius: 4px; border: 1px solid #222;";
         div.innerHTML = `
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="color: #444; font-family: var(--sub-name-font); font-size: 0.8rem; width: 20px;">${index + 1}.</span>
                 <span style="color: white; text-transform: uppercase; font-size: 0.9rem; font-family: var(--sub-name-font); letter-spacing:1px;">${name}</span>
             </div>
-            <button class="pool-remove-btn" data-remove-index="${index}">-</button>
+            <button class="pool-remove-btn" data-remove-index="${index}" style="background:none; border:none; color:#666; cursor:pointer; font-size:0.9rem; padding:5px; transition:color 0.2s;" onmouseover="this.style.color='var(--sub-red)'" onmouseout="this.style.color='#666'">
+                <i class="fa fa-times"></i>
+            </button>
         `;
         list.appendChild(div);
     });
@@ -874,9 +883,6 @@ subscribe('user', () => {
             const isUserAdmin = isAdmin();
             const modMenu = document.getElementById('menu-item-moderator');
             if (modMenu) modMenu.style.display = isUserAdmin ? 'flex' : 'none';
-
-            const proModeSection = document.getElementById('pro-mode-section');
-            if (proModeSection) proModeSection.style.display = isUserAdmin ? 'block' : 'none';
 
             // Aggressively remove indicators from DOM
             const audioIndicator = document.getElementById('audio-indicator');

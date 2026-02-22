@@ -59,7 +59,7 @@ export async function selectQuickPlayer(name, slot) {
     if (slot === 'p1') state.quickP1 = name; else state.quickP2 = name;
     if (state.quickP1 && state.quickP2) {
         updateEloPreview();
-        if (state.proModeEnabled && isAdmin()) {
+        if (state.proModeEnabled) {
             document.getElementById('audio-status-panel').style.display = 'block';
             document.getElementById('audio-test-panel').style.display = 'block';
         }
@@ -85,20 +85,7 @@ export async function startQuickMatch() {
     if (!state.quickP1 || !state.quickP2) return showNotification("Select both players!", "error");
     if (state.quickP1 === state.quickP2) return showNotification("Select different players!", "error");
     
-    // Force disable Pro Mode for non-admins to prevent accidental audio requests
-    if (!isAdmin()) state.proModeEnabled = false;
-
-    if (state.proModeEnabled) { startProMatch(); return; }
-    
-    state.proScoreP1 = 0; state.proScoreP2 = 0; state.proGoalHistory = [];
-    state.proModeActive = true;
-    
-    document.getElementById('pro-p1-name').textContent = state.quickP1;
-    document.getElementById('pro-p2-name').textContent = state.quickP2;
-    updateProScore();
-    
-    document.getElementById('app-content').style.display = 'none';
-    document.getElementById('pro-mode-view').style.display = 'flex';
+    startProMatch();
 }
 
 export async function finalizeQuickMatch(winnerName, context = null) {
@@ -199,21 +186,13 @@ export function clearQuickMatchPlayers() {
  */
 
 export function handleProModeClick() {
-    if (!isAdmin()) {
-        showNotification('Pro Mode is currently in beta', 'error');
-        return;
-    }
     toggleProMode();
 }
 
 export function initProModeUI() {
     const proSection = document.getElementById('pro-mode-section');
     if (!proSection) return;
-    if (!isAdmin()) {
-        proSection.classList.add('disabled');
-    } else {
-        proSection.classList.remove('disabled');
-    }
+    proSection.classList.remove('disabled');
 }
 
 export function toggleProMode() {
@@ -225,8 +204,8 @@ export function toggleProMode() {
     const startBtn = document.getElementById('start-quick-match');
     const audioPanels = document.getElementById('pro-mode-audio-panels');
     
-    if (state.proModeEnabled && isAdmin()) {
-        startBtn.textContent = '⚡ START PRO MATCH';
+    if (state.proModeEnabled) {
+        startBtn.textContent = 'START MATCH';
         startBtn.style.background = 'linear-gradient(135deg, var(--sub-gold), #d4a017)';
         startBtn.style.color = '#000';
         audioPanels.style.display = 'block';
@@ -250,6 +229,17 @@ export async function startProMatch() {
     updateProScore();
     
     document.getElementById('app-content').style.display = 'none';
+    
+    // Update control bar states
+    const micBtn = document.getElementById('btn-pro-mic');
+    const soundBtn = document.getElementById('btn-pro-sound');
+    if (micBtn && window.audioEngine) {
+        const isListening = window.audioEngine.getStatus().isListening;
+        micBtn.classList.toggle('active', isListening);
+        micBtn.innerHTML = isListening ? '<i class="fa-solid fa-microphone"></i>' : '<i class="fa-solid fa-microphone-slash"></i>';
+    }
+    if (soundBtn && window.soundEffects) soundBtn.classList.toggle('active', window.soundEffects.enabled);
+    
     document.getElementById('pro-mode-view').style.display = 'flex';
     
     const rulesOverlay = document.getElementById('pro-rules-overlay');
@@ -301,8 +291,8 @@ function updateProScore() {
     document.getElementById('pro-p1-goals').textContent = '●'.repeat(state.proScoreP1) + '○'.repeat(PRO_MODE_WIN_SCORE - state.proScoreP1);
     document.getElementById('pro-p2-goals').textContent = '●'.repeat(state.proScoreP2) + '○'.repeat(PRO_MODE_WIN_SCORE - state.proScoreP2);
     
-    const undoBtn = document.getElementById('pro-undo-btn');
-    if (undoBtn) undoBtn.style.display = state.proGoalHistory.length > 0 ? 'block' : 'none';
+    const undoBtn = document.getElementById('btn-pro-undo');
+    if (undoBtn) undoBtn.style.opacity = state.proGoalHistory.length > 0 ? '1' : '0.3';
     
     const p1Status = document.getElementById('pro-p1-status');
     const p2Status = document.getElementById('pro-p2-status');
@@ -333,6 +323,14 @@ export function undoLastGoal() {
     if (navigator.vibrate) navigator.vibrate(50);
 }
 
+export function resetProMatch() {
+    if (!confirm('Restart match? Score will be reset to 0-0.')) return;
+    state.proScoreP1 = 0;
+    state.proScoreP2 = 0;
+    state.proGoalHistory = [];
+    updateProScore();
+}
+
 async function finishProMatch(winnerName) {
     state.proModeActive = false; isMatchEnding = false;
     if (window.audioEngine) window.audioEngine.stopListening();
@@ -358,19 +356,27 @@ export function handleGoalDetected(playerNumber) {
 }
 
 export async function toggleAudioDetection() {
-    if (!isAdmin()) return;
     if (!window.audioEngine) return showNotification('Audio engine not loaded', 'error');
     const status = window.audioEngine.getStatus();
     const btn = document.getElementById('toggle-audio-btn');
+    const proBtn = document.getElementById('btn-pro-mic');
     
     if (status.isListening) {
         window.audioEngine.stopListening();
         btn.textContent = 'ACTIVATE'; btn.style.background = '#333';
+        if (proBtn) {
+            proBtn.classList.remove('active');
+            proBtn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
+        }
         document.getElementById('audio-frequency-display').style.display = 'none';
     } else {
         const result = await window.audioEngine.startListening();
         if (result.success) {
             btn.textContent = 'DEACTIVATE'; btn.style.background = 'var(--sub-red)';
+            if (proBtn) {
+                proBtn.classList.add('active');
+                proBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+            }
             document.getElementById('audio-frequency-display').style.display = 'block';
             startFrequencyMonitor();
         } else showNotification(result.message, 'error');
@@ -474,17 +480,21 @@ export function toggleSoundEffects() {
     if (!window.soundEffects) return showNotification('Sound system not loaded', 'error');
     const enabled = window.soundEffects.toggle();
     const btn = document.getElementById('sound-toggle-btn');
+    const proBtn = document.getElementById('btn-pro-sound');
+    
     if (!btn) return;
     if (enabled) {
         btn.innerHTML = '🔊 SOUNDS';
         btn.style.background = '#333';
         btn.style.color = '#fff';
+        if (proBtn) proBtn.classList.add('active');
         showNotification('🔊 Sound effects enabled', 'success');
         setTimeout(() => { window.soundEffects.playGoalSound(); }, 300);
     } else {
         btn.innerHTML = '🔇 MUTED';
         btn.style.background = '#666';
         btn.style.color = '#aaa';
+        if (proBtn) proBtn.classList.remove('active');
         showNotification('🔇 Sound effects muted', 'info');
     }
 }
@@ -592,6 +602,7 @@ window.toggleProMode = toggleProMode;
 window.acceptRulesAndStart = acceptRulesAndStart;
 window.addManualGoal = addManualGoal;
 window.undoLastGoal = undoLastGoal;
+window.resetProMatch = resetProMatch;
 window.exitProMode = exitProMode;
 window.toggleAudioDetection = toggleAudioDetection;
 window.recordGoalSound = recordGoalSound;
