@@ -51,22 +51,39 @@ export async function loadEventsPage() {
 
     try {
         const now = new Date();
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(now.getMonth() - 3);
 
-        // Haetaan kaikki aktiiviset tapahtumat
+        // Haetaan tapahtumat: ei peruutettuja, max 3kk vanhat
         const { data: allEvents, error } = await _supabase
             .from('events')
             .select('*')
-            .in('status', ['upcoming', 'ongoing'])
+            .neq('status', 'cancelled')
+            .gte('start_datetime', threeMonthsAgo.toISOString())
             .order('start_datetime', { ascending: true });
 
         if (error) throw error;
 
-        // Erotellaan tulevat ja menneet JavaScriptin puolella
-        const upcoming = (allEvents || []).filter(e => new Date(e.start_datetime) >= now);
-        const past = (allEvents || []).filter(e => new Date(e.start_datetime) < now);
+        const activeEvents = [];
+        const pastEvents = [];
 
-        // Yhdistetään: tulevat ensin, menneet lopussa
-        renderEventsPage([...upcoming, ...past]);
+        allEvents.forEach(event => {
+            const startDate = new Date(event.start_datetime);
+            // Jos loppuaika on määritelty, käytetään sitä. Muuten oletus 3h kesto.
+            const endDate = event.end_datetime ? new Date(event.end_datetime) : new Date(startDate.getTime() + 3 * 60 * 60 * 1000);
+            
+            if (endDate < now) {
+                pastEvents.push(event);
+            } else {
+                activeEvents.push(event);
+            }
+        });
+
+        // Järjestetään menneet käänteiseen aikajärjestykseen (uusin mennyt ensin)
+        pastEvents.sort((a, b) => new Date(b.start_datetime) - new Date(a.start_datetime));
+
+        // Näytetään: Tulevat/Käynnissä ensin, menneet lopussa
+        renderEventsPage([...activeEvents, ...pastEvents]);
     } catch (e) {
         console.error('Failed to load events:', e);
         container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--sub-red);">Failed to load events</div>';
@@ -89,7 +106,10 @@ function renderEventsPage(events) {
             </div>
     ` : events.map(event => renderEventCard(event));
 
-    container.innerHTML = safeHTML`
+    // Piilotetaan luontinapit vierailta ja katsojilta
+    const canCreate = state.user && state.user.id !== 'guest' && state.user.id !== 'spectator';
+
+    const setupHtml = canCreate ? safeHTML`
         <h2 class="section-title" style="margin-top: 20px; font-size: 0.8rem; color: #555; letter-spacing: 3px; font-family: var(--sub-name-font);">EVENT SETUP</h2>
         
         <div style="text-align:center; margin-bottom:25px;">
@@ -99,7 +119,10 @@ function renderEventsPage(events) {
         </div>
         
         <div id="create-event-form" style="display:none;"></div>
-        
+    ` : '';
+
+    container.innerHTML = safeHTML`
+        ${setupHtml}
         <h3 style="font-family:var(--sub-name-font); text-transform:uppercase; margin:25px 0 15px 0; color:#444; font-size:0.75rem; letter-spacing:3px; border-bottom:1px solid #222; padding-bottom:8px; text-align:center;">
             UPCOMING EVENTS
         </h3>
@@ -149,11 +172,8 @@ function renderEventCard(event) {
                 </div>
             ` : ''}
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:15px; border-top:1px solid #222;">
-                <div style="font-size:0.75rem; color:#555; font-family:'Resolve'; letter-spacing:1px;">
-                    <i class="fa-solid fa-users" style="margin-right:8px;"></i> ${event.registered_count || 0}/${event.max_participants || 16} PLAYERS
-                </div>
-                <button class="btn-red" style="padding:10px 20px; font-size:0.85rem; letter-spacing:2px; width:auto;" data-action="view-event-details" data-id="${event.id}">
+            <div style="margin-top:15px; padding-top:15px; border-top:1px solid #222;">
+                <button class="btn-red" style="width:100%; padding:12px; font-size:0.9rem; letter-spacing:2px;" data-action="view-event-details" data-id="${event.id}">
                     VIEW DETAILS
                 </button>
             </div>
@@ -436,8 +456,8 @@ export async function createNewEvent() {
         const eventData = {
             event_name: eventName,
             event_type: eventType,
-            start_datetime: startDatetime,
-            end_datetime: endDatetime,
+            start_datetime: startDatetime ? new Date(startDatetime).toISOString() : null,
+            end_datetime: endDatetime ? new Date(endDatetime).toISOString() : null,
             description: description || null,
             location: location,
             organizer_id: state.user.id,
@@ -544,7 +564,8 @@ export async function viewEventDetails(eventId) {
             .from('tournament_history')
             .select('*, game:games(game_name, location), participants:event_registrations(count)')
             .eq('event_id', eventId)
-            .eq('participants.status', 'registered');
+            .eq('participants.status', 'registered')
+            .order('start_datetime', { ascending: true });
 
         if (tourError) throw tourError;
 
@@ -783,7 +804,7 @@ function showEventModal(event, tournaments, userRegistrations, moderators = []) 
                                         </div>
                                     ` : ''}
                                     
-                                    ${t.status !== 'completed' && state.user && !isOrganizer ? `
+                                    ${t.status !== 'completed' && state.user && !isOrganizer && state.user.id !== 'spectator' ? `
                                         <button class="btn-red" 
                                                 ${isFull && !isUserRegistered ? 'disabled' : ''}
                                                 style="width:100%; padding:8px; font-size:0.85rem; margin-top:8px; ${isUserRegistered ? 'background:#4CAF50;' : (isFull ? 'background:#444; cursor:not-allowed; opacity:0.7;' : '')}" 
@@ -1421,8 +1442,8 @@ export async function createTournament(eventId) {
             tournament_name: tournamentName,
             tournament_type: tournamentType,
             max_participants: maxParticipants,
-            start_datetime: startDatetime,
-            end_datetime: endDatetime,
+            start_datetime: startDatetime ? new Date(startDatetime).toISOString() : null,
+            end_datetime: endDatetime ? new Date(endDatetime).toISOString() : null,
             status: 'scheduled',
             created_at: new Date().toISOString()
         };
@@ -1630,8 +1651,7 @@ export async function registerForTournament(eventId, tournamentId) {
         }
 
         console.log('Registration successful:', data);
-        showNotification(`${playerName} added to tournament!`, 'success');
-        showNotification('Successfully registered!', 'success');
+        showNotification(`${state.user.username} added to tournament!`, 'success');
 
         // Reload event details
         viewEventDetails(eventId);
@@ -1906,8 +1926,8 @@ export async function saveTournamentEdit(tournamentId, eventId) {
             .update({
                 tournament_name: tournamentName,
                 game_id: gameId,
-                start_datetime: startDatetime || null,
-                end_datetime: endDatetime,
+                start_datetime: startDatetime ? new Date(startDatetime).toISOString() : null,
+                end_datetime: endDatetime ? new Date(endDatetime).toISOString() : null,
                 max_participants: maxParticipants,
                 tournament_type: tournamentType
             })
@@ -2043,10 +2063,14 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
     if (!content) {
         content = document.createElement('div');
         content.id = 'live-content';
-        content.style.cssText = 'width:100%; min-height:100vh; padding:20px; box-sizing:border-box;';
         document.body.appendChild(content);
         console.log('Created live-content container');
     }
+    
+    // Enforce full screen styles and hide app content
+    content.style.cssText = 'width:100%; height:100vh; padding:10px; box-sizing:border-box; background:#0a0a0a; position:fixed; top:0; left:0; z-index:20000; overflow-y:auto; -webkit-overflow-scrolling:touch;';
+    const appContent = document.getElementById('app-content');
+    if (appContent) appContent.style.display = 'none';
 
     // Show loading state
     if (!isBackgroundUpdate) {
@@ -2167,6 +2191,11 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
             clearInterval(window.liveEventRefreshInterval);
         }
         window.liveEventRefreshInterval = setInterval(() => {
+            // Stop interval if live content container is no longer in DOM
+            if (!document.getElementById('live-content')) {
+                clearInterval(window.liveEventRefreshInterval);
+                return;
+            }
             viewLiveEvent(eventId, true);
         }, 10000);
 
@@ -2466,43 +2495,47 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
     content.innerHTML = liveStyles + `
         <div style="max-width:1600px; margin:0 auto; padding:40px 20px; font-family: var(--sub-body-font); background: var(--sub-black); min-height: 100vh;">
             <!-- Broadcast Header -->
-            <div class="glass-panel" style="text-align:center; margin-bottom:60px; padding:50px; border-radius:16px; border-bottom: 4px solid var(--sub-red); position: relative; overflow: hidden;">
+            <div class="glass-panel" style="text-align:center; margin-bottom:25px; padding:20px; border-radius:12px; border-bottom: 2px solid var(--sub-red); position: relative; overflow: hidden;">
+
+                <button onclick="closeLiveView()" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:50%; width:40px; height:40px; cursor:pointer; z-index:100; font-size:1.2rem; transition:background 0.2s;" onmouseover="this.style.background='var(--sub-red)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <i class="fa fa-times"></i>
+                </button>
 
                 ${event.brand_logo_url ? `
-                    <div style="background: rgba(255,255,255,0.05); display: inline-block; padding: 10px 20px; border-radius: 4px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.1);">
-                        <img src="${event.brand_logo_url}" style="max-height:80px; width:auto; display:block;">
+                    <div style="background: rgba(255,255,255,0.05); display: inline-block; padding: 5px 15px; border-radius: 4px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                        <img src="${event.brand_logo_url}" style="max-height:50px; width:auto; display:block;">
                     </div>
                 ` : `
-                    <div style="margin-bottom: 24px;">
+                    <div style="margin-bottom: 10px;">
                         <span style="font-family: 'Resolve'; color: var(--sub-red); font-size: 0.8rem; letter-spacing: 5px; opacity: 0.5;">POWERED BY</span>
-                        <div style="font-family: var(--sub-logo-font); color: var(--sub-red); font-size: 2.5rem; letter-spacing: 2px;">SUBSOCCER</div>
+                        <div style="font-family: var(--sub-logo-font); color: var(--sub-red); font-size: 1.5rem; letter-spacing: 2px;">SUBSOCCER</div>
                     </div>
                 `}
 
-                <h1 class="sub-heading-premium" style="font-size:3.5rem; margin-bottom:16px; line-height: 1;">
+                <h1 class="sub-heading-premium" style="font-size:2.2rem; margin-bottom:8px; line-height: 1.1;">
                     ${event.event_name}
                 </h1>
                 
-                <div style="display: flex; justify-content: center; gap: 30px; align-items: center; flex-wrap: wrap;">
-                    <div style="font-size:1.2rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 2px; text-transform: uppercase;">
+                <div style="display: flex; justify-content: center; gap: 20px; align-items: center; flex-wrap: wrap;">
+                    <div style="font-size:1rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 1px; text-transform: uppercase;">
                         <i class="fa fa-calendar" style="color: var(--sub-red); margin-right: 10px;"></i> ${dateStr}
                     </div>
                     ${event.location ? `
-                        <div style="font-size:1.2rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 2px; text-transform: uppercase;">
+                        <div style="font-size:1rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 1px; text-transform: uppercase;">
                             <i class="fa fa-map-marker" style="color: var(--sub-red); margin-right: 10px;"></i> ${event.location}
                         </div>
                     ` : ''}
                 </div>
 
-                <div style="margin-top:30px; display: flex; justify-content: center; gap: 15px;">
-                    <div class="sub-badge-live live-badge-pulse" style="font-size: 0.9rem; padding: 8px 20px; border-radius: 30px; letter-spacing: 2px;">
+                <div style="margin-top:15px; display: flex; justify-content: center; gap: 15px;">
+                    <div class="sub-badge-live live-badge-pulse" style="font-size: 0.8rem; padding: 4px 12px; border-radius: 30px; letter-spacing: 1px;">
                         <i class="fa fa-broadcast-tower"></i> BROADCASTING LIVE
                     </div>
                 </div>
             </div>
             
             <!-- Tournament Grid -->
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(400px, 1fr)); gap:30px;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:20px;">
                 ${tournaments.map(t => {
         const tDate = new Date(t.start_datetime);
         const timeStr = tDate.toLocaleTimeString('en-GB', {
@@ -2591,6 +2624,19 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
             <div style="text-align:center; margin-top:80px; padding-top:40px; border-top: 1px solid var(--sub-border);">
                 <div style="font-family: var(--sub-logo-font); color: rgba(255,255,255,0.2); font-size: 1.5rem; letter-spacing: 1px;">SUBSOCCER PRO</div>
                 <div style="margin-top:10px; font-size:0.8rem; color:#444; font-family: var(--sub-name-font); letter-spacing: 2px;">OFFICIAL TOURNAMENT BROADCAST SYSTEM</div>
+       </div>
+            
+            <!-- Ticker -->
+            <div class="live-ticker">
+                <div class="ticker-content">
+                    ${tournaments.length > 0 ? 
+                        tournaments.map(t => `
+                            <span style="margin-right:50px;">🏆 ${t.tournament_name || 'Tournament'}: ${t.status === 'completed' ? `WINNER: ${t.winner_name}` : 'LIVE NOW'}</span>
+                        `).join('') 
+                        : 'WELCOME TO SUBSOCCER LIVE EVENTS • FOLLOW THE ACTION • PLAY FAIR • HAVE FUN'
+                    }
+                    <span style="margin-right:50px;">• POWERED BY SUBSOCCER •</span>
+                </div>
             </div>
         </div>
             `;
@@ -2742,8 +2788,8 @@ export async function updateEventForm(eventId) {
         const updates = {
             event_name: eventName,
             event_type: eventType,
-            start_datetime: startDatetime,
-            end_datetime: endDatetime,
+            start_datetime: startDatetime ? new Date(startDatetime).toISOString() : null,
+            end_datetime: endDatetime ? new Date(endDatetime).toISOString() : null,
             description: description,
             location: location,
             primary_color: primaryColor
@@ -2804,6 +2850,25 @@ window.closeEmailPrompt = closeEmailPrompt;
 window.saveEmailAndRegister = saveEmailAndRegister;
 window.shareLiveEventLink = shareLiveEventLink;
 window.viewLiveEvent = viewLiveEvent;
+window.closeLiveView = closeLiveView;
+
+/**
+ * Close live event view
+ */
+export function closeLiveView() {
+    const content = document.getElementById('live-content');
+    if (content) content.remove();
+    
+    document.body.classList.remove('live-mode');
+    
+    if (window.liveEventRefreshInterval) {
+        clearInterval(window.liveEventRefreshInterval);
+        window.liveEventRefreshInterval = null;
+    }
+    
+    const appContent = document.getElementById('app-content');
+    if (appContent) appContent.style.display = 'flex';
+}
 
 // Check for live event URL parameter on page load
 // Wrap in DOMContentLoaded to ensure elements exist

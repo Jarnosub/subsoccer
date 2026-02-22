@@ -920,7 +920,7 @@ subscribe('user', () => {
         if (eventsTab) eventsTab.style.display = state.user.id === 'guest' ? 'none' : 'flex';
 
         const regGameBtn = document.getElementById('btn-profile-register-game');
-        if (regGameBtn) regGameBtn.style.display = state.user.id === 'guest' ? 'none' : 'block';
+        if (regGameBtn) regGameBtn.style.display = (state.user.id === 'guest' || state.user.id === 'spectator') ? 'none' : 'block';
 
         updateAdminInterface();
 
@@ -951,7 +951,15 @@ subscribe('user', () => {
                 const gameId = params.get('game_id');
                 initClaimResult(p1, p2, gameId);
             } else {
-                state.currentPage = 'tournament';
+                // Tarkistetaan onko URL:ssa määritelty sivu (?page=events)
+                const pageParam = params.get('page');
+                const validPages = ['events', 'profile', 'map', 'leaderboard', 'history', 'tournament'];
+                
+                if (pageParam && validPages.includes(pageParam)) {
+                    state.currentPage = pageParam;
+                } else {
+                    state.currentPage = 'tournament';
+                }
             }
         }
     } catch (err) {
@@ -961,6 +969,11 @@ subscribe('user', () => {
 
 subscribe('currentPage', (p) => {
     updatePageUI(p);
+    
+    // Päivitetään URL osoiteriville ilman sivun latausta
+    const url = new URL(window.location);
+    url.searchParams.set('page', p);
+    window.history.replaceState({}, '', url);
 });
 
 subscribe('activeCardEdition', () => {

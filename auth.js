@@ -17,6 +17,22 @@ export async function initApp() {
             await refreshUserProfile(session.user.id);
         }
 
+        // UUSI: Spectator Mode (Julkinen katselu ilman kirjautumista)
+        if (!session && !state.user) {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('page') === 'events') {
+                console.log("👀 Public access: Spectator Mode enabled");
+                state.user = {
+                    id: 'spectator',
+                    username: 'Spectator',
+                    elo: 0,
+                    wins: 0,
+                    losses: 0,
+                    is_spectator: true
+                };
+            }
+        }
+
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
                 if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {

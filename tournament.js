@@ -182,7 +182,13 @@ export async function saveTour() {
     try {
         const winnerName = rP[0];
         const tournamentName = "Tournament";
-        const dataToInsert = { tournament_name: tournamentName, winner_name: winnerName, tournament_id: state.currentTournamentId };
+        // Fix: Use 'id' to match the UUID used in matches, and add organizer_id
+        const dataToInsert = { id: state.currentTournamentId, tournament_name: tournamentName, winner_name: winnerName };
+        
+        if (state.user && state.user.id && state.user.id !== 'guest') {
+            dataToInsert.organizer_id = state.user.id;
+        }
+        
         if (bronzeWinner) dataToInsert.third_place_name = bronzeWinner;
         
         const { error } = await _supabase.from('tournament_history').insert([dataToInsert]);
