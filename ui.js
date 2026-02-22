@@ -816,7 +816,7 @@ export function updateProfileCard() {
     const container = document.getElementById('profile-card-container');
     if (!container || !state.user) return;
     const u = state.user;
-    const editionClass = state.activeCardEdition !== 'standard' ? `card - ${state.activeCardEdition} -edition` : '';
+    const editionClass = state.activeCardEdition !== 'standard' ? `card-${state.activeCardEdition}-edition` : '';
     const rookieClass = ((u.wins || 0) + (u.losses || 0)) < 5 ? 'status-rookie' : '';
 
     const labels = {
@@ -829,11 +829,33 @@ export function updateProfileCard() {
     const overlayBg = state.brand ? 'var(--sub-red)' : '#000';
     const overlayHeight = state.brand ? '30%' : '40%';
 
+    // Game Ownership Badges
+    const myGames = state.myGames || [];
+    const badges = [];
+    const checkGame = (g, type) => {
+        const name = (g.game_name || '').toUpperCase();
+        const serial = (g.serial_number || '').toUpperCase();
+        return name.includes(type) || serial.includes(type);
+    };
+
+    if (myGames.some(g => checkGame(g, 'ARCADE'))) {
+        badges.push({ icon: 'fa-crown', color: '#FFD700', title: 'ARCADE OWNER' }); // Gold
+    }
+    if (myGames.some(g => checkGame(g, 'S7') || checkGame(g, 'SUBSOCCER 7'))) {
+        badges.push({ icon: 'fa-medal', color: '#C0C0C0', title: 'S7 OWNER' }); // Silver
+    }
+    if (myGames.some(g => checkGame(g, 'S3') || checkGame(g, 'SUBSOCCER 3'))) {
+        badges.push({ icon: 'fa-shield', color: '#CD7F32', title: 'S3 OWNER' }); // Bronze
+    }
+
     container.innerHTML = `
     <div class="topps-collectible-card ${editionClass} ${rookieClass}" style="background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;">
             <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" class="card-hero-image" referrerpolicy="no-referrer" onerror="this.src='placeholder-silhouette-5-wide.png'">
             <div class="card-overlay" style="background: ${overlayBg}; height: ${overlayHeight}; border-top: ${state.brand ? '3px solid var(--sub-gold)' : 'none'}; box-shadow: 0 -5px 15px rgba(0,0,0,0.3);"></div>
             <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">${editionLabel} // 2026</div>
+            <div style="position:absolute; top:15px; right:15px; z-index:11; display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+                ${badges.map(b => `<div style="background:rgba(0,0,0,0.9); border:1px solid ${b.color}; color:${b.color}; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; box-shadow:0 0 10px ${b.color}40; backdrop-filter:blur(4px);" title="${b.title}"><i class="fa-solid ${b.icon}"></i></div>`).join('')}
+            </div>
             <div class="card-content-bottom">
                 <div style="color:var(--sub-gold); font-size:0.75rem; letter-spacing:2px; margin-bottom:4px; font-weight:bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"><i class="fa-solid fa-location-dot"></i> ${u.city || 'HELSINKI'}</div>
                 <div class="card-player-name">${u.username}</div>
@@ -992,6 +1014,10 @@ subscribe('pool', () => {
 
 subscribe('allGames', () => {
     populateGameSelect();
+});
+
+subscribe('myGames', () => {
+    updateProfileCard();
 });
 
 subscribe('victoryData', (data) => {

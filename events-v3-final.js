@@ -2080,7 +2080,7 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
     }
     
     // Enforce full screen styles and hide app content
-    content.style.cssText = 'width:100%; height:100vh; padding:10px; box-sizing:border-box; background:#0a0a0a; position:fixed; top:0; left:0; z-index:20000; overflow-y:auto; -webkit-overflow-scrolling:touch;';
+    content.style.cssText = 'width:100%; height:100vh; padding:0; box-sizing:border-box; background-color:#050505; background-image: linear-gradient(45deg, #0a0a0a 25%, transparent 25%), linear-gradient(-45deg, #0a0a0a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #0a0a0a 75%), linear-gradient(-45deg, transparent 75%, #0a0a0a 75%); background-size: 8px 8px; position:fixed; top:0; left:0; z-index:20000; overflow-y:auto; -webkit-overflow-scrolling:touch;';
     const appContent = document.getElementById('app-content');
     if (appContent) appContent.style.display = 'none';
 
@@ -2433,7 +2433,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
         const flag = p.country ? p.country.toLowerCase() : 'fi';
         
         const avatarHtml = p.avatar_url 
-            ? `<img src="${p.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">`
+            ? `<img src="${p.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">`
             : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #151515; color: #333; font-size: 2.5rem;"><i class="fa fa-user"></i></div>`;
 
         // Slightly smaller card for live view grid
@@ -2450,6 +2450,8 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                     <!-- Image -->
                     <div style="flex: 1; position: relative; overflow: hidden; background: #151515;">
                         ${avatarHtml}
+                        <!-- Gradient Overlay for text readability -->
+                        <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: linear-gradient(to top, #000 0%, transparent 100%);"></div>
                     </div>
                     
                     <!-- Info -->
@@ -2501,53 +2503,72 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                 box-shadow: 0 8px 20px rgba(0,0,0,0.4);
                 border-color: #555 !important;
             }
+
+        /* Scrollbar styling for live view */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
         </style>
     `;
 
     content.innerHTML = liveStyles + `
-        <div style="max-width:1600px; margin:0 auto; padding:40px 20px; font-family: var(--sub-body-font); background: var(--sub-black); min-height: 100vh;">
+        <div style="max-width:1600px; margin:0 auto; padding:20px; font-family: var(--sub-body-font); min-height: 100vh;">
             <!-- Broadcast Header -->
-            <div class="glass-panel" style="text-align:center; margin-bottom:25px; padding:20px; border-radius:12px; border-bottom: 2px solid var(--sub-red); position: relative; overflow: hidden;">
+            <div class="glass-panel" style="text-align:center; margin-bottom:30px; padding:30px; border-radius:16px; border-bottom: 1px solid var(--sub-border); position: relative; overflow: hidden;">
+                
+                <!-- Background Glow -->
+                <div style="position:absolute; top:-50%; left:50%; transform:translateX(-50%); width:60%; height:200%; background:radial-gradient(circle, rgba(227,6,19,0.15) 0%, transparent 70%); pointer-events:none;"></div>
 
-                <button onclick="closeLiveView()" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; z-index:100; font-size:1rem; transition:background 0.2s;" onmouseover="this.style.background='var(--sub-red)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                <button onclick="closeLiveView()" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:50%; width:36px; height:36px; cursor:pointer; z-index:100; font-size:1rem; transition:all 0.2s; display:flex; align-items:center; justify-content:center;" onmouseover="this.style.background='var(--sub-red)'; this.style.borderColor='var(--sub-red)';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)';">
                     <i class="fa fa-times"></i>
                 </button>
 
                 ${event.brand_logo_url ? `
-                    <div style="background: rgba(255,255,255,0.05); display: inline-block; padding: 5px 15px; border-radius: 4px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
-                        <img src="${event.brand_logo_url}" style="max-height:50px; width:auto; display:block;">
+                    <div style="background: rgba(255,255,255,0.05); display: inline-block; padding: 8px 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                        <img src="${event.brand_logo_url}" style="max-height:60px; width:auto; display:block;">
                     </div>
                 ` : `
-                    <div style="margin-bottom: 10px;">
-                        <span style="font-family: 'Resolve'; color: var(--sub-red); font-size: 0.8rem; letter-spacing: 5px; opacity: 0.5;">POWERED BY</span>
-                        <div style="font-family: var(--sub-logo-font); color: var(--sub-red); font-size: 1.5rem; letter-spacing: 2px;">SUBSOCCER</div>
+                    <div style="margin-bottom: 15px;">
+                        <span style="font-family: 'Resolve'; color: var(--sub-red); font-size: 0.7rem; letter-spacing: 4px; opacity: 0.8;">POWERED BY</span>
+                        <div style="font-family: var(--sub-logo-font); color: #fff; font-size: 1.8rem; letter-spacing: 2px; text-shadow: 0 0 20px rgba(227,6,19,0.5);">SUBSOCCER</div>
                     </div>
                 `}
 
-                <h1 class="sub-heading-premium" style="font-size:2.2rem; margin-bottom:8px; line-height: 1.1;">
+                <h1 class="sub-heading-premium" style="font-size:2.5rem; margin-bottom:10px; line-height: 1.1; text-transform:uppercase; letter-spacing:2px;">
                     ${event.event_name}
                 </h1>
                 
-                <div style="display: flex; justify-content: center; gap: 20px; align-items: center; flex-wrap: wrap;">
-                    <div style="font-size:1rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 1px; text-transform: uppercase;">
-                        <i class="fa fa-calendar" style="color: var(--sub-red); margin-right: 10px;"></i> ${dateStr}
+                <div style="display: flex; justify-content: center; gap: 25px; align-items: center; flex-wrap: wrap; margin-top: 10px;">
+                    <div style="font-size:0.9rem; color:#aaa; font-family: var(--sub-name-font); letter-spacing: 1px; text-transform: uppercase; display:flex; align-items:center; gap:8px;">
+                        <i class="fa fa-calendar" style="color: var(--sub-gold);"></i> ${dateStr}
                     </div>
                     ${event.location ? `
-                        <div style="font-size:1rem; color:var(--sub-white); font-family: var(--sub-name-font); letter-spacing: 1px; text-transform: uppercase;">
-                            <i class="fa fa-map-marker" style="color: var(--sub-red); margin-right: 10px;"></i> ${event.location}
+                        <div style="font-size:0.9rem; color:#aaa; font-family: var(--sub-name-font); letter-spacing: 1px; text-transform: uppercase; display:flex; align-items:center; gap:8px;">
+                            <i class="fa fa-map-marker-alt" style="color: var(--sub-red);"></i> ${event.location}
                         </div>
                     ` : ''}
                 </div>
 
-                <div style="margin-top:15px; display: flex; justify-content: center; gap: 15px;">
-                    <div class="sub-badge-live live-badge-pulse" style="font-size: 0.8rem; padding: 4px 12px; border-radius: 30px; letter-spacing: 1px;">
-                        <i class="fa fa-broadcast-tower"></i> BROADCASTING LIVE
+                <div style="margin-top:20px; display: flex; justify-content: center; gap: 15px;">
+                    <div class="sub-badge-live live-badge-pulse" style="font-size: 0.75rem; padding: 6px 16px; border-radius: 30px; letter-spacing: 1.5px; background:var(--sub-red); color:#fff; font-weight:bold; display:flex; align-items:center; gap:8px;">
+                        <i class="fa fa-broadcast-tower"></i> LIVE BROADCAST
                     </div>
                 </div>
             </div>
             
             <!-- Tournament Grid -->
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:20px;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(400px, 1fr)); gap:25px;">
                 ${tournaments.map(t => {
         const tDate = new Date(t.start_datetime);
         const timeStr = tDate.toLocaleTimeString('en-GB', {
@@ -2557,48 +2578,51 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
         const participantCount = t.computed_participant_count || 0;
 
         return `
-                        <div class="glass-panel" style="border-top: 4px solid ${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? 'var(--sub-red)' : '#333'}; position: relative; display: flex; flex-direction: column; padding: 30px; border-radius: 12px; margin-bottom: 40px;">
+                        <div class="glass-panel" style="border-top: 3px solid ${t.status === 'completed' ? '#4CAF50' : t.status === 'ongoing' ? 'var(--sub-red)' : '#333'}; position: relative; display: flex; flex-direction: column; padding: 25px; border-radius: 12px; height:100%;">
                             
-                            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:24px;">
+                            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:20px;">
                                 <div style="flex: 1;">
-                                    <div style="font-size:0.8rem; color:var(--sub-red); font-family: var(--sub-name-font); letter-spacing: 2px; margin-bottom: 8px; text-transform: uppercase;">
+                                    <div style="font-size:0.7rem; color:var(--sub-gold); font-family: var(--sub-name-font); letter-spacing: 1.5px; margin-bottom: 6px; text-transform: uppercase;">
                                         ${t.game?.game_name || 'Tournament'}
                                     </div>
-                                    <h2 class="sub-heading-premium" style="font-size:1.8rem; margin:0; line-height: 1.2;">
+                                    <h2 style="font-family:var(--sub-name-font); font-size:1.4rem; margin:0; line-height: 1.2; color:#fff; letter-spacing:1px;">
                                         ${t.tournament_name || 'Unofficial Match'}
                                     </h2>
                                 </div>
-                                <div style="text-align:right; margin-left: 20px;">
+                                <div style="text-align:right; margin-left: 15px;">
                                     ${t.status === 'ongoing' ? `
-                                        <div class="sub-badge-live">LIVE</div>
+                                        <div style="color:var(--sub-red); font-size:0.7rem; font-weight:bold; letter-spacing:1px; animation:pulse 1.5s infinite;">● LIVE</div>
                                     ` : `
-                                        <div style="font-size:0.8rem; color:${t.status === 'completed' ? '#4CAF50' : '#666'}; font-family: var(--sub-name-font); letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold;">
-                                            ${t.status === 'completed' ? 'Finished' : 'Upcoming'}
+                                        <div style="font-size:0.7rem; color:${t.status === 'completed' ? '#4CAF50' : '#666'}; font-family: var(--sub-name-font); letter-spacing: 1px; text-transform: uppercase; font-weight: bold;">
+                                            ${t.status === 'completed' ? 'FINISHED' : 'SCHEDULED'}
                                         </div>
                                     `}
-                                    <div style="margin-top:10px; font-size:1.8rem; color:var(--sub-gold); font-family: var(--sub-name-font); font-weight:bold;">
+                                    <div style="margin-top:5px; font-size:1.2rem; color:#fff; font-family: var(--sub-name-font); font-weight:bold;">
                                         ${timeStr}
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="sub-divider" style="margin: 0 0 24px 0;"></div>
+                            <div style="height:1px; background:rgba(255,255,255,0.1); margin-bottom:20px;"></div>
                             
                             <div style="flex: 1;">
                                 ${t.status === 'completed' || t.status === 'ongoing' ? `
-                                    <div style="margin-bottom:20px;">
-                                        ${renderLiveBracketHtmlSafe(t)}
-                                    </div>
                                     ${t.status === 'completed' ? `
-                                        <div style="background:linear-gradient(to bottom, rgba(255, 215, 0, 0.1), rgba(0,0,0,0.6)); border:1px solid var(--sub-gold); border-radius:12px; padding:30px; text-align:center; box-shadow: 0 15px 40px rgba(0,0,0,0.6);">
+                                        <div style="background:linear-gradient(to bottom, rgba(255, 215, 0, 0.1), rgba(0,0,0,0.6)); border:1px solid var(--sub-gold); border-radius:12px; padding:30px; text-align:center; box-shadow: 0 15px 40px rgba(0,0,0,0.6); margin-bottom: 30px;">
                                             <div style="color:var(--sub-gold); font-family:var(--sub-name-font); font-size:0.7rem; letter-spacing:5px; margin-bottom:15px; text-transform:uppercase; opacity:0.7;">Tournament Podium</div>
                                             <div style="display:flex; justify-content:center; align-items:flex-end; gap:15px;">
                                                 ${renderLivePodiumCard(t.second_place_name, '🥈', '#C0C0C0', 2)}
-                                                ${renderLivePodiumCard(t.winner_name, '🏆', 'var(--sub-gold)', 1)}
+                                                ${renderLivePodiumCard(t.winner_name, '🏆', '#FFD700', 1)}
                                                 ${renderLivePodiumCard(t.third_place_name, '🥉', '#CD7F32', 3)}
                                             </div>
                                         </div>
-                                    ` : `
+                                    ` : ''}
+                                    
+                                    <div style="margin-bottom:20px;">
+                                        ${renderLiveBracketHtmlSafe(t)}
+                                    </div>
+                                    
+                                    ${t.status === 'ongoing' ? `
                                         <div style="background:rgba(193, 39, 45, 0.05); border:1px solid rgba(193, 39, 45, 0.2); border-radius:var(--sub-radius); padding:20px; text-align:center;">
                                         <div class="sub-badge-live" style="margin-bottom: 20px;">MATCH IN PROGRESS</div>
                                         <div style="color:#fff; font-size:1.2rem; font-family: var(--sub-name-font); letter-spacing: 1px;">
@@ -2608,7 +2632,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                                             Live results will be displayed here soon
                                         </div>
                                         </div>
-                                    `}
+                                    ` : ''}
                                 ` : `
                                     <div style="background:rgba(255, 255, 255, 0.02); border:1px solid var(--sub-border); border-radius:var(--sub-radius); padding:40px 20px; text-align:center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
                                         <div style="color:var(--sub-gold); font-size:1.5rem; font-family: var(--sub-name-font); margin-bottom: 10px;">PRE-MATCH</div>
@@ -2878,8 +2902,38 @@ export function closeLiveView() {
         window.liveEventRefreshInterval = null;
     }
     
+    // Clean up URL
+    const url = new URL(window.location);
+    url.searchParams.delete('live');
+    window.history.replaceState({}, '', url);
+    
     const appContent = document.getElementById('app-content');
-    if (appContent) appContent.style.display = 'flex';
+    const navTabs = document.getElementById('nav-tabs');
+    const header = document.querySelector('header');
+    const menuBtn = document.getElementById('menu-toggle-btn');
+    const authPage = document.getElementById('auth-page');
+
+    // Restore Header
+    if (header) header.style.display = '';
+    if (menuBtn) menuBtn.style.display = 'block';
+
+    // Check login state to decide what to show
+    if (state.user) {
+        // User is logged in (or guest) -> Show App
+        if (appContent) {
+            appContent.style.display = 'flex';
+            appContent.classList.remove('fade-in');
+            void appContent.offsetWidth; 
+            appContent.classList.add('fade-in');
+        }
+        if (navTabs) navTabs.style.setProperty('display', 'flex', 'important');
+        if (authPage) authPage.style.display = 'none';
+    } else {
+        // User not logged in -> Show Auth
+        if (authPage) authPage.style.display = 'flex';
+        if (appContent) appContent.style.display = 'none';
+        if (navTabs) navTabs.style.display = 'none';
+    }
 }
 
 // Check for live event URL parameter on page load
@@ -3085,7 +3139,7 @@ function showCompletedTournamentBracket(tournament, players = []) {
         `;
 
         const avatarHtml = p.avatar_url 
-            ? `<img src="${p.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">`
+            ? `<img src="${p.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">`
             : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #151515; color: #333; font-size: 3rem;"><i class="fa fa-user"></i></div>`;
 
         return `
@@ -3130,7 +3184,7 @@ function showCompletedTournamentBracket(tournament, players = []) {
             <div style="font-family:var(--sub-name-font); color:#888; font-size:0.8rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:20px;">Tournament Podium</div>
             <div style="display:flex; align-items:flex-end; justify-content:center; gap:15px;">
                 ${renderCard(second, '🥈', '#C0C0C0', 2)}
-                ${renderCard(winner, '🏆', 'var(--sub-gold)', 1)}
+                ${renderCard(winner, '🏆', '#FFD700', 1)}
                 ${renderCard(third, '🥉', '#CD7F32', 3)}
             </div>
         </div>
