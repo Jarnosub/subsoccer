@@ -54,20 +54,28 @@ export async function loadEventsPage() {
         const threeMonthsAgo = new Date();
         threeMonthsAgo.setMonth(now.getMonth() - 3);
 
+        // Timeout promise to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timed out')), 15000)
+        );
+
         // Haetaan tapahtumat: ei peruutettuja, max 3kk vanhat
-        const { data: allEvents, error } = await _supabase
+        const queryPromise = _supabase
             .from('events')
             .select('*')
             .neq('status', 'cancelled')
             .gte('start_datetime', threeMonthsAgo.toISOString())
             .order('start_datetime', { ascending: true });
 
+        const { data: allEvents, error } = await Promise.race([queryPromise, timeoutPromise]);
+
         if (error) throw error;
 
+        const events = allEvents || [];
         const activeEvents = [];
         const pastEvents = [];
 
-        allEvents.forEach(event => {
+        events.forEach(event => {
             const startDate = new Date(event.start_datetime);
             // Jos loppuaika on määritelty, käytetään sitä. Muuten oletus 3h kesto.
             const endDate = event.end_datetime ? new Date(event.end_datetime) : new Date(startDate.getTime() + 3 * 60 * 60 * 1000);
@@ -86,7 +94,14 @@ export async function loadEventsPage() {
         renderEventsPage([...activeEvents, ...pastEvents]);
     } catch (e) {
         console.error('Failed to load events:', e);
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--sub-red);">Failed to load events</div>';
+        container.innerHTML = `
+            <div style="text-align:center; padding:40px; color:var(--sub-red);">
+                <i class="fa fa-exclamation-circle" style="font-size:2rem; margin-bottom:10px;"></i><br>
+                Failed to load events<br>
+                <span style="font-size:0.8rem; color:#666;">${e.message || 'Unknown error'}</span><br>
+                <button onclick="loadEventsPage()" class="btn-red" style="margin-top:15px; width:auto; display:inline-block; font-size:0.8rem;">TRY AGAIN</button>
+            </div>
+        `;
     } finally {
         hideLoading();
     }
@@ -459,13 +474,13 @@ export async function createNewEvent() {
         // Upload image if selected
         if (selectedEventImage) {
             showNotification('Uploading image...', 'success');
-            imageUrl = await uploadEventImage(selectedEventImage);
+            imageUrl = await uploadEventImage(selectedEventImage, true); // Optimize hero image
         }
 
         // Upload brand logo if selected
         if (selectedBrandLogo) {
             showNotification('Uploading logo...', 'success');
-            brandLogoUrl = await uploadEventImage(selectedBrandLogo); // Reuse same upload function
+            brandLogoUrl = await uploadEventImage(selectedBrandLogo, false); // Don't optimize logo (keep transparency)
         }
 
         // Create event in database
@@ -511,12 +526,59 @@ export async function createNewEvent() {
 /**
  * Upload event image to Supabase Storage
  */
-async function uploadEventImage(file) {
-    const fileName = `${state.user.id}-${Date.now()}.${file.name.split('.').pop()}`;
+async function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1200; // Resize large hero images
+                let width = img.width;
+                let height = img.height;
+
+                if (width > MAX_WIDTH) {
+                    height = Math.round((height * MAX_WIDTH) / width);
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress to JPEG with 0.8 quality
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob);
+                    else reject(new Error('Image compression failed'));
+                }, 'image/jpeg', 0.8);
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
+}
+
+async function uploadEventImage(file, optimize = false) {
+    let fileToUpload = file;
+    let fileExt = file.name.split('.').pop();
+
+    if (optimize) {
+        try {
+            fileToUpload = await compressImage(file);
+            fileExt = 'jpg'; // Compressed images are always JPEGs
+        } catch (e) {
+            console.warn('Image compression failed, uploading original:', e);
+        }
+    }
+
+    const fileName = `${state.user.id}-${Date.now()}.${fileExt}`;
 
     const { data, error } = await _supabase.storage
         .from('event-images')
-        .upload(fileName, file, {
+        .upload(fileName, fileToUpload, {
             cacheControl: '3600',
             upsert: false
         });
@@ -2813,12 +2875,12 @@ export async function updateEventForm(eventId) {
 
         if (selectedEventImage) {
             showNotification('Uploading new image...', 'success');
-            imageUrl = await uploadEventImage(selectedEventImage);
+            imageUrl = await uploadEventImage(selectedEventImage, true);
         }
 
         if (selectedBrandLogo) {
             showNotification('Uploading new logo...', 'success');
-            brandLogoUrl = await uploadEventImage(selectedBrandLogo);
+            brandLogoUrl = await uploadEventImage(selectedBrandLogo, false);
         }
 
         const updates = {

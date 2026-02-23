@@ -66,15 +66,35 @@ export function initEditGame(id) {
     const game = state.myGames.find(g => g.id === id);
     if (!game) return;
     state.editingGameId = id;
+    
+    // Switch page first to ensure DOM elements are visible and map initializes
+    state.currentPage = 'games';
+    
     document.getElementById('game-serial-input').value = game.serial_number || '';
     document.getElementById('game-serial-input').disabled = true;
     document.getElementById('game-name-input').value = game.game_name;
     document.getElementById('game-address-input').value = game.location;
     document.getElementById('game-public-input').checked = game.is_public;
-    if (game.latitude && game.longitude) setMapLocation(game.latitude, game.longitude, game.location);
+    
+    if (game.latitude && game.longitude) {
+        // Wait for map initialization (ui.js has 200ms delay)
+        setTimeout(() => {
+            // Try to init map if missing
+            if (!state.gameMap && typeof window.initGameMap === 'function') {
+                try { window.initGameMap(); } catch(e) { console.warn("Map auto-init failed", e); }
+            }
+
+            if (state.gameMap) {
+                state.gameMap.invalidateSize();
+                if (typeof setMapLocation === 'function') {
+                    setMapLocation(game.latitude, game.longitude, game.location);
+                }
+            }
+        }, 600);
+    }
+    
     document.getElementById('btn-reg-game').style.display = 'none';
     document.getElementById('btn-edit-group').style.display = 'flex';
-    state.currentPage = 'games'; // Vaihdetaan sivua jotta käyttäjä näkee kartan ja lomakkeen
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

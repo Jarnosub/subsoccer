@@ -8,6 +8,8 @@ import { showNotification } from './ui-utils.js';
  */
 
 export function initGameMap() {
+    if (state.gameMap) return; // Prevent double initialization
+    if (!document.getElementById('map-picker')) return;
     state.gameMap = L.map('map-picker').setView([60.1699, 24.9384], 10);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(state.gameMap);
     state.gameMap.on('click', async function(e) {
@@ -22,6 +24,10 @@ export function initGameMap() {
 
 export function setMapLocation(lat, lng, name) {
     state.selLat = lat; state.selLng = lng;
+    if (!state.gameMap || typeof state.gameMap.addLayer !== 'function') {
+        console.warn("setMapLocation: Map not ready or invalid");
+        return;
+    }
     if (state.gameMarker) state.gameMap.removeLayer(state.gameMarker);
     state.gameMarker = L.marker([lat, lng]).addTo(state.gameMap);
     state.gameMap.setView([lat, lng], 13);
