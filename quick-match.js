@@ -391,6 +391,11 @@ function startFrequencyMonitor() {
         const status = window.audioEngine.getStatus();
         document.getElementById('freq-goal1').textContent = status.settings.goal1Frequency;
         document.getElementById('freq-goal2').textContent = status.settings.goal2Frequency;
+        
+        const lvl1 = document.getElementById('level-goal1');
+        const lvl2 = document.getElementById('level-goal2');
+        if (lvl1) lvl1.textContent = status.debug.currentG1.toFixed(2);
+        if (lvl2) lvl2.textContent = status.debug.currentG2.toFixed(2);
 
         // Update visual meter
         const meterBar = document.getElementById('audio-meter-bar');

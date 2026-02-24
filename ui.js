@@ -421,6 +421,18 @@ export function toggleSettingsMenu(event) {
     if (menu) menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
 }
 
+export function toggleSensorTools() {
+    const panel = document.getElementById('pro-mode-audio-panels');
+    if (panel) {
+        const isHidden = panel.style.display === 'none';
+        panel.style.display = isHidden ? 'block' : 'none';
+        if (isHidden) {
+            showNotification('Sensor tools activated', 'success');
+            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+}
+
 /**
  * Setup all UI event listeners to remove inline onclicks.
  */
@@ -546,6 +558,10 @@ export function setupUIListeners() {
         showCardShop();
         toggleSettingsMenu(e);
     });
+    document.getElementById('menu-item-sensors')?.addEventListener('click', (e) => {
+        toggleSensorTools();
+        toggleSettingsMenu(e);
+    });
     document.getElementById('menu-item-moderator')?.addEventListener('click', (e) => {
         showPage('moderator');
         toggleSettingsMenu(e);
@@ -609,6 +625,8 @@ export function setupUIListeners() {
     document.getElementById('toggle-audio-btn')?.addEventListener('click', () => toggleAudioDetection());
     document.getElementById('btn-record-goal-1')?.addEventListener('click', () => recordGoalSound(1));
     document.getElementById('btn-record-goal-2')?.addEventListener('click', () => recordGoalSound(2));
+    document.getElementById('btn-test-goal-1')?.addEventListener('click', () => window.audioEngine?.playTestSound(1));
+    document.getElementById('btn-test-goal-2')?.addEventListener('click', () => window.audioEngine?.playTestSound(2));
     document.getElementById('btn-accept-rules')?.addEventListener('click', () => acceptRulesAndStart());
     document.getElementById('pro-player-left')?.addEventListener('click', () => addManualGoal(1));
     document.getElementById('pro-player-right')?.addEventListener('click', () => addManualGoal(2));

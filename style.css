@@ -1775,12 +1775,8 @@ body.live-mode {
 
 /* FORCE HIDE AUDIO INDICATOR GLOBALLY */
 #audio-indicator, 
-#conn-dot, 
-.connection-dot,
-#audio-threshold-line,
-#audio-meter-wrapper,
-#audio-meter-container,
-#audio-frequency-display {
+#conn-dot,
+.connection-dot {
     display: none !important;
 }
 

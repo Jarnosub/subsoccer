@@ -268,6 +268,10 @@
             <i class="fa-solid fa-user-gear"></i> EDIT PROFILE
         </button>
 
+        <button id="menu-item-sensors" class="menu-item">
+            <i class="fa-solid fa-wave-square"></i> SENSOR TOOLS
+        </button>
+
         <button id="sound-toggle-btn" class="menu-item">
             <i class="fa-solid fa-volume-high"></i> SOUNDS: ON
         </button>
@@ -656,14 +660,6 @@
                     </button>
                 </div>
 
-                <!-- Pro Mode (Developer Only) -->
-                <div id="pro-mode-section" class="pro-mode-toggle" style="margin-top:40px; display:none !important;">
-                    <input type="checkbox" id="pro-mode-toggle"
-                        style="width:16px; height:16px; margin-right:8px; pointer-events:none; accent-color:#666; opacity:0.7;">
-                    <i class="fa-solid fa-bolt" style="font-size:0.75rem; opacity:0.6; margin-right:8px;"></i>
-                    <span>Pro Mode - Acoustic Live Scoring</span>
-
-                </div>
 
                 <!-- Audio panels shown only when Pro Mode is checked -->
                 <div id="pro-mode-audio-panels" style="display:none; margin-top:12px;">
@@ -695,6 +691,7 @@
                             style="font-size:0.65rem; color:#666; font-family:'Open Sans'; display:none;">
                             <div>Goal 1: <span id="freq-goal1" style="color:var(--sub-gold);">2000</span> Hz | Goal 2: <span id="freq-goal2" style="color:var(--sub-gold);">3500</span> Hz
                             </div>
+                            <div style="margin-top:4px;">Levels: G1: <span id="level-goal1" style="color:#fff;">0.00</span> | G2: <span id="level-goal2" style="color:#fff;">0.00</span></div>
                         </div>
                     </div>
 
@@ -711,6 +708,12 @@
                             <button id="btn-record-goal-2"
                                 style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍
                                 Record Goal 2</button>
+                        </div>
+                        <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center; margin-top:5px;">
+                            <button id="btn-test-goal-1"
+                                style="background:#1a1a1a; color:#888; border:1px solid #333; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">🔊 Test 2000Hz</button>
+                            <button id="btn-test-goal-2"
+                                style="background:#1a1a1a; color:#888; border:1px solid #333; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">🔊 Test 3500Hz</button>
                         </div>
                         <div id="recording-status"
                             style="font-size:0.65rem; color:#666; text-align:center; margin-top:5px; font-family:'Open Sans';">
