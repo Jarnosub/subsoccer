@@ -9,7 +9,7 @@ import {
     loadEventsPage, viewTournamentBracket, pickEventWinner, pickEventBronzeWinner,
     advanceEventRound, finishEventTournament, closeBracketModal, viewTournamentParticipants,
     showCreateEventForm, viewEventDetails, editTournament, deleteTournament, unregisterFromTournament,
-    registerForTournament, showCreateTournamentForm, editEvent, deleteEvent, shareLiveEventLink, closeEventModal,
+    registerForTournament, showCreateTournamentForm, editEvent, deleteEvent, closeEventModal,
     addParticipantFromSearch, removeTournamentParticipant, selectParticipantFromDropdown, createTournament,
     closeTournamentForm, saveTournamentEdit, clearEventImage, updateEventForm, handleParticipantSearch,
     hideCreateEventForm, clearBrandLogo, previewBrandLogo, previewEventImage, createNewEvent, closeEmailPrompt, saveEmailAndRegister,
@@ -20,6 +20,7 @@ import {
     handleProModeClick, toggleAudioDetection, recordGoalSound, acceptRulesAndStart,
     addManualGoal, exitProMode, undoLastGoal, resetProMatch, initProModeUI, initClaimResult, toggleSoundEffects, selectQuickPlayer, saveClaimedResult, cancelClaimResult, closeVictoryOverlay
 } from './quick-match.js';
+import { shareLiveEventLink } from './live-view-service.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
 import { startTournament, advanceRound, saveTour, replayTournament, pickWin, pickBronzeWinner, populateEventDropdown } from './tournament.js';
 import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard } from './moderator-service.js';

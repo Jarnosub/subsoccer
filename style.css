@@ -1030,6 +1030,40 @@ input:active {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Audio Telemetry HUD */
+.audio-hud {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+    opacity: 0.3; /* Erittäin huomaamaton */
+    pointer-events: none; /* Ei häiritse kosketusta */
+    z-index: 99999;
+}
+
+.hud-channel {
+    width: 8px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hud-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    transition: height 0.05s ease-out, background-color 0.1s;
+}
+
+.hud-bar-p1 { background-color: #00ff88; } /* Vihreä P1 */
+.hud-bar-p2 { background-color: #0088ff; } /* Sininen P2 */
+
 /* ESTÄÄ KLIKKAUKSET HETI KUN PELI PÄÄTTYY */
 .game-controls-locked {
     pointer-events: none !important;

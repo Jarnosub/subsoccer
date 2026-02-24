@@ -107,16 +107,16 @@
             oscillator.type = 'sine';
             oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-            // Äänen muotoilu (ADSR-tyylinen nopea nousu ja lasku)
+            // Tehdään äänestä erittäin lyhyt (50 millisekuntia) "klik"
             gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.7, audioCtx.currentTime + 0.02); 
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
+            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.005); // 5ms terävä nousu
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03); // 30ms välitön sammuminen
 
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
             oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.6);
+            oscillator.stop(audioCtx.currentTime + 0.05); // Katkaistaan kokonaan 50ms kohdalla
             
             console.log("Playing frequency: " + freq + "Hz");
         }

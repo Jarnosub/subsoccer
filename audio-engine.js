@@ -30,6 +30,10 @@ let peakGoal2 = 0;
 let currentG1 = 0;
 let currentG2 = 0;
 
+// HUD Elements Cache
+let hudBarP1 = null;
+let hudBarP2 = null;
+
 /**
  * Initialize audio context (must be called after user interaction)
  */
@@ -86,6 +90,10 @@ async function startListening() {
         lastDetectionTime = 0;
         detectionStartTime = 0;
         currentDetectedGoal = null;
+
+        // Cache HUD elements for performance
+        hudBarP1 = document.getElementById('hud-bar-p1');
+        hudBarP2 = document.getElementById('hud-bar-p2');
 
         // Start frequency analysis loop
         startDetectionLoop();
@@ -202,6 +210,21 @@ function analyzeFrequencies(dataArray, sampleRate) {
     if (goal1Intensity > peakGoal1) peakGoal1 = goal1Intensity;
     if (goal2Intensity > peakGoal2) peakGoal2 = goal2Intensity;
 
+    // Update Telemetry HUD (Visual Feedback)
+    if (hudBarP1 && hudBarP2) {
+        // Calculate percentage relative to threshold (so 100% height = threshold hit)
+        // We cap it at 100% visually
+        const p1Percent = Math.min(100, (goal1Intensity / DETECTION_THRESHOLD) * 100);
+        const p2Percent = Math.min(100, (goal2Intensity / DETECTION_THRESHOLD) * 100);
+
+        hudBarP1.style.height = `${p1Percent}%`;
+        hudBarP2.style.height = `${p2Percent}%`;
+
+        // Visual feedback for hitting threshold (turn red)
+        hudBarP1.style.backgroundColor = goal1Intensity >= DETECTION_THRESHOLD ? '#ff3333' : '#00ff88';
+        hudBarP2.style.backgroundColor = goal2Intensity >= DETECTION_THRESHOLD ? '#ff3333' : '#0088ff';
+    }
+
     // Determine which goal (if any) exceeded threshold
     if (goal1Intensity > DETECTION_THRESHOLD && goal1Intensity > goal2Intensity) {
         return 1; // Goal 1 sound detected → Player 2 scores
@@ -298,6 +321,37 @@ function playConfirmationSound() {
 }
 
 /**
+ * Play a test sound matching the goal frequency (for debugging/testing)
+ * @param {number} goalNumber - 1 or 2
+ */
+function playTestSound(goalNumber) {
+    if (!audioContext) {
+        if (!initAudioContext()) return;
+    }
+    if (audioContext.state === 'suspended') audioContext.resume();
+
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    const freq = goalNumber === 1 ? GOAL_1_FREQUENCY : GOAL_2_FREQUENCY;
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+    
+    gain.gain.setValueAtTime(0, audioContext.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+    
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.5);
+    
+    console.log(`🔊 Playing test sound for Goal ${goalNumber}: ${freq}Hz`);
+}
+
+/**
  * Update UI indicator if it exists in the DOM
  */
 function updateUIStatus(active) {
@@ -382,5 +436,6 @@ window.audioEngine = {
     getStatus,
     setThreshold,
     setFrequencies,
-    resetPeaks
+    resetPeaks,
+    playTestSound
 };
