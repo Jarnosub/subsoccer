@@ -1,4 +1,4 @@
-import { state, _supabase, subscribe, isAdmin } from './config.js';
+import { state, _supabase, subscribe, isAdmin, APP_VERSION, ENABLE_EVENTS, KIOSK_MODE } from './config.js';
 import { CardGenerator } from './card-generator.js';
 import { showNotification, showLoading, hideLoading, handleAsync, showModal, closeModal } from './ui-utils.js';
 import { handleSearch, addP, directAdd } from './script.js';
@@ -21,7 +21,7 @@ import {
     addManualGoal, exitProMode, undoLastGoal, resetProMatch, initProModeUI, initClaimResult, toggleSoundEffects, selectQuickPlayer, saveClaimedResult, cancelClaimResult, closeVictoryOverlay
 } from './quick-match.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
-import { startTournament, advanceRound, saveTour, replayTournament, pickWin, pickBronzeWinner } from './tournament.js';
+import { startTournament, advanceRound, saveTour, replayTournament, pickWin, pickBronzeWinner, populateEventDropdown } from './tournament.js';
 import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard } from './moderator-service.js';
 
 // Swipe-toiminnallisuus muuttujat (siirretty alkuun ReferenceErrorin välttämiseksi)
@@ -173,6 +173,7 @@ export function showMatchMode(mode) {
         tournamentBtn.style.border = 'none';
         tournamentBtn.style.boxShadow = 'none';
         if (tourIcon) tourIcon.style.color = '#000'; // Ikoni mustaksi kultaa vasten
+        populateEventDropdown();
     }
 }
 
@@ -368,23 +369,30 @@ export function initTiltEffect(card) {
         card.appendChild(shine);
     }
 
+    let ticking = false;
+
     const handleMove = (e) => {
-        const rect = card.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const rect = card.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (centerY - y) / 12;
+                const rotateY = (x - centerX) / 12;
 
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        const rotateX = (centerY - y) / 12; // Säädä voimakkuutta tästä
-        const rotateY = (x - centerX) / 12;
-
-        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-        card.style.setProperty('--x', `${x} px`);
-        card.style.setProperty('--y', `${y} px`);
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                card.style.setProperty('--x', `${x} px`);
+                card.style.setProperty('--y', `${y} px`);
+                
+                ticking = false;
+            });
+            ticking = true;
+        }
     };
 
     const handleReset = () => {
@@ -423,8 +431,22 @@ export function setupUIListeners() {
     // FORCE REMOVE INDICATORS ON STARTUP
     const audioInd = document.getElementById('audio-indicator');
     if (audioInd) audioInd.remove();
-    const connDot = document.getElementById('conn-dot');
-    if (connDot) connDot.remove();
+    
+    // RESTORE CONNECTION WATCHDOG UI
+    // Ensure the connection dot exists so script.js can use it to show offline status
+    let connDot = document.getElementById('conn-dot');
+    if (!connDot) {
+        connDot = document.createElement('div');
+        connDot.id = 'conn-dot';
+        connDot.style.cssText = "position:fixed; top:15px; left:15px; width:10px; height:10px; background:var(--sub-red); border-radius:50%; z-index:20000; display:none; box-shadow:0 0 10px var(--sub-red);";
+        document.body.appendChild(connDot);
+        
+        // Add CSS for offline state if needed
+        const style = document.createElement('style');
+        style.innerHTML = `.dot-offline { display:block !important; animation: pulse-red 1s infinite; } @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }`;
+        document.head.appendChild(style);
+    }
+
     const thresholdLine = document.getElementById('audio-threshold-line');
     if (thresholdLine) thresholdLine.remove();
 
@@ -434,9 +456,67 @@ export function setupUIListeners() {
         logo.style.cursor = 'pointer';
         logo.title = 'Visit subsoccer.com';
         logo.addEventListener('click', () => window.open('https://www.subsoccer.com', '_blank'));
+        
+        // BETA: Inject Beta Label under logo
+        // Remove old badges to ensure clean state and centering
+        document.querySelectorAll('.beta-badge-container').forEach(el => el.remove());
+
+        const betaBadge = document.createElement('div');
+        betaBadge.className = 'beta-badge-container';
+        betaBadge.style.cssText = "display:flex; justify-content:center; width:100%; margin-top:5px; margin-bottom:15px;";
+        betaBadge.innerHTML = `
+            <span class="beta-label" style="color:var(--sub-gold); font-size:0.7rem; letter-spacing:2px; font-weight:bold;">${APP_VERSION}</span>
+        `;
+        logo.after(betaBadge);
     }
 
     injectFooterLink();
+
+    // BETA: Inject Feedback Button
+    // Poistetaan kaikki vanhat napit varmuuden vuoksi (estää tuplat)
+    document.querySelectorAll('#beta-feedback-btn').forEach(el => el.remove());
+    
+    // Poistetaan vanha Google Form -nappi jos sellainen on
+    document.querySelectorAll('a[href*="docs.google.com/forms"]').forEach(el => el.remove());
+
+    // Poistetaan myös mahdolliset muut "Feedback" napit tekstin perusteella (esim. keltainen nappi)
+    document.querySelectorAll('a, button').forEach(el => {
+        if (el.id !== 'beta-feedback-btn' && el.textContent && el.textContent.toUpperCase().includes('FEEDBACK')) {
+            el.remove();
+        }
+    });
+
+    const feedbackBtn = document.createElement('button');
+    feedbackBtn.id = 'beta-feedback-btn';
+    // Removed fixed positioning, placed in footer flow
+    feedbackBtn.style.cssText = "display:block; margin:15px auto 0 auto; width:auto; padding:8px 20px; font-size:0.7rem; background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.3); border-radius:30px; cursor:pointer; font-family:var(--sub-name-font); letter-spacing:1px; text-transform:uppercase; transition:all 0.2s;";
+    feedbackBtn.innerHTML = '<i class="fa fa-comment-dots" style="margin-right:6px;"></i> FEEDBACK';
+    
+    feedbackBtn.onmouseover = () => { feedbackBtn.style.background = 'rgba(255,255,255,0.1)'; feedbackBtn.style.borderColor = '#fff'; };
+    feedbackBtn.onmouseout = () => { feedbackBtn.style.background = 'transparent'; feedbackBtn.style.borderColor = 'rgba(255,255,255,0.3)'; };
+
+    feedbackBtn.onclick = async () => {
+            const msg = prompt("Describe the issue or suggestion:");
+            if (msg) {
+                try {
+                    showNotification("Sending...", "info");
+                    await _supabase.from('feedback').insert([{
+                        message: msg,
+                        user_id: state.user?.id || 'guest',
+                        page: state.currentPage || 'unknown'
+                    }]);
+                    showNotification("Thanks for your feedback!", "success");
+                } catch (e) {
+                    console.error(e);
+                    showNotification("Error sending feedback", "error");
+                }
+            }
+        };
+        
+    const footer = document.getElementById('subsoccer-footer-link');
+    if (footer) {
+        footer.appendChild(feedbackBtn);
+    }
 
     // Navigation Tabs
     document.querySelectorAll('.nav-tabs .tab').forEach(tab => {
@@ -941,11 +1021,15 @@ subscribe('user', () => {
             appContent.classList.add('fade-in');
         }
         if (navTabs) navTabs.style.setProperty('display', 'flex', 'important');
-        if (menuBtn) menuBtn.style.display = 'block';
+        
+        // KIOSK MODE: Piilota asetusvalikko julkisessa käytössä
+        if (menuBtn) menuBtn.style.display = KIOSK_MODE ? 'none' : 'block';
 
         // 2. Kontekstuaalinen UI (Vieraat vs Rekisteröityneet)
         const eventsTab = document.getElementById('tab-events');
-        if (eventsTab) eventsTab.style.display = state.user.id === 'guest' ? 'none' : 'flex';
+        if (eventsTab) {
+            eventsTab.style.display = (state.user.id !== 'guest' && ENABLE_EVENTS) ? 'flex' : 'none';
+        }
 
         const regGameBtn = document.getElementById('btn-profile-register-game');
         if (regGameBtn) regGameBtn.style.display = (state.user.id === 'guest' || state.user.id === 'spectator') ? 'none' : 'block';
@@ -1278,6 +1362,6 @@ function injectFooterLink() {
     const footer = document.createElement('div');
     footer.id = 'subsoccer-footer-link';
     footer.className = 'subsoccer-footer';
-    footer.innerHTML = '<a href="https://www.subsoccer.com" target="_blank">WWW.SUBSOCCER.COM</a>';
+    footer.innerHTML = `<a href="https://www.subsoccer.com" target="_blank">WWW.SUBSOCCER.COM</a>`;
     container.appendChild(footer);
 }

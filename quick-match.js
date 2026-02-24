@@ -1,5 +1,5 @@
 import { _supabase, state, isAdmin } from './config.js';
-import { showNotification } from './ui-utils.js';
+import { showNotification, safeHTML } from './ui-utils.js';
 import { MatchService } from './match-service.js';
 
 /**
@@ -34,8 +34,10 @@ export async function handleQuickSearch(input, slot) {
 
         const combined = [...dbNames, ...guestMatches];
 
-        resDiv.innerHTML = combined.map(n => `<div class="search-item" data-action="select-quick-player" data-player="${n}" data-slot="${slot}">${n}</div>`).join('') + 
-                           `<div class="search-item" style="color:var(--sub-gold);" data-action="select-quick-player" data-player="${v}" data-slot="${slot}">Add: "${v}"</div>`;
+        resDiv.innerHTML = safeHTML`
+            ${combined.map(n => safeHTML`<div class="search-item" data-action="select-quick-player" data-player="${n}" data-slot="${slot}">${n}</div>`)}
+            <div class="search-item" style="color:var(--sub-gold);" data-action="select-quick-player" data-player="${v}" data-slot="${slot}">Add: "${v}"</div>
+        `.toString();
         resDiv.style.display = 'block';
     } catch (e) {
         console.error("Quick search failed:", e);

@@ -25,6 +25,9 @@ if (typeof window !== 'undefined' && window.supabase) {
 }
 
 export const _supabase = supabaseClient;
+export const APP_VERSION = 'v0.9.2 BETA';
+export const ENABLE_EVENTS = true; // Set to false to hide Events tab (e.g. Costco Mode)
+export const KIOSK_MODE = false; // Set to true to lock UI for public use (hides menu & logout)
 
 
 // Jaettu tila (Shared State) - Kaikki globaalit muuttujat tähän
@@ -122,7 +125,8 @@ window._supabase = _supabase;
  * Fallback to hardcoded username for initial setup/recovery.
  */
 export const isSuperAdmin = () => {
-    return state.user?.username === 'JARNO SAARINEN';
+    // SECURITY FIX: Removed hardcoded username check. Use UUID only.
+    return state.user?.id === '054f6378-95c5-4f5b-a678-745e585a01fc';
 };
 
 export const isAdmin = () => {

@@ -13,11 +13,8 @@ import './stats-service.js';
 import './card-generator.js';
 import './sound-effects.js';
 
-console.log('🚀 Subsoccer App Starting...');
-
 // Käynnistä sovellus kun sivu on ladattu
 const start = () => {
-    console.log('📱 DOM Ready - Initializing App...');
     setupGlobalErrorHandling();
     checkLiveEventParam();
     applyBranding();

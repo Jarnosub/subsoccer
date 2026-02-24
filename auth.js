@@ -1,4 +1,4 @@
-import { _supabase, state, resetFullState } from './config.js';
+import { _supabase, state, resetFullState, KIOSK_MODE } from './config.js';
 import { showNotification } from './ui-utils.js';
 import { fetchAllGames } from './game-service.js';
 import { startQuickMatch } from './quick-match.js';
@@ -47,9 +47,8 @@ export async function initApp() {
             isAuthListenerSet = true;
         }
 
-        const { data: players } = await _supabase.from('players').select('username');
-        state.allDbNames = players ? players.map(p => p.username) : [];
-        
+        // REMOVED: Fetching all users causes performance issues at scale.
+        // Search is now handled via server-side queries in quick-match.js
         if (typeof fetchAllGames === 'function') await fetchAllGames();
         await populateCountries();
     } catch (e) {
@@ -104,6 +103,7 @@ async function refreshUserProfile(userId) {
         if (profile) {
             state.user = profile;
             localStorage.setItem('subsoccer-user', JSON.stringify(profile));
+            console.log("👤 CURRENT USER ID (Copy this for config.js):", profile.id);
         } else {
             // Profiili puuttuu players-taulusta, mutta käyttäjä on Auth-istunnossa.
             // Luodaan profiili automaattisesti käyttäen Auth-metadatan tietoja.
@@ -480,6 +480,10 @@ export function handleGuest() {
 }
 
 export async function handleLogout() {
+    if (KIOSK_MODE) {
+        if (window.showNotification) window.showNotification("Logout disabled in Kiosk Mode", "error");
+        return;
+    }
     if (_supabase) {
         try {
             await _supabase.auth.signOut();

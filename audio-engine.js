@@ -52,7 +52,6 @@ function initAudioContext() {
  */
 async function startListening() {
     if (isListening) {
-        console.log("Already listening");
         return { success: true, message: "Already active" };
     }
 
@@ -91,7 +90,6 @@ async function startListening() {
         // Start frequency analysis loop
         startDetectionLoop();
 
-        console.log("🎙️ Acoustic goal detection ACTIVE");
         updateUIStatus(true);
         return { success: true, message: "Goal detection activated" };
 
@@ -137,7 +135,6 @@ function stopListening() {
 
     isListening = false;
     updateUIStatus(false);
-    console.log("🎙️ Acoustic goal detection STOPPED");
 }
 
 /**
@@ -205,11 +202,6 @@ function analyzeFrequencies(dataArray, sampleRate) {
     if (goal1Intensity > peakGoal1) peakGoal1 = goal1Intensity;
     if (goal2Intensity > peakGoal2) peakGoal2 = goal2Intensity;
 
-    // Debug-logaus testauksen helpottamiseksi
-    if (goal1Intensity > 0.1 || goal2Intensity > 0.1) {
-        console.log(`G1: ${goal1Intensity.toFixed(2)} | G2: ${goal2Intensity.toFixed(2)} | Threshold: ${DETECTION_THRESHOLD}`);
-    }
-
     // Determine which goal (if any) exceeded threshold
     if (goal1Intensity > DETECTION_THRESHOLD && goal1Intensity > goal2Intensity) {
         return 1; // Goal 1 sound detected → Player 2 scores
@@ -270,8 +262,6 @@ function confirmGoal(goalNumber) {
     
     const scoringPlayer = goalNumber === 1 ? 2 : 1;
     
-    console.log(`🚨 GOAL DETECTED! Goal ${goalNumber} emitted sound → Player ${scoringPlayer} scores!`);
-
     // Call global handler if it exists
     if (typeof window.handleGoalDetected === 'function') {
         window.handleGoalDetected(scoringPlayer);
@@ -380,7 +370,6 @@ function setFrequencies(f1, f2) {
 function setThreshold(newThreshold) {
     if (newThreshold >= 0 && newThreshold <= 1) {
         DETECTION_THRESHOLD = newThreshold;
-        console.log(`Sensitivity adjusted: ${newThreshold}`);
         return true;
     }
     return false;
@@ -395,5 +384,3 @@ window.audioEngine = {
     setFrequencies,
     resetPeaks
 };
-
-console.log("🎵 Subsoccer Audio Engine loaded - Patented acoustic goal detection ready");

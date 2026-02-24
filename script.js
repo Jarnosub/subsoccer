@@ -4,11 +4,24 @@ import { _supabase, state } from './config.js';
 // 2. PELAAJAPOOLIN HALLINTA (haku, lisäys, poisto)
 // ============================================================
 
-export function handleSearch(v) {
+export async function handleSearch(v) {
     const r = document.getElementById('search-results');
     if (!v) { r.style.display = 'none'; return; }
-    const q = v.toUpperCase(), combined = [...new Set([...state.allDbNames, ...state.sessionGuests])], f = combined.filter(n => n.includes(q) && !state.pool.includes(n));
-    r.innerHTML = f.map(n => `<div class="search-item" data-action="direct-add" data-name="${n}">${n}</div>`).join('') + `<div class="search-item" data-action="direct-add" data-name="${q}">Add: "${q}"</div>`;
+    
+    const q = v.trim().toUpperCase();
+    let dbNames = [];
+
+    // FIX: Haetaan pelaajat suoraan tietokannasta (state.allDbNames poistettiin optimoinnin vuoksi)
+    try {
+        const { data } = await _supabase.from('players').select('username').ilike('username', `%${q}%`).limit(5);
+        if (data) dbNames = data.map(p => p.username);
+    } catch (e) { console.error(e); }
+
+    const combined = [...new Set([...dbNames, ...state.sessionGuests])];
+    const f = combined.filter(n => n.toUpperCase().includes(q) && !state.pool.includes(n));
+    
+    r.innerHTML = f.map(n => `<div class="search-item" data-action="direct-add" data-name="${n}">${n}</div>`).join('') + 
+                  `<div class="search-item" style="color:var(--sub-gold);" data-action="direct-add" data-name="${q}">Add: "${q}"</div>`;
     r.style.display = 'block';
 }
 
@@ -21,7 +34,8 @@ export function addP() {
 }
 
 export function directAdd(n) {
-    if (!state.pool.includes(n)) { state.pool = [...state.pool, n]; }
+    const nameUpper = n.toUpperCase();
+    if (!state.pool.includes(nameUpper)) { state.pool = [...state.pool, nameUpper]; }
     document.getElementById('add-p-input').value = '';
     document.getElementById('search-results').style.display = 'none';
 }

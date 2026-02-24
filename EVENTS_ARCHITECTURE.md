@@ -175,8 +175,8 @@ showCreateTournamentForm(eventId) {
 - [x] Database schema update (tournament_fields_update.sql)
 
 ### Phase 3: Tournament Page Update
-- [ ] Lisää event dropdown tournament luomiseen
-- [ ] Näytä event info jos tournament linkitetty
+- [x] Lisää event dropdown tournament luomiseen
+- [x] Näytä event info jos tournament linkitetty
 
 ### Phase 4: Polish & Cleanup
 - [ ] Tournament cards styling (show game table, participants, time)
