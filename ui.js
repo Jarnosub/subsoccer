@@ -256,8 +256,8 @@ function initSwipeListener() {
     if (!appContent) return;
 
     appContent.addEventListener('touchstart', (e) => {
-        // Estä sivun vaihto jos käyttäjä on kartan päällä tai elementissä jossa on 'no-swipe'
-        if (e.target.closest('.leaflet-container') || e.target.closest('.no-swipe') || e.target.closest('input[type="range"]')) {
+        // Estä sivun vaihto jos käyttäjä on kartan päällä tai kortin päällä tai elementissä jossa on 'no-swipe'
+        if (e.target.closest('.leaflet-container') || e.target.closest('.no-swipe') || e.target.closest('input[type="range"]') || e.target.closest('.pro-card')) {
             touchStartX = null;
             return;
         }
@@ -447,10 +447,9 @@ export function initTiltEffect(card) {
         card.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     };
 
+    // 3D Hover Tilt is strictly for mouse devices to prevent mobile touch/click cancellations
     card.addEventListener('mousemove', handleMove);
     card.addEventListener('mouseleave', handleReset);
-    card.addEventListener('touchmove', handleMove, { passive: true });
-    card.addEventListener('touchend', handleReset);
 }
 
 /**
@@ -1042,36 +1041,90 @@ export function updateProfileCard() {
     }
 
     container.innerHTML = `
-    <div class="topps-collectible-card ${editionClass} ${rookieClass}" style="background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;">
-            <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" class="card-hero-image" referrerpolicy="no-referrer" onerror="this.src='placeholder-silhouette-5-wide.png'">
-            <div class="card-overlay" style="background: ${overlayBg}; height: ${overlayHeight}; border-top: ${state.brand ? '3px solid var(--sub-gold)' : 'none'}; box-shadow: 0 -5px 15px rgba(0,0,0,0.3);"></div>
-            <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">${editionLabel} // 2026</div>
-            <div style="position:absolute; top:15px; right:15px; z-index:11; display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-                ${badges.map(b => `<div style="background:rgba(0,0,0,0.9); border:1px solid ${b.color}; color:${b.color}; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; box-shadow:0 0 10px ${b.color}40; backdrop-filter:blur(4px);" title="${b.title}"><i class="fa-solid ${b.icon}"></i></div>`).join('')}
-            </div>
-            <div class="card-content-bottom">
-                <div style="color:var(--sub-gold); font-size:0.75rem; letter-spacing:2px; margin-bottom:4px; font-weight:bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"><i class="fa-solid fa-location-dot"></i> ${u.city || 'HELSINKI'}</div>
-                <div class="card-player-name">${u.username}</div>
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
-                    <div class="card-elo-badge">${u.elo || 1300} ELO</div>
-                    <div style="text-align:right;"><div style="color:white; font-size:0.6rem; text-transform:uppercase;">Win Ratio</div><div style="color:white; font-size:1rem;">${((u.wins / (Math.max(1, u.wins + (u.losses || 0)))) * 100).toFixed(0)}%</div></div>
+    <div class="topps-collectible-card ${editionClass} ${rookieClass}" onclick="this.classList.toggle('flipped')">
+        <div class="topps-flipper">
+            <!-- FRONT SIDE -->
+            <div class="topps-front" style="background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px;">
+                <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" class="card-hero-image" referrerpolicy="no-referrer" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                <div class="card-overlay" style="background: ${overlayBg}; height: ${overlayHeight}; border-top: ${state.brand ? '3px solid var(--sub-gold)' : 'none'}; box-shadow: 0 -5px 15px rgba(0,0,0,0.3);"></div>
+                <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">${editionLabel} // 2026</div>
+                <div style="position:absolute; top:15px; right:15px; z-index:11; display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+                    ${badges.map(b => `<div style="background:rgba(0,0,0,0.9); border:1px solid ${b.color}; color:${b.color}; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; box-shadow:0 0 10px ${b.color}40; backdrop-filter:blur(4px);" title="${b.title}"><i class="fa-solid ${b.icon}"></i></div>`).join('')}
                 </div>
+                <div class="card-content-bottom" style="z-index:12;">
+                    <div style="color:var(--sub-gold); font-size:0.75rem; letter-spacing:2px; margin-bottom:4px; font-weight:bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"><i class="fa-solid fa-location-dot"></i> ${u.city || 'HELSINKI'}</div>
+                    <div class="card-player-name">${u.username}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
+                        <div class="card-elo-badge">${u.elo || 1300} ELO</div>
+                        <div style="text-align:right;"><div style="color:white; font-size:0.6rem; text-transform:uppercase;">Win Ratio</div><div style="color:white; font-size:1rem;">${((u.wins / (Math.max(1, u.wins + (u.losses || 0)))) * 100).toFixed(0)}%</div></div>
+                    </div>
+                </div>
+                ${state.brandLogo ? `
+                    <img src="${state.brandLogo}" style="position:absolute; bottom: 80px; right: 15px; z-index: 11; max-width: 60px; max-height: 35px; object-fit: contain;">
+                ` : `
+                    <div style="position:absolute; bottom:15px; right:15px; width:30px; height:30px; background:radial-gradient(circle, #ffd700, #b8860b); border-radius:50%; opacity:0.3; z-index:11; filter:blur(1px);"></div>
+                `}
+                <div class="flip-hint" style="position:absolute; bottom:5px; right:50px; z-index:15; color:#888; font-size:0.55rem; font-family:'Resolve';"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
             </div>
-            ${state.brandLogo ? `
-                <img src="${state.brandLogo}" style="position:absolute; bottom: 80px; right: 15px; z-index: 11; max-width: 60px; max-height: 35px; object-fit: contain;">
-            ` : `
-                <div style="position:absolute; bottom:15px; right:15px; width:30px; height:30px; background:radial-gradient(circle, #ffd700, #b8860b); border-radius:50%; opacity:0.3; z-index:11; filter:blur(1px);"></div>
-            `}
+            
+            <!-- BACK SIDE -->
+            <div class="topps-back" style="background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%);">
+                <div style="padding:20px; text-align:left; overflow-y:auto; overflow-x:hidden; height:100%;">
+                    <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px;">
+                        <h4 style="color:var(--sub-gold); font-family:'Russo One'; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
+                        <div style="color:#fff; font-size:0.75rem; font-family:'Resolve'; margin-top:5px; text-transform:uppercase;">${u.username}</div>
+                    </div>
+                    <div id="profile-card-back-content">
+                        <p style="text-align:center; color:#666; font-size:0.8rem; margin-top:50px;"><i class="fa fa-spinner fa-spin"></i> Loading Data...</p>
+                    </div>
+                </div>
+                <div class="flip-hint" style="position:absolute; bottom:15px; left:15px; color:#c0c0c0; font-size:0.55rem; font-family:'Resolve';"><i class="fa-solid fa-rotate-left"></i> TAP TO FLIP</div>
+            </div>
         </div>
-        <div style="display:flex; gap:10px; margin-top:15px;">
-            <button class="btn-red" style="flex:1; background:#222; font-size:0.7rem;" data-action="show-card-shop">
-                <i class="fa fa-shopping-cart"></i> UPGRADE CARD
-            </button>
-            <button class="btn-red" style="flex:1; font-size:0.7rem;" data-action="download-card">
-                <i class="fa fa-download"></i> SAVE IMAGE
-            </button>
-        </div>
-`;
+    </div>
+    <div style="display:flex; gap:10px; margin-top:15px;">
+        <button class="btn-red" style="flex:1; background:#222; font-size:0.7rem;" data-action="show-card-shop">
+            <i class="fa fa-shopping-cart"></i> UPGRADE CARD
+        </button>
+        <button class="btn-red" style="flex:1; font-size:0.7rem;" data-action="download-card">
+            <i class="fa fa-download"></i> SAVE IMAGE
+        </button>
+    </div>
+    `;
+
+    // Fetch and populate back side data asynchronously
+    _supabase.from('matches').select('*')
+        .or(`player1.eq.${u.username},player2.eq.${u.username}`)
+        .order('created_at', { ascending: false })
+        .limit(10)
+        .then(({ data: recentMatches }) => {
+            const backContent = document.getElementById('profile-card-back-content');
+            if (backContent && recentMatches) {
+                let matchesHtml = '<div style="font-family:var(--sub-name-font); color:#888; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; text-transform:uppercase;">📜 Recent Matches</div>';
+                if (recentMatches.length === 0) {
+                    matchesHtml += '<div style="color:#444; font-size:0.7rem; text-align:center; margin-top:20px;">No matches played yet.</div>';
+                } else {
+                    matchesHtml += recentMatches.map(m => {
+                        const isP1 = m.player1 === u.username;
+                        const opponent = isP1 ? m.player2 : m.player1;
+                        const isWinner = m.winner === u.username;
+                        const resultColor = isWinner ? 'var(--sub-gold)' : '#666';
+                        const score = (m.player1_score !== null && m.player2_score !== null)
+                            ? (isP1 ? `${m.player1_score}-${m.player2_score}` : `${m.player2_score}-${m.player1_score}`)
+                            : (isWinner ? 'WIN' : 'LOSS');
+                        const date = new Date(m.created_at).toLocaleDateString();
+                        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#111; margin-bottom:4px; border-radius:4px; border-left:2px solid ${resultColor};">
+                                    <div style="display:flex; flex-direction:column;">
+                                        <div style="color:#fff; font-size:0.75rem; font-family:var(--sub-name-font);">vs ${opponent}</div>
+                                        <div style="color:#666; font-size:0.6rem;">${date} • ${m.tournament_name || 'Quick Match'}</div>
+                                    </div>
+                                    <div style="color:${resultColor}; font-size:0.8rem; font-weight:bold; font-family:'Russo One';">${score}</div>
+                                </div>`;
+                    }).join('');
+                }
+                backContent.innerHTML = matchesHtml;
+            }
+        });
 
     const card = container.querySelector('.topps-collectible-card');
     if (card) initTiltEffect(card);
