@@ -27,7 +27,7 @@ import { startTournament, advanceRound, saveTour, replayTournament, populateEven
 import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard } from './moderator-service.js';
 
 // Swipe-toiminnallisuus muuttujat (siirretty alkuun ReferenceErrorin välttämiseksi)
-let touchStartX = 0;
+let touchStartX = null;
 let touchEndX = 0;
 const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'moderator'];
 let currentPageIndex = 1; // Aloitetaan tournament-sivulta
@@ -222,10 +222,16 @@ function initSwipeListener() {
     if (!appContent) return;
 
     appContent.addEventListener('touchstart', (e) => {
+        // Estä sivun vaihto jos käyttäjä on kartan päällä tai elementissä jossa on 'no-swipe'
+        if (e.target.closest('.leaflet-container') || e.target.closest('.no-swipe') || e.target.closest('input[type="range"]')) {
+            touchStartX = null;
+            return;
+        }
         touchStartX = e.changedTouches[0].screenX;
     }, { passive: true });
 
     appContent.addEventListener('touchend', (e) => {
+        if (touchStartX === null) return;
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     }, { passive: true });
