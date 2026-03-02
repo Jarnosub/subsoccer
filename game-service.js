@@ -23,8 +23,9 @@ export async function registerGame(e) {
     const serialNumber = document.getElementById('game-serial-input').value.trim();
     const gameName = document.getElementById('game-name-input').value.trim();
     const location = document.getElementById('game-address-input').value.trim();
-    const isPublic = document.getElementById('game-public-input').checked;
-    
+    const visibility = document.getElementById('game-visibility-input').value;
+    const isPublic = visibility === 'public';
+
     try {
         if (btn) { btn.disabled = true; btn.textContent = 'Registering...'; }
         if (!serialNumber || !gameName || !location || !state.selLat) {
@@ -35,7 +36,7 @@ export async function registerGame(e) {
             showNotification("Guests cannot register games. Please create an account.", "error");
             return;
         }
-        
+
         const { data: existingGames } = await _supabase.from('games').select('id, game_name, owner_id').eq('serial_number', serialNumber);
         if (existingGames && existingGames.length > 0) {
             const existingGame = existingGames[0];
@@ -44,15 +45,15 @@ export async function registerGame(e) {
             showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic);
             return;
         }
-        
+
         const uniqueCode = serialNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-        const { error } = await _supabase.from('games').insert([{ 
-            unique_code: uniqueCode, game_name: gameName, location: location, owner_id: state.user.id, 
+        const { error } = await _supabase.from('games').insert([{
+            unique_code: uniqueCode, game_name: gameName, location: location, owner_id: state.user.id,
             latitude: state.selLat, longitude: state.selLng, is_public: isPublic,
             serial_number: serialNumber, verified: true, registered_at: new Date().toISOString()
         }]);
         if (error) throw error;
-        
+
         showNotification(`Game "${gameName}" registered successfully! ⭐ VERIFIED`, "success");
         cancelEdit();
         await fetchAllGames();
@@ -66,22 +67,28 @@ export function initEditGame(id) {
     const game = state.myGames.find(g => g.id === id);
     if (!game) return;
     state.editingGameId = id;
-    
+
     // Switch page first to ensure DOM elements are visible and map initializes
     state.currentPage = 'games';
-    
+
     document.getElementById('game-serial-input').value = game.serial_number || '';
     document.getElementById('game-serial-input').disabled = true;
     document.getElementById('game-name-input').value = game.game_name;
     document.getElementById('game-address-input').value = game.location;
-    document.getElementById('game-public-input').checked = game.is_public;
-    
+
+    // Set Visibility State
+    const visibility = game.is_public ? 'public' : 'private'; // Simplified mapping for now
+    document.getElementById('game-visibility-input').value = visibility;
+    document.querySelectorAll('.visibility-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-value') === visibility);
+    });
+
     if (game.latitude && game.longitude) {
         // Wait for map initialization (ui.js has 200ms delay)
         setTimeout(() => {
             // Try to init map if missing
             if (!state.gameMap && typeof window.initGameMap === 'function') {
-                try { window.initGameMap(); } catch(e) { console.warn("Map auto-init failed", e); }
+                try { window.initGameMap(); } catch (e) { console.warn("Map auto-init failed", e); }
             }
 
             if (state.gameMap) {
@@ -92,7 +99,7 @@ export function initEditGame(id) {
             }
         }, 600);
     }
-    
+
     document.getElementById('btn-reg-game').style.display = 'none';
     document.getElementById('btn-edit-group').style.display = 'flex';
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -104,10 +111,18 @@ export function cancelEdit() {
     document.getElementById('game-serial-input').disabled = false;
     document.getElementById('game-name-input').value = '';
     document.getElementById('game-address-input').value = '';
-    document.getElementById('game-public-input').checked = false;
+
+    // Reset Visibility
+    document.getElementById('game-visibility-input').value = 'public';
+    document.querySelectorAll('.visibility-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-value') === 'public');
+    });
+
     document.getElementById('location-confirm').innerText = '';
     state.selLat = null; state.selLng = null;
-    if (state.gameMarker) state.gameMap.removeLayer(state.gameMarker);
+    if (state.gameMarker) {
+        try { state.gameMap?.removeLayer(state.gameMarker); } catch (e) { }
+    }
     document.getElementById('btn-reg-game').style.display = 'block';
     document.getElementById('btn-edit-group').style.display = 'none';
 }
@@ -120,7 +135,9 @@ export async function updateGame(e) {
         if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
         const gameName = document.getElementById('game-name-input').value.trim();
         const location = document.getElementById('game-address-input').value.trim();
-        const isPublic = document.getElementById('game-public-input').checked;
+        const visibility = document.getElementById('game-visibility-input').value;
+        const isPublic = visibility === 'public';
+
         if (!gameName || !location || !state.selLat) { showNotification("Please fill fields and location.", "error"); return; }
         const { error } = await _supabase.from('games').update({ game_name: gameName, location: location, latitude: state.selLat, longitude: state.selLng, is_public: isPublic }).eq('id', state.editingGameId);
         if (error) throw error;
@@ -239,7 +256,7 @@ export function closeOwnershipTransferDialog() {
 export async function viewOwnershipRequests() {
     try {
         const { data } = await _supabase.from('ownership_transfer_requests').select('*, games!game_id(game_name, serial_number), players!new_owner_id(username)').eq('current_owner_id', state.user.id).eq('status', 'pending');
-        
+
         const html = data && data.length > 0 ? data.map(req => `
             <div style="background:#111; padding:20px; border-radius:8px; margin-bottom:15px; border-left:3px solid var(--sub-gold);">
                 <div style="font-family:var(--sub-name-font); margin-bottom:5px;">${req.games?.game_name}</div>
@@ -250,7 +267,7 @@ export async function viewOwnershipRequests() {
                 </div>
             </div>
         `).join('') : '<p style="text-align:center; color:#666;">No pending requests</p>';
-        
+
         showModal('OWNERSHIP REQUESTS', html, { id: 'ownership-requests-modal', maxWidth: '600px' });
     } catch (error) { showNotification("Failed: " + error.message, "error"); }
 }

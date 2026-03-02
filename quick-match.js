@@ -96,13 +96,20 @@ export async function finalizeQuickMatch(winnerName, context = null) {
         const player1Name = state.quickP1;
         const player2Name = state.quickP2;
 
+        // Extract gameId from context if it's an Instant Play claim
+        let gameId = null;
+        if (context && context.startsWith('Instant Play: ')) {
+            gameId = context.replace('Instant Play: ', '');
+        }
+
         const result = await MatchService.recordMatch({
             player1Name,
             player2Name,
             winnerName,
             p1Score: state.proScoreP1,
             p2Score: state.proScoreP2,
-            tournamentName: context
+            tournamentName: context,
+            gameId: gameId
         });
 
         if (result.success) {
@@ -513,32 +520,56 @@ export function initClaimResult(p1Score, p2Score, gameId) {
             setupDiv.appendChild(claimUI);
         }
 
+        const isGuest = state.user.id === 'guest';
+
         claimUI.className = 'sub-card fade-in';
         claimUI.style.display = 'block';
         claimUI.style.borderColor = 'var(--sub-gold)';
         claimUI.style.marginTop = '20px';
+        claimUI.style.background = 'linear-gradient(180deg, rgba(255, 215, 0, 0.05) 0%, rgba(10, 10, 10, 1) 100%)';
+
+        const signupCTA = isGuest ? `
+            <div style="margin: 20px 0; padding: 15px; background: rgba(227, 6, 19, 0.1); border: 1px dashed var(--sub-red); border-radius: 8px; text-align: center;">
+                <div style="font-size: 0.8rem; color: #fff; margin-bottom: 10px; line-height: 1.4;">
+                    <strong>Guest accounts do not save ELO points permanently.</strong><br>
+                    Create a free Pro account now, and this victory will be saved directly to your career!
+                </div>
+                <button onclick="window.showAuthPage('signup')" class="btn-red" style="width: auto; padding: 8px 15px; font-size: 0.8rem; background: var(--sub-red);">
+                    CREATE ACCOUNT & SAVE
+                </button>
+            </div>
+        ` : '';
+
         claimUI.innerHTML = `
-            <div style="text-align:center; margin-bottom:20px;">
-                <div style="font-family:var(--sub-name-font); color:var(--sub-gold); font-size:1.1rem; letter-spacing:2px; margin-bottom:10px;">CLAIM YOUR VICTORY</div>
-                <div style="font-size:3.5rem; font-family:var(--sub-name-font); color:#fff; line-height:1;">${uScore} - ${oScore}</div>
-                <div style="color:#666; font-size:0.8rem; margin-top:10px; text-transform:uppercase; letter-spacing:1px;">Who was your opponent?</div>
+            <div style="text-align:center; padding-bottom:10px;">
+                <div style="font-family:'Russo One'; color:var(--sub-gold); font-size:1.5rem; letter-spacing:2px; margin-bottom:5px;">VICTORY CONFIRMED</div>
+                <div style="font-size:3.5rem; font-family:'Subsoccer', sans-serif; color:#fff; line-height:1; text-shadow:0 0 20px rgba(255,215,0,0.3);">${uScore} - ${oScore}</div>
+                <div style="color:#aaa; font-size:0.85rem; margin-top:20px; line-height:1.5; padding:0 15px;">Who did you defeat today? Enter their name below to finalize the match.</div>
             </div>
             
-            <div style="position:relative; margin-bottom:20px;">
-                <input type="text" id="claim-opponent-search" placeholder="Search opponent name..." style="margin-bottom:0; border-color:var(--sub-gold);">
+            <div style="position:relative; margin:20px 0;">
+                <input type="text" id="claim-opponent-search" placeholder="OPPONENT'S NAME / GUEST" style="margin-bottom:0; background:rgba(255,255,255,0.05); border:1px solid #333; text-align:center; font-family:'Russo One'; letter-spacing:1px; text-transform:uppercase; font-size:1.1rem; padding:15px; color:#fff;">
                 <div id="claim-results" class="quick-results"></div>
             </div>
+
+            ${signupCTA}
             
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn-red" id="btn-confirm-claim" data-score1="${uScore}" data-score2="${oScore}" data-game-id="${gameId}" style="flex:1; background:linear-gradient(135deg, var(--sub-gold), #d4a017); color:#000; font-size:1rem;">
-                    CONFIRM
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
+                <button class="btn-red" id="btn-confirm-claim" data-score1="${uScore}" data-score2="${oScore}" data-game-id="${gameId}" style="flex:1; background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:1.1rem; padding:18px; box-shadow:0 5px 15px rgba(255,215,0,0.3);">
+                    ${isGuest ? "CREATE ACCOUNT & SAVE RANK" : "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT"}
                 </button>
                 
-                <button class="btn-red" id="btn-cancel-claim" style="flex:1; padding:14px; font-size:1rem; background:#333;">
-                    <i class="fa fa-times"></i> CLOSE
+                <button class="btn-red" id="btn-cancel-claim" style="flex:1; padding:15px; font-size:0.9rem; background:transparent; border: 1px dashed #444; color:#666;">
+                    DISCARD MATCH
                 </button>
             </div>
         `;
+
+        // Tallennetaan väliaikaisesti, että voimme palata tähän kirjautumisen jälkeen
+        if (isGuest) {
+            state.pendingMatch = { p1Score: uScore, p2Score: oScore, gameId };
+            localStorage.setItem('subsoccer_pending_match', JSON.stringify(state.pendingMatch));
+        }
 
         state.quickP1 = state.user.username;
         setTimeout(() => document.getElementById('claim-opponent-search')?.focus(), 500);

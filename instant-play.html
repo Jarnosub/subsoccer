@@ -357,26 +357,30 @@
             transform: translateX(-50%);
             width: 200px;
             height: 6px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 3px;
             z-index: 1000;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: none; /* Hidden by default, shown when audio active */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+            /* Hidden by default, shown when audio active */
         }
+
         #audio-meter-fill {
             height: 100%;
             width: 0%;
             background: var(--sub-gold);
             transition: width 0.1s ease-out;
         }
+
         #audio-threshold-marker {
             position: absolute;
             top: 0;
             bottom: 0;
             width: 2px;
             background: var(--sub-red);
-            left: 65%; /* Matches 0.65 threshold */
+            left: 65%;
+            /* Matches 0.65 threshold */
         }
 
         @media (orientation: portrait) {
@@ -501,6 +505,28 @@
 
             100% {
                 transform: scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        @keyframes breathing {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1.05);
+                opacity: 1;
             }
         }
 
@@ -630,34 +656,22 @@
     <!-- Game Logo -->
     <img src="logo.png" class="game-logo" alt="Subsoccer">
 
-    <!-- Rules Overlay (Replaces Start Overlay) -->
-    <div id="rules-overlay" class="rules-overlay">
-        <img src="logo.png" style="height: 50px; width: auto; margin-bottom: 20px;" alt="Subsoccer">
-        <div class="rules-header">OFFICIAL RULES</div>
-        <div class="rules-list">
-            <div class="rule-item">
-                <span class="rule-number">1</span>
-                <div class="rule-text">
-                    <div class="rule-title">START</div>
-                    <div class="rule-desc">The winner of Rock/Paper/Scissors starts.</div>
-                </div>
-            </div>
-            <div class="rule-item">
-                <span class="rule-number">2</span>
-                <div class="rule-text">
-                    <div class="rule-title">KICK-OFF</div>
-                    <div class="rule-desc">Kick-off must be taken inside your own goal area.</div>
-                </div>
-            </div>
-            <div class="rule-item">
-                <span class="rule-number">3</span>
-                <div class="rule-text">
-                    <div class="rule-title">WINNER</div>
-                    <div class="rule-desc">The first player to score 3 goals wins.</div>
-                </div>
-            </div>
+    <!-- Instant Start Overlay (Zero Friction) -->
+    <div id="rules-overlay" class="rules-overlay" style="cursor: pointer;" onclick="enterFullscreenGame()">
+        <img src="logo.png" style="height: 60px; width: auto; margin-bottom: 40px;" alt="Subsoccer">
+        <div style="text-align:center; animation: breathing 2s infinite alternate;">
+            <i class="fa-solid fa-hand-pointer"
+                style="font-size: 4rem; color: var(--sub-red); margin-bottom: 20px;"></i>
+            <div
+                style="font-family:'Russo One'; font-size: 3rem; color: white; text-transform:uppercase; letter-spacing:3px;">
+                TAP TO START</div>
+            <div
+                style="font-family:'Resolve'; color: var(--sub-gold); font-size: 1.2rem; margin-top:10px; letter-spacing:5px;">
+                NO DOWNLOADS. NO ACCOUNTS.</div>
         </div>
-        <button class="play-btn pulse-anim" onclick="enterFullscreenGame()">I UNDERSTAND - PLAY</button>
+        <div style="margin-top: 50px; color: #888; font-size: 0.8rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-microphone"></i> Auto-Referee activates on tap
+        </div>
     </div>
 
     <!-- Table ID Display -->
@@ -687,28 +701,56 @@
 
         <!-- Controls -->
         <div class="pro-controls-bar">
-            <button class="pro-control-btn" onclick="undoGoal()" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
-            <button class="pro-control-btn" onclick="resetGame()" title="Reset"><i class="fa-solid fa-arrows-rotate"></i></button>
-            <button class="pro-control-btn" id="btn-mic" onclick="toggleMic(this)" title="Mic"><i class="fa-solid fa-microphone-slash"></i></button>
-            <button class="pro-control-btn active" id="btn-sound" onclick="toggleSound(this)" title="Sound"><i class="fa-solid fa-volume-high"></i></button>
+            <button class="pro-control-btn" onclick="undoGoal()" title="Undo"><i
+                    class="fa-solid fa-rotate-left"></i></button>
+            <button class="pro-control-btn" onclick="resetGame()" title="Reset"><i
+                    class="fa-solid fa-arrows-rotate"></i></button>
+            <button class="pro-control-btn" id="btn-mic" onclick="toggleMic(this)" title="Mic"><i
+                    class="fa-solid fa-microphone-slash"></i></button>
+            <button class="pro-control-btn active" id="btn-sound" onclick="toggleSound(this)" title="Sound"><i
+                    class="fa-solid fa-volume-high"></i></button>
         </div>
     </div>
 
-    <!-- Winner overlay -->
+    <!-- Winner overlay (Pillar 2: Gamifying the Registration) -->
     <div class="winner-overlay" id="winner-overlay">
-        <div class="winner-text" id="winner-text">PLAYER 1 WINS!</div>
-        <div class="winner-subtitle">First to 3 goals</div>
-        <div id="winner-motivation" class="winner-motivation">
-            <span id="motivation-title"
-                style="color:var(--sub-gold); font-weight:bold; font-size:1.1rem; display:block; margin-bottom:8px;">DON'T
-                LOSE YOUR PROGRESS!</span>
-            <span id="motivation-body">Claim your ELO points now to enter the <strong>Global Rankings</strong> and
-                unlock your official <strong>Subsoccer Pro Card</strong>.</span>
+        <!-- Confetti canvas will play behind this -->
+        <div style="text-align:center; z-index:10;">
+            <div class="winner-text" id="winner-text" style="font-size:2.5rem; margin-bottom:10px;">PLAYER 1 WINS!</div>
+            <div id="victory-elo-gain"
+                style="font-family:'Russo One'; color:var(--sub-gold); font-size: 2rem; margin-bottom: 20px;">+32 ELO
+            </div>
+
+            <!-- Gamified "Locked Card" Graphic -->
+            <div
+                style="background:linear-gradient(135deg, #111, #222); border:1px dashed var(--sub-gold); border-radius:10px; padding:20px; max-width: 320px; margin: 0 auto 30px auto; box-shadow:0 10px 30px rgba(0,0,0,0.8); position:relative; overflow:hidden;">
+                <!-- Glint effect -->
+                <div
+                    style="position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:linear-gradient(45deg, transparent 40%, rgba(255,215,0,0.2) 50%, transparent 60%); animation: shimmer 3s infinite;">
+                </div>
+
+                <i class="fa-solid fa-lock" style="color:#666; font-size:2rem; margin-bottom:10px;"></i>
+                <h3
+                    style="font-family:'Resolve'; color:var(--sub-gold); font-size:1.2rem; letter-spacing:2px; margin-bottom:15px; text-transform:uppercase;">
+                    PRO CARD UNLOCKED</h3>
+                <p style="color:#aaa; font-size:0.8rem; line-height:1.4; margin-bottom:5px;">You are currently playing
+                    as a Guest. Claim your official Subsoccer ELO ranking before you leave the table.</p>
+            </div>
+
+            <button id="claim-victory-btn" class="claim-victory-btn"
+                style="width: 100%; max-width: 320px; font-size: 1.2rem; padding: 20px; margin-bottom: 15px;"
+                onclick="claimVictory()">
+                <i class="fa-solid fa-id-card" style="margin-right:10px;"></i> CLAIM MY PRO CARD
+            </button>
+
+            <div style="display:flex; justify-content:center; gap: 10px; max-width: 320px; margin: 0 auto;">
+                <button class="play-again-btn" style="flex:1; font-size: 0.9rem;" onclick="playAgain()">NEW GAME
+                    GUESTS</button>
+                <button id="end-game-btn" class="play-again-btn"
+                    style="flex:1; background:#222; border:1px solid #444; font-size: 0.9rem;"
+                    onclick="window.location.href='index.html'">EXIT</button>
+            </div>
         </div>
-        <button id="claim-victory-btn" class="claim-victory-btn" onclick="claimVictory()">SAVE RESULT & RANK UP</button>
-        <button id="end-game-btn" class="play-again-btn" style="display:none; background:#333; border:1px solid #555;"
-            onclick="window.location.href='index.html'">END GAME</button>
-        <button class="play-again-btn" onclick="playAgain()">NEW GAME</button>
     </div>
 
     <script>
@@ -768,6 +810,13 @@
                 console.log('Fullscreen not supported');
             }
 
+            // --- VAIHE 1: Kitkaton koukku (0s Onboarding) ---
+            // Aktivoi mikrofoni ja automaattinen maalintunnistus välittömästi aloituksesta
+            if (!micEnabled) {
+                const micBtn = document.getElementById('btn-mic');
+                toggleMic(micBtn);
+            }
+
             // Resume audio context (browsers block audio until user interaction)
             if (window.soundEffects && window.soundEffects.audioContext && window.soundEffects.audioContext.state === 'suspended') {
                 window.soundEffects.audioContext.resume();
@@ -776,7 +825,7 @@
             // Setup visual meter updates (but don't start listening yet)
             if (window.audioEngine) {
                 const meterFill = document.getElementById('audio-meter-fill');
-                
+
                 setInterval(() => {
                     if (!micEnabled) return;
                     const status = window.audioEngine.getStatus();
@@ -852,31 +901,32 @@
             document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
             document.getElementById('winner-overlay').classList.add('show');
 
+            // Generate a fake, motivating ELO gain for the session to hook the player
+            // In reality, actual ELO will be calculated by the backend after Claim.
+            const simulatedEloGain = Math.floor(Math.random() * (45 - 20 + 1)) + 20;
+            const gainEl = document.getElementById('victory-elo-gain');
+            if (gainEl) {
+                gainEl.textContent = `+${simulatedEloGain} ELO`;
+            }
+
             // Check mode (Casual vs Guest)
             const urlParams = new URLSearchParams(window.location.search);
             const isCasual = urlParams.get('mode') === 'casual';
             const userType = urlParams.get('user_type') || 'guest';
 
-            const motivationTitle = document.getElementById('motivation-title');
-            const motivationBody = document.getElementById('motivation-body');
             const claimBtn = document.getElementById('claim-victory-btn');
             const endBtn = document.getElementById('end-game-btn');
 
-            // Varmistetaan että tallennusnappi on näkyvissä
-            claimBtn.style.display = 'block';
+            if (claimBtn) claimBtn.style.display = 'block';
 
             if (isCasual && userType === 'registered') {
                 // Registered player from app
-                motivationTitle.innerText = "MATCH COMPLETE!";
-                motivationBody.innerHTML = "Save this <strong>" + scoreP1 + "-" + scoreP2 + "</strong> victory to your profile to update your ELO and climb the leaderboard.";
-                claimBtn.innerText = "SAVE RESULT";
-                endBtn.style.display = 'block';
+                if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT";
+                if (endBtn) endBtn.style.display = 'block';
             } else {
                 // Guest (QR Code or Guest in app)
-                motivationTitle.innerText = "DON'T LOSE YOUR PROGRESS!";
-                motivationBody.innerHTML = "Claim your ELO points now to enter the <strong>Global Rankings</strong> and unlock your official <strong>Subsoccer Pro Card</strong>.";
-                claimBtn.innerText = "SAVE STATS & RANK UP";
-                endBtn.style.display = 'none';
+                if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
+                if (endBtn) endBtn.style.display = 'none';
             }
 
             // Soita yleisön hurraus voiton hetkellä
@@ -945,7 +995,7 @@
         function toggleSound(btn) {
             soundEnabled = !soundEnabled;
             if (window.soundEffects) window.soundEffects.setEnabled(soundEnabled);
-            
+
             if (soundEnabled) {
                 btn.classList.add('active');
                 btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';

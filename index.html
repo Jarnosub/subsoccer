@@ -58,8 +58,8 @@
             <i class="fa-solid fa-ranking-star"></i> GLOBAL RANKING
         </button>
 
-        <button id="menu-item-map" class="menu-item">
-            <i class="fa-solid fa-earth-europe"></i> GAME MAP
+        <button id="menu-item-concept" class="menu-item">
+            <i class="fa-solid fa-lightbulb"></i> APP CONCEPT
         </button>
 
         <div class="menu-divider"></div>
@@ -113,17 +113,21 @@
 
     <!-- Navigation Tabs (Moved above app-content for desktop stability) -->
     <div class="nav-tabs" id="nav-tabs" style="display:none;">
-        <div class="tab active" id="tab-tournament" data-page="tournament">
-            <i class="fas fa-trophy"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">OFFICIAL MATCH</span>
+        <div class="tab" id="tab-tournament" data-page="tournament">
+            <i class="fa-solid fa-gamepad"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">PLAY</span>
+        </div>
+        <div class="tab" id="tab-map" data-page="map">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">MAP</span>
         </div>
         <div class="tab" id="tab-events" data-page="events">
             <i class="fa-regular fa-calendar"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Events</span>
+            <span style="font-size:0.65rem; margin-top:2px;">EVENTS</span>
         </div>
-        <div class="tab" id="tab-profile" data-page="profile">
-            <i class="fa-regular fa-user"></i>
-            <span style="font-size:0.65rem; margin-top:2px;">Profile</span>
+        <div class="tab active" id="tab-profile" data-page="profile">
+            <i class="fa-solid fa-user"></i>
+            <span style="font-size:0.65rem; margin-top:2px;">PROFILE</span>
         </div>
     </div>
 
@@ -195,23 +199,41 @@
                     </div>
                 </div>
 
-                <div id="profile-dashboard-ui">
-                    <!-- Community Links -->
-                    <div class="profile-dashboard-grid">
-                        <button id="btn-profile-leaderboard" class="btn-red btn-dashboard-action">
-                            <i class="fa-solid fa-trophy"
-                                style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
-                            GLOBAL RANKING
+                <div id="profile-dashboard-ui" style="margin-top: 30px;">
+                    <!-- Ecosystem CTAs -->
+                    <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;">
+                        <button id="btn-dashboard-play" class="btn-red"
+                            style="font-family:'Russo One'; font-size:1.1rem; padding:18px; text-transform:uppercase; letter-spacing:1px; background:#fff; color:#000;">
+                            <i class="fa-solid fa-couch" style="margin-right:10px;"></i> CREATE PRIVATE MATCH
+                            <div
+                                style="font-size:0.65rem; color:#444; font-family:'Resolve'; margin-top:5px; text-transform:none;">
+                                Play anywhere (Capped at 1600 ELO)</div>
                         </button>
-                        <button id="btn-profile-map" class="btn-red btn-dashboard-action">
-                            <i class="fa-solid fa-map-location-dot"
-                                style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
-                            GAME MAP
+
+                        <button id="btn-dashboard-arena" class="btn-red"
+                            style="font-family:'Russo One'; font-size:1.1rem; padding:18px; text-transform:uppercase; letter-spacing:1px; background:#111; border:1px solid #333;">
+                            <i class="fa-solid fa-location-dot" style="margin-right:10px; color:var(--sub-red);"></i>
+                            FIND VERIFIED ARENA
+                            <div
+                                style="font-size:0.65rem; color:#888; font-family:'Resolve'; margin-top:5px; text-transform:none;">
+                                Play on official tables for limitless ELO</div>
                         </button>
                     </div>
-                    <button id="btn-profile-history" class="btn-red btn-dashboard-history">
-                        <i class="fa-solid fa-clock-rotate-left"></i> Match History
-                    </button>
+
+                    <div class="profile-dashboard-grid" style="margin-bottom:15px; grid-template-columns: 1fr 1fr;">
+                        <button id="btn-profile-leaderboard" class="btn-red btn-dashboard-action"
+                            style="background:#1a1a1a;">
+                            <i class="fa-solid fa-ranking-star"
+                                style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
+                            GLOBAL RANK
+                        </button>
+                        <button id="btn-profile-history" class="btn-red btn-dashboard-action"
+                            style="background:#1a1a1a;">
+                            <i class="fa-solid fa-clock-rotate-left"
+                                style="color:#aaa; display:block; font-size:1.5rem; margin-bottom:5px;"></i>
+                            HISTORY
+                        </button>
+                    </div>
                 </div>
 
                 <!-- My Games Section -->
@@ -277,9 +299,26 @@
                 <div id="map-picker" class="map-picker-container"></div>
                 <div id="location-confirm" class="location-confirm-text"></div>
 
-                <div class="public-checkbox-row">
-                    <input type="checkbox" id="game-public-input" style="width:auto; margin:0 10px 0 0;"><label
-                        for="game-public-input" class="public-label">Make Public (Visible to everyone)</label>
+                <div class="visibility-selector-container">
+                    <div class="visibility-label">MAP VISIBILITY</div>
+                    <div class="visibility-options">
+                        <button type="button" class="visibility-btn active" data-value="public" id="v-btn-public">
+                            <i class="fa-solid fa-earth-europe"></i>
+                            <span>PUBLIC</span>
+                        </button>
+                        <button type="button" class="visibility-btn" data-value="private" id="v-btn-private">
+                            <i class="fa-solid fa-house-lock"></i>
+                            <span>PRIVATE</span>
+                        </button>
+                        <button type="button" class="visibility-btn" data-value="hidden" id="v-btn-hidden">
+                            <i class="fa-solid fa-eye-slash"></i>
+                            <span>HIDDEN</span>
+                        </button>
+                    </div>
+                    <div id="visibility-desc" class="visibility-desc">
+                        Visible to all players on the global map.
+                    </div>
+                    <input type="hidden" id="game-visibility-input" value="public">
                 </div>
 
                 <div id="game-form-actions">
@@ -309,24 +348,39 @@
 
         <div id="section-map" class="section">
             <div class="container" style="height: 100%; display: flex; flex-direction: column; padding: 15px;">
-                <h3
-                    style="font-family:'Resolve'; text-transform:uppercase; margin: 0 0 15px 0; color: #fff; letter-spacing: 1px;">
-                    GAME MAP</h3>
+                <div
+                    style="background:linear-gradient(135deg, #111, #1a0505); border:1px solid #333; border-radius:8px; padding:15px; margin-bottom:15px; text-align:center;">
+                    <h3
+                        style="font-family:'Russo One'; color:var(--sub-red); margin-bottom:5px; text-transform:uppercase; letter-spacing:1px; font-size:1.2rem;">
+                        <i class="fa-solid fa-map-location-dot" style="margin-right:8px;"></i> THE ARENA NETWORK
+                    </h3>
+                    <p style="color:#aaa; font-size:0.8rem; line-height:1.4;">
+                        Find a <strong style="color:var(--sub-gold);">Verified Public Arena</strong> near you to lift
+                        your 1600 ELO Rank Cap and officially enter the Pro League.
+                    </p>
+                </div>
+
                 <div class="location-search-row">
-                    <input type="text" id="public-map-search" placeholder="Find City or Country..."
-                        style="margin-bottom:0;">
-                    <button id="btn-search-public-map" class="btn-red btn-search-location">🔍</button>
+                    <input type="text" id="public-map-search" placeholder="Search City or Country..."
+                        style="margin-bottom:0; background:rgba(255,255,255,0.05); border:1px solid #333; color:#fff;">
+                    <button id="btn-search-public-map" class="btn-red btn-search-location"
+                        style="background:#222; border:1px solid #444;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+
+                <!-- Map Filters (B2B emphasized) -->
+                <div style="display:flex; justify-content:center; gap:8px; margin-top:10px; margin-bottom:10px;"
+                    id="map-filters-container">
+                    <button class="map-filter-btn" data-filter="all" style="flex:1;">ALL</button>
+                    <button class="map-filter-btn active" data-filter="verified"
+                        style="flex:1.5; background:rgba(255, 215, 0, 0.1); border-color:var(--sub-gold); color:var(--sub-gold);">⭐
+                        VERIFIED ARENAS</button>
+                    <button class="map-filter-btn" data-filter="tournaments" style="flex:1;">🏆 EVENTS</button>
                 </div>
 
                 <div id="public-game-map"
-                    style="width: 100%; height: 40vh; min-height: 300px; border-radius: 4px; border: 1px solid #333; flex-shrink: 0; margin-top: 10px;">
-                </div>
-
-                <!-- Map Filters -->
-                <div style="display:flex; gap:8px; margin-top:10px; margin-bottom:10px;" id="map-filters-container">
-                    <button class="map-filter-btn active" data-filter="all">ALL</button>
-                    <button class="map-filter-btn" data-filter="verified">⭐ VERIFIED</button>
-                    <button class="map-filter-btn" data-filter="tournaments">🏆 TOURNAMENTS</button>
+                    style="width: 100%; height: 40vh; min-height: 350px; border-radius: 8px; border: 2px solid #222; flex-shrink: 0; margin-top: 5px; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
                 </div>
 
                 <!-- Nearest Games List -->

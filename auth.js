@@ -10,7 +10,7 @@ let isAuthListenerSet = false;
 export async function initApp() {
     try {
         setupAuthListeners();
-        
+
         // PAKOTETTU TARKISTUS: Haetaan istunto heti, jotta ei tarvita refreshia
         const { data: { session } } = await _supabase.auth.getSession();
         if (session && (!state.user || state.user.id !== session.user.id)) {
@@ -91,9 +91,9 @@ async function refreshUserProfile(userId) {
             .from('players')
             .select('*')
             .eq('id', userId);
-        
+
         const profile = data?.[0]; // Otetaan manuaalisesti ensimmäinen tulos
-        
+
         if (error) {
             if (error.message?.includes('AbortError')) return;
             console.error("Tietokantavirhe profiilia haettaessa (406?):", error);
@@ -109,7 +109,7 @@ async function refreshUserProfile(userId) {
             // Luodaan profiili automaattisesti käyttäen Auth-metadatan tietoja.
             console.log("Profiili puuttuu, luodaan automaattisesti ID:lle:", userId);
             const { data: { user } } = await _supabase.auth.getUser();
-            
+
             const newProfile = {
                 id: userId,
                 username: user?.user_metadata?.username || user?.email?.split('@')[0].toUpperCase() || 'PLAYER',
@@ -182,12 +182,12 @@ export async function handleSignUp() {
     const u = document.getElementById('reg-user').value.replace(/\s+/g, ' ').trim().toUpperCase();
     const email = document.getElementById('reg-email')?.value.trim();
     const p = document.getElementById('reg-pass').value.trim();
-    
-    if(!u || !p || !email) return showNotification("Fill all fields including email", "error");
-    
+
+    if (!u || !p || !email) return showNotification("Fill all fields including email", "error");
+
     // Tarkistetaan onko nimi jo varattu (huomioidaan eri välilyönnit)
     let { data: matches } = await _supabase.from('players').select('*').ilike('username', u);
-    
+
     if (!matches || matches.length === 0) {
         const fuzzyName = u.replace(/\s+/g, '%');
         const { data: fuzzyMatches } = await _supabase
@@ -199,7 +199,7 @@ export async function handleSignUp() {
 
     // Etsitään ensisijaisesti legacy-rivi (ei UUID:tä) tai jo migroitu rivi
     let existing = matches.find(m => !isUuid(m.id)) || matches[0];
-    
+
     // Supabase Auth vaatii yleensä vähintään 6 merkkiä
     if (p.length < 6) {
         return showNotification("New security policy requires at least 6 characters. Please choose a longer password.", "error");
@@ -209,19 +209,19 @@ export async function handleSignUp() {
     let { data: authData, error: authError } = await _supabase.auth.signUp({
         email: email,
         password: p,
-        options: { 
-            data: { 
+        options: {
+            data: {
                 username: u,
                 full_name: u,      // Näkyy Supabase Dashboardissa
                 display_name: u    // Yleinen standardi metadatalle
-            } 
+            }
         }
     });
 
     // Tarkistetaan onko sähköposti jo varattu (huomioidaan eri virheviestit)
     const isAlreadyReg = authError && (
-        authError.message.toLowerCase().includes("already registered") || 
-        authError.message.toLowerCase().includes("already been registered") || 
+        authError.message.toLowerCase().includes("already registered") ||
+        authError.message.toLowerCase().includes("already been registered") ||
         authError.status === 422 ||
         authError.code === 'user_already_exists'
     );
@@ -236,7 +236,7 @@ export async function handleSignUp() {
             console.error("Migration sign-in failed:", signInError);
             return showNotification("This email is already in use. Please use the correct password or a different email.", "error");
         }
-        
+
         authData = signInData;
         authError = null;
     }
@@ -246,10 +246,10 @@ export async function handleSignUp() {
     // 2. Päivitetään vanha profiili tai luodaan uusi
     if (authData.user) {
         let profileError;
-        
+
         if (existing) {
             console.log("Migrating existing record:", existing.username, "ID:", existing.id, "to UUID:", authData.user.id);
-            
+
             const oldId = existing.id;
             const newId = authData.user.id;
 
@@ -265,7 +265,7 @@ export async function handleSignUp() {
             // 1. Varmistetaan että uusi UUID-rivi on olemassa ja siinä on vanhat tilastot
             // (Tämä hoitaa tilanteen jossa Auth-luonti loi tyhjän rivin triggerillä)
             const { data: checkNew } = await _supabase.from('players').select('id').eq('id', newId).maybeSingle();
-            
+
             const { id, username, ...playerStats } = existing;
             const updatePayload = { ...playerStats, email: email };
 
@@ -296,7 +296,7 @@ export async function handleSignUp() {
             }, { onConflict: 'id' });
             profileError = error;
         }
-        
+
         if (profileError) {
             showNotification("Profile error: " + profileError.message, "error");
         } else {
@@ -304,19 +304,42 @@ export async function handleSignUp() {
             // Jos Supabase palautti session heti, onAuthStateChange hoitaa sisäänkirjautumisen.
             showNotification("Account created successfully! 🎉", "success");
             if (!authData.session) toggleAuth(false);
+
+            // --- VAIHE 2: Identiteetti ja Ura ---
+            // Jos käyttäjällä on tallennettu peli (Instant Playsta), tallennetaan se uudelle tilille
+            const pending = localStorage.getItem('subsoccer_pending_match');
+            if (pending) {
+                try {
+                    const matchData = JSON.parse(pending);
+                    console.log("Found pending match to claim for new user:", matchData);
+
+                    // Piilotetaan kirjautuminen ja palataan claim-näkymään
+                    if (window.showAuthPage) window.showAuthPage('app');
+
+                    // Odotetaan että state päivittyy ja kutsutaan claim-alustusta
+                    setTimeout(() => {
+                        if (window.initClaimResult) {
+                            window.initClaimResult(matchData.p1Score, matchData.p2Score, matchData.gameId);
+                            localStorage.removeItem('subsoccer_pending_match');
+                        }
+                    }, 1000);
+                } catch (e) {
+                    console.warn("Failed to process pending match:", e);
+                }
+            }
         }
     }
 }
 
 export async function handleAuth(event) {
     if (event && event.preventDefault) event.preventDefault();
-    
+
     Object.keys(localStorage).forEach(key => {
         if (key.startsWith('sb-') || key.includes('supabase')) {
             localStorage.removeItem(key);
         }
     });
-    await _supabase.auth.signOut().catch(() => {});
+    await _supabase.auth.signOut().catch(() => { });
 
     resetFullState(); // Vaihe A: Puhdistetaan vanha tila ja välimuisti
 
@@ -325,9 +348,9 @@ export async function handleAuth(event) {
         console.warn("⚠️ Login already in progress, ignoring duplicate attempt.");
         return;
     }
-    
+
     const originalText = btn ? btn.textContent : 'LOG IN';
-    
+
     try {
         if (btn) { btn.disabled = true; btn.textContent = 'LOGGING IN...'; }
 
@@ -346,24 +369,24 @@ export async function handleAuth(event) {
                 email: input,
                 password: p
             });
-            
+
             if (!error) {
                 console.log("✅ Email login successful");
                 showNotification("Welcome back!", "success");
                 return;
             }
             console.log("Supabase Auth login failed:", error.message);
-            
+
             // Tarkistetaan löytyykö sähköposti players-taulusta (migraatiotuki)
             const { data: emailMatches, error: emailErr } = await _supabase
                 .from('players')
                 .select('*')
                 .ilike('email', input);
-                
+
             if (!emailErr && emailMatches && emailMatches.length > 0) {
                 const hashed = await hashPassword(p);
                 const userRecord = emailMatches.find(m => m.password === hashed || m.password === p) || emailMatches[0];
-                
+
                 console.log("Legacy record found by email:", userRecord.username);
                 if (isUuid(userRecord.id)) {
                     // Käyttäjä on jo migroitu, joten signInWithPassword virhe oli aito
@@ -384,11 +407,11 @@ export async function handleAuth(event) {
 
         // 2. Tarkistetaan players-taulu (käyttäjänimellä)
         console.log("🔍 Searching players table by username...");
-        
+
         // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
         let { data: nameMatches, error: nameErr } = await _supabase
             .from('players').select('*').ilike('username', input);
-            
+
         console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
 
         if (nameErr) {
@@ -410,7 +433,7 @@ export async function handleAuth(event) {
         if (nameMatches && nameMatches.length > 0) {
             console.log(`🔑 Found ${nameMatches.length} matching records. Checking credentials...`);
             const hashed = await hashPassword(p);
-            
+
             // 1. Kokeillaan ensin migroituja tilejä (UUID + Email)
             const migratedMatch = nameMatches.find(m => isUuid(m.id) && m.email);
             if (migratedMatch) {
@@ -452,18 +475,18 @@ export async function handleAuth(event) {
  */
 function promptForEmailMigration(user, password) {
     const defaultEmail = user.email || '';
-    const msg = defaultEmail 
+    const msg = defaultEmail
         ? `Welcome back ${user.username}! \n\nWe've upgraded our security. Confirm your email to continue:`
         : `Welcome back ${user.username}! \n\nWe've upgraded our security. Please enter your email address to continue:`;
 
     const email = prompt(msg, defaultEmail);
-    
+
     if (email && email.includes('@')) {
         // Luodaan uusi Auth-tili vanhoilla tiedoilla
         document.getElementById('reg-user').value = user.username;
         document.getElementById('reg-email').value = email;
         document.getElementById('reg-pass').value = password;
-        
+
         showNotification("Upgrading your account...", "success");
         handleSignUp();
     } else {
@@ -472,11 +495,11 @@ function promptForEmailMigration(user, password) {
 }
 
 export function handleGuest() {
-    const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST"; 
+    const g = document.getElementById('guest-nick').value.toUpperCase() || "GUEST";
     const guestUser = { username: g, id: 'guest', elo: 1300, wins: 0, losses: 0 };
     state.user = guestUser;
     localStorage.setItem('subsoccer-user', JSON.stringify(guestUser));
-    if(!state.sessionGuests.includes(g)) state.sessionGuests.push(g);
+    if (!state.sessionGuests.includes(g)) state.sessionGuests.push(g);
 }
 
 export async function handleLogout() {
@@ -491,7 +514,7 @@ export async function handleLogout() {
             console.error('Error logging out:', error);
         }
     }
-    
+
     resetFullState();
     window.location.replace('index.html');
 }
@@ -502,17 +525,17 @@ export async function handleLogout() {
 export function previewAvatarFile(input) {
     const file = input.files[0];
     const fileNameDiv = document.getElementById('avatar-file-name');
-    
+
     if (!file) {
         if (fileNameDiv) fileNameDiv.textContent = '';
         return;
     }
-    
+
     // Show filename
     if (fileNameDiv) {
         fileNameDiv.textContent = `📷 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
     }
-    
+
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
         showNotification('Image too large (max 5MB)', 'error');
@@ -520,7 +543,7 @@ export function previewAvatarFile(input) {
         if (fileNameDiv) fileNameDiv.textContent = '';
         return;
     }
-    
+
     // Preview image
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -539,29 +562,29 @@ async function uploadPlayerAvatar(file) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${state.user.id}_${Date.now()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
-        
+
         console.log('Uploading avatar:', filePath);
-        
+
         const { data, error } = await _supabase.storage
             .from('event-images')
             .upload(filePath, file, {
                 cacheControl: '3600',
                 upsert: false
             });
-        
+
         if (error) {
             console.error('Upload error:', error);
             throw error;
         }
-        
+
         // Get public URL
         const { data: urlData } = _supabase.storage
             .from('event-images')
             .getPublicUrl(filePath);
-        
+
         console.log('Avatar uploaded successfully:', urlData.publicUrl);
         return urlData.publicUrl;
-        
+
     } catch (error) {
         console.error('Failed to upload avatar:', error);
         throw error;
@@ -580,32 +603,32 @@ async function generateAiAvatar(imageUrl) {
 export async function saveProfile(e) {
     const btn = e?.target || (window.event ? window.event.target : null);
     const originalText = btn ? btn.textContent : '';
-    
+
     try {
         if (btn) {
             btn.disabled = true;
             btn.textContent = 'Uploading...';
         }
-        
+
         const fileInput = document.getElementById('avatar-file-input');
         const file = fileInput?.files[0];
-        
+
         const fullName = document.getElementById('edit-full-name')?.value.trim();
         const email = document.getElementById('edit-email')?.value.trim();
         const phone = document.getElementById('edit-phone')?.value.trim();
         const city = document.getElementById('edit-city')?.value.trim();
         const countryCode = document.getElementById('country-input')?.value.trim().toLowerCase();
         const newPassword = document.getElementById('edit-password')?.value.trim();
-        
+
         let avatarUrl = state.user.avatar_url; // Keep existing if no new file
         const useAiStylize = document.getElementById('use-ai-style-checkbox')?.checked;
-        
+
         // Upload new avatar if file selected
         if (file) {
             try {
                 if (btn) btn.textContent = 'Uploading photo...';
                 const uploadedUrl = await uploadPlayerAvatar(file);
-                
+
                 if (useAiStylize) {
                     if (btn) btn.textContent = 'AI Stylizing...';
                     avatarUrl = await generateAiAvatar(uploadedUrl);
@@ -617,7 +640,7 @@ export async function saveProfile(e) {
                 return;
             }
         }
-        
+
         // Validate email if provided
         if (email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -626,7 +649,7 @@ export async function saveProfile(e) {
                 return;
             }
         }
-        
+
         // Prepare updates
         const updates = {
             full_name: fullName,
@@ -655,21 +678,21 @@ export async function saveProfile(e) {
         }
 
         if (btn) btn.textContent = 'Saving...';
-        
+
         const { error } = await _supabase.from('players').update(updates).eq('id', state.user.id);
 
         if (error) {
             showNotification("Error updating profile: " + error.message, "error");
         } else {
             // TÄRKEÄÄ: Päivitetään globaali tila, jotta sovellus 'muistaa' uudet tiedot
-            state.user = { 
-                ...state.user, 
-                full_name: fullName, 
-                email: email, 
-                phone: phone, 
-                city: city, 
-                country: countryCode, 
-                avatar_url: avatarUrl 
+            state.user = {
+                ...state.user,
+                full_name: fullName,
+                email: email,
+                phone: phone,
+                city: city,
+                country: countryCode,
+                avatar_url: avatarUrl
             };
             localStorage.setItem('subsoccer-user', JSON.stringify(state.user));
 
@@ -697,7 +720,7 @@ export function setupAuthListeners() {
         // Vaihe B: Estä tuplakytkennät korvaamalla elementti kloonilla
         const newForm = loginForm.cloneNode(true);
         loginForm.parentNode.replaceChild(newForm, loginForm);
-        
+
         newForm.addEventListener('submit', (e) => {
             e.preventDefault();
             e.stopImmediatePropagation();
@@ -709,7 +732,7 @@ export function setupAuthListeners() {
     document.getElementById('btn-register')?.addEventListener('click', handleSignUp);
     document.getElementById('link-back-to-login')?.addEventListener('click', () => toggleAuth(false));
     document.getElementById('btn-guest-login')?.addEventListener('click', handleGuest);
-    
+
     // Kytketään kaikki uloskirjautumispainikkeet
     document.querySelectorAll('.logout-item, #btn-logout').forEach(el => {
         el.addEventListener('click', (e) => {

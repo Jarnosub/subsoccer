@@ -1699,13 +1699,29 @@ select.dark-select {
 }
 
 .modal-close {
-    background: none;
-    border: none;
-    color: #666;
-    font-size: 1.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 2rem;
     cursor: pointer;
-    padding: 5px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
     line-height: 1;
+    transition: all 0.2s ease;
+    margin-left: 15px;
+    opacity: 0.7;
+}
+
+.modal-close:hover {
+    background: rgba(193, 39, 45, 0.2);
+    border-color: var(--sub-red);
+    color: var(--sub-red);
+    opacity: 1;
+    transform: rotate(90deg);
 }
 
 .modal-body {
@@ -3334,4 +3350,168 @@ body.live-mode {
     background: radial-gradient(circle, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
     pointer-events: none;
     z-index: -1;
+}
+
+/* ------------------------------------------------------------ */
+/* PREMIUM EVENTS UI STYLES */
+/* ------------------------------------------------------------ */
+
+.event-card-premium:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+    border-color: #333 !important;
+}
+
+.event-card-premium:hover .event-card-image-wrapper img {
+    transform: scale(1.05);
+}
+
+.event-card-premium:hover .card-hover-border {
+    opacity: 0.1 !important;
+}
+
+.event-view-btn-premium:hover {
+    background: var(--sub-red) !important;
+    border-color: var(--sub-red) !important;
+    box-shadow: 0 4px 15px rgba(193, 39, 45, 0.4);
+    color: white !important;
+}
+
+.create-event-action-btn:hover {
+    border-color: var(--sub-gold) !important;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%) !important;
+    transform: scale(1.01);
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes pulse-gold {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    }
+}
+
+.empty-events-container i {
+    animation: pulse-red 2s infinite ease-in-out;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.event-card-image-wrapper {
+    background-color: #000;
+}
+
+#section-events .container {
+    max-width: 900px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#events-list {
+    margin-top: 20px;
+}
+
+.event-date-badge {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Modal specific premium look */
+#event-modal .modal-content {
+    background: #0a0a0a !important;
+    padding: 0 !important;
+    border: 1px solid #222 !important;
+}
+
+/* --- Visibility Selector --- */
+.visibility-selector-container {
+    margin: 25px 0;
+    text-align: left;
+}
+
+.visibility-label {
+    font-family: 'Resolve';
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+}
+
+.visibility-options {
+    display: flex;
+    gap: 8px;
+    background: #111;
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid #333;
+}
+
+.visibility-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px 10px;
+    border-radius: 8px;
+    color: #888;
+    font-family: 'Resolve';
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.visibility-btn i {
+    font-size: 1.1rem;
+}
+
+.visibility-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.visibility-btn.active {
+    background: linear-gradient(135deg, var(--sub-gold), #d4af37);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    transform: scale(1.02);
+    font-weight: bold;
+}
+
+.visibility-desc {
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: #666;
+    line-height: 1.4;
+    padding: 0 5px;
 }

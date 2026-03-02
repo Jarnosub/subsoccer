@@ -26,7 +26,7 @@ export async function loadEventsPage() {
 
         const { data: events, error } = await _supabase
             .from('events')
-            .select('*')
+            .select('id, event_name, event_type, start_datetime, end_datetime, location, image_url')
             .neq('status', 'cancelled')
             .gte('start_datetime', threeMonthsAgo.toISOString())
             .order('start_datetime', { ascending: true });

@@ -30,13 +30,13 @@ import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobal
 let touchStartX = null;
 let touchEndX = 0;
 const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'moderator'];
-let currentPageIndex = 1; // Aloitetaan tournament-sivulta
+let currentPageIndex = 0; // Aloitetaan profile/dashboard-sivulta
 
 /**
- * Näyttää voittoanimaation overlayn.
- * @param {string} winnerName - Voittajan nimi
- * @param {number|string} newElo - Uusi ELO-luku
- * @param {number|string} eloGain - ELO-muutos
+ * Shows the victory animation overlay.
+ * @param {string} winnerName - Winner's name
+ * @param {number|string} newElo - New ELO score
+ * @param {number|string} eloGain - ELO change
  */
 export function showVictoryAnimation(winnerName, newElo, eloGain) {
     const overlay = document.getElementById('victory-overlay');
@@ -60,19 +60,53 @@ export function showVictoryAnimation(winnerName, newElo, eloGain) {
 }
 
 /**
- * Vaihtaa näkyvän sivun (section) ja aktivoi vastaavan välilehden.
- * @param {string} p - Näytettävän sivun ID ilman 'section-'-etuliitettä.
+ * Changes the active page (section) and updates the navigation tabs.
+ * @param {string} p - The ID of the page (without 'section-' prefix).
  */
 export function showPage(p) {
     state.currentPage = p;
 }
+
+/**
+ * Manages authentication page states and app content visibility.
+ * @param {string} mode - 'login', 'signup' or 'app'
+ */
+export function showAuthPage(mode = 'login') {
+    const authPage = document.getElementById('auth-page');
+    const appContent = document.getElementById('app-content');
+    const navTabs = document.getElementById('nav-tabs');
+    const menuBtn = document.getElementById('menu-toggle-btn');
+
+    if (mode === 'app') {
+        if (authPage) authPage.style.display = 'none';
+        if (appContent) appContent.style.display = 'flex';
+        if (navTabs) navTabs.style.display = 'flex';
+        // Ensure auth page doesn't hide other UI elements
+        return;
+    }
+
+    if (authPage) authPage.style.display = 'block';
+    if (appContent) appContent.style.display = 'none';
+    if (navTabs) navTabs.style.display = 'none';
+    if (menuBtn) menuBtn.style.display = 'none';
+
+    if (mode === 'signup') {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('signup-form').style.display = 'block';
+    } else {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('signup-form').style.display = 'none';
+    }
+}
+
+window.showAuthPage = showAuthPage;
 
 function updatePageUI(p) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('section-' + p).classList.add('active');
 
-    // FIX: Piilotetaan sticky-tallenna-nappi jos poistutaan turnausnäkymästä
+    // FIX: Hide the sticky save button when leaving the tournament view
     const saveBtn = document.getElementById('save-btn');
     if (saveBtn && saveBtn.classList.contains('sticky-bottom-action')) {
         saveBtn.style.display = (p === 'tournament') ? 'block' : 'none';
@@ -605,9 +639,14 @@ export function setupUIListeners() {
     document.getElementById('btn-save-profile')?.addEventListener('click', (e) => saveProfile(e));
     document.getElementById('btn-cancel-edit-profile')?.addEventListener('click', cancelEditProfile);
     document.getElementById('btn-profile-leaderboard')?.addEventListener('click', () => showPage('leaderboard'));
-    document.getElementById('btn-profile-map')?.addEventListener('click', () => showPage('map'));
+    document.getElementById('btn-dashboard-play')?.addEventListener('click', () => showPage('tournament'));
+    document.getElementById('btn-dashboard-arena')?.addEventListener('click', () => showPage('map'));
     document.getElementById('btn-profile-history')?.addEventListener('click', () => showPage('history'));
     document.getElementById('btn-profile-register-game')?.addEventListener('click', () => showPage('games'));
+    document.getElementById('menu-item-concept')?.addEventListener('click', () => {
+        showAppConcept();
+        document.getElementById('settings-menu').style.display = 'none';
+    });
 
     // Games Section
     document.getElementById('btn-search-location')?.addEventListener('click', () => searchLocation());
@@ -615,6 +654,24 @@ export function setupUIListeners() {
     document.getElementById('btn-update-game')?.addEventListener('click', () => updateGame());
     document.getElementById('btn-cancel-edit-game')?.addEventListener('click', () => cancelEdit());
     document.getElementById('btn-view-transfer-requests')?.addEventListener('click', () => viewOwnershipRequests());
+
+    // Visibility Selector Logic
+    document.querySelectorAll('.visibility-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const val = btn.getAttribute('data-value');
+            document.getElementById('game-visibility-input').value = val;
+
+            // Update active state
+            document.querySelectorAll('.visibility-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Update description
+            const desc = document.getElementById('visibility-desc');
+            if (val === 'public') desc.innerText = "Visible to all players on the global map.";
+            else if (val === 'private') desc.innerText = "Hidden from others, but visible to you on your personal map.";
+            else desc.innerText = "Completely hidden from the map. Only visible in your 'My Game Tables' list.";
+        });
+    });
 
     // Map Section
     document.getElementById('btn-search-public-map')?.addEventListener('click', () => searchPublicMap());
@@ -694,6 +751,23 @@ export function setupUIListeners() {
         if (viewBracketBtn) {
             const { id, eventId, name, max } = viewBracketBtn.dataset;
             viewTournamentBracket(id, name, eventId);
+            return;
+        }
+
+        // 14. Level Up Story Share
+        const shareStoryBtn = e.target.closest('[data-action="share-story"]');
+        if (shareStoryBtn) {
+            (async () => {
+                const url = await CardGenerator.captureStory('level-up-card-preview', shareStoryBtn.dataset.player);
+                if (url) CardGenerator.share(url, shareStoryBtn.dataset.player);
+            })();
+            return;
+        }
+
+        // 15. Order Physical Card
+        const orderBtn = e.target.closest('[data-action="order-physical-card"]');
+        if (orderBtn) {
+            showPhysicalOrderDialog();
             return;
         }
 
@@ -1118,7 +1192,7 @@ subscribe('user', () => {
                         setTimeout(() => viewEventDetails(eventIdParam), 800);
                     }
                 } else {
-                    state.currentPage = 'tournament';
+                    state.currentPage = 'profile'; // Oletuksena näytetään Dashboard (Pro Card)
                 }
             }
         }
@@ -1283,16 +1357,30 @@ export async function showLevelUpCard(playerName, newElo) {
     const title = isPro ? "⭐ NEW PRO RANK REACHED!" : "📈 RANK UP!";
 
     const content = `
-    <div id="level-up-container" class="level-up-anim">
-            <div id="level-up-card-preview">
-                <!-- We reuse the player card view here -->
-                <p style="text-align:center; color:#888;">Generating your new card...</p>
+        <div id="level-up-container" class="level-up-anim" style="text-align:center;">
+            
+            <div style="font-family:'Russo One'; color:var(--sub-gold); font-size:1.5rem; letter-spacing:2px; margin-bottom:10px; text-transform:uppercase; animation: pulse 1.5s infinite;">
+                RANK CAP CROSSED
             </div>
-            <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="btn-red" style="flex:1; background:var(--sub-gold); color:#000;" data-share-level-up="${playerName}">
-                    <i class="fa fa-share-nodes"></i> SHARE CARD
+            <p style="color:#aaa; font-size:0.85rem; margin-bottom:20px;">Your Official Pro Card has been updated.</p>
+
+            <div id="level-up-card-preview" style="transform:scale(0.8); margin:-40px 0;">
+                <p style="text-align:center; color:#888;">Updating Identity...</p>
+            </div>
+            
+            <div style="margin-top:0; display:flex; flex-direction:column; gap:12px;">
+                <button class="btn-red" style="background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:1.1rem; padding:18px; box-shadow:0 0 20px rgba(255,215,0,0.4);" data-action="share-story" data-player="${playerName}">
+                    <i class="fa-brands fa-instagram" style="margin-right:8px; font-size:1.2rem;"></i> SHARE TO STORY
+                    <div style="font-family:'Resolve'; font-size:0.6rem; letter-spacing:1px; margin-top:5px; color:#444;">UNLOCK 'GOLD' BORDER</div>
                 </button>
-                <button class="btn-red" style="flex:1; background:#333;" onclick="closeModal('level-up-modal')">CLOSE</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-red" style="flex:1; background:#222; border:1px solid var(--sub-gold); color:var(--sub-gold); font-size:0.8rem; padding:12px;" data-action="order-physical-card">
+                        <i class="fa-solid fa-gem"></i> ORDER PREMIUM CARD
+                    </button>
+                    <button class="btn-red" style="flex:1; background:#111; color:#666; font-size:0.8rem; padding:12px; border:1px solid #333;" onclick="closeModal('level-up-modal')">
+                        CLOSE
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -1305,8 +1393,31 @@ export async function showLevelUpCard(playerName, newElo) {
     document.getElementById('level-up-card-preview').innerHTML = cardHtml;
     closeModal('card-modal');
 
-    const previewCard = document.querySelector('#level-up-card-preview .pro-card, #level-up-card-preview .topps-collectible-card');
+    const previewCard = document.getElementById('level-up-card-preview').querySelector('.pro-card');
     if (previewCard) initTiltEffect(previewCard);
+}
+
+export function showPhysicalOrderDialog() {
+    const html = `
+    <div style="text-align:center; padding:10px;">
+        <i class="fa-solid fa-truck-fast" style="font-size:3rem; color:var(--sub-gold); margin-bottom:20px;"></i>
+        <h3 style="font-family:'Russo One'; margin-bottom:10px;">PREMIUM COLLECTIBLE</h3>
+        <p style="color:#888; font-size:0.85rem; line-height:1.5; margin-bottom:20px;">
+            Order your official high-quality PVC printed **Pro Card** delivered to your door. Includes NFC chip for instant login at Verified Arenas.
+        </p>
+        <div style="background:#111; padding:15px; border-radius:12px; border:1px solid #333; margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; color:#fff;">
+                <span>Pro Membership Edition</span>
+                <span style="color:var(--sub-gold); font-weight:bold;">19.90 €</span>
+            </div>
+            <div style="font-size:0.7rem; color:#666; text-align:left; margin-top:5px;">+ Free shipping inside EU</div>
+        </div>
+        <button class="btn-red" style="width:100%; padding:15px; font-family:'Russo One';" onclick="showNotification('Store integration coming soon!', 'info')">
+            SUBSCRIBE & ORDER NOW
+        </button>
+    </div>
+    `;
+    showModal('ORDER TO HOME', html, { maxWidth: '400px' });
 }
 
 export async function downloadFanCard() {
@@ -1343,6 +1454,68 @@ export function showCardShop() {
 
     showModal('SUBSOCCER COLLECTIBLE SHOP', html, { maxWidth: '450px' });
 }
+
+export function showAppConcept() {
+    const html = `
+    <div style="color: #fff; font-family: 'Resolve'; max-height: 75vh; overflow-y: auto; padding-right: 15px; scrollbar-width: thin;">
+        <h2 style="color: var(--sub-gold); font-size: 1.1rem; margin-bottom: 25px; line-height: 1.4; font-family: 'Russo One'; text-transform: uppercase;">
+            From Living Room to Virtual Arena
+        </h2>
+
+        <div style="margin-bottom: 25px; display: grid; gap: 20px;">
+            <div class="concept-point">
+                <div style="color: var(--sub-red); font-size: 0.9rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-bolt"></i> 1. ZERO FRICTION
+                </div>
+                <div style="font-size: 0.8rem; color: #aaa; line-height: 1.5; padding-left: 20px;">
+                    Scan the QR code, click play, and the AI-referee starts instantly. No apps, no registration required.
+                </div>
+            </div>
+
+            <div class="concept-point">
+                <div style="color: var(--sub-red); font-size: 0.9rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-id-card"></i> 2. IDENTITY: THE PRO CARD
+                </div>
+                <div style="font-size: 0.8rem; color: #aaa; line-height: 1.5; padding-left: 20px;">
+                    Your Subsoccer Pro Card is a collectible identity storing your ELO, titles, and match legacy.
+                </div>
+            </div>
+
+            <div class="concept-point">
+                <div style="color: var(--sub-red); font-size: 0.9rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-earth-europe"></i> 3. THE BALANCED ECOSYSTEM
+                </div>
+                <div style="font-size: 0.8rem; color: #aaa; line-height: 1.5; padding-left: 20px;">
+                    Practice at home (B2C), but rank up to "Legend" (1600+ ELO) by playing at official Verified Arenas (B2B).
+                </div>
+            </div>
+
+            <div class="concept-point">
+                <div style="color: var(--sub-red); font-size: 0.9rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-shield-halved"></i> 4. ANTI-CHEAT & AUTHENTICITY
+                </div>
+                <div style="font-size: 0.8rem; color: #aaa; line-height: 1.5; padding-left: 20px;">
+                    Verified Equipment ensures the Global Leaderboard is honest. True pros prove their skills on official tables.
+                </div>
+            </div>
+
+            <div class="concept-point">
+                <div style="color: var(--sub-red); font-size: 0.9rem; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-share-nodes"></i> 5. VIRAL ENGAGEMENT
+                </div>
+                <div style="font-size: 0.8rem; color: #aaa; line-height: 1.5; padding-left: 20px;">
+                    Every result is a shareable moment. The journey generates social currency for the player and the community.
+                </div>
+            </div>
+        </div>
+
+        <button onclick="closeModal()" class="btn-red" style="width: 100%; font-family: 'Russo One'; padding: 15px; margin-top: 10px; border-radius: 8px;">UNDERSTOOD</button>
+    </div>
+    `;
+    showModal('DIGITAL CONCEPT', html, { maxWidth: '450px', borderColor: 'var(--sub-gold)' });
+}
+
+window.showAppConcept = showAppConcept;
 
 export async function purchaseEdition(editionId) {
     await handleAsync(new Promise(resolve => {

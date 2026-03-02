@@ -61,8 +61,22 @@ export async function fetchPublicGamesMap() {
         setTimeout(() => state.publicMap.invalidateSize(), 200);
     }
 
-    // 1. Fetch Public Games
-    const { data: games } = await _supabase.from('games').select('*').eq('is_public', true);
+    // 1. Fetch Public Games AND User's own Games (even if private)
+    let query = _supabase.from('games').select('*');
+    let fetchedGames = [];
+
+    if (state.user && state.user.id !== 'guest') {
+        // Fetch all public games OR games owned by the current user
+        const { data: qGames, error } = await _supabase
+            .from('games')
+            .select('*')
+            .or(`is_public.eq.true,owner_id.eq.${state.user.id}`);
+        fetchedGames = qGames || [];
+    } else {
+        // Guest only sees public games
+        const { data: qGames } = await _supabase.from('games').select('*').eq('is_public', true);
+        fetchedGames = qGames || [];
+    }
 
     // 2. Fetch Upcoming/Ongoing Tournaments linked to games
     // We use !inner to ensure we only get tournaments that have a valid game link
@@ -74,7 +88,7 @@ export async function fetchPublicGamesMap() {
 
     // Store data for filtering
     state.mapData = {
-        games: games || [],
+        games: fetchedGames,
         tournaments: tournaments || []
     };
 
@@ -94,8 +108,8 @@ export async function fetchPublicGamesMap() {
             mapContainer.appendChild(locateBtn);
         }
 
-        // Initial Render (All)
-        filterMap('all');
+        // Initial Render (Verified Focus)
+        filterMap('verified');
 
         // Initial Nearest List (based on map center)
         const center = state.publicMap.getCenter();
@@ -108,10 +122,22 @@ export function filterMap(type) {
 
     // Update UI buttons
     document.querySelectorAll('.map-filter-btn').forEach(btn => {
-        if (btn.textContent.toLowerCase().includes(type) || (type === 'all' && btn.textContent === 'ALL')) {
+        const btnFilter = btn.getAttribute('data-filter');
+        if (btnFilter === type) {
             btn.classList.add('active');
+            if (type === 'verified') {
+                btn.style.background = 'rgba(255, 215, 0, 0.1)';
+                btn.style.borderColor = 'var(--sub-gold)';
+                btn.style.color = 'var(--sub-gold)';
+            } else {
+                btn.style.background = '#222';
+                btn.style.color = '#fff';
+            }
         } else {
             btn.classList.remove('active');
+            btn.style.background = 'transparent';
+            btn.style.borderColor = '#444';
+            btn.style.color = '#888';
         }
     });
 
@@ -125,9 +151,10 @@ export function filterMap(type) {
             if (type === 'verified' && !g.verified) return;
 
             if (g.latitude && g.longitude) {
-                const iconColor = g.verified ? 'var(--sub-gold)' : 'var(--sub-red)';
+                let iconColor = g.is_public ? (g.verified ? 'var(--sub-gold)' : 'var(--sub-red)') : '#4a9eff'; // Blue for Private
                 const verifiedBadge = g.verified ? '<div style="color:var(--sub-gold); font-size:0.6rem; font-weight:bold; margin-bottom:4px;">⭐ VERIFIED TABLE</div>' : '';
-                const verifiedClass = g.verified ? 'verified-marker-pulse' : '';
+                const privateBadge = !g.is_public ? '<div style="color:#4a9eff; font-size:0.6rem; font-weight:bold; margin-bottom:4px;"><i class="fa fa-lock"></i> PRIVATE HOME TABLE</div>' : '';
+                const verifiedClass = g.verified && g.is_public ? 'verified-marker-pulse' : '';
 
                 const subsoccerIcon = L.divIcon({
                     className: `custom-div-icon ${verifiedClass}`,
@@ -136,14 +163,27 @@ export function filterMap(type) {
                     iconAnchor: [8, 8]
                 });
 
-                const marker = L.marker([g.latitude, g.longitude], { icon: subsoccerIcon })
-                    .bindPopup(`<div style="min-width:160px;">
-                        ${verifiedBadge}
-                        <b style="font-size:1.1rem; text-transform:uppercase; color:#fff;">${g.game_name}</b>
-                        <div style="color:#888; font-size:0.75rem; margin-top:8px; text-transform:uppercase; letter-spacing:1px;">
-                            <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-right:5px;"></i>${g.location}
+                let popupContent = `<div style="min-width:160px; text-align:center;">`;
+                if (g.verified) {
+                    popupContent += `
+                        <div style="background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px;">
+                            OFFICIAL ARENA
                         </div>
-                    </div>`);
+                        <i class="fa-solid fa-crown" style="color:var(--sub-gold); font-size:1.5rem; margin-bottom:5px;"></i>
+                    `;
+                } else if (!g.is_public) {
+                    popupContent += `<div style="color:#4a9eff; font-size:0.6rem; font-weight:bold; margin-bottom:4px;"><i class="fa fa-lock"></i> PRIVATE HOME TABLE</div>`;
+                }
+
+                popupContent += `
+                    <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; font-family:'Russo One';">${g.game_name}</b>
+                    <div style="color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">
+                        <i class="fa-solid fa-location-dot" style="color:${iconColor}; margin-right:5px;"></i>${g.location}
+                    </div>
+                </div>`;
+
+                const marker = L.marker([g.latitude, g.longitude], { icon: subsoccerIcon })
+                    .bindPopup(popupContent);
 
                 state.clusterGroup.addLayer(marker);
             }
@@ -187,6 +227,12 @@ export function filterMap(type) {
             }
         });
     }
+
+    // Refresh the list below the map to reflect the new filter
+    if (state.publicMap) {
+        const center = state.publicMap.getCenter();
+        updateNearestList(center.lat, center.lng);
+    }
 }
 
 export function flyToLocation(lat, lng) {
@@ -200,9 +246,15 @@ function updateNearestList(lat, lng) {
     if (!list || !state.mapData) return;
 
     const { games } = state.mapData;
+    const activeFilter = document.querySelector('.map-filter-btn.active')?.getAttribute('data-filter') || 'all';
+
+    let filteredGames = games;
+    if (activeFilter === 'verified') {
+        filteredGames = games.filter(g => g.verified);
+    }
 
     // Calculate distances
-    const withDist = games.map(g => {
+    const withDist = filteredGames.map(g => {
         if (!g.latitude || !g.longitude) return null;
         const d = getDistanceFromLatLonInKm(lat, lng, g.latitude, g.longitude);
         return { ...g, distance: d };
@@ -211,7 +263,6 @@ function updateNearestList(lat, lng) {
     // Sort by distance
     withDist.sort((a, b) => a.distance - b.distance);
 
-    // Take top 20
     const nearest = withDist.slice(0, 20);
 
     list.innerHTML = nearest.map(g => {
@@ -219,20 +270,26 @@ function updateNearestList(lat, lng) {
             `${(g.distance * 1000).toFixed(0)} m` :
             `${g.distance.toFixed(1)} km`;
 
-        const border = g.verified ? 'var(--sub-gold)' : '#333';
-        const icon = g.verified ? '⭐' : '<i class="fa-solid fa-location-dot" style="color:#666;"></i>';
+        const isVerified = g.verified;
+        const isPrivate = !g.is_public;
+
+        const borderStyle = isVerified ? 'border-left: 4px solid var(--sub-gold); background: rgba(255, 215, 0, 0.05);' : (isPrivate ? 'border-left: 4px solid #4a9eff; background: rgba(74, 158, 255, 0.05);' : 'border-left: 4px solid #333;');
+        const titleColor = isVerified ? 'var(--sub-gold)' : (isPrivate ? '#4a9eff' : '#fff');
+        const badge = isVerified ? '<span style="background:var(--sub-gold); color:#000; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">PRO ARENA</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
 
         return `
-            <div class="nearest-game-item" style="border-left-color: ${border};" data-action="fly-to-location" data-lat="${g.latitude}" data-lng="${g.longitude}">
-                <div>
-                    <div style="font-family:'Russo One'; color:#fff; font-size:0.9rem; margin-bottom:2px;">
-                        ${icon} ${g.game_name}
+            <div class="nearest-game-item" style="${borderStyle} padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;" data-action="fly-to-location" data-lat="${g.latitude}" data-lng="${g.longitude}">
+                <div style="flex-grow:1; cursor:pointer;">
+                    <div style="font-family:'Russo One'; color:${titleColor}; font-size:0.95rem; margin-bottom:3px; text-transform:uppercase;">
+                        ${badge}${g.game_name}
                     </div>
-                    <div style="font-size:0.7rem; color:#888;">${g.location}</div>
+                    <div style="font-size:0.75rem; color:#888;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${g.location}</div>
                 </div>
-                <div class="nearest-game-dist">
-                    ${distDisplay}
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=${g.latitude},${g.longitude}" target="_blank" data-action="external-link" style="color:var(--sub-gold); margin-left:8px; font-size:1rem;" title="Get Directions"><i class="fa-solid fa-diamond-turn-right"></i></a>
+                <div style="text-align:right;">
+                    <div style="font-size:0.8rem; font-weight:bold; color:#ccc; margin-bottom:3px;">${distDisplay}</div>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${g.latitude},${g.longitude}" target="_blank" data-action="external-link" style="color:var(--sub-gold); font-size:1.1rem; padding:5px; display:inline-block;" title="Get Directions">
+                        <i class="fa-solid fa-diamond-turn-right"></i>
+                    </a>
                 </div>
             </div>
         `;
