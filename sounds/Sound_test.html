@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Subsoccer Remote</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer Field Remote</title>
     <style>
         body {
-            background: #0a0a0a;
+            background: #000000;
             color: white;
             font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex;
@@ -18,27 +19,30 @@
         }
 
         h1 {
-            color: #FFD700;
+            color: #FFF;
             letter-spacing: 2px;
-            margin-bottom: 50px;
+            margin-bottom: 30px;
             text-transform: uppercase;
+            font-size: 1.5rem;
+            text-align: center;
         }
 
         .button-container {
             display: flex;
-            gap: 30px;
+            flex-direction: column;
+            gap: 20px;
+            width: 90%;
+            max-width: 400px;
         }
 
         .btn {
-            width: 250px;
-            height: 250px;
+            width: 100%;
+            height: 120px;
             border: none;
-            border-radius: 20px;
-            font-size: 1.8rem;
+            border-radius: 12px;
+            font-size: 2rem;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.1s, filter 0.2s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -51,14 +55,15 @@
         }
 
         .p1 {
-            background: #C1272D; /* Subsoccer punainen */
+            background: #FF0000; /* High Contrast Red */
             color: white;
+            border: 4px solid #fff;
         }
 
         .p2 {
-            background: #333;
-            color: white;
-            border: 3px solid #FFD700;
+            background: #FFFF00; /* High Contrast Yellow */
+            color: black;
+            border: 4px solid #fff;
         }
 
         .freq-label {
@@ -68,35 +73,45 @@
         }
 
         .footer {
-            margin-top: 50px;
-            color: #555;
+            margin-top: 30px;
+            color: #888;
             font-size: 0.8rem;
+            text-align: center;
+            padding: 0 20px;
         }
     </style>
 </head>
 <body>
 
-    <h1>Subsoccer Test Remote</h1>
+    <h1>FIELD TEST REMOTE</h1>
 
     <div class="button-container">
-        <button class="btn p1" onclick="playTone(2000)">
-            PLAYER 1
+        <button class="btn p1" onclick="playFieldTone(2000)">
+            GOAL 1
             <span class="freq-label">2000 Hz</span>
         </button>
 
-        <button class="btn p2" onclick="playTone(3500)">
-            PLAYER 2
+        <button class="btn p2" onclick="playFieldTone(3500)">
+            GOAL 2
             <span class="freq-label">3500 Hz</span>
         </button>
+
+        <div style="display:flex; gap:10px;">
+            <button class="btn" style="height:60px; font-size:1rem; background:#333; color:#fff; border:1px solid #555;" onclick="playBurst(2000)">
+                BURST 2kHz
+            </button>
+            <button class="btn" style="height:60px; font-size:1rem; background:#333; color:#fff; border:1px solid #555;" onclick="playBurst(3500)">
+                BURST 3.5kHz
+            </button>
+        </div>
     </div>
 
-    <p class="footer">Käytä tätä puhelimen vieressä testataksesi äänitunnistusta.</p>
+    <p class="footer">High Power Mode: Max Volume & Extended Duration (250ms) for outdoor reliability.</p>
 
     <script>
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function playTone(freq) {
-            // Aktivoi audio jos se on unitilassa (selainten vaatimus)
+        function playFieldTone(freq) {
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
@@ -107,18 +122,32 @@
             oscillator.type = 'sine';
             oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-            // Tehdään äänestä erittäin lyhyt (50 millisekuntia) "klik"
-            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.005); // 5ms terävä nousu
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03); // 30ms välitön sammuminen
+            // FIELD MODE: Louder and Longer
+            // 1. Max Volume (1.0)
+            // 2. Longer Hold (250ms) to ensure detection window catches it
+            // 3. Smooth ramps to prevent clicking
+            
+            const now = audioCtx.currentTime;
+            
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(1.0, now + 0.02); // 20ms ramp up
+            gainNode.gain.setValueAtTime(1.0, now + 0.27); // Hold for 250ms (was 80ms)
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.35); // Fade out
 
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
             oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.05); // Katkaistaan kokonaan 50ms kohdalla
+            oscillator.stop(now + 0.4);
             
-            console.log("Playing frequency: " + freq + "Hz");
+            console.log("Playing FIELD tone: " + freq + "Hz");
+        }
+
+        function playBurst(freq) {
+            // Plays 3 rapid tones
+            playFieldTone(freq);
+            setTimeout(() => playFieldTone(freq), 400);
+            setTimeout(() => playFieldTone(freq), 800);
         }
     </script>
 </body>

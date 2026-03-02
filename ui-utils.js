@@ -119,3 +119,10 @@ export function closeModal(id = 'generic-modal') {
 window.showNotification = showNotification;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
+
+// Helper to trigger page navigation from non-UI modules
+export function showPage(pageId) {
+    if (window._appState) {
+        window._appState.currentPage = pageId;
+    }
+}

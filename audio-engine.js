@@ -40,7 +40,13 @@ let hudBarP2 = null;
 function initAudioContext() {
     if (audioContext) return true;
     try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        // Yritetään käyttää olemassa olevaa contextia (SoundEffects), jotta säästetään resursseja mobiilissa
+        if (window.soundEffects && window.soundEffects.audioContext) {
+            audioContext = window.soundEffects.audioContext;
+            console.log("AudioEngine: Reusing SoundEffects AudioContext");
+        } else {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
         analyserNode = audioContext.createAnalyser();
         analyserNode.fftSize = 2048; // Higher FFT for better frequency resolution
         analyserNode.smoothingTimeConstant = 0.8;
@@ -212,17 +218,17 @@ function analyzeFrequencies(dataArray, sampleRate) {
 
     // Update Telemetry HUD (Visual Feedback)
     if (hudBarP1 && hudBarP2) {
-        // Calculate percentage relative to threshold (so 100% height = threshold hit)
-        // We cap it at 100% visually
-        const p1Percent = Math.min(100, (goal1Intensity / DETECTION_THRESHOLD) * 100);
-        const p2Percent = Math.min(100, (goal2Intensity / DETECTION_THRESHOLD) * 100);
+        // Calculate percentage absolute (0-100%)
+        const p1Percent = Math.min(100, goal1Intensity * 100);
+        const p2Percent = Math.min(100, goal2Intensity * 100);
 
         hudBarP1.style.height = `${p1Percent}%`;
         hudBarP2.style.height = `${p2Percent}%`;
 
-        // Visual feedback for hitting threshold (turn red)
-        hudBarP1.style.backgroundColor = goal1Intensity >= DETECTION_THRESHOLD ? '#ff3333' : '#00ff88';
-        hudBarP2.style.backgroundColor = goal2Intensity >= DETECTION_THRESHOLD ? '#ff3333' : '#0088ff';
+        // Update threshold marker position via CSS variable
+        const thresholdPct = Math.min(100, DETECTION_THRESHOLD * 100);
+        hudBarP1.parentElement.style.setProperty('--threshold', `${thresholdPct}%`);
+        hudBarP2.parentElement.style.setProperty('--threshold', `${thresholdPct}%`);
     }
 
     // Determine which goal (if any) exceeded threshold
@@ -359,6 +365,7 @@ function updateUIStatus(active) {
     const freqDisplay = document.getElementById('audio-frequency-display');
     const meterWrapper = document.getElementById('audio-meter-wrapper');
     const instantMeter = document.getElementById('audio-meter-container');
+    const telemetry = document.getElementById('audio-telemetry');
 
     if (toggleBtn) {
         toggleBtn.textContent = active ? 'DEACTIVATE' : 'ACTIVATE';
@@ -375,6 +382,10 @@ function updateUIStatus(active) {
 
     if (instantMeter) {
         instantMeter.style.display = active ? 'block' : 'none';
+    }
+
+    if (telemetry) {
+        telemetry.style.display = active ? 'flex' : 'none';
     }
 }
 

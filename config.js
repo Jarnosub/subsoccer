@@ -19,6 +19,8 @@ if (typeof window !== 'undefined' && window.supabase) {
             getUser: async () => ({ data: { user: null } }),
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
             signOut: async () => { },
+            signInWithPassword: async () => ({ data: { user: null, session: null }, error: { message: "Supabase not loaded" } }),
+            signUp: async () => ({ data: { user: null, session: null }, error: { message: "Supabase not loaded" } }),
         },
         storage: { from: () => ({ upload: async () => ({}), getPublicUrl: () => ({}) }) },
     };

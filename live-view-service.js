@@ -587,7 +587,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                     <i class="fa fa-times"></i>
                 </button>
 
-                <img src="logo.png" alt="Subsoccer" style="height: 50px; width: auto; margin-bottom: 25px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.8));">
+                <img src="logo.png" alt="Subsoccer" style="height: 50px; width: auto; display: block; margin: 0 auto 25px auto; filter: drop-shadow(0 0 15px rgba(0,0,0,0.8));">
 
                 ${event.brand_logo_url ? `
                     <div style="background: rgba(255,255,255,0.05); display: inline-block; padding: 10px 25px; border-radius: var(--sub-radius); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">

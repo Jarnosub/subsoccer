@@ -1,28 +1,29 @@
 import { state, _supabase, subscribe, isAdmin, APP_VERSION, ENABLE_EVENTS, KIOSK_MODE } from './config.js';
+import { applyBranding, injectFooterLink } from './branding-service.js';
 import { CardGenerator } from './card-generator.js';
 import { showNotification, showLoading, hideLoading, handleAsync, showModal, closeModal } from './ui-utils.js';
 import { handleSearch, addP, directAdd } from './script.js';
 import { fetchLB, fetchHist } from './stats-service.js';
 import { fetchMyGames, cancelEdit, registerGame, updateGame, viewOwnershipRequests } from './game-service.js';
-import { fetchPublicGamesMap, initGameMap, searchLocation } from './map.js';
+import { fetchPublicGamesMap, initGameMap, searchPublicMap, filterMap, flyToLocation, searchLocation } from './map.js';
 import {
-    loadEventsPage, viewTournamentBracket, pickEventWinner, pickEventBronzeWinner,
-    advanceEventRound, finishEventTournament, closeBracketModal, viewTournamentParticipants,
+    loadEventsPage, viewTournamentBracket,
+    finishEventTournament, closeBracketModal, viewTournamentParticipants,
     showCreateEventForm, viewEventDetails, editTournament, deleteTournament, unregisterFromTournament,
     registerForTournament, showCreateTournamentForm, editEvent, deleteEvent, closeEventModal,
     addParticipantFromSearch, removeTournamentParticipant, selectParticipantFromDropdown, createTournament,
     closeTournamentForm, saveTournamentEdit, clearEventImage, updateEventForm, handleParticipantSearch,
     hideCreateEventForm, clearBrandLogo, previewBrandLogo, previewEventImage, createNewEvent, closeEmailPrompt, saveEmailAndRegister,
-    addModerator, removeModerator, searchModerators
+    addModerator, removeModerator, searchModerators, shareTournamentLink
 } from './events-v3-final.js';
 import {
     handleQuickSearch, startQuickMatch, clearQuickMatchPlayers,
-    handleProModeClick, toggleAudioDetection, recordGoalSound, acceptRulesAndStart,
+    handleProModeClick, toggleAudioDetection, acceptRulesAndStart,
     addManualGoal, exitProMode, undoLastGoal, resetProMatch, initProModeUI, initClaimResult, toggleSoundEffects, selectQuickPlayer, saveClaimedResult, cancelClaimResult, closeVictoryOverlay
 } from './quick-match.js';
 import { shareLiveEventLink } from './live-view-service.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
-import { startTournament, advanceRound, saveTour, replayTournament, pickWin, pickBronzeWinner, populateEventDropdown } from './tournament.js';
+import { startTournament, advanceRound, saveTour, replayTournament, populateEventDropdown } from './tournament.js';
 import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard } from './moderator-service.js';
 
 // Swipe-toiminnallisuus muuttujat (siirretty alkuun ReferenceErrorin välttämiseksi)
@@ -71,6 +72,12 @@ function updatePageUI(p) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('section-' + p).classList.add('active');
 
+    // FIX: Piilotetaan sticky-tallenna-nappi jos poistutaan turnausnäkymästä
+    const saveBtn = document.getElementById('save-btn');
+    if (saveBtn && saveBtn.classList.contains('sticky-bottom-action')) {
+        saveBtn.style.display = (p === 'tournament') ? 'block' : 'none';
+    }
+
     // Map sub-pages to main tabs
     let tabId = 'tab-' + p;
     if (p === 'map' || p === 'leaderboard' || p === 'history') {
@@ -83,7 +90,7 @@ function updatePageUI(p) {
     }
 
     // Update currentPageIndex for swipe navigation
-    const pageIdx = ['profile', 'tournament', 'events', 'map', 'leaderboard'].indexOf(p);
+    const pageIdx = pages.indexOf(p);
     if (pageIdx !== -1) {
         currentPageIndex = pageIdx;
     }
@@ -389,7 +396,7 @@ export function initTiltEffect(card) {
                 card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
                 card.style.setProperty('--x', `${x} px`);
                 card.style.setProperty('--y', `${y} px`);
-                
+
                 ticking = false;
             });
             ticking = true;
@@ -444,7 +451,7 @@ export function setupUIListeners() {
     // FORCE REMOVE INDICATORS ON STARTUP
     const audioInd = document.getElementById('audio-indicator');
     if (audioInd) audioInd.remove();
-    
+
     // RESTORE CONNECTION WATCHDOG UI
     // Ensure the connection dot exists so script.js can use it to show offline status
     let connDot = document.getElementById('conn-dot');
@@ -453,7 +460,7 @@ export function setupUIListeners() {
         connDot.id = 'conn-dot';
         connDot.style.cssText = "position:fixed; top:15px; left:15px; width:10px; height:10px; background:var(--sub-red); border-radius:50%; z-index:20000; display:none; box-shadow:0 0 10px var(--sub-red);";
         document.body.appendChild(connDot);
-        
+
         // Add CSS for offline state if needed
         const style = document.createElement('style');
         style.innerHTML = `.dot-offline { display:block !important; animation: pulse-red 1s infinite; } @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }`;
@@ -469,7 +476,7 @@ export function setupUIListeners() {
         logo.style.cursor = 'pointer';
         logo.title = 'Visit subsoccer.com';
         logo.addEventListener('click', () => window.open('https://www.subsoccer.com', '_blank'));
-        
+
         // BETA: Inject Beta Label under logo
         // Remove old badges to ensure clean state and centering
         document.querySelectorAll('.beta-badge-container').forEach(el => el.remove());
@@ -488,7 +495,7 @@ export function setupUIListeners() {
     // BETA: Inject Feedback Button
     // Poistetaan kaikki vanhat napit varmuuden vuoksi (estää tuplat)
     document.querySelectorAll('#beta-feedback-btn').forEach(el => el.remove());
-    
+
     // Poistetaan vanha Google Form -nappi jos sellainen on
     document.querySelectorAll('a[href*="docs.google.com/forms"]').forEach(el => el.remove());
 
@@ -504,28 +511,28 @@ export function setupUIListeners() {
     // Removed fixed positioning, placed in footer flow
     feedbackBtn.style.cssText = "display:block; margin:15px auto 0 auto; width:auto; padding:8px 20px; font-size:0.7rem; background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.3); border-radius:30px; cursor:pointer; font-family:var(--sub-name-font); letter-spacing:1px; text-transform:uppercase; transition:all 0.2s;";
     feedbackBtn.innerHTML = '<i class="fa fa-comment-dots" style="margin-right:6px;"></i> FEEDBACK';
-    
+
     feedbackBtn.onmouseover = () => { feedbackBtn.style.background = 'rgba(255,255,255,0.1)'; feedbackBtn.style.borderColor = '#fff'; };
     feedbackBtn.onmouseout = () => { feedbackBtn.style.background = 'transparent'; feedbackBtn.style.borderColor = 'rgba(255,255,255,0.3)'; };
 
     feedbackBtn.onclick = async () => {
-            const msg = prompt("Describe the issue or suggestion:");
-            if (msg) {
-                try {
-                    showNotification("Sending...", "info");
-                    await _supabase.from('feedback').insert([{
-                        message: msg,
-                        user_id: state.user?.id || 'guest',
-                        page: state.currentPage || 'unknown'
-                    }]);
-                    showNotification("Thanks for your feedback!", "success");
-                } catch (e) {
-                    console.error(e);
-                    showNotification("Error sending feedback", "error");
-                }
+        const msg = prompt("Describe the issue or suggestion:");
+        if (msg) {
+            try {
+                showNotification("Sending...", "info");
+                await _supabase.from('feedback').insert([{
+                    message: msg,
+                    user_id: state.user?.id || 'guest',
+                    page: state.currentPage || 'unknown'
+                }]);
+                showNotification("Thanks for your feedback!", "success");
+            } catch (e) {
+                console.error(e);
+                showNotification("Error sending feedback", "error");
             }
-        };
-        
+        }
+    };
+
     const footer = document.getElementById('subsoccer-footer-link');
     if (footer) {
         footer.appendChild(feedbackBtn);
@@ -603,6 +610,9 @@ export function setupUIListeners() {
     document.getElementById('btn-cancel-edit-game')?.addEventListener('click', () => cancelEdit());
     document.getElementById('btn-view-transfer-requests')?.addEventListener('click', () => viewOwnershipRequests());
 
+    // Map Section
+    document.getElementById('btn-search-public-map')?.addEventListener('click', () => searchPublicMap());
+
     // Quick Match Section
     document.getElementById('btn-quick-match-mode')?.addEventListener('click', () => showMatchMode('quick'));
     document.getElementById('btn-tournament-mode')?.addEventListener('click', () => showMatchMode('tournament'));
@@ -623,10 +633,6 @@ export function setupUIListeners() {
     // Pro Mode & Audio
     document.getElementById('pro-mode-section')?.addEventListener('click', () => handleProModeClick());
     document.getElementById('toggle-audio-btn')?.addEventListener('click', () => toggleAudioDetection());
-    document.getElementById('btn-record-goal-1')?.addEventListener('click', () => recordGoalSound(1));
-    document.getElementById('btn-record-goal-2')?.addEventListener('click', () => recordGoalSound(2));
-    document.getElementById('btn-test-goal-1')?.addEventListener('click', () => window.audioEngine?.playTestSound(1));
-    document.getElementById('btn-test-goal-2')?.addEventListener('click', () => window.audioEngine?.playTestSound(2));
     document.getElementById('btn-accept-rules')?.addEventListener('click', () => acceptRulesAndStart());
     document.getElementById('pro-player-left')?.addEventListener('click', () => addManualGoal(1));
     document.getElementById('pro-player-right')?.addEventListener('click', () => addManualGoal(2));
@@ -676,23 +682,12 @@ export function setupUIListeners() {
             return;
         }
 
-        // 12. Bracket Pick
-        const bracketItem = e.target.closest('[data-action="bracket-pick"]');
-        if (bracketItem) {
-            const { handler, index, player } = bracketItem.dataset;
-            const idx = parseInt(index);
-            if (handler === 'pickWin') pickWin(idx, player, bracketItem);
-            else if (handler === 'pickBronzeWinner') pickBronzeWinner(idx, player, bracketItem);
-            else if (handler === 'pickEventWinner') pickEventWinner(idx, player);
-            else if (handler === 'pickEventBronzeWinner') pickEventBronzeWinner(idx, player);
-            return;
-        }
 
         // 13. View Tournament Bracket (Events)
         const viewBracketBtn = e.target.closest('[data-action="view-bracket"]');
         if (viewBracketBtn) {
-            const { id, name, max } = viewBracketBtn.dataset;
-            viewTournamentBracket(id, name, parseInt(max));
+            const { id, eventId, name, max } = viewBracketBtn.dataset;
+            viewTournamentBracket(id, name, eventId);
             return;
         }
 
@@ -707,7 +702,6 @@ export function setupUIListeners() {
         // 15. Event Bracket Controls
         const action = e.target.dataset.action;
         if (action === 'finish-event-tournament') finishEventTournament();
-        if (action === 'advance-event-round') advanceEventRound();
         if (action === 'close-bracket-modal') closeBracketModal();
 
         // 16. Event Management Delegation
@@ -736,6 +730,7 @@ export function setupUIListeners() {
             if (act === 'add-participant') { addParticipantFromSearch(tourId); return; }
             if (act === 'remove-participant') { removeTournamentParticipant(eventAction.dataset.regId, tourId); return; }
             if (act === 'select-participant') { selectParticipantFromDropdown(tourId, name); return; }
+            if (act === 'share-tournament') { shareTournamentLink(eventId, tourId, name); return; }
             if (act === 'create-tournament') { createTournament(eventId); return; }
             if (act === 'close-tournament-form') { closeTournamentForm(); return; }
             if (act === 'save-tournament-edit') { saveTournamentEdit(id, eventId); return; }
@@ -794,7 +789,7 @@ export function setupUIListeners() {
         // 4. Tournament History Toggle
         const tourToggle = e.target.closest('[data-toggle-tournament]');
         if (tourToggle) {
-            const el = document.getElementById(`tour - matches - ${tourToggle.dataset.toggleTournament} `);
+            const el = document.getElementById(`tour-matches-${tourToggle.dataset.toggleTournament}`);
             if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
             return;
         }
@@ -830,6 +825,25 @@ export function setupUIListeners() {
                 const dataUrl = await CardGenerator.capture('level-up-container');
                 if (dataUrl) CardGenerator.share(dataUrl, playerName);
             })();
+            return;
+        }
+
+        // 17. Map Interactions
+        const extLink = e.target.closest('[data-action="external-link"]');
+        if (extLink) {
+            e.stopPropagation(); // Stop bubbling if needed, though return is enough for our logic
+            return;
+        }
+
+        const mapFilterBtn = e.target.closest('.map-filter-btn');
+        if (mapFilterBtn) {
+            filterMap(mapFilterBtn.dataset.filter);
+            return;
+        }
+
+        const mapLocAction = e.target.closest('[data-action="fly-to-location"]');
+        if (mapLocAction) {
+            flyToLocation(parseFloat(mapLocAction.dataset.lat), parseFloat(mapLocAction.dataset.lng));
             return;
         }
     });
@@ -1005,6 +1019,9 @@ subscribe('user', () => {
             const modMenu = document.getElementById('menu-item-moderator');
             if (modMenu) modMenu.style.display = isUserAdmin ? 'flex' : 'none';
 
+            const sensorMenu = document.getElementById('menu-item-sensors');
+            if (sensorMenu) sensorMenu.style.display = isUserAdmin ? 'flex' : 'none';
+
             // Aggressively remove indicators from DOM
             const audioIndicator = document.getElementById('audio-indicator');
             if (audioIndicator) audioIndicator.remove();
@@ -1040,7 +1057,7 @@ subscribe('user', () => {
             appContent.classList.add('fade-in');
         }
         if (navTabs) navTabs.style.setProperty('display', 'flex', 'important');
-        
+
         // KIOSK MODE: Piilota asetusvalikko julkisessa käytössä
         if (menuBtn) menuBtn.style.display = KIOSK_MODE ? 'none' : 'block';
 
@@ -1084,10 +1101,16 @@ subscribe('user', () => {
             } else {
                 // Tarkistetaan onko URL:ssa määritelty sivu (?page=events)
                 const pageParam = params.get('page');
+                const eventIdParam = params.get('event_id');
                 const validPages = ['events', 'profile', 'map', 'leaderboard', 'history', 'tournament'];
-                
+
                 if (pageParam && validPages.includes(pageParam)) {
                     state.currentPage = pageParam;
+                    // Jos linkissä on event_id, avataan kyseinen tapahtuma automaattisesti
+                    if (pageParam === 'events' && eventIdParam) {
+                        // Pieni viive varmistaa että events-sivu on latautunut
+                        setTimeout(() => viewEventDetails(eventIdParam), 800);
+                    }
                 } else {
                     state.currentPage = 'tournament';
                 }
@@ -1100,7 +1123,7 @@ subscribe('user', () => {
 
 subscribe('currentPage', (p) => {
     updatePageUI(p);
-    
+
     // Päivitetään URL osoiteriville ilman sivun latausta
     const url = new URL(window.location);
     url.searchParams.set('page', p);
@@ -1146,6 +1169,22 @@ export async function viewPlayerCard(targetUsername) {
         return;
     }
 
+    // Fetch Tournament History (Podiums)
+    const { data: tournaments } = await _supabase
+        .from('tournament_history')
+        .select('tournament_name, winner_name, second_place_name, third_place_name, created_at')
+        .or(`winner_name.eq.${targetUsername},second_place_name.eq.${targetUsername},third_place_name.eq.${targetUsername}`)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false });
+
+    // NEW: Fetch Recent Matches (Last 10 games played)
+    const { data: recentMatches } = await _supabase
+        .from('matches')
+        .select('*')
+        .or(`player1.eq.${targetUsername},player2.eq.${targetUsername}`)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
     const wins = p.wins || 0;
     const losses = p.losses || 0;
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
@@ -1154,7 +1193,77 @@ export async function viewPlayerCard(targetUsername) {
     const avatarUrl = (p.avatar_url && p.avatar_url.trim() !== '') ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
     const rookieClass = (wins + losses) < 5 ? 'status-rookie' : '';
 
-    const html = `<div class="pro-card ${rookieClass}" style="margin:0; width:100% !important; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;"><div class="card-inner-frame"><div class="card-header-stripe">${cardHeader} CARD</div><div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div><div class="card-name-strip">${p.username}</div><div class="card-info-area"><div class="card-stats-row"><div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div><div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div><div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div><div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div></div><div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Resolve';">REPRESENTING</span></div>${state.brandLogo ? `<img src="${state.brandLogo}" style="height:22px; width:auto; object-fit:contain;">` : `<div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Resolve';">CLUB: PRO</div>`}</div></div></div></div>`;
+    let historyHtml = '';
+    if (tournaments && tournaments.length > 0) {
+        historyHtml = `
+            <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
+                <div style="font-family:var(--sub-name-font); color:#888; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; text-transform:uppercase;">🏆 Trophy Room</div>
+                <div style="max-height: 150px; overflow-y: auto; padding-right:5px;">
+                    ${tournaments.map(t => {
+            let place = '';
+            let color = '#666';
+            let icon = '';
+            if (t.winner_name === targetUsername) { place = 'WINNER'; color = 'var(--sub-gold)'; icon = '🥇'; }
+            else if (t.second_place_name === targetUsername) { place = 'FINALIST'; color = '#C0C0C0'; icon = '🥈'; }
+            else if (t.third_place_name === targetUsername) { place = '3RD PLACE'; color = '#CD7F32'; icon = '🥉'; }
+
+            const date = new Date(t.created_at).toLocaleDateString();
+            return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:#111; margin-bottom:5px; border-radius:4px; border-left:2px solid ${color};">
+                                <div>
+                                    <div style="color:#fff; font-size:0.8rem; font-family:var(--sub-name-font); text-transform:uppercase;">${t.tournament_name || 'Tournament'}</div>
+                                    <div style="color:#666; font-size:0.6rem;">${date}</div>
+                                </div>
+                                <div style="color:${color}; font-size:0.7rem; font-weight:bold; font-family:var(--sub-name-font);">${icon} ${place}</div>
+                            </div>
+                        `;
+        }).join('')}
+                </div>
+            </div>
+        `;
+    } else {
+        historyHtml = `
+            <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; text-align:center;">
+                <div style="font-family:var(--sub-name-font); color:#444; font-size:0.7rem; letter-spacing:1px;">NO TOURNAMENT TROPHIES YET</div>
+            </div>
+        `;
+    }
+
+    let matchesHtml = '';
+    if (recentMatches && recentMatches.length > 0) {
+        matchesHtml = `
+            <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
+                <div style="font-family:var(--sub-name-font); color:#888; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; text-transform:uppercase;">📜 Recent Matches</div>
+                <div style="max-height: 200px; overflow-y: auto; padding-right:5px;">
+                    ${recentMatches.map(m => {
+            const isP1 = m.player1 === targetUsername;
+            const opponent = isP1 ? m.player2 : m.player1;
+            const isWinner = m.winner === targetUsername;
+            const resultColor = isWinner ? 'var(--sub-gold)' : '#666';
+            const score = (m.player1_score !== null && m.player2_score !== null)
+                ? (isP1 ? `${m.player1_score}-${m.player2_score}` : `${m.player2_score}-${m.player1_score}`)
+                : (isWinner ? 'WIN' : 'LOSS');
+
+            const date = new Date(m.created_at).toLocaleDateString();
+
+            return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#111; margin-bottom:4px; border-radius:4px; border-left:2px solid ${resultColor};">
+                                <div style="display:flex; flex-direction:column;">
+                                    <div style="color:#fff; font-size:0.75rem; font-family:var(--sub-name-font);">vs ${opponent}</div>
+                                    <div style="color:#666; font-size:0.6rem;">${date} • ${m.tournament_name || 'Quick Match'}</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="color:${resultColor}; font-size:0.8rem; font-weight:bold; font-family:'Russo One';">${score}</div>
+                                </div>
+                            </div>
+                        `;
+        }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    const html = `<div class="pro-card ${rookieClass}" style="margin:0; width:100% !important; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;"><div class="card-inner-frame"><div class="card-header-stripe">${cardHeader} CARD</div><div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div><div class="card-name-strip">${p.username}</div><div class="card-info-area"><div class="card-stats-row"><div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div><div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div><div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div><div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div></div><div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Resolve';">REPRESENTING</span></div>${state.brandLogo ? `<img src="${state.brandLogo}" style="height:22px; width:auto; object-fit:contain;">` : `<div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Resolve';">CLUB: PRO</div>`}</div></div></div></div>` + historyHtml + matchesHtml;
 
     const body = document.querySelector('#card-modal .modal-body');
     if (body) body.innerHTML = html;
@@ -1240,147 +1349,4 @@ export async function purchaseEdition(editionId) {
     }), 'Edition purchased successfully!');
 }
 
-/**
- * Personoi sovelluksen brändin mukaan (esim. Coca-Cola värit)
- * Käyttö: ?brand=partner
- */
-export function applyBranding() {
-    const params = new URLSearchParams(window.location.search);
-    const brandFromUrl = params.get('brand');
-    const logoFromUrl = params.get('logo');
-    const colorFromUrl = params.get('color');
-
-    const liveId = params.get('live');
-
-    // Jos ollaan live-näkymässä, piilotetaan globaalit elementit heti ja poistutaan
-    if (liveId) {
-        document.body.classList.add('live-mode');
-        const header = document.querySelector('header');
-        const appContent = document.getElementById('app-content');
-        const navTabs = document.getElementById('nav-tabs');
-        const authPage = document.getElementById('auth-page');
-
-        if (header) header.style.display = 'none';
-        if (appContent) appContent.style.display = 'none';
-        if (navTabs) navTabs.style.display = 'none';
-        if (authPage) authPage.style.display = 'none';
-        return; // Ei sovelleta globaalia brändäystä live-näkymään
-    }
-
-    // Mahdollisuus nollata brändäys (?brand=none)
-    if (brandFromUrl === 'none') {
-        localStorage.removeItem('subsoccer-brand');
-        localStorage.removeItem('subsoccer-logo');
-        localStorage.removeItem('subsoccer-color');
-        state.brand = null;
-        state.brandLogo = null;
-        return;
-    }
-
-    // Haetaan tallennettu brändi tai käytetään URL-parametria
-    const brandId = brandFromUrl || localStorage.getItem('subsoccer-brand');
-    const logoUrl = logoFromUrl || localStorage.getItem('subsoccer-logo');
-    const colorHex = colorFromUrl || localStorage.getItem('subsoccer-color');
-
-    // Lisätään hienovarainen hiilikuitukuvio taustalle (Subtle Carbon Fiber)
-    document.body.style.backgroundColor = '#0a0a0a';
-    document.body.style.backgroundImage = `
-        linear-gradient(45deg, #0d0d0d 25%, transparent 25%),
-        linear-gradient(-45deg, #0d0d0d 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #0d0d0d 75%),
-        linear-gradient(-45deg, transparent 75%, #0d0d0d 75%)
-    `;
-    document.body.style.backgroundSize = '8px 8px';
-
-    if (brandFromUrl && brandFromUrl !== 'none') {
-        localStorage.setItem('subsoccer-brand', brandFromUrl);
-        state.brand = brandFromUrl;
-    }
-    if (logoFromUrl && logoFromUrl !== '') {
-        localStorage.setItem('subsoccer-logo', logoFromUrl);
-        state.brandLogo = logoFromUrl;
-    }
-    if (colorFromUrl && colorFromUrl !== '') {
-        localStorage.setItem('subsoccer-color', colorFromUrl);
-    }
-
-    if (brandId) {
-        state.brand = brandId;
-        state.brandLogo = logoUrl;
-
-        // Käytetään annettua väriä tai oletus-partner-punaista
-        let primaryColor = colorHex ? (colorHex.startsWith('#') ? colorHex : '#' + colorHex) : null;
-        if (!primaryColor && brandId === 'partner') primaryColor = '#F40009';
-
-        if (primaryColor) {
-            document.documentElement.style.setProperty('--sub-red', primaryColor);
-            document.documentElement.style.setProperty('--sub-gold', '#FFFFFF');
-        }
-
-        const logo = document.querySelector('.main-logo');
-        if (logo) {
-            if (logoUrl) {
-                logo.src = logoUrl;
-                logo.style.filter = 'none';
-            } else {
-                logo.style.filter = 'brightness(0) invert(1)';
-            }
-            logo.style.opacity = '1';
-            logo.style.display = 'block';
-        }
-
-        // Näytetään splash screen vain jos tultiin suoralla linkillä
-        if (brandFromUrl) {
-            showPartnerSplashScreen(logoUrl, primaryColor);
-        }
-        console.log(`🤝 Branding Applied: ${brandId} `);
-    } else {
-        // Palautetaan oletusilme (Subsoccer)
-        document.documentElement.style.setProperty('--sub-red', '#E30613');
-        document.documentElement.style.setProperty('--sub-gold', '#FFD700');
-        const logo = document.querySelector('.main-logo');
-        if (logo) {
-            logo.src = 'logo.png';
-            logo.style.filter = 'none';
-        }
-    }
-}
-
-function showPartnerSplashScreen(logoUrl, bgColor) {
-    const splash = document.createElement('div');
-    splash.id = 'partner-splash';
-    splash.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: ${bgColor || '#F40009'}; z-index: 100000;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        color: white; font-family: 'Resolve', sans-serif;
-        transition: opacity 0.8s ease-out;
-`;
-    splash.innerHTML = `
-    <div style="font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 20px; opacity: 0.8;">SUBSOCCER</div>
-        ${logoUrl ? `<img src="${logoUrl}" style="max-height: 80px; margin-bottom: 20px;">` : ''}
-        <div style="font-size: 2.5rem; font-weight: bold; letter-spacing: 2px; text-align: center; padding: 0 20px; line-height: 1.1;">
-            OFFICIAL<br>PARTNER
-        </div>
-        <div style="margin-top: 40px; width: 40px; height: 2px; background: white; opacity: 0.5;"></div>
-`;
-    document.body.appendChild(splash);
-    setTimeout(() => {
-        splash.style.opacity = '0';
-        setTimeout(() => splash.remove(), 800);
-    }, 2000);
-}
-
-/**
- * Injects a small footer link to the official site
- */
-function injectFooterLink() {
-    const container = document.getElementById('app-content');
-    if (!container || document.getElementById('subsoccer-footer-link')) return;
-
-    const footer = document.createElement('div');
-    footer.id = 'subsoccer-footer-link';
-    footer.className = 'subsoccer-footer';
-    footer.innerHTML = `<a href="https://www.subsoccer.com" target="_blank">WWW.SUBSOCCER.COM</a>`;
-    container.appendChild(footer);
-}
+// Branding logic moved to branding-service.js

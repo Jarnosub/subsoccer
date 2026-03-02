@@ -9,220 +9,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="style.css">
-    <style>
-        /* Fix navigation visibility */
-        .section {
-            display: none;
-        }
-
-        .section.active {
-            display: flex;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* Profile Controls Compact Style */
-        .profile-controls {
-            max-width: 300px;
-            margin: 10px auto;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .profile-controls input,
-        .profile-controls button {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 5px;
-            font-size: 0.9rem;
-        }
-
-        .profile-controls input#country-input {
-            text-align: center;
-            text-transform: lowercase;
-        }
-
-        /* Game Select Style */
-        select.dark-select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #111;
-            border: 1px solid #222;
-            color: #fff;
-            border-radius: 4px;
-            font-family: 'Open Sans', sans-serif;
-            appearance: none;
-            -webkit-appearance: none;
-        }
-
-        /* Compact Tournament Settings */
-        .tour-settings-compact {
-            margin-top: 5px;
-            border-top: 1px solid #222;
-            padding-top: 10px;
-        }
-
-        .tour-settings-compact input,
-        .tour-settings-compact select {
-            padding: 6px 10px;
-            margin-bottom: 5px;
-            font-size: 0.85rem;
-            height: 34px;
-            border-radius: 4px;
-        }
-
-        /* ============================================================ */
-        /* PRO MODE STYLES (MODULAR - CAN BE REMOVED) */
-        /* ============================================================ */
-        #pro-mode-view {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            background: #0a0a0a;
-            z-index: 99999999;
-            display: none;
-            flex-direction: row;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .pro-player-side {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            border: 2px solid #222;
-        }
-
-        .pro-player-left {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
-        }
-
-        .pro-player-right {
-            background: linear-gradient(135deg, #0a0a0a 0%, #0a0a1a 100%);
-        }
-
-        .pro-player-name {
-            font-family: 'SubsoccerLogo', sans-serif;
-            font-size: 1.2rem;
-            color: #666;
-            position: absolute;
-            top: 30px;
-            letter-spacing: 2px;
-        }
-
-        .pro-score {
-            font-family: 'SubsoccerLogo', sans-serif;
-            font-size: 10rem;
-            color: var(--sub-gold);
-            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
-            line-height: 1;
-        }
-
-        .pro-goals-visual {
-            font-size: 2rem;
-            margin-top: 20px;
-            letter-spacing: 10px;
-        }
-
-        .pro-status {
-            font-family: 'Resolve';
-            font-size: 0.9rem;
-            color: var(--sub-red);
-            position: absolute;
-            bottom: 40px;
-            letter-spacing: 3px;
-            opacity: 0.8;
-        }
-
-        .pro-divider {
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
-            box-shadow: 0 0 20px var(--sub-gold);
-        }
-
-        .pro-exit-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #222;
-            color: #fff;
-            border: 1px solid #444;
-            padding: 10px 20px;
-            border-radius: 4px;
-            font-family: 'Resolve';
-            font-size: 0.8rem;
-            cursor: pointer;
-            z-index: 100;
-        }
-
-        .pro-exit-btn:hover {
-            background: #333;
-        }
-
-        @keyframes goalFlash {
-            0% {
-                background: var(--sub-red);
-                transform: scale(1);
-            }
-
-            50% {
-                background: var(--sub-gold);
-                transform: scale(1.05);
-            }
-
-            100% {
-                background: var(--sub-red);
-                transform: scale(1);
-            }
-        }
-
-        .goal-flash {
-            animation: goalFlash 0.5s ease-in-out;
-        }
-
-        /* END PRO MODE STYLES */
-    </style>
+    <link rel="stylesheet" href="style.css?v=cachebust_1">
 </head>
 
 <body>
 
     <div id="victory-overlay">
         <div class="victory-player-name" id="victory-player-name">PLAYER NAME</div>
-        <div
-            style="font-family:var(--sub-logo-font); color:var(--sub-red); font-size:1.5rem; margin-bottom:20px; letter-spacing:2px;">
-            VICTORY</div>
+        <div class="victory-title">VICTORY</div>
 
-        <div
-            style="background:rgba(255,255,255,0.03); padding:30px; border-radius:var(--sub-radius); border:1px solid var(--sub-border); backdrop-filter:blur(10px); width:100%; max-width:320px; text-align:center;">
-            <div
-                style="color:#666; font-family:var(--sub-name-font); letter-spacing:2px; font-size:0.7rem; margin-bottom:10px;">
-                NEW ELO RATING</div>
+        <div class="victory-card">
+            <div class="victory-label">NEW ELO RATING</div>
             <div id="victory-elo-count">1500</div>
-            <div id="victory-elo-gain"
-                style="color:#4CAF50; font-family:var(--sub-name-font); font-size:1.1rem; margin-top:5px;">+24 POINTS
-            </div>
+            <div id="victory-elo-gain" class="victory-gain">+24 POINTS</div>
         </div>
 
         <div class="victory-controls">
@@ -234,7 +39,7 @@
     <div id="notification-container"></div>
 
     <header>
-        <img src="logo.png" class="main-logo" alt="Subsoccer" style="height: 40px; width: auto;">
+        <img src="logo.png" class="main-logo" alt="Subsoccer">
         <div class="beta-badge-container">
             <span class="beta-label">BETA VERSION</span>
             <span class="beta-date">FEB 2026 // v.1.0.4</span>
@@ -268,7 +73,7 @@
             <i class="fa-solid fa-user-gear"></i> EDIT PROFILE
         </button>
 
-        <button id="menu-item-sensors" class="menu-item">
+        <button id="menu-item-sensors" class="menu-item" style="display:none;">
             <i class="fa-solid fa-wave-square"></i> SENSOR TOOLS
         </button>
 
@@ -282,30 +87,27 @@
     </div>
 
     <div id="auth-page" class="fade-in">
-        <div id="login-form" class="container" style="text-align:center;">
-            <h2 style="font-family:'Resolve'; margin-bottom: 25px;">PLAYER LOGIN</h2>
+        <div id="login-form" class="container auth-container">
+            <h2 class="auth-title">PLAYER LOGIN</h2>
             <form id="auth-form-wrapper">
                 <input type="text" id="auth-user" placeholder="Username" autocomplete="username">
                 <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password">
                 <button id="btn-login" class="btn-red" type="submit">LOG IN</button>
                 <div style="margin-top: 15px;">
-                    <button id="btn-show-signup" type="button"
-                        style="width:100%; background:rgba(255, 215, 0, 0.1); border:1px solid var(--sub-gold); color:var(--sub-gold); padding:12px; border-radius:8px; font-family:'Russo One'; font-size:0.9rem; cursor:pointer; transition:all 0.2s; text-transform:uppercase;">CREATE
-                        ACCOUNT</button>
+                    <button id="btn-show-signup" type="button" class="btn-create-account">CREATE ACCOUNT</button>
                 </div>
             </form>
-            <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
+            <hr class="auth-separator">
             <input type="text" id="guest-nick" placeholder="Guest Nickname">
-            <button id="btn-guest-login" class="btn-red" style="background:#333;">JOIN AS GUEST</button>
+            <button id="btn-guest-login" class="btn-red btn-guest">JOIN AS GUEST</button>
         </div>
-        <div id="signup-form" class="container" style="text-align:center; display:none;">
-            <h2 style="font-family:'Resolve';">CREATE ACCOUNT</h2>
+        <div id="signup-form" class="container auth-container" style="display:none;">
+            <h2 class="auth-title">CREATE ACCOUNT</h2>
             <input type="text" id="reg-user" placeholder="Choose Username" autocomplete="username">
             <input type="email" id="reg-email" placeholder="Email Address" autocomplete="email">
             <input type="password" id="reg-pass" placeholder="Choose Password" autocomplete="new-password">
             <button id="btn-register" class="btn-red">REGISTER</button>
-            <div style="margin-top: 15px;"><span id="link-back-to-login"
-                    style="font-size: 0.75rem; color: #666; cursor: pointer;">Back to Login</span></div>
+            <div style="margin-top: 15px;"><span id="link-back-to-login" class="link-back">Back to Login</span></div>
         </div>
     </div>
 
@@ -332,77 +134,57 @@
                 <div id="profile-card-container"></div>
 
                 <!-- Edit Profile Form (Hidden) -->
-                <div id="profile-edit-fields"
-                    style="display:none; background: #111; padding: 20px; border-radius: 8px; margin-top: 15px; border: 1px solid #222; text-align: left;">
-
-                    <div
-                        style="display:flex; align-items:center; gap:15px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #333;">
-                        <img id="avatar-preview" src="placeholder-silhouette-5-wide.png"
-                            style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--sub-gold);">
+                <div id="profile-edit-fields" class="profile-edit-container">
+                    <div class="avatar-section">
+                        <img id="avatar-preview" class="avatar-preview" src="placeholder-silhouette-5-wide.png">
                         <div style="flex-grow:1;">
                             <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp"
                                 style="display:none;">
-                            <label for="avatar-file-input" class="btn-red"
-                                style="display:block; text-align:center; padding:10px; cursor:pointer; background:var(--sub-gold); color:#000; font-size:0.85rem; border-radius:4px;">
+                            <label for="avatar-file-input" class="avatar-upload-label">
                                 <i class="fa fa-camera"></i> Change Photo
                             </label>
-                            <div id="avatar-file-name"
-                                style="font-size:0.7rem; color:#888; font-family:'Open Sans'; text-align:center; margin-top:5px; min-height:14px;">
-                            </div>
+                            <div id="avatar-file-name" class="avatar-filename"></div>
                         </div>
                     </div>
 
-                    <p
-                        style="color: var(--sub-gold); font-size: 0.8rem; margin-bottom: 15px; font-family: 'Open Sans'; text-align: left;">
-                        <i class="fas fa-id-card"></i> Official Federation Member Details
-                    </p>
+                    <p class="profile-section-subtitle"><i class="fas fa-id-card"></i> Official Federation Member
+                        Details</p>
 
-                    <h4
-                        style="color:var(--sub-gold); font-size:0.7rem; border-bottom:1px solid #333; padding-bottom:5px; margin-top:15px;">
-                        👤 PERSONAL DETAILS</h4>
+                    <h4 class="profile-section-title">👤 PERSONAL DETAILS</h4>
 
-                    <div class="edit-group" style="margin-bottom: 12px; text-align: left;">
-                        <label
-                            style="font-size: 0.6rem; color: #666; font-family: 'Resolve'; letter-spacing: 1px; display: block; margin-bottom: 5px;">FULL
-                            NAME</label>
+                    <div class="edit-group">
+                        <label class="profile-label">FULL NAME</label>
                         <input type="text" id="edit-full-name" placeholder="Official Name">
                     </div>
 
-                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                        <div style="flex: 1; text-align: left;">
-                            <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve';">EMAIL</label>
+                    <div class="edit-row">
+                        <div class="edit-col">
+                            <label class="profile-label">EMAIL</label>
                             <input type="email" id="edit-email" placeholder="Recovery Email">
                         </div>
-                        <div style="flex: 1; text-align: left;">
-                            <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve';">PHONE</label>
+                        <div class="edit-col">
+                            <label class="profile-label">PHONE</label>
                             <input type="tel" id="edit-phone" placeholder="Contact No">
                         </div>
                     </div>
 
-                    <h4
-                        style="color:var(--sub-gold); font-size:0.7rem; border-bottom:1px solid #333; padding-bottom:5px; margin-top:15px;">
-                        📍 LOCATION</h4>
+                    <h4 class="profile-section-title">📍 LOCATION</h4>
 
-                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                        <div style="flex: 1; text-align: left;">
-                            <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve';">CITY</label>
+                    <div class="edit-row">
+                        <div class="edit-col">
+                            <label class="profile-label">CITY</label>
                             <input type="text" id="edit-city" placeholder="Home City">
                         </div>
-                        <div style="flex: 1; text-align: left;">
-                            <label style="font-size: 0.6rem; color: #666; font-family: 'Resolve';">COUNTRY</label>
-                            <select id="country-input"
-                                style="width:100%; padding:10px; background:#222; color:white; border:1px solid #444;"></select>
+                        <div class="edit-col">
+                            <label class="profile-label">COUNTRY</label>
+                            <select id="country-input" class="dark-select"></select>
                         </div>
                     </div>
 
-                    <h4
-                        style="color:var(--sub-gold); font-size:0.7rem; border-bottom:1px solid #333; padding-bottom:5px; margin-top:15px;">
-                        🔐 SECURITY</h4>
+                    <h4 class="profile-section-title">🔐 SECURITY</h4>
 
-                    <div class="edit-group" style="margin-bottom: 12px; text-align: left;">
-                        <label
-                            style="font-size: 0.6rem; color: #666; font-family: 'Resolve'; letter-spacing: 1px; display: block; margin-bottom: 5px;">NEW
-                            PASSWORD</label>
+                    <div class="edit-group">
+                        <label class="profile-label">NEW PASSWORD</label>
                         <input type="password" id="edit-password" placeholder="Leave empty to keep current">
                     </div>
 
@@ -415,35 +197,28 @@
 
                 <div id="profile-dashboard-ui">
                     <!-- Community Links -->
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin:20px 0;">
-                        <button id="btn-profile-leaderboard" class="btn-red"
-                            style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
+                    <div class="profile-dashboard-grid">
+                        <button id="btn-profile-leaderboard" class="btn-red btn-dashboard-action">
                             <i class="fa-solid fa-trophy"
                                 style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
                             GLOBAL RANKING
                         </button>
-                        <button id="btn-profile-map" class="btn-red"
-                            style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:15px; border-radius:4px;">
+                        <button id="btn-profile-map" class="btn-red btn-dashboard-action">
                             <i class="fa-solid fa-map-location-dot"
                                 style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
                             GAME MAP
                         </button>
                     </div>
-                    <button id="btn-profile-history" class="btn-red"
-                        style="background:#1a1a1a; border:1px solid #333; font-size:0.8rem; padding:10px; margin-bottom:20px; border-radius:4px;">
+                    <button id="btn-profile-history" class="btn-red btn-dashboard-history">
                         <i class="fa-solid fa-clock-rotate-left"></i> Match History
                     </button>
                 </div>
 
                 <!-- My Games Section -->
-                <div id="profile-games-ui"
-                    style="display:none; border-top:1px solid #222; padding-top:20px; margin-top:10px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h3
-                            style="font-family:'Resolve'; margin:0; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">
-                            My Game Tables</h3>
-                        <button id="btn-profile-register-game" class="btn-red"
-                            style="font-size:0.7rem; padding:6px 12px; background:#333; border-radius:4px;">
+                <div id="profile-games-ui" class="profile-games-section">
+                    <div class="profile-games-header">
+                        <h3 class="profile-games-title">My Game Tables</h3>
+                        <button id="btn-profile-register-game" class="btn-red btn-register-new-small">
                             + Register New
                         </button>
                     </div>
@@ -458,40 +233,33 @@
                     🛡️ Moderator Tools</h3>
                 <p style="font-size:0.8rem; color:#666; margin-bottom:20px;">System administration for Jarno Saarinen
                 </p>
-                <button id="btn-mod-partner-gen" class="btn-red"
-                    style="margin-bottom:10px; background:var(--sub-gold); color:#000; border:none;">🤝 PARTNER LINK
+                <button id="btn-mod-partner-gen" class="btn-red mod-btn mod-btn-primary">🤝 PARTNER LINK
                     GENERATOR</button>
-                <button id="btn-mod-view-users" class="btn-red"
-                    style="margin-bottom:10px; background:#222; border:1px solid #333;">VIEW ALL REGISTERED
+                <button id="btn-mod-view-users" class="btn-red mod-btn mod-btn-secondary">VIEW ALL REGISTERED
                     USERS</button>
-                <button id="btn-mod-download-logs" class="btn-red"
-                    style="margin-bottom:10px; background:#222; border:1px solid #333;">DOWNLOAD SYSTEM LOGS</button>
-                <button id="btn-mod-reset-lb" class="btn-red"
-                    style="margin-bottom:10px; background:#222; border:1px solid #333;">RESET GLOBAL
+                <button id="btn-mod-download-logs" class="btn-red mod-btn mod-btn-secondary">DOWNLOAD SYSTEM
+                    LOGS</button>
+                <button id="btn-mod-reset-lb" class="btn-red mod-btn mod-btn-secondary">RESET GLOBAL
                     LEADERBOARD</button>
             </div>
         </div>
 
         <div id="section-games" class="section">
             <div class="container">
-                <h3 style="font-family:'Resolve'; text-transform:uppercase; font-size:0.9rem; letter-spacing:1px;">
-                    Register New Game</h3>
+                <h3 class="section-header-title" style="margin-bottom: 15px;">Register New Game</h3>
 
                 <!-- Serial Number - Primary Game Identifier -->
-                <div
-                    style="background:#1a1a1a; border:1px solid var(--sub-gold); border-radius:4px; padding:15px; margin-bottom:15px;">
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                <div class="game-reg-serial-box">
+                    <div class="game-reg-serial-header">
                         <span style="font-size:1.2rem;">🔑</span>
                         <div>
-                            <div style="font-family:'Resolve'; color:var(--sub-gold); font-size:0.9rem;">GAME SERIAL
-                                NUMBER</div>
-                            <div style="font-size:0.75rem; color:#999; margin-top:2px;">Found on your game's QR code
-                                sticker</div>
+                            <div class="game-reg-serial-title">GAME SERIAL NUMBER</div>
+                            <div class="game-reg-serial-desc">Found on your game's QR code sticker</div>
                         </div>
                     </div>
                     <input type="text" id="game-serial-input" placeholder="e.g. SUB-2024-001234"
                         style="margin-bottom:10px;">
-                    <div style="font-size:0.7rem; color:#666; line-height:1.4;">
+                    <div class="game-reg-info">
                         ⭐ <span style="color:var(--sub-gold);">Serial number games:</span> Tournament eligible +
                         warranty<br>
                         📝 <span style="color:#999;">Leave empty for basic registration</span> (not tournament eligible)
@@ -501,39 +269,30 @@
                 <input type="text" id="game-name-input" placeholder="Give a Name for Your Game">
 
                 <!-- Location & Map -->
-                <div style="display:flex; gap:5px; margin-bottom:10px;">
+                <div class="location-search-row">
                     <input type="text" id="game-address-input" placeholder="Search Address (e.g. Helsinki)"
                         style="margin-bottom:0;">
-                    <button id="btn-search-location" class="btn-red"
-                        style="width:auto; padding:0 15px; font-size:0.9rem;">🔍</button>
+                    <button id="btn-search-location" class="btn-red btn-search-location">🔍</button>
                 </div>
-                <div id="map-picker"
-                    style="height: 200px; width: 100%; border-radius: 4px; margin-bottom: 10px; z-index: 1;"></div>
-                <div id="location-confirm"
-                    style="font-size: 0.8rem; color: var(--sub-gold); margin-bottom: 15px; min-height: 1.2em;"></div>
+                <div id="map-picker" class="map-picker-container"></div>
+                <div id="location-confirm" class="location-confirm-text"></div>
 
-                <div
-                    style="display:flex; align-items:center; margin-bottom:20px; background:#111; padding:10px; border-radius:4px; border:1px solid #222;">
+                <div class="public-checkbox-row">
                     <input type="checkbox" id="game-public-input" style="width:auto; margin:0 10px 0 0;"><label
-                        for="game-public-input" style="font-size:0.9rem; color:#ddd;">Make Public (Visible to
-                        everyone)</label>
+                        for="game-public-input" class="public-label">Make Public (Visible to everyone)</label>
                 </div>
 
                 <div id="game-form-actions">
                     <button id="btn-reg-game" class="btn-red">Register Game</button>
                     <div id="btn-edit-group" style="display:none; gap:10px;">
-                        <button id="btn-update-game" class="btn-red"
-                            style="background:var(--sub-gold); color:#000;">Update Game</button>
-                        <button id="btn-cancel-edit-game" class="btn-red" style="background:#333;">Cancel</button>
+                        <button id="btn-update-game" class="btn-red btn-update-game">Update Game</button>
+                        <button id="btn-cancel-edit-game" class="btn-red btn-cancel-edit">Cancel</button>
                     </div>
                 </div>
-                <hr style="border:0; border-top:1px solid #222; margin: 25px 0;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3
-                        style="font-family:'Resolve'; text-transform:uppercase; margin:0; font-size:0.9rem; letter-spacing:1px;">
-                        My Game Tables</h3>
-                    <button id="btn-view-transfer-requests" class="btn-red"
-                        style="font-size:0.75rem; padding:8px 15px; background:#333; border-radius:4px;">
+                <hr class="auth-separator">
+                <div class="section-header-row">
+                    <h3 class="section-header-title">My Game Tables</h3>
+                    <button id="btn-view-transfer-requests" class="btn-red btn-small-action">
                         📬 Transfer Requests
                     </button>
                 </div>
@@ -549,41 +308,54 @@
         </div>
 
         <div id="section-map" class="section">
-            <h2
-                style="font-family: 'Resolve'; color: var(--sub-red); text-align: center; margin-bottom: 15px; font-size: 1rem; text-transform:uppercase; letter-spacing:1px;">
-                Subsoccer Map</h2>
-            <div id="public-game-map"
-                style="width: 100%; flex-grow: 1; border-radius: 4px; border: 2px solid var(--sub-red);"></div>
+            <div class="container" style="height: 100%; display: flex; flex-direction: column; padding: 15px;">
+                <h3
+                    style="font-family:'Resolve'; text-transform:uppercase; margin: 0 0 15px 0; color: #fff; letter-spacing: 1px;">
+                    GAME MAP</h3>
+                <div class="location-search-row">
+                    <input type="text" id="public-map-search" placeholder="Find City or Country..."
+                        style="margin-bottom:0;">
+                    <button id="btn-search-public-map" class="btn-red btn-search-location">🔍</button>
+                </div>
+
+                <div id="public-game-map"
+                    style="width: 100%; height: 40vh; min-height: 300px; border-radius: 4px; border: 1px solid #333; flex-shrink: 0; margin-top: 10px;">
+                </div>
+
+                <!-- Map Filters -->
+                <div style="display:flex; gap:8px; margin-top:10px; margin-bottom:10px;" id="map-filters-container">
+                    <button class="map-filter-btn active" data-filter="all">ALL</button>
+                    <button class="map-filter-btn" data-filter="verified">⭐ VERIFIED</button>
+                    <button class="map-filter-btn" data-filter="tournaments">🏆 TOURNAMENTS</button>
+                </div>
+
+                <!-- Nearest Games List -->
+                <div
+                    style="margin-top:5px; flex-grow: 1; min-height: 0; display: flex; flex-direction: column; margin-bottom: 30px;">
+                    <h4
+                        style="font-family:'Resolve'; color:#666; font-size:0.75rem; margin-bottom:8px; letter-spacing:1px;">
+                        NEAREST LOCATIONS</h4>
+                    <div id="nearest-games-list" style="overflow-y: auto; flex-grow: 1; padding-right: 5px;"></div>
+                </div>
+            </div>
         </div>
 
         <div id="section-tournament" class="section active">
             <div id="tour-setup" class="container" style="text-align:center;">
 
                 <!-- Mode Selector Buttons -->
-                <div style="display:flex; gap:12px; margin-bottom:30px;">
-                    <button id="btn-quick-match-mode"
-                        onmouseover="if(this.style.background.includes('linear-gradient')) this.style.transform='translateY(-2px) scale(1.02)'"
-                        onmouseout="this.style.transform='translateY(0) scale(1)'"
-                        style="flex:1; padding:18px 15px; background:linear-gradient(135deg, #E30613 0%, #c00510 100%); color:#fff; border:none; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 15px rgba(227,6,19,0.3); position:relative; overflow:hidden;">
-                        <div style="font-size:1.8rem; margin-bottom:4px;"><i class="fas fa-trophy"></i></div>
-                        <div style="font-size:0.95rem; letter-spacing:0.5px;">OFFICIAL MATCH</div>
-                        <div
-                            style="font-size:0.65rem; color:rgba(255,255,255,0.7); margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">
-                            Official Ranked Game</div>
+                <div class="mode-selector-container">
+                    <button id="btn-quick-match-mode" class="mode-select-btn">
+                        <div class="mode-icon"><i class="fas fa-trophy"></i></div>
+                        <div class="mode-title">OFFICIAL MATCH</div>
+                        <div class="mode-desc">Official Ranked Game</div>
                     </button>
-                    <button id="btn-tournament-mode"
-                        onmouseover="if(this.style.background.includes('#1a1a1a')) this.style.background='#222'; else this.style.transform='translateY(-2px) scale(1.02)'"
-                        onmouseout="if(!this.style.background.includes('linear-gradient')) this.style.background='#1a1a1a'; this.style.transform='translateY(0) scale(1)'"
-                        style="flex:1; padding:18px 15px; background:#1a1a1a; color:#888; border:2px solid #333; border-radius:4px; font-family:'Resolve'; font-size:0.9rem; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden;">
-
-                        <div style="font-size:1.5rem; margin-bottom:8px;">
+                    <button id="btn-tournament-mode" class="mode-select-btn">
+                        <div class="mode-icon">
                             <i class="fa-solid fa-sitemap" id="tournament-icon-status"></i>
                         </div>
-
-                        <div style="font-size:0.95rem; letter-spacing:0.5px; text-transform:uppercase;">Tournament</div>
-                        <div
-                            style="font-size:0.65rem; color:#666; margin-top:3px; font-family:'Open Sans'; text-transform:none; font-weight:normal;">
-                            Bracket competition</div>
+                        <div class="mode-title">Tournament</div>
+                        <div class="mode-desc">Bracket competition</div>
                     </button>
                 </div>
 
@@ -604,18 +376,16 @@
                         </div>
                     </div>
 
-                    <div id="elo-preview"
-                        style="background:#000; padding:15px; border-radius:4px; border:1px solid #333; margin-bottom:20px; display:none; box-shadow: inset 0 0 15px rgba(255,255,255,0.05);">
-                        <div
-                            style="font-size:0.65rem; color:#666; font-family:'Resolve'; letter-spacing:2px; margin-bottom:5px;">
-                            ELO PREDICTION</div>
+                    <div id="elo-preview" class="elo-preview-box">
+                        <div class="elo-preview-label">ELO PREDICTION</div>
                         <div id="elo-prediction-text"></div>
-                        <button id="btn-clear-quick-players" class="tour-mode-toggle"
-                            title="Clear players and start fresh" style="padding: 8px 15px; font-size: 0.75rem;">NEW
+                        <button id="btn-clear-quick-players" class="tour-mode-toggle btn-clear-players"
+                            title="Clear players and start fresh">NEW
                             PLAYERS</button>
                     </div>
 
-                    <button class="btn-red" id="start-quick-match" style="font-size: 1.5rem; letter-spacing: 2px;">START MATCH</button>
+                    <button class="btn-red" id="start-quick-match" style="font-size: 1.5rem; letter-spacing: 2px;">START
+                        MATCH</button>
 
                 </div>
 
@@ -624,193 +394,155 @@
                     <h2 class="section-title"
                         style="margin-top: 20px; font-size: 1.1rem; color: #888; letter-spacing: 2px;">TOURNAMENT SETUP
                     </h2>
-                    
+
                     <!-- Add Player Card -->
-                    <div style="background:#1a1a1a; padding:15px; border-radius:4px; border:1px solid #333; margin-bottom:15px; text-align:left;">
-                        <div style="font-size:0.7rem; color:#666; font-family:'Resolve'; letter-spacing:1px; margin-bottom:8px; text-transform:uppercase;">Add Participants</div>
-                        
+                    <div class="tour-card">
+                        <div class="tour-card-title">Add Participants</div>
+
                         <div class="add-player-input-group" style="position: relative; display:flex; gap:8px;">
-                            <input type="text" id="add-p-input" placeholder="Player Name..." style="margin-bottom:0; background:#0a0a0a; border-color:#444; flex-grow:1;">
-                            <button id="btn-add-player" class="btn-red" style="width:auto; padding:0 20px; font-size:0.9rem;">ADD</button>
+                            <input type="text" id="add-p-input" placeholder="Player Name..."
+                                style="margin-bottom:0; background:#0a0a0a; border-color:#444; flex-grow:1;">
+                            <button id="btn-add-player" class="btn-red"
+                                style="width:auto; padding:0 20px; font-size:0.9rem;">ADD</button>
                             <div id="search-results"></div>
                         </div>
                         <div id="active-guests" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;"></div>
                     </div>
 
                     <!-- Roster Card -->
-                    <div style="background:#000; border:1px solid #333; border-radius:4px; overflow:hidden; margin-bottom:20px;">
-                        <div style="background:#1a1a1a; padding:10px 15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-family:'Resolve'; font-size:0.75rem; color:#fff; letter-spacing:1px;">ROSTER (<span id="pool-count" style="color:var(--sub-gold);">0</span>)</span>
-                            <button id="btn-clear-pool" style="background:none; border:none; color:#666; font-size:0.7rem; cursor:pointer; text-transform:uppercase; letter-spacing:1px; transition:color 0.2s;" onmouseover="this.style.color='var(--sub-red)'" onmouseout="this.style.color='#666'">
+                    <div class="tour-roster-card">
+                        <div class="tour-roster-header">
+                            <span class="tour-roster-title">ROSTER (<span id="pool-count"
+                                    style="color:var(--sub-gold);">0</span>)</span>
+                            <button id="btn-clear-pool" class="btn-clear-pool">
                                 <i class="fa fa-trash"></i> CLEAR
                             </button>
                         </div>
-                        
-                        <div id="pool-list" style="padding:10px; min-height:150px; max-height:400px; overflow-y:auto; background:#0a0a0a;">
-                            <!-- Empty state handled by JS -->
+
+                        <div id="pool-list" class="tour-roster-list">
+                            <!-- JS adds: <div class="pool-item" data-name="PlayerName">PlayerName <btn-remove></div> -->
                         </div>
                     </div>
 
                     <!-- Advanced Settings Container (Event Link etc) -->
                     <div id="advanced-tour-settings" style="margin-bottom: 20px; text-align: left;"></div>
 
+                    <!-- Tournament Name Input (Moved to bottom) -->
+                    <div style="margin-bottom: 15px;">
+                        <input type="text" id="local-tournament-name" placeholder="Tournament Name (Optional)"
+                            style="background:#1a1a1a; border:1px solid #333; color:#fff; text-align:center; font-size:0.9rem !important; padding:10px !important;">
+                    </div>
+
                     <!-- Start Button -->
-                    <button id="btn-start-tournament" class="btn-red" style="font-size: 1.5rem; letter-spacing: 2px; background: var(--sub-red); color: #fff; box-shadow: 0 4px 15px rgba(227, 6, 19, 0.3);">
+                    <button id="btn-start-tournament" class="btn-red btn-start-tour">
                         START TOURNAMENT
                     </button>
                 </div>
 
 
                 <!-- Audio panels shown only when Pro Mode is checked -->
-                <div id="pro-mode-audio-panels" style="display:none; margin-top:12px;">
+                <div id="pro-mode-audio-panels" class="audio-panels-container">
                     <!-- Audio Detection Status & Controls -->
-                    <div id="audio-status-panel"
-                        style="background:#111; padding:12px; border-radius:4px; border:1px solid #333; margin-bottom:10px;">
-                        <div
-                            style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <div id="audio-indicator"
-                                    style="width:10px; height:10px; border-radius:50%; background:#666;"></div>
-                                <span style="font-family:'Resolve'; font-size:0.75rem; color:#fff;">AUDIO
-                                    DETECTION</span>
+                    <div id="audio-status-panel" class="audio-status-panel">
+                        <div class="audio-header-row">
+                            <div class="audio-indicator-group">
+                                <div id="audio-indicator" class="audio-indicator-dot"></div>
+                                <span class="audio-label">AUDIO DETECTION</span>
                             </div>
-                            <button id="toggle-audio-btn"
-                                style="background:#333; color:#fff; border:none; padding:5px 12px; border-radius:4px; font-family:'Resolve'; font-size:0.7rem; cursor:pointer;">ACTIVATE</button>
+                            <button id="toggle-audio-btn" class="btn-audio-toggle">ACTIVATE</button>
                         </div>
 
                         <!-- Audio Intensity Meter -->
-                        <div id="audio-meter-wrapper" style="margin-bottom:12px; display:none;">
-                            <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:#444; margin-bottom:4px; font-family:'Resolve'; letter-spacing:1px;"><span>SILENT</span><span>THRESHOLD</span><span>GOAL!</span></div>
-                            <div id="audio-meter-container" style="background:#050505; height:10px; border-radius:5px; position:relative; border:1px solid #222; overflow:hidden;">
-                                <div id="audio-meter-bar" style="width:0%; height:100%; background:var(--sub-gold); transition:width 0.05s ease-out;"></div>
-                                <div id="audio-threshold-line" style="position:absolute; top:0; bottom:0; width:2px; background:var(--sub-red); left:65%; box-shadow:0 0 8px var(--sub-red); z-index:2;"></div>
+                        <div id="audio-meter-wrapper" class="audio-meter-wrapper">
+                            <div class="audio-meter-labels"><span>SILENT</span><span>THRESHOLD</span><span>GOAL!</span>
+                            </div>
+                            <div id="audio-meter-container" class="audio-meter-container">
+                                <div id="audio-meter-bar" class="audio-meter-bar"></div>
+                                <div id="audio-threshold-line" class="audio-threshold-line"></div>
                             </div>
                         </div>
 
-                        <div id="audio-frequency-display"
-                            style="font-size:0.65rem; color:#666; font-family:'Open Sans'; display:none;">
-                            <div>Goal 1: <span id="freq-goal1" style="color:var(--sub-gold);">2000</span> Hz | Goal 2: <span id="freq-goal2" style="color:var(--sub-gold);">3500</span> Hz
+                        <div class="audio-control-row">
+                            <div
+                                style="display:flex; justify-content:space-between; font-size:0.7rem; color:#888; margin-bottom:5px; font-family:'Resolve';">
+                                <span>TRIGGER SENSITIVITY</span>
+                                <span id="audio-threshold-value" style="color:var(--sub-gold);">65%</span>
                             </div>
-                            <div style="margin-top:4px;">Levels: G1: <span id="level-goal1" style="color:#fff;">0.00</span> | G2: <span id="level-goal2" style="color:#fff;">0.00</span></div>
+                            <input type="range" id="audio-threshold-slider" min="10" max="95" value="65"
+                                style="width:100%; accent-color:var(--sub-gold); cursor:pointer;">
                         </div>
                     </div>
 
-                    <!-- Audio Recording Tool (Testing) -->
-                    <div id="audio-test-panel"
-                        style="background:#0a0a0a; padding:10px; border-radius:4px; border:1px dashed #333;">
-                        <div
-                            style="font-family:'Resolve'; font-size:0.7rem; color:#888; margin-bottom:8px; text-align:center;">
-                            🎙️ GOAL SOUND RECORDER (Testing)</div>
-                        <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center;">
-                            <button id="btn-record-goal-1"
-                                style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍
-                                Record Goal 1</button>
-                            <button id="btn-record-goal-2"
-                                style="background:#222; color:#fff; border:1px solid #444; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">📍
-                                Record Goal 2</button>
-                        </div>
-                        <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:center; margin-top:5px;">
-                            <button id="btn-test-goal-1"
-                                style="background:#1a1a1a; color:#888; border:1px solid #333; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">🔊 Test 2000Hz</button>
-                            <button id="btn-test-goal-2"
-                                style="background:#1a1a1a; color:#888; border:1px solid #333; padding:6px 10px; border-radius:4px; font-family:'Open Sans'; font-size:0.7rem; cursor:pointer; flex:1;">🔊 Test 3500Hz</button>
-                        </div>
-                        <div id="recording-status"
-                            style="font-size:0.65rem; color:#666; text-align:center; margin-top:5px; font-family:'Open Sans';">
-                        </div>
-                    </div>
+                    <!-- Audio panels simplified for production -->
                 </div>
             </div>
             <!-- END PRO MODE TOGGLE (including audio panels) -->
         </div>
 
-        <div id="tour-engine"
-            style="display:none; width:100%; max-width:450px; flex-direction:column; align-items:center;">
+        <div id="tour-engine">
             <div id="bracket-area" style="width:100%;"></div>
-            <button id="next-rd-btn" class="btn-red" style="display:none; margin-top:15px;">Next Round</button>
-            <button id="save-btn" class="btn-red"
-                style="display:none; background:var(--sub-gold)!important; color:#000!important; margin-top:15px;">Save
-                Results</button>
+            <button id="next-rd-btn" class="btn-red btn-next-round">Next Round</button>
+            <button id="save-btn" class="btn-red btn-save-results">Save Results</button>
         </div>
-    </div>
 
-    <div id="section-leaderboard" class="section">
-        <div class="container" style="margin-bottom: 30px;">
-            <h3 style="font-family:'Resolve'; text-transform:uppercase; margin: 0 0 10px 0; color:var(--sub-gold);">🏆
-                Top Players</h3>
-            <div id="lb-data"></div>
+        <div id="section-leaderboard" class="section">
+            <div class="container" style="margin-bottom: 30px;">
+                <div id="lb-data"></div>
+            </div>
         </div>
-    </div>
-    <div id="section-history" class="section">
-        <div class="container" id="hist-list"></div>
-    </div>
-
-    <div class="feedback-footer">
-        <a href="https://forms.gle/E4y5g4jPqCaPk5Sy5" target="_blank" class="feedback-btn">
-            <i class="fa-solid fa-comment-dots"></i> GIVE FEEDBACK
-        </a>
-    </div>
+        <div id="section-history" class="section">
+            <div class="container" id="hist-list"></div>
+        </div>
     </div>
 
     <script type="module" src="main.js?v=2"></script>
-    <div style="position: fixed; bottom: 5px; right: 10px; font-size: 12px; color: #555;">v.1.0.1</div>
+    <div class="app-version">v.1.0.4</div>
 
-    <div id="card-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:20000; justify-content:center; align-items:center; flex-direction:column;">
+    <div id="card-modal" class="card-modal-overlay">
         <div id="modal-card-container"></div>
-        <button id="btn-close-card-modal"
-            style="margin-top:20px; background:var(--sub-red); color:white; border:none; padding:10px 30px; border-radius:4px; font-family:'Resolve'; cursor:pointer;">Close</button>
+        <button id="btn-close-card-modal" class="btn-close-modal">Close</button>
     </div>
 
     <!-- ============================================================ -->
     <!-- PRO MODE VIEW (MODULAR - CAN BE REMOVED) -->
     <!-- ============================================================ -->
     <div id="pro-mode-view">
+        <!-- Audio Meter Overlay (Visible when mic is active) -->
+        <div id="pro-audio-meter"
+            style="position:fixed; bottom:80px; left:50%; transform:translateX(-50%); width:200px; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; z-index:1000; overflow:hidden; border:1px solid rgba(255,255,255,0.1); display:none;">
+            <div id="pro-audio-meter-fill"
+                style="height:100%; width:0%; background:var(--sub-gold); transition:width 0.1s ease-out;"></div>
+            <div id="pro-audio-threshold-marker"
+                style="position:absolute; top:0; bottom:0; width:2px; background:var(--sub-red); left:65%;"></div>
+        </div>
+
         <!-- Rules Overlay inside Pro Mode -->
-        <div id="pro-rules-overlay" class="rules-overlay"
-            style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:200; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-            <div class="rules-header"
-                style="font-family:'Resolve'; font-size:2.5rem; color:var(--sub-gold); margin-bottom:30px; text-transform:uppercase; letter-spacing:2px;">
-                OFFICIAL RULES</div>
-            <div class="rules-list"
-                style="display:flex; flex-direction:column; gap:15px; max-width:500px; width:90%; margin-bottom:40px;">
-                <div class="rule-item"
-                    style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:4px; border-left:4px solid var(--sub-red); text-align:left;">
-                    <span class="rule-number"
-                        style="font-family:'Resolve'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">1</span>
+        <div id="pro-rules-overlay" class="rules-overlay">
+            <div class="rules-header">OFFICIAL RULES</div>
+            <div class="rules-list">
+                <div class="rule-item">
+                    <span class="rule-number">1</span>
                     <div class="rule-text">
-                        <div class="rule-title" style="font-family:'Resolve'; font-size:1.1rem; color:var(--sub-gold);">
-                            START</div>
-                        <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">The winner
-                            of Rock/Paper/Scissors starts.</div>
+                        <div class="rule-title">START</div>
+                        <div class="rule-desc">The winner of Rock/Paper/Scissors starts.</div>
                     </div>
                 </div>
-                <div class="rule-item"
-                    style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:4px; border-left:4px solid var(--sub-red); text-align:left;">
-                    <span class="rule-number"
-                        style="font-family:'Resolve'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">2</span>
+                <div class="rule-item">
+                    <span class="rule-number">2</span>
                     <div class="rule-text">
-                        <div class="rule-title" style="font-family:'Resolve'; font-size:1.1rem; color:var(--sub-gold);">
-                            KICK-OFF</div>
-                        <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">Kick-off
-                            must be taken inside your own goal area.</div>
+                        <div class="rule-title">KICK-OFF</div>
+                        <div class="rule-desc">Kick-off must be taken inside your own goal area.</div>
                     </div>
                 </div>
-                <div class="rule-item"
-                    style="display:flex; align-items:center; gap:15px; background:rgba(255,255,255,0.08); padding:15px; border-radius:4px; border-left:4px solid var(--sub-red); text-align:left;">
-                    <span class="rule-number"
-                        style="font-family:'Resolve'; font-size:1.5rem; color:#666; min-width:30px; text-align:center;">3</span>
+                <div class="rule-item">
+                    <span class="rule-number">3</span>
                     <div class="rule-text">
-                        <div class="rule-title" style="font-family:'Resolve'; font-size:1.1rem; color:var(--sub-gold);">
-                            WINNER</div>
-                        <div class="rule-desc" style="font-family:'Open Sans'; font-size:0.9rem; color:#ddd;">The first
-                            player to score 3 goals wins.</div>
+                        <div class="rule-title">WINNER</div>
+                        <div class="rule-desc">The first player to score 3 goals wins.</div>
                     </div>
                 </div>
             </div>
-            <button id="btn-accept-rules" class="btn-red pulse-anim"
-                style="width: auto !important; padding:15px 50px !important; font-size:1.2rem; border-radius:4px; box-shadow:0 0 20px rgba(227,6,19,0.4); margin-top: 20px;">I
-                UNDERSTAND - PLAY</button>
+            <button id="btn-accept-rules" class="btn-red pulse-anim btn-rules-accept">I UNDERSTAND - PLAY</button>
         </div>
 
         <div id="pro-player-left" class="pro-player-side pro-player-left" style="cursor:pointer;">
@@ -836,62 +568,20 @@
 
         <!-- Bottom Control Bar -->
         <div class="pro-controls-bar">
-            <button id="btn-pro-undo" class="pro-control-btn" title="Undo Last Goal"><i class="fa-solid fa-rotate-left"></i></button>
-            <button id="btn-pro-reset" class="pro-control-btn" title="Reset Match"><i class="fa-solid fa-arrows-rotate"></i></button>
-            <button id="btn-pro-mic" class="pro-control-btn" title="Toggle Mic"><i class="fa-solid fa-microphone-slash"></i></button>
-            <button id="btn-pro-sound" class="pro-control-btn" title="Toggle Sound"><i class="fa-solid fa-volume-high"></i></button>
+            <button id="btn-pro-undo" class="pro-control-btn" title="Undo Last Goal"><i
+                    class="fa-solid fa-rotate-left"></i></button>
+            <button id="btn-pro-reset" class="pro-control-btn" title="Reset Match"><i
+                    class="fa-solid fa-arrows-rotate"></i></button>
+            <button id="btn-pro-mic" class="pro-control-btn" title="Toggle Mic"><i
+                    class="fa-solid fa-microphone-slash"></i></button>
+            <button id="btn-pro-sound" class="pro-control-btn" title="Toggle Sound"><i
+                    class="fa-solid fa-volume-high"></i></button>
         </div>
     </div>
     <!-- END PRO MODE VIEW -->
 
     <!-- Instant Play Onboarding Handler -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const params = new URLSearchParams(window.location.search);
-            const authPage = document.getElementById('auth-page');
-
-            // Check if user comes from Instant Play victory
-            if (params.get('action') === 'claim_result') {
-                const p1Score = params.get('p1_score');
-                const p2Score = params.get('p2_score');
-
-                // If user is on login screen (not logged in)
-                if (authPage && getComputedStyle(authPage).display !== 'none') {
-                    // Switch to signup form automatically
-                    if (typeof toggleAuth === 'function') toggleAuth(true);
-
-                    // Add motivational message
-                    const signupForm = document.getElementById('signup-form');
-                    if (signupForm && !document.getElementById('victory-claim-msg')) {
-                        const msgDiv = document.createElement('div');
-                        msgDiv.id = 'victory-claim-msg';
-                        msgDiv.style.cssText = "background: rgba(255, 215, 0, 0.1); border: 1px solid var(--sub-gold); color: #fff; padding: 15px; border-radius: var(--sub-radius); margin-bottom: 25px; font-family: 'Open Sans'; font-size: 0.9rem; line-height: 1.5; text-align: center;";
-                        msgDiv.innerHTML = `<span style="color:var(--sub-gold); font-weight:bold; font-size:1.2rem; display:block; margin-bottom:5px;">🏆 CLAIM YOUR VICTORY!</span>Create your Pro account to save that <strong>${Math.max(p1Score, p2Score)}-${Math.min(p1Score, p2Score)}</strong> win. Start your journey to the Global Top 100 today!`;
-
-                        const title = signupForm.querySelector('h2');
-                        if (title) title.parentNode.insertBefore(msgDiv, title.nextSibling);
-                    }
-                }
-            }
-
-            // Check if user comes from Live Event link
-            const liveId = params.get('live');
-            if (liveId && authPage && getComputedStyle(authPage).display !== 'none') {
-                if (!document.getElementById('live-event-msg')) {
-                    const msgDiv = document.createElement('div');
-                    msgDiv.id = 'live-event-msg';
-                    msgDiv.style.cssText = "background: rgba(255, 215, 0, 0.1); border: 1px solid var(--sub-gold); color: #fff; padding: 15px; border-radius: var(--sub-radius); margin-bottom: 25px; font-family: 'Open Sans'; font-size: 0.9rem; line-height: 1.5; text-align: center;";
-                    msgDiv.innerHTML = `<span style="color:var(--sub-gold); font-weight:bold; font-size:1.2rem; display:block; margin-bottom:5px;">📢 LIVE EVENT ACCESS</span>Join as a guest or log in to view the live brackets and real-time scores for this event!`;
-
-                    const loginForm = document.getElementById('login-form');
-                    if (loginForm) {
-                        const title = loginForm.querySelector('h2');
-                        if (title) title.parentNode.insertBefore(msgDiv, title.nextSibling);
-                    }
-                }
-            }
-        });
-    </script>
+    <script src="onboarding.js" type="module"></script>
 
     <!-- Audio Telemetry HUD (Invisible to touch, visible for debugging) -->
     <div id="audio-telemetry" class="audio-hud">

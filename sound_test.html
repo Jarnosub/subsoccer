@@ -1,163 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fi">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subsoccer Sound System Diagnostic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer Sound Generator</title>
     <style>
         body {
-            background-color: #1a1a1a;
-            color: #e0e0e0;
-            font-family: 'Open Sans', sans-serif;
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
             padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
+            box-sizing: border-box;
+            text-align: center;
         }
-        h1 { color: #FFD700; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .panel {
-            background: #222;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #333;
+
+        h1 {
+            color: #ffd700;
+            /* Subsoccer Gold */
+            margin-bottom: 5px;
         }
+
+        p {
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
         button {
-            background: #333;
+            background: #1a1a1a;
+            border: 2px solid #333;
             color: white;
-            border: 1px solid #555;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 25px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 1rem;
-            margin-right: 10px;
-            margin-bottom: 10px;
-            transition: all 0.2s;
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
-        button:hover { background: #444; border-color: #FFD700; }
-        button.primary { background: #E30613; border-color: #E30613; }
-        button.primary:hover { background: #c00510; }
-        
-        #console-log {
-            background: #000;
-            color: #0f0;
-            font-family: monospace;
-            padding: 15px;
-            height: 300px;
-            overflow-y: auto;
-            border-radius: 4px;
-            border: 1px solid #333;
-            white-space: pre-wrap;
+
+        button:active {
+            transform: scale(0.96);
+            background: #2a2a2a;
         }
-        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #111; }
-        .log-error { color: #ff5555; }
-        .log-warn { color: #ffaa00; }
+
+        button.playing {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .freq-label {
+            font-size: 0.9rem;
+            color: #ffd700;
+            font-weight: normal;
+        }
+
+        .hint {
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: #666;
+            font-style: italic;
+        }
     </style>
 </head>
+
 <body>
-    <h1>🔊 Sound System Diagnostic</h1>
 
-    <div class="panel">
-        <h3>1. Initialization</h3>
-        <p>Browsers require user interaction to start audio.</p>
-        <button onclick="initAudio()" class="primary">▶️ Initialize Audio Engine</button>
-        <span id="audio-status">Status: 🔴 Suspended/Not Started</span>
+    <h1>SOITTIMEN ÄÄNITESTI</h1>
+    <p>Paina nappeja soittaaksesi maalin äänisignaaleja anturille.</p>
+
+    <div class="btn-container">
+        <button id="btn-goal-1" onclick="playBeep(2000, this)">
+            MAALI 1 (Pelaaja 1)
+            <span class="freq-label">2000 Hz taajuus</span>
+        </button>
+
+        <button id="btn-goal-2" onclick="playBeep(3500, this)">
+            MAALI 2 (Pelaaja 2)
+            <span class="freq-label">3500 Hz taajuus</span>
+        </button>
     </div>
 
-    <div class="panel">
-        <h3>2. Sound Tests</h3>
-        <button onclick="window.soundEffects.playGoalSound()">⚽ Play Goal Sound</button>
-        <button onclick="window.soundEffects.playCrowdCheer()">👏 Play Crowd Cheer</button>
-        <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
-        <label>Volume: <input type="range" min="0" max="1" step="0.1" value="0.7" oninput="window.soundEffects.setVolume(this.value)"></label>
-    </div>
-
-    <div class="panel">
-        <h3>3. System Log</h3>
-        <div id="console-log"></div>
-    </div>
-
-    <!-- Load Sound System -->
-    <script src="sound-effects.js"></script>
+    <div class="hint">Nosta puhelimen äänenvoimakkuus maksimiin ja aseta se anturin lähelle.</div>
 
     <script>
-        // Redirect console logging to screen
-        const logEl = document.getElementById('console-log');
-        
-        function logToScreen(msg, type = 'info') {
-            const div = document.createElement('div');
-            div.className = 'log-entry';
-            if (type === 'error') div.className += ' log-error';
-            if (type === 'warn') div.className += ' log-warn';
-            
-            const time = new Date().toLocaleTimeString();
-            div.textContent = `[${time}] ${msg}`;
-            
-            logEl.appendChild(div);
-            logEl.scrollTop = logEl.scrollHeight;
-        }
+        // Web Audio API Context
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
 
-        // Override console methods
-        const originalLog = console.log;
-        console.log = function(...args) {
-            originalLog.apply(console, args);
-            logToScreen(args.join(' '));
-        };
-
-        const originalWarn = console.warn;
-        console.warn = function(...args) {
-            originalWarn.apply(console, args);
-            logToScreen(args.join(' '), 'warn');
-        };
-
-        const originalError = console.error;
-        console.error = function(...args) {
-            originalError.apply(console, args);
-            logToScreen(args.join(' '), 'error');
-        };
-
-        // Init function
         function initAudio() {
-            if (!window.soundEffects || !window.soundEffects.audioContext) {
-                console.error("SoundEffects system not loaded properly.");
-                return;
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
             }
-
-            const ctx = window.soundEffects.audioContext;
-            if (ctx.state === 'suspended') {
-                ctx.resume().then(() => {
-                    console.log("✅ AudioContext resumed successfully!");
-                    updateStatus();
-                }).catch(e => console.error("Resume failed:", e));
-            } else {
-                console.log("ℹ️ AudioContext state is: " + ctx.state);
-                updateStatus();
-            }
-            
-            // Try to play a silent sound to unlock iOS audio
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            gain.gain.value = 0;
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(0);
-            osc.stop(0.1);
-        }
-
-        function updateStatus() {
-            const statusEl = document.getElementById('audio-status');
-            if (window.soundEffects && window.soundEffects.audioContext && window.soundEffects.audioContext.state === 'running') {
-                statusEl.innerHTML = "Status: 🟢 Running (Active)";
-                statusEl.style.color = "#4CAF50";
-            } else {
-                statusEl.innerHTML = "Status: 🔴 Suspended/Closed";
-                statusEl.style.color = "#f44336";
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
             }
         }
 
-        // Check status periodically
-        setInterval(updateStatus, 1000);
+        function playBeep(frequency, buttonElement) {
+            initAudio();
 
-        console.log("Diagnostic tool loaded. Click 'Initialize Audio Engine' to start.");
+            // Visuaalinen palaute
+            buttonElement.classList.add('playing');
+            setTimeout(() => buttonElement.classList.remove('playing'), 200);
+
+            // Audio Oskillaattori
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sine'; // Puhdas siniaalto kuten alkuperäisessäkin
+            oscillator.frequency.value = frequency;
+
+            // Attack ja Release, jottei ääni "napsahda" alussa ja lopussa
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
+
+            // Määritä kesto 0.1 sekuntia jotta se rekisteröityisi anturiin, mutta ei jäisi piippaamaan liian pitkään
+            gainNode.gain.setValueAtTime(1, audioCtx.currentTime + 0.1);
+            gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.15);
+        }
     </script>
 </body>
+
 </html>

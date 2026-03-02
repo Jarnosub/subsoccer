@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Subsoccer - Instant Play</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,11 +24,13 @@
         @font-face {
             font-family: 'Subsoccer';
             src: url('fonts/Subsoccer-2-Regular.otf') format('opentype');
+            font-display: swap;
         }
 
         @font-face {
             font-family: 'Resolve';
             src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+            font-display: swap;
         }
 
         * {
@@ -512,24 +517,6 @@
             display: none;
         }
 
-        /* Exit button */
-        .exit-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            z-index: 400;
-            backdrop-filter: blur(5px);
-            transition: all 0.2s;
-        }
-
         /* Rules Overlay */
         .rules-overlay {
             position: fixed;
@@ -624,8 +611,8 @@
             background: #c00510;
         }
     </style>
-    <script src="audio-engine.js"></script>
-    <script src="sound-effects.js"></script>
+    <script src="audio-engine.js" defer></script>
+    <script src="sound-effects.js" defer></script>
 </head>
 
 <body>

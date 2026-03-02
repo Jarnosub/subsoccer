@@ -15,7 +15,7 @@ let finishMatchTimer = null;
 export async function handleQuickSearch(input, slot) {
     const v = input.value.trim().toUpperCase();
     const resDiv = document.getElementById(`${slot}-results`);
-    if (!v) { resDiv.style.display = 'none'; return; }
+    if (!v) { if (resDiv) resDiv.style.display = 'none'; return; }
 
     try {
         const { data: foundPlayers, error } = await _supabase
@@ -27,18 +27,20 @@ export async function handleQuickSearch(input, slot) {
         if (error) throw error;
 
         const dbNames = foundPlayers ? foundPlayers.map(p => p.username) : [];
-        
+
         const guestMatches = state.sessionGuests
             .filter(g => g.includes(v) && !dbNames.includes(g))
             .slice(0, 5);
 
         const combined = [...dbNames, ...guestMatches];
 
-        resDiv.innerHTML = safeHTML`
-            ${combined.map(n => safeHTML`<div class="search-item" data-action="select-quick-player" data-player="${n}" data-slot="${slot}">${n}</div>`)}
-            <div class="search-item" style="color:var(--sub-gold);" data-action="select-quick-player" data-player="${v}" data-slot="${slot}">Add: "${v}"</div>
-        `.toString();
-        resDiv.style.display = 'block';
+        if (resDiv) {
+            resDiv.innerHTML = safeHTML`
+                ${combined.map(n => safeHTML`<div class="search-item" data-action="select-quick-player" data-player="${n}" data-slot="${slot}">${n}</div>`)}
+                <div class="search-item" style="color:var(--sub-gold);" data-action="select-quick-player" data-player="${v}" data-slot="${slot}">Add: "${v}"</div>
+            `.toString();
+            resDiv.style.display = 'block';
+        }
     } catch (e) {
         console.error("Quick search failed:", e);
     }
@@ -47,10 +49,10 @@ export async function handleQuickSearch(input, slot) {
 export async function selectQuickPlayer(name, slot) {
     const inputId = slot === 'claim' ? 'claim-opponent-search' : `${slot}-quick-search`;
     const resultsId = slot === 'claim' ? 'claim-results' : `${slot}-results`;
-    
+
     const input = document.getElementById(inputId);
     if (input) input.value = name;
-    
+
     const results = document.getElementById(resultsId);
     if (results) results.style.display = 'none';
 
@@ -63,7 +65,6 @@ export async function selectQuickPlayer(name, slot) {
         updateEloPreview();
         if (state.proModeEnabled) {
             document.getElementById('audio-status-panel').style.display = 'block';
-            document.getElementById('audio-test-panel').style.display = 'block';
         }
     }
 }
@@ -86,7 +87,7 @@ export async function startQuickMatch() {
     state.quickP2 = document.getElementById('p2-quick-search').value.trim().toUpperCase();
     if (!state.quickP1 || !state.quickP2) return showNotification("Select both players!", "error");
     if (state.quickP1 === state.quickP2) return showNotification("Select different players!", "error");
-    
+
     startProMatch();
 }
 
@@ -103,7 +104,7 @@ export async function finalizeQuickMatch(winnerName, context = null) {
             p2Score: state.proScoreP2,
             tournamentName: context
         });
-        
+
         if (result.success) {
             if (window.audioEngine) window.audioEngine.stopListening();
             showVictory(winnerName, result.newElo, result.gain, result.isGuest);
@@ -116,11 +117,16 @@ export async function finalizeQuickMatch(winnerName, context = null) {
 
 export function showVictory(name, newElo, gain, isGuest = false) {
     document.getElementById('app-content').style.display = 'none';
+
+    // FIX: Piilotetaan sticky-tallenna-nappi, koska se on body-elementin alla
+    const saveBtn = document.getElementById('save-btn');
+    if (saveBtn) saveBtn.style.display = 'none';
+
     document.getElementById('victory-player-name').innerText = name;
     document.getElementById('victory-elo-count').innerText = newElo;
     document.getElementById('victory-elo-gain').innerText = `+${gain} POINTS`;
     const overlay = document.getElementById('victory-overlay');
-    
+
     // Etsitään napit ja lisätään Pro-luokat
     const buttons = overlay.querySelectorAll('button');
     if (buttons.length >= 2) {
@@ -138,7 +144,7 @@ export function showVictory(name, newElo, gain, isGuest = false) {
         msg.className = 'fade-in';
         msg.style = "margin-top: 25px; color: #fff; font-size: 0.85rem; max-width: 280px; background: rgba(255,215,0,0.1); padding: 15px; border-radius: var(--sub-radius); border: 1px solid rgba(255,215,0,0.2); text-align:center; line-height:1.4;";
         msg.innerHTML = "<span style='color:var(--sub-gold); font-weight:bold; display:block; margin-bottom:5px;'>🔥 GREAT WIN!</span> Create a free account to save your progress and climb the Global Leaderboard.";
-        
+
         // Lisätään viesti ennen nappeja
         const controls = overlay.querySelector('.victory-controls') || overlay.querySelector('button').parentElement;
         controls.before(msg);
@@ -162,9 +168,29 @@ export function closeVictoryOverlay() {
     document.getElementById('victory-overlay').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
     document.getElementById('audio-status-panel').style.display = 'none';
-    document.getElementById('audio-test-panel').style.display = 'none';
     if (window.fetchLB) window.fetchLB();
     if (window.fetchHist) window.fetchHist();
+
+    // Jos turnausnäkymä (tour-engine) on auki, nollataan se takaisin setup-tilaan
+    const tourEngine = document.getElementById('tour-engine');
+    if (tourEngine && tourEngine.style.display !== 'none') {
+        tourEngine.style.display = 'none';
+        const tourSetup = document.getElementById('tour-setup');
+        if (tourSetup) tourSetup.style.display = ''; // Palauttaa CSS-määrityksen (flex)
+
+        const bracketArea = document.getElementById('bracket-area');
+        if (bracketArea) bracketArea.innerHTML = '';
+
+        const saveBtn = document.getElementById('save-btn');
+        if (saveBtn) {
+            saveBtn.style.display = 'none';
+            saveBtn.classList.remove('sticky-bottom-action');
+            if (saveBtn.parentNode !== tourEngine) {
+                tourEngine.appendChild(saveBtn);
+            }
+        }
+    }
+
     state.currentPage = 'tournament';
 }
 
@@ -179,7 +205,6 @@ export function clearQuickMatchPlayers() {
     state.quickP1 = null; state.quickP2 = null;
     document.getElementById('elo-preview').style.display = 'none';
     document.getElementById('audio-status-panel').style.display = 'none';
-    document.getElementById('audio-test-panel').style.display = 'none';
     document.getElementById('p1-quick-search').focus();
 }
 
@@ -202,10 +227,10 @@ export function toggleProMode() {
     const proSection = document.getElementById('pro-mode-section');
     checkbox.checked = !checkbox.checked;
     state.proModeEnabled = checkbox.checked;
-    
+
     const startBtn = document.getElementById('start-quick-match');
     const audioPanels = document.getElementById('pro-mode-audio-panels');
-    
+
     if (state.proModeEnabled) {
         startBtn.textContent = 'START MATCH';
         startBtn.style.background = 'linear-gradient(135deg, var(--sub-gold), #d4a017)';
@@ -225,13 +250,13 @@ export function toggleProMode() {
 export async function startProMatch() {
     state.proScoreP1 = 0; state.proScoreP2 = 0; state.proGoalHistory = [];
     isMatchEnding = false; state.proModeActive = true;
-    
+
     document.getElementById('pro-p1-name').textContent = state.quickP1;
     document.getElementById('pro-p2-name').textContent = state.quickP2;
     updateProScore();
-    
+
     document.getElementById('app-content').style.display = 'none';
-    
+
     // Update control bar states
     const micBtn = document.getElementById('btn-pro-mic');
     const soundBtn = document.getElementById('btn-pro-sound');
@@ -241,13 +266,13 @@ export async function startProMatch() {
         micBtn.innerHTML = isListening ? '<i class="fa-solid fa-microphone"></i>' : '<i class="fa-solid fa-microphone-slash"></i>';
     }
     if (soundBtn && window.soundEffects) soundBtn.classList.toggle('active', window.soundEffects.enabled);
-    
+
     document.getElementById('pro-mode-view').style.display = 'flex';
-    
+
     const rulesOverlay = document.getElementById('pro-rules-overlay');
-    if (rulesOverlay) { 
-        rulesOverlay.style.display = 'flex'; 
-        state.proModeActive = false; 
+    if (rulesOverlay) {
+        rulesOverlay.style.display = 'flex';
+        state.proModeActive = false;
         const playBtn = rulesOverlay.querySelector('button');
         if (playBtn) playBtn.innerText = 'I UNDERSTAND - PLAY';
     }
@@ -270,14 +295,14 @@ function handleGoalDetectedPro(playerNumber) {
     if (playerNumber === 1) state.proScoreP1++; else state.proScoreP2++;
     state.proGoalHistory.push({ player: playerNumber });
     updateProScore();
-    
+
     const side = playerNumber === 1 ? '.pro-player-left' : '.pro-player-right';
     document.querySelector(side).classList.add('goal-flash');
     setTimeout(() => document.querySelector(side).classList.remove('goal-flash'), 500);
-    
+
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     if (window.soundEffects) window.soundEffects.playGoalSound();
-    
+
     if (state.proScoreP1 >= PRO_MODE_WIN_SCORE) {
         isMatchEnding = true;
         finishMatchTimer = setTimeout(() => finishProMatch(state.quickP1), 1500);
@@ -292,13 +317,13 @@ function updateProScore() {
     document.getElementById('pro-p2-score').textContent = state.proScoreP2;
     document.getElementById('pro-p1-goals').textContent = '●'.repeat(state.proScoreP1) + '○'.repeat(PRO_MODE_WIN_SCORE - state.proScoreP1);
     document.getElementById('pro-p2-goals').textContent = '●'.repeat(state.proScoreP2) + '○'.repeat(PRO_MODE_WIN_SCORE - state.proScoreP2);
-    
+
     const undoBtn = document.getElementById('btn-pro-undo');
     if (undoBtn) undoBtn.style.opacity = state.proGoalHistory.length > 0 ? '1' : '0.3';
-    
+
     const p1Status = document.getElementById('pro-p1-status');
     const p2Status = document.getElementById('pro-p2-status');
-    
+
     if (state.proScoreP1 === state.proScoreP2) {
         p1Status.textContent = 'TIE'; p2Status.textContent = 'TIE';
     } else if (state.proScoreP1 > state.proScoreP2) {
@@ -311,7 +336,7 @@ function updateProScore() {
 export function undoLastGoal() {
     // Sallitaan undo vaikka peli olisi päättymässä (isMatchEnding), jotta virheellisen voittomaalin voi perua
     if (!state.proModeActive || state.proGoalHistory.length === 0) return;
-    
+
     // Jos peli oli päättymässä, perutaan lopetus
     if (isMatchEnding) {
         clearTimeout(finishMatchTimer);
@@ -337,6 +362,7 @@ async function finishProMatch(winnerName) {
     state.proModeActive = false; isMatchEnding = false;
     if (window.audioEngine) window.audioEngine.stopListening();
     document.getElementById('pro-mode-view').style.display = 'none';
+    document.getElementById('pro-audio-meter').style.display = 'none';
     await finalizeQuickMatch(winnerName);
 }
 
@@ -345,6 +371,7 @@ export function exitProMode() {
     state.proModeActive = false; isMatchEnding = false; state.proGoalHistory = [];
     if (window.audioEngine) window.audioEngine.stopListening();
     document.getElementById('pro-mode-view').style.display = 'none';
+    document.getElementById('pro-audio-meter').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
 }
 
@@ -362,13 +389,14 @@ export async function toggleAudioDetection() {
     const status = window.audioEngine.getStatus();
     const btn = document.getElementById('toggle-audio-btn');
     const proBtn = document.getElementById('btn-pro-mic');
-    
+
     if (status.isListening) {
         window.audioEngine.stopListening();
         btn.textContent = 'ACTIVATE'; btn.style.background = '#333';
         if (proBtn) {
             proBtn.classList.remove('active');
             proBtn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
+            document.getElementById('pro-audio-meter').style.display = 'none';
         }
         document.getElementById('audio-frequency-display').style.display = 'none';
     } else {
@@ -378,8 +406,22 @@ export async function toggleAudioDetection() {
             if (proBtn) {
                 proBtn.classList.add('active');
                 proBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+                document.getElementById('pro-audio-meter').style.display = 'block';
             }
-            document.getElementById('audio-frequency-display').style.display = 'block';
+
+            // Initialize Threshold Slider
+            const slider = document.getElementById('audio-threshold-slider');
+            const label = document.getElementById('audio-threshold-value');
+            if (slider && label) {
+                slider.value = window.audioEngine.getStatus().settings.threshold * 100;
+                label.textContent = slider.value + '%';
+                slider.oninput = (e) => {
+                    const val = parseInt(e.target.value);
+                    label.textContent = val + '%';
+                    window.audioEngine.setThreshold(val / 100);
+                };
+            }
+
             startFrequencyMonitor();
         } else showNotification(result.message, 'error');
     }
@@ -389,22 +431,20 @@ function startFrequencyMonitor() {
     const interval = setInterval(() => {
         if (!window.audioEngine || !window.audioEngine.getStatus().isListening) { clearInterval(interval); return; }
         const status = window.audioEngine.getStatus();
-        document.getElementById('freq-goal1').textContent = status.settings.goal1Frequency;
-        document.getElementById('freq-goal2').textContent = status.settings.goal2Frequency;
-        
-        const lvl1 = document.getElementById('level-goal1');
-        const lvl2 = document.getElementById('level-goal2');
-        if (lvl1) lvl1.textContent = status.debug.currentG1.toFixed(2);
-        if (lvl2) lvl2.textContent = status.debug.currentG2.toFixed(2);
 
         // Update visual meter
         const meterBar = document.getElementById('audio-meter-bar');
         const thresholdLine = document.getElementById('audio-threshold-line');
+        const proMeterFill = document.getElementById('pro-audio-meter-fill');
+        const proThresholdLine = document.getElementById('pro-audio-threshold-marker');
+
+        const maxIntensity = Math.max(status.debug.currentG1, status.debug.currentG2);
+        const thresholdPct = status.settings.threshold * 100;
+
         if (meterBar && thresholdLine) {
-            const maxIntensity = Math.max(status.debug.currentG1, status.debug.currentG2);
             meterBar.style.width = (maxIntensity * 100) + '%';
-            thresholdLine.style.left = (status.settings.threshold * 100) + '%';
-            
+            thresholdLine.style.left = thresholdPct + '%';
+
             // Change color to green if it hits the threshold
             if (maxIntensity >= status.settings.threshold) {
                 meterBar.style.background = '#4CAF50';
@@ -412,83 +452,29 @@ function startFrequencyMonitor() {
                 meterBar.style.background = 'var(--sub-gold)';
             }
         }
+
+        // Update Pro Mode in-game meter
+        if (proMeterFill && proThresholdLine) {
+            proMeterFill.style.width = (maxIntensity * 100) + '%';
+            proThresholdLine.style.left = thresholdPct + '%';
+
+            if (maxIntensity >= status.settings.threshold) {
+                proMeterFill.style.background = '#4CAF50';
+            } else {
+                proMeterFill.style.background = 'var(--sub-gold)';
+            }
+        }
     }, 100);
 }
 
-export async function recordGoalSound(goalNumber) {
-    const statusDiv = document.getElementById('recording-status');
-    const btn = document.getElementById(`btn-record-goal-${goalNumber}`);
-    if (!statusDiv || !btn) return;
-
-    const originalText = btn.innerHTML;
-    
-    // Varmistetaan että kuuntelu on päällä
-    if (!window.audioEngine.getStatus().isListening) {
-        showNotification("Aktivoi äänitunnistus ensin", "error");
-        return;
-    }
-
-    // Käyttöliittymäpalaute: Aloitetaan kuuntelu
-    btn.innerHTML = "KUUNNELLAAN... 🎙️";
-    btn.style.background = "var(--sub-gold)";
-    btn.style.color = "#000";
-    statusDiv.innerHTML = "NAPAUTA PÖYTÄÄ NYT";
-    statusDiv.style.color = "var(--sub-gold)";
-    statusDiv.style.fontWeight = "bold";
-    statusDiv.style.transition = "all 0.2s";
-
-    window.audioEngine.resetPeaks();
-    let lastPeak = 0;
-
-    // Seurataan piikkejä 3 sekunnin ajan
-    const checkInterval = setInterval(() => {
-        const status = window.audioEngine.getStatus();
-        const currentPeak = goalNumber === 1 ? status.debug.peakGoal1 : status.debug.peakGoal2;
-        
-        // Jos uusi piikki havaitaan (yli 0.05 intensiteetti)
-        if (currentPeak > lastPeak && currentPeak > 0.05) {
-            lastPeak = currentPeak;
-            statusDiv.style.color = "#4CAF50";
-            statusDiv.innerHTML = `⚡ ÄÄNI HAVAITTU: ${currentPeak.toFixed(2)}`;
-            statusDiv.style.transform = "scale(1.1)";
-            
-            // Palautetaan väri pienen viiveen jälkeen
-            setTimeout(() => {
-                if (statusDiv) {
-                    statusDiv.style.transform = "scale(1)";
-                    statusDiv.style.color = "var(--sub-gold)";
-                }
-            }, 200);
-        }
-    }, 50);
-
-    setTimeout(() => {
-        clearInterval(checkInterval);
-        btn.innerHTML = originalText;
-        btn.style.background = "";
-        btn.style.color = "";
-        
-        const finalStatus = window.audioEngine.getStatus();
-        const peak = goalNumber === 1 ? finalStatus.debug.peakGoal1 : finalStatus.debug.peakGoal2;
-        
-        statusDiv.style.fontWeight = "normal";
-        statusDiv.style.color = "#888";
-        statusDiv.innerHTML = `Valmis. Korkein piikki: <span style="color:white">${peak.toFixed(2)}</span> (Kynnys: ${finalStatus.settings.threshold})`;
-        
-        if (peak < 0.1) {
-            showNotification("Ääntä ei havaittu. Tarkista mikrofoni.", "error");
-        } else {
-            showNotification(`Maali ${goalNumber} kalibroitu!`, "success");
-        }
-    }, 3000);
-}
+// Removed audio recording logic in favor of simplified UX
 
 export function toggleSoundEffects() {
     if (!window.soundEffects) return showNotification('Sound system not loaded', 'error');
     const enabled = window.soundEffects.toggle();
     const btn = document.getElementById('sound-toggle-btn');
     const proBtn = document.getElementById('btn-pro-sound');
-    
+
     if (!btn) return;
     if (enabled) {
         btn.innerHTML = '🔊 SOUNDS';
@@ -512,7 +498,7 @@ export function initClaimResult(p1Score, p2Score, gameId) {
     const appContent = document.getElementById('app-content');
     if (appContent) appContent.style.display = 'flex';
     showMatchMode('quick');
-    
+
     const setupDiv = document.getElementById('quick-match-section');
     if (setupDiv) {
         // Piilotetaan normaali asetus ja näytetään Claim-näkymä
@@ -526,7 +512,7 @@ export function initClaimResult(p1Score, p2Score, gameId) {
             claimUI.id = 'claim-result-container';
             setupDiv.appendChild(claimUI);
         }
-        
+
         claimUI.className = 'sub-card fade-in';
         claimUI.style.display = 'block';
         claimUI.style.borderColor = 'var(--sub-gold)';
@@ -553,13 +539,13 @@ export function initClaimResult(p1Score, p2Score, gameId) {
                 </button>
             </div>
         `;
-        
+
         state.quickP1 = state.user.username;
         setTimeout(() => document.getElementById('claim-opponent-search')?.focus(), 500);
     }
 
     showNotification(`🏆 Victory! Enter opponent name to save.`, 'success');
-    
+
     // Puhdistetaan URL
     const url = new URL(window.location);
     url.searchParams.delete('action');
@@ -574,13 +560,13 @@ export async function saveClaimedResult(uScore, oScore, gameId) {
     const opponentName = input?.value.trim().toUpperCase();
     if (!opponentName) return showNotification("Enter opponent name", "error");
     if (opponentName === state.user.username) return showNotification("Cannot play against yourself", "error");
-    
+
     state.quickP2 = opponentName;
     state.proScoreP1 = uScore;
     state.proScoreP2 = oScore;
-    
+
     await finalizeQuickMatch(state.user.username, gameId ? `Instant Play: ${gameId}` : 'Instant Play');
-    
+
     cancelClaimResult();
 }
 
@@ -588,36 +574,23 @@ export function cancelClaimResult() {
     const setupDiv = document.getElementById('quick-match-section');
     const claimUI = document.getElementById('claim-result-container');
     if (claimUI) claimUI.style.display = 'none';
-    
+
     if (setupDiv) {
         Array.from(setupDiv.children).forEach(child => {
             if (child.id !== 'claim-result-container') child.style.display = '';
         });
     }
-    
+
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 
 // Globaalit kytkennät
-window.handleQuickSearch = handleQuickSearch;
-window.selectQuickPlayer = selectQuickPlayer;
-window.startQuickMatch = startQuickMatch;
-window.clearQuickMatchPlayers = clearQuickMatchPlayers;
-window.handleProModeClick = handleProModeClick;
-window.initProModeUI = initProModeUI;
-window.toggleProMode = toggleProMode;
-window.acceptRulesAndStart = acceptRulesAndStart;
-window.addManualGoal = addManualGoal;
-window.undoLastGoal = undoLastGoal;
-window.resetProMatch = resetProMatch;
-window.exitProMode = exitProMode;
-window.toggleAudioDetection = toggleAudioDetection;
-window.recordGoalSound = recordGoalSound;
-window.closeVictoryOverlay = closeVictoryOverlay;
-window.handleGoalDetected = handleGoalDetected;
-window.cancelQuickMatch = cancelQuickMatch;
-window.handleQuickWinner = handleQuickWinner;
-window.toggleSoundEffects = toggleSoundEffects;
-window.initClaimResult = initClaimResult;
-window.saveClaimedResult = saveClaimedResult;
-window.cancelClaimResult = cancelClaimResult;
+// NOTE: Functions imported as ES modules in ui.js do NOT need window.* here.
+// These are kept because they are called from audio-engine.js, inline onclick HTML,
+// or other places that cannot use ES module imports directly.
+window.handleGoalDetected = handleGoalDetected;   // audio-engine.js calls this
+window.toggleProMode = toggleProMode;             // called from pro mode UI buttons
+window.cancelQuickMatch = cancelQuickMatch;       // called from non-module contexts
+window.handleQuickWinner = handleQuickWinner;     // called from dynamic HTML
+window.toggleSoundEffects = toggleSoundEffects;   // called from settings menu
+window.initClaimResult = initClaimResult;         // called from game result flow

@@ -328,10 +328,35 @@ header {
 
 #section-map.active {
     display: flex !important;
-    padding: 15px;
+    padding: 10px 15px;
+    /* Reduced top/bottom padding */
     box-sizing: border-box;
-    height: calc(100vh - 160px);
+    min-height: calc(100vh - 250px);
+    /* Changed height to min-height and increased subtraction */
     flex-direction: column;
+}
+
+/* Map Section Buttons (Search, Filter, etc) */
+#section-map button {
+    background: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+    padding: 10px 20px !important;
+    border-radius: var(--sub-radius) !important;
+    font-family: var(--sub-name-font) !important;
+    text-transform: uppercase;
+    font-size: 0.85rem !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    letter-spacing: 1px;
+}
+
+#section-map button:hover {
+    border-color: var(--sub-gold) !important;
+    color: var(--sub-gold) !important;
+    background: #000 !important;
+    transform: translateY(-2px);
 }
 
 /* Tummennetaan harmaata karttaa, jotta se sulautuu mustaan taustaan */
@@ -348,6 +373,37 @@ header {
 .custom-div-icon {
     filter: brightness(1.2) !important;
     z-index: 1000 !important;
+}
+
+/* Leaflet Zoom Controls - Dark Theme Override */
+.leaflet-control-zoom a {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+    color: #fff !important;
+    border: 1px solid #333 !important;
+    border-radius: 4px !important;
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    font-size: 1.2rem !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background-color: #222 !important;
+    color: var(--sub-gold) !important;
+}
+
+/* Leaflet Attribution Styling - Minimalist Dark */
+.leaflet-container .leaflet-control-attribution {
+    background: rgba(0, 0, 0, 0.4) !important;
+    color: #555 !important;
+    font-family: 'Open Sans', sans-serif !important;
+    font-size: 0.6rem !important;
+    padding: 0 5px !important;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+    color: #666 !important;
+    text-decoration: none !important;
 }
 
 /* Leaflet Popup Styling - Pro Look */
@@ -367,6 +423,28 @@ header {
 .leaflet-popup-content {
     margin: 15px !important;
     line-height: 1.4;
+}
+
+/* Leaflet Popup Buttons */
+.leaflet-popup-content button {
+    background: var(--sub-red) !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 8px 15px !important;
+    border-radius: var(--sub-radius) !important;
+    font-family: var(--sub-name-font) !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 8px;
+    width: 100%;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.leaflet-popup-content button:hover {
+    background: #b00 !important;
+    transform: scale(1.02);
 }
 
 /* Locate Me Button Overlay */
@@ -394,6 +472,52 @@ header {
     color: var(--sub-gold);
     border-color: var(--sub-gold);
     transform: scale(1.1);
+}
+
+/* Map Stats Overlay */
+.map-stats-overlay {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: rgba(10, 10, 10, 0.9);
+    border: 1px solid var(--sub-gold);
+    border-radius: 8px;
+    padding: 15px;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+}
+
+.map-stat-count {
+    font-family: 'Russo One', sans-serif;
+    font-size: 1.4rem;
+    color: var(--sub-gold);
+    line-height: 1;
+}
+
+.map-stat-label {
+    font-family: var(--sub-name-font);
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Custom Cluster Styles */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+    background-color: rgba(255, 215, 0, 0.2) !important;
+}
+
+.marker-cluster div {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+    color: var(--sub-gold) !important;
+    font-family: 'Russo One', sans-serif !important;
+    border: 1px solid var(--sub-gold) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3) !important;
 }
 
 /* Pulse animation for Verified markers */
@@ -919,7 +1043,7 @@ button {
     background: var(--sub-surface) !important;
     backdrop-filter: blur(25px) !important;
     -webkit-backdrop-filter: blur(25px) !important;
-    z-index: 999999 !important;
+    z-index: 100000000 !important;
     /* Korkein mahdollinen taso */
     display: none;
     flex-direction: column;
@@ -1016,40 +1140,48 @@ input:focus {
     font-stretch: normal !important;
 }
 
-/* style.css: Lisää loppuun */
-#victory-overlay,
-.quick-winner-overlay {
-    background-color: #0a0a0a !important;
-}
-
-/* style.css loppuun */
-input:focus,
-input:active {
-    outline: none !important;
-    box-shadow: none !important;
-    -webkit-tap-highlight-color: transparent;
-}
-
 /* Audio Telemetry HUD */
 .audio-hud {
     position: fixed;
     bottom: 10px;
     right: 10px;
-    display: flex;
+    display: none;
     gap: 6px;
-    opacity: 0.3; /* Erittäin huomaamaton */
-    pointer-events: none; /* Ei häiritse kosketusta */
-    z-index: 99999;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    /* Tumma tausta erottuvuuden parantamiseksi */
+    border-radius: 6px;
+    opacity: 0.8;
+    /* Nostettu näkyvyyttä (oli 0.3) */
+    pointer-events: none;
+    /* Ei häiritse kosketusta */
+    z-index: 2147483647;
+    /* Maksimi z-index, jotta näkyy varmasti kaiken päällä */
 }
 
 .hud-channel {
-    width: 8px;
+    width: 4px;
     height: 40px;
     background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    border-radius: 2px;
     position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: visible;
+    margin: 0 4px;
+}
+
+.hud-channel::after {
+    content: '';
+    position: absolute;
+    bottom: var(--threshold, 65%);
+    left: 50%;
+    transform: translate(-50%, 50%);
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    z-index: 10;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+    transition: bottom 0.2s;
 }
 
 .hud-bar {
@@ -1058,11 +1190,10 @@ input:active {
     left: 0;
     width: 100%;
     height: 0%;
-    transition: height 0.05s ease-out, background-color 0.1s;
+    transition: height 0.05s ease-out;
+    background-color: #ff0000 !important;
+    border-radius: 2px;
 }
-
-.hud-bar-p1 { background-color: #00ff88; } /* Vihreä P1 */
-.hud-bar-p2 { background-color: #0088ff; } /* Sininen P2 */
 
 /* ESTÄÄ KLIKKAUKSET HETI KUN PELI PÄÄTTYY */
 .game-controls-locked {
@@ -1124,6 +1255,245 @@ h3 {
 /* Instant Play napin ikonin hienosäätö */
 .btn-red i.fa-bolt-lightning {
     filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
+}
+
+/* ============================================================ */
+/* MOVED FROM INDEX.HTML (PRO MODE & UTILS)                     */
+/* ============================================================ */
+
+/* Profile Controls Compact Style */
+.profile-controls {
+    max-width: 300px;
+    margin: 10px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.profile-controls input,
+.profile-controls button {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 5px;
+    font-size: 0.9rem;
+}
+
+.profile-controls input#country-input {
+    text-align: center;
+    text-transform: lowercase;
+}
+
+/* Game Select Style */
+select.dark-select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #111;
+    border: 1px solid #222;
+    color: #fff;
+    border-radius: 4px;
+    font-family: 'Open Sans', sans-serif;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Compact Tournament Settings */
+.tour-settings-compact {
+    margin-top: 5px;
+    border-top: 1px solid #222;
+    padding-top: 10px;
+}
+
+.tour-settings-compact input,
+.tour-settings-compact select {
+    padding: 6px 10px;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+    height: 34px;
+    border-radius: 4px;
+}
+
+/* PRO MODE STYLES */
+#pro-mode-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: #0a0a0a;
+    z-index: 99999999;
+    display: none;
+    flex-direction: row;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.pro-player-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 2px solid #222;
+}
+
+.pro-player-left {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
+}
+
+.pro-player-right {
+    background: linear-gradient(135deg, #0a0a0a 0%, #0a0a1a 100%);
+}
+
+.pro-player-name {
+    font-family: 'SubsoccerLogo', sans-serif;
+    font-size: 1.2rem;
+    color: #666;
+    position: absolute;
+    top: 30px;
+    letter-spacing: 2px;
+}
+
+.pro-score {
+    font-family: 'SubsoccerLogo', sans-serif;
+    font-size: 10rem;
+    color: var(--sub-gold);
+    text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+    line-height: 1;
+}
+
+.pro-goals-visual {
+    font-size: 2rem;
+    margin-top: 20px;
+    letter-spacing: 10px;
+}
+
+.pro-status {
+    font-family: 'Resolve';
+    font-size: 0.9rem;
+    color: var(--sub-red);
+    position: absolute;
+    bottom: 40px;
+    letter-spacing: 3px;
+    opacity: 0.8;
+}
+
+.pro-divider {
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
+    box-shadow: 0 0 20px var(--sub-gold);
+}
+
+.goal-flash {
+    animation: goalFlash 0.5s ease-in-out;
+}
+
+@keyframes goalFlash {
+    0% {
+        background: var(--sub-red);
+        transform: scale(1);
+    }
+
+    50% {
+        background: var(--sub-gold);
+        transform: scale(1.05);
+    }
+
+    100% {
+        background: var(--sub-red);
+        transform: scale(1);
+    }
+}
+
+/* Victory Overlay Styles (Specific overrides) */
+.victory-title {
+    font-family: var(--sub-logo-font);
+    color: var(--sub-red);
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+}
+
+.victory-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 30px;
+    border-radius: var(--sub-radius);
+    border: 1px solid var(--sub-border);
+    backdrop-filter: blur(10px);
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+}
+
+.victory-label {
+    color: #666;
+    font-family: var(--sub-name-font);
+    letter-spacing: 2px;
+    font-size: 0.7rem;
+    margin-bottom: 10px;
+}
+
+.victory-gain {
+    color: #4CAF50;
+    font-family: var(--sub-name-font);
+    font-size: 1.1rem;
+    margin-top: 5px;
+}
+
+/* Profile Edit Styles */
+.profile-edit-container {
+    display: none;
+    background: #111;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 15px;
+    border: 1px solid #222;
+    text-align: left;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #333;
+}
+
+.profile-section-title {
+    color: var(--sub-gold);
+    font-size: 0.7rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+    margin-top: 15px;
+}
+
+.profile-label {
+    font-size: 0.6rem;
+    color: #666;
+    font-family: 'Resolve';
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Moderator Styles */
+.mod-btn {
+    margin-bottom: 10px;
+}
+
+.mod-btn-primary {
+    background: var(--sub-gold);
+    color: #000;
+    border: none;
+}
+
+.mod-btn-secondary {
+    background: #222;
+    border: 1px solid #333;
 }
 
 
@@ -1280,11 +1650,6 @@ h3 {
     border-color: rgba(255, 215, 0, 0.3) !important;
     transform: translateX(5px);
     cursor: pointer;
-}
-
-/* Podiumin animaatio */
-.podium-container div {
-    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* MODAL SYSTEM - PRO LOOK */
@@ -1586,10 +1951,9 @@ h3 {
 
 .subsoccer-footer {
     text-align: center;
-    padding: 40px 0 120px 0;
-    opacity: 0.4;
+    padding: 40px 0 100px 0;
     font-family: var(--sub-name-font);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     letter-spacing: 2px;
 }
 
@@ -1774,8 +2138,7 @@ body.live-mode {
 }
 
 /* FORCE HIDE AUDIO INDICATOR GLOBALLY */
-#audio-indicator, 
-#conn-dot,
+#audio-indicator,
 .connection-dot {
     display: none !important;
 }
@@ -1792,7 +2155,7 @@ body.live-mode {
         padding: 8px 15px !important;
         font-size: 0.8rem !important;
     }
-    
+
     .score-btn {
         padding: 15px !important;
         font-size: 1.5rem !important;
@@ -1861,7 +2224,7 @@ body.live-mode {
 }
 
 /* Match Container */
-#bracket-area > div {
+#bracket-area>div {
     background: #111;
     border: 1px solid #333;
     border-radius: 8px;
@@ -1873,11 +2236,11 @@ body.live-mode {
     flex-direction: column;
     gap: 6px;
     position: relative;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* Player Element */
-#bracket-area > div > div {
+#bracket-area>div>div {
     background: #1a1a1a;
     padding: 12px 15px;
     border: 1px solid #333;
@@ -1895,7 +2258,7 @@ body.live-mode {
     user-select: none;
 }
 
-#bracket-area > div > div:hover {
+#bracket-area>div>div:hover {
     background: #222;
     border-color: #555;
     color: #fff;
@@ -1903,7 +2266,7 @@ body.live-mode {
 }
 
 /* Winner State */
-#bracket-area > div > div.match-winner {
+#bracket-area>div>div.match-winner {
     background: linear-gradient(135deg, var(--sub-gold) 0%, #d4af37 100%) !important;
     color: #000 !important;
     border-color: var(--sub-gold) !important;
@@ -1912,17 +2275,1063 @@ body.live-mode {
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
-#bracket-area > div > div.match-winner::after {
-    content: '\f00c'; /* FontAwesome check */
+#bracket-area>div>div.match-winner::after {
+    content: '\f00c';
+    /* FontAwesome check */
     font-family: "Font Awesome 6 Free";
     font-weight: 900;
     font-size: 1rem;
 }
 
 /* Loser State */
-#bracket-area > div > div.match-loser {
+#bracket-area>div>div.match-loser {
     opacity: 0.4 !important;
     background: #0a0a0a !important;
     border-color: #222 !important;
     color: #666 !important;
+}
+
+/* ============================================================ */
+/* RULES OVERLAY STYLES (Moved from inline HTML)                */
+/* ============================================================ */
+
+.rules-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.98);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.rules-header {
+    font-family: 'Resolve', sans-serif;
+    font-size: 2.5rem;
+    color: var(--sub-gold);
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+    width: 90%;
+    margin-bottom: 40px;
+}
+
+.rule-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 15px;
+    border-radius: 4px;
+    border-left: 4px solid var(--sub-red);
+    text-align: left;
+}
+
+.rule-number {
+    font-family: 'Resolve', sans-serif;
+    font-size: 1.5rem;
+    color: #666;
+    min-width: 30px;
+    text-align: center;
+}
+
+.rule-title {
+    font-family: 'Resolve', sans-serif;
+    font-size: 1.1rem;
+    color: var(--sub-gold);
+}
+
+.rule-desc {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.9rem;
+    color: #ddd;
+}
+
+.btn-rules-accept {
+    width: auto !important;
+    padding: 15px 50px !important;
+    font-size: 1.2rem;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(227, 6, 19, 0.4);
+    margin-top: 20px;
+}
+
+.pulse-anim {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ============================================================ */
+/* CLEANED UP STYLES (Profile Edit & Tour Setup)                */
+/* ============================================================ */
+
+/* Profile Edit Layout */
+.edit-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.edit-col {
+    flex: 1;
+    text-align: left;
+}
+
+.edit-group {
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+.avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #333;
+}
+
+.avatar-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--sub-gold);
+}
+
+.avatar-upload-label {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    background: var(--sub-gold);
+    color: #000;
+    font-size: 0.85rem;
+    border-radius: 4px;
+}
+
+.avatar-filename {
+    font-size: 0.7rem;
+    color: #888;
+    font-family: 'Open Sans', sans-serif;
+    text-align: center;
+    margin-top: 5px;
+    min-height: 14px;
+}
+
+/* Tournament Mode Selectors */
+.mode-selector-container {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.mode-select-btn {
+    flex: 1;
+    padding: 18px 15px;
+    border-radius: 4px;
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mode-icon {
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+}
+
+.mode-title {
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+}
+
+.mode-desc {
+    font-size: 0.65rem;
+    margin-top: 3px;
+    font-family: 'Open Sans', sans-serif;
+    text-transform: none;
+    font-weight: normal;
+}
+
+/* Initial States for Buttons (replacing inline styles) */
+#btn-quick-match-mode {
+    background: linear-gradient(135deg, #E30613 0%, #c00510 100%);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(227, 6, 19, 0.3);
+}
+
+#btn-quick-match-mode:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+#btn-quick-match-mode .mode-desc {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#btn-tournament-mode {
+    background: #1a1a1a;
+    color: #888;
+    border: 2px solid #333;
+}
+
+#btn-tournament-mode:hover {
+    background: #222;
+    transform: translateY(-2px) scale(1.02);
+}
+
+#btn-tournament-mode .mode-desc {
+    color: #666;
+}
+
+/* ============================================================ */
+/* AUTH & GAME REGISTRATION CLEANUP                             */
+/* ============================================================ */
+
+/* Auth Forms */
+.auth-container {
+    text-align: center;
+}
+
+.auth-title {
+    font-family: 'Resolve', sans-serif;
+    margin-bottom: 25px;
+}
+
+.auth-separator {
+    border: 0;
+    border-top: 1px solid #222;
+    margin: 25px 0;
+}
+
+.btn-create-account {
+    width: 100%;
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid var(--sub-gold);
+    color: var(--sub-gold);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: 'Resolve', sans-serif;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.btn-create-account:hover {
+    background: rgba(255, 215, 0, 0.2);
+}
+
+.btn-guest {
+    background: #333 !important;
+}
+
+.link-back {
+    font-size: 0.75rem;
+    color: #666;
+    cursor: pointer;
+}
+
+/* Game Registration */
+.game-reg-serial-box {
+    background: #1a1a1a;
+    border: 1px solid var(--sub-gold);
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.game-reg-serial-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.game-reg-serial-title {
+    font-family: 'Resolve', sans-serif;
+    color: var(--sub-gold);
+    font-size: 0.9rem;
+}
+
+.game-reg-serial-desc {
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 2px;
+}
+
+.game-reg-info {
+    font-size: 0.7rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+.location-search-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.location-search-row input {
+    margin-bottom: 0 !important;
+}
+
+.btn-search-location {
+    width: auto !important;
+    padding: 10px 15px !important;
+    font-size: 0.9rem !important;
+    background: #222 !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+    border-radius: 4px !important;
+    margin-bottom: 0 !important;
+}
+
+.btn-search-location:hover {
+    border-color: var(--sub-gold) !important;
+    color: var(--sub-gold) !important;
+}
+
+.map-picker-container {
+    height: 200px;
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    z-index: 1;
+}
+
+.location-confirm-text {
+    font-size: 0.8rem;
+    color: var(--sub-gold);
+    margin-bottom: 15px;
+    min-height: 1.2em;
+}
+
+.public-checkbox-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    background: #111;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #222;
+}
+
+.btn-update-game {
+    background: var(--sub-gold) !important;
+    color: #000 !important;
+}
+
+.btn-cancel-edit {
+    background: #333 !important;
+}
+
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-header-title {
+    font-family: 'Resolve', sans-serif;
+    text-transform: uppercase;
+    margin: 0;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.btn-small-action {
+    font-size: 0.75rem !important;
+    padding: 8px 15px !important;
+    background: #333 !important;
+    border-radius: 4px !important;
+}
+
+/* Tournament Section Cleanup */
+.tour-card {
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.tour-card-title {
+    font-size: 0.7rem;
+    color: #666;
+    font-family: 'Resolve', sans-serif;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.tour-roster-card {
+    background: #000;
+    border: 1px solid #333;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.tour-roster-header {
+    background: #1a1a1a;
+    padding: 10px 15px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tour-roster-title {
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.75rem;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+.btn-clear-pool {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 0.7rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+}
+
+.btn-clear-pool:hover {
+    color: var(--sub-red);
+}
+
+.tour-roster-list {
+    padding: 10px;
+    min-height: 150px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #0a0a0a;
+}
+
+.btn-start-tour {
+    font-size: 1.1rem !important;
+    letter-spacing: 1px;
+    background: var(--sub-red);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(227, 6, 19, 0.3);
+}
+
+/* ============================================================ */
+/* PROFILE DASHBOARD STYLES                                     */
+/* ============================================================ */
+
+.profile-section-subtitle {
+    color: var(--sub-gold);
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+    font-family: 'Open Sans', sans-serif;
+    text-align: left;
+}
+
+.profile-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.btn-dashboard-action {
+    background: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    font-size: 0.8rem !important;
+    padding: 15px !important;
+    border-radius: 4px !important;
+}
+
+.btn-dashboard-history {
+    background: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    font-size: 0.8rem !important;
+    padding: 10px !important;
+    margin-bottom: 20px !important;
+    border-radius: 4px !important;
+}
+
+/* ============================================================ */
+/* FINAL CLEANUP (Audio Tools, Modals, ELO Box)                 */
+/* ============================================================ */
+
+/* Audio Tools Panel */
+.audio-panels-container {
+    display: none;
+    margin-top: 12px;
+}
+
+.audio-status-panel {
+    background: #111;
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    margin-bottom: 10px;
+}
+
+.audio-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.audio-indicator-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.audio-indicator-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #666;
+}
+
+.audio-label {
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.75rem;
+    color: #fff;
+}
+
+.btn-audio-toggle {
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.audio-meter-wrapper {
+    margin-bottom: 12px;
+    display: none;
+}
+
+.audio-meter-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.6rem;
+    color: #444;
+    margin-bottom: 4px;
+    font-family: 'Resolve', sans-serif;
+    letter-spacing: 1px;
+}
+
+.audio-meter-container {
+    background: #050505;
+    height: 10px;
+    border-radius: 5px;
+    position: relative;
+    border: 1px solid #222;
+    overflow: hidden;
+}
+
+.audio-meter-bar {
+    width: 0%;
+    height: 100%;
+    background: var(--sub-gold);
+    transition: width 0.05s ease-out;
+}
+
+.audio-threshold-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--sub-red);
+    left: 65%;
+    box-shadow: 0 0 8px var(--sub-red);
+    z-index: 2;
+}
+
+.audio-freq-display {
+    font-size: 0.65rem;
+    color: #666;
+    font-family: 'Open Sans', sans-serif;
+    display: none;
+}
+
+.audio-control-row {
+    margin-top: 12px;
+    border-top: 1px solid #333;
+    padding-top: 8px;
+}
+
+.audio-test-panel {
+    background: #0a0a0a;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px dashed #333;
+}
+
+.audio-test-title {
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.7rem;
+    color: #888;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.audio-test-controls {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.audio-test-controls.secondary {
+    margin-top: 5px;
+}
+
+.btn-test-action {
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.7rem;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn-test-action.secondary {
+    background: #1a1a1a;
+    color: #888;
+    border: 1px solid #333;
+}
+
+.recording-status {
+    font-size: 0.65rem;
+    color: #666;
+    text-align: center;
+    margin-top: 5px;
+    font-family: 'Open Sans', sans-serif;
+}
+
+/* Profile Games UI */
+.profile-games-section {
+    display: none;
+    border-top: 1px solid #222;
+    padding-top: 20px;
+    margin-top: 10px;
+}
+
+.profile-games-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.profile-games-title {
+    font-family: 'Resolve', sans-serif;
+    margin: 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-register-new-small {
+    font-size: 0.7rem !important;
+    padding: 6px 12px !important;
+    background: #333 !important;
+    border-radius: 4px !important;
+}
+
+/* Card Modal Overlay */
+.card-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 20000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.btn-close-modal {
+    margin-top: 20px;
+    background: var(--sub-red);
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 4px;
+    font-family: 'Resolve', sans-serif;
+    cursor: pointer;
+}
+
+/* ELO Preview Box */
+.elo-preview-box {
+    background: #000;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    margin-bottom: 20px;
+    display: none;
+    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+.elo-preview-label {
+    font-size: 0.65rem;
+    color: #666;
+    font-family: 'Resolve', sans-serif;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+}
+
+.btn-clear-players {
+    padding: 8px 15px !important;
+    font-size: 0.75rem !important;
+}
+
+/* Tour Engine Buttons */
+.btn-next-round {
+    display: none;
+    margin-top: 15px;
+}
+
+.btn-save-results {
+    display: none;
+    background: var(--sub-gold) !important;
+    color: #000 !important;
+    margin-top: 15px;
+}
+
+/* App Version Tag */
+.app-version {
+    position: fixed;
+    bottom: 5px;
+    right: 10px;
+    font-size: 12px;
+    color: #555;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* ============================================================ */
+/* BRACKET ENGINE STYLES                                        */
+/* ============================================================ */
+
+.bracket-round {
+    width: 100%;
+    margin-bottom: 25px;
+    animation: fadeInEffect 0.5s ease-out;
+}
+
+.round-title {
+    font-family: 'Resolve', sans-serif;
+    color: var(--sub-gold);
+    font-size: 1rem;
+    text-align: center;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+
+.bracket-match {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.match-player {
+    background: #1a1a1a;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+@media (hover: hover) {
+    .match-player:hover:not(.empty):not(.bye):not(.winner) {
+        background: #222;
+        border-color: #555;
+    }
+}
+
+.match-player.winner {
+    background: var(--sub-gold) !important;
+    color: #000;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.match-player.empty {
+    color: #444;
+    cursor: default;
+}
+
+.match-vs {
+    font-size: 0.6rem;
+    color: #555;
+    text-align: center;
+    margin: -2px 0;
+}
+
+/* Sticky Bottom Action for Tournament Save */
+.sticky-bottom-action {
+    position: fixed !important;
+    bottom: 30px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 90% !important;
+    max-width: 400px !important;
+    z-index: 10000 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.4) !important;
+    animation: slideUpFade 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+    margin: 0 !important;
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* ============================================================ */
+/* NEW PODIUM DESIGN WITH CARDS                                 */
+/* ============================================================ */
+
+.podium-section {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 8px;
+    margin: 10px 0 30px 0;
+    padding-bottom: 10px;
+    perspective: 1000px;
+}
+
+.podium-place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    flex: 1;
+    max-width: 30%;
+    /* Pienennetty 32% -> 30% jotta mahtuu gapin kanssa pienelle näytölle */
+    flex-basis: 30%;
+}
+
+/* Järjestys: Hopea (vasen), Kulta (keski), Pronssi (oikea) */
+.podium-place.p-1 {
+    order: 2;
+    z-index: 10;
+    margin-bottom: 15px;
+}
+
+.podium-place.p-2 {
+    order: 1;
+}
+
+.podium-place.p-3 {
+    order: 3;
+}
+
+/* Podiumin kortti (Mini Collectible) */
+.podium-card {
+    width: 100%;
+    aspect-ratio: 2.5/3.5;
+    /* Standardi korttisuhde */
+    background: #0a0a0a;
+    border-radius: 6px;
+    border: 2px solid #333;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+    margin-bottom: -8px;
+    /* Kortti uppoaa hieman korokkeeseen */
+    z-index: 2;
+    transition: transform 0.2s ease;
+}
+
+.podium-place.p-1 .podium-card {
+    transform: translateY(-5px);
+    /* Nostetaan vain hieman ylös, ei levitetä */
+    border-color: var(--sub-gold);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.25);
+}
+
+.podium-place.p-2 .podium-card {
+    border-color: #C0C0C0;
+}
+
+/* Silver */
+.podium-place.p-3 .podium-card {
+    border-color: #CD7F32;
+}
+
+/* Bronze */
+
+/* Kortin kuva */
+.podium-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Kortin tiedot (Overlay) */
+.podium-card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 10%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
+    padding: 40px 5px 8px 5px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+}
+
+.podium-name {
+    color: #fff;
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.65rem;
+    /* Pieni fontti mahtuu paremmin */
+    text-transform: uppercase;
+    line-height: 1.1;
+    margin-bottom: 3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.podium-elo {
+    color: var(--sub-gold);
+    font-size: 0.6rem;
+    font-weight: bold;
+    font-family: 'Open Sans', sans-serif;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+/* Podiumin koroke (Step) */
+.podium-step {
+    width: 100%;
+    background: linear-gradient(180deg, #1a1a1a 0%, #000 100%);
+    border-top: 3px solid #333;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 10px;
+    font-family: 'SubsoccerLogo', sans-serif;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    position: relative;
+    border-radius: 4px 4px 0 0;
+}
+
+/* Kulta-askelma */
+.podium-place.p-1 .podium-step {
+    height: 110px;
+    border-color: var(--sub-gold);
+    background: linear-gradient(180deg, rgba(255, 215, 0, 0.15) 0%, #000 100%);
+    color: var(--sub-gold);
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    padding-top: 25px;
+}
+
+/* Hopea-askelma */
+.podium-place.p-2 .podium-step {
+    height: 75px;
+    border-color: #C0C0C0;
+    background: linear-gradient(180deg, rgba(192, 192, 192, 0.15) 0%, #000 100%);
+    color: #C0C0C0;
+}
+
+/* Pronssi-askelma */
+.podium-place.p-3 .podium-step {
+    height: 50px;
+    border-color: #CD7F32;
+    background: linear-gradient(180deg, rgba(205, 127, 50, 0.15) 0%, #000 100%);
+    color: #CD7F32;
+}
+
+/* Hohtoefekti voittajan taakse */
+.podium-place.p-1::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
 }
