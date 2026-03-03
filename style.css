@@ -360,12 +360,14 @@ header {
 }
 
 .map-filter-btn {
-    padding: 8px 10px !important;
-    font-size: 0.65rem !important;
+    padding: 8px 2px !important;
+    font-size: 0.6rem !important;
     letter-spacing: 0.5px !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    line-height: 1.2;
 }
 
 /* Tummennetaan harmaata karttaa, jotta se sulautuu mustaan taustaan */
