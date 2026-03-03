@@ -106,6 +106,11 @@ function updatePageUI(p) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('section-' + p).classList.add('active');
 
+    // Aina kun sivu vaihtuu, nollataan scrollaus ylös
+    window.scrollTo(0, 0);
+    const appContent = document.getElementById('app-content');
+    if (appContent) appContent.scrollTo(0, 0);
+
     // FIX: Hide the sticky save button when leaving the tournament view
     const saveBtn = document.getElementById('save-btn');
     if (saveBtn && saveBtn.classList.contains('sticky-bottom-action')) {
@@ -516,22 +521,22 @@ export function setupUIListeners() {
         logo.title = 'Visit subsoccer.com';
         logo.addEventListener('click', () => window.open('https://www.subsoccer.com', '_blank'));
 
-        // BETA: Inject Beta Label under logo
+        // VERSION: Inject Version Label under logo
         // Remove old badges to ensure clean state and centering
-        document.querySelectorAll('.beta-badge-container').forEach(el => el.remove());
+        document.querySelectorAll('.version-badge-container').forEach(el => el.remove());
 
-        const betaBadge = document.createElement('div');
-        betaBadge.className = 'beta-badge-container';
-        betaBadge.style.cssText = "display:flex; justify-content:center; width:100%; margin-top:5px; margin-bottom:15px;";
-        betaBadge.innerHTML = `
-            <span class="beta-label" style="color:var(--sub-gold); font-size:0.7rem; letter-spacing:2px; font-weight:bold;">${APP_VERSION}</span>
+        const versionBadge = document.createElement('div');
+        versionBadge.className = 'version-badge-container';
+        versionBadge.style.cssText = "display:flex; justify-content:center; width:100%; margin-top:5px; margin-bottom:5px;";
+        versionBadge.innerHTML = `
+            <span class="version-label" style="color:var(--sub-gold); font-size:0.7rem; letter-spacing:2px; font-weight:bold;">${APP_VERSION}</span>
         `;
-        logo.after(betaBadge);
+        logo.after(versionBadge);
     }
 
     injectFooterLink();
 
-    // BETA: Inject Feedback Button
+    // FEEDBACK: Inject Feedback Button
     // Poistetaan kaikki vanhat napit varmuuden vuoksi (estää tuplat)
     document.querySelectorAll('#beta-feedback-btn').forEach(el => el.remove());
 
@@ -767,6 +772,23 @@ export function setupUIListeners() {
         const orderBtn = e.target.closest('[data-action="order-physical-card"]');
         if (orderBtn) {
             showPhysicalOrderDialog();
+            return;
+        }
+
+        // 16. Pro Card Dashboard Controls
+        const shopBtn = e.target.closest('[data-action="show-card-shop"]');
+        if (shopBtn) {
+            showNotification('Pro Card Shop opens soon – keep ranking up to unlock borders!', 'info');
+            return;
+        }
+
+        const dlCardBtn = e.target.closest('[data-action="download-card"]');
+        if (dlCardBtn) {
+            showNotification('Generating high-res image...', 'info');
+            CardGenerator.capture('profile-card-container', state.user?.username || 'Player').catch(err => {
+                console.error(err);
+                showNotification('Failed to generate image', 'error');
+            });
             return;
         }
 
@@ -1092,39 +1114,64 @@ export function updateProfileCard() {
     </div>
     `;
 
-    // Fetch and populate back side data asynchronously
-    _supabase.from('matches').select('*')
-        .or(`player1.eq.${u.username},player2.eq.${u.username}`)
-        .order('created_at', { ascending: false })
-        .limit(10)
-        .then(({ data: recentMatches }) => {
-            const backContent = document.getElementById('profile-card-back-content');
-            if (backContent && recentMatches) {
-                let matchesHtml = '<div style="font-family:var(--sub-name-font); color:#888; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; text-transform:uppercase;">📜 Recent Matches</div>';
-                if (recentMatches.length === 0) {
-                    matchesHtml += '<div style="color:#444; font-size:0.7rem; text-align:center; margin-top:20px;">No matches played yet.</div>';
-                } else {
-                    matchesHtml += recentMatches.map(m => {
-                        const isP1 = m.player1 === u.username;
-                        const opponent = isP1 ? m.player2 : m.player1;
-                        const isWinner = m.winner === u.username;
-                        const resultColor = isWinner ? 'var(--sub-gold)' : '#666';
-                        const score = (m.player1_score !== null && m.player2_score !== null)
-                            ? (isP1 ? `${m.player1_score}-${m.player2_score}` : `${m.player2_score}-${m.player1_score}`)
-                            : (isWinner ? 'WIN' : 'LOSS');
-                        const date = new Date(m.created_at).toLocaleDateString();
-                        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#111; margin-bottom:4px; border-radius:4px; border-left:2px solid ${resultColor};">
-                                    <div style="display:flex; flex-direction:column;">
-                                        <div style="color:#fff; font-size:0.75rem; font-family:var(--sub-name-font);">vs ${opponent}</div>
-                                        <div style="color:#666; font-size:0.6rem;">${date} • ${m.tournament_name || 'Quick Match'}</div>
-                                    </div>
-                                    <div style="color:${resultColor}; font-size:0.8rem; font-weight:bold; font-family:'Russo One';">${score}</div>
-                                </div>`;
-                    }).join('');
-                }
-                backContent.innerHTML = matchesHtml;
-            }
-        });
+    // Fetch and populate back side data asynchronously (Premium Stats Layout)
+    Promise.all([
+        _supabase.from('tournament_history')
+            .select('*')
+            .or(`winner_name.eq.${u.username},second_place_name.eq.${u.username},third_place_name.eq.${u.username}`)
+            .eq('status', 'completed')
+    ]).then(([{ data: tournaments }]) => {
+        const backContent = document.getElementById('profile-card-back-content');
+        if (!backContent) return;
+
+        const rankStatus = u.elo > 1600 ? 'PRO' : (u.elo > 1400 ? 'AMATEUR' : 'ROOKIE');
+        const rankColor = u.elo > 1600 ? 'var(--sub-gold)' : (u.elo > 1400 ? '#C0C0C0' : '#CD7F32');
+
+        const totalWins = tournaments ? tournaments.filter(t => t.winner_name === u.username).length : 0;
+        const totalPodiums = tournaments ? tournaments.length : 0;
+        // Mocking Majors/Arena Champs for now (e.g. tracking size or specific tags in tournament names later)
+        const majorWins = 0;
+        const arenaChamps = 0;
+
+        let html = `
+            <div style="text-align:center; padding: 15px 0;">
+                <div style="font-family:'Resolve'; color:#888; font-size:0.6rem; letter-spacing:2px; margin-bottom:5px;">CURRENT STATUS</div>
+                <div style="font-family:'Russo One'; color:${rankColor}; font-size:1.6rem; letter-spacing:3px;">${rankStatus}</div>
+            </div>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                <div style="background:rgba(255,255,255,0.05); border:1px solid #333; padding:15px 10px; border-radius:8px; text-align:center;">
+                    <div style="font-size:1.5rem; font-family:'Russo One'; color:#fff;">${totalWins}</div>
+                    <div style="font-size:0.55rem; color:#888; font-family:'Resolve'; margin-top:5px; text-transform:uppercase; letter-spacing:1px;">Tournament<br>VictorIES</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05); border:1px solid #333; padding:15px 10px; border-radius:8px; text-align:center;">
+                    <div style="font-size:1.5rem; font-family:'Russo One'; color:#fff;">${totalPodiums}</div>
+                    <div style="font-size:0.55rem; color:#888; font-family:'Resolve'; margin-top:5px; text-transform:uppercase; letter-spacing:1px;">Total<br>Podiums</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05); border:1px solid #333; padding:15px 10px; border-radius:8px; text-align:center; opacity:0.5;">
+                    <div style="font-size:1.2rem; font-family:'Russo One'; color:#fff;">${arenaChamps}</div>
+                    <div style="font-size:0.55rem; color:#888; font-family:'Resolve'; margin-top:5px; text-transform:uppercase; letter-spacing:1px;">Arena<br>Champs</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05); border:1px solid #333; padding:15px 10px; border-radius:8px; text-align:center; opacity:0.5;">
+                    <div style="font-size:1.2rem; font-family:'Russo One'; color:#fff;">${majorWins}</div>
+                    <div style="font-size:0.55rem; color:#888; font-family:'Resolve'; margin-top:5px; text-transform:uppercase; letter-spacing:1px;">Major<br>Titles</div>
+                </div>
+            </div>
+        `;
+
+        if (totalWins === 0 && rankStatus === 'ROOKIE') {
+            html += `
+                <div style="margin-top:20px; text-align:center; padding:15px; border-top:1px dashed #333;">
+                    <div style="color:var(--sub-gold); font-size:0.8rem; font-family:'Resolve'; margin-bottom:5px;"><i class="fa fa-route"></i> YOUR PATH BEGINS</div>
+                    <div style="color:#666; font-size:0.65rem; line-height:1.4;">Compete in official arenas and tournaments to earn your first titles and unlock Pro status.</div>
+                </div>
+            `;
+        }
+
+        backContent.innerHTML = html;
+    }).catch(err => {
+        console.error("Error fetching card dossier stats:", err);
+    });
 
     const card = container.querySelector('.topps-collectible-card');
     if (card) initTiltEffect(card);

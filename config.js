@@ -27,7 +27,7 @@ if (typeof window !== 'undefined' && window.supabase) {
 }
 
 export const _supabase = supabaseClient;
-export const APP_VERSION = 'v0.9.2 BETA';
+export const APP_VERSION = 'v1.0.0 BETA';
 export const ENABLE_EVENTS = true; // Set to false to hide Events tab (e.g. Costco Mode)
 export const KIOSK_MODE = false; // Set to true to lock UI for public use (hides menu & logout)
 

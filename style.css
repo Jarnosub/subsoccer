@@ -76,7 +76,7 @@ header {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 15px 0 !important;
+    padding: 15px 0 5px 0 !important;
     order: -2;
 }
 
@@ -555,6 +555,7 @@ header {
     position: relative;
     transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
     border-radius: var(--sub-radius);
     background: transparent;
@@ -562,6 +563,7 @@ header {
 
 .pro-card.flipped .card-flipper {
     transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
 }
 
 .card-front,
@@ -581,8 +583,14 @@ header {
     padding: 20px !important;
 }
 
+.card-front {
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
+}
+
 .card-back {
     transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
 }
 
 /* PLAYER CARD - COMPONENT STYLES */
@@ -1614,12 +1622,14 @@ select.dark-select {
     position: relative;
     transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9);
     border-radius: 12px;
 }
 
 .topps-collectible-card.flipped .topps-flipper {
     transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
 }
 
 .topps-front,
@@ -1641,17 +1651,23 @@ select.dark-select {
     overflow: hidden;
 }
 
-.topps-back {
-    transform: rotateY(180deg);
+.topps-front {
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
 }
 
-/* Kultainen sisäreuna (Chrome-tyyli) */
-.topps-collectible-card::after {
+.topps-back {
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+}
+
+.topps-front::after,
+.topps-back::after {
+    /* Base Chrome Border */
     content: '';
     position: absolute;
     inset: 5px;
     border: 2px solid var(--sub-gold) !important;
-    background: transparent !important;
     border-radius: 8px;
     pointer-events: none;
     z-index: 10;
@@ -2042,7 +2058,7 @@ select.dark-select {
     text-decoration: none;
 }
 
-.beta-badge-container {
+.version-badge-container {
     display: flex;
     flex-direction: row;
     gap: 8px;
@@ -2051,7 +2067,7 @@ select.dark-select {
     opacity: 0.8;
 }
 
-.beta-label {
+.version-label {
     background: transparent;
     color: #fff;
     font-size: 0.6rem;
@@ -2061,7 +2077,7 @@ select.dark-select {
     text-transform: uppercase;
 }
 
-.beta-date {
+.version-date {
     color: #fff;
     font-size: 0.6rem;
     font-weight: 400;
@@ -3383,7 +3399,6 @@ body.live-mode {
     background: linear-gradient(180deg, rgba(255, 215, 0, 0.15) 0%, #000 100%);
     color: var(--sub-gold);
     text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-    padding-top: 25px;
 }
 
 /* Hopea-askelma */
