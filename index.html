@@ -349,15 +349,18 @@
         <div id="section-map" class="section">
             <div class="container" style="height: 100%; display: flex; flex-direction: column; padding: 15px;">
                 <div
-                    style="background:linear-gradient(135deg, #111, #1a0505); border:1px solid #333; border-radius:8px; padding:15px; margin-bottom:15px; text-align:center;">
-                    <h3
-                        style="font-family:'Russo One'; color:var(--sub-red); margin-bottom:5px; text-transform:uppercase; letter-spacing:1px; font-size:1.2rem;">
-                        <i class="fa-solid fa-map-location-dot" style="margin-right:8px;"></i> THE ARENA NETWORK
-                    </h3>
-                    <p style="color:#aaa; font-size:0.8rem; line-height:1.4;">
-                        Find a <strong style="color:var(--sub-gold);">Verified Public Arena</strong> near you to lift
-                        your 1600 ELO Rank Cap and officially enter the Pro League.
-                    </p>
+                    style="background:linear-gradient(135deg, #E30613 0%, #c00510 100%); border-radius:4px; padding:18px 15px; margin-bottom:20px; text-align:center; box-shadow: 0 4px 15px rgba(227, 6, 19, 0.3); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="font-size: 1.8rem; margin-bottom: 4px; color: #fff;"><i
+                            class="fa-solid fa-map-location-dot"></i></div>
+                    <div
+                        style="font-family:'Resolve'; color:#fff; font-size:0.95rem; letter-spacing:0.5px; text-transform:uppercase;">
+                        THE ARENA NETWORK
+                    </div>
+                    <div
+                        style="color:rgba(255, 255, 255, 0.8); font-size:0.65rem; font-family:'Open Sans'; margin-top:3px; font-weight:normal; line-height:1.4;">
+                        Find a Verified Public Arena near you to lift your 1600 ELO Rank Cap and officially enter the
+                        Pro League.
+                    </div>
                 </div>
 
                 <div class="location-search-row">
@@ -375,12 +378,12 @@
                     <button class="map-filter-btn" data-filter="all" style="flex:1;">ALL</button>
                     <button class="map-filter-btn active" data-filter="verified"
                         style="flex:1.5; background:rgba(255, 215, 0, 0.1); border-color:var(--sub-gold); color:var(--sub-gold);">⭐
-                        VERIFIED ARENAS</button>
+                        VERIFIED</button>
                     <button class="map-filter-btn" data-filter="tournaments" style="flex:1;">🏆 EVENTS</button>
                 </div>
 
                 <div id="public-game-map"
-                    style="width: 100%; height: 40vh; min-height: 350px; border-radius: 8px; border: 2px solid #222; flex-shrink: 0; margin-top: 5px; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
+                    style="width: 100%; height: 40vh; min-height: 350px; border-radius: var(--sub-radius); border: 2px solid #222; flex-shrink: 0; margin-top: 5px; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
                 </div>
 
                 <!-- Nearest Games List -->
@@ -394,7 +397,7 @@
 
                 <!-- Buy Your Own Banner (Subdued CTA) -->
                 <div
-                    style="margin-top:15px; margin-bottom:30px; background:rgba(255,255,255,0.03); border:1px solid #222; border-radius:8px; padding:20px 15px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                    style="margin-top:15px; margin-bottom:30px; background:rgba(255,255,255,0.03); border:1px solid #222; border-radius:var(--sub-radius); padding:20px 15px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;">
                     <div
                         style="color:var(--sub-gold); font-family:'Russo One'; font-size:1rem; letter-spacing:1px; text-shadow:0 2px 10px rgba(0,0,0,0.8);">
                         <i class="fa-solid fa-house" style="margin-right:8px;"></i> BRING THE GAME HOME
@@ -441,7 +444,9 @@
                             <input type="text" id="p1-quick-search" placeholder="Home Player" style="margin-bottom:0;">
                             <div id="p1-results" class="quick-results"></div>
                         </div>
-                        <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1.2rem;">VS</div>
+                        <div
+                            style="color:var(--sub-gold); font-family:'Resolve'; font-size:1.1rem; letter-spacing:3px; margin: 5px 0; opacity:0.8;">
+                            VS</div>
                         <div style="position:relative;">
                             <input type="text" id="p2-quick-search" placeholder="Away Player" style="margin-bottom:0;">
                             <div id="p2-results" class="quick-results"></div>

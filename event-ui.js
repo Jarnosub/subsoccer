@@ -26,13 +26,10 @@ export function renderEventsPage(events) {
     const canCreate = state.user && state.user.id !== 'guest' && state.user.id !== 'spectator';
 
     const setupHtml = canCreate ? safeHTML`
-        <div class="events-setup-header" style="margin-bottom: 30px;">
-            <h2 class="section-title" style="margin-top: 0; font-size: 0.75rem; color: var(--sub-gold); letter-spacing: 4px; font-family: var(--sub-name-font); text-align: center; margin-bottom: 20px;">ORGANIZER TOOLS</h2>
-            
+        <div class="events-setup-header" style="margin-bottom: 20px;">
             <div style="display:flex; justify-content:center;">
-                <button class="create-event-action-btn" onclick="showCreateEventForm()" style="width:100%; max-width:400px; padding:22px; border: 1px solid var(--sub-border); background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%); color: #fff; border-radius: var(--sub-radius); cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; font-family: var(--sub-name-font); letter-spacing: 2px;">
-                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.1), transparent); transform: translateX(-100%); animation: shimmer 3s infinite;"></div>
-                    <i class="fa-solid fa-calendar-plus" style="margin-right:12px; color:var(--sub-gold); font-size: 1.1rem;"></i> CREATE NEW EVENT
+                <button class="create-event-action-btn" onclick="showCreateEventForm()" style="width:100%; max-width:400px; padding:15px; border: 1px solid #333; background: #1a1a1a; color: var(--sub-gold); border-radius: var(--sub-radius); cursor: pointer; transition: all 0.3s ease; font-family: var(--sub-name-font); letter-spacing: 2px; font-size: 0.85rem;">
+                    <i class="fa-solid fa-calendar-plus" style="margin-right:8px;"></i> CREATE NEW EVENT
                 </button>
             </div>
             
@@ -43,13 +40,13 @@ export function renderEventsPage(events) {
     container.innerHTML = safeHTML`
         ${setupHtml}
         
-        <div class="events-separator" style="display:flex; align-items:center; gap:20px; margin:40px 0 25px 0;">
+        <div class="events-separator" style="display:flex; align-items:center; gap:15px; margin:20px 0 20px 0;">
             <div style="height:1px; background:linear-gradient(to right, transparent, #333); flex:1;"></div>
-            <div style="font-family:var(--sub-name-font); color:#888; font-size:0.75rem; letter-spacing:4px; font-weight: bold;">EXPLORE EVENTS</div>
+            <div style="font-family:var(--sub-name-font); color:#888; font-size:0.7rem; letter-spacing:2px; font-weight: bold;">EVENTS</div>
             <div style="height:1px; background:linear-gradient(to left, transparent, #333); flex:1;"></div>
         </div>
 
-        <div id="events-list" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:25px; padding-bottom: 40px;">
+        <div id="events-list" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:15px; padding-bottom: 40px;">
             ${eventsList}
         </div>
     `;
@@ -72,10 +69,10 @@ export function renderEventCard(event) {
     const typeColor = eventTypeColors[event.event_type] || '#888';
 
     return safeHTML`
-        <div class="event-card-premium" style="position:relative; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:var(--sub-radius); overflow:hidden; display:flex; flex-direction:column; min-height:400px; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div class="event-card-premium" style="position:relative; background:#0a0a0a; border:1px solid #222; border-radius:var(--sub-radius); overflow:hidden; display:flex; flex-direction:column; min-height:300px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
             
             <!-- Card Image / Header -->
-            <div class="event-card-image-wrapper" style="height:220px; position:relative; overflow:hidden; background:#111;">
+            <div class="event-card-image-wrapper" style="height:160px; position:relative; overflow:hidden; background:#111;">
                 ${event.image_url ? safeHTML`
                     <img src="${event.image_url}" loading="lazy" alt="${event.event_name}" style="width:100%; height:100%; object-fit:cover; transition: transform 0.5s ease;">
                 ` : safeHTML`
@@ -101,23 +98,24 @@ export function renderEventCard(event) {
             </div>
 
             <!-- Card Content -->
-            <div class="event-card-body" style="padding:22px 25px; flex:1; display:flex; flex-direction:column; background: linear-gradient(to bottom, rgba(10,10,10,1), #080808);">
-                <div style="font-size:0.7rem; color:#666; font-family:var(--sub-name-font); letter-spacing:1px; margin-bottom:8px;">
-                    <i class="fa-regular fa-clock" style="margin-right:5px; color:${typeColor};"></i> ${timeStr}
+            <div class="event-card-body" style="padding:15px; flex:1; display:flex; flex-direction:column; background: linear-gradient(to bottom, rgba(10,10,10,1), #080808);">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+                    <h3 style="font-family:var(--sub-name-font); font-size:1.1rem; margin:0; color:#fff; letter-spacing:0.5px; text-transform:uppercase; line-height:1.2; font-weight:bold; flex:1;">
+                        ${event.event_name}
+                    </h3>
+                    <div style="font-size:0.7rem; color:#888; font-family:var(--sub-name-font); letter-spacing:1px; white-space:nowrap; margin-left:10px;">
+                        <i class="fa-regular fa-clock" style="margin-right:3px; color:${typeColor};"></i> ${timeStr}
+                    </div>
                 </div>
                 
-                <h3 style="font-family:var(--sub-name-font); font-size:1.35rem; margin:0 0 12px 0; color:#fff; letter-spacing:0.5px; text-transform:uppercase; line-height:1.1; font-weight:bold;">
-                    ${event.event_name}
-                </h3>
-                
-                <div style="font-size:0.85rem; color:#888; margin-bottom:20px; display:flex; align-items:flex-start; gap:8px; line-height:1.4;">
-                    <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-top:3px;"></i> 
+                <div style="font-size:0.8rem; color:#888; margin-bottom:15px; display:flex; align-items:flex-start; gap:6px; line-height:1.3;">
+                    <i class="fa-solid fa-location-dot" style="color:var(--sub-red); margin-top:2px; font-size:0.8rem;"></i> 
                     <span style="font-family:var(--sub-body-font);">${event.location ? event.location.toUpperCase() : 'LOCATION TBD'}</span>
                 </div>
                 
-                <div style="margin-top:auto; padding-top:15px; border-top:1px solid rgba(255,255,255,0.04);">
+                <div style="margin-top:auto; padding-top:10px; border-top:1px solid #1a1a1a;">
                     <button class="event-view-btn-premium" 
-                            style="width:100%; padding:15px; font-size:0.75rem; font-weight:bold; letter-spacing:2px; background:rgba(255,255,255,0.03); border:1px solid #222; color:#fff; cursor:pointer; font-family:var(--sub-name-font); text-transform:uppercase; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius:var(--sub-radius);"
+                            style="width:100%; padding:10px; font-size:0.75rem; font-weight:bold; letter-spacing:2px; background:#111; border:1px solid #333; color:var(--sub-gold); cursor:pointer; font-family:var(--sub-name-font); text-transform:uppercase; transition:all 0.3s ease; border-radius:var(--sub-radius);"
                             data-action="view-event-details" data-id="${event.id}">
                         VIEW EVENT DETAILS
                     </button>

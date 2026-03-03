@@ -24,14 +24,29 @@ export async function loadEventsPage() {
         const threeMonthsAgo = new Date();
         threeMonthsAgo.setMonth(now.getMonth() - 3);
 
-        const { data: events, error } = await _supabase
-            .from('events')
-            .select('id, event_name, event_type, start_datetime, end_datetime, location, image_url')
-            .neq('status', 'cancelled')
-            .gte('start_datetime', threeMonthsAgo.toISOString())
-            .order('start_datetime', { ascending: true });
+        let events = null;
+        let fetchError = null;
 
-        if (error) throw error;
+        // Yritetään ladata tiedot jopa 3 kertaa, jotta vältetään hetkelliset verkkokatkokset
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            const res = await _supabase
+                .from('events')
+                .select('id, event_name, event_type, start_datetime, end_datetime, location, image_url')
+                .neq('status', 'cancelled')
+                .gte('start_datetime', threeMonthsAgo.toISOString())
+                .order('start_datetime', { ascending: true });
+
+            if (!res.error) {
+                events = res.data;
+                fetchError = null;
+                break;
+            } else {
+                fetchError = res.error;
+                if (attempt < 3) await new Promise(r => setTimeout(r, 800)); // odota ennen uutta yritystä
+            }
+        }
+
+        if (fetchError) throw fetchError;
 
         const activeEvents = [];
         const pastEvents = [];

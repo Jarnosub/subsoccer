@@ -23,6 +23,7 @@ if (typeof window !== 'undefined' && window.supabase) {
             signUp: async () => ({ data: { user: null, session: null }, error: { message: "Supabase not loaded" } }),
         },
         storage: { from: () => ({ upload: async () => ({}), getPublicUrl: () => ({}) }) },
+        _isMock: true
     };
 }
 

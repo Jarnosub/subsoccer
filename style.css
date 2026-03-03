@@ -359,6 +359,15 @@ header {
     transform: translateY(-2px);
 }
 
+.map-filter-btn {
+    padding: 8px 10px !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 0.5px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Tummennetaan harmaata karttaa, jotta se sulautuu mustaan taustaan */
 #public-game-map .leaflet-tile-pane {
     filter: brightness(1.1) contrast(1.1) grayscale(0.2) !important;
@@ -2697,7 +2706,7 @@ body.live-mode {
 
 .location-search-row {
     display: flex;
-    gap: 5px;
+    gap: 8px;
     margin-bottom: 5px;
 }
 
@@ -2712,7 +2721,7 @@ body.live-mode {
     background: #222 !important;
     border: 1px solid #333 !important;
     color: #fff !important;
-    border-radius: 4px !important;
+    border-radius: var(--sub-radius) !important;
     margin-bottom: 0 !important;
 }
 
@@ -2780,10 +2789,10 @@ body.live-mode {
 /* Tournament Section Cleanup */
 .tour-card {
     background: #1a1a1a;
-    padding: 15px;
-    border-radius: 4px;
+    padding: 20px 15px;
+    border-radius: var(--sub-radius);
     border: 1px solid #333;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     text-align: left;
 }
 
@@ -2799,9 +2808,9 @@ body.live-mode {
 .tour-roster-card {
     background: #000;
     border: 1px solid #333;
-    border-radius: 4px;
+    border-radius: var(--sub-radius);
     overflow: hidden;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .tour-roster-header {
@@ -3178,11 +3187,11 @@ body.live-mode {
     background: #111;
     border: 1px solid #333;
     border-radius: 6px;
-    margin-bottom: 10px;
-    padding: 5px;
+    margin-bottom: 15px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 0;
 }
 
 .match-player {
@@ -3217,10 +3226,14 @@ body.live-mode {
 }
 
 .match-vs {
-    font-size: 0.6rem;
-    color: #555;
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.8rem;
+    color: var(--sub-gold);
     text-align: center;
-    margin: -2px 0;
+    margin: 5px 0;
+    letter-spacing: 2px;
+    opacity: 0.8;
+    text-transform: uppercase;
 }
 
 /* Sticky Bottom Action for Tournament Save */

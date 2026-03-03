@@ -119,8 +119,8 @@ function updatePageUI(p) {
 
     // Map sub-pages to main tabs
     let tabId = 'tab-' + p;
-    if (p === 'map' || p === 'leaderboard' || p === 'history') {
-        tabId = 'tab-profile'; // Map and Rank are now under Profile context
+    if (p === 'leaderboard' || p === 'history') {
+        tabId = 'tab-profile'; // Rank and History are under Profile context
     }
 
     const t = document.getElementById(tabId);
