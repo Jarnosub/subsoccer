@@ -657,20 +657,53 @@
     <img src="logo.png" class="game-logo" alt="Subsoccer">
 
     <!-- Instant Start Overlay (Zero Friction) -->
-    <div id="rules-overlay" class="rules-overlay" style="cursor: pointer;" onclick="enterFullscreenGame()">
-        <img src="logo.png" style="height: 60px; width: auto; margin-bottom: 40px;" alt="Subsoccer">
-        <div style="text-align:center; animation: breathing 2s infinite alternate;">
-            <i class="fa-solid fa-hand-pointer"
-                style="font-size: 4rem; color: var(--sub-red); margin-bottom: 20px;"></i>
-            <div
-                style="font-family:'Russo One'; font-size: 3rem; color: white; text-transform:uppercase; letter-spacing:3px;">
-                TAP TO START</div>
-            <div
-                style="font-family:'Resolve'; color: var(--sub-gold); font-size: 1.2rem; margin-top:10px; letter-spacing:5px;">
-                NO DOWNLOADS. NO ACCOUNTS.</div>
+    <div id="rules-overlay" class="rules-overlay"
+        style="cursor: pointer; background: linear-gradient(135deg, rgba(10,10,10,0.98), rgba(20,5,5,0.98));"
+        onclick="enterFullscreenGame()">
+
+        <div
+            style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+
+            <img src="logo.png"
+                style="height: 40px; width: auto; margin-bottom: 8vh; opacity: 0.8; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));"
+                alt="Subsoccer">
+
+            <div style="text-align:center; position: relative;">
+                <!-- Glowing background effect behind the tap area -->
+                <div
+                    style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 250px; height: 250px; background: radial-gradient(circle, rgba(227,6,19,0.3) 0%, transparent 70%); border-radius: 50%; animation: breathing 2.5s infinite alternate; pointer-events: none; z-index: 0;">
+                </div>
+
+                <div style="position: relative; z-index: 1; animation: breathing 2s infinite alternate;">
+                    <div
+                        style="width: 100px; height: 100px; background: linear-gradient(135deg, #E30613 0%, #8a0000 100%); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 30px auto; box-shadow: 0 10px 30px rgba(227,6,19,0.5); border: 2px solid rgba(255,255,255,0.2);">
+                        <i class="fa-solid fa-hand-pointer" style="font-size: 2.5rem; color: #fff;"></i>
+                    </div>
+
+                    <div
+                        style="font-family:'Russo One'; font-size: 2.8rem; color: #fff; text-transform:uppercase; letter-spacing:2px; text-shadow: 0 4px 15px rgba(0,0,0,0.8); line-height:1;">
+                        TAP TO START
+                    </div>
+                </div>
+            </div>
+
         </div>
-        <div style="margin-top: 50px; color: #888; font-size: 0.8rem; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-microphone"></i> Auto-Referee activates on tap
+
+        <div
+            style="padding-bottom: 5vh; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%;">
+            <div style="display:flex; justify-content:center; align-items:center; gap:10px;">
+                <div style="height:1px; width:30px; background:rgba(255,215,0,0.3);"></div>
+                <div
+                    style="font-family:'Resolve'; color: var(--sub-gold); font-size: 0.75rem; letter-spacing:4px; font-weight:bold;">
+                    NO APP NEEDED
+                </div>
+                <div style="height:1px; width:30px; background:rgba(255,215,0,0.3);"></div>
+            </div>
+
+            <div
+                style="color: #666; font-size: 0.7rem; display: flex; align-items: center; gap: 8px; font-family: var(--sub-name-font); letter-spacing: 1px; text-transform:uppercase;">
+                <i class="fa-solid fa-microphone"></i> AUTO-REFEREE ACTIVATES ON TAP
+            </div>
         </div>
     </div>
 

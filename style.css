@@ -3087,7 +3087,7 @@ body.live-mode {
     font-size: 0.7rem !important;
     padding: 6px 12px !important;
     background: #333 !important;
-    border-radius: 4px !important;
+    border-radius: var(--sub-radius) !important;
 }
 
 /* Card Modal Overlay */

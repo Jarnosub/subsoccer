@@ -187,7 +187,7 @@ export async function fetchMyGames() {
     const profileList = document.getElementById('profile-games-list');
     if (list) list.innerHTML = gameHTML;
     if (profileList) profileList.innerHTML = data.map(game => `
-        <div style="background:#0a0a0a; padding:12px; border-radius:8px; margin-bottom:8px; border-left:3px solid ${game.verified ? 'var(--sub-gold)' : '#333'}; position: relative;">
+        <div style="background:#0a0a0a; padding:12px; border-radius:var(--sub-radius); margin-bottom:8px; border-left:3px solid ${game.verified ? 'var(--sub-gold)' : '#333'}; position: relative;">
             <div style="position: absolute; top: 10px; right: 10px;">
                 <button onclick="initEditGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 0.8rem; color: var(--sub-gold); font-family: 'Resolve';">EDIT</button>
             </div>

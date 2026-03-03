@@ -193,9 +193,10 @@
                     </div>
 
                     <div style="display:flex; gap:10px; margin-top: 20px;">
-                        <button id="btn-save-profile" class="btn-red" style="flex: 2;">SAVE CHANGES</button>
+                        <button id="btn-save-profile" class="btn-red"
+                            style="flex: 2; border-radius: var(--sub-radius);">SAVE CHANGES</button>
                         <button id="btn-cancel-edit-profile"
-                            style="flex: 1; background: #333; color: white; border: none; border-radius: 4px; font-family: 'Resolve'; cursor: pointer;">CANCEL</button>
+                            style="flex: 1; background: #333; color: white; border: none; border-radius: var(--sub-radius); font-family: 'Resolve'; letter-spacing: 1px; cursor: pointer;">CANCEL</button>
                     </div>
                 </div>
 
@@ -203,32 +204,32 @@
                     <!-- Ecosystem CTAs -->
                     <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;">
                         <button id="btn-dashboard-play" class="btn-red"
-                            style="font-family:'Russo One'; font-size:1.1rem; padding:18px; text-transform:uppercase; letter-spacing:1px; background:#fff; color:#000;">
+                            style="font-family:'Russo One'; font-size:1.1rem; padding:18px; text-transform:uppercase; letter-spacing:1px; background:#fff; color:#000; border-radius:var(--sub-radius); box-shadow: 0 4px 15px rgba(255,255,255,0.1);">
                             <i class="fa-solid fa-couch" style="margin-right:10px;"></i> CREATE PRIVATE MATCH
                             <div
-                                style="font-size:0.65rem; color:#444; font-family:'Resolve'; margin-top:5px; text-transform:none;">
+                                style="font-size:0.65rem; color:#444; font-family:'Resolve'; margin-top:5px; text-transform:none; letter-spacing:0;">
                                 Play anywhere (Capped at 1600 ELO)</div>
                         </button>
 
                         <button id="btn-dashboard-arena" class="btn-red"
-                            style="font-family:'Russo One'; font-size:1.1rem; padding:18px; text-transform:uppercase; letter-spacing:1px; background:#111; border:1px solid #333;">
+                            style="font-family:'Russo One'; font-size:1.1rem; padding:18px; text-transform:uppercase; letter-spacing:1px; background:#111; border:1px solid #333; border-radius:var(--sub-radius);">
                             <i class="fa-solid fa-location-dot" style="margin-right:10px; color:var(--sub-red);"></i>
                             FIND VERIFIED ARENA
                             <div
-                                style="font-size:0.65rem; color:#888; font-family:'Resolve'; margin-top:5px; text-transform:none;">
+                                style="font-size:0.65rem; color:#888; font-family:'Resolve'; margin-top:5px; text-transform:none; letter-spacing:0;">
                                 Play on official tables for limitless ELO</div>
                         </button>
                     </div>
 
                     <div class="profile-dashboard-grid" style="margin-bottom:15px; grid-template-columns: 1fr 1fr;">
                         <button id="btn-profile-leaderboard" class="btn-red btn-dashboard-action"
-                            style="background:#1a1a1a;">
+                            style="background:#1a1a1a; border: 1px solid #333; border-radius: var(--sub-radius);">
                             <i class="fa-solid fa-ranking-star"
                                 style="color:var(--sub-gold); display:block; font-size:1.5rem; margin-bottom:5px;"></i>
                             GLOBAL RANK
                         </button>
                         <button id="btn-profile-history" class="btn-red btn-dashboard-action"
-                            style="background:#1a1a1a;">
+                            style="background:#1a1a1a; border: 1px solid #333; border-radius: var(--sub-radius);">
                             <i class="fa-solid fa-clock-rotate-left"
                                 style="color:#aaa; display:block; font-size:1.5rem; margin-bottom:5px;"></i>
                             HISTORY
