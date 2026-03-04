@@ -12,6 +12,7 @@ import {
     showCreateEventForm, viewEventDetails, editTournament, deleteTournament, unregisterFromTournament,
     registerForTournament, showCreateTournamentForm, editEvent, deleteEvent, closeEventModal,
     addParticipantFromSearch, removeTournamentParticipant, selectParticipantFromDropdown, createTournament,
+    closeParticipantsModal,
     closeTournamentForm, saveTournamentEdit, clearEventImage, updateEventForm, handleParticipantSearch,
     hideCreateEventForm, clearBrandLogo, previewBrandLogo, previewEventImage, createNewEvent, closeEmailPrompt, saveEmailAndRegister,
     addModerator, removeModerator, searchModerators, shareTournamentLink
@@ -830,6 +831,7 @@ export function setupUIListeners() {
             if (act === 'open-public-display') { window.open(`?live=${id}`, '_blank'); return; }
             if (act === 'share-live-link') { shareLiveEventLink(id, name); return; }
             if (act === 'close-event-modal') { closeEventModal(); return; }
+            if (act === 'close-participants-modal') { closeParticipantsModal(); return; }
             if (act === 'add-participant') { addParticipantFromSearch(tourId); return; }
             if (act === 'remove-participant') { removeTournamentParticipant(eventAction.dataset.regId, tourId); return; }
             if (act === 'select-participant') { selectParticipantFromDropdown(tourId, name); return; }
