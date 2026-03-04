@@ -63,15 +63,22 @@ function initBroadcastReceiver() {
         document.getElementById('room-id-display').style.color = '#4CAF50';
     });
 
+    let iceQueue = [];
+
     channel.on('broadcast', { event: 'WEBRTC_ICE' }, async (p) => {
-        if (peerConnection && p.payload.isCasterCandidate) {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(p.payload.candidate));
+        if (p.payload.isCasterCandidate) {
+            if (peerConnection && peerConnection.remoteDescription) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(p.payload.candidate));
+            } else {
+                iceQueue.push(p.payload.candidate);
+            }
         }
     });
 
     channel.on('broadcast', { event: 'WEBRTC_OFFER' }, async (p) => {
         console.log("VIP Offer Received");
         if (peerConnection) peerConnection.close();
+        iceQueue = [];
 
         peerConnection = new RTCPeerConnection(rtcConfig);
 
@@ -107,7 +114,8 @@ function initBroadcastReceiver() {
                         btn.style.fontSize = '0.7rem';
                         btn.style.zIndex = '30';
                         btn.style.whiteSpace = 'nowrap';
-                        btn.onclick = () => {
+                        btn.onclick = (e) => {
+                            e.stopPropagation(); // Setup so it doesn't split the screen layout
                             vipVideo.muted = false;
                             btn.remove();
                         };
@@ -124,6 +132,13 @@ function initBroadcastReceiver() {
         };
 
         await peerConnection.setRemoteDescription(new RTCSessionDescription(p.payload));
+
+        // Process any queued ICE candidates
+        for (const candidate of iceQueue) {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+        iceQueue = [];
+
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
         channel.send({ type: 'broadcast', event: 'WEBRTC_ANSWER', payload: answer });
@@ -174,10 +189,13 @@ function initCasterMode() {
         }
     };
 
+    let casterIceQueue = [];
+
     async function createAndSendOffer() {
         if (!localStream) return;
         console.log("Creating offer for TV...");
         if (peerConnection) peerConnection.close();
+        casterIceQueue = [];
 
         peerConnection = new RTCPeerConnection(rtcConfig);
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
@@ -200,12 +218,22 @@ function initCasterMode() {
 
     channel.on('broadcast', { event: 'WEBRTC_ANSWER' }, async (p) => {
         console.log("VIP Answer Received from TV");
-        if (peerConnection) await peerConnection.setRemoteDescription(new RTCSessionDescription(p.payload));
+        if (peerConnection) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(p.payload));
+            for (const candidate of casterIceQueue) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+            casterIceQueue = [];
+        }
     });
 
     channel.on('broadcast', { event: 'WEBRTC_ICE' }, async (p) => {
-        if (peerConnection && !p.payload.isCasterCandidate) {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(p.payload.candidate));
+        if (!p.payload.isCasterCandidate) {
+            if (peerConnection && peerConnection.remoteDescription) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(p.payload.candidate));
+            } else {
+                casterIceQueue.push(p.payload.candidate);
+            }
         }
     });
 }
