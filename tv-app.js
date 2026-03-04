@@ -213,6 +213,57 @@ function attachSignaling() {
         handleScoreUpdateData(payload.payload);
     });
 
+    channel.on('broadcast', { event: 'DIRECTOR_COMMAND' }, (p) => {
+        const { action } = p.payload;
+        console.log("DIRECTOR_COMMAND:", action);
+
+        if (action === 'TOGGLE_SCOREBOARD') {
+            const sb = document.getElementById('scoreboard');
+            if (sb) sb.style.opacity = (sb.style.opacity === '0' ? '1' : '0');
+        } else if (action === 'TOGGLE_CASTER') {
+            const vb = document.getElementById('vip-box');
+            if (vb) vb.style.opacity = (vb.style.opacity === '0' ? '1' : '0');
+        } else if (action === 'SHOW_GOAL') {
+            const go = document.getElementById('goal-overlay');
+            if (go) {
+                go.classList.add('active');
+                setTimeout(() => go.classList.remove('active'), 5000);
+            }
+        } else if (action === 'SHOW_BRACKET') {
+            let br = document.getElementById('director-bracket-overlay');
+            if (!br) {
+                br = document.createElement('div');
+                br.id = 'director-bracket-overlay';
+                br.innerHTML = `
+                    <div style="background: rgba(0,0,0,0.9); border:2px solid var(--sub-red); padding:40px; border-radius:12px; text-align:center;">
+                        <h2 style="font-family:'Russo One'; color:white; font-size:3rem; margin:0 0 20px 0; letter-spacing:4px;">TOURNAMENT BRACKET</h2>
+                        <div style="color:var(--sub-gold); font-size:1.5rem; letter-spacing:2px;">(Live bracket sync coming soon...)</div>
+                    </div>
+                `;
+                br.style.position = 'fixed';
+                br.style.inset = '0';
+                br.style.zIndex = '200';
+                br.style.display = 'flex';
+                br.style.alignItems = 'center';
+                br.style.justifyContent = 'center';
+                br.style.background = 'rgba(0,0,0,0.6)';
+                br.style.backdropFilter = 'blur(10px)';
+                br.style.opacity = '0';
+                br.style.transition = 'opacity 0.4s ease';
+                document.body.appendChild(br);
+                // force reflow
+                br.offsetHeight;
+                br.style.opacity = '1';
+            } else {
+                br.style.opacity = (br.style.opacity === '0' ? '1' : '0');
+                if (br.style.opacity === '0') {
+                    // removing it completely after fade out could be better but opacity 0 is fine and unclickable since we use pointer-events if we want, but let's just remove it
+                    setTimeout(() => { if (br.parentNode) br.parentNode.removeChild(br); }, 400);
+                }
+            }
+        }
+    });
+
     channel.on('broadcast', { event: 'MATCH_ENDED' }, () => {
         document.getElementById('scoreboard').style.display = 'none';
         document.getElementById('waiting-screen').style.display = 'flex';

@@ -229,6 +229,42 @@
             transform: translateX(-50%) translateY(0);
             opacity: 1;
         }
+
+        .director-desk {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .director-btn {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Russo One', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .director-btn i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--sub-gold, #FFD700);
+            display: inline-block;
+        }
+
+        .director-btn:hover {
+            border-color: var(--sub-red, #E30613);
+            background: rgba(227, 6, 19, 0.1);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -314,6 +350,28 @@
             </div>
 
         </div>
+
+        <!-- DIRECTOR DESK -->
+        <div class="header-title" style="margin-top: 60px; margin-bottom: 30px;">
+            <h2><i class="fa-solid fa-clapperboard" style="color:var(--sub-red); margin-right:10px;"></i> DIRECTOR'S
+                DESK</h2>
+            <p>Control the Live TV output remotely with these commands.</p>
+        </div>
+
+        <div class="director-desk">
+            <button class="director-btn" onclick="sendDirectorCommand('TOGGLE_SCOREBOARD')">
+                <i class="fa-solid fa-list-ol"></i> <br> TOGGLE SCOREBOARD
+            </button>
+            <button class="director-btn" onclick="sendDirectorCommand('TOGGLE_CASTER')">
+                <i class="fa-solid fa-user-tie"></i> <br> TOGGLE CASTER
+            </button>
+            <button class="director-btn" onclick="sendDirectorCommand('SHOW_GOAL')">
+                <i class="fa-solid fa-futbol"></i> <br> TRIGGER "GOAL"
+            </button>
+            <button class="director-btn" onclick="sendDirectorCommand('SHOW_BRACKET')">
+                <i class="fa-solid fa-sitemap"></i> <br> SHOW BRACKET
+            </button>
+        </div>
     </div>
 
     <div id="toast" class="toast"><i class="fa-solid fa-check"></i> LINK COPIED!</div>
@@ -371,7 +429,56 @@
         document.getElementById('room-input').addEventListener('input', updateLinks);
 
         // Initialize on load
-        updateLinks();
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const initRoom = urlParams.get('room');
+            if (initRoom) {
+                document.getElementById('room-input').value = initRoom.toUpperCase();
+            }
+            updateLinks();
+        });
+    </script>
+    <script type="module">
+        import { _supabase } from './config.js';
+
+        let controlChannel = null;
+
+        function joinControlChannel() {
+            const roomId = document.getElementById('room-input').value.toUpperCase();
+            if (controlChannel) {
+                _supabase.removeChannel(controlChannel);
+            }
+            if (roomId) {
+                controlChannel = _supabase.channel(`room:${roomId}`);
+                controlChannel.subscribe();
+            }
+        }
+
+        window.sendDirectorCommand = function (action) {
+            if (!controlChannel) return;
+            controlChannel.send({
+                type: 'broadcast',
+                event: 'DIRECTOR_COMMAND',
+                payload: { action }
+            });
+
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<i class="fa-solid fa-check"></i> COMMAND SENT!`;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => { toast.innerHTML = `<i class="fa-solid fa-check"></i> LINK COPIED!`; }, 300);
+            }, 2000);
+        };
+
+        document.getElementById('room-input').addEventListener('input', joinControlChannel);
+        document.addEventListener('DOMContentLoaded', () => { setTimeout(joinControlChannel, 200); });
+        window.generateNewRoomExtended = function () {
+            window.generateNewRoom();
+            joinControlChannel();
+        };
+        // Hook new room gen
+        document.querySelector('.room-control .btn-secondary').setAttribute('onclick', 'generateNewRoomExtended()');
     </script>
 </body>
 
