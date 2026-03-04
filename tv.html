@@ -273,6 +273,65 @@
             }
         }
 
+        /* SPLIT LAYOUT MODE (For VIP Hosts) */
+        body.layout-split {
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+
+        body.layout-split #scoreboard {
+            width: 50vw;
+            height: 100vh;
+        }
+
+        body.layout-split .brand-logo {
+            top: 30px;
+            width: 200px;
+        }
+
+        body.layout-split .score-container {
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 80px;
+        }
+
+        body.layout-split .player-side {
+            width: 40vw;
+        }
+
+        body.layout-split .divider {
+            display: none;
+        }
+
+        body.layout-split .score-box {
+            font-size: 15vw;
+            padding: 20px 4vw;
+        }
+
+        body.layout-split #vip-box {
+            position: relative;
+            top: 0 !important;
+            right: 0 !important;
+            width: 50vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            border: none;
+            border-left: 2px solid var(--sub-gold);
+            box-shadow: -10px 0 50px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            cursor: pointer;
+        }
+
+        #vip-box {
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #vip-box:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.3);
+        }
+
         /* Goal Explosion Animation */
         #goal-overlay {
             position: fixed;
@@ -440,7 +499,8 @@
     </div>
 
     <!-- VIP Caster PIP Box -->
-    <div id="vip-box"
+    <div id="vip-box" title="Click to toggle Fullscreen Host mode"
+        onclick="document.body.classList.toggle('layout-split')"
         style="display:none; position:fixed; right:4vw; top:4vw; width:22vw; height:30vw; min-width:180px; min-height:240px; border-radius:20px; overflow:hidden; border:2px solid rgba(255,215,0,0.6); box-shadow:0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(255,215,0,0.2); z-index:200; background:#000; backdrop-filter:blur(10px);">
         <div
             style="position:absolute; top:12px; left:12px; background:var(--sub-red); color:#fff; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-family:'Russo One'; z-index:10; letter-spacing:2px; box-shadow:0 4px 15px rgba(227,6,19,0.5); display:flex; align-items:center; gap:8px;">
@@ -454,7 +514,7 @@
             style="position:absolute; inset:0; box-shadow:inset 0 0 20px rgba(0,0,0,0.8); z-index:5; pointer-events:none;">
         </div>
         <video id="vip-video" autoplay playsinline
-            style="width:100%; height:100%; object-fit:cover; filter: contrast(1.1) saturate(1.1);"></video>
+            style="width:100%; height:100%; object-fit:cover; filter: contrast(1.1) saturate(1.1); pointer-events:none;"></video>
     </div>
 
     <!-- We need config.js for the Supabase keys -->
