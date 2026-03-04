@@ -97,9 +97,10 @@
         }
 
         .brand-logo {
-            position: absolute;
-            top: 40px;
-            width: 250px;
+            width: 20vw;
+            min-width: 150px;
+            max-width: 280px;
+            margin-bottom: 2vh;
             opacity: 0.9;
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.1));
             animation: float 6s ease-in-out infinite;
@@ -122,8 +123,7 @@
             align-items: center;
             justify-content: center;
             gap: 4vw;
-            margin-top: 120px;
-            width: 80%;
+            width: 70%;
         }
 
         .player-side {
@@ -148,13 +148,13 @@
         }
 
         .score-box {
-            font-size: 15vw;
+            font-size: 11vw;
             line-height: 1;
             /* Premium Glassmorphism */
             background: rgba(15, 15, 15, 0.6);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 30px 4vw;
+            padding: 2vw 4vw;
             border-radius: 20px;
             border: 1px solid rgba(255, 215, 0, 0.2);
             border-top: 1px solid rgba(255, 215, 0, 0.4);
@@ -184,8 +184,7 @@
 
         /* Broadcast Indicator */
         .live-indicator {
-            position: absolute;
-            bottom: 40px;
+            margin-top: 4vh;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -508,7 +507,7 @@
     <!-- VIP Caster PIP Box -->
     <div id="vip-box" title="Click to toggle Fullscreen Host mode"
         onclick="document.body.classList.toggle('layout-split')"
-        style="display:none; position:fixed; right:4vw; top:4vw; width:22vw; height:30vw; min-width:180px; min-height:240px; border-radius:20px; overflow:hidden; border:2px solid rgba(255,215,0,0.6); box-shadow:0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(255,215,0,0.2); z-index:200; background:#000; backdrop-filter:blur(10px);">
+        style="display:none; position:fixed; right:2vw; top:2vw; width:15vw; height:20vw; min-width:140px; min-height:190px; border-radius:20px; overflow:hidden; border:2px solid rgba(255,215,0,0.6); box-shadow:0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(255,215,0,0.2); z-index:200; background:#000; backdrop-filter:blur(10px);">
         <div
             style="position:absolute; top:12px; left:12px; background:var(--sub-red); color:#fff; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-family:'Russo One'; z-index:10; letter-spacing:2px; box-shadow:0 4px 15px rgba(227,6,19,0.5); display:flex; align-items:center; gap:8px;">
             <div
