@@ -468,6 +468,13 @@
         <div id="room-id-display" style="color:var(--sub-gold); font-size:1.5rem; margin-top:10px;"></div>
     </div>
 
+    <!-- Background Arena Video (Table Camera feed) -->
+    <video id="arena-video" playsinline autoplay muted
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-2;"></video>
+    <div id="arena-overlay"
+        style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:-1; pointer-events:none;">
+    </div>
+
     <!-- Main Scoreboard -->
     <div id="scoreboard">
         <img src="logo.png" class="brand-logo">

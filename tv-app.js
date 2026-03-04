@@ -2,28 +2,30 @@ import { _supabase } from './config.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get('room');
-const role = urlParams.get('role'); // 'caster' or 'viewer'
+const role = urlParams.get('role'); // 'caster', 'camera', or undefined/viewer
 
 if (!roomId) {
     document.getElementById('waiting-screen').innerHTML = `
         <h2 style="color:var(--sub-red); font-family:'Russo One';">INVALID BROADCAST LINK</h2>
         <div style="color:#aaa; font-family:'Resolve';">Missing Room ID parameter.</div>
     `;
-} else if (role === 'caster') {
-    initCasterMode();
+} else if (role === 'caster' || role === 'camera') {
+    initSenderMode();
 } else {
     document.getElementById('room-id-display').textContent = `ROOM: ${roomId}`;
-    initBroadcastReceiver();
+    initViewerMode();
 }
 
-let peerConnection;
-let localStream;
+let localStream = null;
 const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-
 let lastP1Score = 0;
 let lastP2Score = 0;
+let channel = null;
 
-// Shared Score Logic
+// Peer Connections mapping: remoteRole -> RTCPeerConnection
+const peerConnections = {};
+const iceQueues = {};
+
 function handleScoreUpdateData(data) {
     console.log("Applying Score Update:", data);
     document.getElementById('waiting-screen').style.display = 'none';
@@ -47,215 +49,9 @@ function handleScoreUpdateData(data) {
     }
 }
 
-function initBroadcastReceiver() {
-    const channel = _supabase.channel(`room:${roomId}`);
-
-    channel.on('broadcast', { event: 'SCORE_UPDATE' }, (payload) => {
-        handleScoreUpdateData(payload.payload);
-    });
-
-    channel.on('broadcast', { event: 'MATCH_ENDED' }, () => {
-        console.log("Match ended, waiting for next...");
-        document.getElementById('scoreboard').style.display = 'none';
-        document.getElementById('waiting-screen').style.display = 'flex';
-        document.getElementById('room-id-display').textContent = `CONNECTED. WAITING FOR NEXT MATCH...`;
-        document.getElementById('room-id-display').style.color = '#4CAF50';
-    });
-
-    let iceQueue = [];
-
-    channel.on('broadcast', { event: 'WEBRTC_ICE' }, async (p) => {
-        if (p.payload.isCasterCandidate) {
-            if (peerConnection && peerConnection.remoteDescription) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(p.payload.candidate));
-            } else {
-                iceQueue.push(p.payload.candidate);
-            }
-        }
-    });
-
-    channel.on('broadcast', { event: 'WEBRTC_OFFER' }, async (p) => {
-        console.log("VIP Offer Received");
-        if (peerConnection) peerConnection.close();
-        iceQueue = [];
-
-        peerConnection = new RTCPeerConnection(rtcConfig);
-
-        peerConnection.ontrack = (event) => {
-            console.log("Got VIP video track!");
-            const vipVideo = document.getElementById('vip-video');
-
-            if (vipVideo.srcObject !== event.streams[0]) {
-                vipVideo.srcObject = event.streams[0];
-            }
-            document.getElementById('vip-box').style.display = 'block';
-
-            // Handle browser autoplay policies (especially strict on mobile/Safari)
-            vipVideo.play().catch(e => {
-                console.warn("Autoplay blocked, falling back to muted playing", e);
-                vipVideo.muted = true;
-                vipVideo.play().then(() => {
-                    // Show unmute button since we had to mute it
-                    if (!document.getElementById('unmute-btn')) {
-                        const btn = document.createElement('div');
-                        btn.id = 'unmute-btn';
-                        btn.innerHTML = '🔇 TAP TO UNMUTE CASTER';
-                        btn.style.position = 'absolute';
-                        btn.style.bottom = '10px';
-                        btn.style.left = '50%';
-                        btn.style.transform = 'translateX(-50%)';
-                        btn.style.background = 'var(--sub-red)';
-                        btn.style.color = '#fff';
-                        btn.style.padding = '5px 10px';
-                        btn.style.borderRadius = '20px';
-                        btn.style.cursor = 'pointer';
-                        btn.style.fontFamily = "'Russo One', sans-serif";
-                        btn.style.fontSize = '0.7rem';
-                        btn.style.zIndex = '30';
-                        btn.style.whiteSpace = 'nowrap';
-                        btn.onclick = (e) => {
-                            e.stopPropagation(); // Setup so it doesn't split the screen layout
-                            vipVideo.muted = false;
-                            btn.remove();
-                        };
-                        document.getElementById('vip-box').appendChild(btn);
-                    }
-                });
-            });
-        };
-
-        peerConnection.onicecandidate = (e) => {
-            if (e.candidate) {
-                channel.send({ type: 'broadcast', event: 'WEBRTC_ICE', payload: { isCasterCandidate: false, candidate: e.candidate } });
-            }
-        };
-
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(p.payload));
-
-        // Process any queued ICE candidates
-        for (const candidate of iceQueue) {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        }
-        iceQueue = [];
-
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        channel.send({ type: 'broadcast', event: 'WEBRTC_ANSWER', payload: answer });
-    });
-
-    channel.on('broadcast', { event: 'CASTER_READY' }, async () => {
-        // Caster just started their camera, we need to tell them we are here so they send an offer
-        console.log("Caster is ready, sending VIEWER_READY...");
-        channel.send({ type: 'broadcast', event: 'VIEWER_READY', payload: {} });
-    });
-
-    channel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-            console.log("Connected to Stream");
-            document.getElementById('room-id-display').textContent = `CONNECTED. WAITING FOR MATCH...`;
-            document.getElementById('room-id-display').style.color = '#4CAF50';
-            // Tell caster we joined so they send offer
-            channel.send({ type: 'broadcast', event: 'VIEWER_READY', payload: {} });
-        }
-    });
-}
-
-function initCasterMode() {
-    document.getElementById('room-id-display').textContent = `ROOM: ${roomId} (CASTER STUDIO)`;
-
-    // Inject floating start cast button over TV UI
-    const floatBtn = document.createElement('button');
-    floatBtn.id = 'btn-start-cast';
-    floatBtn.innerHTML = '🎥 GO LIVE (CASTER)';
-    floatBtn.style = "position:fixed; bottom:30px; right:30px; z-index:1000; padding:15px 30px; font-size:1.2rem; background:var(--sub-red); color:#fff; border:none; border-radius:30px; font-family:'Russo One'; cursor:pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border: 2px solid #fff;";
-    document.body.appendChild(floatBtn);
-
-    const channel = _supabase.channel(`room:${roomId}`);
-    channel.subscribe();
-
-    document.getElementById('btn-start-cast').onclick = async () => {
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-
-            // Render local stream in actual TV VIP box (no need to show ugly prompt preview)
-            const vipVideo = document.getElementById('vip-video');
-            vipVideo.muted = true; // Prevent local mic echo
-            vipVideo.srcObject = localStream;
-            document.getElementById('vip-box').style.display = 'block';
-
-            floatBtn.style.display = 'none';
-
-            console.log("Camera started, waiting for TV...");
-            // Send offer immediately if TV is already there, or wait for TV to say VIEWER_READY
-            channel.send({ type: 'broadcast', event: 'CASTER_READY', payload: {} });
-        } catch (e) {
-            alert("Camera access denied or failed.");
-        }
-    };
-
-    let casterIceQueue = [];
-
-    async function createAndSendOffer() {
-        if (!localStream) return;
-        console.log("Creating offer for TV...");
-        if (peerConnection) peerConnection.close();
-        casterIceQueue = [];
-
-        peerConnection = new RTCPeerConnection(rtcConfig);
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-        peerConnection.onicecandidate = (e) => {
-            if (e.candidate) {
-                channel.send({ type: 'broadcast', event: 'WEBRTC_ICE', payload: { isCasterCandidate: true, candidate: e.candidate } });
-            }
-        };
-
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        channel.send({ type: 'broadcast', event: 'WEBRTC_OFFER', payload: offer });
-    }
-
-    channel.on('broadcast', { event: 'VIEWER_READY' }, async () => {
-        console.log("TV joined -> Requesting Offer");
-        await createAndSendOffer();
-    });
-
-    channel.on('broadcast', { event: 'WEBRTC_ANSWER' }, async (p) => {
-        console.log("VIP Answer Received from TV");
-        if (peerConnection) {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(p.payload));
-            for (const candidate of casterIceQueue) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-            }
-            casterIceQueue = [];
-        }
-    });
-
-    channel.on('broadcast', { event: 'WEBRTC_ICE' }, async (p) => {
-        if (!p.payload.isCasterCandidate) {
-            if (peerConnection && peerConnection.remoteDescription) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(p.payload.candidate));
-            } else {
-                casterIceQueue.push(p.payload.candidate);
-            }
-        }
-    });
-
-    // Mirror the actual TV Scoreboard sync logic so caster sees TV view
-    channel.on('broadcast', { event: 'SCORE_UPDATE' }, (payload) => {
-        handleScoreUpdateData(payload.payload);
-    });
-
-    channel.on('broadcast', { event: 'MATCH_ENDED' }, () => {
-        document.getElementById('scoreboard').style.display = 'none';
-        document.getElementById('waiting-screen').style.display = 'flex';
-        document.getElementById('room-id-display').textContent = 'READY FOR NEXT MATCH... (CASTER STUDIO)';
-    });
-}
-
 function updateScoreCard(id, score) {
     const box = document.getElementById(id);
-    if (box.textContent != score) {
+    if (box && box.textContent != score) {
         box.style.transform = 'scale(1.2)';
         box.style.borderColor = 'var(--sub-gold)';
         box.textContent = score;
@@ -263,80 +59,248 @@ function updateScoreCard(id, score) {
             box.style.transform = 'scale(1)';
             box.style.borderColor = '#333';
         }, 300);
-    } else {
-        box.textContent = score;
     }
 }
 
 function triggerGoalExplosion(scorerName) {
     const overlay = document.getElementById('goal-overlay');
-    const scorerEl = document.getElementById('goal-scorer-name');
-
-    scorerEl.textContent = `${scorerName} SCORES!`;
-
-    overlay.classList.add('active');
-
-    // Attempt to play sound (Browsers require interaction first, so it might block initially if opened in new tab without click)
-    playGoalChime();
-
-    setTimeout(() => {
-        overlay.classList.remove('active');
-    }, 3000);
-}
-
-// Simple synthesized loud horn/chime for the TV
-function playGoalChime() {
-    try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        // Multi-frequency horn simulation
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
-
-        gain.gain.setValueAtTime(0, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-
-        osc.start(audioCtx.currentTime);
-        osc.stop(audioCtx.currentTime + 1.6);
-
-        // Add crowd noise simulation (white noise filter)
+    if (overlay) {
+        document.getElementById('goal-scorer-name').textContent = scorerName.toUpperCase() + " SCORES!";
+        overlay.classList.add('active');
         setTimeout(() => {
-            playCrowd(audioCtx);
-        }, 100);
-    } catch (e) { }
+            overlay.classList.remove('active');
+        }, 3000);
+    }
 }
 
-function playCrowd(ctx) {
-    const bufferSize = ctx.sampleRate * 2; // 2 seconds
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+function getOrCreatePeerConnection(remoteRole) {
+    if (!peerConnections[remoteRole]) {
+        console.log(`Creating new peer connection for ${remoteRole}`);
+        const pc = new RTCPeerConnection(rtcConfig);
+        peerConnections[remoteRole] = pc;
+        iceQueues[remoteRole] = [];
 
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
+        if (localStream) {
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+        }
 
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 800;
+        pc.onicecandidate = (e) => {
+            if (e.candidate) {
+                channel.send({
+                    type: 'broadcast',
+                    event: 'WEBRTC_ICE',
+                    payload: { targetRole: remoteRole, fromRole: role || 'viewer', candidate: e.candidate }
+                });
+            }
+        };
 
-    const gain = ctx.createGain();
+        pc.ontrack = (event) => {
+            console.log(`Got video track from ${remoteRole}!`);
+            const videoElemId = remoteRole === 'camera' ? 'arena-video' : 'vip-video';
+            const videoElem = document.getElementById(videoElemId);
 
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
+            if (videoElem) {
+                if (videoElem.srcObject !== event.streams[0]) {
+                    videoElem.srcObject = event.streams[0];
+                }
 
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.5);
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.0);
+                if (remoteRole === 'caster') {
+                    document.getElementById('vip-box').style.display = 'block';
+                } else if (remoteRole === 'camera') {
+                    videoElem.style.display = 'block';
+                }
 
-    noise.start();
+                videoElem.play().catch(e => {
+                    console.warn(`Autoplay blocked for ${remoteRole}, falling back to muted`);
+                    videoElem.muted = true;
+                    videoElem.play().then(() => {
+                        if (remoteRole === 'caster' && !document.getElementById('unmute-btn')) {
+                            createUnmuteButton(videoElem);
+                        }
+                    });
+                });
+            }
+        };
+    }
+    return peerConnections[remoteRole];
+}
+
+function createUnmuteButton(vipVideo) {
+    const btn = document.createElement('div');
+    btn.id = 'unmute-btn';
+    btn.innerHTML = '🔇 TAP TO UNMUTE CASTER';
+    btn.style.position = 'absolute';
+    btn.style.bottom = '10px';
+    btn.style.left = '50%';
+    btn.style.transform = 'translateX(-50%)';
+    btn.style.background = 'var(--sub-red)';
+    btn.style.color = '#fff';
+    btn.style.padding = '5px 10px';
+    btn.style.borderRadius = '20px';
+    btn.style.cursor = 'pointer';
+    btn.style.fontFamily = "'Russo One', sans-serif";
+    btn.style.fontSize = '0.7rem';
+    btn.style.zIndex = '30';
+    btn.style.whiteSpace = 'nowrap';
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        vipVideo.muted = false;
+        btn.remove();
+    };
+    document.getElementById('vip-box').appendChild(btn);
+}
+
+function attachSignaling() {
+    channel.on('broadcast', { event: 'WEBRTC_ICE' }, async (p) => {
+        const { targetRole, fromRole, candidate } = p.payload;
+        if (targetRole === (role || 'viewer')) {
+            const pc = peerConnections[fromRole];
+            if (pc && pc.remoteDescription) {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            } else if (iceQueues[fromRole] !== undefined) {
+                iceQueues[fromRole].push(candidate);
+            }
+        }
+    });
+
+    channel.on('broadcast', { event: 'WEBRTC_OFFER' }, async (p) => {
+        const { targetRole, fromRole, offer } = p.payload;
+        if (targetRole === (role || 'viewer')) {
+            console.log(`Received Offer from ${fromRole}`);
+
+            if (peerConnections[fromRole]) {
+                peerConnections[fromRole].close();
+                delete peerConnections[fromRole];
+            }
+
+            const pc = getOrCreatePeerConnection(fromRole);
+            await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+            for (const candidate of iceQueues[fromRole]) {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+            iceQueues[fromRole] = [];
+
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+
+            channel.send({
+                type: 'broadcast',
+                event: 'WEBRTC_ANSWER',
+                payload: { targetRole: fromRole, fromRole: role || 'viewer', answer: answer }
+            });
+        }
+    });
+
+    channel.on('broadcast', { event: 'WEBRTC_ANSWER' }, async (p) => {
+        const { targetRole, fromRole, answer } = p.payload;
+        if (targetRole === (role || 'viewer')) {
+            console.log(`Received Answer from ${fromRole}`);
+            const pc = peerConnections[fromRole];
+            if (pc) {
+                await pc.setRemoteDescription(new RTCSessionDescription(answer));
+                for (const candidate of iceQueues[fromRole]) {
+                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                }
+                iceQueues[fromRole] = [];
+            }
+        }
+    });
+
+    channel.on('broadcast', { event: 'PEER_READY' }, async (p) => {
+        const { fromRole } = p.payload;
+        if ((role === 'caster' || role === 'camera') && fromRole !== role && localStream) {
+            console.log(`${fromRole} declared ready, sending offer...`);
+            await createAndSendOffer(fromRole);
+        }
+    });
+
+    channel.on('broadcast', { event: 'SCORE_UPDATE' }, (payload) => {
+        handleScoreUpdateData(payload.payload);
+    });
+
+    channel.on('broadcast', { event: 'MATCH_ENDED' }, () => {
+        document.getElementById('scoreboard').style.display = 'none';
+        document.getElementById('waiting-screen').style.display = 'flex';
+        document.getElementById('room-id-display').textContent = role ? 'READY FOR NEXT MATCH...' : 'CONNECTED. WAITING FOR NEXT MATCH...';
+    });
+}
+
+async function createAndSendOffer(targetRole) {
+    if (!localStream) return;
+
+    if (peerConnections[targetRole]) {
+        peerConnections[targetRole].close();
+        delete peerConnections[targetRole];
+    }
+    const pc = getOrCreatePeerConnection(targetRole);
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    channel.send({ type: 'broadcast', event: 'WEBRTC_OFFER', payload: { targetRole, fromRole: role, offer } });
+}
+
+function initViewerMode() {
+    channel = _supabase.channel(`room:${roomId}`);
+    attachSignaling();
+
+    channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+            console.log("Viewer Connected to Stream");
+            document.getElementById('room-id-display').textContent = `CONNECTED. WAITING FOR MATCH...`;
+            document.getElementById('room-id-display').style.color = '#4CAF50';
+            channel.send({ type: 'broadcast', event: 'PEER_READY', payload: { fromRole: 'viewer' } });
+        }
+    });
+}
+
+function initSenderMode() {
+    document.getElementById('room-id-display').textContent = \`ROOM: \${roomId} (\${role.toUpperCase()})\`;
+    
+    const floatBtn = document.createElement('button');
+    floatBtn.id = 'btn-start-cast';
+    floatBtn.innerHTML = role === 'camera' ? '🎥 GO LIVE (CAMERA)' : '🎥 GO LIVE (CASTER)';
+    floatBtn.style = "position:fixed; bottom:30px; right:30px; z-index:1000; padding:15px 30px; font-size:1.2rem; background:var(--sub-red); color:#fff; border:none; border-radius:30px; font-family:'Russo One'; cursor:pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border: 2px solid #fff;";
+    document.body.appendChild(floatBtn);
+
+    channel = _supabase.channel(`room:${ roomId } `);
+    attachSignaling();
+    channel.subscribe();
+
+    floatBtn.onclick = async () => {
+        try {
+            // Camera role prefers environment (rear) camera
+            const constraints = role === 'camera' ? 
+                { video: { facingMode: 'environment' }, audio: true } : 
+                { video: true, audio: true };
+
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            const localVideo = document.getElementById(role === 'camera' ? 'arena-video' : 'vip-video');
+            if (localVideo) {
+                localVideo.muted = true;
+                localVideo.srcObject = localStream;
+                if (role === 'caster') {
+                    document.getElementById('vip-box').style.display = 'block';
+                } else {
+                    localVideo.style.display = 'block';
+                }
+            }
+
+            floatBtn.style.display = 'none';
+            console.log(`${ role } started...`);
+            
+            channel.send({ type: 'broadcast', event: 'PEER_READY', payload: { fromRole: role } });
+            
+            // Proactively offer to expected receivers
+            createAndSendOffer('viewer');
+            if (role === 'camera') {
+                createAndSendOffer('caster');
+            }
+            
+        } catch (e) {
+            alert("Camera access denied or failed.");
+            console.error(e);
+        }
+    };
 }
