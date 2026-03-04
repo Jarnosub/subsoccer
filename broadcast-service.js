@@ -37,24 +37,41 @@ export const BroadcastService = {
             }
         });
 
+        // Whenever a new TV joins, immediately sync it with the ongoing score
+        currentChannel.on('broadcast', { event: 'VIEWER_READY' }, () => {
+            if (BroadcastService.latestScore) {
+                console.log("TV joined. Resyncing current score state.");
+                currentChannel.send({
+                    type: 'broadcast',
+                    event: 'SCORE_UPDATE',
+                    payload: BroadcastService.latestScore
+                });
+            }
+        });
+
         return currentRoomId;
     },
 
     sendScoreUpdate: (p1Name, p2Name, p1Score, p2Score, isGoal = false) => {
         if (!currentChannel) return;
 
+        const payload = {
+            p1Name,
+            p2Name,
+            p1Score,
+            p2Score,
+            isGoal,
+            timestamp: Date.now()
+        };
+
+        // Store latest state so late-joining TVs get the immediate score
+        BroadcastService.latestScore = payload;
+
         // Fix for Supabase V2 Realtime Broadcast
         currentChannel.send({
             type: 'broadcast',
             event: 'SCORE_UPDATE',
-            payload: {
-                p1Name,
-                p2Name,
-                p1Score,
-                p2Score,
-                isGoal,
-                timestamp: Date.now()
-            }
+            payload: payload
         }).catch(err => {
             console.warn("Broadcast channel not fully subscribed yet orREST fallback warned:", err);
         });

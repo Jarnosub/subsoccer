@@ -822,7 +822,12 @@
 
             // Start broadcasting ONLY if we have a specific serial number/game ID
             if (gameId !== 'QUICK-PLAY') {
-                BroadcastService.startBroadcasting();
+                BroadcastService.startBroadcasting().then(() => {
+                    // Send initial 0-0 state to wake up any listening TVs immediately
+                    setTimeout(() => {
+                        BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
+                    }, 500);
+                });
             }
 
             // Re-try scroll on orientation change (helps hide address bar when placing in holder)
