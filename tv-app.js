@@ -79,10 +79,9 @@ function initBroadcastReceiver() {
             console.log("Got VIP video track!");
             const vipVideo = document.getElementById('vip-video');
 
-            if (!vipVideo.srcObject) {
-                vipVideo.srcObject = new MediaStream();
+            if (vipVideo.srcObject !== event.streams[0]) {
+                vipVideo.srcObject = event.streams[0];
             }
-            vipVideo.srcObject.addTrack(event.track);
             document.getElementById('vip-box').style.display = 'block';
 
             // Handle browser autoplay policies (especially strict on mobile/Safari)
