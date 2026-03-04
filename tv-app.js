@@ -153,7 +153,8 @@ function createUnmuteButton(vipVideo) {
 function attachSignaling() {
     channel.on('broadcast', { event: 'WEBRTC_ICE' }, async (p) => {
         const { targetRole, fromRole, candidate } = p.payload;
-        if (targetRole === (role || 'viewer')) {
+        const myRole = role || 'viewer';
+        if (targetRole === myRole) {
             const pc = peerConnections[fromRole];
             if (pc && pc.remoteDescription) {
                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
@@ -166,7 +167,8 @@ function attachSignaling() {
 
     channel.on('broadcast', { event: 'WEBRTC_OFFER' }, async (p) => {
         const { targetRole, fromRole, offer } = p.payload;
-        if (targetRole === (role || 'viewer')) {
+        const myRole = role || 'viewer';
+        if (targetRole === myRole) {
             console.log(`Received Offer from ${fromRole}`);
 
             if (peerConnections[fromRole]) {
@@ -195,7 +197,8 @@ function attachSignaling() {
 
     channel.on('broadcast', { event: 'WEBRTC_ANSWER' }, async (p) => {
         const { targetRole, fromRole, answer } = p.payload;
-        if (targetRole === (role || 'viewer')) {
+        const myRole = role || 'viewer';
+        if (targetRole === myRole) {
             console.log(`Received Answer from ${fromRole}`);
             const pc = peerConnections[fromRole];
             if (pc) {
@@ -248,8 +251,11 @@ function initViewerMode() {
     channel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
             console.log("Viewer Connected to Stream");
-            document.getElementById('room-id-display').textContent = `CONNECTED. WAITING FOR MATCH...`;
-            document.getElementById('room-id-display').style.color = '#4CAF50';
+            const roomIdDisplay = document.getElementById('room-id-display');
+            if (roomIdDisplay) {
+                roomIdDisplay.textContent = `CONNECTED. WAITING FOR MATCH...`;
+                roomIdDisplay.style.color = '#4CAF50';
+            }
             channel.send({ type: 'broadcast', event: 'PEER_READY', payload: { fromRole: 'viewer' } });
         }
     });
