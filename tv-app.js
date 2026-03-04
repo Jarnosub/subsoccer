@@ -255,27 +255,27 @@ function initViewerMode() {
 }
 
 function initSenderMode() {
-    document.getElementById('room-id-display').textContent = \`ROOM: \${roomId} (\${role.toUpperCase()})\`;
-    
+    document.getElementById('room-id-display').textContent = `ROOM: ${roomId} (${role.toUpperCase()})`;
+
     const floatBtn = document.createElement('button');
     floatBtn.id = 'btn-start-cast';
     floatBtn.innerHTML = role === 'camera' ? '🎥 GO LIVE (CAMERA)' : '🎥 GO LIVE (CASTER)';
     floatBtn.style = "position:fixed; bottom:30px; right:30px; z-index:1000; padding:15px 30px; font-size:1.2rem; background:var(--sub-red); color:#fff; border:none; border-radius:30px; font-family:'Russo One'; cursor:pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border: 2px solid #fff;";
     document.body.appendChild(floatBtn);
 
-    channel = _supabase.channel(`room:${ roomId } `);
+    channel = _supabase.channel(`room:${roomId}`);
     attachSignaling();
     channel.subscribe();
 
     floatBtn.onclick = async () => {
         try {
             // Camera role prefers environment (rear) camera
-            const constraints = role === 'camera' ? 
-                { video: { facingMode: 'environment' }, audio: true } : 
+            const constraints = role === 'camera' ?
+                { video: { facingMode: 'environment' }, audio: true } :
                 { video: true, audio: true };
 
             localStream = await navigator.mediaDevices.getUserMedia(constraints);
-            
+
             const localVideo = document.getElementById(role === 'camera' ? 'arena-video' : 'vip-video');
             if (localVideo) {
                 localVideo.muted = true;
@@ -288,16 +288,16 @@ function initSenderMode() {
             }
 
             floatBtn.style.display = 'none';
-            console.log(`${ role } started...`);
-            
+            console.log(`${role} started...`);
+
             channel.send({ type: 'broadcast', event: 'PEER_READY', payload: { fromRole: role } });
-            
+
             // Proactively offer to expected receivers
             createAndSendOffer('viewer');
             if (role === 'camera') {
                 createAndSendOffer('caster');
             }
-            
+
         } catch (e) {
             alert("Camera access denied or failed.");
             console.error(e);
