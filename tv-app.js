@@ -141,9 +141,9 @@ function initCasterMode() {
         }
     };
 
-    channel.on('broadcast', { event: 'VIEWER_READY' }, async () => {
+    async function createAndSendOffer() {
         if (!localStream) return;
-        console.log("TV joined. Creating offer...");
+        console.log("Creating offer for TV...");
         if (peerConnection) peerConnection.close();
 
         peerConnection = new RTCPeerConnection(rtcConfig);
@@ -158,6 +158,11 @@ function initCasterMode() {
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         channel.send({ type: 'broadcast', event: 'WEBRTC_OFFER', payload: offer });
+    }
+
+    channel.on('broadcast', { event: 'VIEWER_READY' }, async () => {
+        console.log("TV joined -> Requesting Offer");
+        await createAndSendOffer();
     });
 
     channel.on('broadcast', { event: 'WEBRTC_ANSWER' }, async (p) => {
