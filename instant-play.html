@@ -740,6 +740,10 @@
                     class="fa-solid fa-microphone-slash"></i></button>
             <button class="pro-control-btn active" id="btn-sound" onclick="toggleSound(this)" title="Sound"><i
                     class="fa-solid fa-volume-high"></i></button>
+            <button class="pro-control-btn" onclick="shareTvLink()" title="Cast TV"><i class="fa-solid fa-tv"
+                    style="color:var(--sub-gold);"></i></button>
+            <button class="pro-control-btn" onclick="shareVipLink()" title="VIP Caster"><i class="fa-solid fa-headset"
+                    style="color:var(--sub-red);"></i></button>
         </div>
     </div>
 
@@ -1027,6 +1031,29 @@
 
             // Redirect to main app with data
             window.location.href = `index.html?${params.toString()}`;
+        }
+
+        // Share links
+        function shareTvLink() {
+            const roomId = BroadcastService.getRoomId();
+            const url = `${window.location.origin}/tv.html?room=${roomId}`;
+            navigator.clipboard.writeText(url).then(() => {
+                alert(`📺 TV Link Copied: ${url}`);
+            }).catch(err => {
+                console.error('Failed to copy TV link', err);
+                alert(`TV Link: ${url}`);
+            });
+        }
+
+        function shareVipLink() {
+            const roomId = BroadcastService.getRoomId();
+            const url = `${window.location.origin}/tv.html?room=${roomId}&role=caster`;
+            navigator.clipboard.writeText(url).then(() => {
+                alert(`🎧 VIP Caster Link Copied: ${url}`);
+            }).catch(err => {
+                console.error('Failed to copy VIP link', err);
+                alert(`VIP Caster Link: ${url}`);
+            });
         }
 
         // Reset game
