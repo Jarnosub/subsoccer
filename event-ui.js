@@ -252,15 +252,11 @@ export function showEventModal(event, tournaments, userRegistrations, moderators
                     
                     ${isOrganizer ? `<div style="padding:12px; background:#1a1a1a; border:1px solid #333; border-radius:6px; font-size:0.75rem; color:#888; margin-bottom:20px; display:flex; gap:10px; align-items:center;"><i class="fa fa-info-circle"></i> <span>Create tournaments above to start matches.</span></div>` : ''}
                     
-                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:30px; border-top:1px solid #222; padding-top:20px;">
+                    <div style="display:flex; gap:10px; margin-top:30px; border-top:1px solid #222; padding-top:20px;">
                         ${isOrganizer ? `
-                            <button class="btn-red" style="width:100%; background:var(--sub-red); color:#fff; font-size:1rem; padding:15px; cursor:pointer;" onclick="window.open('control-room.html?room=${event.id}', '_blank')"><i class="fa-solid fa-video" style="margin-right:8px;"></i> BROADCAST CONTROL ROOM</button>
-                            
-                            <div style="display:flex; gap:10px;">
-                                <button class="btn-red" style="flex:1; background:#222; border:1px solid #333; color:#ccc;" data-action="edit-event" data-id="${event.id}">EDIT</button>
-                                <button class="btn-red" style="flex:1; background:#222; border:1px solid #333; color:var(--sub-red);" data-action="delete-event" data-id="${event.id}">DELETE</button>
-                                <button class="btn-red" style="flex:1.5; background:#0089CF; color:#fff;" data-action="open-public-display" data-id="${event.id}"><i class="fa fa-desktop"></i> LEADERBOARD</button>
-                            </div>
+                            <button class="btn-red" style="flex:1; background:#222; border:1px solid #333; color:#ccc;" data-action="edit-event" data-id="${event.id}">EDIT</button>
+                            <button class="btn-red" style="flex:1; background:#222; border:1px solid #333; color:var(--sub-red);" data-action="delete-event" data-id="${event.id}">DELETE</button>
+                            <button class="btn-red" style="flex:1.5; background:#0089CF; color:#fff;" data-action="open-public-display" data-id="${event.id}"><i class="fa fa-tv"></i> PUBLIC SCREEN</button>
                         ` : ''}
                     </div>
                     
