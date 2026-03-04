@@ -4,17 +4,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get('room');
 const role = urlParams.get('role'); // 'caster', 'camera', or undefined/viewer
 
-if (!roomId) {
-    document.getElementById('waiting-screen').innerHTML = `
-        <h2 style="color:var(--sub-red); font-family:'Russo One';">INVALID BROADCAST LINK</h2>
-        <div style="color:#aaa; font-family:'Resolve';">Missing Room ID parameter.</div>
-    `;
-} else if (role === 'caster' || role === 'camera') {
-    initSenderMode();
-} else {
-    document.getElementById('room-id-display').textContent = `ROOM: ${roomId}`;
-    initViewerMode();
-}
+
 
 let localStream = null;
 const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
@@ -310,4 +300,16 @@ function initSenderMode() {
             console.error(e);
         }
     };
+}
+
+if (!roomId) {
+    document.getElementById('waiting-screen').innerHTML = `
+        <h2 style="color:var(--sub-red); font-family:'Russo One';">INVALID BROADCAST LINK</h2>
+        <div style="color:#aaa; font-family:'Resolve';">Missing Room ID parameter.</div>
+    `;
+} else if (role === 'caster' || role === 'camera') {
+    initSenderMode();
+} else {
+    document.getElementById('room-id-display').textContent = `ROOM: ${roomId}`;
+    initViewerMode();
 }
