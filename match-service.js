@@ -50,16 +50,21 @@ export const MatchService = {
             let actualGameId = null;
 
             if (gameId && gameId !== 'QUICK-PLAY') {
-                const query = isUuid(gameId)
-                    ? _supabase.from('games').select('id, verified, is_public').eq('id', gameId)
-                    : _supabase.from('games').select('id, verified, is_public').eq('serial_number', gameId);
+                if (gameId.toUpperCase() === 'HQ') {
+                    // Kova-koodattu Toimiston Pelipöytä
+                    isVerifiedTable = true;
+                } else {
+                    const query = isUuid(gameId)
+                        ? _supabase.from('games').select('id, verified, is_public').eq('id', gameId)
+                        : _supabase.from('games').select('id, verified, is_public').eq('serial_number', gameId);
 
-                const { data: gData } = await query.maybeSingle();
+                    const { data: gData } = await query.maybeSingle();
 
-                if (gData) {
-                    actualGameId = gData.id;
-                    if (gData.verified && gData.is_public) {
-                        isVerifiedTable = true;
+                    if (gData) {
+                        actualGameId = gData.id;
+                        if (gData.verified && gData.is_public) {
+                            isVerifiedTable = true;
+                        }
                     }
                 }
             } else if (tournamentId) {

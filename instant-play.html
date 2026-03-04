@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -784,7 +785,9 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { BroadcastService } from './broadcast-service.js';
+
         // Game state
         let scoreP1 = 0;
         let scoreP2 = 0;
@@ -810,6 +813,11 @@
             currentGameId = gameId;
             document.getElementById('table-id-value').textContent = gameId;
             document.getElementById('table-id-display').style.display = 'block';
+
+            // Start broadcasting ONLY if we have a specific serial number/game ID
+            if (gameId !== 'QUICK-PLAY') {
+                BroadcastService.startBroadcasting();
+            }
 
             // Re-try scroll on orientation change (helps hide address bar when placing in holder)
             window.addEventListener('orientationchange', () => {
@@ -889,6 +897,9 @@
                 document.getElementById('score-p2').textContent = scoreP2;
                 flashGoal(2);
             }
+
+            // Broadcast update
+            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', scoreP1, scoreP2, true);
 
             // Update goal visualization
             updateGoalVisuals();
@@ -999,6 +1010,8 @@
             updateGoalVisuals();
             document.getElementById('winner-overlay').classList.remove('show');
             stopConfetti();
+
+            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
         }
 
         // Undo last goal
@@ -1016,6 +1029,8 @@
 
             // Update goal visualization
             updateGoalVisuals();
+
+            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', scoreP1, scoreP2, false);
 
             // Haptic feedback
             if (navigator.vibrate) {
@@ -1121,6 +1136,16 @@
             confettiCanvas.style.display = 'none';
             if (animationId) cancelAnimationFrame(animationId);
         }
+
+        // Expose functions to window for HTML event handlers
+        window.enterFullscreenGame = enterFullscreenGame;
+        window.addGoal = addGoal;
+        window.undoGoal = undoGoal;
+        window.resetGame = resetGame;
+        window.toggleSound = toggleSound;
+        window.toggleMic = toggleMic;
+        window.playAgain = playAgain;
+        window.claimVictory = claimVictory;
     </script>
 </body>
 

@@ -1,0 +1,4 @@
+❌ Error: qrcode module not installed
+
+📦 Install it with:
+   pip install qrcode[pil]
