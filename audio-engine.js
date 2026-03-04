@@ -16,6 +16,13 @@ let GOAL_1_FREQUENCY = 2000; // Player 1's goal emits 2000 Hz → Player 2 score
 let GOAL_2_FREQUENCY = 3500; // Player 2's goal emits 3500 Hz → Player 1 scores
 let FREQUENCY_TOLERANCE = 200; // ±200 Hz detection window
 let DETECTION_THRESHOLD = 0.65; // Sensitivity (0.0 - 1.0), higher = less sensitive
+try {
+    const savedThreshold = localStorage.getItem('subsoccer_audio_threshold');
+    if (savedThreshold !== null) {
+        const val = parseFloat(savedThreshold);
+        if (!isNaN(val) && val >= 0 && val <= 1) DETECTION_THRESHOLD = val;
+    }
+} catch (e) { }
 const MIN_DURATION_MS = 50; // Reduced for sharper impact detection
 const COOLDOWN_MS = 1500; // Cooldown between goal detections
 
@@ -130,7 +137,7 @@ function stopListening() {
         sourceNode.disconnect();
         sourceNode = null;
     }
-    
+
     // Disconnect analyser to be safe
     if (analyserNode) {
         analyserNode.disconnect();
@@ -182,24 +189,24 @@ function startDetectionLoop() {
  */
 function analyzeFrequencies(dataArray, sampleRate) {
     const bufferLength = dataArray.length;
-    
+
     // Calculate which bins correspond to our target frequencies
     const binWidth = sampleRate / (analyserNode.fftSize);
-    
+
     const goal1BinStart = Math.floor((GOAL_1_FREQUENCY - FREQUENCY_TOLERANCE) / binWidth);
     const goal1BinEnd = Math.ceil((GOAL_1_FREQUENCY + FREQUENCY_TOLERANCE) / binWidth);
-    
+
     const goal2BinStart = Math.floor((GOAL_2_FREQUENCY - FREQUENCY_TOLERANCE) / binWidth);
     const goal2BinEnd = Math.ceil((GOAL_2_FREQUENCY + FREQUENCY_TOLERANCE) / binWidth);
 
     // Find peak intensity in each frequency range (more robust for impact sounds)
     let goal1Intensity = 0;
     let goal2Intensity = 0;
-    
+
     for (let i = goal1BinStart; i <= goal1BinEnd && i < bufferLength; i++) {
         if (dataArray[i] > goal1Intensity) goal1Intensity = dataArray[i];
     }
-    
+
     for (let i = goal2BinStart; i <= goal2BinEnd && i < bufferLength; i++) {
         if (dataArray[i] > goal2Intensity) goal2Intensity = dataArray[i];
     }
@@ -288,9 +295,9 @@ function confirmGoal(goalNumber) {
     // Goal numbering logic:
     // If Goal 1 emits sound → Player 2 scored (opponent scored on Player 1)
     // If Goal 2 emits sound → Player 1 scored (opponent scored on Player 2)
-    
+
     const scoringPlayer = goalNumber === 1 ? 2 : 1;
-    
+
     // Call global handler if it exists
     if (typeof window.handleGoalDetected === 'function') {
         window.handleGoalDetected(scoringPlayer);
@@ -308,17 +315,17 @@ function confirmGoal(goalNumber) {
 function playConfirmationSound() {
     try {
         if (!audioContext || audioContext.state === 'closed') return;
-        
+
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
+
         oscillator.frequency.value = 800; // Confirmation beep
         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-        
+
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.2);
     } catch (e) {
@@ -338,22 +345,22 @@ function playTestSound(goalNumber) {
 
     const osc = audioContext.createOscillator();
     const gain = audioContext.createGain();
-    
+
     osc.connect(gain);
     gain.connect(audioContext.destination);
-    
+
     const freq = goalNumber === 1 ? GOAL_1_FREQUENCY : GOAL_2_FREQUENCY;
-    
+
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-    
+
     gain.gain.setValueAtTime(0, audioContext.currentTime);
     gain.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.05);
     gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
-    
+
     osc.start(audioContext.currentTime);
     osc.stop(audioContext.currentTime + 0.5);
-    
+
     console.log(`🔊 Playing test sound for Goal ${goalNumber}: ${freq}Hz`);
 }
 
@@ -435,6 +442,9 @@ function setFrequencies(f1, f2) {
 function setThreshold(newThreshold) {
     if (newThreshold >= 0 && newThreshold <= 1) {
         DETECTION_THRESHOLD = newThreshold;
+        try {
+            localStorage.setItem('subsoccer_audio_threshold', newThreshold);
+        } catch (e) { }
         return true;
     }
     return false;

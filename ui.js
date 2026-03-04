@@ -19,7 +19,7 @@ import {
 import {
     handleQuickSearch, startQuickMatch, clearQuickMatchPlayers,
     handleProModeClick, toggleAudioDetection, acceptRulesAndStart,
-    addManualGoal, exitProMode, undoLastGoal, resetProMatch, initProModeUI, initClaimResult, toggleSoundEffects, selectQuickPlayer, saveClaimedResult, cancelClaimResult, closeVictoryOverlay
+    addManualGoal, exitProMode, undoLastGoal, resetProMatch, initProModeUI, initClaimResult, toggleSoundEffects, selectQuickPlayer, saveClaimedResult, cancelClaimResult, closeVictoryOverlay, copyTvLink, copyVipLink
 } from './quick-match.js';
 import { shareLiveEventLink } from './live-view-service.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
@@ -708,6 +708,8 @@ export function setupUIListeners() {
     document.getElementById('btn-pro-reset')?.addEventListener('click', () => resetProMatch());
     document.getElementById('btn-pro-mic')?.addEventListener('click', () => toggleAudioDetection());
     document.getElementById('btn-pro-sound')?.addEventListener('click', () => toggleSoundEffects());
+    document.getElementById('btn-pro-tv')?.addEventListener('click', () => copyTvLink());
+    document.getElementById('btn-pro-vip')?.addEventListener('click', () => copyVipLink());
 
     // Bracket Engine
     document.getElementById('next-rd-btn')?.addEventListener('click', () => advanceRound());

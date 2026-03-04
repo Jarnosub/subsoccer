@@ -102,7 +102,7 @@ export function showModal(title, content, options = {}) {
     modal.style.display = 'flex';
     modal.onclick = (e) => { if (e.target === modal) closeModal(modalId); };
     document.body.style.overflow = 'hidden';
-    
+
     // Add listener to the close button
     const closeBtn = modal.querySelector(`[data-close-modal="${modalId}"]`);
     if (closeBtn) closeBtn.onclick = () => closeModal(modalId);
@@ -119,6 +119,7 @@ export function closeModal(id = 'generic-modal') {
 window.showNotification = showNotification;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
+window.closeModal = closeModal;
 
 // Helper to trigger page navigation from non-UI modules
 export function showPage(pageId) {

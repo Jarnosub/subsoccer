@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -670,18 +671,14 @@
 
             <div style="text-align:center; position: relative;">
                 <!-- Glowing background effect behind the tap area -->
-                <div
-                    style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 250px; height: 250px; background: radial-gradient(circle, rgba(227,6,19,0.3) 0%, transparent 70%); border-radius: 50%; animation: breathing 2.5s infinite alternate; pointer-events: none; z-index: 0;">
-                </div>
 
                 <div style="position: relative; z-index: 1; animation: breathing 2s infinite alternate;">
                     <div
-                        style="width: 100px; height: 100px; background: linear-gradient(135deg, #E30613 0%, #8a0000 100%); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 30px auto; box-shadow: 0 10px 30px rgba(227,6,19,0.5); border: 2px solid rgba(255,255,255,0.2);">
-                        <i class="fa-solid fa-hand-pointer" style="font-size: 2.5rem; color: #fff;"></i>
+                        style="width: 120px; height: 120px; background: linear-gradient(135deg, var(--sub-red) 0%, #8a0000 100%); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 30px auto; border: 3px solid rgba(255,255,255,0.3);">
                     </div>
 
                     <div
-                        style="font-family:'Russo One'; font-size: 2.8rem; color: #fff; text-transform:uppercase; letter-spacing:2px; text-shadow: 0 4px 15px rgba(0,0,0,0.8); line-height:1;">
+                        style="font-family:'Resolve', sans-serif; font-size: 2.5rem; white-space: nowrap; color: var(--sub-gold); text-transform:uppercase; letter-spacing:3px; text-shadow: 0 5px 20px rgba(255,215,0,0.5); line-height:1;">
                         TAP TO START
                     </div>
                 </div>
@@ -751,7 +748,8 @@
         <div style="text-align:center; z-index:10;">
             <div class="winner-text" id="winner-text" style="font-size:2.5rem; margin-bottom:10px;">PLAYER 1 WINS!</div>
             <div id="victory-elo-gain"
-                style="font-family:'Russo One'; color:var(--sub-gold); font-size: 2rem; margin-bottom: 20px;">+32 ELO
+                style="font-family:'Resolve', sans-serif; color:var(--sub-gold); font-size: 2rem; margin-bottom: 20px;">
+                +32 ELO
             </div>
 
             <!-- Gamified "Locked Card" Graphic -->
@@ -799,10 +797,11 @@
 
         // Initialize
         window.addEventListener('load', () => {
-            // Check for Game ID in URL
+            // Check for Game ID or Serial Number (sn) in URL
             const urlParams = new URLSearchParams(window.location.search);
-            // Use URL param or default to 'QUICK-PLAY'
-            const gameId = urlParams.get('game_id') || 'QUICK-PLAY';
+            // Use URL param 'sn' (serial number) primarily, or fallback to 'game_id', or default to 'QUICK-PLAY'
+            const _gameId = urlParams.get('sn') || urlParams.get('game_id') || 'QUICK-PLAY';
+            const gameId = _gameId.toUpperCase();
 
             // Allow setting win score via URL (e.g. ?win_score=5)
             const urlWinScore = urlParams.get('win_score');

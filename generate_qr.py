@@ -88,8 +88,8 @@ def main():
     final_url = base_url
     if game_id:
         separator = "&" if "?" in base_url else "?"
-        final_url = f"{base_url}{separator}game_id={game_id}"
-        print(f"🔗 Linked to Table ID: {game_id}")
+        final_url = f"{base_url}{separator}sn={game_id}"
+        print(f"🔗 Linked to Table Serial: {game_id}")
     
     # Generate QR code
     filename = f"qr_{game_id}.png" if game_id else "subsoccer_instant_play_qr.png"

@@ -1,6 +1,7 @@
 import { _supabase, state, isAdmin } from './config.js';
 import { showNotification, safeHTML } from './ui-utils.js';
 import { MatchService } from './match-service.js';
+import { BroadcastService } from './broadcast-service.js';
 
 /**
  * ============================================================
@@ -258,9 +259,11 @@ export async function startProMatch() {
     state.proScoreP1 = 0; state.proScoreP2 = 0; state.proGoalHistory = [];
     isMatchEnding = false; state.proModeActive = true;
 
+    await BroadcastService.startBroadcasting();
+
     document.getElementById('pro-p1-name').textContent = state.quickP1;
     document.getElementById('pro-p2-name').textContent = state.quickP2;
-    updateProScore();
+    updateProScore(false);
 
     document.getElementById('app-content').style.display = 'none';
 
@@ -301,7 +304,7 @@ function handleGoalDetectedPro(playerNumber) {
     if (!state.proModeActive || isMatchEnding) return;
     if (playerNumber === 1) state.proScoreP1++; else state.proScoreP2++;
     state.proGoalHistory.push({ player: playerNumber });
-    updateProScore();
+    updateProScore(true);
 
     const side = playerNumber === 1 ? '.pro-player-left' : '.pro-player-right';
     document.querySelector(side).classList.add('goal-flash');
@@ -319,7 +322,7 @@ function handleGoalDetectedPro(playerNumber) {
     }
 }
 
-function updateProScore() {
+function updateProScore(isGoal = false) {
     document.getElementById('pro-p1-score').textContent = state.proScoreP1;
     document.getElementById('pro-p2-score').textContent = state.proScoreP2;
     document.getElementById('pro-p1-goals').textContent = '●'.repeat(state.proScoreP1) + '○'.repeat(PRO_MODE_WIN_SCORE - state.proScoreP1);
@@ -338,6 +341,8 @@ function updateProScore() {
     } else {
         p1Status.textContent = (state.proScoreP1 === PRO_MODE_WIN_SCORE - 1) ? 'MATCH POINT' : ''; p2Status.textContent = 'LEADING';
     }
+
+    BroadcastService.sendScoreUpdate(state.quickP1, state.quickP2, state.proScoreP1, state.proScoreP2, isGoal);
 }
 
 export function undoLastGoal() {
@@ -353,7 +358,7 @@ export function undoLastGoal() {
     const lastGoal = state.proGoalHistory.pop();
     if (lastGoal.player === 1) state.proScoreP1 = Math.max(0, state.proScoreP1 - 1);
     else state.proScoreP2 = Math.max(0, state.proScoreP2 - 1);
-    updateProScore();
+    updateProScore(false);
     if (navigator.vibrate) navigator.vibrate(50);
 }
 
@@ -362,12 +367,13 @@ export function resetProMatch() {
     state.proScoreP1 = 0;
     state.proScoreP2 = 0;
     state.proGoalHistory = [];
-    updateProScore();
+    updateProScore(false);
 }
 
 async function finishProMatch(winnerName) {
     state.proModeActive = false; isMatchEnding = false;
     if (window.audioEngine) window.audioEngine.stopListening();
+    BroadcastService.stopBroadcasting();
     document.getElementById('pro-mode-view').style.display = 'none';
     document.getElementById('pro-audio-meter').style.display = 'none';
     await finalizeQuickMatch(winnerName);
@@ -377,6 +383,7 @@ export function exitProMode() {
     if (!confirm('Exit current match? Result will not be saved.')) return;
     state.proModeActive = false; isMatchEnding = false; state.proGoalHistory = [];
     if (window.audioEngine) window.audioEngine.stopListening();
+    BroadcastService.stopBroadcasting();
     document.getElementById('pro-mode-view').style.display = 'none';
     document.getElementById('pro-audio-meter').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
@@ -615,6 +622,28 @@ export function cancelClaimResult() {
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 
+export function copyTvLink() {
+    const roomId = BroadcastService.getRoomId();
+    if (!roomId) return showNotification("Broadcast not active yet.", "error");
+    const link = `${window.location.origin}/tv.html?room=${roomId}`;
+    navigator.clipboard.writeText(link).then(() => {
+        showNotification("📺 TV Link copied to clipboard!", "success");
+    }).catch(err => {
+        showNotification("Failed to copy link", "error");
+    });
+}
+
+export function copyVipLink() {
+    const roomId = BroadcastService.getRoomId();
+    if (!roomId) return showNotification("Broadcast not active yet.", "error");
+    const link = `${window.location.origin}/tv.html?room=${roomId}&role=caster`;
+    navigator.clipboard.writeText(link).then(() => {
+        showNotification("🎤 VIP Caster Link copied!", "success");
+    }).catch(err => {
+        showNotification("Failed to copy link", "error");
+    });
+}
+
 // Globaalit kytkennät
 // NOTE: Functions imported as ES modules in ui.js do NOT need window.* here.
 // These are kept because they are called from audio-engine.js, inline onclick HTML,
@@ -625,3 +654,5 @@ window.cancelQuickMatch = cancelQuickMatch;       // called from non-module cont
 window.handleQuickWinner = handleQuickWinner;     // called from dynamic HTML
 window.toggleSoundEffects = toggleSoundEffects;   // called from settings menu
 window.initClaimResult = initClaimResult;         // called from game result flow
+window.copyTvLink = copyTvLink;                   // exposed mainly for consistency
+window.copyVipLink = copyVipLink;                 // exposed mainly for consistency

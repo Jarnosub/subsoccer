@@ -1,0 +1,75 @@
+import { _supabase } from './config.js';
+
+let currentChannel = null;
+let currentRoomId = null;
+
+export const BroadcastService = {
+    getRoomId: () => {
+        // Ensisijaisesti sijoitetaan huone kiinteästi fyysiseen pelipöytään (QR-koodin sn tai game_id)
+        const params = new URLSearchParams(window.location.search);
+        let rid = params.get('sn') || params.get('game_id');
+
+        if (rid && rid !== 'QUICK-PLAY') {
+            rid = rid.toUpperCase();
+            localStorage.setItem('TV_ROOM_ID', rid); // Tallennetaan laitteen muistiin viimeisin virallinen pöytä
+            return rid;
+        }
+
+        // Fallback: Jos ei QR-skannattu pöytä (esim normi suorajulkaisu), luodaan/haetaan perus TV-vastaanottimen laitteen id
+        rid = localStorage.getItem('TV_ROOM_ID');
+        if (!rid) {
+            rid = Math.random().toString(36).substring(2, 8).toUpperCase();
+            localStorage.setItem('TV_ROOM_ID', rid);
+        }
+        return rid;
+    },
+
+    startBroadcasting: async () => {
+        if (currentChannel) return BroadcastService.getRoomId();
+
+        currentRoomId = BroadcastService.getRoomId();
+
+        currentChannel = _supabase.channel(`room:${currentRoomId}`);
+
+        currentChannel.subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log(`📡 Broadcast started on room: ${currentRoomId}`);
+            }
+        });
+
+        return currentRoomId;
+    },
+
+    sendScoreUpdate: (p1Name, p2Name, p1Score, p2Score, isGoal = false) => {
+        if (!currentChannel) return;
+
+        // Fix for Supabase V2 Realtime Broadcast
+        currentChannel.send({
+            type: 'broadcast',
+            event: 'SCORE_UPDATE',
+            payload: {
+                p1Name,
+                p2Name,
+                p1Score,
+                p2Score,
+                isGoal,
+                timestamp: Date.now()
+            }
+        }).catch(err => {
+            console.warn("Broadcast channel not fully subscribed yet orREST fallback warned:", err);
+        });
+    },
+
+    stopBroadcasting: () => {
+        if (currentChannel) {
+            currentChannel.send({ type: 'broadcast', event: 'MATCH_ENDED', payload: {} });
+            _supabase.removeChannel(currentChannel);
+            currentChannel = null;
+            // We intentionally do NOT reset currentRoomId so it persists
+            console.log("⏹️ Broadcast stopped.");
+        }
+    }
+};
+
+// Expose to window for inline HTML calls if needed
+window.BroadcastService = BroadcastService;

@@ -47,10 +47,20 @@ export const MatchService = {
 
             // Try to find game info if gameId is provided
             let isVerifiedTable = false;
-            if (gameId && isUuid(gameId)) {
-                const { data: gData } = await _supabase.from('games').select('verified, is_public').eq('id', gameId).maybeSingle();
-                if (gData && gData.verified && gData.is_public) {
-                    isVerifiedTable = true;
+            let actualGameId = null;
+
+            if (gameId && gameId !== 'QUICK-PLAY') {
+                const query = isUuid(gameId)
+                    ? _supabase.from('games').select('id, verified, is_public').eq('id', gameId)
+                    : _supabase.from('games').select('id, verified, is_public').eq('serial_number', gameId);
+
+                const { data: gData } = await query.maybeSingle();
+
+                if (gData) {
+                    actualGameId = gData.id;
+                    if (gData.verified && gData.is_public) {
+                        isVerifiedTable = true;
+                    }
                 }
             } else if (tournamentId) {
                 // Tournaments are usually considered official
