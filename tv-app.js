@@ -78,7 +78,7 @@ function getOrCreatePeerConnection(remoteRole) {
         console.log(`Creating new peer connection for ${remoteRole}`);
         const pc = new RTCPeerConnection(rtcConfig);
         peerConnections[remoteRole] = pc;
-        iceQueues[remoteRole] = [];
+        iceQueues[remoteRole] = iceQueues[remoteRole] || [];
 
         if (localStream) {
             localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
@@ -157,7 +157,8 @@ function attachSignaling() {
             const pc = peerConnections[fromRole];
             if (pc && pc.remoteDescription) {
                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
-            } else if (iceQueues[fromRole] !== undefined) {
+            } else {
+                iceQueues[fromRole] = iceQueues[fromRole] || [];
                 iceQueues[fromRole].push(candidate);
             }
         }
