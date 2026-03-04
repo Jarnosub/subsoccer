@@ -754,18 +754,20 @@
             </div>
 
             <!-- Gamified "Locked Card" Graphic -->
-            <div
+            <div id="winner-card-container"
                 style="background:linear-gradient(135deg, #111, #222); border:1px dashed var(--sub-gold); border-radius:10px; padding:20px; max-width: 320px; margin: 0 auto 30px auto; box-shadow:0 10px 30px rgba(0,0,0,0.8); position:relative; overflow:hidden;">
                 <!-- Glint effect -->
-                <div
+                <div id="winner-card-glint"
                     style="position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:linear-gradient(45deg, transparent 40%, rgba(255,215,0,0.2) 50%, transparent 60%); animation: shimmer 3s infinite;">
                 </div>
 
-                <i class="fa-solid fa-lock" style="color:#666; font-size:2rem; margin-bottom:10px;"></i>
-                <h3
+                <i id="winner-card-icon" class="fa-solid fa-lock"
+                    style="color:#666; font-size:2rem; margin-bottom:10px;"></i>
+                <h3 id="winner-card-title"
                     style="font-family:'Resolve'; color:var(--sub-gold); font-size:1.2rem; letter-spacing:2px; margin-bottom:15px; text-transform:uppercase;">
                     PRO CARD UNLOCKED</h3>
-                <p style="color:#aaa; font-size:0.8rem; line-height:1.4; margin-bottom:5px;">You are currently playing
+                <p id="winner-card-desc" style="color:#aaa; font-size:0.8rem; line-height:1.4; margin-bottom:5px;">You
+                    are currently playing
                     as a Guest. Claim your official Subsoccer ELO ranking before you leave the table.</p>
             </div>
 
@@ -960,16 +962,43 @@
             const claimBtn = document.getElementById('claim-victory-btn');
             const endBtn = document.getElementById('end-game-btn');
 
+            // Dynamic Player Card in Overlay
+            const cardContainer = document.getElementById('winner-card-container');
+            const cardIcon = document.getElementById('winner-card-icon');
+            const cardTitle = document.getElementById('winner-card-title');
+            const cardDesc = document.getElementById('winner-card-desc');
+            const cardGlint = document.getElementById('winner-card-glint');
+
             if (claimBtn) claimBtn.style.display = 'block';
 
             if (isCasual && userType === 'registered') {
-                // Registered player from app
+                // Registered player from app - Show Pro Card
                 if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT";
                 if (endBtn) endBtn.style.display = 'block';
+
+                cardContainer.style.background = "linear-gradient(135deg, #1a1500, #332600)";
+                cardContainer.style.border = "2px solid var(--sub-gold)";
+                cardContainer.style.transform = "scale(1.05)";
+                cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)";
+                cardIcon.className = "fa-solid fa-trophy";
+                cardIcon.style.color = "var(--sub-gold)";
+                cardTitle.textContent = "PRO CARD UPGRADE";
+                cardTitle.style.color = "#fff";
+                cardDesc.textContent = "Great win! Save this result to boost your global rank and update your digital Pro Card.";
             } else {
-                // Guest (QR Code or Guest in app)
+                // Guest (QR Code or Guest in app) - Show Rookie Card
                 if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
                 if (endBtn) endBtn.style.display = 'none';
+
+                cardContainer.style.background = "linear-gradient(135deg, #111, #222)";
+                cardContainer.style.border = "1px dashed #666";
+                cardContainer.style.transform = "scale(1)";
+                cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)";
+                cardIcon.className = "fa-solid fa-lock";
+                cardIcon.style.color = "#666";
+                cardTitle.textContent = "ROOKIE CARD";
+                cardTitle.style.color = "#888";
+                cardDesc.innerHTML = "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!";
             }
 
             // Soita yleisön hurraus voiton hetkellä

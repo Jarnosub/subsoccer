@@ -531,26 +531,37 @@ export function initClaimResult(p1Score, p2Score, gameId) {
 
         claimUI.className = 'sub-card fade-in';
         claimUI.style.display = 'block';
-        claimUI.style.borderColor = 'var(--sub-gold)';
+        claimUI.style.borderColor = isGuest ? '#666' : 'var(--sub-gold)';
         claimUI.style.marginTop = '20px';
-        claimUI.style.background = 'linear-gradient(180deg, rgba(255, 215, 0, 0.05) 0%, rgba(10, 10, 10, 1) 100%)';
+        claimUI.style.background = isGuest ? 'linear-gradient(135deg, #111, #222)' : 'linear-gradient(135deg, #1a1500, #332600)';
 
-        const signupCTA = isGuest ? `
-            <div style="margin: 20px 0; padding: 15px; background: rgba(227, 6, 19, 0.1); border: 1px dashed var(--sub-red); border-radius: 8px; text-align: center;">
-                <div style="font-size: 0.8rem; color: #fff; margin-bottom: 10px; line-height: 1.4;">
-                    <strong>Guest accounts do not save ELO points permanently.</strong><br>
-                    Create a free Pro account now, and this victory will be saved directly to your career!
-                </div>
-                <button onclick="window.showAuthPage('signup')" class="btn-red" style="width: auto; padding: 8px 15px; font-size: 0.8rem; background: var(--sub-red);">
-                    CREATE ACCOUNT & SAVE
-                </button>
+        // Gamified Card Element
+        const cardGlint = isGuest
+            ? 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)'
+            : 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)';
+
+        const cardIcon = isGuest ? 'fa-lock' : 'fa-trophy';
+        const cardIconColor = isGuest ? '#666' : 'var(--sub-gold)';
+        const cardTitle = isGuest ? 'ROOKIE CARD' : 'PRO CARD UPGRADE';
+        const cardTitleColor = isGuest ? '#888' : '#fff';
+        const cardDesc = isGuest
+            ? "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!"
+            : "Great win! Save this result to boost your global rank and update your digital Pro Card.";
+
+        const gamifiedCard = `
+            <div style="background:rgba(0,0,0,0.5); border:1px dashed ${cardIconColor}; border-radius:10px; padding:20px; margin: 0 auto 20px auto; position:relative; overflow:hidden;">
+                <div style="position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:${cardGlint}; animation: shimmer 3s infinite;"></div>
+                <i class="fa-solid ${cardIcon}" style="color:${cardIconColor}; font-size:2rem; margin-bottom:10px;"></i>
+                <h3 style="font-family:'Resolve'; color:${cardTitleColor}; font-size:1.2rem; letter-spacing:2px; margin-bottom:15px; text-transform:uppercase;">${cardTitle}</h3>
+                <p style="color:#aaa; font-size:0.8rem; line-height:1.4; margin-bottom:5px;">${cardDesc}</p>
             </div>
-        ` : '';
+        `;
 
         claimUI.innerHTML = `
             <div style="text-align:center; padding-bottom:10px;">
                 <div style="font-family:'Russo One'; color:var(--sub-gold); font-size:1.5rem; letter-spacing:2px; margin-bottom:5px;">VICTORY CONFIRMED</div>
-                <div style="font-size:3.5rem; font-family:'Subsoccer', sans-serif; color:#fff; line-height:1; text-shadow:0 0 20px rgba(255,215,0,0.3);">${uScore} - ${oScore}</div>
+                <div style="font-size:3.5rem; font-family:'Subsoccer', sans-serif; color:#fff; line-height:1; text-shadow:0 0 20px rgba(255,215,0,0.3); margin-bottom: 20px;">${uScore} - ${oScore}</div>
+                ${gamifiedCard}
                 <div style="color:#aaa; font-size:0.85rem; margin-top:20px; line-height:1.5; padding:0 15px;">Who did you defeat today? Enter their name below to finalize the match.</div>
             </div>
             
@@ -558,8 +569,6 @@ export function initClaimResult(p1Score, p2Score, gameId) {
                 <input type="text" id="claim-opponent-search" placeholder="OPPONENT'S NAME / GUEST" style="margin-bottom:0; background:rgba(255,255,255,0.05); border:1px solid #333; text-align:center; font-family:'Russo One'; letter-spacing:1px; text-transform:uppercase; font-size:1.1rem; padding:15px; color:#fff;">
                 <div id="claim-results" class="quick-results"></div>
             </div>
-
-            ${signupCTA}
             
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
                 <button class="btn-red" id="btn-confirm-claim" data-score1="${uScore}" data-score2="${oScore}" data-game-id="${gameId}" style="flex:1; background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:1.1rem; padding:18px; box-shadow:0 5px 15px rgba(255,215,0,0.3);">
