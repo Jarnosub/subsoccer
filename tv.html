@@ -223,6 +223,56 @@
             }
         }
 
+        /* Mobile specific layout fixes */
+        @media (max-width: 800px) {
+            .brand-logo {
+                top: 20px;
+                width: 220px;
+            }
+
+            .score-container {
+                flex-direction: column;
+                gap: 2vw;
+                margin-top: 60px;
+            }
+
+            .player-side {
+                width: 60vw;
+                margin-bottom: 20px;
+            }
+
+            .divider {
+                display: none;
+            }
+
+            /* Hide dash on vertical layout */
+            .player-name {
+                font-size: 5vw;
+                margin-bottom: 10px;
+            }
+
+            .score-box {
+                font-size: 25vw;
+                padding: 20px 8vw;
+            }
+
+            .live-indicator {
+                bottom: 20px;
+                padding: 8px 20px;
+                font-size: 0.8rem;
+            }
+
+            #vip-box {
+                width: 30vw !important;
+                height: 40vw !important;
+                min-width: 120px !important;
+                min-height: 160px !important;
+                top: 10px !important;
+                right: 10px !important;
+                border-radius: 10px !important;
+            }
+        }
+
         /* Goal Explosion Animation */
         #goal-overlay {
             position: fixed;

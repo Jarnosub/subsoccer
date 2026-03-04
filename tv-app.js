@@ -78,10 +78,44 @@ function initBroadcastReceiver() {
         peerConnection.ontrack = (event) => {
             console.log("Got VIP video track!");
             const vipVideo = document.getElementById('vip-video');
-            if (vipVideo.srcObject !== event.streams[0]) {
-                vipVideo.srcObject = event.streams[0];
-                document.getElementById('vip-box').style.display = 'block';
+
+            if (!vipVideo.srcObject) {
+                vipVideo.srcObject = new MediaStream();
             }
+            vipVideo.srcObject.addTrack(event.track);
+            document.getElementById('vip-box').style.display = 'block';
+
+            // Handle browser autoplay policies (especially strict on mobile/Safari)
+            vipVideo.play().catch(e => {
+                console.warn("Autoplay blocked, falling back to muted playing", e);
+                vipVideo.muted = true;
+                vipVideo.play().then(() => {
+                    // Show unmute button since we had to mute it
+                    if (!document.getElementById('unmute-btn')) {
+                        const btn = document.createElement('div');
+                        btn.id = 'unmute-btn';
+                        btn.innerHTML = '🔇 TAP TO UNMUTE CASTER';
+                        btn.style.position = 'absolute';
+                        btn.style.bottom = '10px';
+                        btn.style.left = '50%';
+                        btn.style.transform = 'translateX(-50%)';
+                        btn.style.background = 'var(--sub-red)';
+                        btn.style.color = '#fff';
+                        btn.style.padding = '5px 10px';
+                        btn.style.borderRadius = '20px';
+                        btn.style.cursor = 'pointer';
+                        btn.style.fontFamily = "'Russo One', sans-serif";
+                        btn.style.fontSize = '0.7rem';
+                        btn.style.zIndex = '30';
+                        btn.style.whiteSpace = 'nowrap';
+                        btn.onclick = () => {
+                            vipVideo.muted = false;
+                            btn.remove();
+                        };
+                        document.getElementById('vip-box').appendChild(btn);
+                    }
+                });
+            });
         };
 
         peerConnection.onicecandidate = (e) => {
