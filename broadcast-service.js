@@ -38,9 +38,21 @@ export const BroadcastService = {
         });
 
         // Whenever a new TV joins, immediately sync it with the ongoing score
+        currentChannel.on('broadcast', { event: 'PEER_READY' }, (p) => {
+            if (p.payload && p.payload.fromRole === 'viewer' && BroadcastService.latestScore) {
+                console.log("TV joined. Resyncing current score state.");
+                currentChannel.send({
+                    type: 'broadcast',
+                    event: 'SCORE_UPDATE',
+                    payload: BroadcastService.latestScore
+                });
+            }
+        });
+
+        // Fallback for older TV clients still sending VIEWER_READY
         currentChannel.on('broadcast', { event: 'VIEWER_READY' }, () => {
             if (BroadcastService.latestScore) {
-                console.log("TV joined. Resyncing current score state.");
+                console.log("Legacy TV joined. Resyncing current score state.");
                 currentChannel.send({
                     type: 'broadcast',
                     event: 'SCORE_UPDATE',
