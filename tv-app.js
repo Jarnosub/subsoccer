@@ -168,6 +168,18 @@ function initCasterMode() {
         <div style="color:#aaa; font-family:'Resolve'; margin-bottom:30px; font-size: 0.9rem;">You will be broadcasted live to the Arena TV in PIP.</div>
         <button id="btn-start-cast" style="padding:15px 30px; font-size:1.2rem; background:var(--sub-red); color:#fff; border:none; border-radius:8px; font-family:'Russo One'; cursor:pointer; box-shadow:0 5px 15px rgba(227,6,19,0.5);">START BROADCASTING</button>
         <video id="caster-preview" autoplay playsinline muted style="width:100%; max-width:300px; border:2px solid #333; border-radius:10px; margin-top:20px; display:none; transform: scaleX(-1);"></video>
+        
+        <!-- Caster's Teleprompter Scoreboard -->
+        <div id="caster-scoreboard" style="display:none; margin-top: 20px; background: rgba(0,0,0,0.5); padding: 15px 20px; border-radius: 10px; border: 1px solid #333; text-align: center; width: 100%; max-width: 300px;">
+            <div style="font-family:'Resolve'; font-size:0.8rem; color:#aaa; margin-bottom:5px; letter-spacing: 2px;">LIVE MATCH SCORE</div>
+            <div style="font-family:'Russo One'; font-size:1.8rem; color:#fff; display:flex; justify-content:center; align-items:center; gap: 15px;">
+                <span id="c-p1-name" style="font-size:1rem; color:#ccc;">P1</span>
+                <span id="c-p1-score" style="color:var(--sub-gold);">0</span>
+                <span style="color:var(--sub-red); font-size: 1.2rem;">-</span>
+                <span id="c-p2-score" style="color:var(--sub-gold);">0</span>
+                <span id="c-p2-name" style="font-size:1rem; color:#ccc;">P2</span>
+            </div>
+        </div>
     `;
 
     const channel = _supabase.channel(`room:${roomId}`);
@@ -234,6 +246,26 @@ function initCasterMode() {
             } else {
                 casterIceQueue.push(p.payload.candidate);
             }
+        }
+    });
+
+    // Caster Scoreboard Sync
+    channel.on('broadcast', { event: 'SCORE_UPDATE' }, (payload) => {
+        const data = payload.payload;
+        const cb = document.getElementById('caster-scoreboard');
+        if (cb) {
+            cb.style.display = 'block';
+
+            // Limit name lengths for mobile teleprompter
+            let p1 = data.p1Name || 'P1';
+            let p2 = data.p2Name || 'P2';
+            if (p1.length > 8) p1 = p1.substring(0, 8) + '.';
+            if (p2.length > 8) p2 = p2.substring(0, 8) + '.';
+
+            document.getElementById('c-p1-name').textContent = p1;
+            document.getElementById('c-p2-name').textContent = p2;
+            document.getElementById('c-p1-score').textContent = data.p1Score;
+            document.getElementById('c-p2-score').textContent = data.p2Score;
         }
     });
 }
