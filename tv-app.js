@@ -23,36 +23,35 @@ const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 let lastP1Score = 0;
 let lastP2Score = 0;
 
+// Shared Score Logic
+function handleScoreUpdateData(data) {
+    console.log("Applying Score Update:", data);
+    document.getElementById('waiting-screen').style.display = 'none';
+    document.getElementById('scoreboard').style.display = 'flex';
+
+    document.getElementById('p1-name').textContent = data.p1Name || 'PLAYER 1';
+    document.getElementById('p2-name').textContent = data.p2Name || 'PLAYER 2';
+
+    let goalScorer = null;
+    if (data.isGoal || data.p1Score > lastP1Score) goalScorer = data.p1Name;
+    if (data.isGoal || data.p2Score > lastP2Score) goalScorer = data.p2Name;
+
+    lastP1Score = data.p1Score;
+    lastP2Score = data.p2Score;
+
+    updateScoreCard('p1-score', data.p1Score);
+    updateScoreCard('p2-score', data.p2Score);
+
+    if (goalScorer && (data.p1Score > 0 || data.p2Score > 0) && data.isGoal) {
+        triggerGoalExplosion(goalScorer);
+    }
+}
+
 function initBroadcastReceiver() {
     const channel = _supabase.channel(`room:${roomId}`);
 
     channel.on('broadcast', { event: 'SCORE_UPDATE' }, (payload) => {
-        const data = payload.payload;
-        console.log("Received Update:", data);
-
-        // Show Scoreboard
-        document.getElementById('waiting-screen').style.display = 'none';
-        document.getElementById('scoreboard').style.display = 'flex';
-
-        // Update Names
-        document.getElementById('p1-name').textContent = data.p1Name || 'PLAYER 1';
-        document.getElementById('p2-name').textContent = data.p2Name || 'PLAYER 2';
-
-        // Check for Goal Events
-        let goalScorer = null;
-        if (data.isGoal || data.p1Score > lastP1Score) goalScorer = data.p1Name;
-        if (data.isGoal || data.p2Score > lastP2Score) goalScorer = data.p2Name;
-
-        lastP1Score = data.p1Score;
-        lastP2Score = data.p2Score;
-
-        // Animate Score Increment
-        updateScoreCard('p1-score', data.p1Score);
-        updateScoreCard('p2-score', data.p2Score);
-
-        if (goalScorer && (data.p1Score > 0 || data.p2Score > 0) && data.isGoal) {
-            triggerGoalExplosion(goalScorer);
-        }
+        handleScoreUpdateData(payload.payload);
     });
 
     channel.on('broadcast', { event: 'MATCH_ENDED' }, () => {
@@ -162,25 +161,14 @@ function initBroadcastReceiver() {
 }
 
 function initCasterMode() {
-    document.getElementById('waiting-screen').innerHTML = `
-        <img src="logo.png" style="width: 150px; margin-bottom: 20px;">
-        <h2 style="color:var(--sub-gold); font-family:'Russo One'; margin-bottom: 5px;">VIP CASTER STUDIO</h2>
-        <div style="color:#aaa; font-family:'Resolve'; margin-bottom:30px; font-size: 0.9rem;">You will be broadcasted live to the Arena TV in PIP.</div>
-        <button id="btn-start-cast" style="padding:15px 30px; font-size:1.2rem; background:var(--sub-red); color:#fff; border:none; border-radius:8px; font-family:'Russo One'; cursor:pointer; box-shadow:0 5px 15px rgba(227,6,19,0.5);">START BROADCASTING</button>
-        <video id="caster-preview" autoplay playsinline muted style="width:100%; max-width:300px; border:2px solid #333; border-radius:10px; margin-top:20px; display:none; transform: scaleX(-1);"></video>
-        
-        <!-- Caster's Teleprompter Scoreboard -->
-        <div id="caster-scoreboard" style="display:none; margin-top: 20px; background: rgba(0,0,0,0.5); padding: 15px 20px; border-radius: 10px; border: 1px solid #333; text-align: center; width: 100%; max-width: 300px;">
-            <div style="font-family:'Resolve'; font-size:0.8rem; color:#aaa; margin-bottom:5px; letter-spacing: 2px;">LIVE MATCH SCORE</div>
-            <div style="font-family:'Russo One'; font-size:1.8rem; color:#fff; display:flex; justify-content:center; align-items:center; gap: 15px;">
-                <span id="c-p1-name" style="font-size:1rem; color:#ccc;">P1</span>
-                <span id="c-p1-score" style="color:var(--sub-gold);">0</span>
-                <span style="color:var(--sub-red); font-size: 1.2rem;">-</span>
-                <span id="c-p2-score" style="color:var(--sub-gold);">0</span>
-                <span id="c-p2-name" style="font-size:1rem; color:#ccc;">P2</span>
-            </div>
-        </div>
-    `;
+    document.getElementById('room-id-display').textContent = `ROOM: ${roomId} (CASTER STUDIO)`;
+
+    // Inject floating start cast button over TV UI
+    const floatBtn = document.createElement('button');
+    floatBtn.id = 'btn-start-cast';
+    floatBtn.innerHTML = '🎥 GO LIVE (CASTER)';
+    floatBtn.style = "position:fixed; bottom:30px; right:30px; z-index:1000; padding:15px 30px; font-size:1.2rem; background:var(--sub-red); color:#fff; border:none; border-radius:30px; font-family:'Russo One'; cursor:pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border: 2px solid #fff;";
+    document.body.appendChild(floatBtn);
 
     const channel = _supabase.channel(`room:${roomId}`);
     channel.subscribe();
@@ -188,10 +176,14 @@ function initCasterMode() {
     document.getElementById('btn-start-cast').onclick = async () => {
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            const preview = document.getElementById('caster-preview');
-            preview.srcObject = localStream;
-            preview.style.display = 'block';
-            document.getElementById('btn-start-cast').style.display = 'none';
+
+            // Render local stream in actual TV VIP box (no need to show ugly prompt preview)
+            const vipVideo = document.getElementById('vip-video');
+            vipVideo.muted = true; // Prevent local mic echo
+            vipVideo.srcObject = localStream;
+            document.getElementById('vip-box').style.display = 'block';
+
+            floatBtn.style.display = 'none';
 
             console.log("Camera started, waiting for TV...");
             // Send offer immediately if TV is already there, or wait for TV to say VIEWER_READY
@@ -249,24 +241,15 @@ function initCasterMode() {
         }
     });
 
-    // Caster Scoreboard Sync
+    // Mirror the actual TV Scoreboard sync logic so caster sees TV view
     channel.on('broadcast', { event: 'SCORE_UPDATE' }, (payload) => {
-        const data = payload.payload;
-        const cb = document.getElementById('caster-scoreboard');
-        if (cb) {
-            cb.style.display = 'block';
+        handleScoreUpdateData(payload.payload);
+    });
 
-            // Limit name lengths for mobile teleprompter
-            let p1 = data.p1Name || 'P1';
-            let p2 = data.p2Name || 'P2';
-            if (p1.length > 8) p1 = p1.substring(0, 8) + '.';
-            if (p2.length > 8) p2 = p2.substring(0, 8) + '.';
-
-            document.getElementById('c-p1-name').textContent = p1;
-            document.getElementById('c-p2-name').textContent = p2;
-            document.getElementById('c-p1-score').textContent = data.p1Score;
-            document.getElementById('c-p2-score').textContent = data.p2Score;
-        }
+    channel.on('broadcast', { event: 'MATCH_ENDED' }, () => {
+        document.getElementById('scoreboard').style.display = 'none';
+        document.getElementById('waiting-screen').style.display = 'flex';
+        document.getElementById('room-id-display').textContent = 'READY FOR NEXT MATCH... (CASTER STUDIO)';
     });
 }
 
