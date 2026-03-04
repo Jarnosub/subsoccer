@@ -359,16 +359,16 @@
         </div>
 
         <div class="director-desk">
-            <button class="director-btn" onclick="sendDirectorCommand('TOGGLE_SCOREBOARD')">
+            <button class="director-btn" data-action="TOGGLE_SCOREBOARD">
                 <i class="fa-solid fa-list-ol"></i> <br> TOGGLE SCOREBOARD
             </button>
-            <button class="director-btn" onclick="sendDirectorCommand('TOGGLE_CASTER')">
+            <button class="director-btn" data-action="TOGGLE_CASTER">
                 <i class="fa-solid fa-user-tie"></i> <br> TOGGLE CASTER
             </button>
-            <button class="director-btn" onclick="sendDirectorCommand('SHOW_GOAL')">
+            <button class="director-btn" data-action="SHOW_GOAL">
                 <i class="fa-solid fa-futbol"></i> <br> TRIGGER "GOAL"
             </button>
-            <button class="director-btn" onclick="sendDirectorCommand('SHOW_BRACKET')">
+            <button class="director-btn" data-action="SHOW_BRACKET">
                 <i class="fa-solid fa-sitemap"></i> <br> SHOW BRACKET
             </button>
         </div>
@@ -474,11 +474,26 @@
         document.getElementById('room-input').addEventListener('input', joinControlChannel);
         document.addEventListener('DOMContentLoaded', () => { setTimeout(joinControlChannel, 200); });
         window.generateNewRoomExtended = function () {
-            window.generateNewRoom();
+            if (typeof window.generateNewRoom === 'function') {
+                window.generateNewRoom();
+            }
             joinControlChannel();
         };
-        // Hook new room gen
-        document.querySelector('.room-control .btn-secondary').setAttribute('onclick', 'generateNewRoomExtended()');
+
+        // Attach event listeners module-safe
+        document.querySelectorAll('.director-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = e.currentTarget.dataset.action;
+                if (action) window.sendDirectorCommand(action);
+            });
+        });
+
+        const newBtn = document.querySelector('.room-control .btn-secondary');
+        if (newBtn) {
+            newBtn.addEventListener('click', () => {
+                joinControlChannel();
+            });
+        }
     </script>
 </body>
 
