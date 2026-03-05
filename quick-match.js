@@ -665,3 +665,55 @@ window.toggleSoundEffects = toggleSoundEffects;   // called from settings menu
 window.initClaimResult = initClaimResult;         // called from game result flow
 window.copyTvLink = copyTvLink;                   // exposed mainly for consistency
 window.copyVipLink = copyVipLink;                 // exposed mainly for consistency
+
+export function setupQuickMatchListeners() {
+    // Quick Match Section
+    document.getElementById('p1-quick-search')?.addEventListener('input', (e) => handleQuickSearch(e.target, 'p1'));
+    document.getElementById('p2-quick-search')?.addEventListener('input', (e) => handleQuickSearch(e.target, 'p2'));
+    document.getElementById('btn-clear-quick-players')?.addEventListener('click', () => clearQuickMatchPlayers());
+    document.getElementById('start-quick-match')?.addEventListener('click', () => startQuickMatch());
+
+    // Pro Mode & Audio
+    document.getElementById('pro-mode-section')?.addEventListener('click', () => handleProModeClick());
+    document.getElementById('toggle-audio-btn')?.addEventListener('click', () => toggleAudioDetection());
+    document.getElementById('btn-accept-rules')?.addEventListener('click', () => acceptRulesAndStart());
+    document.getElementById('pro-player-left')?.addEventListener('click', () => addManualGoal(1));
+    document.getElementById('pro-player-right')?.addEventListener('click', () => addManualGoal(2));
+    document.getElementById('btn-exit-pro-mode')?.addEventListener('click', () => exitProMode());
+    document.getElementById('btn-pro-undo')?.addEventListener('click', () => undoLastGoal());
+    document.getElementById('btn-pro-reset')?.addEventListener('click', () => resetProMatch());
+    document.getElementById('btn-pro-mic')?.addEventListener('click', () => toggleAudioDetection());
+    document.getElementById('btn-pro-sound')?.addEventListener('click', () => toggleSoundEffects());
+    document.getElementById('btn-pro-tv')?.addEventListener('click', () => copyTvLink());
+    document.getElementById('btn-pro-vip')?.addEventListener('click', () => copyVipLink());
+
+    // Victory Overlay
+    document.getElementById('btn-victory-new-game')?.addEventListener('click', closeVictoryOverlay);
+    document.getElementById('btn-victory-end-game')?.addEventListener('click', closeVictoryOverlay);
+
+    // Event Delegation for dynamic elements inside Quick Match
+    document.addEventListener('click', (e) => {
+        // Quick Search Selection
+        const searchItem = e.target.closest('[data-action="select-quick-player"]');
+        if (searchItem) {
+            selectQuickPlayer(searchItem.dataset.player, searchItem.dataset.slot);
+            return;
+        }
+
+        // Claim Result Buttons
+        if (e.target.id === 'btn-confirm-claim') {
+            saveClaimedResult(parseInt(e.target.dataset.score1), parseInt(e.target.dataset.score2), e.target.dataset.gameId);
+            return;
+        }
+        if (e.target.id === 'btn-cancel-claim') {
+            cancelClaimResult();
+            return;
+        }
+    });
+
+    document.addEventListener('input', (e) => {
+        if (e.target.id === 'claim-opponent-search') {
+            handleQuickSearch(e.target, 'claim');
+        }
+    });
+}

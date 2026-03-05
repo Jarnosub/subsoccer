@@ -14,9 +14,7 @@ import {
     setupEventUIListeners
 } from './events-v3-final.js';
 import {
-    handleQuickSearch, startQuickMatch, clearQuickMatchPlayers,
-    handleProModeClick, toggleAudioDetection, acceptRulesAndStart,
-    addManualGoal, exitProMode, undoLastGoal, resetProMatch, initProModeUI, initClaimResult, toggleSoundEffects, selectQuickPlayer, saveClaimedResult, cancelClaimResult, closeVictoryOverlay, copyTvLink, copyVipLink
+    initProModeUI, initClaimResult, toggleSoundEffects, setupQuickMatchListeners
 } from './quick-match.js';
 import { shareLiveEventLink } from './live-view-service.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
@@ -529,10 +527,6 @@ export function setupUIListeners() {
         toggleSettingsMenu(e);
     });
 
-    // Victory Overlay
-    document.getElementById('btn-victory-new-game')?.addEventListener('click', closeVictoryOverlay);
-    document.getElementById('btn-victory-end-game')?.addEventListener('click', closeVictoryOverlay);
-
     // Profile Section
     document.getElementById('avatar-file-input')?.addEventListener('change', (e) => previewAvatarFile(e.target));
     document.getElementById('btn-save-profile')?.addEventListener('click', (e) => saveProfile(e));
@@ -578,10 +572,6 @@ export function setupUIListeners() {
     // Quick Match Section
     document.getElementById('btn-quick-match-mode')?.addEventListener('click', () => showMatchMode('quick'));
     document.getElementById('btn-tournament-mode')?.addEventListener('click', () => showMatchMode('tournament'));
-    document.getElementById('p1-quick-search')?.addEventListener('input', (e) => handleQuickSearch(e.target, 'p1'));
-    document.getElementById('p2-quick-search')?.addEventListener('input', (e) => handleQuickSearch(e.target, 'p2'));
-    document.getElementById('btn-clear-quick-players')?.addEventListener('click', () => clearQuickMatchPlayers());
-    document.getElementById('start-quick-match')?.addEventListener('click', () => startQuickMatch());
 
     // Tournament Section
     document.getElementById('add-p-input')?.addEventListener('input', (e) => handleSearch(e.target.value));
@@ -591,20 +581,6 @@ export function setupUIListeners() {
     document.getElementById('btn-add-player')?.addEventListener('click', () => addP());
     document.getElementById('btn-clear-pool')?.addEventListener('click', () => clearPool());
     document.getElementById('btn-start-tournament')?.addEventListener('click', () => startTournament());
-
-    // Pro Mode & Audio
-    document.getElementById('pro-mode-section')?.addEventListener('click', () => handleProModeClick());
-    document.getElementById('toggle-audio-btn')?.addEventListener('click', () => toggleAudioDetection());
-    document.getElementById('btn-accept-rules')?.addEventListener('click', () => acceptRulesAndStart());
-    document.getElementById('pro-player-left')?.addEventListener('click', () => addManualGoal(1));
-    document.getElementById('pro-player-right')?.addEventListener('click', () => addManualGoal(2));
-    document.getElementById('btn-exit-pro-mode')?.addEventListener('click', () => exitProMode());
-    document.getElementById('btn-pro-undo')?.addEventListener('click', () => undoLastGoal());
-    document.getElementById('btn-pro-reset')?.addEventListener('click', () => resetProMatch());
-    document.getElementById('btn-pro-mic')?.addEventListener('click', () => toggleAudioDetection());
-    document.getElementById('btn-pro-sound')?.addEventListener('click', () => toggleSoundEffects());
-    document.getElementById('btn-pro-tv')?.addEventListener('click', () => copyTvLink());
-    document.getElementById('btn-pro-vip')?.addEventListener('click', () => copyVipLink());
 
     // Bracket Engine
     document.getElementById('next-rd-btn')?.addEventListener('click', () => advanceRound());
@@ -622,30 +598,12 @@ export function setupUIListeners() {
 
     // Event Delegation for dynamic elements
     document.addEventListener('click', (e) => {
-        // 9. Quick Search Selection
-        const searchItem = e.target.closest('[data-action="select-quick-player"]');
-        if (searchItem) {
-            selectQuickPlayer(searchItem.dataset.player, searchItem.dataset.slot);
-            return;
-        }
-
         // 10. Direct Add (Tournament Pool)
         const directAddItem = e.target.closest('[data-action="direct-add"]');
         if (directAddItem) {
             directAdd(directAddItem.dataset.name);
             return;
         }
-
-        // 11. Claim Result Buttons
-        if (e.target.id === 'btn-confirm-claim') {
-            saveClaimedResult(parseInt(e.target.dataset.score1), parseInt(e.target.dataset.score2), e.target.dataset.gameId);
-            return;
-        }
-        if (e.target.id === 'btn-cancel-claim') {
-            cancelClaimResult();
-            return;
-        }
-
 
         // 13. View Tournament Bracket (Events)
         const viewBracketBtn = e.target.closest('[data-action="view-bracket"]');
@@ -784,16 +742,11 @@ export function setupUIListeners() {
             return;
         }
     });
-
-    // Dynamic Input Delegation
-    document.addEventListener('input', (e) => {
-        if (e.target.id === 'claim-opponent-search') {
-            handleQuickSearch(e.target, 'claim');
-        }
-    });
-
     // Initialize Event-specific listeners
     setupEventUIListeners();
+
+    // Initialize Quick Match and Pro Mode listeners
+    setupQuickMatchListeners();
 }
 
 // ============================================================
