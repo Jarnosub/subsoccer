@@ -94,7 +94,8 @@
                 <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password">
                 <button id="btn-login" class="btn-red" type="submit">LOG IN</button>
                 <div style="margin-top: 15px;">
-                    <button id="btn-show-signup" type="button" class="btn-create-account">CREATE ACCOUNT</button>
+                    <button id="btn-show-signup" type="button" class="btn-create-account"
+                        onclick="showAuthPage('signup')">CREATE ACCOUNT</button>
                 </div>
             </form>
             <hr class="auth-separator">
@@ -107,7 +108,8 @@
             <input type="email" id="reg-email" placeholder="Email Address" autocomplete="email">
             <input type="password" id="reg-pass" placeholder="Choose Password" autocomplete="new-password">
             <button id="btn-register" class="btn-red">REGISTER</button>
-            <div style="margin-top: 15px;"><span id="link-back-to-login" class="link-back">Back to Login</span></div>
+            <div style="margin-top: 15px;"><span id="link-back-to-login" class="link-back"
+                    onclick="showAuthPage('login')">Back to Login</span></div>
         </div>
     </div>
 
