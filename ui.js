@@ -61,6 +61,10 @@ export function showVictoryAnimation(winnerName, newElo, eloGain) {
  * @param {string} p - The ID of the page (without 'section-' prefix).
  */
 export function showPage(p) {
+    if (state.currentPage === p) {
+        // Force refresh if the user clicks the same tab again (useful for retrying failed network loads)
+        updatePageUI(p);
+    }
     state.currentPage = p;
 }
 
