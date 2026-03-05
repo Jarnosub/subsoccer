@@ -335,3 +335,14 @@ export async function purchaseEdition(editionId) {
 window.showAppConcept = showAppConcept;
 window.showLevelUpCard = showLevelUpCard;
 window.viewPlayerCard = viewPlayerCard;
+
+export function setupPlayerCardListeners() {
+    document.addEventListener('click', (e) => {
+        // Player Cards (Leaderboard, Podium)
+        const playerTrigger = e.target.closest('[data-username]');
+        if (playerTrigger) {
+            viewPlayerCard(playerTrigger.dataset.username);
+            return;
+        }
+    });
+}

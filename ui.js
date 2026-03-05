@@ -1,7 +1,7 @@
 import { state, _supabase, subscribe, isAdmin, APP_VERSION, ENABLE_EVENTS, KIOSK_MODE } from './config.js';
 import { applyBranding, injectFooterLink } from './branding-service.js';
 import { CardGenerator } from './card-generator.js';
-import { viewPlayerCard, showLevelUpCard, showPhysicalOrderDialog, showCardShop, downloadFanCard, showAppConcept, purchaseEdition } from './player-card-ui.js';
+import { viewPlayerCard, showLevelUpCard, showPhysicalOrderDialog, showCardShop, downloadFanCard, showAppConcept, purchaseEdition, setupPlayerCardListeners } from './player-card-ui.js';
 import { loadUserProfile, showEditProfile, cancelEditProfile, updateProfileCard } from './profile-ui.js';
 import { showNotification, showLoading, hideLoading, handleAsync, showModal, closeModal } from './ui-utils.js';
 import { handleSearch, addP, directAdd } from './script.js';
@@ -19,7 +19,7 @@ import {
 import { shareLiveEventLink } from './live-view-service.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
 import { startTournament, advanceRound, saveTour, replayTournament, populateEventDropdown } from './tournament.js';
-import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard } from './moderator-service.js';
+import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard, setupModeratorListeners } from './moderator-service.js';
 
 // Swipe-toiminnallisuus muuttujat (siirretty alkuun ReferenceErrorin välttämiseksi)
 let touchStartX = null;
@@ -510,18 +510,6 @@ export function setupUIListeners() {
         showPage('moderator');
         toggleSettingsMenu(e);
     });
-    document.getElementById('btn-mod-partner-gen')?.addEventListener('click', () => {
-        showPartnerLinkGenerator();
-    });
-    document.getElementById('btn-mod-view-users')?.addEventListener('click', () => {
-        viewAllUsers();
-    });
-    document.getElementById('btn-mod-download-logs')?.addEventListener('click', () => {
-        downloadSystemLogs();
-    });
-    document.getElementById('btn-mod-reset-lb')?.addEventListener('click', () => {
-        resetGlobalLeaderboard();
-    });
     document.getElementById('sound-toggle-btn')?.addEventListener('click', (e) => {
         toggleSoundEffects();
         toggleSettingsMenu(e);
@@ -660,13 +648,6 @@ export function setupUIListeners() {
         if (action === 'finish-event-tournament') finishEventTournament();
         if (action === 'close-bracket-modal') closeBracketModal();
 
-        // 1. Player Cards (Leaderboard, Podium)
-        const playerTrigger = e.target.closest('[data-username]');
-        if (playerTrigger) {
-            viewPlayerCard(playerTrigger.dataset.username);
-            return;
-        }
-
         // 2. Pool Removal
         const removeBtn = e.target.closest('[data-remove-index]');
         if (removeBtn) {
@@ -747,6 +728,12 @@ export function setupUIListeners() {
 
     // Initialize Quick Match and Pro Mode listeners
     setupQuickMatchListeners();
+
+    // Initialize Moderator listeners
+    setupModeratorListeners();
+
+    // Initialize Player Card listeners
+    setupPlayerCardListeners();
 }
 
 // ============================================================

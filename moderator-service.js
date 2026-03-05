@@ -17,14 +17,14 @@ function savePartners(partners) {
 function renderPartnersList() {
     const list = document.getElementById('partners-list');
     if (!list) return;
-    
+
     const partners = getSavedPartners();
-    
+
     if (partners.length === 0) {
         list.innerHTML = '<div style="font-size:0.75rem; color:#444; text-align:center; padding:10px;">No saved partners</div>';
         return;
     }
-    
+
     list.innerHTML = partners.map((p, i) => `
         <div class="sub-item-row" style="padding:8px 12px; background:#0a0a0a; border:1px solid #222; display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
             <div style="display:flex; align-items:center; gap:10px; flex:1; cursor:pointer;" data-copy-index="${i}">
@@ -122,15 +122,15 @@ export function showPartnerLinkGenerator() {
             </div>
         </div>
     `;
-    
+
     showModal('PARTNER MANAGER', html, { maxWidth: '420px' });
-    
+
     const colorPicker = document.getElementById('gen-brand-color');
     const colorText = document.getElementById('gen-brand-color-text');
-    
+
     colorPicker.oninput = (e) => colorText.value = e.target.value.toUpperCase();
     colorText.oninput = (e) => colorPicker.value = e.target.value;
-    
+
     const resetForm = () => {
         document.getElementById('gen-brand-id').value = '';
         document.getElementById('gen-brand-color').value = '#F40009';
@@ -164,7 +164,7 @@ export function showPartnerLinkGenerator() {
                 console.error("Logo URL parsing failed", e);
             }
         }
-        
+
         if (!brand) return showNotification('Brand ID required', 'error');
 
         const partners = getSavedPartners();
@@ -329,8 +329,8 @@ export async function resetGlobalLeaderboard() {
         const { error } = await _supabase
             .from('players')
             .update({ elo: 1300, wins: 0, losses: 0 })
-            .neq('username', 'SYSTEM_RESERVED_NAME'); 
-            
+            .neq('username', 'SYSTEM_RESERVED_NAME');
+
         if (error) throw error;
         showNotification('Leaderboard reset successfully', 'success');
     } catch (e) {
@@ -338,4 +338,19 @@ export async function resetGlobalLeaderboard() {
     } finally {
         hideLoading();
     }
+}
+
+export function setupModeratorListeners() {
+    document.getElementById('btn-mod-partner-gen')?.addEventListener('click', () => {
+        showPartnerLinkGenerator();
+    });
+    document.getElementById('btn-mod-view-users')?.addEventListener('click', () => {
+        viewAllUsers();
+    });
+    document.getElementById('btn-mod-download-logs')?.addEventListener('click', () => {
+        downloadSystemLogs();
+    });
+    document.getElementById('btn-mod-reset-lb')?.addEventListener('click', () => {
+        resetGlobalLeaderboard();
+    });
 }
