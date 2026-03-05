@@ -73,3 +73,8 @@ export {
     finishEventTournament,
     closeBracketModal
 } from './event-tournament-logic.js';
+
+// 8. Event UI Listeners
+export {
+    setupEventUIListeners
+} from './event-listeners.js';
