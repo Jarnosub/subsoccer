@@ -1,6 +1,13 @@
 ⚽ Subsoccer Pro - Master Edition
 A high-performance web application designed for competitive Subsoccer matches. This tool focuses on a "Play First" philosophy, allowing players to start matches instantly, track ELO ratings, and manage local tournaments.
 
+## 🎯 Core Philosophy & The Three Personas
+To prevent feature creep ("The Himmeli"), the architecture strictly separates the user experience into three independent personas. Features from one persona must **never** clutter the interface of another:
+
+1. **The Player (Consumer):** Super simple, frictionless experience. Scan a QR code, play a quick match, and see the results instantly. No forced registrations, no complex bracket management. Just play.
+2. **The Organizer (Moderator):** The "Excel" layer, but fun. Needs calendar management, event sign-ups, and tournament brackets (which act as a visual guide, not a strict bottleneck). They manage the event flow on an iPad/Laptop, completely separate from the TV broadcast.
+3. **The Broadcaster (Pro Producer):** The Showman. Uses the dedicated `/control-room.html` to manage a multi-camera WebRTC setup, director graphics, and live TV casting without interfering with the Organizer's physical event flow.
+
 🚀 Core Features
 
 ⚡ **NEW: Instant Play Mode**
