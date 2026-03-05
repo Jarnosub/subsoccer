@@ -6,12 +6,18 @@ import { initTiltEffect } from './ui.js';
 export async function viewPlayerCard(targetUsername) {
     showModal('Player Card', '<p style="font-family:\'Resolve\'">LOADING CARD...</p>', { id: 'card-modal', maxWidth: '400px' });
 
-    const { data: p } = await _supabase.from('players').select('*').eq('username', targetUsername).maybeSingle();
+    let { data: p } = await _supabase.from('players').select('*').eq('username', targetUsername).maybeSingle();
 
     if (!p) {
-        const body = document.querySelector('#card-modal .modal-body');
-        if (body) body.innerHTML = '<p>Player not found.</p>';
-        return;
+        // Fallback for unregistered / guest players
+        p = {
+            username: targetUsername,
+            elo: 1000,
+            wins: 0,
+            losses: 0,
+            country: 'fi',
+            avatar_url: 'placeholder-silhouette-5-wide.png'
+        };
     }
 
     // Fetch Tournament History (Podiums)
