@@ -861,12 +861,8 @@
                 console.log('Fullscreen not supported');
             }
 
-            // --- VAIHE 1: Kitkaton koukku (0s Onboarding) ---
-            // Aktivoi mikrofoni ja automaattinen maalintunnistus välittömästi aloituksesta
-            if (!micEnabled) {
-                const micBtn = document.getElementById('btn-mic');
-                toggleMic(micBtn);
-            }
+            // Skip auto-starting microphone to avoid immediate browser permission prompt
+            // Let the user start it manually via the microphone button
 
             // Resume audio context (browsers block audio until user interaction)
             if (window.soundEffects && window.soundEffects.audioContext && window.soundEffects.audioContext.state === 'suspended') {
