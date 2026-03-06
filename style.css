@@ -2295,6 +2295,14 @@ body.live-mode {
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+@media (orientation: landscape) {
+
+    .pro-controls-bar,
+    .pro-control-btn.top-right {
+        display: none !important;
+    }
+}
+
 /* BRACKET ENGINE STYLES (Tournament Mode) */
 #bracket-area {
     display: flex;
