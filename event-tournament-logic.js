@@ -57,6 +57,15 @@ export async function viewTournamentBracket(tournamentId, tournamentName, eventI
                 });
                 showNotification(`${winner} wins!`, 'success');
                 updateEventBracketControls();
+            },
+            onTvLaunch: (match) => {
+                // When "Set as Live TV Match" is clicked
+                // 1. Tell TV to prepare for this match
+                const tvRoom = localStorage.getItem(`broadcast_room_${currentEventId}`);
+                const roomId = tvRoom ? tvRoom : currentEventId;
+
+                // 2. Open referee view 
+                window.location.href = `instant-play.html?sn=${roomId}&p1=${match.p1}&p2=${match.p2}`;
             }
         });
 
@@ -70,12 +79,35 @@ export async function viewTournamentBracket(tournamentId, tournamentName, eventI
 }
 
 function showEventBracketModal() {
+    // Check if we have a saved broadcast room for this event
+    const savedRoom = localStorage.getItem(`broadcast_room_${currentEventId}`) || '';
+
     showModal(currentEventTournamentName, `
+        <div style="background:#111; padding:15px; border-radius:6px; margin-bottom:20px; border:1px solid #333; display:flex; gap:10px; align-items:center; justify-content:center;">
+            <i class="fa fa-tv" style="color:var(--sub-red);"></i>
+            <span style="font-size:0.8rem; font-family:var(--sub-name-font);">LIVE TV CONNECTION:</span>
+            <input type="text" id="bracket-tv-room-input" value="${savedRoom}" placeholder="4-Letter Room Code" maxlength="4" style="background:#000; color:#fff; border:1px solid #444; padding:5px 10px; width:120px; text-transform:uppercase; text-align:center; font-family:'Russo One', sans-serif;">
+            <button onclick="saveBracketTvRoom()" class="btn-secondary" style="padding:6px 15px; font-size:0.7rem;"><i class="fa fa-link"></i> CONNECT</button>
+        </div>
         <div id="event-bracket-container" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
         <div style="text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid #333;">
             <div id="event-bracket-controls"></div>
         </div>
     `, { id: 'bracket-modal', maxWidth: '600px' });
+}
+
+window.saveBracketTvRoom = function () {
+    const input = document.getElementById('bracket-tv-room-input');
+    if (input) {
+        const val = input.value.trim().toUpperCase();
+        if (val) {
+            localStorage.setItem(`broadcast_room_${currentEventId}`, val);
+            import('./ui-utils.js').then(m => m.showNotification(`Linked to TV Room: ${val}`, 'success'));
+        } else {
+            localStorage.removeItem(`broadcast_room_${currentEventId}`);
+            import('./ui-utils.js').then(m => m.showNotification(`TV Link removed`, 'info'));
+        }
+    }
 }
 
 function updateEventBracketControls() {

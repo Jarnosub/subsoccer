@@ -812,6 +812,14 @@
             const _gameId = urlParams.get('sn') || urlParams.get('game_id') || 'QUICK-PLAY';
             const gameId = _gameId.toUpperCase();
 
+            // Player Names
+            window.p1Name = urlParams.get('p1') || 'Player 1';
+            window.p2Name = urlParams.get('p2') || 'Player 2';
+
+            // Update labels if needed (mostly TV uses names, but good to have)
+            document.querySelector('#player1 .score-label').textContent = window.p1Name;
+            document.querySelector('#player2 .score-label').textContent = window.p2Name;
+
             // Allow setting win score via URL (e.g. ?win_score=5)
             const urlWinScore = urlParams.get('win_score');
             if (urlWinScore) WIN_SCORE = parseInt(urlWinScore);
@@ -825,7 +833,7 @@
                 BroadcastService.startBroadcasting().then(() => {
                     // Send initial 0-0 state to wake up any listening TVs immediately
                     setTimeout(() => {
-                        BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
+                        BroadcastService.sendScoreUpdate(window.p1Name, window.p2Name, 0, 0, false);
                     }, 500);
                 });
             }
@@ -906,7 +914,7 @@
             }
 
             // Broadcast update
-            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', scoreP1, scoreP2, true);
+            BroadcastService.sendScoreUpdate(window.p1Name, window.p2Name, scoreP1, scoreP2, true);
 
             // Update goal visualization
             updateGoalVisuals();
@@ -1068,7 +1076,7 @@
             document.getElementById('winner-overlay').classList.remove('show');
             stopConfetti();
 
-            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
+            BroadcastService.sendScoreUpdate(window.p1Name, window.p2Name, 0, 0, false);
         }
 
         // Undo last goal
@@ -1087,7 +1095,7 @@
             // Update goal visualization
             updateGoalVisuals();
 
-            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', scoreP1, scoreP2, false);
+            BroadcastService.sendScoreUpdate(window.p1Name, window.p2Name, scoreP1, scoreP2, false);
 
             // Haptic feedback
             if (navigator.vibrate) {

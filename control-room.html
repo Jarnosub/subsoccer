@@ -350,28 +350,6 @@
             </div>
 
         </div>
-
-        <!-- DIRECTOR DESK -->
-        <div class="header-title" style="margin-top: 60px; margin-bottom: 30px;">
-            <h2><i class="fa-solid fa-clapperboard" style="color:var(--sub-red); margin-right:10px;"></i> DIRECTOR'S
-                DESK</h2>
-            <p>Control the Live TV output remotely with these commands.</p>
-        </div>
-
-        <div class="director-desk">
-            <button class="director-btn" data-action="TOGGLE_SCOREBOARD">
-                <i class="fa-solid fa-list-ol"></i> <br> TOGGLE SCOREBOARD
-            </button>
-            <button class="director-btn" data-action="TOGGLE_CASTER">
-                <i class="fa-solid fa-user-tie"></i> <br> TOGGLE CASTER
-            </button>
-            <button class="director-btn" data-action="SHOW_GOAL">
-                <i class="fa-solid fa-futbol"></i> <br> TRIGGER "GOAL"
-            </button>
-            <button class="director-btn" data-action="SHOW_BRACKET">
-                <i class="fa-solid fa-sitemap"></i> <br> SHOW BRACKET
-            </button>
-        </div>
     </div>
 
     <div id="toast" class="toast"><i class="fa-solid fa-check"></i> LINK COPIED!</div>
@@ -480,13 +458,7 @@
             joinControlChannel();
         };
 
-        // Attach event listeners module-safe
-        document.querySelectorAll('.director-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const action = e.currentTarget.dataset.action;
-                if (action) window.sendDirectorCommand(action);
-            });
-        });
+
 
         const newBtn = document.querySelector('.room-control .btn-secondary');
         if (newBtn) {

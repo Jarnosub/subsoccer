@@ -10,7 +10,7 @@ export class BracketEngine {
         this.currentRoundIndex = 0;
         this.bronzeMatch = { id: 'bronze', p1: null, p2: null, winner: null };
         this.isActive = false;
-        
+
         // Options
         this.containerId = options.containerId || 'bracket-area';
         this.onMatchUpdate = options.onMatchUpdate || null; // Callback when match updates
@@ -46,7 +46,7 @@ export class BracketEngine {
         // Strategy: Distribute BYEs evenly or just at the end. 
         // Simple approach: Add BYEs to the end of the list before pairing, 
         // but usually top seeds get BYEs. Since we shuffle, random is fine.
-        
+
         // Let's create a padded list first
         let paddedList = [...this.participants];
         for (let i = 0; i < byesCount; i++) {
@@ -99,7 +99,7 @@ export class BracketEngine {
 
         // 4. Propagate initial BYE winners to Round 2
         this.propagateWinners();
-        
+
         // 5. Render
         this.render();
     }
@@ -165,7 +165,7 @@ export class BracketEngine {
      */
     setMatchWinner(roundIndex, matchIndex, winnerName, silent = false) {
         const match = this.rounds[roundIndex][matchIndex];
-        
+
         // Prevent changing winner if it was a BYE auto-win
         if (match.p1 === "BYE" || match.p2 === "BYE") return;
 
@@ -181,7 +181,7 @@ export class BracketEngine {
         // Semi-finals are at index: rounds.length - 2
         if (this.rounds.length >= 2 && roundIndex === this.rounds.length - 2) {
             const loser = match.p1 === winnerName ? match.p2 : match.p1;
-            
+
             // Assign loser to bronze match slots
             // matchIndex 0 is top semi, matchIndex 1 is bottom semi
             if (matchIndex === 0) this.bronzeMatch.p1 = loser;
@@ -223,7 +223,7 @@ export class BracketEngine {
         // Ideally, we clear the 'winner' status of any future match this feeds into.
         let r = roundIndex + 1;
         let m = Math.floor(matchIndex / 2);
-        
+
         while (r < this.rounds.length) {
             if (this.rounds[r][m]) {
                 this.rounds[r][m].winner = null;
@@ -260,7 +260,7 @@ export class BracketEngine {
             const roundDiv = document.createElement('div');
             roundDiv.className = 'bracket-round';
             roundDiv.id = `bracket-round-${rIndex}`;
-            
+
             const title = document.createElement('div');
             title.className = 'round-title';
             title.innerText = this.getRoundName(rIndex, this.rounds.length);
@@ -283,6 +283,25 @@ export class BracketEngine {
                 matchDiv.appendChild(btn1);
                 matchDiv.appendChild(vs);
                 matchDiv.appendChild(btn2);
+
+                if (match.p1 && match.p2 && match.p1 !== 'BYE' && match.p2 !== 'BYE' && !match.winner) {
+                    const tvBtn = document.createElement('button');
+                    tvBtn.innerHTML = '<i class="fa fa-tv"></i> SET AS LIVE TV MATCH';
+                    tvBtn.className = 'tv-launch-btn';
+                    tvBtn.style = 'background:var(--sub-red); color:white; border:none; padding:8px 10px; border-radius:4px; font-size:0.7rem; cursor:pointer; font-weight:bold; margin-top:10px; display:block; width:100%; text-align:center; font-family:"Russo One", sans-serif; transition: all 0.2s;';
+                    tvBtn.onmouseover = () => tvBtn.style.transform = 'scale(1.02)';
+                    tvBtn.onmouseout = () => tvBtn.style.transform = 'scale(1)';
+                    tvBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (this.onTvLaunch) {
+                            this.onTvLaunch(match);
+                        } else {
+                            window.dispatchEvent(new CustomEvent('launch-tv-match', { detail: { p1: match.p1, p2: match.p2 } }));
+                        }
+                    };
+                    matchDiv.appendChild(tvBtn);
+                }
+
                 roundDiv.appendChild(matchDiv);
             });
 
@@ -298,7 +317,7 @@ export class BracketEngine {
         if (this.rounds.length >= 2 && (this.bronzeMatch.p1 || this.bronzeMatch.p2)) {
             const bronzeDiv = document.createElement('div');
             bronzeDiv.className = 'bracket-round';
-            
+
             const title = document.createElement('div');
             title.className = 'round-title';
             title.style.color = '#CD7F32'; // Bronze color
@@ -308,12 +327,12 @@ export class BracketEngine {
             const matchDiv = document.createElement('div');
             matchDiv.className = 'bracket-match';
             matchDiv.appendChild(this.createPlayerBtn(this.bronzeMatch.p1, this.bronzeMatch, -1, -1, true));
-            
+
             const vsDiv = document.createElement('div');
             vsDiv.className = 'match-vs';
             vsDiv.innerText = 'vs';
             matchDiv.appendChild(vsDiv);
-            
+
             matchDiv.appendChild(this.createPlayerBtn(this.bronzeMatch.p2, this.bronzeMatch, -1, -1, true));
             bronzeDiv.appendChild(matchDiv);
             container.appendChild(bronzeDiv);
@@ -327,7 +346,7 @@ export class BracketEngine {
         // Check if tournament is complete (final match has winner)
         const finalRound = this.rounds[this.rounds.length - 1];
         const isComplete = finalRound && finalRound[0] && finalRound[0].winner;
-        
+
         const saveBtn = document.getElementById('save-btn');
         const tourEngine = document.getElementById('tour-engine');
 
@@ -358,7 +377,7 @@ export class BracketEngine {
         setTimeout(() => {
             const activeIdx = this.getActiveRoundIndex();
             const round = this.rounds[activeIdx];
-            
+
             // Find LAST pending match in the active round (physically lowest)
             // This ensures we start from the bottom of the screen and move up
             let pendingMatchIndex = -1;
@@ -369,7 +388,7 @@ export class BracketEngine {
                     break;
                 }
             }
-            
+
             let targetEl;
             let scrollBlock = 'center';
 
@@ -404,7 +423,7 @@ export class BracketEngine {
     createPlayerBtn(playerName, match, rIndex, mIndex, isBronze = false) {
         const btn = document.createElement('div');
         btn.className = 'match-player';
-        
+
         if (!playerName) {
             btn.innerText = '...';
             btn.classList.add('empty');
@@ -429,11 +448,11 @@ export class BracketEngine {
     getTournamentResults() {
         const finalRound = this.rounds[this.rounds.length - 1];
         if (!finalRound || !finalRound[0] || !finalRound[0].winner) return null;
-        
+
         const winner = finalRound[0].winner;
         const second = finalRound[0].p1 === winner ? finalRound[0].p2 : finalRound[0].p1;
         const third = this.bronzeMatch ? this.bronzeMatch.winner : null;
-        
+
         return { winner, second, third };
     }
 
@@ -447,7 +466,7 @@ export class BracketEngine {
             });
         });
         if (this.bronzeMatch && this.bronzeMatch.winner && this.bronzeMatch.p1 && this.bronzeMatch.p2) {
-             matches.push({ p1: this.bronzeMatch.p1, p2: this.bronzeMatch.p2, winner: this.bronzeMatch.winner, isBronze: true });
+            matches.push({ p1: this.bronzeMatch.p1, p2: this.bronzeMatch.p2, winner: this.bronzeMatch.winner, isBronze: true });
         }
         return matches;
     }
@@ -476,7 +495,7 @@ export class BracketEngine {
         const div = document.createElement('div');
         div.className = 'bracket-match';
         div.style.marginBottom = '10px';
-        
+
         const createBtn = (p) => {
             const btn = document.createElement('div');
             btn.className = `match-player ${winner === p && p ? 'winner' : ''}`;
@@ -493,7 +512,7 @@ export class BracketEngine {
         div.appendChild(createBtn(p1));
         div.innerHTML += `<div class="match-vs">${options.isBronze ? 'BRONZE' : (options.isFinal ? 'FINAL' : 'VS')}</div>`;
         div.appendChild(createBtn(p2));
-        
+
         return div;
     }
 }
