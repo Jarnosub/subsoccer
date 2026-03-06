@@ -521,10 +521,24 @@
                         START TOURNAMENT
                     </button>
                 </div>
+            </div>
+        </div>
 
+        <div id="tour-engine">
+            <div id="bracket-area" style="width:100%;"></div>
+            <button id="next-rd-btn" class="btn-red btn-next-round">Next Round</button>
+            <button id="save-btn" class="btn-red btn-save-results">Save Results</button>
+        </div>
 
-                <!-- Audio panels shown only when Pro Mode is checked -->
-                <div id="pro-mode-audio-panels" class="audio-panels-container">
+        <div id="section-sensors" class="section">
+            <div class="container" style="max-width: 600px;">
+                <h3 style="color:var(--sub-gold); margin-bottom:15px; font-family:'Resolve'; text-transform:uppercase;">
+                    <i class="fa-solid fa-wave-square"></i> Audio Sensor Setup
+                </h3>
+                <p style="color:#888; font-size:0.85rem; margin-bottom:20px; line-height:1.4;">
+                    If your table is equipped with an acoustic impact sensor, you can calibrate the
+                    detection sensitivity here. These settings are saved globally.</p>
+                <div id="pro-mode-audio-panels" class="audio-panels-container" style="display:block;">
                     <!-- Audio Detection Status & Controls -->
                     <div id="audio-status-panel" class="audio-status-panel">
                         <div class="audio-header-row">
@@ -537,7 +551,8 @@
 
                         <!-- Audio Intensity Meter -->
                         <div id="audio-meter-wrapper" class="audio-meter-wrapper">
-                            <div class="audio-meter-labels"><span>SILENT</span><span>THRESHOLD</span><span>GOAL!</span>
+                            <div class="audio-meter-labels">
+                                <span>SILENT</span><span>THRESHOLD</span><span>GOAL!</span>
                             </div>
                             <div id="audio-meter-container" class="audio-meter-container">
                                 <div id="audio-meter-bar" class="audio-meter-bar"></div>
@@ -555,17 +570,14 @@
                                 style="width:100%; accent-color:var(--sub-gold); cursor:pointer;">
                         </div>
                     </div>
+                </div>
 
-                    <!-- Audio panels simplified for production -->
+                <div style="margin-top:40px; text-align:center;">
+                    <a href="AUDIO_DETECTION_TESTING.md" target="_blank"
+                        style="color:var(--sub-gold); font-size:0.8rem; text-decoration:none;"><i
+                            class="fa fa-book"></i> Read Documentation</a>
                 </div>
             </div>
-            <!-- END PRO MODE TOGGLE (including audio panels) -->
-        </div>
-
-        <div id="tour-engine">
-            <div id="bracket-area" style="width:100%;"></div>
-            <button id="next-rd-btn" class="btn-red btn-next-round">Next Round</button>
-            <button id="save-btn" class="btn-red btn-save-results">Save Results</button>
         </div>
 
         <div id="section-leaderboard" class="section">

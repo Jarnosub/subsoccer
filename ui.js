@@ -366,15 +366,8 @@ export function toggleSettingsMenu(event) {
 }
 
 export function toggleSensorTools() {
-    const panel = document.getElementById('pro-mode-audio-panels');
-    if (panel) {
-        const isHidden = panel.style.display === 'none';
-        panel.style.display = isHidden ? 'block' : 'none';
-        if (isHidden) {
-            showNotification('Sensor tools activated', 'success');
-            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }
+    showPage('sensors');
+    showNotification('Sensor tools activated', 'success');
 }
 
 /**
@@ -384,10 +377,6 @@ let isUIInitialized = false;
 export function setupUIListeners() {
     if (isUIInitialized) return;
     isUIInitialized = true;
-
-    // FORCE REMOVE INDICATORS ON STARTUP
-    const audioInd = document.getElementById('audio-indicator');
-    if (audioInd) audioInd.remove();
 
     // RESTORE CONNECTION WATCHDOG UI
     // Ensure the connection dot exists so script.js can use it to show offline status
@@ -816,19 +805,16 @@ subscribe('user', () => {
             if (modMenu) modMenu.style.display = isUserAdmin ? 'flex' : 'none';
 
             const sensorMenu = document.getElementById('menu-item-sensors');
-            if (sensorMenu) sensorMenu.style.display = isUserAdmin ? 'flex' : 'none';
+            if (sensorMenu) sensorMenu.style.display = 'flex'; // Allow anyone to calibrate audio
 
-            // Aggressively remove indicators from DOM
-            const audioIndicator = document.getElementById('audio-indicator');
-            if (audioIndicator) audioIndicator.remove();
+            // Aggressively remove connection dot from DOM but keep audio indicator in its section
 
             const connDot = document.getElementById('conn-dot');
             if (connDot) connDot.remove();
 
-            // Remove audio meter elements based on user findings
-            const thresholdLine = document.getElementById('audio-threshold-line');
-            if (thresholdLine) thresholdLine.remove();
+            // Audio elements are now isolated in section-sensors, so removing them is no longer needed
         };
+
 
         const params = new URLSearchParams(window.location.search);
         const liveId = params.get('live');

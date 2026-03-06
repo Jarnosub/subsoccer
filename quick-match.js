@@ -243,14 +243,13 @@ export function toggleProMode() {
         startBtn.textContent = 'START MATCH';
         startBtn.style.background = 'linear-gradient(135deg, var(--sub-gold), #d4a017)';
         startBtn.style.color = '#000';
-        audioPanels.style.display = 'block';
         proSection.style.borderColor = 'var(--sub-gold)';
         proSection.style.borderStyle = 'solid';
     } else {
         startBtn.textContent = 'START MATCH';
-        startBtn.style.background = '';
-        audioPanels.style.display = 'none';
-        proSection.style.borderColor = '#444';
+        startBtn.style.background = 'var(--sub-red)';
+        startBtn.style.color = 'white';
+        proSection.style.borderColor = '#1a1a1a';
         proSection.style.borderStyle = 'dashed';
     }
 }
