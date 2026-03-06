@@ -310,6 +310,12 @@
                 <i class="fa-solid fa-mobile-screen-button card-icon"></i>
                 <h2>2. REFEREE (Instant Play)</h2>
                 <p>Scan this code with the referee's phone. They will manage the match clock and live score.</p>
+
+                <button class="btn" style="width: 100%; justify-content: center; padding: 10px; margin-bottom: 10px;"
+                    onclick="openReferee()">
+                    <i class="fa-solid fa-play"></i> START MATCH HERE
+                </button>
+
                 <div class="qr-box">
                     <img id="qr-ref" src="" alt="QR">
                 </div>
@@ -411,6 +417,11 @@
         function openTV() {
             const roomId = document.getElementById('room-input').value.toUpperCase();
             window.open(`${baseUrl}tv.html?room=${roomId}`, '_blank');
+        }
+
+        function openReferee() {
+            const roomId = document.getElementById('room-input').value.toUpperCase();
+            window.location.href = `${baseUrl}instant-play.html?sn=${roomId}`;
         }
 
         function copyLink(inputId) {
