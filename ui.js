@@ -25,7 +25,7 @@ import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobal
 let touchStartX = null;
 let touchEndX = 0;
 const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'moderator'];
-let currentPageIndex = 0; // Aloitetaan profile/dashboard-sivulta
+let currentPageIndex = 1; // Aloitetaan play-sivulta
 
 /**
  * Shows the victory animation overlay.
@@ -894,7 +894,7 @@ subscribe('user', () => {
                         setTimeout(() => viewEventDetails(eventIdParam), 800);
                     }
                 } else {
-                    state.currentPage = 'profile'; // Oletuksena näytetään Dashboard (Pro Card)
+                    state.currentPage = 'tournament'; // Oletuksena näytetään Play/Quick Match
                 }
             }
         }
