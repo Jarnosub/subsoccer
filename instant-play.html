@@ -856,17 +856,23 @@
             // Scroll to hide address bar (iOS hack)
             window.scrollTo(0, 1);
 
+            // Check if we should skip fullscreen
+            const urlParams = new URLSearchParams(window.location.search);
+            const skipFullscreen = urlParams.get('nofullscreen') === 'true';
+
             // Try to request fullscreen
-            try {
-                if (elem.requestFullscreen) {
-                    elem.requestFullscreen().catch(err => console.log(err));
-                } else if (elem.webkitRequestFullscreen) { /* Safari */
-                    elem.webkitRequestFullscreen();
-                } else if (elem.msRequestFullscreen) { /* IE11 */
-                    elem.msRequestFullscreen();
+            if (!skipFullscreen) {
+                try {
+                    if (elem.requestFullscreen) {
+                        elem.requestFullscreen().catch(err => console.log(err));
+                    } else if (elem.webkitRequestFullscreen) { /* Safari */
+                        elem.webkitRequestFullscreen();
+                    } else if (elem.msRequestFullscreen) { /* IE11 */
+                        elem.msRequestFullscreen();
+                    }
+                } catch (e) {
+                    console.log('Fullscreen not supported');
                 }
-            } catch (e) {
-                console.log('Fullscreen not supported');
             }
 
             // Skip auto-starting microphone to avoid immediate browser permission prompt

@@ -399,7 +399,7 @@
 
         function openReferee() {
             const roomId = document.getElementById('room-input').value.toUpperCase();
-            window.location.href = `${baseUrl}instant-play.html?sn=${roomId}`;
+            window.open(`${baseUrl}instant-play.html?sn=${roomId}&nofullscreen=true`, '_blank');
         }
 
         function copyLink(inputId) {
