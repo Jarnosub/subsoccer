@@ -959,23 +959,25 @@
             document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
             document.getElementById('winner-overlay').classList.add('show');
 
-            // Generate a fake, motivating ELO gain for the session to hook the player
-            // In reality, actual ELO will be calculated by the backend after Claim.
-            const simulatedEloGain = Math.floor(Math.random() * (45 - 20 + 1)) + 20;
-            const gainEl = document.getElementById('victory-elo-gain');
-            if (gainEl) {
-                gainEl.textContent = `+${simulatedEloGain} ELO`;
-            }
-
-            // Check mode (Casual vs Guest)
             const urlParams = new URLSearchParams(window.location.search);
             const isCasual = urlParams.get('mode') === 'casual';
             const userType = urlParams.get('user_type') || 'guest';
+            const isTournamentMatch = urlParams.has('p1') && urlParams.has('p2');
+
+            // Set ELO Gain visibility
+            const simulatedEloGain = Math.floor(Math.random() * (45 - 20 + 1)) + 20;
+            const gainEl = document.getElementById('victory-elo-gain');
+            if (gainEl) {
+                if (isTournamentMatch) {
+                    gainEl.style.display = 'none';
+                } else {
+                    gainEl.style.display = 'block';
+                    gainEl.textContent = `+${simulatedEloGain} ELO`;
+                }
+            }
 
             const claimBtn = document.getElementById('claim-victory-btn');
             const endBtn = document.getElementById('end-game-btn');
-
-            // Dynamic Player Card in Overlay
             const cardContainer = document.getElementById('winner-card-container');
             const cardIcon = document.getElementById('winner-card-icon');
             const cardTitle = document.getElementById('winner-card-title');
@@ -984,8 +986,14 @@
 
             if (claimBtn) claimBtn.style.display = 'block';
 
-            if (isCasual && userType === 'registered') {
+            if (isTournamentMatch) {
+                // Tournament Match - Hide gamification cards, just focus on tournament flow
+                if (cardContainer) cardContainer.style.display = 'none';
+                if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-arrow-left' style='margin-right:10px;'></i> RETURN TO TOURNAMENT";
+                if (endBtn) endBtn.style.display = 'none';
+            } else if (isCasual && userType === 'registered') {
                 // Registered player from app - Show Pro Card
+                if (cardContainer) cardContainer.style.display = 'block';
                 if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT";
                 if (endBtn) endBtn.style.display = 'block';
 
@@ -1000,6 +1008,7 @@
                 cardDesc.textContent = "Great win! Save this result to boost your global rank and update your digital Pro Card.";
             } else {
                 // Guest (QR Code or Guest in app) - Show Rookie Card
+                if (cardContainer) cardContainer.style.display = 'block';
                 if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
                 if (endBtn) endBtn.style.display = 'none';
 
@@ -1031,6 +1040,15 @@
 
         // Claim victory (Redirect to main app)
         function claimVictory() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isTournamentMatch = urlParams.has('p1') && urlParams.has('p2');
+
+            if (isTournamentMatch) {
+                // Return straight to tournament dashboard, logic handled there
+                window.location.href = 'index.html';
+                return;
+            }
+
             // Construct URL parameters
             const params = new URLSearchParams();
             params.append('action', 'claim_result');
