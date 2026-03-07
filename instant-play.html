@@ -400,7 +400,12 @@
             }
 
             .player-label {
+                top: 70px;
+            }
+
+            .game-logo {
                 top: 15px;
+                height: 30px;
             }
 
             /* Pystyasennossa EI käännetä pelaajaa, vaan pidetään numerot luettavissa (päällekkäin) */
@@ -410,6 +415,14 @@
 
             .player-left.goal-flash {
                 animation: goalFlash 0.5s ease-in-out;
+            }
+
+            .table-id {
+                top: 50%;
+                transform: translate(-50%, -50%);
+                background: var(--sub-black);
+                border: 1px solid #333;
+                z-index: 50;
             }
         }
 
