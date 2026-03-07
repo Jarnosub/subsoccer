@@ -537,6 +537,7 @@ export function setupUIListeners() {
 
     // Profile Section
     document.getElementById('avatar-file-input')?.addEventListener('change', (e) => previewAvatarFile(e.target));
+    document.getElementById('signup-avatar-file')?.addEventListener('change', (e) => previewAvatarFile(e.target, 'signup-avatar-preview', 'signup-avatar-filename'));
     document.getElementById('btn-save-profile')?.addEventListener('click', (e) => saveProfile(e));
     document.getElementById('btn-cancel-edit-profile')?.addEventListener('click', cancelEditProfile);
     document.getElementById('btn-profile-leaderboard')?.addEventListener('click', () => showPage('leaderboard'));

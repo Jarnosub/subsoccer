@@ -290,11 +290,36 @@ export async function handleSignUp() {
             profileError = finalError;
         } else {
             // NEW USER: Luodaan kokonaan uusi pelaaja
-            const { error } = await _supabase.from('players').upsert({
+            // Ladataan mahdollinen valittu avatar
+            let finalAvatarUrl = null;
+            const avatarInput = document.getElementById('signup-avatar-file');
+            if (avatarInput && avatarInput.files && avatarInput.files[0]) {
+                try {
+                    finalAvatarUrl = await uploadPlayerAvatar(avatarInput.files[0], authData.user.id);
+                } catch (err) {
+                    console.error('Failed to upload avatar during signup:', err);
+                }
+            }
+
+            const upsertPayload = {
                 id: authData.user.id, username: u, email: email,
                 elo: 1300, wins: 0, losses: 0, acquired_via: state.brand
-            }, { onConflict: 'id' });
+            };
+            if (finalAvatarUrl) {
+                upsertPayload.avatar_url = finalAvatarUrl;
+            }
+
+            const { error } = await _supabase.from('players').upsert(upsertPayload, { onConflict: 'id' });
             profileError = error;
+
+            if (!error && avatarInput) {
+                // Clear the input after success
+                avatarInput.value = '';
+                const previewImg = document.getElementById('signup-avatar-preview');
+                const nameDiv = document.getElementById('signup-avatar-filename');
+                if (previewImg) previewImg.src = 'placeholder-silhouette-5-wide.png';
+                if (nameDiv) nameDiv.textContent = '';
+            }
         }
 
         if (profileError) {
@@ -522,9 +547,9 @@ export async function handleLogout() {
 /**
  * Preview avatar file before upload
  */
-export function previewAvatarFile(input) {
+export function previewAvatarFile(input, previewImgId = 'avatar-preview', fileNameDivId = 'avatar-file-name') {
     const file = input.files[0];
-    const fileNameDiv = document.getElementById('avatar-file-name');
+    const fileNameDiv = document.getElementById(fileNameDivId);
 
     if (!file) {
         if (fileNameDiv) fileNameDiv.textContent = '';
@@ -547,7 +572,11 @@ export function previewAvatarFile(input) {
     // Preview image
     const reader = new FileReader();
     reader.onload = (e) => {
-        if (window.updateAvatarPreview) {
+        const previewImg = document.getElementById(previewImgId);
+        if (previewImg) previewImg.src = e.target.result;
+
+        // Backward compatibility for window function if needed
+        if (previewImgId === 'avatar-preview' && window.updateAvatarPreview) {
             window.updateAvatarPreview(e.target.result);
         }
     };
@@ -557,10 +586,11 @@ export function previewAvatarFile(input) {
 /**
  * Upload player avatar to Supabase Storage
  */
-async function uploadPlayerAvatar(file) {
+async function uploadPlayerAvatar(file, customUserId = null) {
     try {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${state.user.id}_${Date.now()}.${fileExt}`;
+        const userId = customUserId || (state.user ? state.user.id : 'unknown');
+        const fileName = `${userId}_${Date.now()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
 
         console.log('Uploading avatar:', filePath);

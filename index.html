@@ -182,6 +182,21 @@
         </div>
         <div id="signup-form" class="container auth-container" style="display:none; position: relative; z-index: 1;">
             <h2 class="auth-title">CREATE ACCOUNT</h2>
+            <div class="avatar-section"
+                style="justify-content:center; margin-bottom:20px; flex-direction:column; align-items:center;">
+                <img id="signup-avatar-preview" class="avatar-preview" src="placeholder-silhouette-5-wide.png"
+                    style="width: 80px; height: 80px; margin-bottom:10px;">
+                <div style="text-align:center;">
+                    <input type="file" id="signup-avatar-file" accept="image/jpeg,image/png,image/webp"
+                        style="display:none;">
+                    <label for="signup-avatar-file" class="avatar-upload-label"
+                        style="margin:0; padding:8px 15px; font-size:0.8rem;">
+                        <i class="fa fa-camera"></i> Upload Photo
+                    </label>
+                    <div id="signup-avatar-filename" class="avatar-filename" style="margin-top:5px; font-size:0.7rem;">
+                    </div>
+                </div>
+            </div>
             <input type="text" id="reg-user" placeholder="Choose Username" autocomplete="username">
             <input type="email" id="reg-email" placeholder="Email Address" autocomplete="email">
             <input type="password" id="reg-pass" placeholder="Choose Password" autocomplete="new-password">
