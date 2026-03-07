@@ -453,7 +453,8 @@
         /* Table ID display */
         .table-id {
             position: absolute;
-            top: 10px;
+            top: 80px;
+            /* Moved down to avoid overlapping the logo */
             left: 50%;
             transform: translateX(-50%);
             font-family: 'Open Sans', sans-serif;
@@ -647,7 +648,7 @@
     </div>
 
     <!-- Exit Button (CLOSE) -->
-    <button onclick="window.location.href='index.html'" class="pro-control-btn top-right">
+    <button onclick="window.location.href='./'" class="pro-control-btn top-right">
         <i class="fa-solid fa-xmark"></i>
     </button>
 
@@ -700,7 +701,7 @@
 
         <div style="padding-bottom: 3vh; width: 100%; max-width: 350px; z-index: 10;">
             <!-- Secondary Sports Card Button -->
-            <div onclick="event.stopPropagation(); window.location.href='index.html?page=tournament&tab=tournament'"
+            <div onclick="event.stopPropagation(); window.location.href='./?page=tournament&tab=tournament'"
                 style="position: relative; width: 100%; height: 90px; background: #0f1012; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.03); text-align: left; transition: transform 0.2s ease;">
 
                 <!-- Large background icon (sports feel) -->
@@ -942,7 +943,7 @@
                         onclick="playAgain()">NEW GAME GUESTS</button>
                     <button id="end-game-btn" class="play-again-btn"
                         style="flex:1; background:#222; border:1px solid #444; font-size: 0.8rem; padding: 12px 0;"
-                        onclick="window.location.href='index.html'">EXIT</button>
+                        onclick="window.location.href='./'">EXIT</button>
                 </div>
             </div>
         </div>
@@ -1194,7 +1195,7 @@
             params.append('game_id', currentGameId || 'QUICK-PLAY');
 
             // Redirect to main app with data
-            window.location.href = `index.html?${params.toString()}`;
+            window.location.href = `./?${params.toString()}`;
         }
 
         // Share links

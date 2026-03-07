@@ -188,6 +188,22 @@ export function showMatchMode(mode) {
     const tournamentBtn = document.getElementById('btn-tournament-mode');
     const tourIcon = document.getElementById('tournament-icon-status');
 
+    if (mode === 'tournament' && state && state.user && state.user.id === 'guest') {
+        // Enforce login for guests trying to host a tournament
+        const authMsg = document.getElementById('tour-auth-message');
+        if (authMsg) authMsg.style.display = 'block';
+
+        const guestSection = document.getElementById('guest-login-section');
+        if (guestSection) guestSection.style.display = 'none';
+
+        // Log the user out from their guest session automatically to show the auth screen
+        localStorage.removeItem('subsoccer-user');
+        state.user = null;
+
+        showAuthPage('login');
+        return;
+    }
+
     if (mode === 'quick') {
         quickSection.style.display = 'block';
         tournamentSection.style.display = 'none';
