@@ -63,7 +63,7 @@ export const CardGenerator = {
 
             // Add background logo watermark
             const watermark = document.createElement('div');
-            watermark.innerHTML = '<img src="logo.png" style="width:800px; opacity:0.05; transform:rotate(-15deg); filter:grayscale(100%);">';
+            watermark.innerHTML = '<img src="subsoccer_logo.svg" style="width:800px; opacity:0.05; transform:rotate(-15deg); filter:grayscale(100%);">';
             watermark.style.position = 'absolute';
             watermark.style.top = '30%';
             watermark.style.pointerEvents = 'none';

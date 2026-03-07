@@ -100,7 +100,7 @@ export function applyBranding() {
         document.documentElement.style.setProperty('--sub-gold', '#FFD700');
         const logo = document.querySelector('.main-logo');
         if (logo) {
-            logo.src = 'logo.png';
+            logo.src = 'subsoccer_logo.svg';
             logo.style.filter = 'none';
         }
     }

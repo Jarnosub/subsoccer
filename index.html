@@ -39,7 +39,7 @@
     <div id="notification-container"></div>
 
     <header>
-        <img src="logo.png" class="main-logo" alt="Subsoccer">
+        <img src="subsoccer_logo.svg" class="main-logo" alt="Subsoccer">
         <div class="version-badge-container">
             <span class="version-label">BETA VERSION</span>
             <span class="version-date">MAR 2026 // v1.0.0</span>
@@ -516,41 +516,6 @@
                             BEST FOR LIVE EVENTS</div>
                     </div>
 
-                    <!-- SMART HOST MODAL (Hidden by default) -->
-                    <div id="smart-host-modal"
-                        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:999999; background:rgba(0,0,0,0.95); flex-direction:column; align-items:center; justify-content:center; padding: 20px;">
-                        <div
-                            style="font-family: 'Russo One', sans-serif; font-size: 2.5rem; color: #fff; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase;">
-                            SCAN TO JOIN</div>
-                        <div
-                            style="color: #888; font-family: 'Open Sans'; font-size: 0.9rem; margin-bottom: 30px; letter-spacing: 1px;">
-                            PLAYERS AUTOMATICALLY ADDED TO ROSTER</div>
-
-                        <div
-                            style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 30px rgba(227, 6, 19, 0.4); border: 2px solid var(--sub-red); margin-bottom: 30px;">
-                            <!-- Fallback QR code image using qrserver api -->
-                            <img id="smart-host-qr-img"
-                                src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://subsoccer.pro/?join=demo"
-                                alt="QR Code" width="250" height="250">
-                        </div>
-
-                        <div style="margin-bottom: 30px; text-align: center;">
-                            <div
-                                style="font-family: 'Russo One'; font-size: 3rem; color: var(--sub-red); text-shadow: 0 0 15px rgba(227,6,19,0.5); line-height: 1;">
-                                <span id="smart-host-count">0</span>
-                            </div>
-                            <div style="color: #fff; font-family: 'Resolve'; letter-spacing: 3px; opacity: 0.8;">PLAYERS
-                                IN LOBBY</div>
-                        </div>
-
-                        <div style="display:flex; gap:15px; width:100%; max-width: 350px;">
-                            <button id="btn-cancel-smart-host"
-                                style="flex:1; background: transparent; color: #888; border: 1px solid #444; padding: 15px; border-radius: var(--sub-radius); font-family: 'Resolve'; cursor: pointer; letter-spacing: 2px;">CANCEL</button>
-                            <button id="btn-start-smart-host" class="btn-red"
-                                style="flex:1.5; padding: 15px; font-size: 1rem; box-shadow: 0 0 20px rgba(227,6,19,0.3);">START
-                                BRACKET</button>
-                        </div>
-                    </div>
 
                     <!-- Add Player Card (Redesigned for manual entry fallback) -->
                     <div class="tour-card"
@@ -758,6 +723,42 @@
 
     <!-- Instant Play Onboarding Handler -->
     <script src="onboarding.js" type="module"></script>
+
+    <!-- SMART HOST MODAL (Moved to root to escape CSS animation stacking contexts) -->
+    <div id="smart-host-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:999999; background:rgba(0,0,0,0.95); flex-direction:column; align-items:center; justify-content:center; padding: 20px;">
+        <div
+            style="font-family: 'Russo One', sans-serif; font-size: 2.5rem; color: #fff; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase;">
+            SCAN TO JOIN</div>
+        <div
+            style="color: #888; font-family: 'Open Sans'; font-size: 0.9rem; margin-bottom: 30px; letter-spacing: 1px; text-transform: uppercase;">
+            PLAYERS AUTOMATICALLY ADDED TO ROSTER</div>
+
+        <div
+            style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 30px rgba(227, 6, 19, 0.4); border: 2px solid var(--sub-red); margin-bottom: 30px;">
+            <!-- Fallback QR code image using qrserver api -->
+            <img id="smart-host-qr-img"
+                src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://subsoccer.pro/?join=demo"
+                alt="QR Code" width="250" height="250">
+        </div>
+
+        <div style="margin-bottom: 30px; text-align: center;">
+            <div
+                style="font-family: 'Russo One'; font-size: 3rem; color: var(--sub-red); text-shadow: 0 0 15px rgba(227,6,19,0.5); line-height: 1;">
+                <span id="smart-host-count">0</span>
+            </div>
+            <div style="color: #fff; font-family: 'Resolve'; letter-spacing: 3px; opacity: 0.8;">PLAYERS
+                IN LOBBY</div>
+        </div>
+
+        <div style="display:flex; gap:15px; width:100%; max-width: 350px;">
+            <button id="btn-cancel-smart-host"
+                style="flex:1; background: transparent; color: #888; border: 1px solid #444; padding: 15px; border-radius: var(--sub-radius); font-family: 'Resolve'; cursor: pointer; letter-spacing: 2px;">CANCEL</button>
+            <button id="btn-start-smart-host" class="btn-red"
+                style="flex:1.5; padding: 15px; font-size: 1rem; box-shadow: 0 0 20px rgba(227,6,19,0.3);">START
+                BRACKET</button>
+        </div>
+    </div>
 
     <!-- Audio Telemetry HUD (Invisible to touch, visible for debugging) -->
     <div id="audio-telemetry" class="audio-hud">

@@ -57,7 +57,7 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
         content.id = 'live-content';
         document.body.appendChild(content);
     }
-    
+
     // Enforce full screen styles and hide app content
     content.style.cssText = 'width:100%; height:100vh; padding:0; box-sizing:border-box; background-color:#050505; background-image: linear-gradient(45deg, #0a0a0a 25%, transparent 25%), linear-gradient(-45deg, #0a0a0a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #0a0a0a 75%), linear-gradient(-45deg, transparent 75%, #0a0a0a 75%); background-size: 8px 8px; position:fixed; top:0; left:0; z-index:20000; overflow-y:auto; -webkit-overflow-scrolling:touch;';
     const appContent = document.getElementById('app-content');
@@ -87,7 +87,7 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
         // Update page title and Open Graph meta tags for social sharing
         if (!isBackgroundUpdate) {
             document.title = `LIVE: ${event.event_name}`;
-            
+
             const setMeta = (prop, val) => {
                 if (!val) return;
                 let meta = document.querySelector(`meta[property="${prop}"]`);
@@ -142,9 +142,9 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
         // Kerätään kaikkien päättyneiden turnausten voittajat ja haetaan heidän kuvansa
         const completedTournaments = tournaments.filter(t => t.status === 'completed');
         let playerMap = {};
-        
+
         if (completedTournaments.length > 0) {
-            const names = [...new Set(completedTournaments.flatMap(t => 
+            const names = [...new Set(completedTournaments.flatMap(t =>
                 [t.winner_name, t.second_place_name, t.third_place_name]
             ).filter(n => n))];
 
@@ -153,7 +153,7 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
                     .from('players')
                     .select('username, avatar_url, country, elo')
                     .in('username', names);
-                
+
                 if (players) {
                     players.forEach(p => { playerMap[p.username.toLowerCase()] = p; });
                 }
@@ -202,17 +202,17 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
  */
 function renderLiveBracketHtml(t) {
     const matches = t.matches || [];
-    
+
     // Calculate unique players from matches if participant count is missing
     const uniquePlayers = new Set();
     matches.forEach(m => {
-        if(m.player1) uniquePlayers.add(m.player1);
-        if(m.player2) uniquePlayers.add(m.player2);
+        if (m.player1) uniquePlayers.add(m.player1);
+        if (m.player2) uniquePlayers.add(m.player2);
     });
-    
+
     // Use the larger of registered count or actual players in matches
     const participantCount = Math.max(t.computed_participant_count || 0, uniquePlayers.size);
-    
+
     if (participantCount < 2) {
         return `
             <div style="text-align:center; padding:30px; color:#444; border:1px dashed #222; border-radius:8px;">
@@ -226,33 +226,33 @@ function renderLiveBracketHtml(t) {
     // 1. Calculate Bracket Dimensions (Next Power of 2)
     let nextPow2 = 2;
     while (nextPow2 < participantCount) nextPow2 *= 2;
-    
+
     // Cap at 32 to prevent UI explosion
     if (nextPow2 > 32) nextPow2 = 32;
-    
+
     const totalRounds = Math.log2(nextPow2);
-    
+
     // Calculate expected matches in Round 1 to fix layout for non-power-of-2 (e.g. 10 players)
     const byes = nextPow2 - participantCount;
     const expectedR1Matches = (participantCount - byes) / 2;
-    
+
     // 2. Sort matches into rounds
     const playerHistory = {};
-    const roundBuckets = Array.from({length: totalRounds}, () => []);
-    
+    const roundBuckets = Array.from({ length: totalRounds }, () => []);
+
     // Sort matches by time
     const sortedMatches = [...matches].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     let r1MatchesFound = 0;
-    
+
     sortedMatches.forEach(m => {
         const p1 = m.player1 || 'Unknown';
         const p2 = m.player2 || 'Unknown';
         const p1Round = playerHistory[p1] || 0;
         const p2Round = playerHistory[p2] || 0;
-        
+
         // Match belongs to the round index equal to the max previous games played by participants
         let currentRound = Math.max(p1Round, p2Round);
-        
+
         // HEURISTIC FIX: If both players have 0 history, it could be R1 or a R2 "Bye vs Bye" match.
         // We force overflow matches to R2 to maintain visual structure.
         if (p1Round === 0 && p2Round === 0) {
@@ -266,19 +266,19 @@ function renderLiveBracketHtml(t) {
 
         // Safety cap
         if (currentRound >= totalRounds) currentRound = totalRounds - 1;
-        
+
         // INJECT BYES: If a player appears in Round 2+ without playing in Round 1, they had a BYE.
         if (currentRound > 0) {
-             if (p1Round === 0 && p1 !== 'Unknown') {
-                 roundBuckets[0].push({ player1: p1, isBye: true });
-             }
-             if (p2Round === 0 && p2 !== 'Unknown') {
-                 roundBuckets[0].push({ player1: p2, isBye: true });
-             }
+            if (p1Round === 0 && p1 !== 'Unknown') {
+                roundBuckets[0].push({ player1: p1, isBye: true });
+            }
+            if (p2Round === 0 && p2 !== 'Unknown') {
+                roundBuckets[0].push({ player1: p2, isBye: true });
+            }
         }
 
         roundBuckets[currentRound].push(m);
-        
+
         // Increment history
         playerHistory[p1] = currentRound + 1;
         playerHistory[p2] = currentRound + 1;
@@ -286,11 +286,11 @@ function renderLiveBracketHtml(t) {
 
     // 3. Render Columns
     let html = '<div style="display:flex; gap:30px; overflow-x:auto; padding:20px 0; align-items: flex-start;">';
-    
+
     // Helper for rendering a match box
     const renderBox = (m) => {
         if (m.isBye) {
-             return `
+            return `
                 <div class="bracket-match-card" style="background:#111; border:1px solid #333; border-radius:6px; overflow:hidden; min-width:240px; box-shadow:0 4px 15px rgba(0,0,0,0.3); position:relative; opacity:0.6;">
                     <div style="padding:12px 15px; border-bottom:1px solid #222; background:rgba(255,255,255,0.05);">
                         <span style="color:#fff; font-weight:bold; font-size:0.95rem; font-family:var(--sub-name-font); text-transform:uppercase; letter-spacing:0.5px;">${m.player1}</span>
@@ -306,11 +306,11 @@ function renderLiveBracketHtml(t) {
         const isWinner2 = m.winner === m.player2;
         const p1Score = m.player1_score !== null ? m.player1_score : '';
         const p2Score = m.player2_score !== null ? m.player2_score : '';
-        
+
         // Determine border color based on state
         let borderColor = '#333';
         if (m.winner) borderColor = '#555'; // Completed
-        
+
         return `
             <div class="bracket-match-card" style="background:#111; border:1px solid ${borderColor}; border-radius:6px; overflow:hidden; min-width:240px; box-shadow:0 4px 15px rgba(0,0,0,0.3); position:relative;">
                 <!-- Player 1 -->
@@ -339,20 +339,20 @@ function renderLiveBracketHtml(t) {
     for (let r = 0; r < totalRounds; r++) {
         const roundCapacity = nextPow2 / Math.pow(2, r + 1);
         let matchesInRound = roundBuckets[r] || [];
-        
+
         // Filter out Bronze match from the final round
         if (r === totalRounds - 1 && r > 0) {
             try {
-                const prevRoundMatches = roundBuckets[r-1] || [];
+                const prevRoundMatches = roundBuckets[r - 1] || [];
                 const prevRoundWinners = new Set(prevRoundMatches.map(m => m.winner).filter(w => w));
                 const prevRoundLosers = new Set();
-                
+
                 prevRoundMatches.forEach(m => {
                     if (m.winner) {
                         prevRoundLosers.add(m.player1 === m.winner ? m.player2 : m.player1);
                     }
                 });
-                
+
                 if (prevRoundWinners.size > 0) {
                     // Find the match where players are winners (or byes) and NOT losers
                     let finalMatch = matchesInRound.find(m => {
@@ -384,14 +384,14 @@ function renderLiveBracketHtml(t) {
                 console.warn("Error filtering final round:", e);
             }
         }
-        
+
         let colTitle = `ROUND ${r + 1}`;
         if (r === totalRounds - 1) colTitle = "FINALS";
         else if (r === totalRounds - 2) colTitle = "SEMI FINALS";
         else if (r === totalRounds - 3) colTitle = "QUARTER FINALS";
-        
+
         let columnContent = '';
-        
+
         for (let i = 0; i < roundCapacity; i++) {
             const match = matchesInRound[i];
             if (match) {
@@ -410,7 +410,7 @@ function renderLiveBracketHtml(t) {
             </div>
         `;
     }
-    
+
     html += '</div>';
 
     return html;
@@ -439,14 +439,14 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
         // Case-insensitive lookup from the map we fetched
         const p = playerMap[name.toLowerCase()] || { username: name, elo: '-', country: null, avatar_url: null };
         const flag = p.country ? p.country.toLowerCase() : 'fi';
-        
-        const avatarHtml = p.avatar_url 
+
+        const avatarHtml = p.avatar_url
             ? `<img src="${p.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">`
             : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #151515; color: #333; font-size: 2.5rem;"><i class="fa fa-user"></i></div>`;
 
         // Slightly smaller card for live view grid
         return `
-            <div data-username="${p.username}" style="cursor: pointer; display:flex; flex-direction:column; align-items:center; margin: 0 5px; position: relative; z-index: ${4-place}; ${place === 1 ? 'transform: scale(1.1); margin-bottom: 10px;' : ''}">
+            <div data-username="${p.username}" style="cursor: pointer; display:flex; flex-direction:column; align-items:center; margin: 0 5px; position: relative; z-index: ${4 - place}; ${place === 1 ? 'transform: scale(1.1); margin-bottom: 10px;' : ''}">
                 <div style="font-size: 1.5rem; margin-bottom: 5px;">${rankIcon}</div>
                 
                 <div style="width: 100px; height: 160px; background: #0a0a0a; border: 2px solid ${color}; border-radius: 6px; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column;">
@@ -480,7 +480,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
     };
 
     const content = document.getElementById('live-content') || document.getElementById('content') || document.body;
-    
+
     // Inject styles for live view
     const liveStyles = `
         <style>
@@ -587,7 +587,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                     <i class="fa fa-times"></i>
                 </button>
 
-                <img src="logo.png" alt="Subsoccer" style="height: 50px; width: auto; display: block; margin: 0 auto 25px auto; filter: drop-shadow(0 0 15px rgba(0,0,0,0.8));">
+                <img src="subsoccer_logo.svg" alt="Subsoccer" style="height: 50px; width: auto; display: block; margin: 0 auto 25px auto; filter: drop-shadow(0 0 15px rgba(0,0,0,0.8));">
 
                 ${event.brand_logo_url ? `
                     <div style="background: rgba(255,255,255,0.05); display: inline-block; padding: 10px 25px; border-radius: var(--sub-radius); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
@@ -622,14 +622,14 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                 ${tournaments.map(t => {
         // SAFETY CHECK: Skip broken tournaments to prevent Live View crash
         try {
-        const tDate = new Date(t.start_datetime);
-        const timeStr = tDate.toLocaleTimeString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        const participantCount = t.computed_participant_count || 0;
+            const tDate = new Date(t.start_datetime);
+            const timeStr = tDate.toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const participantCount = t.computed_participant_count || 0;
 
-        return `
+            return `
                         <div class="glass-panel" style="border-top: 4px solid ${t.status === 'completed' ? 'var(--sub-gold)' : t.status === 'ongoing' ? 'var(--sub-red)' : '#333'}; position: relative; display: flex; flex-direction: column; padding: 30px; height:100%;">
                             
                             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:25px;">
@@ -714,19 +714,19 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
 
             <!-- Footer -->
             <div style="text-align:center; margin-top:100px; padding-top:40px; border-top: 1px solid var(--sub-border); opacity: 0.5;">
-                <img src="logo.png" style="height: 30px; width: auto; margin-bottom: 15px; filter: grayscale(1);">
+                <img src="subsoccer_logo.svg" style="height: 30px; width: auto; margin-bottom: 15px; filter: grayscale(1);">
                 <div style="font-family: var(--sub-name-font); color: #666; font-size: 0.8rem; letter-spacing: 3px;">OFFICIAL TOURNAMENT BROADCAST SYSTEM</div>
             </div>
             
             <!-- Ticker -->
             <div class="live-ticker">
                 <div class="ticker-content">
-                    ${tournaments.length > 0 ? 
-                        tournaments.map(t => `
+                    ${tournaments.length > 0 ?
+            tournaments.map(t => `
                             <span style="margin-right:50px;">🏆 ${t.tournament_name || 'Tournament'}: ${t.status === 'completed' ? `WINNER: ${t.winner_name}` : 'LIVE NOW'}</span>
-                        `).join('') 
-                        : 'WELCOME TO SUBSOCCER LIVE EVENTS • FOLLOW THE ACTION • PLAY FAIR • HAVE FUN'
-                    }
+                        `).join('')
+            : 'WELCOME TO SUBSOCCER LIVE EVENTS • FOLLOW THE ACTION • PLAY FAIR • HAVE FUN'
+        }
                     <span style="margin-right:50px;">• POWERED BY SUBSOCCER •</span>
                 </div>
             </div>
@@ -740,19 +740,19 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
 export function closeLiveView() {
     const content = document.getElementById('live-content');
     if (content) content.remove();
-    
+
     document.body.classList.remove('live-mode');
-    
+
     if (window.liveEventRefreshInterval) {
         clearInterval(window.liveEventRefreshInterval);
         window.liveEventRefreshInterval = null;
     }
-    
+
     // Clean up URL
     const url = new URL(window.location);
     url.searchParams.delete('live');
     window.history.replaceState({}, '', url);
-    
+
     const appContent = document.getElementById('app-content');
     const navTabs = document.getElementById('nav-tabs');
     const header = document.querySelector('header');
@@ -769,7 +769,7 @@ export function closeLiveView() {
         if (appContent) {
             appContent.style.display = 'flex';
             appContent.classList.remove('fade-in');
-            void appContent.offsetWidth; 
+            void appContent.offsetWidth;
             appContent.classList.add('fade-in');
         }
         if (navTabs) navTabs.style.setProperty('display', 'flex', 'important');
