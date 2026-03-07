@@ -11,31 +11,31 @@ import { showLoading, hideLoading, safeHTML } from './ui-utils.js';
 export async function fetchLB() {
     showLoading('Fetching Rankings...');
     try {
-    const { data } = await _supabase.from('players').select('*').order('elo', { ascending: false });
-    
-    if (!data || data.length === 0) {
-        const lbData = document.getElementById('lb-data');
-        if (lbData) lbData.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">No players yet</div>';
-        return;
-    }
-    
-    let html = '';
-    
-    // Add Header
-    html += '<div style="text-align:center; margin-bottom:25px;"><h2 style="font-family:var(--sub-name-font); font-size:1.5rem; color:var(--sub-gold); margin:0; letter-spacing:2px;">LEADERBOARD</h2><div style="font-size:0.7rem; color:#666; letter-spacing:3px; margin-top:5px;">TOP PLAYERS</div></div>';
-    
-    // Top 3 Podium
-    if (data.length >= 1) {
-        html += '<div class="podium-section">';
-        
-        const top3 = data.slice(0, 3);
-        
-        top3.forEach((player, i) => {
-            const rank = i + 1;
-            const imageSrc = player.avatar_url || 'placeholder-silhouette-5-wide.png';
-            const flag = player.country ? player.country.toLowerCase() : 'fi';
-            
-            html += safeHTML`
+        const { data } = await _supabase.from('players').select('*').or('wins.gt.0,losses.gt.0').order('elo', { ascending: false });
+
+        if (!data || data.length === 0) {
+            const lbData = document.getElementById('lb-data');
+            if (lbData) lbData.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">No players yet</div>';
+            return;
+        }
+
+        let html = '';
+
+        // Add Header
+        html += '<div style="text-align:center; margin-bottom:25px;"><h2 style="font-family:var(--sub-name-font); font-size:1.5rem; color:var(--sub-gold); margin:0; letter-spacing:2px;">LEADERBOARD</h2><div style="font-size:0.7rem; color:#666; letter-spacing:3px; margin-top:5px;">TOP PLAYERS</div></div>';
+
+        // Top 3 Podium
+        if (data.length >= 1) {
+            html += '<div class="podium-section">';
+
+            const top3 = data.slice(0, 3);
+
+            top3.forEach((player, i) => {
+                const rank = i + 1;
+                const imageSrc = player.avatar_url || 'placeholder-silhouette-5-wide.png';
+                const flag = player.country ? player.country.toLowerCase() : 'fi';
+
+                html += safeHTML`
                 <div class="podium-place p-${rank}">
                     <div class="podium-card" data-username="${player.username}" style="cursor:pointer;">
                         <img src="${imageSrc}" alt="${player.username}" onerror="this.src='placeholder-silhouette-5-wide.png'">
@@ -48,18 +48,18 @@ export async function fetchLB() {
                     <div class="podium-step">${rank}</div>
                 </div>
             `;
-        });
-        
-        html += '</div>';
-    }
-    
-    // Rest of the players (4+)
-    if (data.length > 3) {
-        html += '<h3 style="font-family:var(--sub-name-font); color:#444; margin:20px 0 15px 0; font-size:0.75rem; text-transform:uppercase; letter-spacing:3px; text-align:center;">GLOBAL RANKINGS</h3>';
-        html += data.slice(3).map((p, i) => {
-            const flag = p.country ? p.country.toLowerCase() : 'fi';
-            const rank = i + 4;
-            return safeHTML`
+            });
+
+            html += '</div>';
+        }
+
+        // Rest of the players (4+)
+        if (data.length > 3) {
+            html += '<h3 style="font-family:var(--sub-name-font); color:#444; margin:20px 0 15px 0; font-size:0.75rem; text-transform:uppercase; letter-spacing:3px; text-align:center;">GLOBAL RANKINGS</h3>';
+            html += data.slice(3).map((p, i) => {
+                const flag = p.country ? p.country.toLowerCase() : 'fi';
+                const rank = i + 4;
+                return safeHTML`
                 <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid #333; transition:all 0.3s ease;" data-username="${p.username}">
                     <div style="display:flex; align-items:center; gap:15px;">
                         <span style="color:#444; font-family:var(--sub-name-font); font-size:0.8rem; min-width:30px;">#${rank}</span>
@@ -69,11 +69,11 @@ export async function fetchLB() {
                     <span class="lb-elo" style="font-size:1.1rem !important;">${p.elo}</span>
                 </div>
             `;
-        }).join('');
-    }
-    
-    const lbData = document.getElementById('lb-data');
-    if (lbData) lbData.innerHTML = html;
+            }).join('');
+        }
+
+        const lbData = document.getElementById('lb-data');
+        if (lbData) lbData.innerHTML = html;
     } finally {
         hideLoading();
     }
@@ -82,50 +82,50 @@ export async function fetchLB() {
 export async function fetchHist() {
     showLoading('Fetching History...');
     try {
-    const { data: tourData } = await _supabase.from('tournament_history').select('*, events(event_name)').order('created_at', { ascending: false });
-    const { data: matchData } = await _supabase.from('matches').select('*').order('created_at', { ascending: false });
-    
-    if (!tourData || tourData.length === 0) { 
-        const histList = document.getElementById('hist-list');
-        if (histList) histList.innerHTML = "No history."; 
-        return; 
-    }
+        const { data: tourData } = await _supabase.from('tournament_history').select('*, events(event_name)').order('created_at', { ascending: false });
+        const { data: matchData } = await _supabase.from('matches').select('*').order('created_at', { ascending: false });
 
-    const events = tourData.reduce((acc, h) => {
-        const eventName = h.events?.event_name || h.event_name || 'Individual Tournaments';
-        if (!acc[eventName]) acc[eventName] = [];
-        acc[eventName].push(h);
-        return acc;
-    }, {});
+        if (!tourData || tourData.length === 0) {
+            const histList = document.getElementById('hist-list');
+            if (histList) histList.innerHTML = "No history.";
+            return;
+        }
 
-    let html = "";
-    for (const eventName in events) {
-        html += `<div class="event-group"><h2 class="event-title">${eventName}</h2>`;
-        html += events[eventName].map((h) => {
-            const tourMatches = matchData ? matchData.filter(m => m.tournament_id === h.id) : [];
-            const tourPlayers = [...new Set(tourMatches.flatMap(m => [m.player1, m.player2]))];
-            const playersJsonString = JSON.stringify([...new Set(tourPlayers)]);
-            const matchesHtml = tourMatches.map(m => `<div style="background:#111; padding:10px; border-radius:5px; margin-top:5px; font-size:0.8rem;"><b>${m.winner}</b> defeated ${m.winner === m.player1 ? m.player2 : m.player1}</div>`).join('');
-            const date = new Date(h.created_at);
-            const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
-            
-            let podiumHtml = `<div style="font-family: var(--sub-body-font); font-size:0.85rem; color:#fff;">`;
-            if (h.winner_name) podiumHtml += `<div>🏆 ${h.winner_name}</div>`;
-            if (h.second_place_name) podiumHtml += `<div style="color:#ccc; font-size:0.8rem; margin-top:2px;">🥈 ${h.second_place_name}</div>`;
-            if (h.third_place_name) podiumHtml += `<div style="color:#cd7f32; font-size:0.8rem; margin-top:2px;">🥉 ${h.third_place_name}</div>`;
-            podiumHtml += `</div>`;
+        const events = tourData.reduce((acc, h) => {
+            const eventName = h.events?.event_name || h.event_name || 'Individual Tournaments';
+            if (!acc[eventName]) acc[eventName] = [];
+            acc[eventName].push(h);
+            return acc;
+        }, {});
 
-            return `<div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px; position: relative; display:block; text-align:left;">
+        let html = "";
+        for (const eventName in events) {
+            html += `<div class="event-group"><h2 class="event-title">${eventName}</h2>`;
+            html += events[eventName].map((h) => {
+                const tourMatches = matchData ? matchData.filter(m => m.tournament_id === h.id) : [];
+                const tourPlayers = [...new Set(tourMatches.flatMap(m => [m.player1, m.player2]))];
+                const playersJsonString = JSON.stringify([...new Set(tourPlayers)]);
+                const matchesHtml = tourMatches.map(m => `<div style="background:#111; padding:10px; border-radius:5px; margin-top:5px; font-size:0.8rem;"><b>${m.winner}</b> defeated ${m.winner === m.player1 ? m.player2 : m.player1}</div>`).join('');
+                const date = new Date(h.created_at);
+                const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+
+                let podiumHtml = `<div style="font-family: var(--sub-body-font); font-size:0.85rem; color:#fff;">`;
+                if (h.winner_name) podiumHtml += `<div>🏆 ${h.winner_name}</div>`;
+                if (h.second_place_name) podiumHtml += `<div style="color:#ccc; font-size:0.8rem; margin-top:2px;">🥈 ${h.second_place_name}</div>`;
+                if (h.third_place_name) podiumHtml += `<div style="color:#cd7f32; font-size:0.8rem; margin-top:2px;">🥉 ${h.third_place_name}</div>`;
+                podiumHtml += `</div>`;
+
+                return `<div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px; position: relative; display:block; text-align:left;">
                 <div style="position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1rem; z-index: 5; opacity:0.6;" data-replay-players='${playersJsonString}' data-replay-name="${h.tournament_name}">🔄</div>
                 <div style="cursor:pointer;" data-toggle-tournament="${h.id}"><div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${h.tournament_name}</div>${podiumHtml}</div>
                 <div id="tour-matches-${h.id}" style="display:none; margin-top:10px;">${matchesHtml}</div>
                 <div style="position: absolute; bottom: 10px; right: 10px; font-size: 0.6rem; color: #666;">${formattedDate}</div>
             </div>`;
-        }).join('');
-        html += `</div>`;
-    }
-    const histList = document.getElementById('hist-list');
-    if (histList) histList.innerHTML = html;
+            }).join('');
+            html += `</div>`;
+        }
+        const histList = document.getElementById('hist-list');
+        if (histList) histList.innerHTML = html;
     } finally {
         hideLoading();
     }
