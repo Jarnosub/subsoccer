@@ -540,18 +540,7 @@
             }
         }
 
-        /* Confetti Canvas */
-        #confetti-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 150;
-            /* Above winner overlay */
-            display: none;
-        }
+
 
         /* Rules Overlay */
         .rules-overlay {
@@ -672,22 +661,37 @@
         onclick="enterFullscreenGame()">
 
         <div
-            style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+            style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; position: relative;">
+
+            <!-- Sporty Background Image / Effect for the top half -->
+            <div
+                style="position: absolute; top:0; left:0; width: 100%; height: 100%; overflow: hidden; z-index: 0; opacity: 0.4;">
+                <div
+                    style="position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(circle at center, rgba(227, 6, 19, 0.15) 0%, transparent 50%); filter: blur(40px);">
+                </div>
+                <div
+                    style="position: absolute; width: 100%; height: 100%; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 10px);">
+                </div>
+            </div>
 
             <img src="logo.png"
-                style="height: 40px; width: auto; margin-bottom: 8vh; opacity: 0.8; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));"
+                style="height: 35px; width: auto; margin-top: 6vh; opacity: 0.9; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); z-index: 2;"
                 alt="Subsoccer">
 
-            <div style="text-align:center; position: relative;">
-                <!-- Glowing background effect behind the tap area -->
+            <div style="text-align:center; position: relative; margin-top: auto; margin-bottom: 12vh; z-index: 2;">
+                <!-- Gamified Play Button to match the reference image -->
+                <div style="position: relative; animation: breathing 2s infinite alternate;">
+                    <button
+                        style="width: 140px; height: 140px; background: linear-gradient(135deg, var(--sub-red) 0%, #aa0000 100%); border-radius: 50%; border: none; box-shadow: 0 15px 45px rgba(227, 6, 19, 0.6), inset 0 3px 8px rgba(255,255,255,0.4); display: flex; justify-content: center; align-items: center; margin: 0 auto 25px auto; cursor: pointer;">
+                        <i class="fa-solid fa-play" style="color: white; font-size: 3.5rem; margin-left: 8px;"></i>
+                    </button>
 
-                <div style="position: relative; z-index: 1; animation: breathing 2s infinite alternate;">
                     <div
-                        style="width: 120px; height: 120px; background: linear-gradient(135deg, var(--sub-red) 0%, #8a0000 100%); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 30px auto; border: 3px solid rgba(255,255,255,0.3);">
+                        style="font-family:'Russo One', sans-serif; font-size: 2rem; color: #fff; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 5px 15px rgba(0,0,0,0.8); line-height:1;">
+                        1 VS 1 MATCH
                     </div>
-
                     <div
-                        style="font-family:'Resolve', sans-serif; font-size: 2.5rem; white-space: nowrap; color: var(--sub-gold); text-transform:uppercase; letter-spacing:3px; text-shadow: 0 5px 20px rgba(255,215,0,0.5); line-height:1;">
+                        style="font-family:'Open Sans', sans-serif; font-size: 0.8rem; color: #888; font-weight: bold; letter-spacing: 2px; margin-top: 8px;">
                         TAP TO START
                     </div>
                 </div>
@@ -695,29 +699,51 @@
 
         </div>
 
-        <div
-            style="padding-bottom: 5vh; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%;">
-            <div style="display:flex; justify-content:center; align-items:center; gap:10px;">
-                <div style="height:1px; width:30px; background:rgba(255,215,0,0.3);"></div>
-                <div
-                    style="font-family:'Resolve'; color: var(--sub-gold); font-size: 0.75rem; letter-spacing:4px; font-weight:bold;">
-                    NO APP NEEDED
-                </div>
-                <div style="height:1px; width:30px; background:rgba(255,215,0,0.3);"></div>
-            </div>
+        <div style="padding-bottom: 3vh; width: 100%; max-width: 350px; z-index: 10;">
+            <!-- Secondary Sports Card Button -->
+            <div onclick="event.stopPropagation(); window.location.href='index.html?page=tournament'"
+                style="position: relative; width: 100%; height: 90px; background: #0f1012; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.03); text-align: left; transition: transform 0.2s ease;">
 
-            <div
-                style="color: #666; font-size: 0.7rem; display: flex; align-items: center; gap: 8px; font-family: var(--sub-name-font); letter-spacing: 1px; text-transform:uppercase;">
-                <i class="fa-solid fa-microphone"></i> AUTO-REFEREE ACTIVATES ON TAP
+                <!-- Large background icon (sports feel) -->
+                <i class="fa-solid fa-sitemap"
+                    style="position: absolute; right: -5px; top: 0px; font-size: 5rem; color: rgba(255,255,255,0.02); z-index: 1; transform: rotate(-10deg);"></i>
+
+                <!-- Red cinematic gradient from bottom right (Matches reference image styling) -->
+                <div
+                    style="position: absolute; bottom: 0; right: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at bottom right, rgba(227, 6, 19, 0.2) 0%, transparent 80%); z-index: 2; pointer-events: none;">
+                </div>
+
+                <!-- Content Container -->
+                <div
+                    style="position: absolute; top:0; left:0; width: 100%; height: 100%; padding: 15px 20px; z-index: 3; display: flex; align-items: center; justify-content: space-between;">
+
+                    <div style="display: flex; flex-direction: column; justify-content: center;">
+                        <!-- Bold Typography -->
+                        <div
+                            style="font-family: 'Russo One', sans-serif; font-size: 1.2rem; color: #fff; line-height: 1.1; margin-bottom: 5px; text-transform: uppercase;">
+                            HOST A TOURNAMENT
+                        </div>
+
+                        <!-- Tags -->
+                        <div style="display: flex; gap: 8px;">
+                            <span
+                                style="color: #888; font-family: 'Open Sans', sans-serif; font-size: 0.65rem; font-weight: bold;"><i
+                                    class="fa-solid fa-users" style="color: var(--sub-red);"></i> 8-16 PLAYERS</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: rgba(255,255,255,0.05); border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">
+                        <i class="fa-solid fa-chevron-right" style="color: #666;"></i>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Table ID Display -->
     <div id="table-id-display" class="table-id">TABLE: <span id="table-id-value"></span></div>
-
-    <!-- Confetti Canvas -->
-    <canvas id="confetti-canvas"></canvas>
 
     <!-- Main scoreboard -->
     <div class="scoreboard">
@@ -738,8 +764,8 @@
             <div class="goals-visual" id="goals-p2">○○○</div>
         </div>
 
-        <!-- Controls -->
-        <div class="pro-controls-bar">
+        <!-- Controls (Hidden for standard Instant Play users) -->
+        <div class="pro-controls-bar" style="display: none !important;">
             <button class="pro-control-btn" onclick="undoGoal()" title="Undo"><i
                     class="fa-solid fa-rotate-left"></i></button>
             <button class="pro-control-btn" onclick="resetGame()" title="Reset"><i
@@ -755,46 +781,170 @@
         </div>
     </div>
 
-    <!-- Winner overlay (Pillar 2: Gamifying the Registration) -->
     <div class="winner-overlay" id="winner-overlay">
-        <!-- Confetti canvas will play behind this -->
-        <div style="text-align:center; z-index:10;">
-            <div class="winner-text" id="winner-text" style="font-size:2.5rem; margin-bottom:10px;">PLAYER 1 WINS!</div>
-            <div id="victory-elo-gain"
-                style="font-family:'Resolve', sans-serif; color:var(--sub-gold); font-size: 2rem; margin-bottom: 20px;">
-                +32 ELO
+        <!-- Lasers Canvas (Renders behind UI) -->
+        <canvas id="lasers-canvas"
+            style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; display:none;"></canvas>
+
+        <!-- Responsive Inner Wrapper -->
+        <style>
+            .winner-content-box {
+                text-align: center;
+                position: relative;
+                z-index: 10;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: max(env(safe-area-inset-top), 10px) 10px 10px 10px;
+                /* Allow scrolling without top cutoff */
+                margin: auto;
+            }
+
+            .w-title {
+                font-size: 2.5rem;
+                margin-bottom: 5px;
+            }
+
+            .w-elo {
+                font-family: 'Resolve', sans-serif;
+                color: var(--sub-gold);
+                font-size: 2rem;
+                margin-bottom: 10px;
+            }
+
+            .w-card {
+                background: linear-gradient(135deg, #111, #222);
+                border: 1px dashed var(--sub-gold);
+                border-radius: 10px;
+                padding: 15px;
+                width: 100%;
+                max-width: 320px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8);
+                position: relative;
+                overflow: hidden;
+                margin-bottom: 15px;
+            }
+
+            .w-card-icon {
+                color: #666;
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+
+            .w-card-title {
+                font-family: 'Resolve';
+                color: var(--sub-gold);
+                font-size: 1rem;
+                letter-spacing: 1px;
+                margin-bottom: 5px;
+                text-transform: uppercase;
+            }
+
+            .w-card-desc {
+                color: #aaa;
+                font-size: 0.75rem;
+                line-height: 1.2;
+                margin-bottom: 0;
+            }
+
+            .w-btn-claim {
+                width: 100%;
+                max-width: 320px;
+                font-size: 1.1rem;
+                padding: 15px;
+                margin-bottom: 10px;
+            }
+
+            .w-actions {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+                max-width: 320px;
+            }
+
+            /* Landscape mode specific compacting */
+            @media (max-height: 500px) {
+                .winner-content-box {
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    align-content: center;
+                    gap: 15px;
+                }
+
+                .w-title {
+                    font-size: 1.8rem;
+                    margin-bottom: 0;
+                    width: 100%;
+                }
+
+                .w-elo {
+                    font-size: 1.5rem;
+                    margin-bottom: 0;
+                    width: 100%;
+                }
+
+                .w-card {
+                    max-width: 250px;
+                    padding: 10px;
+                    margin-bottom: 0;
+                }
+
+                .w-card-title {
+                    font-size: 0.85rem;
+                    margin-bottom: 2px;
+                }
+
+                .w-card-desc {
+                    font-size: 0.65rem;
+                }
+
+                .w-btn-claim {
+                    padding: 10px;
+                    font-size: 1rem;
+                    margin-bottom: 0;
+                    max-width: 250px;
+                }
+
+                .w-actions {
+                    max-width: 250px;
+                }
+            }
+        </style>
+
+        <div class="winner-content-box">
+            <div style="flex: 1; display:flex; flex-direction:column; align-items:center;">
+                <div class="winner-text w-title" id="winner-text">PLAYER 1 WINS!</div>
+                <div id="victory-elo-gain" class="w-elo">+32 ELO</div>
             </div>
 
             <!-- Gamified "Locked Card" Graphic -->
-            <div id="winner-card-container"
-                style="background:linear-gradient(135deg, #111, #222); border:1px dashed var(--sub-gold); border-radius:10px; padding:20px; max-width: 320px; margin: 0 auto 30px auto; box-shadow:0 10px 30px rgba(0,0,0,0.8); position:relative; overflow:hidden;">
+            <div id="winner-card-container" class="w-card">
                 <!-- Glint effect -->
                 <div id="winner-card-glint"
                     style="position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:linear-gradient(45deg, transparent 40%, rgba(255,215,0,0.2) 50%, transparent 60%); animation: shimmer 3s infinite;">
                 </div>
 
-                <i id="winner-card-icon" class="fa-solid fa-lock"
-                    style="color:#666; font-size:2rem; margin-bottom:10px;"></i>
-                <h3 id="winner-card-title"
-                    style="font-family:'Resolve'; color:var(--sub-gold); font-size:1.2rem; letter-spacing:2px; margin-bottom:15px; text-transform:uppercase;">
-                    PRO CARD UNLOCKED</h3>
-                <p id="winner-card-desc" style="color:#aaa; font-size:0.8rem; line-height:1.4; margin-bottom:5px;">You
-                    are currently playing
-                    as a Guest. Claim your official Subsoccer ELO ranking before you leave the table.</p>
+                <i id="winner-card-icon" class="fa-solid fa-lock w-card-icon"></i>
+                <h3 id="winner-card-title" class="w-card-title">PRO CARD UNLOCKED</h3>
+                <p id="winner-card-desc" class="w-card-desc">You are currently playing as a Guest. Claim your official
+                    Subsoccer ELO ranking before you leave the table.</p>
             </div>
 
-            <button id="claim-victory-btn" class="claim-victory-btn"
-                style="width: 100%; max-width: 320px; font-size: 1.2rem; padding: 20px; margin-bottom: 15px;"
-                onclick="claimVictory()">
-                <i class="fa-solid fa-id-card" style="margin-right:10px;"></i> CLAIM MY PRO CARD
-            </button>
+            <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 10px; width: 100%;">
+                <button id="claim-victory-btn" class="claim-victory-btn w-btn-claim" onclick="claimVictory()">
+                    <i class="fa-solid fa-id-card" style="margin-right:10px;"></i> CLAIM MY PRO CARD
+                </button>
 
-            <div style="display:flex; justify-content:center; gap: 10px; max-width: 320px; margin: 0 auto;">
-                <button class="play-again-btn" style="flex:1; font-size: 0.9rem;" onclick="playAgain()">NEW GAME
-                    GUESTS</button>
-                <button id="end-game-btn" class="play-again-btn"
-                    style="flex:1; background:#222; border:1px solid #444; font-size: 0.9rem;"
-                    onclick="window.location.href='index.html'">EXIT</button>
+                <div class="w-actions">
+                    <button class="play-again-btn" style="flex:1; font-size: 0.8rem; padding: 12px 0;"
+                        onclick="playAgain()">NEW GAME GUESTS</button>
+                    <button id="end-game-btn" class="play-again-btn"
+                        style="flex:1; background:#222; border:1px solid #444; font-size: 0.8rem; padding: 12px 0;"
+                        onclick="window.location.href='index.html'">EXIT</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1025,14 +1175,14 @@
                 window.soundEffects.playCrowdCheer();
             }
 
-            startConfetti();
+            startLasers();
         }
 
         // Play again
         function playAgain() {
             resetGame();
             document.getElementById('winner-overlay').classList.remove('show');
-            stopConfetti();
+            stopLasers();
         }
 
         // Claim victory (Redirect to main app)
@@ -1080,7 +1230,7 @@
             document.getElementById('score-p2').textContent = '0';
             updateGoalVisuals();
             document.getElementById('winner-overlay').classList.remove('show');
-            stopConfetti();
+            stopLasers();
 
             BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
         }
@@ -1149,62 +1299,89 @@
             addGoal(playerNumber);
         };
 
-        // Confetti Effect
-        const confettiCanvas = document.getElementById('confetti-canvas');
-        const ctx = confettiCanvas.getContext('2d');
-        let particles = [];
+        // Stadium Lasers / Spotlight Effect (Premium E-Sports Look)
+        const lasersCanvas = document.getElementById('lasers-canvas');
+        const ctx = lasersCanvas.getContext('2d');
+        let lasers = [];
         let animationId;
 
         function resizeCanvas() {
-            confettiCanvas.width = window.innerWidth;
-            confettiCanvas.height = window.innerHeight;
+            lasersCanvas.width = window.innerWidth;
+            lasersCanvas.height = window.innerHeight;
+            initLasers();
         }
         window.addEventListener('resize', resizeCanvas);
 
-        function createParticle() {
-            return {
-                x: Math.random() * confettiCanvas.width,
-                y: -10,
-                color: ['#E30613', '#FFD700', '#FFFFFF'][Math.floor(Math.random() * 3)],
-                size: Math.random() * 8 + 4,
-                speedY: Math.random() * 3 + 2,
-                speedX: Math.random() * 2 - 1,
-                rotation: Math.random() * 360,
-                rotationSpeed: Math.random() * 10 - 5
-            };
+        function initLasers() {
+            lasers = [];
+            const numLasers = window.innerWidth > 800 ? 8 : 4; // responsive count
+            for (let i = 0; i < numLasers; i++) {
+                lasers.push({
+                    x: (lasersCanvas.width / (numLasers + 1)) * (i + 1), // spread evenly
+                    y: lasersCanvas.height + 50, // origin off-screen bottom
+                    angle: Math.PI * 1.5 + (Math.random() - 0.5), // pointing up, slightly angled
+                    targetAngle: Math.PI * 1.5 + (Math.random() - 0.5) * 1.5,
+                    speed: 0.002 + Math.random() * 0.005, // sweep speed
+                    colorStr: i % 2 === 0 ? '227, 6, 19' : '255, 215, 0', // RGB for Red and Gold
+                    width: 30 + Math.random() * 50,
+                    alpha: 0
+                });
+            }
         }
 
-        function updateConfetti() {
-            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        function updateLasers() {
+            // completely clear screen for lasers to avoid opacity pile-up
+            ctx.clearRect(0, 0, lasersCanvas.width, lasersCanvas.height);
 
-            if (particles.length < 100) particles.push(createParticle());
+            ctx.globalCompositeOperation = 'screen'; // Creates intense, glowing overlays
 
-            particles.forEach((p, i) => {
-                p.y += p.speedY;
-                p.x += p.speedX;
-                p.rotation += p.rotationSpeed;
+            lasers.forEach(laser => {
+                // smoothly swing angles
+                if (Math.abs(laser.angle - laser.targetAngle) < 0.02) {
+                    laser.targetAngle = Math.PI * 1.5 + (Math.random() - 0.5) * 1.8;
+                    laser.speed = 0.002 + Math.random() * 0.003;
+                }
+                laser.angle += (laser.targetAngle - laser.angle) * laser.speed;
 
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.rotate(p.rotation * Math.PI / 180);
-                ctx.fillStyle = p.color;
-                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-                ctx.restore();
+                // fade in slowly when animation starts
+                if (laser.alpha < 0.5) laser.alpha += 0.005;
 
-                if (p.y > confettiCanvas.height) particles[i] = createParticle();
+                // calculate end point way off screen
+                const length = lasersCanvas.height * 2;
+                const endX = laser.x + Math.cos(laser.angle) * length;
+                const endY = laser.y + Math.sin(laser.angle) * length;
+
+                // gradient for fading out the beam
+                const gradient = ctx.createLinearGradient(laser.x, laser.y, endX, endY);
+                gradient.addColorStop(0, `rgba(${laser.colorStr}, ${laser.alpha})`);
+                gradient.addColorStop(1, `rgba(${laser.colorStr}, 0)`);
+
+                // Draw a wide beam
+                ctx.beginPath();
+                // Bottom base width
+                ctx.moveTo(laser.x - laser.width / 2, laser.y);
+                // Top spread
+                ctx.lineTo(endX - laser.width * 4, endY);
+                ctx.lineTo(endX + laser.width * 4, endY);
+                ctx.lineTo(laser.x + laser.width / 2, laser.y);
+                ctx.closePath();
+
+                ctx.fillStyle = gradient;
+                ctx.fill();
             });
-            animationId = requestAnimationFrame(updateConfetti);
+
+            ctx.globalCompositeOperation = 'source-over'; // reset
+            animationId = requestAnimationFrame(updateLasers);
         }
 
-        function startConfetti() {
-            confettiCanvas.style.display = 'block';
+        function startLasers() {
+            lasersCanvas.style.display = 'block';
             resizeCanvas();
-            particles = [];
-            updateConfetti();
+            updateLasers();
         }
 
-        function stopConfetti() {
-            confettiCanvas.style.display = 'none';
+        function stopLasers() {
+            lasersCanvas.style.display = 'none';
             if (animationId) cancelAnimationFrame(animationId);
         }
 

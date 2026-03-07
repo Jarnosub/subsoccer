@@ -18,6 +18,7 @@ import {
 } from './quick-match.js';
 import { shareLiveEventLink } from './live-view-service.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
+import { hostWithQR, cancelQRHost, startQRBracket } from './qr-lobby.js';
 import { startTournament, advanceRound, saveTour, replayTournament, populateEventDropdown } from './tournament.js';
 import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard, setupModeratorListeners } from './moderator-service.js';
 
@@ -558,6 +559,14 @@ export function setupUIListeners() {
     document.getElementById('btn-add-player')?.addEventListener('click', () => addP());
     document.getElementById('btn-clear-pool')?.addEventListener('click', () => clearPool());
     document.getElementById('btn-start-tournament')?.addEventListener('click', () => startTournament());
+
+    // Smart Host
+    document.getElementById('btn-smart-host')?.addEventListener('click', () => hostWithQR());
+    document.getElementById('btn-cancel-smart-host')?.addEventListener('click', () => cancelQRHost());
+    document.getElementById('btn-start-smart-host')?.addEventListener('click', () => {
+        startQRBracket();
+        startTournament(); // Starts the actual bracket UI
+    });
 
     // Bracket Engine
     document.getElementById('next-rd-btn')?.addEventListener('click', () => advanceRound());
