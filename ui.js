@@ -69,9 +69,9 @@ export function showPage(p) {
 
 /**
  * Manages authentication page states and app content visibility.
- * @param {string} mode - 'login', 'signup' or 'app'
+ * @param {string} mode - 'landing', 'login', 'signup' or 'app'
  */
-export function showAuthPage(mode = 'login') {
+export function showAuthPage(mode = 'landing') {
     const authPage = document.getElementById('auth-page');
     const appContent = document.getElementById('app-content');
     const navTabs = document.getElementById('nav-tabs');
@@ -81,6 +81,8 @@ export function showAuthPage(mode = 'login') {
         if (authPage) authPage.style.display = 'none';
         if (appContent) appContent.style.display = 'flex';
         if (navTabs) navTabs.style.display = 'flex';
+        const header = document.querySelector('header');
+        if (header) header.style.display = 'flex';
         // Ensure auth page doesn't hide other UI elements
         return;
     }
@@ -89,13 +91,25 @@ export function showAuthPage(mode = 'login') {
     if (appContent) appContent.style.display = 'none';
     if (navTabs) navTabs.style.display = 'none';
     if (menuBtn) menuBtn.style.display = 'none';
+    const header = document.querySelector('header');
+    if (header) header.style.display = 'none';
 
-    if (mode === 'signup') {
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('signup-form').style.display = 'block';
-    } else {
-        document.getElementById('login-form').style.display = 'block';
-        document.getElementById('signup-form').style.display = 'none';
+    const landingHero = document.getElementById('landing-hero');
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+
+    if (mode === 'landing') {
+        if (landingHero) landingHero.style.display = 'flex';
+        if (loginForm) loginForm.style.display = 'none';
+        if (signupForm) signupForm.style.display = 'none';
+    } else if (mode === 'signup') {
+        if (landingHero) landingHero.style.display = 'none';
+        if (loginForm) loginForm.style.display = 'none';
+        if (signupForm) signupForm.style.display = 'block';
+    } else { // 'login'
+        if (landingHero) landingHero.style.display = 'none';
+        if (loginForm) loginForm.style.display = 'block';
+        if (signupForm) signupForm.style.display = 'none';
     }
 }
 
@@ -863,6 +877,7 @@ subscribe('user', () => {
             void appContent.offsetWidth; // Pakotetaan reflow animaation uudelleenkäynnistämiseksi
             appContent.classList.add('fade-in');
         }
+        if (header) header.style.display = 'flex';
         if (navTabs) navTabs.style.setProperty('display', 'flex', 'important');
 
         // KIOSK MODE: Piilota asetusvalikko julkisessa käytössä
