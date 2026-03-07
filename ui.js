@@ -901,6 +901,9 @@ subscribe('user', () => {
                     if (pageParam === 'events' && eventIdParam) {
                         // Pieni viive varmistaa että events-sivu on latautunut
                         setTimeout(() => viewEventDetails(eventIdParam), 800);
+                    } else if (pageParam === 'tournament' && params.get('tab') === 'tournament') {
+                        // Avataan suoraan turnausvälilehti (jos tultiin Instant Playn kautta)
+                        setTimeout(() => showMatchMode('tournament'), 500);
                     }
                 } else {
                     state.currentPage = 'tournament'; // Oletuksena näytetään Play/Quick Match
