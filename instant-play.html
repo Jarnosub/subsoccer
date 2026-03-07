@@ -400,12 +400,14 @@
             }
 
             .player-label {
-                top: 70px;
+                top: 55px;
+                /* Cleanly below the logo */
             }
 
             .game-logo {
                 top: 15px;
-                height: 30px;
+                height: 25px;
+                /* Slightly smaller logo for portrait */
             }
 
             /* Pystyasennossa EI käännetä pelaajaa, vaan pidetään numerot luettavissa (päällekkäin) */
@@ -417,12 +419,13 @@
                 animation: goalFlash 0.5s ease-in-out;
             }
 
-            .table-id {
-                top: 50%;
-                transform: translate(-50%, -50%);
-                background: var(--sub-black);
-                border: 1px solid #333;
-                z-index: 50;
+            #table-id-display {
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                background: #000 !important;
+                border: 1px solid #333 !important;
+                z-index: 50 !important;
             }
         }
 
@@ -464,7 +467,7 @@
         }
 
         /* Table ID display */
-        .table-id {
+        #table-id-display {
             position: absolute;
             top: 80px;
             /* Moved down to avoid overlapping the logo */
