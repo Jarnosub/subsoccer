@@ -34,6 +34,11 @@ const start = () => {
         if (urlParams.get('tab') === 'tournament') {
             showMatchMode('tournament');
         }
+
+        // Ensure the login form is shown instead of the landing hero
+        if (typeof window.showAuthPage === 'function') {
+            window.showAuthPage('login');
+        }
     }
 
     applyBranding();
