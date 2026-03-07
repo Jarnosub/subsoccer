@@ -10,15 +10,37 @@ import { showCreateTournamentForm, closeTournamentForm, hideCreateEventForm, sho
  * ============================================================
  */
 
+let eventsCache = null;
+let lastEventsFetch = 0;
+const CACHE_TTL_MS = 60000; // 1 minuutti
+
 /**
  * Load events page - main entry point
  */
-export async function loadEventsPage() {
+export async function loadEventsPage(forceRefresh = false) {
     const container = document.getElementById('events-view');
     if (!container) return;
 
-    showLoading('Loading Events...');
+    // Käytetään välimuistia, jos se on validi
+    const nowTime = Date.now();
+    if (!forceRefresh && eventsCache && (nowTime - lastEventsFetch < CACHE_TTL_MS)) {
+        renderEventsPage(eventsCache);
+        // Tehdään taustapäivitys
+        fetchEventsBackground();
+        return;
+    }
 
+    if (!eventsCache) {
+        showLoading('Loading Events...');
+    } else {
+        renderEventsPage(eventsCache); // Näytetään vanhat hetkeksi
+    }
+
+    await fetchEventsBackground(true);
+}
+
+async function fetchEventsBackground(hideLoaderOnComplete = false) {
+    const container = document.getElementById('events-view');
     try {
         const now = new Date();
         const threeMonthsAgo = new Date();
@@ -59,12 +81,17 @@ export async function loadEventsPage() {
         });
 
         pastEvents.sort((a, b) => new Date(b.start_datetime) - new Date(a.start_datetime));
-        renderEventsPage([...activeEvents, ...pastEvents]);
+
+        eventsCache = [...activeEvents, ...pastEvents];
+        lastEventsFetch = Date.now();
+        renderEventsPage(eventsCache);
     } catch (e) {
         console.error('Failed to load events:', e);
-        if (container) container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--sub-red);"><button onclick="loadEventsPage()" class="btn-red">TRY AGAIN</button></div>`;
+        if (container && !eventsCache) {
+            container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--sub-red);"><button onclick="loadEventsPage(true)" class="btn-red">TRY AGAIN</button></div>`;
+        }
     } finally {
-        hideLoading();
+        if (hideLoaderOnComplete) hideLoading();
     }
 }
 

@@ -2,7 +2,7 @@ import { initApp } from './auth.js';
 import { checkLiveEventParam } from './live-view-service.js';
 import './bracket-engine.js';
 import './match-service.js';
-import { setupGlobalErrorHandling, setupUIListeners } from './ui.js';
+import { setupGlobalErrorHandling, setupUIListeners, showMatchMode } from './ui.js';
 import { applyBranding } from './branding-service.js';
 import { checkQRJoinParam } from './qr-lobby.js';
 import './script.js';
@@ -30,6 +30,10 @@ const start = () => {
 
         const guestSection = document.getElementById('guest-login-section');
         if (guestSection) guestSection.style.display = 'none';
+
+        if (urlParams.get('tab') === 'tournament') {
+            showMatchMode('tournament');
+        }
     }
 
     applyBranding();
