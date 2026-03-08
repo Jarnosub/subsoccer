@@ -121,8 +121,11 @@ export async function viewPlayerCard(targetUsername) {
             <div class="card-front" style="background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;">
                 <div class="card-inner-frame">
                     <div class="card-header-stripe">${cardHeader} CARD</div>
-                    <div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div>
-                    <div class="card-name-strip">${p.team_data ? `<span style="color:var(--sub-gold);font-size:0.8em;">[${p.team_data.tag}]</span> ` : ''}${p.username}</div>
+                    <div class="card-image-area" style="position:relative;">
+                        <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                        ${p.team_data ? `<div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.8); border:1px solid var(--sub-gold); color:var(--sub-gold); font-family:'Russo One', sans-serif; font-size:0.7rem; padding:3px 6px; border-radius:4px; letter-spacing:1px; z-index:10; box-shadow:0 2px 5px rgba(0,0,0,0.8);">[${p.team_data.tag}]</div>` : ''}
+                    </div>
+                    <div class="card-name-strip">${p.username}</div>
                     <div class="card-info-area">
                         <div class="card-stats-row">
                             <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div>
