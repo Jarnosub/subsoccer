@@ -11,5 +11,8 @@
         "@playwright/test": "^1.40.0",
         "jsdom": "^28.1.0",
         "vitest": "^4.0.18"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.98.0"
     }
 }

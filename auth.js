@@ -89,7 +89,7 @@ async function refreshUserProfile(userId) {
     try {
         const { data, error } = await _supabase
             .from('players')
-            .select('*, team_data:teams(*)')
+            .select('*, team_data:teams!players_team_id_fkey(*)')
             .eq('id', userId);
 
         const profile = data?.[0]; // Otetaan manuaalisesti ensimmäinen tulos

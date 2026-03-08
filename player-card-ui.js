@@ -6,7 +6,7 @@ import { initTiltEffect } from './ui.js';
 export async function viewPlayerCard(targetUsername) {
     showModal('Player Card', '<p style="font-family:\'Resolve\'">LOADING CARD...</p>', { id: 'card-modal', maxWidth: '400px' });
 
-    let { data: p } = await _supabase.from('players').select('*, team_data:teams(*)').eq('username', targetUsername).maybeSingle();
+    let { data: p } = await _supabase.from('players').select('*, team_data:teams!players_team_id_fkey(*)').eq('username', targetUsername).maybeSingle();
 
     if (!p) {
         // Fallback for unregistered / guest players
