@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'SubsoccerLogo';
-    src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2');
+    src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'), url('fonts/Subsoccer-2-Regular.woff') format('woff'), url('fonts/Subsoccer-2-Regular.otf') format('opentype');
 }
 
 @font-face {
@@ -552,14 +552,6 @@ header {
 }
 
 /* PLAYER CARD - 3D FLIP LOGIC */
-.pro-card {
-    perspective: 1000px;
-    width: 360px !important;
-    height: 488px !important;
-    margin: 10px auto;
-    cursor: pointer;
-}
-
 .card-flipper {
     width: 100%;
     height: 100%;
@@ -570,11 +562,6 @@ header {
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
     border-radius: var(--sub-radius);
     background: transparent;
-}
-
-.pro-card.flipped .card-flipper {
-    transform: rotateY(180deg);
-    -webkit-transform: rotateY(180deg);
 }
 
 .card-front,
@@ -964,28 +951,27 @@ button {
 
 .toast-notification {
     pointer-events: auto;
-    background: rgba(0, 0, 0, 0.9) !important;
+    background: #111 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
     border-left: 4px solid var(--sub-gold) !important;
     color: white !important;
-    padding: 12px 20px !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
-    border-radius: var(--sub-radius);
-    backdrop-filter: blur(4px);
-    font-family: 'Open Sans', sans-serif;
-    font-size: 0.8rem;
+    padding: 16px 24px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
     opacity: 0;
     transform: translateY(20px);
-    animation: toastSlideUp 0.3s ease-out forwards, toastFadeOut 0.5s 3.5s forwards;
+    animation: toastSlideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, toastFadeOut 0.5s 3.5s forwards;
 }
 
 .toast-notification.error {
-    border-color: var(--sub-red);
-    background-color: rgba(0, 0, 0, 0.8);
+    border-left-color: var(--sub-red) !important;
 }
 
 .toast-notification.success {
-    border-color: var(--sub-gold);
-    background-color: rgba(0, 0, 0, 0.8);
+    border-left-color: var(--sub-gold) !important;
 }
 
 @keyframes toastSlideUp {
@@ -2123,22 +2109,7 @@ select.dark-select {
     box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
 }
 
-.status-rookie {
-    border: 1px dashed rgba(255, 215, 0, 0.3) !important;
-    position: relative;
-}
 
-.status-rookie::after {
-    content: "ROOKIE EDITION";
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    font-size: 0.5rem;
-    color: var(--sub-gold);
-    letter-spacing: 2px;
-    font-weight: 900;
-    opacity: 0.6;
-}
 
 /* LIVE MODE OVERRIDES */
 body.live-mode header,
@@ -3592,4 +3563,84 @@ body.live-mode {
     color: #666;
     line-height: 1.4;
     padding: 0 5px;
+}
+
+/* --- THE FORGE PROTOTYPE STYLES --- */
+.pro-card,
+.pro-card * {
+    box-sizing: border-box;
+}
+
+.pro-card {
+    width: 280px;
+    height: 392px;
+    margin: 0 auto 30px auto;
+    position: relative;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transition: transform 0.1s ease-out;
+    z-index: 2;
+    cursor: pointer;
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+}
+
+.pro-card-flipper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(212, 175, 55, 0.15);
+    border-radius: 15px;
+    background: transparent;
+}
+
+.pro-card.flipped .pro-card-flipper {
+    transform: rotateY(180deg);
+}
+
+.pro-card-front,
+.pro-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 15px;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #0a0a0a;
+}
+
+.pro-card-front {
+    background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+    background-size: 4px 4px;
+    transform: rotateY(0deg);
+}
+
+.pro-card-back {
+    background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%);
+    transform: rotateY(180deg);
+    padding: 20px;
+    color: #fff;
+    text-align: left;
+    display: block;
+}
+
+.pro-card-front::after,
+.pro-card-back::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+    pointer-events: none;
+    z-index: 10;
 }
