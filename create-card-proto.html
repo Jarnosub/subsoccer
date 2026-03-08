@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer - Pro Card Forge Prototype</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('./fonts/subsoccer-regular.woff2') format('woff2'),
+                url('./fonts/subsoccer-regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        :root {
+            --sub-red: #E30613;
+            --sub-gold: #D4AF37;
+            --bg-color: #060606;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000 100%);
+            color: #fff;
+            font-family: 'Open Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        .proto-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .proto-logo {
+            height: 25px;
+            opacity: 0.8;
+        }
+
+        /* --- 3D CARD SHOWCASE --- */
+        .showcase {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+            position: relative;
+        }
+
+        /* Ambient spotlight effect behind card */
+        .spotlight {
+            position: absolute;
+            width: 300px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(227, 6, 19, 0.4) 0%, transparent 60%);
+            filter: blur(40px);
+            z-index: 0;
+            animation: pulse 4s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+                transform: scale(0.9);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+
+        /* The Card Itself */
+        .pro-card {
+            width: 260px;
+            height: 380px;
+            background: linear-gradient(145deg, #111 0%, #222 100%);
+            border-radius: 15px;
+            border: 2px solid var(--sub-gold);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(212, 175, 55, 0.2);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            /* For JS tilt */
+            z-index: 2;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Sheen/Glint effect layer */
+        .pro-card::after {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+            pointer-events: none;
+            z-index: 10;
+            transition: transform 0.1s;
+            transform: translate(0%, 0%);
+        }
+
+        .card-header {
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 2;
+        }
+
+        .card-rating {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2.2rem;
+            color: var(--sub-gold);
+            line-height: 1;
+        }
+
+        .card-pos {
+            font-size: 0.7rem;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .card-flag {
+            width: 30px;
+            border-radius: 3px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Avatar slot */
+        .card-avatar-wrapper {
+            width: 130px;
+            height: 130px;
+            margin-top: -10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #333 0%, #111 100%);
+            border: 2px solid #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            z-index: 2;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            /* Hidden until upload */
+        }
+
+        .card-avatar-placeholder {
+            font-size: 3rem;
+            color: #555;
+        }
+
+        .card-name {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.6rem;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 2;
+        }
+
+        .card-divider {
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--sub-gold), transparent);
+            margin: 15px 0;
+            opacity: 0.6;
+        }
+
+        .card-stats {
+            display: flex;
+            width: 80%;
+            justify-content: space-between;
+            z-index: 2;
+        }
+
+        .stat-col {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .stat-lbl {
+            font-size: 0.6rem;
+            color: #888;
+            letter-spacing: 1px;
+        }
+
+        /* --- THE CONTROLS (Forging steps) --- */
+        .forge-controls {
+            background: #111;
+            padding: 25px 20px 40px 20px;
+            border-top: 1px solid #333;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        .forge-title {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 20px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .step-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .proto-input {
+            width: 100%;
+            padding: 15px;
+            background: #222;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Open Sans', sans-serif;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .proto-input:focus {
+            border-color: var(--sub-gold);
+        }
+
+        .upload-btn {
+            background: #222;
+            border: 1px dashed #666;
+            color: #aaa;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+            text-decoration: none;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--sub-red) 0%, #aa0000 100%);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="proto-header">
+        <button class="back-btn" onclick="window.history.back()"><i class="fa-solid fa-chevron-left"></i></button>
+        <img src="subsoccer_logo.svg" class="proto-logo" alt="Logo">
+        <div style="width:20px;"></div> <!-- spacer -->
+    </div>
+
+    <div class="showcase" id="card-showcase">
+        <div class="spotlight"></div>
+
+        <div class="pro-card" id="the-card">
+            <!-- Header (Rating + Flag) -->
+            <div class="card-header">
+                <div style="text-align:center;">
+                    <div class="card-rating">00</div>
+                    <div class="card-pos">ELO</div>
+                </div>
+                <!-- Default Flag (TBD based on IP later, static for proto) -->
+                <img src="https://flagcdn.com/w40/fi.png" class="card-flag" alt="FI">
+            </div>
+
+            <!-- Avatar Slot -->
+            <div class="card-avatar-wrapper">
+                <i class="fa-solid fa-user card-avatar-placeholder" id="placeholder-icon"></i>
+                <img src="" id="card-avatar" class="card-avatar-img">
+            </div>
+
+            <!-- Dynamic Name -->
+            <div class="card-name" id="card-name-display">PLAYER</div>
+
+            <div class="card-divider"></div>
+
+            <!-- Stats Base -->
+            <div class="card-stats">
+                <div class="stat-col">
+                    <div class="stat-val">0</div>
+                    <div class="stat-lbl">MATCHES</div>
+                </div>
+                <div class="stat-col">
+                    <div class="stat-val">0%</div>
+                    <div class="stat-lbl">WIN RATIO</div>
+                </div>
+                <div class="stat-col">
+                    <div class="stat-val" style="color:var(--sub-gold)">PRO</div>
+                    <div class="stat-lbl">STATUS</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="forge-controls">
+        <div class="forge-title">Forge Your Legacy</div>
+        <div class="step-container">
+            <input type="text" id="name-input" class="proto-input" placeholder="Enter Player Name..." maxlength="12">
+
+            <label class="upload-btn">
+                <i class="fa-solid fa-camera" style="margin-right:8px;"></i> Upload Player Photo
+                <input type="file" id="photo-input" style="display:none;" accept="image/*">
+            </label>
+
+            <!-- Simulated email/pass just for visual footprint -->
+            <div style="display:flex; gap:10px;">
+                <input type="email" class="proto-input" placeholder="Email"
+                    style="flex:1; padding: 10px; font-size:0.8rem;">
+                <input type="password" class="proto-input" placeholder="Password"
+                    style="flex:1; padding: 10px; font-size:0.8rem;">
+            </div>
+
+            <button class="submit-btn" onclick="alert('Card created! Entering Global League...')">UNLOCK PRO
+                CARD</button>
+        </div>
+    </div>
+
+    <script>
+        // Live Name Update
+        const nameInput = document.getElementById('name-input');
+        const nameDisplay = document.getElementById('card-name-display');
+
+        nameInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim().toUpperCase();
+            nameDisplay.textContent = val === '' ? 'PLAYER' : val;
+
+            // Pop effect on typing
+            nameDisplay.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                nameDisplay.style.transform = 'scale(1)';
+            }, 100);
+        });
+
+        // Live Photo Upload
+        const photoInput = document.getElementById('photo-input');
+        const cardAvatar = document.getElementById('card-avatar');
+        const placeholder = document.getElementById('placeholder-icon');
+
+        photoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    cardAvatar.src = e.target.result;
+                    cardAvatar.style.display = 'block';
+                    placeholder.style.display = 'none';
+
+                    // Flash effect on card avatar slot
+                    cardAvatar.style.opacity = '0';
+                    setTimeout(() => { cardAvatar.style.opacity = '1'; }, 50);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- 3D INTERACTIVE TILT EFFECT ---
+        const showcase = document.getElementById('card-showcase');
+        const card = document.getElementById('the-card');
+
+        // Mouse move tracking
+        showcase.addEventListener('mousemove', (e) => {
+            handleTilt(e.clientX, e.clientY);
+        });
+
+        // Touch tracking
+        showcase.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            handleTilt(touch.clientX, touch.clientY);
+        });
+
+        // Reset on leave
+        showcase.addEventListener('mouseleave', () => {
+            resetTilt();
+        });
+        showcase.addEventListener('touchend', () => {
+            resetTilt();
+        });
+
+        function handleTilt(x, y) {
+            const rect = showcase.getBoundingClientRect();
+            // Calculate mouse position relative to center of the showcase
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const pX = (x - centerX) / (rect.width / 2); // -1 to 1
+            const pY = (y - centerY) / (rect.height / 2); // -1 to 1
+
+            // Max rotation angles (degrees)
+            const rotateX = pY * -15;
+            const rotateY = pX * 15;
+
+            // Apply transform to card
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+
+            // Move the glint/reflection pseudo-element based on angle (requires CSS variables in complex setups, we'll do an inline approximation)
+            // Note: Since we use ::after we can't easily style it from JS inline directly without CSS vars, 
+            // but the tilt alone provides massive 3D depth!
+        }
+
+        function resetTilt() {
+            card.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            card.style.transition = 'transform 0.5s ease-out';
+            setTimeout(() => {
+                card.style.transition = 'transform 0.1s ease-out';
+            }, 500);
+        }
+    </script>
+</body>
+
+</html>
