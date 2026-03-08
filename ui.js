@@ -105,7 +105,7 @@ export function showAuthPage(mode = 'landing') {
     } else if (mode === 'signup') {
         if (landingHero) landingHero.style.display = 'none';
         if (loginForm) loginForm.style.display = 'none';
-        if (signupForm) signupForm.style.display = 'block';
+        if (signupForm) signupForm.style.display = 'flex';
     } else { // 'login'
         if (landingHero) landingHero.style.display = 'none';
         if (loginForm) loginForm.style.display = 'block';
