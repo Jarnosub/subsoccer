@@ -1,4 +1,5 @@
 import { initApp } from './auth.js';
+import { FLAGS } from './config.js';
 import { checkLiveEventParam } from './live-view-service.js';
 import './bracket-engine.js';
 import './match-service.js';
@@ -44,6 +45,20 @@ const start = () => {
     applyBranding();
     setupUIListeners();
     initApp();
+
+    // Apply MVP Feature Flags
+    if (!FLAGS.ENABLE_EVENTS) {
+        const eventsTab = document.getElementById('tab-events');
+        if (eventsTab) eventsTab.style.display = 'none';
+
+        const hostEventBtn = document.getElementById('btn-host-event');
+        if (hostEventBtn) hostEventBtn.style.display = 'none';
+    }
+
+    if (!FLAGS.ENABLE_PRO_MODE) {
+        const controlRoomBtn = document.querySelector('button[onclick*="control-room.html"]');
+        if (controlRoomBtn) controlRoomBtn.style.display = 'none';
+    }
 };
 
 if (document.readyState === 'loading') {

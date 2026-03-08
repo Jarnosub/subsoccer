@@ -1,4 +1,4 @@
-import { _supabase, state } from './config.js';
+import { _supabase, state, FLAGS } from './config.js';
 import { showLoading, hideLoading, safeHTML, unsafeHTML } from './ui-utils.js';
 
 /**
@@ -19,17 +19,26 @@ export async function fetchLB() {
         let html = `
             <div style="text-align:center; margin-bottom:15px;">
                 <h2 style="font-family:var(--sub-name-font); font-size:1.5rem; color:var(--sub-gold); margin:0; letter-spacing:2px;">GLOBAL RANKING</h2>
-            </div>
+            </div>`;
+
+        if (FLAGS.ENABLE_TEAMS) {
+            html += `
             <div style="display:flex; justify-content:center; gap: 10px; margin-bottom: 25px;">
                 <button id="lb-toggle-players" style="flex:1; padding: 10px; font-family:'Russo One'; font-size: 0.9rem; border:none; border-radius:4px; cursor:pointer; background: ${lbMode === 'players' ? 'var(--sub-gold)' : '#222'}; color: ${lbMode === 'players' ? '#000' : '#888'}; transition: background 0.3s;">TOP PLAYERS</button>
                 <button id="lb-toggle-teams" style="flex:1; padding: 10px; font-family:'Russo One'; font-size: 0.9rem; border:none; border-radius:4px; cursor:pointer; background: ${lbMode === 'teams' ? 'var(--sub-gold)' : '#222'}; color: ${lbMode === 'teams' ? '#000' : '#888'}; transition: background 0.3s;">TOP TEAMS</button>
-            </div>
-            <div id="lb-content"></div>
-        `;
+            </div>`;
+        } else {
+            html += `<div style="font-size:0.7rem; color:#666; letter-spacing:3px; margin-top:5px; margin-bottom: 25px; text-align: center;">TOP PLAYERS</div>`;
+            lbMode = 'players'; // Force players mode
+        }
+
+        html += `<div id="lb-content"></div>`;
         lbData.innerHTML = html;
 
-        document.getElementById('lb-toggle-players').addEventListener('click', () => { lbMode = 'players'; fetchLB(); });
-        document.getElementById('lb-toggle-teams').addEventListener('click', () => { lbMode = 'teams'; fetchLB(); });
+        if (FLAGS.ENABLE_TEAMS) {
+            document.getElementById('lb-toggle-players').addEventListener('click', () => { lbMode = 'players'; fetchLB(); });
+            document.getElementById('lb-toggle-teams').addEventListener('click', () => { lbMode = 'teams'; fetchLB(); });
+        }
 
         const contentDiv = document.getElementById('lb-content');
 

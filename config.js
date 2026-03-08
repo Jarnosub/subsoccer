@@ -1,6 +1,13 @@
 const _URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
 const _KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
 
+export const FLAGS = {
+    ENABLE_TEAMS: false,        // Hide Teams MVP
+    ENABLE_SHOP: false,         // Hide Virtual Store
+    ENABLE_PRO_MODE: false,     // Hide Pro-Mode referee tools
+    ENABLE_EVENTS: false        // Hide Tournaments & Events
+};
+
 // Varmista Supabase-asiakkaan alustus ympäristöstä riippuen
 let supabaseClient;
 if (typeof window !== 'undefined' && window.supabase) {
