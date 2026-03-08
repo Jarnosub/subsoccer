@@ -3,6 +3,7 @@ import { fetchMyGames } from './game-service.js';
 import { populateCountries } from './auth.js';
 import { showNotification } from './ui-utils.js';
 import { initTiltEffect } from './ui.js';
+import { initTeamUI } from './team-service.js';
 
 /**
  * Lataa ja näyttää käyttäjän profiilin tiedot
@@ -60,8 +61,9 @@ export async function loadUserProfile() {
         }
     }
 
-    // Lataa pelit
+    // Lataa pelit ja tiimi
     fetchMyGames();
+    initTeamUI();
 }
 
 /**
@@ -180,7 +182,7 @@ export function updateProfileCard() {
 
                     <!-- Huge Name -->
                     <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
-                        ${(u.username || '').toUpperCase()}</div>
+                        ${u.team_data ? `<span style="color:var(--sub-gold); font-size:1.4rem;">[${u.team_data.tag}]</span> ` : ''}${(u.username || '').toUpperCase()}</div>
 
                     <!-- ELO box and Win Ratio -->
                     <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">

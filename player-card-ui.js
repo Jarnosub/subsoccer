@@ -6,7 +6,7 @@ import { initTiltEffect } from './ui.js';
 export async function viewPlayerCard(targetUsername) {
     showModal('Player Card', '<p style="font-family:\'Resolve\'">LOADING CARD...</p>', { id: 'card-modal', maxWidth: '400px' });
 
-    let { data: p } = await _supabase.from('players').select('*').eq('username', targetUsername).maybeSingle();
+    let { data: p } = await _supabase.from('players').select('*, team_data:teams(*)').eq('username', targetUsername).maybeSingle();
 
     if (!p) {
         // Fallback for unregistered / guest players
@@ -122,7 +122,7 @@ export async function viewPlayerCard(targetUsername) {
                 <div class="card-inner-frame">
                     <div class="card-header-stripe">${cardHeader} CARD</div>
                     <div class="card-image-area"><img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'"></div>
-                    <div class="card-name-strip">${p.username}</div>
+                    <div class="card-name-strip">${p.team_data ? `<span style="color:var(--sub-gold);font-size:0.8em;">[${p.team_data.tag}]</span> ` : ''}${p.username}</div>
                     <div class="card-info-area">
                         <div class="card-stats-row">
                             <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div>
