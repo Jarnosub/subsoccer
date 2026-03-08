@@ -680,7 +680,7 @@
     <!-- Instant Start Overlay (Zero Friction) -->
     <div id="rules-overlay" class="rules-overlay"
         style="cursor: pointer; background: linear-gradient(135deg, rgba(10,10,10,0.98), rgba(20,5,5,0.98));"
-        onclick="enterFullscreenGame()">
+        onclick="showActualRules()">
 
         <div
             style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; position: relative;">
@@ -782,6 +782,39 @@
                 }
             });
         </script>
+    </div>
+
+    <!-- Actual Rules Overlay shown before playing -->
+    <div id="actual-rules-overlay" class="rules-overlay"
+        style="display: none; background: rgba(10,10,10,0.98); z-index: 1000;" onclick="event.stopPropagation()">
+        <div class="rules-header">OFFICIAL RULES</div>
+        <div class="rules-list">
+            <div class="rule-item">
+                <span class="rule-number">1</span>
+                <div class="rule-text">
+                    <div class="rule-title">START</div>
+                    <div class="rule-desc">The winner of Rock/Paper/Scissors starts.</div>
+                </div>
+            </div>
+            <div class="rule-item">
+                <span class="rule-number">2</span>
+                <div class="rule-text">
+                    <div class="rule-title">KICK-OFF</div>
+                    <div class="rule-desc">Kick-off must be taken inside your own goal area.</div>
+                </div>
+            </div>
+            <div class="rule-item">
+                <span class="rule-number">3</span>
+                <div class="rule-text">
+                    <div class="rule-title">WINNER</div>
+                    <div class="rule-desc">The first player to score 3 goals wins.</div>
+                </div>
+            </div>
+        </div>
+        <button onclick="enterFullscreenGame()"
+            style="background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; cursor: pointer; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4);">
+            I UNDERSTAND - PLAY
+        </button>
     </div>
 
     <!-- Table ID Display -->
@@ -1038,12 +1071,17 @@
             });
         });
 
+        function showActualRules() {
+            document.getElementById('rules-overlay').style.display = 'none';
+            document.getElementById('actual-rules-overlay').style.display = 'flex';
+        }
+
         // Enter Fullscreen and Start
         function enterFullscreenGame() {
             const elem = document.documentElement;
 
             // Hide overlay immediately to ensure game starts
-            document.getElementById('rules-overlay').style.display = 'none';
+            document.getElementById('actual-rules-overlay').style.display = 'none';
 
             // Scroll to hide address bar (iOS hack)
             window.scrollTo(0, 1);
