@@ -168,7 +168,6 @@ export function updateProfileCard() {
                 <!-- Full-width image area -->
                 <div style="width: 100%; height: 225px; flex-shrink: 0; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" referrerpolicy="no-referrer" style="width: 100%; height: 100%; object-fit: cover; object-position: top center;" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                    ${u.team_data ? `<div style="position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.8); border:1px solid var(--sub-gold); color:var(--sub-gold); font-family:'Russo One', sans-serif; font-size:0.75rem; padding:4px 8px; border-radius:4px; letter-spacing:1px; z-index:10; box-shadow:0 2px 5px rgba(0,0,0,0.8);">[${u.team_data.tag}]</div>` : ''}
                 </div>
 
                 <!-- Bottom info area -->
@@ -183,7 +182,7 @@ export function updateProfileCard() {
 
                     <!-- Huge Name -->
                     <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
-                        ${(u.username || '').toUpperCase()}</div>
+                        ${u.team_data ? `<span style="color:var(--sub-gold); font-size:0.45em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${u.team_data.tag}]</span>` : ''}${(u.username || '').toUpperCase()}</div>
 
                     <!-- ELO box and Win Ratio -->
                     <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
