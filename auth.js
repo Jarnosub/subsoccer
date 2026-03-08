@@ -312,13 +312,19 @@ export async function handleSignUp() {
             const { error } = await _supabase.from('players').upsert(upsertPayload, { onConflict: 'id' });
             profileError = error;
 
-            if (!error && avatarInput) {
-                // Clear the input after success
-                avatarInput.value = '';
-                const previewImg = document.getElementById('signup-avatar-preview');
-                const nameDiv = document.getElementById('signup-avatar-filename');
-                if (previewImg) previewImg.src = 'placeholder-silhouette-5-wide.png';
-                if (nameDiv) nameDiv.textContent = '';
+            // Ensure state is updated so avatar shows up immediately
+            if (!error) {
+                state.user = { ...state.user, ...upsertPayload };
+                localStorage.setItem('subsoccer-user', JSON.stringify(state.user));
+
+                if (avatarInput) {
+                    // Clear the input after success
+                    avatarInput.value = '';
+                    const previewImg = document.getElementById('signup-avatar-preview');
+                    const nameDiv = document.getElementById('signup-avatar-filename');
+                    if (previewImg) previewImg.src = 'placeholder-silhouette-5-wide.png';
+                    if (nameDiv) nameDiv.textContent = '';
+                }
             }
         }
 
