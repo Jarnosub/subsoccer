@@ -1071,13 +1071,13 @@
             });
         });
 
-        function showActualRules() {
+        window.showActualRules = function () {
             document.getElementById('rules-overlay').style.display = 'none';
             document.getElementById('actual-rules-overlay').style.display = 'flex';
         }
 
         // Enter Fullscreen and Start
-        function enterFullscreenGame() {
+        window.enterFullscreenGame = function () {
             const elem = document.documentElement;
 
             // Hide overlay immediately to ensure game starts
