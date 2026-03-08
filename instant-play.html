@@ -701,7 +701,7 @@
                 alt="Subsoccer">
 
             <div id="main-play-btn-wrapper"
-                style="text-align:center; position: relative; margin-top: auto; margin-bottom: 12vh; z-index: 2;">
+                style="text-align:center; position: relative; margin-top: auto; margin-bottom: auto; z-index: 2;">
                 <!-- Gamified Play Button to match the reference image -->
                 <div style="position: relative; animation: breathing 2s infinite alternate;">
                     <button
@@ -722,66 +722,6 @@
 
         </div>
 
-        <div id="tournament-upsell-card" style="padding-bottom: 3vh; width: 100%; max-width: 350px; z-index: 10;">
-            <!-- Secondary Sports Card Button -->
-            <div onclick="event.stopPropagation(); window.location.href='./?page=tournament&tab=tournament'"
-                style="position: relative; width: 100%; height: 90px; background: #0f1012; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.03); text-align: left; transition: transform 0.2s ease;">
-
-                <!-- Large background icon (sports feel) -->
-                <i class="fa-solid fa-sitemap"
-                    style="position: absolute; right: -5px; top: 0px; font-size: 5rem; color: rgba(255,255,255,0.02); z-index: 1; transform: rotate(-10deg);"></i>
-
-                <!-- Red cinematic gradient from bottom right (Matches reference image styling) -->
-                <div
-                    style="position: absolute; bottom: 0; right: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at bottom right, rgba(227, 6, 19, 0.2) 0%, transparent 80%); z-index: 2; pointer-events: none;">
-                </div>
-
-                <!-- Content Container -->
-                <div
-                    style="position: absolute; top:0; left:0; width: 100%; height: 100%; padding: 15px 20px; z-index: 3; display: flex; align-items: center; justify-content: space-between;">
-
-                    <div style="display: flex; flex-direction: column; justify-content: center;">
-                        <!-- Bold Typography -->
-                        <div
-                            style="font-family: 'Subsoccer', sans-serif; font-size: 1.5rem; color: #fff; line-height: 1.1; margin-bottom: 5px; text-transform: uppercase;">
-                            HOST A TOURNAMENT
-                        </div>
-
-                        <!-- Tags -->
-                        <div style="display: flex; gap: 8px;">
-                            <span
-                                style="color: #888; font-family: 'Open Sans', sans-serif; font-size: 0.65rem; font-weight: bold;"><i
-                                    class="fa-solid fa-users" style="color: var(--sub-red);"></i> 8-16 PLAYERS</span>
-                        </div>
-                    </div>
-
-                    <div
-                        style="background: rgba(255,255,255,0.05); border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">
-                        <i class="fa-solid fa-chevron-right" style="color: #666;"></i>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <script>
-            // Allow retail partners like Costco to show a simplified instant-play lobby without the tournament upsell wrapper
-            document.addEventListener("DOMContentLoaded", () => {
-                const params = new URLSearchParams(window.location.search);
-                if (params.has('costco') || params.get('partner') === 'costco' || params.get('simple') === '1') {
-                    const card = document.getElementById('tournament-upsell-card');
-                    if (card) {
-                        card.style.display = 'none';
-                    }
-
-                    // Re-center the play button since the bottom block is missing
-                    const playBtn = document.getElementById('main-play-btn-wrapper');
-                    if (playBtn) {
-                        playBtn.style.marginBottom = 'auto'; // Re-balances margin-top: auto to perfectly center
-                    }
-                }
-            });
-        </script>
     </div>
 
     <!-- Actual Rules Overlay shown before playing -->
