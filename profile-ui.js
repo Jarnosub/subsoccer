@@ -182,7 +182,7 @@ export function updateProfileCard() {
 
                     <!-- Huge Name (scaled down) -->
                     <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.2rem; text-transform: uppercase; color: #fff; margin-top: 4px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
-                        ${u.team_data ? `<span style="color:var(--sub-gold); font-size:0.5em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${u.team_data.tag}]</span>` : ''}${(u.username || '').toUpperCase()}</div>
+                        ${u.team_data ? `<span style="color:var(--sub-gold); font-size:0.35em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${u.team_data.tag}]</span>` : ''}${(u.username || '').toUpperCase()}</div>
 
                     <!-- ELO box and Win Ratio -->
                     <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 2px;">

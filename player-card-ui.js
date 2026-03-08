@@ -123,8 +123,7 @@ export async function viewPlayerCard(targetUsername) {
                     <div class="card-header-stripe">${cardHeader} CARD</div>
                     <div class="card-image-area" style="position:relative;">
                         <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                    </div>
-                    <div class="card-name-strip">${p.team_data ? `<span style="color:var(--sub-gold); font-size:0.55em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${p.team_data.tag}]</span>` : ''}${p.username}</div>
+                    <div class="card-name-strip">${p.team_data ? `<span style="color:var(--sub-gold); font-size:0.4em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${p.team_data.tag}]</span>` : ''}${p.username}</div>
                     <div class="card-info-area">
                         <div class="card-stats-row">
                             <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div>
