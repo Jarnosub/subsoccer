@@ -850,6 +850,9 @@ button {
     align-items: center;
     z-index: 1000;
     padding-top: 80px;
+    padding-bottom: 50px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #section-more h2,
