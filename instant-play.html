@@ -1004,484 +1004,481 @@
 
                 <i id="winner-card-icon" class="fa-solid fa-lock w-card-icon"></i>
                 <h3 id="winner-card-title" class="w-card-title">PRO CARD UNLOCKED</h3>
-                <p id="winner-card-desc" class="w-card-desc">You are currently playing as a Guest. Claim your official
-                    Subsoccer ELO ranking before you leave the table.</p>
-            </div>
 
-            <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
+                <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
 
-                <button class="claim-victory-btn w-btn-claim"
-                    style="background: transparent; border: 2px solid var(--sub-red); color: var(--sub-red); box-shadow: none;"
-                    onclick="playAgain()">
-                    <i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NEW GAME GUESTS
-                </button>
+                    <button class="claim-victory-btn w-btn-claim"
+                        style="background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%); color: #fff; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4); border: none;"
+                        onclick="playAgain()">
+                        <i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NEW GAME GUESTS
+                    </button>
 
-                <button id="claim-victory-btn" class="claim-victory-btn w-btn-claim"
-                    style="background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%); color: #000; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);"
-                    onclick="claimVictory()">
-                    <i class="fa-solid fa-id-card" style="margin-right:10px;"></i> CLAIM MY PRO CARD
-                </button>
+                    <button id="claim-victory-btn" class="claim-victory-btn w-btn-claim"
+                        style="background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%); color: #000; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);"
+                        onclick="claimVictory()">
+                        <i class="fa-solid fa-id-card" style="margin-right:10px;"></i> CLAIM MY PRO CARD
+                    </button>
 
-                <button id="end-game-btn" class="play-again-btn"
-                    style="background: transparent; border: 1px solid rgba(255,255,255,0.1); width: 250px; font-size: 0.8rem; padding: 12px 0; margin-top: 5px;"
-                    onclick="window.location.href='./'">EXIT MATCH</button>
+                    <button id="end-game-btn" class="play-again-btn"
+                        style="background: transparent; border: 1px solid rgba(255,255,255,0.1); width: 250px; font-size: 0.8rem; padding: 12px 0; margin-top: 5px;"
+                        onclick="window.location.href='./'">EXIT MATCH</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script type="module">
-        import { BroadcastService } from './broadcast-service.js';
+        <script type="module">
+            import { BroadcastService } from './broadcast-service.js';
 
-        // Game state
-        let scoreP1 = 0;
-        let scoreP2 = 0;
-        let goalHistory = []; // For undo
-        let soundEnabled = true;
-        let micEnabled = false;
-        let currentGameId = null;
-        let WIN_SCORE = 3;
-        let lastGoalTime = 0;
+            // Game state
+            let scoreP1 = 0;
+            let scoreP2 = 0;
+            let goalHistory = []; // For undo
+            let soundEnabled = true;
+            let micEnabled = false;
+            let currentGameId = null;
+            let WIN_SCORE = 3;
+            let lastGoalTime = 0;
 
-        // Initialize
-        window.addEventListener('load', () => {
-            // Check for Game ID or Serial Number (sn) in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            // Use URL param 'sn' (serial number) primarily, or fallback to 'game_id', or default to 'QUICK-PLAY'
-            const _gameId = urlParams.get('sn') || urlParams.get('game_id') || 'QUICK-PLAY';
-            const gameId = _gameId.toUpperCase();
+            // Initialize
+            window.addEventListener('load', () => {
+                // Check for Game ID or Serial Number (sn) in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                // Use URL param 'sn' (serial number) primarily, or fallback to 'game_id', or default to 'QUICK-PLAY'
+                const _gameId = urlParams.get('sn') || urlParams.get('game_id') || 'QUICK-PLAY';
+                const gameId = _gameId.toUpperCase();
 
-            // Allow setting win score via URL (e.g. ?win_score=5)
-            const urlWinScore = urlParams.get('win_score');
-            if (urlWinScore) WIN_SCORE = parseInt(urlWinScore);
+                // Allow setting win score via URL (e.g. ?win_score=5)
+                const urlWinScore = urlParams.get('win_score');
+                if (urlWinScore) WIN_SCORE = parseInt(urlWinScore);
 
-            currentGameId = gameId;
-            document.getElementById('table-id-value').textContent = gameId;
-            document.getElementById('table-id-display').style.display = 'block';
+                currentGameId = gameId;
+                document.getElementById('table-id-value').textContent = gameId;
+                document.getElementById('table-id-display').style.display = 'block';
 
-            // Start broadcasting ONLY if we have a specific serial number/game ID
-            if (gameId !== 'QUICK-PLAY') {
-                BroadcastService.startBroadcasting().then(() => {
-                    // Send initial 0-0 state to wake up any listening TVs immediately
+                // Start broadcasting ONLY if we have a specific serial number/game ID
+                if (gameId !== 'QUICK-PLAY') {
+                    BroadcastService.startBroadcasting().then(() => {
+                        // Send initial 0-0 state to wake up any listening TVs immediately
+                        setTimeout(() => {
+                            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
+                        }, 500);
+                    });
+                }
+
+                // Re-try scroll on orientation change (helps hide address bar when placing in holder)
+                window.addEventListener('orientationchange', () => {
                     setTimeout(() => {
-                        BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
-                    }, 500);
+                        window.scrollTo(0, 1);
+                    }, 300);
                 });
+            });
+
+            window.showActualRules = function () {
+                document.getElementById('rules-overlay').style.display = 'none';
+                document.getElementById('actual-rules-overlay').style.display = 'flex';
             }
 
-            // Re-try scroll on orientation change (helps hide address bar when placing in holder)
-            window.addEventListener('orientationchange', () => {
-                setTimeout(() => {
-                    window.scrollTo(0, 1);
-                }, 300);
-            });
-        });
+            // Enter Fullscreen and Start
+            window.enterFullscreenGame = function () {
+                const elem = document.documentElement;
 
-        window.showActualRules = function () {
-            document.getElementById('rules-overlay').style.display = 'none';
-            document.getElementById('actual-rules-overlay').style.display = 'flex';
-        }
+                // Hide overlay immediately to ensure game starts
+                document.getElementById('actual-rules-overlay').style.display = 'none';
 
-        // Enter Fullscreen and Start
-        window.enterFullscreenGame = function () {
-            const elem = document.documentElement;
+                // Scroll to hide address bar (iOS hack)
+                window.scrollTo(0, 1);
 
-            // Hide overlay immediately to ensure game starts
-            document.getElementById('actual-rules-overlay').style.display = 'none';
+                // Check if we should skip fullscreen
+                const urlParams = new URLSearchParams(window.location.search);
+                const skipFullscreen = urlParams.get('nofullscreen') === 'true';
 
-            // Scroll to hide address bar (iOS hack)
-            window.scrollTo(0, 1);
-
-            // Check if we should skip fullscreen
-            const urlParams = new URLSearchParams(window.location.search);
-            const skipFullscreen = urlParams.get('nofullscreen') === 'true';
-
-            // Try to request fullscreen
-            if (!skipFullscreen) {
-                try {
-                    if (elem.requestFullscreen) {
-                        elem.requestFullscreen().catch(err => console.log(err));
-                    } else if (elem.webkitRequestFullscreen) { /* Safari */
-                        elem.webkitRequestFullscreen();
-                    } else if (elem.msRequestFullscreen) { /* IE11 */
-                        elem.msRequestFullscreen();
+                // Try to request fullscreen
+                if (!skipFullscreen) {
+                    try {
+                        if (elem.requestFullscreen) {
+                            elem.requestFullscreen().catch(err => console.log(err));
+                        } else if (elem.webkitRequestFullscreen) { /* Safari */
+                            elem.webkitRequestFullscreen();
+                        } else if (elem.msRequestFullscreen) { /* IE11 */
+                            elem.msRequestFullscreen();
+                        }
+                    } catch (e) {
+                        console.log('Fullscreen not supported');
                     }
-                } catch (e) {
-                    console.log('Fullscreen not supported');
+                }
+
+                // Skip auto-starting microphone to avoid immediate browser permission prompt
+                // Let the user start it manually via the microphone button
+
+                // Resume audio context (browsers block audio until user interaction)
+                if (window.soundEffects && window.soundEffects.audioContext && window.soundEffects.audioContext.state === 'suspended') {
+                    window.soundEffects.audioContext.resume();
+                }
+
+                // Setup visual meter updates (but don't start listening yet)
+                if (window.audioEngine) {
+                    const meterFill = document.getElementById('audio-meter-fill');
+
+                    setInterval(() => {
+                        if (!micEnabled) return;
+                        const status = window.audioEngine.getStatus();
+                        const maxIntensity = Math.max(status.debug.currentG1, status.debug.currentG2);
+                        if (meterFill) meterFill.style.width = (maxIntensity * 100) + '%';
+                        if (maxIntensity > status.settings.threshold) meterFill.style.background = '#4CAF50';
+                        else meterFill.style.background = 'var(--sub-gold)';
+                    }, 50);
                 }
             }
 
-            // Skip auto-starting microphone to avoid immediate browser permission prompt
-            // Let the user start it manually via the microphone button
+            // Add goal
+            function addGoal(player) {
+                const now = Date.now();
+                // Estä liian nopeat peräkkäiset maalit (800ms viive)
+                if (document.getElementById('winner-overlay').classList.contains('show') || (now - lastGoalTime < 800)) {
+                    return; // Game ended
+                }
 
-            // Resume audio context (browsers block audio until user interaction)
-            if (window.soundEffects && window.soundEffects.audioContext && window.soundEffects.audioContext.state === 'suspended') {
-                window.soundEffects.audioContext.resume();
+                lastGoalTime = now;
+
+                // Update score
+                if (player === 1) {
+                    scoreP1++;
+                    document.getElementById('score-p1').textContent = scoreP1;
+                    flashGoal(1);
+                } else {
+                    scoreP2++;
+                    document.getElementById('score-p2').textContent = scoreP2;
+                    flashGoal(2);
+                }
+
+                // Broadcast update
+                BroadcastService.sendScoreUpdate('Player 1', 'Player 2', scoreP1, scoreP2, true);
+
+                // Update goal visualization
+                updateGoalVisuals();
+
+                // Add to history for undo
+                goalHistory.push(player);
+
+                // Play sound
+                if (window.soundEffects) window.soundEffects.playGoalSound();
+
+                // Haptic feedback
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+
+                // Check for winner
+                if (scoreP1 >= WIN_SCORE) {
+                    setTimeout(() => showWinner(1), 800);
+                } else if (scoreP2 >= WIN_SCORE) {
+                    setTimeout(() => showWinner(2), 800);
+                }
             }
 
-            // Setup visual meter updates (but don't start listening yet)
-            if (window.audioEngine) {
-                const meterFill = document.getElementById('audio-meter-fill');
-
-                setInterval(() => {
-                    if (!micEnabled) return;
-                    const status = window.audioEngine.getStatus();
-                    const maxIntensity = Math.max(status.debug.currentG1, status.debug.currentG2);
-                    if (meterFill) meterFill.style.width = (maxIntensity * 100) + '%';
-                    if (maxIntensity > status.settings.threshold) meterFill.style.background = '#4CAF50';
-                    else meterFill.style.background = 'var(--sub-gold)';
-                }, 50);
-            }
-        }
-
-        // Add goal
-        function addGoal(player) {
-            const now = Date.now();
-            // Estä liian nopeat peräkkäiset maalit (800ms viive)
-            if (document.getElementById('winner-overlay').classList.contains('show') || (now - lastGoalTime < 800)) {
-                return; // Game ended
+            // Update goal visualizations (●○○)
+            function updateGoalVisuals() {
+                const p1Goals = '●'.repeat(scoreP1) + '○'.repeat(WIN_SCORE - scoreP1);
+                const p2Goals = '●'.repeat(scoreP2) + '○'.repeat(WIN_SCORE - scoreP2);
+                document.getElementById('goals-p1').textContent = p1Goals;
+                document.getElementById('goals-p2').textContent = p2Goals;
             }
 
-            lastGoalTime = now;
-
-            // Update score
-            if (player === 1) {
-                scoreP1++;
-                document.getElementById('score-p1').textContent = scoreP1;
-                flashGoal(1);
-            } else {
-                scoreP2++;
-                document.getElementById('score-p2').textContent = scoreP2;
-                flashGoal(2);
+            // Flash effect when goal scored
+            function flashGoal(player) {
+                const side = player === 1 ? '.player-left' : '.player-right';
+                const element = document.querySelector(side);
+                element.classList.add('goal-flash');
+                setTimeout(() => element.classList.remove('goal-flash'), 500);
             }
 
-            // Broadcast update
-            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', scoreP1, scoreP2, true);
+            // Show winner
+            function showWinner(player) {
+                document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
+                document.getElementById('winner-overlay').classList.add('show');
 
-            // Update goal visualization
-            updateGoalVisuals();
+                // Generate a fake, motivating ELO gain for the session to hook the player
+                // In reality, actual ELO will be calculated by the backend after Claim.
+                const simulatedEloGain = Math.floor(Math.random() * (45 - 20 + 1)) + 20;
+                const gainEl = document.getElementById('victory-elo-gain');
+                if (gainEl) {
+                    gainEl.textContent = `+${simulatedEloGain} ELO`;
+                }
 
-            // Add to history for undo
-            goalHistory.push(player);
+                // Check mode (Casual vs Guest)
+                const urlParams = new URLSearchParams(window.location.search);
+                const isCasual = urlParams.get('mode') === 'casual';
+                const userType = urlParams.get('user_type') || 'guest';
 
-            // Play sound
-            if (window.soundEffects) window.soundEffects.playGoalSound();
+                const claimBtn = document.getElementById('claim-victory-btn');
+                const endBtn = document.getElementById('end-game-btn');
 
-            // Haptic feedback
-            if (navigator.vibrate) {
-                navigator.vibrate([100, 50, 100]);
+                // Dynamic Player Card in Overlay
+                const cardContainer = document.getElementById('winner-card-container');
+                const cardIcon = document.getElementById('winner-card-icon');
+                const cardTitle = document.getElementById('winner-card-title');
+                const cardDesc = document.getElementById('winner-card-desc');
+                const cardGlint = document.getElementById('winner-card-glint');
+
+                if (claimBtn) claimBtn.style.display = 'block';
+
+                if (isCasual && userType === 'registered') {
+                    // Registered player from app - Show Pro Card
+                    if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT";
+                    if (endBtn) endBtn.style.display = 'block';
+
+                    cardContainer.style.background = "linear-gradient(135deg, #1a1500, #332600)";
+                    cardContainer.style.border = "2px solid var(--sub-gold)";
+                    cardContainer.style.transform = "scale(1.05)";
+                    cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)";
+                    cardIcon.className = "fa-solid fa-trophy";
+                    cardIcon.style.color = "var(--sub-gold)";
+                    cardTitle.textContent = "PRO CARD UPGRADE";
+                    cardTitle.style.color = "#fff";
+                    cardDesc.textContent = "Great win! Save this result to boost your global rank and update your digital Pro Card.";
+                } else {
+                    // Guest (QR Code or Guest in app) - Show Rookie Card
+                    if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
+                    if (endBtn) endBtn.style.display = 'none';
+
+                    cardContainer.style.background = "linear-gradient(135deg, #111, #222)";
+                    cardContainer.style.border = "1px dashed #666";
+                    cardContainer.style.transform = "scale(1)";
+                    cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)";
+                    cardIcon.className = "fa-solid fa-lock";
+                    cardIcon.style.color = "#666";
+                    cardTitle.textContent = "ROOKIE CARD";
+                    cardTitle.style.color = "#888";
+                    cardDesc.innerHTML = "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!";
+                }
+
+                // Soita yleisön hurraus voiton hetkellä
+                if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
+                    window.soundEffects.playCrowdCheer();
+                }
+
+                startLasers();
             }
 
-            // Check for winner
-            if (scoreP1 >= WIN_SCORE) {
-                setTimeout(() => showWinner(1), 800);
-            } else if (scoreP2 >= WIN_SCORE) {
-                setTimeout(() => showWinner(2), 800);
-            }
-        }
-
-        // Update goal visualizations (●○○)
-        function updateGoalVisuals() {
-            const p1Goals = '●'.repeat(scoreP1) + '○'.repeat(WIN_SCORE - scoreP1);
-            const p2Goals = '●'.repeat(scoreP2) + '○'.repeat(WIN_SCORE - scoreP2);
-            document.getElementById('goals-p1').textContent = p1Goals;
-            document.getElementById('goals-p2').textContent = p2Goals;
-        }
-
-        // Flash effect when goal scored
-        function flashGoal(player) {
-            const side = player === 1 ? '.player-left' : '.player-right';
-            const element = document.querySelector(side);
-            element.classList.add('goal-flash');
-            setTimeout(() => element.classList.remove('goal-flash'), 500);
-        }
-
-        // Show winner
-        function showWinner(player) {
-            document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
-            document.getElementById('winner-overlay').classList.add('show');
-
-            // Generate a fake, motivating ELO gain for the session to hook the player
-            // In reality, actual ELO will be calculated by the backend after Claim.
-            const simulatedEloGain = Math.floor(Math.random() * (45 - 20 + 1)) + 20;
-            const gainEl = document.getElementById('victory-elo-gain');
-            if (gainEl) {
-                gainEl.textContent = `+${simulatedEloGain} ELO`;
+            // Play again
+            function playAgain() {
+                resetGame();
+                document.getElementById('winner-overlay').classList.remove('show');
+                stopLasers();
             }
 
-            // Check mode (Casual vs Guest)
-            const urlParams = new URLSearchParams(window.location.search);
-            const isCasual = urlParams.get('mode') === 'casual';
-            const userType = urlParams.get('user_type') || 'guest';
+            // Claim victory (Redirect to main app)
+            function claimVictory() {
+                // Construct URL parameters
+                const params = new URLSearchParams();
+                params.append('action', 'claim_result');
+                params.append('p1_score', scoreP1);
+                params.append('p2_score', scoreP2);
+                params.append('game_id', currentGameId || 'QUICK-PLAY');
 
-            const claimBtn = document.getElementById('claim-victory-btn');
-            const endBtn = document.getElementById('end-game-btn');
-
-            // Dynamic Player Card in Overlay
-            const cardContainer = document.getElementById('winner-card-container');
-            const cardIcon = document.getElementById('winner-card-icon');
-            const cardTitle = document.getElementById('winner-card-title');
-            const cardDesc = document.getElementById('winner-card-desc');
-            const cardGlint = document.getElementById('winner-card-glint');
-
-            if (claimBtn) claimBtn.style.display = 'block';
-
-            if (isCasual && userType === 'registered') {
-                // Registered player from app - Show Pro Card
-                if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT";
-                if (endBtn) endBtn.style.display = 'block';
-
-                cardContainer.style.background = "linear-gradient(135deg, #1a1500, #332600)";
-                cardContainer.style.border = "2px solid var(--sub-gold)";
-                cardContainer.style.transform = "scale(1.05)";
-                cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)";
-                cardIcon.className = "fa-solid fa-trophy";
-                cardIcon.style.color = "var(--sub-gold)";
-                cardTitle.textContent = "PRO CARD UPGRADE";
-                cardTitle.style.color = "#fff";
-                cardDesc.textContent = "Great win! Save this result to boost your global rank and update your digital Pro Card.";
-            } else {
-                // Guest (QR Code or Guest in app) - Show Rookie Card
-                if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
-                if (endBtn) endBtn.style.display = 'none';
-
-                cardContainer.style.background = "linear-gradient(135deg, #111, #222)";
-                cardContainer.style.border = "1px dashed #666";
-                cardContainer.style.transform = "scale(1)";
-                cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)";
-                cardIcon.className = "fa-solid fa-lock";
-                cardIcon.style.color = "#666";
-                cardTitle.textContent = "ROOKIE CARD";
-                cardTitle.style.color = "#888";
-                cardDesc.innerHTML = "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!";
+                // Redirect to main app with data
+                window.location.href = `./?${params.toString()}`;
             }
 
-            // Soita yleisön hurraus voiton hetkellä
-            if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
-                window.soundEffects.playCrowdCheer();
-            }
-
-            startLasers();
-        }
-
-        // Play again
-        function playAgain() {
-            resetGame();
-            document.getElementById('winner-overlay').classList.remove('show');
-            stopLasers();
-        }
-
-        // Claim victory (Redirect to main app)
-        function claimVictory() {
-            // Construct URL parameters
-            const params = new URLSearchParams();
-            params.append('action', 'claim_result');
-            params.append('p1_score', scoreP1);
-            params.append('p2_score', scoreP2);
-            params.append('game_id', currentGameId || 'QUICK-PLAY');
-
-            // Redirect to main app with data
-            window.location.href = `./?${params.toString()}`;
-        }
-
-        // Share links
-        function shareTvLink() {
-            const roomId = BroadcastService.getRoomId();
-            const url = `${window.location.origin}/tv.html?room=${roomId}`;
-            navigator.clipboard.writeText(url).then(() => {
-                alert(`📺 TV Link Copied: ${url}`);
-            }).catch(err => {
-                console.error('Failed to copy TV link', err);
-                alert(`TV Link: ${url}`);
-            });
-        }
-
-        function shareVipLink() {
-            const roomId = BroadcastService.getRoomId();
-            const url = `${window.location.origin}/tv.html?room=${roomId}&role=caster`;
-            navigator.clipboard.writeText(url).then(() => {
-                alert(`🎧 VIP Caster Link Copied: ${url}`);
-            }).catch(err => {
-                console.error('Failed to copy VIP link', err);
-                alert(`VIP Caster Link: ${url}`);
-            });
-        }
-
-        // Reset game
-        function resetGame() {
-            scoreP1 = 0;
-            scoreP2 = 0;
-            goalHistory = [];
-            document.getElementById('score-p1').textContent = '0';
-            document.getElementById('score-p2').textContent = '0';
-            updateGoalVisuals();
-            document.getElementById('winner-overlay').classList.remove('show');
-            stopLasers();
-
-            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
-        }
-
-        // Undo last goal
-        function undoGoal() {
-            if (goalHistory.length === 0) return;
-
-            const lastPlayer = goalHistory.pop();
-            if (lastPlayer === 1) {
-                scoreP1 = Math.max(0, scoreP1 - 1);
-                document.getElementById('score-p1').textContent = scoreP1;
-            } else {
-                scoreP2 = Math.max(0, scoreP2 - 1);
-                document.getElementById('score-p2').textContent = scoreP2;
-            }
-
-            // Update goal visualization
-            updateGoalVisuals();
-
-            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', scoreP1, scoreP2, false);
-
-            // Haptic feedback
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-        }
-
-        // Toggle sound
-        function toggleSound(btn) {
-            soundEnabled = !soundEnabled;
-            if (window.soundEffects) window.soundEffects.setEnabled(soundEnabled);
-
-            if (soundEnabled) {
-                btn.classList.add('active');
-                btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
-            } else {
-                btn.classList.remove('active');
-                btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
-            }
-        }
-
-        // Toggle Microphone
-        function toggleMic(btn) {
-            micEnabled = !micEnabled;
-            if (micEnabled) {
-                if (window.audioEngine) window.audioEngine.startListening();
-                btn.classList.add('active');
-                btn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-                document.getElementById('audio-meter-container').style.display = 'block';
-            } else {
-                // Try to stop if method exists, otherwise just rely on flag
-                if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') window.audioEngine.stopListening();
-                btn.classList.remove('active');
-                btn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
-                document.getElementById('audio-meter-container').style.display = 'none';
-            }
-        }
-
-        // Handle acoustic detection if available
-        window.handleGoalDetected = function (playerNumber) {
-            // Sallitaan maalin lisäys testausta varten vaikka mikrofoni olisi pois päältä
-            if (!micEnabled) {
-                console.warn("⚠️ Maali tunnistettu (Mic OFF) - Testitila");
-            }
-            addGoal(playerNumber);
-        };
-
-        // Stadium Lasers / Spotlight Effect (Premium E-Sports Look)
-        const lasersCanvas = document.getElementById('lasers-canvas');
-        const ctx = lasersCanvas.getContext('2d');
-        let lasers = [];
-        let animationId;
-
-        function resizeCanvas() {
-            lasersCanvas.width = window.innerWidth;
-            lasersCanvas.height = window.innerHeight;
-            initLasers();
-        }
-        window.addEventListener('resize', resizeCanvas);
-
-        function initLasers() {
-            lasers = [];
-            const numLasers = window.innerWidth > 800 ? 8 : 4; // responsive count
-            for (let i = 0; i < numLasers; i++) {
-                lasers.push({
-                    x: (lasersCanvas.width / (numLasers + 1)) * (i + 1), // spread evenly
-                    y: lasersCanvas.height + 50, // origin off-screen bottom
-                    angle: Math.PI * 1.5 + (Math.random() - 0.5), // pointing up, slightly angled
-                    targetAngle: Math.PI * 1.5 + (Math.random() - 0.5) * 1.5,
-                    speed: 0.002 + Math.random() * 0.005, // sweep speed
-                    colorStr: i % 2 === 0 ? '227, 6, 19' : '255, 215, 0', // RGB for Red and Gold
-                    width: 30 + Math.random() * 50,
-                    alpha: 0
+            // Share links
+            function shareTvLink() {
+                const roomId = BroadcastService.getRoomId();
+                const url = `${window.location.origin}/tv.html?room=${roomId}`;
+                navigator.clipboard.writeText(url).then(() => {
+                    alert(`📺 TV Link Copied: ${url}`);
+                }).catch(err => {
+                    console.error('Failed to copy TV link', err);
+                    alert(`TV Link: ${url}`);
                 });
             }
-        }
 
-        function updateLasers() {
-            // completely clear screen for lasers to avoid opacity pile-up
-            ctx.clearRect(0, 0, lasersCanvas.width, lasersCanvas.height);
+            function shareVipLink() {
+                const roomId = BroadcastService.getRoomId();
+                const url = `${window.location.origin}/tv.html?room=${roomId}&role=caster`;
+                navigator.clipboard.writeText(url).then(() => {
+                    alert(`🎧 VIP Caster Link Copied: ${url}`);
+                }).catch(err => {
+                    console.error('Failed to copy VIP link', err);
+                    alert(`VIP Caster Link: ${url}`);
+                });
+            }
 
-            ctx.globalCompositeOperation = 'screen'; // Creates intense, glowing overlays
+            // Reset game
+            function resetGame() {
+                scoreP1 = 0;
+                scoreP2 = 0;
+                goalHistory = [];
+                document.getElementById('score-p1').textContent = '0';
+                document.getElementById('score-p2').textContent = '0';
+                updateGoalVisuals();
+                document.getElementById('winner-overlay').classList.remove('show');
+                stopLasers();
 
-            lasers.forEach(laser => {
-                // smoothly swing angles
-                if (Math.abs(laser.angle - laser.targetAngle) < 0.02) {
-                    laser.targetAngle = Math.PI * 1.5 + (Math.random() - 0.5) * 1.8;
-                    laser.speed = 0.002 + Math.random() * 0.003;
+                BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
+            }
+
+            // Undo last goal
+            function undoGoal() {
+                if (goalHistory.length === 0) return;
+
+                const lastPlayer = goalHistory.pop();
+                if (lastPlayer === 1) {
+                    scoreP1 = Math.max(0, scoreP1 - 1);
+                    document.getElementById('score-p1').textContent = scoreP1;
+                } else {
+                    scoreP2 = Math.max(0, scoreP2 - 1);
+                    document.getElementById('score-p2').textContent = scoreP2;
                 }
-                laser.angle += (laser.targetAngle - laser.angle) * laser.speed;
 
-                // fade in slowly when animation starts
-                if (laser.alpha < 0.5) laser.alpha += 0.005;
+                // Update goal visualization
+                updateGoalVisuals();
 
-                // calculate end point way off screen
-                const length = lasersCanvas.height * 2;
-                const endX = laser.x + Math.cos(laser.angle) * length;
-                const endY = laser.y + Math.sin(laser.angle) * length;
+                BroadcastService.sendScoreUpdate('Player 1', 'Player 2', scoreP1, scoreP2, false);
 
-                // gradient for fading out the beam
-                const gradient = ctx.createLinearGradient(laser.x, laser.y, endX, endY);
-                gradient.addColorStop(0, `rgba(${laser.colorStr}, ${laser.alpha})`);
-                gradient.addColorStop(1, `rgba(${laser.colorStr}, 0)`);
+                // Haptic feedback
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }
 
-                // Draw a wide beam
-                ctx.beginPath();
-                // Bottom base width
-                ctx.moveTo(laser.x - laser.width / 2, laser.y);
-                // Top spread
-                ctx.lineTo(endX - laser.width * 4, endY);
-                ctx.lineTo(endX + laser.width * 4, endY);
-                ctx.lineTo(laser.x + laser.width / 2, laser.y);
-                ctx.closePath();
+            // Toggle sound
+            function toggleSound(btn) {
+                soundEnabled = !soundEnabled;
+                if (window.soundEffects) window.soundEffects.setEnabled(soundEnabled);
 
-                ctx.fillStyle = gradient;
-                ctx.fill();
-            });
+                if (soundEnabled) {
+                    btn.classList.add('active');
+                    btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+                }
+            }
 
-            ctx.globalCompositeOperation = 'source-over'; // reset
-            animationId = requestAnimationFrame(updateLasers);
-        }
+            // Toggle Microphone
+            function toggleMic(btn) {
+                micEnabled = !micEnabled;
+                if (micEnabled) {
+                    if (window.audioEngine) window.audioEngine.startListening();
+                    btn.classList.add('active');
+                    btn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+                    document.getElementById('audio-meter-container').style.display = 'block';
+                } else {
+                    // Try to stop if method exists, otherwise just rely on flag
+                    if (window.audioEngine && typeof window.audioEngine.stopListening === 'function') window.audioEngine.stopListening();
+                    btn.classList.remove('active');
+                    btn.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
+                    document.getElementById('audio-meter-container').style.display = 'none';
+                }
+            }
 
-        function startLasers() {
-            lasersCanvas.style.display = 'block';
-            resizeCanvas();
-            updateLasers();
-        }
+            // Handle acoustic detection if available
+            window.handleGoalDetected = function (playerNumber) {
+                // Sallitaan maalin lisäys testausta varten vaikka mikrofoni olisi pois päältä
+                if (!micEnabled) {
+                    console.warn("⚠️ Maali tunnistettu (Mic OFF) - Testitila");
+                }
+                addGoal(playerNumber);
+            };
 
-        function stopLasers() {
-            lasersCanvas.style.display = 'none';
-            if (animationId) cancelAnimationFrame(animationId);
-        }
+            // Stadium Lasers / Spotlight Effect (Premium E-Sports Look)
+            const lasersCanvas = document.getElementById('lasers-canvas');
+            const ctx = lasersCanvas.getContext('2d');
+            let lasers = [];
+            let animationId;
 
-        // Expose functions to window for HTML event handlers
-        window.enterFullscreenGame = enterFullscreenGame;
-        window.addGoal = addGoal;
-        window.undoGoal = undoGoal;
-        window.resetGame = resetGame;
-        window.toggleSound = toggleSound;
-        window.toggleMic = toggleMic;
-        window.playAgain = playAgain;
-        window.claimVictory = claimVictory;
-        window.shareTvLink = shareTvLink;
-        window.shareVipLink = shareVipLink;
-    </script>
+            function resizeCanvas() {
+                lasersCanvas.width = window.innerWidth;
+                lasersCanvas.height = window.innerHeight;
+                initLasers();
+            }
+            window.addEventListener('resize', resizeCanvas);
+
+            function initLasers() {
+                lasers = [];
+                const numLasers = window.innerWidth > 800 ? 8 : 4; // responsive count
+                for (let i = 0; i < numLasers; i++) {
+                    lasers.push({
+                        x: (lasersCanvas.width / (numLasers + 1)) * (i + 1), // spread evenly
+                        y: lasersCanvas.height + 50, // origin off-screen bottom
+                        angle: Math.PI * 1.5 + (Math.random() - 0.5), // pointing up, slightly angled
+                        targetAngle: Math.PI * 1.5 + (Math.random() - 0.5) * 1.5,
+                        speed: 0.002 + Math.random() * 0.005, // sweep speed
+                        colorStr: i % 2 === 0 ? '227, 6, 19' : '255, 215, 0', // RGB for Red and Gold
+                        width: 30 + Math.random() * 50,
+                        alpha: 0
+                    });
+                }
+            }
+
+            function updateLasers() {
+                // completely clear screen for lasers to avoid opacity pile-up
+                ctx.clearRect(0, 0, lasersCanvas.width, lasersCanvas.height);
+
+                ctx.globalCompositeOperation = 'screen'; // Creates intense, glowing overlays
+
+                lasers.forEach(laser => {
+                    // smoothly swing angles
+                    if (Math.abs(laser.angle - laser.targetAngle) < 0.02) {
+                        laser.targetAngle = Math.PI * 1.5 + (Math.random() - 0.5) * 1.8;
+                        laser.speed = 0.002 + Math.random() * 0.003;
+                    }
+                    laser.angle += (laser.targetAngle - laser.angle) * laser.speed;
+
+                    // fade in slowly when animation starts
+                    if (laser.alpha < 0.5) laser.alpha += 0.005;
+
+                    // calculate end point way off screen
+                    const length = lasersCanvas.height * 2;
+                    const endX = laser.x + Math.cos(laser.angle) * length;
+                    const endY = laser.y + Math.sin(laser.angle) * length;
+
+                    // gradient for fading out the beam
+                    const gradient = ctx.createLinearGradient(laser.x, laser.y, endX, endY);
+                    gradient.addColorStop(0, `rgba(${laser.colorStr}, ${laser.alpha})`);
+                    gradient.addColorStop(1, `rgba(${laser.colorStr}, 0)`);
+
+                    // Draw a wide beam
+                    ctx.beginPath();
+                    // Bottom base width
+                    ctx.moveTo(laser.x - laser.width / 2, laser.y);
+                    // Top spread
+                    ctx.lineTo(endX - laser.width * 4, endY);
+                    ctx.lineTo(endX + laser.width * 4, endY);
+                    ctx.lineTo(laser.x + laser.width / 2, laser.y);
+                    ctx.closePath();
+
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                });
+
+                ctx.globalCompositeOperation = 'source-over'; // reset
+                animationId = requestAnimationFrame(updateLasers);
+            }
+
+            function startLasers() {
+                lasersCanvas.style.display = 'block';
+                resizeCanvas();
+                updateLasers();
+            }
+
+            function stopLasers() {
+                lasersCanvas.style.display = 'none';
+                if (animationId) cancelAnimationFrame(animationId);
+            }
+
+            // Expose functions to window for HTML event handlers
+            window.enterFullscreenGame = enterFullscreenGame;
+            window.addGoal = addGoal;
+            window.undoGoal = undoGoal;
+            window.resetGame = resetGame;
+            window.toggleSound = toggleSound;
+            window.toggleMic = toggleMic;
+            window.playAgain = playAgain;
+            window.claimVictory = claimVictory;
+            window.shareTvLink = shareTvLink;
+            window.shareVipLink = shareVipLink;
+        </script>
 </body>
 
 </html>
