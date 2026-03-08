@@ -530,7 +530,9 @@ export function handleGuest() {
     const guestUser = { username: g, id: 'guest', elo: 1300, wins: 0, losses: 0 };
     state.user = guestUser;
     localStorage.setItem('subsoccer-user', JSON.stringify(guestUser));
-    if (!state.sessionGuests.includes(g)) state.sessionGuests.push(g);
+    if (!state.sessionGuests.includes(g)) {
+        state.sessionGuests = [...state.sessionGuests, g];
+    }
 }
 
 export async function handleLogout() {

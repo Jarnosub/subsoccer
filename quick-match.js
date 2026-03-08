@@ -302,7 +302,7 @@ export function addManualGoal(playerNumber) {
 function handleGoalDetectedPro(playerNumber) {
     if (!state.proModeActive || isMatchEnding) return;
     if (playerNumber === 1) state.proScoreP1++; else state.proScoreP2++;
-    state.proGoalHistory.push({ player: playerNumber });
+    state.proGoalHistory = [...state.proGoalHistory, { player: playerNumber }];
     updateProScore(true);
 
     const side = playerNumber === 1 ? '.pro-player-left' : '.pro-player-right';

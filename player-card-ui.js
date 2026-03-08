@@ -325,7 +325,7 @@ export async function purchaseEdition(editionId) {
     await handleAsync(new Promise(resolve => {
         setTimeout(() => {
             state.activeCardEdition = editionId;
-            state.inventory.push(editionId);
+            state.inventory = [...state.inventory, editionId];
             closeModal();
             resolve(true);
         }, 1500);
