@@ -1,4 +1,4 @@
-import { state, _supabase, subscribe, isAdmin, APP_VERSION, ENABLE_EVENTS, KIOSK_MODE } from './config.js';
+import { state, _supabase, subscribe, isAdmin, APP_VERSION, FLAGS, KIOSK_MODE } from './config.js';
 import { applyBranding, injectFooterLink } from './branding-service.js';
 import { CardGenerator } from './card-generator.js';
 import { viewPlayerCard, showLevelUpCard, showPhysicalOrderDialog, showCardShop, downloadFanCard, showAppConcept, purchaseEdition, setupPlayerCardListeners } from './player-card-ui.js';
@@ -887,7 +887,7 @@ subscribe('user', () => {
         // 2. Kontekstuaalinen UI (Vieraat vs Rekisteröityneet)
         const eventsTab = document.getElementById('tab-events');
         if (eventsTab) {
-            eventsTab.style.display = (state.user.id !== 'guest' && ENABLE_EVENTS) ? 'flex' : 'none';
+            eventsTab.style.display = (state.user.id !== 'guest' && FLAGS.ENABLE_EVENTS) ? 'flex' : 'none';
         }
 
         const regGameBtn = document.getElementById('btn-profile-register-game');
