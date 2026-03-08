@@ -150,54 +150,74 @@ export function updateProfileCard() {
     }
 
     container.innerHTML = `
-    <div class="topps-collectible-card ${editionClass} ${rookieClass}" onclick="this.classList.toggle('flipped')">
-        <div class="topps-flipper">
+    <div class="pro-card ${editionClass} ${rookieClass}" style="margin:0 auto; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
+        <div class="pro-card-flipper">
             <!-- FRONT SIDE -->
-            <div class="topps-front" style="background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px;">
-                <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" class="card-hero-image" referrerpolicy="no-referrer" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                <div class="card-overlay" style="background: ${overlayBg}; height: ${overlayHeight}; border-top: ${state.brand ? '3px solid var(--sub-gold)' : 'none'}; box-shadow: 0 -5px 15px rgba(0,0,0,0.3);"></div>
-                <div style="position:absolute; top:15px; left:15px; z-index:11; font-family:'SubsoccerLogo'; font-size:0.8rem; color:var(--sub-gold); opacity:0.8;">${editionLabel} // 2026</div>
-                <div style="position:absolute; top:15px; right:15px; z-index:11; display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-                    ${badges.map(b => `<div style="background:rgba(0,0,0,0.9); border:1px solid ${b.color}; color:${b.color}; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; box-shadow:0 0 10px ${b.color}40; backdrop-filter:blur(4px);" title="${b.title}"><i class="fa-solid ${b.icon}"></i></div>`).join('')}
-                </div>
-                <div class="card-content-bottom" style="z-index:12;">
-                    <div style="color:var(--sub-gold); font-size:0.75rem; letter-spacing:2px; margin-bottom:4px; font-weight:bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"><i class="fa-solid fa-location-dot"></i> ${u.city || 'HELSINKI'}</div>
-                    <div class="card-player-name">${u.username}</div>
-                    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
-                        <div class="card-elo-badge">${u.elo || 1300} ELO</div>
-                        <div style="text-align:right;"><div style="color:white; font-size:0.6rem; text-transform:uppercase;">Win Ratio</div><div style="color:white; font-size:1rem;">${((u.wins / (Math.max(1, u.wins + (u.losses || 0)))) * 100).toFixed(0)}%</div></div>
+            <div class="pro-card-front">
+                <!-- Top strip: Text + Icon -->
+                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2;">
+                    <div style="font-size: 0.65rem; color: #D4AF37; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                        ${editionLabel} // 2026</div>
+                    <div style="display: flex; gap: 5px;">
+                        ${badges.map(b => `<div style="background: #111; color: ${b.color}; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; box-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="${b.title}"><i class="fa-solid ${b.icon}"></i></div>`).join('')}
                     </div>
                 </div>
-                ${state.brandLogo ? `
-                    <img src="${state.brandLogo}" style="position:absolute; bottom: 80px; right: 15px; z-index: 11; max-width: 60px; max-height: 35px; object-fit: contain;">
-                ` : `
-                    <div style="position:absolute; bottom:15px; right:15px; width:30px; height:30px; background:radial-gradient(circle, #ffd700, #b8860b); border-radius:50%; opacity:0.3; z-index:11; filter:blur(1px);"></div>
-                `}
-                <div class="flip-hint" style="position:absolute; bottom:5px; right:50px; z-index:15; color:#888; font-size:0.55rem; font-family:'Resolve';"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
+
+                <!-- Full-width image area -->
+                <div style="width: 100%; height: 225px; flex-shrink: 0; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" referrerpolicy="no-referrer" style="width: 100%; height: 100%; object-fit: cover; object-position: top center;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                </div>
+
+                <!-- Bottom info area -->
+                <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
+                    <!-- Pin + Location -->
+                    <div style="display: flex; align-items: center; gap: 6px; color: #D4AF37; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; width:100%; box-sizing: border-box;">
+                        <i class="fa-solid fa-location-dot"></i> <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">${u.city || 'LOCAL ARENA'}</span>
+                        <div style="margin-left:auto; display:flex; align-items:center;">
+                            ${state.brandLogo ? `<img src="${state.brandLogo}" style="height:20px; object-fit:contain;">` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Huge Name -->
+                    <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                        ${(u.username || '').toUpperCase()}</div>
+
+                    <!-- ELO box and Win Ratio -->
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
+                        <div style="background: #D4AF37; color: #000; padding: 4px 10px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
+                            ${u.elo || 1300} ELO
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
+                                WIN RATIO</div>
+                            <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; color: #fff; line-height: 1;">
+                                ${((u.wins / (Math.max(1, (u.wins || 0) + (u.losses || 0)))) * 100).toFixed(0)}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom edge "TAP TO FLIP" -->
+                <div style="position: absolute; bottom: 8px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
+                    <i class="fa-solid fa-rotate" style="margin-right: 3px;"></i> TAP TO FLIP
+                </div>
             </div>
             
             <!-- BACK SIDE -->
-            <div class="topps-back" style="background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%);">
-                <div style="padding:20px; text-align:left; overflow-y:auto; overflow-x:hidden; height:100%;">
-                    <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px;">
-                        <h4 style="color:var(--sub-gold); font-family:'Russo One'; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
-                        <div style="color:#fff; font-size:0.75rem; font-family:'Resolve'; margin-top:5px; text-transform:uppercase;">${u.username}</div>
-                    </div>
-                    <div id="profile-card-back-content">
-                        <p style="text-align:center; color:#666; font-size:0.8rem; margin-top:50px;"><i class="fa fa-spinner fa-spin"></i> Loading Data...</p>
-                    </div>
+            <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+                <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px; padding:20px 20px 0 20px;">
+                    <h4 style="color:#D4AF37; font-family:'Russo One', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
+                    <div style="color:#fff; font-size:0.75rem; font-family:'Open Sans', sans-serif; margin-top:5px; text-transform:uppercase;">${u.username}</div>
                 </div>
-                <div class="flip-hint" style="position:absolute; bottom:15px; left:15px; color:#c0c0c0; font-size:0.55rem; font-family:'Resolve';"><i class="fa-solid fa-rotate-left"></i> TAP TO FLIP</div>
+                <!-- Premium Stats Content appended asynchronously below -->
+                <div id="profile-card-back-content" style="flex:1; padding:0 20px; overflow-y:auto; overflow-x:hidden; width:100%; box-sizing:border-box;">
+                    <!-- Async content loads here, spinner removed for cleaner static state -->
+                </div>
+                <!-- Bottom edge "TAP TO FLIP" -->
+                <div style="position: absolute; bottom: 8px; width: 100%; left: 0; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
+                    <i class="fa-solid fa-rotate-left" style="margin-right: 3px;"></i> TAP TO FLIP
+                </div>
             </div>
         </div>
-    </div>
-    <div style="display:flex; gap:10px; margin-top:15px;">
-        <button class="btn-red" style="flex:1; background:#222; font-size:0.7rem;" data-action="show-card-shop">
-            <i class="fa fa-shopping-cart"></i> UPGRADE CARD
-        </button>
-        <button class="btn-red" style="flex:1; font-size:0.7rem;" data-action="download-card">
-            <i class="fa fa-download"></i> SAVE IMAGE
-        </button>
     </div>
     `;
 
