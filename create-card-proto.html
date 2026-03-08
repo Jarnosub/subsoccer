@@ -104,26 +104,64 @@
         .pro-card {
             width: 260px;
             height: 380px;
-            background-color: #111;
-            background-image:
-                linear-gradient(145deg, rgba(30, 30, 30, 0.8) 0%, rgba(10, 10, 10, 0.9) 100%),
-                repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 2px, transparent 2px, transparent 6px);
-            border-radius: 15px;
-            border: 1px solid rgba(212, 175, 55, 0.5);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(212, 175, 55, 0.15);
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.1s ease-out;
             /* For JS tilt */
             z-index: 2;
+            cursor: pointer;
+            perspective: 1000px;
+        }
+
+        .card-flipper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(212, 175, 55, 0.15);
+            border-radius: 15px;
+            background: transparent;
+        }
+
+        .pro-card.flipped .card-flipper {
+            transform: rotateY(180deg);
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            border: 1px solid rgba(212, 175, 55, 0.5);
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            background-color: #0a0a0a;
+            box-sizing: border-box;
+        }
+
+        .card-front {
+            background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+            background-size: 8px 8px;
+            transform: rotateY(0deg);
             align-items: center;
         }
 
+        .card-back {
+            background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%);
+            transform: rotateY(180deg);
+            padding: 20px;
+            color: #fff;
+            text-align: left;
+            display: block;
+        }
+
         /* Sheen/Glint effect layer */
-        .pro-card::after {
+        .card-front::after,
+        .card-back::after {
             content: '';
             position: absolute;
             top: -100%;
@@ -338,180 +376,213 @@
     <div class="showcase" id="card-showcase">
         <div class="spotlight"></div>
 
-        <div class="pro-card" id="the-card">
-            <!-- Top strip: Text + Icon -->
-            <div
-                style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2;">
-                <div
-                    style="font-size: 0.65rem; color: var(--sub-gold); font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                    PRO CARD // 2026</div>
-                <div
-                    style="background: #111; color: var(--sub-gold); width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
-                    <i class="fa-solid fa-crown"></i>
-                </div>
-            </div>
-
-            <!-- Full-width image area -->
-            <div
-                style="width: 100%; height: 215px; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <i class="fa-solid fa-camera" id="placeholder-icon" style="font-size: 3rem; color: #333;"></i>
-                <img src="" id="card-avatar"
-                    style="width: 100%; height: 100%; object-fit: cover; display: none; object-position: top center;">
-            </div>
-
-            <!-- Bottom info area -->
-            <div
-                style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start;">
-                <!-- Pin + Location -->
-                <div
-                    style="display: flex; align-items: center; gap: 6px; color: var(--sub-gold); font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                    <i class="fa-solid fa-location-dot"></i> <span id="card-location">LOCAL ARENA</span>
-                </div>
-
-                <!-- Huge Name -->
-                <div id="card-name-display"
-                    style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px;">
-                    PLAYER</div>
-
-                <!-- ELO box and Win Ratio -->
-                <div
-                    style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
+        <div class="pro-card" id="the-card" onclick="this.classList.toggle('flipped')">
+            <div class="card-flipper">
+                <div class="card-front">
+                    <!-- Top strip: Text + Icon -->
                     <div
-                        style="background: var(--sub-gold); color: #000; padding: 4px 10px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
-                        00 ELO
+                        style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2;">
+                        <div
+                            style="font-size: 0.65rem; color: var(--sub-gold); font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                            PRO CARD // 2026</div>
+                        <div
+                            style="background: #111; color: var(--sub-gold); width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
                     </div>
-                    <div style="text-align: right;">
+
+                    <!-- Full-width image area -->
+                    <div
+                        style="width: 100%; height: 215px; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <i class="fa-solid fa-camera" id="placeholder-icon" style="font-size: 3rem; color: #333;"></i>
+                        <img src="" id="card-avatar"
+                            style="width: 100%; height: 100%; object-fit: cover; display: none; object-position: top center;">
+                    </div>
+
+                    <!-- Bottom info area -->
+                    <div
+                        style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start;">
+                        <!-- Pin + Location -->
                         <div
-                            style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
-                            WIN RATIO</div>
+                            style="display: flex; align-items: center; gap: 6px; color: var(--sub-gold); font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                            <i class="fa-solid fa-location-dot"></i> <span id="card-location">LOCAL ARENA</span>
+                        </div>
+
+                        <!-- Huge Name -->
+                        <div id="card-name-display"
+                            style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px;">
+                            PLAYER</div>
+
+                        <!-- ELO box and Win Ratio -->
                         <div
-                            style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; color: #fff; line-height: 1;">
-                            0%</div>
+                            style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
+                            <div
+                                style="background: var(--sub-gold); color: #000; padding: 4px 10px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
+                                00 ELO
+                            </div>
+                            <div style="text-align: right;">
+                                <div
+                                    style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
+                                    WIN RATIO</div>
+                                <div
+                                    style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; color: #fff; line-height: 1;">
+                                    0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom edge "TAP TO FLIP" -->
+                    <div
+                        style="position: absolute; bottom: 8px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
+                        <i class="fa-solid fa-rotate" style="margin-right: 3px;"></i> TAP TO FLIP
+                    </div>
+                </div>
+
+                <div class="card-back">
+                    <div
+                        style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px;">
+                        <h4
+                            style="color:var(--sub-gold); font-family:'Russo One', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">
+                            PLAYER DOSSIER</h4>
+                        <div
+                            style="color:#fff; font-size:0.75rem; font-family:'Open Sans', sans-serif; margin-top:5px; text-transform:uppercase;">
+                            NEW RECRUIT</div>
+                    </div>
+
+                    <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; text-align:center;">
+                        <div
+                            style="font-family:'Open Sans', sans-serif; color:#444; font-size:0.7rem; letter-spacing:1px;">
+                            NO TOURNAMENT TROPHIES YET</div>
+                    </div>
+
+                    <div style="margin-top: 10px; border-top: 1px solid #333; padding-top: 15px; text-align:center;">
+                        <div
+                            style="font-family:'Open Sans', sans-serif; color:#444; font-size:0.7rem; letter-spacing:1px;">
+                            NO MATCHES PLAYED</div>
+                    </div>
+
+                    <div
+                        style="position:absolute; bottom:8px; width:100%; left:0; text-align:center; color:rgba(255,255,255,0.3); font-size:0.6rem; font-weight:bold; letter-spacing:1.5px; z-index:2;">
+                        <i class="fa-solid fa-rotate-left" style="margin-right: 3px;"></i> TAP TO FLIP
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Bottom edge "TAP TO FLIP" -->
-            <div
-                style="position: absolute; bottom: 8px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
-                <i class="fa-solid fa-rotate" style="margin-right: 3px;"></i> TAP TO FLIP
+        <div class="forge-controls">
+            <div class="forge-title">FORGE YOUR LEGACY</div>
+            <div class="step-container">
+                <input type="text" id="name-input" class="proto-input" placeholder="Enter Player Name..."
+                    maxlength="12">
+
+                <label class="upload-btn">
+                    <i class="fa-solid fa-camera" style="margin-right:8px;"></i> Upload Player Photo
+                    <input type="file" id="photo-input" style="display:none;" accept="image/*">
+                </label>
+
+                <!-- Simulated email/pass just for visual footprint -->
+                <div style="display:flex; gap:10px;">
+                    <input type="email" class="proto-input" placeholder="Email"
+                        style="flex:1; padding: 10px; font-size:0.8rem;">
+                    <input type="password" class="proto-input" placeholder="Password"
+                        style="flex:1; padding: 10px; font-size:0.8rem;">
+                </div>
+
+                <button class="submit-btn" onclick="alert('Card created! Entering Global League...')">UNLOCK PRO
+                    CARD</button>
             </div>
         </div>
-    </div>
 
-    <div class="forge-controls">
-        <div class="forge-title">FORGE YOUR LEGACY</div>
-        <div class="step-container">
-            <input type="text" id="name-input" class="proto-input" placeholder="Enter Player Name..." maxlength="12">
+        <script>
+            // Live Name Update
+            const nameInput = document.getElementById('name-input');
+            const nameDisplay = document.getElementById('card-name-display');
 
-            <label class="upload-btn">
-                <i class="fa-solid fa-camera" style="margin-right:8px;"></i> Upload Player Photo
-                <input type="file" id="photo-input" style="display:none;" accept="image/*">
-            </label>
+            nameInput.addEventListener('input', (e) => {
+                const val = e.target.value.trim().toUpperCase();
+                nameDisplay.textContent = val === '' ? 'PLAYER' : val;
 
-            <!-- Simulated email/pass just for visual footprint -->
-            <div style="display:flex; gap:10px;">
-                <input type="email" class="proto-input" placeholder="Email"
-                    style="flex:1; padding: 10px; font-size:0.8rem;">
-                <input type="password" class="proto-input" placeholder="Password"
-                    style="flex:1; padding: 10px; font-size:0.8rem;">
-            </div>
+                // Pop effect on typing
+                nameDisplay.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    nameDisplay.style.transform = 'scale(1)';
+                }, 100);
+            });
 
-            <button class="submit-btn" onclick="alert('Card created! Entering Global League...')">UNLOCK PRO
-                CARD</button>
-        </div>
-    </div>
+            // Live Photo Upload
+            const photoInput = document.getElementById('photo-input');
+            const cardAvatar = document.getElementById('card-avatar');
+            const placeholder = document.getElementById('placeholder-icon');
 
-    <script>
-        // Live Name Update
-        const nameInput = document.getElementById('name-input');
-        const nameDisplay = document.getElementById('card-name-display');
+            photoInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        cardAvatar.src = e.target.result;
+                        cardAvatar.style.display = 'block';
+                        placeholder.style.display = 'none';
 
-        nameInput.addEventListener('input', (e) => {
-            const val = e.target.value.trim().toUpperCase();
-            nameDisplay.textContent = val === '' ? 'PLAYER' : val;
-
-            // Pop effect on typing
-            nameDisplay.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                nameDisplay.style.transform = 'scale(1)';
-            }, 100);
-        });
-
-        // Live Photo Upload
-        const photoInput = document.getElementById('photo-input');
-        const cardAvatar = document.getElementById('card-avatar');
-        const placeholder = document.getElementById('placeholder-icon');
-
-        photoInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    cardAvatar.src = e.target.result;
-                    cardAvatar.style.display = 'block';
-                    placeholder.style.display = 'none';
-
-                    // Flash effect on card avatar slot
-                    cardAvatar.style.opacity = '0';
-                    setTimeout(() => { cardAvatar.style.opacity = '1'; }, 50);
+                        // Flash effect on card avatar slot
+                        cardAvatar.style.opacity = '0';
+                        setTimeout(() => { cardAvatar.style.opacity = '1'; }, 50);
+                    }
+                    reader.readAsDataURL(file);
                 }
-                reader.readAsDataURL(file);
+            });
+
+            // --- 3D INTERACTIVE TILT EFFECT ---
+            const showcase = document.getElementById('card-showcase');
+            const card = document.getElementById('the-card');
+
+            // Mouse move tracking
+            showcase.addEventListener('mousemove', (e) => {
+                handleTilt(e.clientX, e.clientY);
+            });
+
+            // Touch tracking
+            showcase.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                handleTilt(touch.clientX, touch.clientY);
+            });
+
+            // Reset on leave
+            showcase.addEventListener('mouseleave', () => {
+                resetTilt();
+            });
+            showcase.addEventListener('touchend', () => {
+                resetTilt();
+            });
+
+            function handleTilt(x, y) {
+                const rect = showcase.getBoundingClientRect();
+                // Calculate mouse position relative to center of the showcase
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                const pX = (x - centerX) / (rect.width / 2); // -1 to 1
+                const pY = (y - centerY) / (rect.height / 2); // -1 to 1
+
+                // Max rotation angles (degrees)
+                const rotateX = pY * -15;
+                const rotateY = pX * 15;
+
+                // Apply transform to card
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+
+                // Move the glint/reflection pseudo-element based on angle (requires CSS variables in complex setups, we'll do an inline approximation)
+                // Note: Since we use ::after we can't easily style it from JS inline directly without CSS vars, 
+                // but the tilt alone provides massive 3D depth!
             }
-        });
 
-        // --- 3D INTERACTIVE TILT EFFECT ---
-        const showcase = document.getElementById('card-showcase');
-        const card = document.getElementById('the-card');
-
-        // Mouse move tracking
-        showcase.addEventListener('mousemove', (e) => {
-            handleTilt(e.clientX, e.clientY);
-        });
-
-        // Touch tracking
-        showcase.addEventListener('touchmove', (e) => {
-            const touch = e.touches[0];
-            handleTilt(touch.clientX, touch.clientY);
-        });
-
-        // Reset on leave
-        showcase.addEventListener('mouseleave', () => {
-            resetTilt();
-        });
-        showcase.addEventListener('touchend', () => {
-            resetTilt();
-        });
-
-        function handleTilt(x, y) {
-            const rect = showcase.getBoundingClientRect();
-            // Calculate mouse position relative to center of the showcase
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-
-            const pX = (x - centerX) / (rect.width / 2); // -1 to 1
-            const pY = (y - centerY) / (rect.height / 2); // -1 to 1
-
-            // Max rotation angles (degrees)
-            const rotateX = pY * -15;
-            const rotateY = pX * 15;
-
-            // Apply transform to card
-            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
-
-            // Move the glint/reflection pseudo-element based on angle (requires CSS variables in complex setups, we'll do an inline approximation)
-            // Note: Since we use ::after we can't easily style it from JS inline directly without CSS vars, 
-            // but the tilt alone provides massive 3D depth!
-        }
-
-        function resetTilt() {
-            card.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-            card.style.transition = 'transform 0.5s ease-out';
-            setTimeout(() => {
-                card.style.transition = 'transform 0.1s ease-out';
-            }, 500);
-        }
-    </script>
+            function resetTilt() {
+                card.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                card.style.transition = 'transform 0.5s ease-out';
+                setTimeout(() => {
+                    card.style.transition = 'transform 0.1s ease-out';
+                }, 500);
+            }
+        </script>
 </body>
 
 </html>
