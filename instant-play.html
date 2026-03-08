@@ -677,56 +677,11 @@
     <!-- Game Logo -->
     <img src="subsoccer_logo.svg" class="game-logo" alt="Subsoccer">
 
-    <!-- Instant Start Overlay (Zero Friction) -->
-    <div id="rules-overlay" class="rules-overlay"
-        style="cursor: pointer; background: linear-gradient(135deg, rgba(10,10,10,0.98), rgba(20,5,5,0.98));"
-        onclick="showActualRules()">
 
-        <div
-            style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; position: relative;">
-
-            <!-- Sporty Background Image / Effect for the top half -->
-            <div
-                style="position: absolute; top:0; left:0; width: 100%; height: 100%; overflow: hidden; z-index: 0; opacity: 0.4;">
-                <div
-                    style="position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(circle at center, rgba(227, 6, 19, 0.15) 0%, transparent 50%); filter: blur(40px);">
-                </div>
-                <div
-                    style="position: absolute; width: 100%; height: 100%; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 10px);">
-                </div>
-            </div>
-
-            <img src="subsoccer_logo.svg"
-                style="height: 35px; width: auto; margin-top: 6vh; opacity: 0.9; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); z-index: 2;"
-                alt="Subsoccer">
-
-            <div id="main-play-btn-wrapper"
-                style="text-align:center; position: relative; margin-top: auto; margin-bottom: auto; z-index: 2;">
-                <!-- Gamified Play Button to match the reference image -->
-                <div style="position: relative; animation: breathing 2s infinite alternate;">
-                    <button
-                        style="width: 140px; height: 140px; background: linear-gradient(135deg, var(--sub-red) 0%, #aa0000 100%); border-radius: 50%; border: none; box-shadow: 0 15px 45px rgba(227, 6, 19, 0.6), inset 0 3px 8px rgba(255,255,255,0.4); display: flex; justify-content: center; align-items: center; margin: 0 auto 25px auto; cursor: pointer;">
-                        <i class="fa-solid fa-play" style="color: white; font-size: 3.5rem; margin-left: 8px;"></i>
-                    </button>
-
-                    <div
-                        style="font-family:'Subsoccer', sans-serif; font-size: 2.5rem; color: #fff; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 5px 15px rgba(0,0,0,0.8); line-height:1;">
-                        1 VS 1 MATCH
-                    </div>
-                    <div
-                        style="font-family:'Open Sans', sans-serif; font-size: 0.8rem; color: #888; font-weight: bold; letter-spacing: 2px; margin-top: 8px;">
-                        TAP TO START
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
 
     <!-- Actual Rules Overlay shown before playing -->
     <div id="actual-rules-overlay" class="rules-overlay"
-        style="display: none; background: rgba(10,10,10,0.98); z-index: 1000;" onclick="event.stopPropagation()">
+        style="display: flex; background: rgba(10,10,10,0.98); z-index: 1000;" onclick="event.stopPropagation()">
         <div class="rules-header">OFFICIAL RULES</div>
         <div class="rules-list">
             <div class="rule-item">
@@ -1015,11 +970,6 @@
                 }, 300);
             });
         });
-
-        window.showActualRules = function () {
-            document.getElementById('rules-overlay').style.display = 'none';
-            document.getElementById('actual-rules-overlay').style.display = 'flex';
-        }
 
         // Enter Fullscreen and Start
         window.enterFullscreenGame = function () {
