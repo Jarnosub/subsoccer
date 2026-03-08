@@ -8,75 +8,161 @@ import { showLoading, hideLoading, safeHTML } from './ui-utils.js';
  * ============================================================
  */
 
+let lbMode = 'players'; // 'players' or 'teams'
+
 export async function fetchLB() {
     showLoading('Fetching Rankings...');
     try {
-        const { data } = await _supabase.from('players').select('*').or('wins.gt.0,losses.gt.0').order('elo', { ascending: false });
-
-        if (!data || data.length === 0) {
-            const lbData = document.getElementById('lb-data');
-            if (lbData) lbData.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">No players yet</div>';
-            return;
-        }
-
-        let html = '';
-
-        // Add Header
-        html += '<div style="text-align:center; margin-bottom:25px;"><h2 style="font-family:var(--sub-name-font); font-size:1.5rem; color:var(--sub-gold); margin:0; letter-spacing:2px;">LEADERBOARD</h2><div style="font-size:0.7rem; color:#666; letter-spacing:3px; margin-top:5px;">TOP PLAYERS</div></div>';
-
-        // Top 3 Podium
-        if (data.length >= 1) {
-            html += '<div class="podium-section">';
-
-            const top3 = data.slice(0, 3);
-
-            top3.forEach((player, i) => {
-                const rank = i + 1;
-                const imageSrc = player.avatar_url || 'placeholder-silhouette-5-wide.png';
-                const flag = player.country ? player.country.toLowerCase() : 'fi';
-
-                html += safeHTML`
-                <div class="podium-place p-${rank}">
-                    <div class="podium-card" data-username="${player.username}" style="cursor:pointer;">
-                        <img src="${imageSrc}" alt="${player.username}" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                        <div class="podium-card-overlay">
-                            <img src="https://flagcdn.com/w40/${flag}.png" style="width:16px; height:auto; margin-bottom:3px; border-radius:1px; box-shadow:0 1px 3px rgba(0,0,0,0.5);">
-                            <div class="podium-name">${player.username}</div>
-                            <div class="podium-elo">${Math.round(player.elo)}</div>
-                        </div>
-                    </div>
-                    <div class="podium-step">${rank}</div>
-                </div>
-            `;
-            });
-
-            html += '</div>';
-        }
-
-        // Rest of the players (4+)
-        if (data.length > 3) {
-            html += '<h3 style="font-family:var(--sub-name-font); color:#444; margin:20px 0 15px 0; font-size:0.75rem; text-transform:uppercase; letter-spacing:3px; text-align:center;">GLOBAL RANKINGS</h3>';
-            html += data.slice(3).map((p, i) => {
-                const flag = p.country ? p.country.toLowerCase() : 'fi';
-                const rank = i + 4;
-                return safeHTML`
-                <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid #333; transition:all 0.3s ease;" data-username="${p.username}">
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <span style="color:#444; font-family:var(--sub-name-font); font-size:0.8rem; min-width:30px;">#${rank}</span>
-                        <img src="https://flagcdn.com/w40/${flag}.png" style="height:12px; width:auto; border-radius:1px;">
-                        <span class="lb-name" style="font-size:1rem !important;">${p.username}</span>
-                    </div>
-                    <span class="lb-elo" style="font-size:1.1rem !important;">${p.elo}</span>
-                </div>
-            `;
-            }).join('');
-        }
-
         const lbData = document.getElementById('lb-data');
-        if (lbData) lbData.innerHTML = html;
+        if (!lbData) return;
+
+        let html = `
+            <div style="text-align:center; margin-bottom:15px;">
+                <h2 style="font-family:var(--sub-name-font); font-size:1.5rem; color:var(--sub-gold); margin:0; letter-spacing:2px;">GLOBAL RANKING</h2>
+            </div>
+            <div style="display:flex; justify-content:center; gap: 10px; margin-bottom: 25px;">
+                <button id="lb-toggle-players" style="flex:1; padding: 10px; font-family:'Russo One'; font-size: 0.9rem; border:none; border-radius:4px; cursor:pointer; background: ${lbMode === 'players' ? 'var(--sub-gold)' : '#222'}; color: ${lbMode === 'players' ? '#000' : '#888'}; transition: background 0.3s;">TOP PLAYERS</button>
+                <button id="lb-toggle-teams" style="flex:1; padding: 10px; font-family:'Russo One'; font-size: 0.9rem; border:none; border-radius:4px; cursor:pointer; background: ${lbMode === 'teams' ? 'var(--sub-gold)' : '#222'}; color: ${lbMode === 'teams' ? '#000' : '#888'}; transition: background 0.3s;">TOP TEAMS</button>
+            </div>
+            <div id="lb-content"></div>
+        `;
+        lbData.innerHTML = html;
+
+        document.getElementById('lb-toggle-players').addEventListener('click', () => { lbMode = 'players'; fetchLB(); });
+        document.getElementById('lb-toggle-teams').addEventListener('click', () => { lbMode = 'teams'; fetchLB(); });
+
+        const contentDiv = document.getElementById('lb-content');
+
+        if (lbMode === 'players') {
+            await renderPlayersLB(contentDiv);
+        } else {
+            await renderTeamsLB(contentDiv);
+        }
     } finally {
         hideLoading();
     }
+}
+
+async function renderPlayersLB(container) {
+    const { data } = await _supabase.from('players').select('*, team_data:teams!players_team_id_fkey(*)').or('wins.gt.0,losses.gt.0').order('elo', { ascending: false });
+
+    if (!data || data.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">No players yet</div>';
+        return;
+    }
+
+    let html = '';
+
+    // Top 3 Podium
+    if (data.length >= 1) {
+        html += '<div class="podium-section">';
+        const top3 = data.slice(0, 3);
+
+        top3.forEach((player, i) => {
+            const rank = i + 1;
+            const imageSrc = player.avatar_url || 'placeholder-silhouette-5-wide.png';
+            const flag = player.country ? player.country.toLowerCase() : 'fi';
+            const teamTag = player.team_data ? `<div style="color:var(--sub-gold); font-size:0.6rem; margin-bottom:2px;">[${player.team_data.tag}]</div>` : '';
+
+            html += safeHTML`
+            <div class="podium-place p-${rank}">
+                <div class="podium-card" data-username="${player.username}" style="cursor:pointer;">
+                    <img src="${imageSrc}" alt="${player.username}" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                    <div class="podium-card-overlay">
+                        ${teamTag}
+                        <img src="https://flagcdn.com/w40/${flag}.png" style="width:16px; height:auto; margin-bottom:3px; border-radius:1px; box-shadow:0 1px 3px rgba(0,0,0,0.5);">
+                        <div class="podium-name">${player.username}</div>
+                        <div class="podium-elo">${Math.round(player.elo)}</div>
+                    </div>
+                </div>
+                <div class="podium-step">${rank}</div>
+            </div>`;
+        });
+        html += '</div>';
+    }
+
+    // Rest of the players (4+)
+    if (data.length > 3) {
+        html += '<h3 style="font-family:var(--sub-name-font); color:#444; margin:20px 0 15px 0; font-size:0.75rem; text-transform:uppercase; letter-spacing:3px; text-align:center;">CONTENDERS</h3>';
+        html += data.slice(3).map((p, i) => {
+            const flag = p.country ? p.country.toLowerCase() : 'fi';
+            const rank = i + 4;
+            const teamTag = p.team_data ? `<span style="color:var(--sub-gold); font-size:0.7rem; margin-right:5px;">[${p.team_data.tag}]</span>` : '';
+            return safeHTML`
+            <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid #333; transition:all 0.3s ease;" data-username="${p.username}">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <span style="color:#444; font-family:var(--sub-name-font); font-size:0.8rem; min-width:30px;">#${rank}</span>
+                    <img src="https://flagcdn.com/w40/${flag}.png" style="height:12px; width:auto; border-radius:1px;">
+                    <span class="lb-name" style="font-size:1rem !important;">${teamTag}${p.username}</span>
+                </div>
+                <span class="lb-elo" style="font-size:1.1rem !important;">${p.elo}</span>
+            </div>`;
+        }).join('');
+    }
+
+    container.innerHTML = html;
+}
+
+async function renderTeamsLB(container) {
+    const { data } = await _supabase.from('teams').select('*').order('combined_elo', { ascending: false });
+
+    if (!data || data.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">No teams founded yet</div>';
+        return;
+    }
+
+    let html = '';
+
+    // Top 3 Podium for Teams
+    if (data.length >= 1) {
+        html += '<div class="podium-section">';
+        const top3 = data.slice(0, 3);
+
+        top3.forEach((team, i) => {
+            const rank = i + 1;
+            const imageSrc = team.logo_url || 'placeholder-silhouette-5-wide.png';
+
+            html += `
+            <div class="podium-place p-${rank}">
+                <div class="podium-card" style="cursor:default; border: 2px solid var(--sub-gold);">
+                    <img src="${imageSrc}" alt="${team.name}" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                    <div class="podium-card-overlay">
+                        <div style="color:var(--sub-gold); font-size:0.6rem; margin-bottom:2px; font-weight:bold;">[${team.tag}]</div>
+                        <div class="podium-name" style="font-size:0.65rem;">${team.name}</div>
+                        <div class="podium-elo">${team.combined_elo}</div>
+                    </div>
+                </div>
+                <div class="podium-step">${rank}</div>
+            </div>`;
+        });
+        html += '</div>';
+    }
+
+    // Rest of the teams (4+)
+    if (data.length > 3) {
+        html += '<h3 style="font-family:var(--sub-name-font); color:#444; margin:20px 0 15px 0; font-size:0.75rem; text-transform:uppercase; letter-spacing:3px; text-align:center;">CONTENDERS</h3>';
+        html += data.slice(3).map((t, i) => {
+            const rank = i + 4;
+            const logoHtml = t.logo_url
+                ? `<img src="${t.logo_url}" style="width:24px; height:24px; border-radius: 4px; object-fit: cover;">`
+                : `<div style="width:24px; height:24px; border-radius:4px; background:#222; display:flex; justify-content:center; align-items:center; color: var(--sub-gold); font-size: 0.6rem;"><i class="fa-solid fa-shield"></i></div>`;
+
+            return `
+            <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid var(--sub-gold); transition:all 0.3s ease;">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <span style="color:#444; font-family:var(--sub-name-font); font-size:0.8rem; min-width:30px;">#${rank}</span>
+                    ${logoHtml}
+                    <div>
+                        <div class="lb-name" style="font-size:0.9rem !important;">${t.name}</div>
+                        <div style="color:var(--sub-gold); font-size:0.7rem; font-weight:bold;">[${t.tag}]</div>
+                    </div>
+                </div>
+                <span class="lb-elo" style="font-size:1.1rem !important; color:var(--sub-gold);">${t.combined_elo}</span>
+            </div>`;
+        }).join('');
+    }
+
+    container.innerHTML = html;
 }
 
 export async function fetchHist() {
