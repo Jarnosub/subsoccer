@@ -1008,18 +1008,21 @@
                     Subsoccer ELO ranking before you leave the table.</p>
             </div>
 
-            <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 10px; width: 100%;">
-                <button id="claim-victory-btn" class="claim-victory-btn w-btn-claim" onclick="claimVictory()">
+            <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
+
+                <button class="claim-victory-btn w-btn-claim" onclick="playAgain()">
+                    <i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NEW GAME GUESTS
+                </button>
+
+                <button id="claim-victory-btn" class="claim-victory-btn w-btn-claim"
+                    style="background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%); color: #000; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);"
+                    onclick="claimVictory()">
                     <i class="fa-solid fa-id-card" style="margin-right:10px;"></i> CLAIM MY PRO CARD
                 </button>
 
-                <div class="w-actions">
-                    <button class="play-again-btn" style="flex:1; font-size: 0.8rem; padding: 12px 0;"
-                        onclick="playAgain()">NEW GAME GUESTS</button>
-                    <button id="end-game-btn" class="play-again-btn"
-                        style="flex:1; background:#222; border:1px solid #444; font-size: 0.8rem; padding: 12px 0;"
-                        onclick="window.location.href='./'">EXIT</button>
-                </div>
+                <button id="end-game-btn" class="play-again-btn"
+                    style="background: transparent; border: 1px solid rgba(255,255,255,0.1); width: 250px; font-size: 0.8rem; padding: 12px 0; margin-top: 5px;"
+                    onclick="window.location.href='./'">EXIT MATCH</button>
             </div>
         </div>
     </div>
