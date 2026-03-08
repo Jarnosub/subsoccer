@@ -700,7 +700,8 @@
                 style="height: 35px; width: auto; margin-top: 6vh; opacity: 0.9; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); z-index: 2;"
                 alt="Subsoccer">
 
-            <div style="text-align:center; position: relative; margin-top: auto; margin-bottom: 12vh; z-index: 2;">
+            <div id="main-play-btn-wrapper"
+                style="text-align:center; position: relative; margin-top: auto; margin-bottom: 12vh; z-index: 2;">
                 <!-- Gamified Play Button to match the reference image -->
                 <div style="position: relative; animation: breathing 2s infinite alternate;">
                     <button
@@ -771,6 +772,12 @@
                     const card = document.getElementById('tournament-upsell-card');
                     if (card) {
                         card.style.display = 'none';
+                    }
+
+                    // Re-center the play button since the bottom block is missing
+                    const playBtn = document.getElementById('main-play-btn-wrapper');
+                    if (playBtn) {
+                        playBtn.style.marginBottom = 'auto'; // Re-balances margin-top: auto to perfectly center
                     }
                 }
             });
