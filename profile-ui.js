@@ -171,28 +171,28 @@ export function updateProfileCard() {
                 </div>
 
                 <!-- Bottom info area -->
-                <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
+                <div style="width: 100%; padding: 12px 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
                     <!-- Pin + Location -->
-                    <div style="display: flex; align-items: center; gap: 6px; color: #D4AF37; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; width:100%; box-sizing: border-box;">
+                    <div style="display: flex; align-items: center; gap: 6px; color: #D4AF37; font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; width:100%; box-sizing: border-box;">
                         <i class="fa-solid fa-location-dot"></i> <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">${u.city || 'LOCAL ARENA'}</span>
                         <div style="margin-left:auto; display:flex; align-items:center;">
                             ${state.brandLogo ? `<img src="${state.brandLogo}" style="height:20px; object-fit:contain;">` : ''}
                         </div>
                     </div>
 
-                    <!-- Huge Name -->
-                    <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
-                        ${u.team_data ? `<span style="color:var(--sub-gold); font-size:0.45em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${u.team_data.tag}]</span>` : ''}${(u.username || '').toUpperCase()}</div>
+                    <!-- Huge Name (scaled down) -->
+                    <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.2rem; text-transform: uppercase; color: #fff; margin-top: 4px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                        ${u.team_data ? `<span style="color:var(--sub-gold); font-size:0.5em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${u.team_data.tag}]</span>` : ''}${(u.username || '').toUpperCase()}</div>
 
                     <!-- ELO box and Win Ratio -->
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
-                        <div style="background: #D4AF37; color: #000; padding: 4px 10px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 2px;">
+                        <div style="background: #D4AF37; color: #000; padding: 4px 8px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.2rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
                             ${u.elo || 1300} ELO
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
+                            <div style="font-size: 0.55rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
                                 WIN RATIO</div>
-                            <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; color: #fff; line-height: 1;">
+                            <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.2rem; color: #fff; line-height: 1;">
                                 ${((u.wins / (Math.max(1, (u.wins || 0) + (u.losses || 0)))) * 100).toFixed(0)}%</div>
                         </div>
                     </div>
