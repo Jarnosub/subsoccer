@@ -12,8 +12,15 @@ export async function initApp() {
         setupAuthListeners();
 
         // PAKOTETTU TARKISTUS: Haetaan istunto heti, jotta ei tarvita refreshia
-        const { data: { session } } = await _supabase.auth.getSession();
-        if (session && (!state.user || state.user.id !== session.user.id)) {
+        const { data: { session }, error } = await _supabase.auth.getSession();
+
+        if (error) {
+            console.warn("Supabase auth warning (usually safe to ignore):", error.message);
+            // Jos refresh token on vanhentunut, siivotaan paikallinen sessio pois jotta virheet loppuvat
+            if (error.message.includes("Invalid Refresh Token")) {
+                await _supabase.auth.signOut().catch(() => { });
+            }
+        } else if (session && (!state.user || state.user.id !== session.user.id)) {
             await refreshUserProfile(session.user.id);
         }
 
