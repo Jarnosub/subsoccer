@@ -13,10 +13,10 @@ class VisionEngine {
 
         // Konfiguroitavat alueet
         this.zones = [
-            { id: 'top-left', x: 0.1, y: 0.1, width: 0.2, height: 0.2, hitAnimationTime: 0 },
-            { id: 'top-right', x: 0.7, y: 0.1, width: 0.2, height: 0.2, hitAnimationTime: 0 },
-            { id: 'bottom-left', x: 0.1, y: 0.7, width: 0.2, height: 0.2, hitAnimationTime: 0 },
-            { id: 'bottom-right', x: 0.7, y: 0.7, width: 0.2, height: 0.2, hitAnimationTime: 0 }
+            { id: 'top-left', x: 0.12, y: 0.12, width: 0.13, height: 0.13, hitAnimationTime: 0 },
+            { id: 'top-right', x: 0.75, y: 0.12, width: 0.13, height: 0.13, hitAnimationTime: 0 },
+            { id: 'bottom-left', x: 0.12, y: 0.75, width: 0.13, height: 0.13, hitAnimationTime: 0 },
+            { id: 'bottom-right', x: 0.75, y: 0.75, width: 0.13, height: 0.13, hitAnimationTime: 0 }
         ];
 
         // Tunnistuksen herkkyysasetukset
@@ -204,8 +204,8 @@ class VisionEngine {
             }
 
             // Ulkovarjo
-            this.ctx.shadowBlur = 15;
-            this.ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            this.ctx.shadowBlur = 8;
+            this.ctx.shadowColor = 'rgba(0,0,0,0.4)';
 
             // Ulkoympyrä (Tummansininen) - piirretään leveänä viivana jotta alueiden väliin jää läpinäkyvä raita
             this.ctx.beginPath();
