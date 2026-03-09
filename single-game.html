@@ -48,9 +48,7 @@
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             width: 100vw;
             background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
         }
@@ -83,10 +81,9 @@
         /* Arcade UI */
         .arcade-container {
             text-align: center;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            position: relative;
+            margin: auto;
+            padding: 60px 20px 20px 20px;
             z-index: 10;
             width: 100%;
             max-width: 400px;
@@ -286,27 +283,30 @@
         /* Landscape / Small screen adjustments */
         @media (max-height: 500px) {
             .arcade-container {
-                padding: 10px;
-                margin-top: 50px;
+                padding: 60px 10px 20px 10px;
+                transform: scale(0.85);
             }
 
             .logo {
-                height: 25px;
-                margin-bottom: 10px;
+                display: none;
             }
 
             .header-title {
-                font-size: 1.2rem;
-                margin-bottom: 15px;
+                font-size: 1.1rem;
+                margin-bottom: 10px;
             }
 
             .display-panel {
-                margin-bottom: 20px;
-                padding: 10px;
+                margin-bottom: 10px;
+                gap: 10px;
+            }
+
+            .stat-box {
+                padding: 5px 30px;
             }
 
             .stat-value {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
             }
 
             .combo-container {
