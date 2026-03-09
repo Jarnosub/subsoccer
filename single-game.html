@@ -274,10 +274,11 @@
         <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
     </div>
 
-    <!-- Mic Status -->
-    <div id="mic-status">
-        <div id="mic-indicator" class="mic-dot"></div>
-        <span id="mic-text">Mic standby</span>
+    <!-- Camera Status -->
+    <div id="camera-status"
+        style="position: absolute; bottom: 20px; left: 20px; font-family: 'Open Sans', sans-serif; font-size: 0.8rem; color: #666; display: flex; align-items: center; gap: 10px; z-index: 100;">
+        <div id="cam-indicator" class="mic-dot"></div>
+        <span id="cam-text">Camera standby</span>
     </div>
 
     <div class="arcade-container">
@@ -316,8 +317,8 @@
         </div>
     </div>
 
-    <!-- Audio dependencies -->
-    <script src="audio-engine.js"></script>
+    <!-- Game dependencies -->
+    <script src="vision-engine.js"></script>
     <script src="single-game.js"></script>
 
 </body>

@@ -22,29 +22,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const endOverlay = document.getElementById('end-overlay');
     const finalScoreDisplay = document.getElementById('final-score');
 
-    // Mic indicator
-    const micDot = document.getElementById('mic-indicator');
-    const micText = document.getElementById('mic-text');
+    // Camera indicator
+    const camDot = document.getElementById('cam-indicator');
+    const camText = document.getElementById('cam-text');
 
-    // Make sure audio context can be initialized on user tap
+    // Make sure vision starts on tap
     btnStart.addEventListener('click', startGame);
     btnRestart.addEventListener('click', () => {
         endOverlay.style.display = 'none';
         startGame();
     });
 
-    // Check mic status periodically
+    // Check camera status periodically
     setInterval(() => {
-        if (!window.audioEngine) return;
-        const status = window.audioEngine.getStatus();
-        if (status.isListening) {
-            micDot.classList.add('active');
-            micText.textContent = "Mic Active";
-            micText.style.color = "#00FFCC";
+        if (!window.visionEngine) return;
+        if (window.visionEngine.isScanning) {
+            camDot.classList.add('active');
+            camText.textContent = "Camera Active";
+            camText.style.color = "#FFD700";
         } else {
-            micDot.classList.remove('active');
-            micText.textContent = "Mic Standby";
-            micText.style.color = "#666";
+            camDot.classList.remove('active');
+            camText.textContent = "Camera Standby";
+            camText.style.color = "#666";
         }
     }, 1000);
 
@@ -62,14 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
         comboDisplay.classList.remove('active');
         btnStart.style.display = 'none';
 
-        // Try starting the audio engine
-        if (window.audioEngine) {
-            const result = await window.audioEngine.startListening();
-            if (!result.success) {
-                alert("Microphone is required for this game mode!");
+        // Start the vision engine (Camera)
+        if (window.visionEngine) {
+            const success = await window.visionEngine.startCamera();
+            if (!success) {
+                alert("Camera access is required for this game mode!");
                 btnStart.style.display = 'inline-block';
                 return;
             }
+
+            // Re-bind the vision engine hit callback
+            window.visionEngine.onTargetHit = window.handleGoalDetected;
         }
 
         isPlaying = true;
@@ -97,8 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
         isPlaying = false;
         clearInterval(timerInterval);
 
-        if (window.audioEngine) {
-            window.audioEngine.stopListening();
+        if (window.visionEngine) {
+            window.visionEngine.stopCamera();
         }
 
         finalScoreDisplay.textContent = score;
@@ -124,8 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Global goal detection handler bound to the audio engine
-    window.handleGoalDetected = function (playerNumber) {
+    // Global goal detection handler bound to the vision engine
+    window.handleGoalDetected = function (zoneId, index) {
         if (!isPlaying) return;
 
         const now = Date.now();
@@ -135,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => document.body.classList.remove('hit-flash'), 300);
 
         // Combo Logic: Hit same target within timeout = multiplier goes up
-        if (playerNumber === lastTargetHit && (now - lastHitTime < COMBO_TIMEOUT_MS)) {
+        if (zoneId === lastTargetHit && (now - lastHitTime < COMBO_TIMEOUT_MS)) {
             currentCombo++;
             showCombo();
         } else {
@@ -143,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             comboDisplay.classList.remove('active');
         }
 
-        lastTargetHit = playerNumber;
+        lastTargetHit = zoneId;
         lastHitTime = now;
 
         // Add points
