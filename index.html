@@ -1068,39 +1068,176 @@
     <!-- Instant Play Onboarding Handler -->
     <script src="onboarding.js" type="module"></script>
 
-    <!-- SMART HOST MODAL (Moved to root to escape CSS animation stacking contexts) -->
-    <div id="smart-host-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:999999; background:rgba(0,0,0,0.95); flex-direction:column; align-items:center; justify-content:center; padding: 20px; box-sizing: border-box;">
-        <div
-            style="font-family: 'Russo One', sans-serif; font-size: 2.5rem; color: #fff; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase;">
-            SCAN TO JOIN</div>
-        <div
-            style="color: #888; font-family: 'Open Sans'; font-size: 0.9rem; margin-bottom: 30px; letter-spacing: 1px; text-transform: uppercase;">
-            PLAYERS AUTOMATICALLY ADDED TO ROSTER</div>
+    <!-- SMART HOST MODAL -->
+    <style>
+        .smart-host-wrapper {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999999;
+            background: rgba(0, 0, 0, 0.95);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
 
-        <div
-            style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 30px rgba(227, 6, 19, 0.4); border: 2px solid var(--sub-red); margin-bottom: 30px;">
+        .sh-header-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sh-title {
+            font-family: 'Russo One', sans-serif;
+            font-size: 2.5rem;
+            color: #fff;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .sh-subtitle {
+            color: #888;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .sh-qr-box {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(227, 6, 19, 0.4);
+            border: 2px solid var(--sub-red);
+            margin-bottom: 20px;
+        }
+
+        .sh-qr-img {
+            width: 250px;
+            height: 250px;
+        }
+
+        .sh-counter-box {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sh-count-num {
+            font-family: 'Russo One';
+            font-size: 3rem;
+            color: var(--sub-red);
+            text-shadow: 0 0 15px rgba(227, 6, 19, 0.5);
+            line-height: 1;
+        }
+
+        .sh-count-lbl {
+            color: #fff;
+            font-family: 'Resolve';
+            letter-spacing: 3px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .sh-buttons {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        @media screen and (orientation: landscape) and (max-height: 600px) {
+            .smart-host-wrapper {
+                flex-direction: row;
+                gap: 30px;
+                justify-content: center;
+                align-items: stretch;
+                padding: 10px;
+            }
+
+            .sh-header-container {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                text-align: left;
+            }
+
+            .sh-qr-box {
+                margin-bottom: 0;
+                padding: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .sh-qr-img {
+                width: 200px;
+                height: 200px;
+            }
+
+            .sh-right-col {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: flex-start;
+            }
+
+            .sh-title {
+                font-size: 1.8rem;
+            }
+
+            .sh-subtitle {
+                font-size: 0.75rem;
+                margin-bottom: 20px;
+            }
+
+            .sh-counter-box {
+                text-align: left;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .sh-count-num {
+                font-size: 2.5rem;
+            }
+
+            .sh-buttons {
+                max-width: 300px;
+            }
+        }
+    </style>
+    <div id="smart-host-modal" class="smart-host-wrapper">
+        <div class="sh-qr-box">
             <!-- Fallback QR code image using qrserver api -->
-            <img id="smart-host-qr-img"
+            <img id="smart-host-qr-img" class="sh-qr-img"
                 src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://subsoccer.pro/?join=demo"
-                alt="QR Code" width="250" height="250">
+                alt="QR Code">
         </div>
 
-        <div style="margin-bottom: 30px; text-align: center;">
-            <div
-                style="font-family: 'Russo One'; font-size: 3rem; color: var(--sub-red); text-shadow: 0 0 15px rgba(227,6,19,0.5); line-height: 1;">
-                <span id="smart-host-count">0</span>
+        <div class="sh-right-col">
+            <div class="sh-header-container">
+                <div class="sh-title">SCAN TO JOIN</div>
+                <div class="sh-subtitle">PLAYERS AUTOMATICALLY ADDED</div>
             </div>
-            <div style="color: #fff; font-family: 'Resolve'; letter-spacing: 3px; opacity: 0.8;">PLAYERS
-                IN LOBBY</div>
-        </div>
 
-        <div style="display:flex; gap:15px; width:100%; max-width: 350px;">
-            <button id="btn-cancel-smart-host"
-                style="flex:1; background: transparent; color: #888; border: 1px solid #444; padding: 15px; border-radius: var(--sub-radius); font-family: 'Resolve'; cursor: pointer; letter-spacing: 2px;">CANCEL</button>
-            <button id="btn-start-smart-host" class="btn-red"
-                style="flex:1.5; padding: 15px; font-size: 1rem; box-shadow: 0 0 20px rgba(227,6,19,0.3);">START
-                BRACKET</button>
+            <div class="sh-counter-box">
+                <div class="sh-count-num"><span id="smart-host-count">0</span></div>
+                <div class="sh-count-lbl">JOINED<br>LOBBY</div>
+            </div>
+
+            <div class="sh-buttons">
+                <button id="btn-cancel-smart-host"
+                    style="flex:1; background: transparent; color: #888; border: 1px solid #444; padding: 15px; border-radius: var(--sub-radius); font-family: 'Resolve'; cursor: pointer; letter-spacing: 2px;">CANCEL</button>
+                <button id="btn-start-smart-host" class="btn-red"
+                    style="flex:1.5; padding: 15px; font-size: 1rem; box-shadow: 0 0 20px rgba(227,6,19,0.3);">START</button>
+            </div>
         </div>
     </div>
 
