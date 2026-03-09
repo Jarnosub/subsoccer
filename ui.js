@@ -893,6 +893,11 @@ subscribe('user', () => {
         const regGameBtn = document.getElementById('btn-profile-register-game');
         if (regGameBtn) regGameBtn.style.display = (state.user.id === 'guest' || state.user.id === 'spectator') ? 'none' : 'block';
 
+        const modeSelector = document.querySelector('.mode-selector-container');
+        if (modeSelector) {
+            modeSelector.style.display = (state.user.id === 'guest' || state.user.id === 'spectator') ? 'none' : 'flex';
+        }
+
         updateAdminInterface();
 
         // 3. Quick Match -näkymän nollaus
