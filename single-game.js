@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         isPlaying = true;
+        setNewRandomTarget(); // RANDOM GENERATOR MODE: Arpoo ensimmäisen maalin
 
         // Start countdown
         timerInterval = setInterval(() => {
@@ -100,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(timerInterval);
 
         if (window.visionEngine) {
+            window.visionEngine.activeZoneId = null; // Näytä kaikki valot kun peli on ohi
             window.visionEngine.stopCamera();
         }
 
@@ -161,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 150);
 
         updateDisplays();
+        setNewRandomTarget(); // Arvo uusi palava kohde vasta onnistuneen osuman jälkeen!
     };
 
     function showCombo() {
@@ -174,5 +177,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (navigator.vibrate) {
             navigator.vibrate(50);
         }
+    }
+
+    // --- RANDOM TARGET GENERATOR ---
+    const ZONES = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+
+    function setNewRandomTarget() {
+        if (!window.visionEngine) return;
+
+        let nextTargetId = null;
+        do {
+            nextTargetId = ZONES[Math.floor(Math.random() * ZONES.length)];
+        } while (nextTargetId === window.visionEngine.activeZoneId && ZONES.length > 1);
+
+        window.visionEngine.activeZoneId = nextTargetId;
     }
 });

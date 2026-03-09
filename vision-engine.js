@@ -24,6 +24,8 @@ class VisionEngine {
         this.tolerance = 60; // Ei enää suorassa käytössä uudistetussa laskennassa
         this.pixelThreshold = 0.02; // 2% alueen pikseleistä pitää muuttua pallon väriseksi
 
+        this.activeZoneId = null; // Jos määritetty, vain tämä maali reagoi ja on kirkas
+
         // Tilanhallinta
         this.lastDetections = {};
         this.zones.forEach(z => this.lastDetections[z.id] = 0);
@@ -147,6 +149,9 @@ class VisionEngine {
             const x = Math.floor(cx - w / 2);
             const y = Math.floor(cy - h / 2);
 
+            // RANDOM GENERATOR MODE: Jos vain yksi maali on aktiivinen, ohita muut
+            if (this.activeZoneId && zone.id !== this.activeZoneId) return;
+
             // Jos liian nopea, ohita
             if (now - this.lastDetections[zone.id] < this.COOLDOWN_MS) return;
 
@@ -196,6 +201,14 @@ class VisionEngine {
             const radius = Math.min(w, h) / 2;
 
             this.ctx.save();
+
+            // Random-tilassa himmennetään ei-aktiiviset taulut
+            if (this.activeZoneId && zone.id !== this.activeZoneId) {
+                this.ctx.globalAlpha = 0.2; // Himmeä
+            } else {
+                this.ctx.globalAlpha = 1.0; // Kirkas
+            }
+
             this.ctx.translate(centerX, centerY);
 
             // Pyörähdysanimaatio jos osuma tapahtunut
