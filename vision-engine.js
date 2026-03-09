@@ -11,12 +11,12 @@ class VisionEngine {
         this.stream = null;
         this.isScanning = false;
 
-        // Konfiguroitavat alueet
+        // Konfiguroitavat alueet (hitScale määrittää kuinka pieni osa taulun keskustasta on herkkää aluetta)
         this.zones = [
-            { id: 'top-left', x: 0.12, y: 0.12, width: 0.13, height: 0.13, hitAnimationTime: 0 },
-            { id: 'top-right', x: 0.75, y: 0.12, width: 0.13, height: 0.13, hitAnimationTime: 0 },
-            { id: 'bottom-left', x: 0.12, y: 0.75, width: 0.13, height: 0.13, hitAnimationTime: 0 },
-            { id: 'bottom-right', x: 0.75, y: 0.75, width: 0.13, height: 0.13, hitAnimationTime: 0 }
+            { id: 'top-left', x: 0.08, y: 0.1, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 },
+            { id: 'top-right', x: 0.72, y: 0.1, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 },
+            { id: 'bottom-left', x: 0.08, y: 0.72, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 },
+            { id: 'bottom-right', x: 0.72, y: 0.72, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 }
         ];
 
         // Tunnistuksen herkkyysasetukset
@@ -135,11 +135,17 @@ class VisionEngine {
         const now = Date.now();
 
         this.zones.forEach((zone, index) => {
-            // Laske alueen fysiologiset rajat kankaalla
-            const x = Math.floor(zone.x * this.canvas.width);
-            const y = Math.floor(zone.y * this.canvas.height);
-            const w = Math.floor(zone.width * this.canvas.width);
-            const h = Math.floor(zone.height * this.canvas.height);
+            // Laske visuaalisen alueen keskipiste kankaalla
+            const vw = zone.width * this.canvas.width;
+            const vh = zone.height * this.canvas.height;
+            const cx = (zone.x * this.canvas.width) + (vw / 2);
+            const cy = (zone.y * this.canvas.height) + (vh / 2);
+
+            // Laske varsinainen pienetty "hitbox" osumaalue (vain punainen häränsilmä reagoi)
+            const w = Math.floor(vw * zone.hitScale);
+            const h = Math.floor(vh * zone.hitScale);
+            const x = Math.floor(cx - w / 2);
+            const y = Math.floor(cy - h / 2);
 
             // Jos liian nopea, ohita
             if (now - this.lastDetections[zone.id] < this.COOLDOWN_MS) return;
