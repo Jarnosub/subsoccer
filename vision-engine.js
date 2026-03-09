@@ -21,8 +21,8 @@ class VisionEngine {
 
         // Tunnistuksen herkkyysasetukset
         this.subsoccerRedTarget = { r: 227, g: 6, b: 19 }; // Subsoccerin pallo (#e30613)
-        this.tolerance = 60; // RGB toleranssi per värikanava
-        this.pixelThreshold = 0.05; // 5% alueen pikseleistä pitää muuttua pallon väriseksi
+        this.tolerance = 60; // Ei enää suorassa käytössä uudistetussa laskennassa
+        this.pixelThreshold = 0.02; // 2% alueen pikseleistä pitää muuttua pallon väriseksi
 
         // Tilanhallinta
         this.lastDetections = {};
@@ -157,9 +157,9 @@ class VisionEngine {
                 const g = data[i + 1];
                 const b = data[i + 2];
 
-                if (Math.abs(r - this.subsoccerRedTarget.r) < this.tolerance &&
-                    Math.abs(g - this.subsoccerRedTarget.g) < this.tolerance &&
-                    Math.abs(b - this.subsoccerRedTarget.b) < this.tolerance) {
+                // Parannettu väritunnistus: Pallon punainen on voimakas riippumatta valaistuksesta
+                // Sallii varjon ja kirkkaat valot, kunhan punainen dominoi 1.5 -kertaisesti vihreää ja sinistä vastaan.
+                if (r > 110 && r > g * 1.4 && r > b * 1.4) {
                     matchCount++;
                 }
             }
@@ -210,12 +210,12 @@ class VisionEngine {
             // Ulkoympyrä (Tummansininen)
             this.ctx.beginPath();
             this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
-            this.ctx.fillStyle = '#263b5e';
+            this.ctx.fillStyle = 'rgba(38, 59, 94, 0.85)';
             this.ctx.fill();
 
             // Reunus
             this.ctx.lineWidth = 4;
-            this.ctx.strokeStyle = '#e0dfd1';
+            this.ctx.strokeStyle = 'rgba(224, 223, 209, 0.85)';
             this.ctx.stroke();
 
             // Nollataan varjo
@@ -224,13 +224,13 @@ class VisionEngine {
             // Keskiympyrä (Valkoinen/Beige)
             this.ctx.beginPath();
             this.ctx.arc(0, 0, radius * 0.65, 0, Math.PI * 2);
-            this.ctx.fillStyle = '#e0dfd1';
+            this.ctx.fillStyle = 'rgba(224, 223, 209, 0.85)';
             this.ctx.fill();
 
             // Sisäympyrä (Punainen)
             this.ctx.beginPath();
             this.ctx.arc(0, 0, radius * 0.35, 0, Math.PI * 2);
-            this.ctx.fillStyle = '#c72e2e';
+            this.ctx.fillStyle = 'rgba(199, 46, 46, 0.7)';
             this.ctx.fill();
 
             this.ctx.restore();
