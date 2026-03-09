@@ -35,7 +35,7 @@ export async function hostWithQR() {
 
         // 3. Generate QR Code linking to ?join=LOBBY_ID
         const joinUrl = `${window.location.origin}/?join=${activeLobbyId}`;
-        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=E30613&data=${encodeURIComponent(joinUrl)}`;
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=ffffff&bgcolor=0a0a0a&data=${encodeURIComponent(joinUrl)}`;
 
         // 4. Subscribe to Realtime Updates
         if (subscription) {
