@@ -5,8 +5,12 @@ let activeLobbyId = null;
 let subscription = null;
 
 export async function hostWithQR() {
-    if (!state.user) {
-        alert("You need to be logged in to host a tournament.");
+    if (!state.user || state.user.id === 'guest' || state.user.id === 'spectator') {
+        if (typeof window.showAuthPage === 'function') {
+            window.showAuthPage('login');
+        } else {
+            alert("You need to be logged in to host a tournament.");
+        }
         return;
     }
 

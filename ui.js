@@ -894,11 +894,6 @@ subscribe('user', () => {
         const regGameBtn = document.getElementById('btn-profile-register-game');
         if (regGameBtn) regGameBtn.style.display = (state.user.id === 'guest' || state.user.id === 'spectator') ? 'none' : 'block';
 
-        const quickHostQrBtn = document.getElementById('btn-quick-host-qr');
-        if (quickHostQrBtn) {
-            quickHostQrBtn.style.display = (state.user.id === 'guest' || state.user.id === 'spectator') ? 'none' : 'block';
-        }
-
         updateAdminInterface();
 
         // 3. Quick Match -näkymän nollaus
