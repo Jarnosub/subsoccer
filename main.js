@@ -36,8 +36,8 @@ const start = () => {
             showMatchMode('tournament');
         }
 
-        // Ensure the login form is shown instead of the landing hero
-        if (typeof window.showAuthPage === 'function') {
+        // Ensure the login form is shown if there is no user token
+        if (typeof window.showAuthPage === 'function' && !localStorage.getItem('sb-ujxmmrsmdwrgcwatdhvx-auth-token')) {
             window.showAuthPage('login');
         }
     }
