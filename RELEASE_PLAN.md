@@ -1,6 +1,6 @@
 # Subsoccer App - Julkaisusuunnitelma & Roadmap (BETA)
 
-Tämä dokumentti määrittelee Subsoccer-sovelluksen (The Forge & Global League) asteittaisen julkaisustrategian. Pääasiallinen tavoite on julkaista teknisesti ja visuaalisesti laadukas **MVP (Minimum Viable Product)** Beta-testiin karsimalla ylimääräinen monimutkaisuus pois.
+Tämä dokumentti määrittelee Subsoccer-sovelluksen (The Forge & Pro League) asteittaisen julkaisustrategian. Pääasiallinen tavoite on julkaista teknisesti ja visuaalisesti laadukas **MVP (Minimum Viable Product)** Beta-testiin karsimalla ylimääräinen monimutkaisuus pois.
 
 ## 🎯 Julkaisufilosofia (Progressive Disclosure)
 1. **Zero Confusion:** Pelaajan täytyy ymmärtää ydinkokemus ensimmäisen 30 sekunnin aikana.
