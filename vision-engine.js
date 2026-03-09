@@ -58,10 +58,8 @@ class VisionEngine {
 
             // Päivitä kameran koko ruudun käännöissä
             window.addEventListener('resize', () => {
-                if (this.video && this.video.videoWidth) {
-                    this.canvas.width = this.video.videoWidth;
-                    this.canvas.height = this.video.videoHeight;
-                }
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
             });
         }
     }
@@ -81,8 +79,9 @@ class VisionEngine {
             return new Promise((resolve) => {
                 this.video.onloadedmetadata = () => {
                     this.video.play();
-                    this.canvas.width = this.video.videoWidth;
-                    this.canvas.height = this.video.videoHeight;
+                    // Aseta canvas täsmälleen laitteen näytön pikselikokoon
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
                     this.isScanning = true;
                     this.appLoop();
                     resolve(true);
@@ -105,8 +104,26 @@ class VisionEngine {
     appLoop() {
         if (!this.isScanning) return;
 
-        // Piirrä videokuva kankaalle
-        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        // Laske cover-skaalaus videolle jotta se täyttää koko näytön leikkaamalla ylimääräiset (kuten CSS object-fit: cover)
+        const canvasRatio = this.canvas.width / this.canvas.height;
+        const videoRatio = this.video.videoWidth / this.video.videoHeight;
+
+        let drawWidth, drawHeight, offsetX, offsetY;
+
+        if (canvasRatio > videoRatio) {
+            drawWidth = this.canvas.width;
+            drawHeight = this.canvas.width / videoRatio;
+            offsetX = 0;
+            offsetY = (this.canvas.height - drawHeight) / 2;
+        } else {
+            drawHeight = this.canvas.height;
+            drawWidth = this.canvas.height * videoRatio;
+            offsetX = (this.canvas.width - drawWidth) / 2;
+            offsetY = 0;
+        }
+
+        // Piirrä videokuva kankaalle leikatussa koossa
+        this.ctx.drawImage(this.video, offsetX, offsetY, drawWidth, drawHeight);
 
         this.analyseFrame();
         this.drawOverlay();
