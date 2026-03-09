@@ -52,9 +52,17 @@ class VisionEngine {
             this.canvas.style.height = '100vh';
             this.canvas.style.zIndex = '0'; // Taustalla pelin takana
             this.canvas.style.objectFit = 'cover';
-            this.canvas.style.opacity = '0.3'; // Näkyy himmeästi läpi arcade-ruudun takaa
+            this.canvas.style.opacity = '0.6'; // Parannettu kameran näkyvyys
             document.body.insertBefore(this.canvas, document.body.firstChild);
             this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+
+            // Päivitä kameran koko ruudun käännöissä
+            window.addEventListener('resize', () => {
+                if (this.video && this.video.videoWidth) {
+                    this.canvas.width = this.video.videoWidth;
+                    this.canvas.height = this.video.videoHeight;
+                }
+            });
         }
     }
 
@@ -144,7 +152,7 @@ class VisionEngine {
                 this.lastDetections[zone.id] = now;
 
                 // Visuaalinen indikaattori onnistumisesta (väläyttää laatikkoa)
-                zone.color = 'rgba(0, 255, 204, 0.8)'; // Neon osumaväri
+                zone.color = 'rgba(0, 255, 204, 1.0)'; // Neon osumaväri, voimakkaampi glow
                 setTimeout(() => { zone.color = 'rgba(255, 215, 0, 0.5)'; }, 500);
 
                 if (this.onTargetHit) {
@@ -161,18 +169,57 @@ class VisionEngine {
             const w = zone.width * this.canvas.width;
             const h = zone.height * this.canvas.height;
 
+            // Hehku (glow) efekti maalille
+            this.ctx.shadowBlur = 15;
+            this.ctx.shadowColor = zone.color;
             this.ctx.strokeStyle = zone.color;
-            this.ctx.lineWidth = 4;
-            this.ctx.strokeRect(x, y, w, h);
+            this.ctx.lineWidth = 6;
 
-            // Tähtäimen risti keskelle
+            // Piirretään scifi-tyyliset kulmat koko laatikon sijaan
+            const cornerLength = w * 0.25;
             this.ctx.beginPath();
-            this.ctx.moveTo(x + w / 2, y + h / 2 - 10);
-            this.ctx.lineTo(x + w / 2, y + h / 2 + 10);
-            this.ctx.moveTo(x + w / 2 - 10, y + h / 2);
-            this.ctx.lineTo(x + w / 2 + 10, y + h / 2);
+
+            // Ylä-vasen
+            this.ctx.moveTo(x, y + cornerLength);
+            this.ctx.lineTo(x, y);
+            this.ctx.lineTo(x + cornerLength, y);
+
+            // Ylä-oikea
+            this.ctx.moveTo(x + w - cornerLength, y);
+            this.ctx.lineTo(x + w, y);
+            this.ctx.lineTo(x + w, y + cornerLength);
+
+            // Ala-oikea
+            this.ctx.moveTo(x + w, y + h - cornerLength);
+            this.ctx.lineTo(x + w, y + h);
+            this.ctx.lineTo(x + w - cornerLength, y + h);
+
+            // Ala-vasen
+            this.ctx.moveTo(x + cornerLength, y + h);
+            this.ctx.lineTo(x, y + h);
+            this.ctx.lineTo(x, y + h - cornerLength);
+
             this.ctx.stroke();
+
+            // Tähtäimen risti keskelle - siro
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + w / 2, y + h / 2 - 15);
+            this.ctx.lineTo(x + w / 2, y + h / 2 + 15);
+            this.ctx.moveTo(x + w / 2 - 15, y + h / 2);
+            this.ctx.lineTo(x + w / 2 + 15, y + h / 2);
+            this.ctx.stroke();
+
+            // Lisätään selkeä teksti telineen maaleihin
+            this.ctx.shadowBlur = 0; // Teksti ilman rajua hehkua
+            this.ctx.font = "bold 24px 'Russo One', sans-serif";
+            this.ctx.fillStyle = zone.color;
+            this.ctx.textAlign = "center";
+            this.ctx.fillText("TARGET GOAL", x + w / 2, y - 10);
         });
+
+        // Nollataan lopuksi shadow, jottei se vaikuta muihin
+        this.ctx.shadowBlur = 0;
     }
 }
 
