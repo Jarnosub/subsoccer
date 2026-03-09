@@ -593,7 +593,6 @@ export function setupUIListeners() {
 
     // Smart Host
     document.getElementById('btn-smart-host')?.addEventListener('click', () => hostWithQR());
-    document.getElementById('btn-quick-host-qr')?.addEventListener('click', () => hostWithQR());
     document.getElementById('btn-cancel-smart-host')?.addEventListener('click', () => cancelQRHost());
     document.getElementById('btn-start-smart-host')?.addEventListener('click', () => {
         startQRBracket();
@@ -893,6 +892,11 @@ subscribe('user', () => {
 
         const regGameBtn = document.getElementById('btn-profile-register-game');
         if (regGameBtn) regGameBtn.style.display = (state.user.id === 'guest' || state.user.id === 'spectator') ? 'none' : 'block';
+
+        const modeSelector = document.querySelector('.mode-selector-container');
+        if (modeSelector) {
+            modeSelector.style.display = (state.user.id === 'guest' || state.user.id === 'spectator') ? 'none' : 'flex';
+        }
 
         updateAdminInterface();
 
