@@ -207,30 +207,34 @@ class VisionEngine {
             this.ctx.shadowBlur = 15;
             this.ctx.shadowColor = 'rgba(0,0,0,0.8)';
 
-            // Ulkoympyrä (Tummansininen)
+            // Ulkoympyrä (Tummansininen) - piirretään leveänä viivana jotta alueiden väliin jää läpinäkyvä raita
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, radius * 0.82, 0, Math.PI * 2);
+            this.ctx.lineWidth = radius * 0.36; // Ulottuu 0.64:stä 1.00:aan
+            this.ctx.strokeStyle = 'rgba(38, 59, 94, 0.9)';
+            this.ctx.stroke();
+
+            // Ohut vaalea reunus aivan uloimmalle reunalle
             this.ctx.beginPath();
             this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
-            this.ctx.fillStyle = 'rgba(38, 59, 94, 0.85)';
-            this.ctx.fill();
-
-            // Reunus
             this.ctx.lineWidth = 4;
-            this.ctx.strokeStyle = 'rgba(224, 223, 209, 0.85)';
+            this.ctx.strokeStyle = 'rgba(224, 223, 209, 0.6)';
             this.ctx.stroke();
 
             // Nollataan varjo
             this.ctx.shadowBlur = 0;
 
-            // Keskiympyrä (Valkoinen/Beige)
+            // Keskiympyrä (Valkoinen/Beige) - toinen viivarengas (Tässä on nyt täysin läpinäkyvä alue sinisen ja valkoisen välissä)
             this.ctx.beginPath();
-            this.ctx.arc(0, 0, radius * 0.65, 0, Math.PI * 2);
-            this.ctx.fillStyle = 'rgba(224, 223, 209, 0.85)';
-            this.ctx.fill();
+            this.ctx.arc(0, 0, radius * 0.45, 0, Math.PI * 2);
+            this.ctx.lineWidth = radius * 0.2; // Ulottuu 0.35:stä 0.55:een
+            this.ctx.strokeStyle = 'rgba(224, 223, 209, 0.9)';
+            this.ctx.stroke();
 
-            // Sisäympyrä (Punainen)
+            // Sisäympyrä (Punainen) - umpikuja keskellä, laidoilla on täysin läpinäkyvä alue valkoiseen nähden
             this.ctx.beginPath();
-            this.ctx.arc(0, 0, radius * 0.35, 0, Math.PI * 2);
-            this.ctx.fillStyle = 'rgba(199, 46, 46, 0.7)';
+            this.ctx.arc(0, 0, radius * 0.22, 0, Math.PI * 2); // Ulottuu 0:sta 0.22:een
+            this.ctx.fillStyle = 'rgba(199, 46, 46, 0.9)';
             this.ctx.fill();
 
             this.ctx.restore();
