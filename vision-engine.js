@@ -8,8 +8,11 @@ class VisionEngine {
         this.video = null;
         this.canvas = null;
         this.ctx = null;
+        this.ctx = null;
         this.stream = null;
         this.isScanning = false;
+        this.facingMode = 'environment';
+        this.showTargets = true;
 
         // Konfiguroitavat alueet (hitScale määrittää kuinka pieni osa taulun keskustasta on herkkää aluetta)
         this.zones = [
@@ -66,13 +69,17 @@ class VisionEngine {
         }
     }
 
-    async startCamera() {
+    async startCamera(facingMode = 'environment') {
         try {
+            this.stopCamera(); // Pysäytä mahdollinen aiempi streami lennosta
             await this.init();
 
-            // Pyydä puhelimen takakameraa
+            this.facingMode = facingMode;
+            this.showTargets = (facingMode === 'environment');
+
+            // Pyydä kameraa
             this.stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' },
+                video: { facingMode: this.facingMode },
                 audio: false
             });
 
@@ -84,6 +91,14 @@ class VisionEngine {
                     // Aseta canvas täsmälleen laitteen näytön pikselikokoon
                     this.canvas.width = window.innerWidth;
                     this.canvas.height = window.innerHeight;
+
+                    // Peilaa etukamera, muuten näyttää oudolta (kuten peiliin katsoisi)
+                    if (this.facingMode === 'user') {
+                        this.canvas.style.transform = 'scaleX(-1)';
+                    } else {
+                        this.canvas.style.transform = 'scaleX(1)';
+                    }
+
                     this.isScanning = true;
                     this.appLoop();
                     resolve(true);
@@ -127,8 +142,10 @@ class VisionEngine {
         // Piirrä videokuva kankaalle leikatussa koossa
         this.ctx.drawImage(this.video, offsetX, offsetY, drawWidth, drawHeight);
 
-        this.analyseFrame();
-        this.drawOverlay();
+        if (this.showTargets) {
+            this.analyseFrame();
+            this.drawOverlay();
+        }
 
         requestAnimationFrame(() => this.appLoop());
     }

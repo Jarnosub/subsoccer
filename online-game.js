@@ -143,6 +143,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initNetwork();
 
+    // Start selfie camera for player intro before match
+    async function initSelfieCamera() {
+        if (window.visionEngine) {
+            await window.visionEngine.startCamera('user');
+        }
+    }
+    initSelfieCamera();
+
     // Check camera status periodically
     setInterval(() => {
         if (!window.visionEngine) return;
@@ -172,11 +180,11 @@ document.addEventListener('DOMContentLoaded', () => {
         comboDisplay.classList.remove('active');
         btnStart.style.display = 'none';
 
-        // Start the vision engine (Camera)
-        if (window.visionEngine) {
-            const success = await window.visionEngine.startCamera();
+        // Start the vision engine (Camera) in environment mode for game
+        if (window.visionEngine && window.visionEngine.facingMode !== 'environment') {
+            const success = await window.visionEngine.startCamera('environment');
             if (!success) {
-                alert("Camera access is required for this game mode!");
+                alert("Back camera access is required for gameplay!");
                 btnStart.style.display = 'inline-block';
                 return;
             }
