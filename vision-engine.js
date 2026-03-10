@@ -13,10 +13,10 @@ class VisionEngine {
 
         // Konfiguroitavat alueet (hitScale määrittää kuinka pieni osa taulun keskustasta on herkkää aluetta)
         this.zones = [
-            { id: 'top-left', x: 0.08, y: 0.1, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 },
-            { id: 'top-right', x: 0.72, y: 0.1, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 },
-            { id: 'bottom-left', x: 0.08, y: 0.72, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 },
-            { id: 'bottom-right', x: 0.72, y: 0.72, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 }
+            { id: 'top-left', x: 0.18, y: 0.05, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 },
+            { id: 'top-right', x: 0.62, y: 0.05, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 },
+            { id: 'bottom-left', x: 0.21, y: 0.42, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 },
+            { id: 'bottom-right', x: 0.59, y: 0.42, width: 0.2, height: 0.2, hitScale: 0.35, hitAnimationTime: 0 }
         ];
 
         // Tunnistuksen herkkyysasetukset
