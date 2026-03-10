@@ -1,7 +1,7 @@
 // Subsoccer Arcade - Online Multiplayer Logic
 const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const arcadeDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let myId = Math.random().toString(36).substring(7);
 let myName = "PLAYER";
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Init Network Connection
     function initNetwork() {
-        supabaseChannel = supabase.channel('arcade_global_battle', {
+        supabaseChannel = arcadeDb.channel('arcade_global_battle', {
             config: {
                 broadcast: { self: false },
             },
