@@ -2519,7 +2519,7 @@ body.live-mode {
 
 .mode-select-btn {
     flex: 1;
-    padding: 15px 5px;
+    padding: 12px 2px;
     border-radius: 4px;
     font-family: 'Resolve', sans-serif;
     font-size: 0.9rem;
@@ -2540,11 +2540,12 @@ body.live-mode {
 }
 
 .mode-title {
-    font-size: clamp(0.7rem, 2vw, 0.95rem);
-    letter-spacing: 0.5px;
-    word-break: break-word;
+    font-size: clamp(0.55rem, 1.8vw, 0.95rem);
+    letter-spacing: 0px;
     text-align: center;
     line-height: 1.1;
+    word-break: normal;
+    white-space: pre-wrap;
 }
 
 .mode-desc {
