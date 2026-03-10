@@ -2585,6 +2585,80 @@ body.live-mode {
     color: #666;
 }
 
+#btn-single-player-mode {
+    background: #1a1a1a;
+    color: #888;
+    border: 2px solid #333;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+#btn-single-player-mode .mode-icon,
+#btn-single-player-mode .mode-title {
+    color: #888;
+}
+
+#btn-single-player-mode .mode-desc {
+    color: #666;
+    font-weight: normal;
+}
+
+#btn-single-player-mode:hover,
+#btn-single-player-mode:active {
+    background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%);
+    color: #000;
+    border-color: transparent;
+    transform: translateY(-2px) scale(1.02);
+}
+
+#btn-single-player-mode:hover .mode-icon,
+#btn-single-player-mode:active .mode-icon,
+#btn-single-player-mode:hover .mode-title,
+#btn-single-player-mode:active .mode-title {
+    color: #000;
+}
+
+#btn-single-player-mode:hover .mode-desc,
+#btn-single-player-mode:active .mode-desc {
+    color: #333;
+}
+
+#btn-online-versus-mode {
+    background: #1a1a1a;
+    color: #888;
+    border: 2px solid #333;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+}
+
+#btn-online-versus-mode .mode-icon,
+#btn-online-versus-mode .mode-title {
+    color: #888;
+}
+
+#btn-online-versus-mode .mode-desc {
+    color: #666;
+    font-weight: normal;
+}
+
+#btn-online-versus-mode:hover,
+#btn-online-versus-mode:active {
+    background: linear-gradient(135deg, #00FFCC 0%, #00b38f 100%);
+    color: #000;
+    border-color: transparent;
+    transform: translateY(-2px) scale(1.02);
+}
+
+#btn-online-versus-mode:hover .mode-icon,
+#btn-online-versus-mode:active .mode-icon,
+#btn-online-versus-mode:hover .mode-title,
+#btn-online-versus-mode:active .mode-title {
+    color: #000;
+}
+
+#btn-online-versus-mode:hover .mode-desc,
+#btn-online-versus-mode:active .mode-desc {
+    color: #111;
+}
+
 /* ============================================================ */
 /* AUTH & GAME REGISTRATION CLEANUP                             */
 /* ============================================================ */
