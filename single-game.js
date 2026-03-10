@@ -11,6 +11,60 @@ let currentCombo = 1;
 const COMBO_TIMEOUT_MS = 2500; // 2.5 seconds to keep combo alive
 const BASE_POINTS = 100;
 
+// Web Audio API Context
+let audioCtx = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+// C64 Style Synthesizer
+function playC64Sound(type = 'hit') {
+    if (!audioCtx) return;
+
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+
+    if (type === 'hit') {
+        // C64 'Coin' tai blip-ääni: Kaksi nopeaa nousevaa taajuutta neliö-aallolla
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(440, now); // A4
+        osc.frequency.setValueAtTime(880, now + 0.1); // Jump to A5
+
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+        osc.start(now);
+        osc.stop(now + 0.3);
+    } else if (type === 'combo') {
+        // C64 'Powerup' ääni: Arpeggio
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(349.23, now); // F4
+        osc.frequency.setValueAtTime(440, now + 0.05); // A4
+        osc.frequency.setValueAtTime(523.25, now + 0.1); // C5
+        osc.frequency.setValueAtTime(698.46, now + 0.15); // F5
+
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+        osc.start(now);
+        osc.stop(now + 0.4);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const btnStart = document.getElementById('btn-start');
     const btnRestart = document.getElementById('btn-restart');
@@ -26,8 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const camDot = document.getElementById('cam-indicator');
     const camText = document.getElementById('cam-text');
 
-    // Make sure vision starts on tap
-    btnStart.addEventListener('click', startGame);
+    // Make sure vision starts on tap and initialize Audio
+    btnStart.addEventListener('click', () => {
+        initAudio(); // Required to unlock audio on first user gesture
+        startGame();
+    });
     btnRestart.addEventListener('click', () => {
         endOverlay.style.display = 'none';
         startGame();
@@ -141,9 +198,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Combo Logic: Hit same target within timeout = multiplier goes up
         if (zoneId === lastTargetHit && (now - lastHitTime < COMBO_TIMEOUT_MS)) {
             currentCombo++;
+            playC64Sound('combo'); // Retro combo arpeggio
             showCombo();
         } else {
             currentCombo = 1;
+            playC64Sound('hit'); // Retro hit blip
             comboDisplay.classList.remove('active');
         }
 
