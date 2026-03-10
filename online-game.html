@@ -368,6 +368,19 @@
         <span id="cam-text">Camera standby</span>
     </div>
 
+    <!-- HUD Pinned Score Boxes -->
+    <div class="stat-box hud-side-box hud-left"
+        style="padding: 15px 20px; border-color: var(--sub-neon); background: rgba(0,0,0,0.8);">
+        <div class="stat-label">MY SCORE</div>
+        <div class="stat-value" id="score-value">0</div>
+    </div>
+
+    <div class="stat-box hud-side-box hud-right"
+        style="padding: 15px 20px; border-color: #E30613; background: rgba(0,0,0,0.8);">
+        <div class="stat-label">OPPONENT</div>
+        <div class="stat-value" id="opp-score-value">0</div>
+    </div>
+
     <div class="arcade-container">
         <img src="subsoccer_logo.svg" alt="Subsoccer" class="logo">
         <div class="header-title">ONLINE ARCADE<br>VERSUS</div>
@@ -377,18 +390,6 @@
             <div class="stat-box" style="padding: 10px 40px; background: rgba(0,0,0,0.8);">
                 <div class="stat-label" style="color: var(--sub-gold);">TIME LEFT</div>
                 <div class="stat-value" id="timer-value" style="font-size: 3.5rem; color: var(--sub-gold);">45</div>
-            </div>
-
-            <div class="stat-box hud-side-box hud-left"
-                style="padding: 15px 20px; border-color: var(--sub-neon); background: rgba(0,0,0,0.8);">
-                <div class="stat-label">MY SCORE</div>
-                <div class="stat-value" id="score-value">0</div>
-            </div>
-
-            <div class="stat-box hud-side-box hud-right"
-                style="padding: 15px 20px; border-color: #E30613; background: rgba(0,0,0,0.8);">
-                <div class="stat-label">OPPONENT</div>
-                <div class="stat-value" id="opp-score-value">0</div>
             </div>
         </div>
 
