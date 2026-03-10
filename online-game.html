@@ -290,11 +290,29 @@
         }
 
         .hud-left {
-            left: 20px;
+            left: max(15px, env(safe-area-inset-left));
         }
 
         .hud-right {
-            right: 20px;
+            right: max(15px, env(safe-area-inset-right));
+        }
+
+        @media (max-width: 800px) {
+            .hud-side-box {
+                padding: 10px 15px !important;
+            }
+
+            .hud-side-box .stat-value {
+                font-size: 2.5rem !important;
+            }
+
+            #main-panel .stat-box {
+                padding: 10px 20px !important;
+            }
+
+            #main-panel .stat-value {
+                font-size: 2.5rem !important;
+            }
         }
 
         /* Landscape / Small screen adjustments */
