@@ -340,6 +340,11 @@
         <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
     </div>
 
+    <!-- Remote Video (Face-off) -->
+    <video id="remote-video" autoplay playsinline muted
+        style="position: absolute; top: 20px; right: 20px; width: 120px; height: 160px; object-fit: cover; border-radius: 12px; border: 2px solid var(--sub-neon); box-shadow: 0 0 15px rgba(0,255,204,0.5); z-index: 105; display: none; background: #111;">
+    </video>
+
     <!-- Camera Status -->
     <div id="camera-status"
         style="position: absolute; bottom: 20px; left: 20px; font-family: 'Open Sans', sans-serif; font-size: 0.8rem; color: #666; display: flex; align-items: center; gap: 10px; z-index: 100;">
@@ -377,7 +382,7 @@
             <div id="combo-display" class="combo-text">2X COMBO!</div>
         </div>
 
-        <button id="btn-start" class="start-btn">START</button>
+        <button id="btn-start" class="start-btn">READY FOR BATTLE</button>
     </div>
 
     <!-- Game Over Screen -->

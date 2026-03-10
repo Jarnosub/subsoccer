@@ -8,6 +8,9 @@ let myName = "PLAYER";
 let oppScore = 0;
 let oppName = "OPPONENT";
 let supabaseChannel = null;
+let peerConnection = null;
+let isReady = false;
+let oppReady = false;
 let score = 0;
 let timeLeft = 45;
 let timerInterval = null;
@@ -98,6 +101,33 @@ document.addEventListener('DOMContentLoaded', () => {
         try { myName = JSON.parse(userJson).username || "PLAYER"; } catch (e) { }
     }
 
+    // WebRTC Setup
+    function initWebRTC() {
+        if (peerConnection) return;
+        peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+
+        // Add our face stream
+        if (window.visionEngine && window.visionEngine.stream) {
+            window.visionEngine.stream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, window.visionEngine.stream);
+            });
+        }
+
+        peerConnection.ontrack = (event) => {
+            const remoteVideo = document.getElementById('remote-video');
+            if (remoteVideo.srcObject !== event.streams[0]) {
+                remoteVideo.srcObject = event.streams[0];
+                remoteVideo.style.display = 'block';
+            }
+        };
+
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate && supabaseChannel) {
+                supabaseChannel.send({ type: 'broadcast', event: 'rtc_candidate', payload: { candidate: event.candidate, id: myId } });
+            }
+        };
+    }
+
     // Init Network Connection
     function initNetwork() {
         supabaseChannel = arcadeDb.channel('arcade_global_battle', {
@@ -106,6 +136,43 @@ document.addEventListener('DOMContentLoaded', () => {
             },
         });
 
+        // 1. Someone joins
+        supabaseChannel.on('broadcast', { event: 'hello' }, async (payload) => {
+            if (payload.payload.id !== myId && !isPlaying) {
+                statusText.textContent = "OPPONENT IN LOBBY! CONNECTING VIDEO...";
+                initWebRTC();
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                supabaseChannel.send({ type: 'broadcast', event: 'rtc_offer', payload: { offer, id: myId } });
+            }
+        });
+
+        // 2. We got an Offer
+        supabaseChannel.on('broadcast', { event: 'rtc_offer' }, async (payload) => {
+            if (payload.payload.id !== myId && !isPlaying) {
+                initWebRTC();
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(payload.payload.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                supabaseChannel.send({ type: 'broadcast', event: 'rtc_answer', payload: { answer, id: myId } });
+            }
+        });
+
+        // 3. We got an Answer
+        supabaseChannel.on('broadcast', { event: 'rtc_answer' }, async (payload) => {
+            if (payload.payload.id !== myId && peerConnection) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(payload.payload.answer));
+            }
+        });
+
+        // 4. ICE Candidates
+        supabaseChannel.on('broadcast', { event: 'rtc_candidate' }, async (payload) => {
+            if (payload.payload.id !== myId && peerConnection) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(payload.payload.candidate));
+            }
+        });
+
+        // Game logic syncing
         supabaseChannel.on('broadcast', { event: 'score_update' }, (payload) => {
             if (payload.payload.id !== myId && isPlaying) {
                 oppScore = payload.payload.score;
@@ -115,30 +182,87 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        supabaseChannel.on('broadcast', { event: 'player_ready' }, (payload) => {
+            if (payload.payload.id !== myId && !isPlaying) {
+                oppReady = true;
+                statusText.textContent = "OPPONENT READY. PRESS READY TO START.";
+                if (isReady) {
+                    supabaseChannel.send({ type: 'broadcast', event: 'game_start', payload: { id: myId } });
+                    triggerCountdown();
+                }
+            }
+        });
+
         supabaseChannel.on('broadcast', { event: 'game_start' }, (payload) => {
             if (payload.payload.id !== myId && !isPlaying) {
-                statusText.textContent = "OPPONENT FOUND! GET READY!";
-                setTimeout(() => {
-                    startGame(false); // don't broadcast start again
-                }, 1500);
+                triggerCountdown();
             }
         });
 
         supabaseChannel.subscribe((status) => {
             if (status === 'SUBSCRIBED') {
-                statusText.textContent = "Connected. Waiting for opponent or press START.";
+                statusText.textContent = "Awaiting opponent in the Lobby. Say Hi in the camera!";
+                supabaseChannel.send({ type: 'broadcast', event: 'hello', payload: { id: myId } });
             }
         });
+    }
+
+    function triggerCountdown() {
+        if (isPlaying) return;
+        isPlaying = true;
+        btnStart.style.display = 'none';
+
+        let counter = 3;
+        statusText.style.fontSize = '3rem';
+        statusText.style.color = '#fff';
+
+        const countInterval = setInterval(() => {
+            if (counter > 0) {
+                playC64Sound('hit');
+                statusText.textContent = counter;
+                counter--;
+            } else {
+                clearInterval(countInterval);
+                playC64Sound('combo');
+                statusText.textContent = "PLAY!";
+                setTimeout(() => {
+                    statusText.style.fontSize = '0.9rem';
+                    statusText.style.color = '#aaa';
+                    startGameSequence();
+                }, 1000);
+            }
+        }, 1000);
     }
 
     // Make sure vision starts on tap and initialize Audio
     btnStart.addEventListener('click', () => {
         initAudio(); // Required to unlock audio on first user gesture
-        startGame(true); // Is host
+        if (!isReady) {
+            isReady = true;
+            btnStart.style.display = 'none';
+            statusText.textContent = "WAITING FOR OPPONENT TO READY UP...";
+
+            if (supabaseChannel) {
+                supabaseChannel.send({ type: 'broadcast', event: 'player_ready', payload: { id: myId } });
+            }
+
+            if (oppReady && supabaseChannel) {
+                supabaseChannel.send({ type: 'broadcast', event: 'game_start', payload: { id: myId } });
+                triggerCountdown();
+            }
+        }
     });
+
     btnRestart.addEventListener('click', () => {
         endOverlay.style.display = 'none';
-        startGame(true);
+        isReady = false;
+        oppReady = false;
+        isPlaying = false;
+        btnStart.style.display = 'inline-block';
+        btnStart.textContent = "READY FOR BATTLE";
+        statusText.textContent = "Awaiting opponent...";
+        initSelfieCamera();
+        document.getElementById('remote-video').style.display = 'block';
     });
 
     initNetwork();
@@ -147,6 +271,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initSelfieCamera() {
         if (window.visionEngine) {
             await window.visionEngine.startCamera('user');
+            if (supabaseChannel && supabaseChannel.state === 'joined') {
+                supabaseChannel.send({ type: 'broadcast', event: 'hello', payload: { id: myId } });
+            }
         }
     }
     initSelfieCamera();
@@ -165,8 +292,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 
-    async function startGame(isHost = false) {
-        if (isPlaying) return;
+    async function startGameSequence() {
+        // Sulje Faceoff video jotta säästyy tehoa
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = null;
+        }
+        document.getElementById('remote-video').style.display = 'none';
 
         // Reset state
         score = 0;
@@ -196,14 +328,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isPlaying = true;
         setNewRandomTarget(); // RANDOM GENERATOR MODE: Arpoo ensimmäisen maalin
         statusText.textContent = "BATTLE IN PROGRESS!";
-
-        if (isHost && supabaseChannel) {
-            supabaseChannel.send({
-                type: 'broadcast',
-                event: 'game_start',
-                payload: { id: myId, name: myName }
-            });
-        }
 
         // Start countdown
         timerInterval = setInterval(() => {
