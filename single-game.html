@@ -374,6 +374,22 @@
         <div class="final-score-label" style="font-size: 1rem; color:#888;">FINAL SCORE</div>
         <div class="final-score-value" id="final-score">0</div>
 
+        <!-- ELO Ranking Section -->
+        <div id="elo-container"
+            style="display: none; flex-direction: column; align-items: center; margin-bottom: 30px;">
+            <div style="font-size: 1rem; color: var(--sub-gold); margin-bottom: 5px; letter-spacing: 2px;">GLOBAL
+                RANKING</div>
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+                <span id="elo-value"
+                    style="font-size: 2.5rem; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); transition: all 0.2s;">1000</span>
+                <span id="elo-gained"
+                    style="font-size: 1.5rem; color: var(--sub-neon); opacity: 0; transform: translateY(10px); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">+0</span>
+            </div>
+            <div id="elo-player-name"
+                style="font-size: 0.9rem; color: #aaa; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">
+                PLAYER</div>
+        </div>
+
         <div style="display:flex; gap:20px;">
             <button id="btn-restart" class="start-btn"
                 style="font-size:1.2rem; padding: 15px 40px; background: #333;">TRY AGAIN</button>
