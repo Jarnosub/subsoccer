@@ -281,6 +281,22 @@
             animation: hitFlash 0.3s ease-out;
         }
 
+        /* Specific overrides for online mode hud */
+        .hud-side-box {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .hud-left {
+            left: 20px;
+        }
+
+        .hud-right {
+            right: 20px;
+        }
+
         /* Landscape / Small screen adjustments */
         @media (max-height: 500px) {
             .arcade-container {
@@ -356,18 +372,21 @@
         <img src="subsoccer_logo.svg" alt="Subsoccer" class="logo">
         <div class="header-title">ONLINE ARCADE<br>VERSUS</div>
 
-        <div class="display-panel" id="main-panel" style="flex-direction: row; justify-content: space-around;">
-            <div class="stat-box" style="padding: 10px 15px; border-color: var(--sub-neon);">
+        <div class="display-panel" id="main-panel"
+            style="flex-direction: column; justify-content: center; align-items: center;">
+            <div class="stat-box" style="padding: 10px 40px; background: rgba(0,0,0,0.8);">
+                <div class="stat-label" style="color: var(--sub-gold);">TIME LEFT</div>
+                <div class="stat-value" id="timer-value" style="font-size: 3.5rem; color: var(--sub-gold);">45</div>
+            </div>
+
+            <div class="stat-box hud-side-box hud-left"
+                style="padding: 15px 20px; border-color: var(--sub-neon); background: rgba(0,0,0,0.8);">
                 <div class="stat-label">MY SCORE</div>
                 <div class="stat-value" id="score-value">0</div>
             </div>
 
-            <div class="stat-box" style="padding: 10px 15px; background: rgba(0,0,0,0.8);">
-                <div class="stat-label" style="color: var(--sub-gold);">TIME LEFT</div>
-                <div class="stat-value" id="timer-value" style="font-size: 2.5rem; color: var(--sub-gold);">45</div>
-            </div>
-
-            <div class="stat-box" style="padding: 10px 15px; border-color: #E30613;">
+            <div class="stat-box hud-side-box hud-right"
+                style="padding: 15px 20px; border-color: #E30613; background: rgba(0,0,0,0.8);">
                 <div class="stat-label">OPPONENT</div>
                 <div class="stat-value" id="opp-score-value">0</div>
             </div>
