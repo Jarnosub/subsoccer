@@ -83,6 +83,7 @@ export function showEditProfile() {
 
     // Haetaan arvot state.userista (joka on nyt ladattu auth.js:ssä)
     const mapping = {
+        'edit-username': state.user.username,
         'edit-full-name': state.user.full_name,
         'edit-email': state.user.email,
         'edit-phone': state.user.phone,

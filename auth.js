@@ -658,6 +658,7 @@ export async function saveProfile(e) {
         const fileInput = document.getElementById('avatar-file-input');
         const file = fileInput?.files[0];
 
+        const usernameInput = document.getElementById('edit-username')?.value.trim();
         const fullName = document.getElementById('edit-full-name')?.value.trim();
         const email = document.getElementById('edit-email')?.value.trim();
         const phone = document.getElementById('edit-phone')?.value.trim();
@@ -691,6 +692,20 @@ export async function saveProfile(e) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 showNotification('Please enter a valid email address', 'error');
+                if (btn) { btn.textContent = originalText; btn.disabled = false; }
+                return;
+            }
+        }
+
+        if (usernameInput) { // Only validate if a username was provided
+            if (usernameInput.length < 2) {
+                showNotification('Gamertag must be at least 2 characters', 'error');
+                if (btn) { btn.textContent = originalText; btn.disabled = false; }
+                return;
+            }
+            if (usernameInput.includes(' ')) {
+                showNotification('Gamertag cannot contain spaces', 'error');
+                if (btn) { btn.textContent = originalText; btn.disabled = false; }
                 return;
             }
         }
@@ -704,6 +719,10 @@ export async function saveProfile(e) {
             country: countryCode,
             avatar_url: avatarUrl
         };
+
+        if (usernameInput && usernameInput !== state.user.username) {
+            updates.username = usernameInput;
+        }
 
         // Update password via Supabase Auth if provided
         if (newPassword) {
@@ -727,11 +746,16 @@ export async function saveProfile(e) {
         const { error } = await _supabase.from('players').update(updates).eq('id', state.user.id);
 
         if (error) {
-            showNotification("Error updating profile: " + error.message, "error");
+            if (error.code === '23505') {
+                showNotification("This Gamertag is already taken. Choose another.", "error");
+            } else {
+                showNotification("Error updating profile: " + error.message, "error");
+            }
         } else {
             // TÄRKEÄÄ: Päivitetään globaali tila, jotta sovellus 'muistaa' uudet tiedot
             state.user = {
                 ...state.user,
+                username: updates.username || state.user.username,
                 full_name: fullName,
                 email: email,
                 phone: phone,
