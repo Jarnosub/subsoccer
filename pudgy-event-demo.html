@@ -459,37 +459,38 @@
             animation: hitFlashSega 0.3s ease-out;
         }
 
-        /* Portrait Mobile Adjustments */
-        @media (orientation: portrait) {
-            .display-panel {
-                top: 25%;
-                padding: 0 5vw;
-            }
+        /* Mobile UI Scaling */
+        @media (max-width: 1000px) {
             .stat-box {
-                padding: 12px 20px;
+                padding: 8px 15px;
             }
             .stat-value {
-                font-size: 3.5rem;
+                font-size: 2.5rem;
             }
-            #pudgy-character {
-                top: 55%;
-                width: 60vw;
+            .stat-label {
+                font-size: 0.7rem;
             }
             .start-btn {
-                font-size: 1.2rem;
-                padding: 15px 30px;
+                font-size: 1rem;
+                padding: 12px 25px;
+                bottom: 20px;
             }
             .top-bar {
                 top: 10px;
-                left: 5vw;
+                left: 10px;
+                gap: 10px;
             }
-            .top-bar > div[style*="absolute"] {
-                margin-top: 50px;
-                position: static !important;
-                transform: none !important;
-                width: 100%;
-                display: flex;
-                justify-content: center;
+            .back-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            .subsoccer-center-logo {
+                height: 28px !important;
+            }
+            #camera-status {
+                bottom: 10px;
+                left: 10px;
+                font-size: 0.8rem;
             }
             .w-title {
                 font-size: 3rem;
@@ -502,6 +503,26 @@
                 width: 80%;
             }
         }
+
+        /* Portrait Mobile Adjustments */
+        @media (orientation: portrait) {
+            .display-panel {
+                top: 25%;
+                padding: 0 5vw;
+            }
+            #pudgy-character {
+                top: 55%;
+                width: 60vw;
+            }
+            .top-bar > div[style*="absolute"] {
+                margin-top: 50px;
+                position: static !important;
+                transform: none !important;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 
@@ -512,7 +533,7 @@
         
         <!-- Centered Subsoccer Logo -->
         <div style="position: absolute; left: 50%; transform: translateX(-50%); text-align: center; top: 0;">
-            <img src="subsoccer_logo.svg" alt="Subsoccer" style="height: 50px; filter: drop-shadow(0 4px 15px rgba(227, 6, 19, 0.5));" onerror="this.src=''; this.style.display='none';">
+            <img src="subsoccer_logo.svg" alt="Subsoccer" class="subsoccer-center-logo" style="height: 50px; filter: drop-shadow(0 4px 15px rgba(227, 6, 19, 0.5));" onerror="this.src=''; this.style.display='none';">
         </div>
     </div>
 
