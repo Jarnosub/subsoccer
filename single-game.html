@@ -189,14 +189,27 @@
         /* Goalie Character */
         #game-character {
             position: fixed;
-            top: 42%;
+            top: 52%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 32vw;
-            max-width: 450px;
+            width: 25vw;
+            max-width: 360px;
             z-index: 5;
             pointer-events: none;
             filter: drop-shadow(0 0 30px rgba(0, 136, 204, 0.3));
+        }
+
+        #character-shadow {
+            position: fixed;
+            top: 76%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22vw;
+            max-width: 320px;
+            height: 30px;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 70%);
+            z-index: 4;
+            pointer-events: none;
         }
 
         #sonic-goal {
@@ -517,8 +530,13 @@
                 padding: 0 5vw;
             }
             #game-character {
-                top: 55%;
-                width: 60vw;
+                top: 60%;
+                width: 50vw;
+            }
+            #character-shadow {
+                top: 70%;
+                width: 45vw;
+                height: 25px;
             }
             .w-actions {
                 flex-direction: column;
@@ -595,6 +613,7 @@
     <button id="btn-start" class="start-btn">START CHALLENGE</button>
 
     <!-- Character standing in the center -->
+    <div id="character-shadow"></div>
     <img id="game-character" src="goalie.png" alt="Goalie">
 
     <!-- Victory Screen -->
