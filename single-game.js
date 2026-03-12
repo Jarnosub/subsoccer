@@ -392,8 +392,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- GOALIE ANIMATION LOGIC ---
     const goalieImages = {
         idle: 'goalie.png',
-        'top-left': 'goalie/goalie_0006_Layer-1.png',
-        'top-right': 'goalie/goalie_0005_Layer-2.png',
+        'top-left': 'goalie/goalie_0004_Layer-5.png', // Fallback as jump images were removed
+        'top-right': 'goalie/goalie_0003_Generative-Fill.png', // Fallback
+
         'bottom-left': 'goalie/goalie_0004_Layer-5.png',
         'bottom-right': 'goalie/goalie_0003_Generative-Fill.png',
         react1: 'goalie/goalie_0002_Layer-6.png',
