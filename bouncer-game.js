@@ -331,8 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 3; i++) {
             let b = {
                 id: 'bouncer_' + (bouncerIdCounter++),
-                x: Math.random() * 0.6 + 0.1, // keep inside frame
-                y: Math.random() * 0.6 + 0.1,
+                x: 0.18 + Math.random() * (0.62 - 0.18), // keep inside opponent goal frame region (X: 0.18 -> 0.62)
+                y: 0.05 + Math.random() * (0.42 - 0.05), // keep inside opponent goal frame region (Y: 0.05 -> 0.42)
                 width: 0.2, // vision engine scale relative to width
                 height: 0.2,
                 vx: (Math.random() > 0.5 ? 1 : -1) * (0.002 + Math.random() * 0.004),
@@ -353,15 +353,20 @@ document.addEventListener('DOMContentLoaded', () => {
             b.x += b.vx;
             b.y += b.vy;
 
+            const MIN_X = 0.18;
+            const MAX_X = 0.82; // 0.62 + 0.2
+            const MIN_Y = 0.05;
+            const MAX_Y = 0.62; // 0.42 + 0.2
+
             // Bounce X
-            if (b.x <= 0 || b.x + b.width >= 1) {
+            if (b.x <= MIN_X || b.x + b.width >= MAX_X) {
                 b.vx *= -1;
-                b.x = Math.max(0, Math.min(b.x, 1 - b.width));
+                b.x = Math.max(MIN_X, Math.min(b.x, MAX_X - b.width));
             }
             // Bounce Y
-            if (b.y <= 0 || b.y + b.height >= 1) {
+            if (b.y <= MIN_Y || b.y + b.height >= MAX_Y) {
                 b.vy *= -1;
-                b.y = Math.max(0, Math.min(b.y, 1 - b.height));
+                b.y = Math.max(MIN_Y, Math.min(b.y, MAX_Y - b.height));
             }
         });
 
@@ -427,16 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function triggerCharacterAnimation() {
-        const charImg = document.getElementById('game-character');
-        if (charImg) {
-            charImg.style.transform = 'translate(-50%, -50%) scale(1.1)';
-            charImg.style.filter = 'drop-shadow(0 0 50px rgba(0, 255, 204, 0.8))';
-            
-            setTimeout(() => {
-                charImg.style.transform = '';
-                charImg.style.filter = '';
-            }, 300);
-        }
+        // Character removed from Bouncer mode, so just do nothing
     }
 
     function showCombo() {
