@@ -79,6 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnStart.addEventListener('click', () => {
         initAudio();
+        // Unlock Safari <audio> context inside user gesture
+        if (window.soundEffects && window.soundEffects.sounds && window.soundEffects.sounds['victory']) {
+            window.soundEffects.sounds['victory'].load();
+        }
         startGame();
     });
 
@@ -243,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const finalScore = score;
                 const duration = 1500;
                 const startTime = performance.now();
+                const eloCountElement = document.getElementById('victory-elo-count');
 
                 function updateCounter(currentTime) {
                     const elapsed = currentTime - startTime;
@@ -250,7 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const easeProgress = progress * (2 - progress);
                     const currentVal = Math.floor(startScore + (finalScore - startScore) * easeProgress);
 
-                    eloCount.textContent = currentVal;
+                    if (eloCountElement) {
+                        // Original logic replaced the whole text with just points, so we'll just format it "X ELO" again
+                        eloCountElement.textContent = currentVal + " ELO";
+                    }
 
                     if (progress < 1) {
                         requestAnimationFrame(updateCounter);
