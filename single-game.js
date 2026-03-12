@@ -73,8 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerDisplay = document.getElementById('timer-value');
     const scoreDisplay = document.getElementById('score-value');
     const comboDisplay = document.getElementById('combo-display');
-    const endOverlay = document.getElementById('end-overlay');
-    const finalScoreDisplay = document.getElementById('final-score');
 
     // Camera indicator
     const camDot = document.getElementById('cam-indicator');
@@ -172,91 +170,131 @@ document.addEventListener('DOMContentLoaded', () => {
             window.visionEngine.stopCamera();
         }
 
-        finalScoreDisplay.textContent = score;
-        endOverlay.style.display = 'flex';
-        btnStart.style.display = 'inline-block';
-        btnStart.textContent = "PLAY AGAIN";
+        btnStart.style.display = 'none';
 
-        // Handle ELO update if user is registered and scored
-        const userJson = localStorage.getItem('subsoccer_user');
-        const eloContainer = document.getElementById('elo-container');
+        const victoryOverlay = document.getElementById('victory-overlay');
+        if (victoryOverlay) {
+            victoryOverlay.style.display = 'flex';
 
-        if (userJson && score > 0) {
-            try {
-                const user = JSON.parse(userJson);
-                const currentElo = user.elo || 1000;
+            // Initialize Lasers
+            const lasersCanvas = document.getElementById('lasers-canvas');
+            if (lasersCanvas) {
+                lasersCanvas.style.display = 'block';
+                lasersCanvas.width = window.innerWidth;
+                lasersCanvas.height = window.innerHeight;
+                const ctx = lasersCanvas.getContext('2d');
 
-                // Pisteiden perusteella ELO:a: esim. 1 ELO per 200 pistettä
-                const eloGained = Math.max(1, Math.floor(score / 200));
-                user.elo = currentElo + eloGained;
+                let lasers = [];
+                for (let i = 0; i < 6; i++) {
+                    lasers.push({
+                        x: (lasersCanvas.width / 7) * (i + 1),
+                        y: lasersCanvas.height + 50,
+                        angle: Math.PI * 1.5 + (Math.random() - 0.5),
+                        targetAngle: Math.PI * 1.5 + (Math.random() - 0.5) * 1.5,
+                        speed: 0.002 + Math.random() * 0.005,
+                        colorStr: i % 2 === 0 ? '227, 6, 19' : '0, 255, 204',
+                        width: 30 + Math.random() * 50,
+                        alpha: 0
+                    });
+                }
 
-                // Päivitetään Storageen
-                localStorage.setItem('subsoccer_user', JSON.stringify(user));
-
-                // Animaation UI elementit
-                eloContainer.style.display = 'flex';
-                const eloValueEl = document.getElementById('elo-value');
-                const eloGainedEl = document.getElementById('elo-gained');
-                const eloPlayerEl = document.getElementById('elo-player-name');
-
-                eloValueEl.style.color = '#fff';
-                eloValueEl.style.textShadow = 'none';
-                eloValueEl.style.transform = 'scale(1)';
-
-                eloPlayerEl.textContent = user.username || "PLAYER";
-                eloValueEl.textContent = currentElo;
-                eloGainedEl.textContent = `+${eloGained}`;
-                eloGainedEl.style.opacity = '0'; // Reset
-                eloGainedEl.style.transform = 'translateY(10px)'; // Reset
-
-                // Animaatiosekvenssi
-                setTimeout(() => {
-                    playC64Sound('hit');
-                    eloGainedEl.style.opacity = '1';
-                    eloGainedEl.style.transform = 'translateY(0)';
-
-                    // Numerolaskuri nousee
-                    let startElo = currentElo;
-                    const finalElo = currentElo + eloGained;
-                    const duration = 1500;
-                    const startTime = performance.now();
-
-                    function updateCounter(currentTime) {
-                        const elapsed = currentTime - startTime;
-                        const progress = Math.min(elapsed / duration, 1);
-
-                        // easeOutQuad
-                        const easeProgress = progress * (2 - progress);
-                        const currentVal = Math.floor(startElo + (finalElo - startElo) * easeProgress);
-
-                        eloValueEl.textContent = currentVal;
-
-                        if (progress < 1) {
-                            requestAnimationFrame(updateCounter);
-                        } else {
-                            // Tadaa!
-                            eloValueEl.style.color = '#00FFCC';
-                            eloValueEl.style.textShadow = '0 0 20px #00FFCC';
-                            eloValueEl.style.transform = 'scale(1.1)';
-                            playC64Sound('combo');
-                            setTimeout(() => {
-                                eloValueEl.style.transform = 'scale(1)';
-                            }, 300);
+                function updateLasers() {
+                    if (victoryOverlay.style.display === 'none') return;
+                    ctx.clearRect(0, 0, lasersCanvas.width, lasersCanvas.height);
+                    ctx.globalCompositeOperation = 'screen';
+                    lasers.forEach(laser => {
+                        if (Math.abs(laser.angle - laser.targetAngle) < 0.02) {
+                            laser.targetAngle = Math.PI * 1.5 + (Math.random() - 0.5) * 1.8;
+                            laser.speed = 0.002 + Math.random() * 0.003;
                         }
-                    }
-                    setTimeout(() => {
-                        requestAnimationFrame(updateCounter);
-                    }, 600);
-
-                }, 800);
-
-            } catch (e) {
-                console.error("Error parsing user data for ELO", e);
-                eloContainer.style.display = 'none';
+                        laser.angle += (laser.targetAngle - laser.angle) * laser.speed;
+                        if (laser.alpha < 0.5) laser.alpha += 0.005;
+                        const length = lasersCanvas.height * 2;
+                        const endX = laser.x + Math.cos(laser.angle) * length;
+                        const endY = laser.y + Math.sin(laser.angle) * length;
+                        const gradient = ctx.createLinearGradient(laser.x, laser.y, endX, endY);
+                        gradient.addColorStop(0, `rgba(${laser.colorStr}, ${laser.alpha})`);
+                        gradient.addColorStop(1, `rgba(${laser.colorStr}, 0)`);
+                        ctx.beginPath();
+                        ctx.moveTo(laser.x - laser.width / 2, laser.y);
+                        ctx.lineTo(endX - laser.width * 4, endY);
+                        ctx.lineTo(endX + laser.width * 4, endY);
+                        ctx.lineTo(laser.x + laser.width / 2, laser.y);
+                        ctx.closePath();
+                        ctx.fillStyle = gradient;
+                        ctx.fill();
+                    });
+                    ctx.globalCompositeOperation = 'source-over';
+                    requestAnimationFrame(updateLasers);
+                }
+                updateLasers();
             }
-        } else {
-            // Joko vieras tai ei saanut yhtään pistettä
-            eloContainer.style.display = 'none';
+
+            // Handle ELO update if user is registered and scored
+            const userJson = localStorage.getItem('subsoccer_user');
+            if (userJson && score > 0) {
+                try {
+                    const user = JSON.parse(userJson);
+                    const currentElo = user.elo || 1000;
+
+                    // Pisteiden perusteella ELO:a: esim. 1 ELO per 200 pistettä
+                    const eloGained = Math.max(1, Math.floor(score / 200));
+                    user.elo = currentElo + eloGained;
+
+                    // Päivitetään Storageen
+                    localStorage.setItem('subsoccer_user', JSON.stringify(user));
+
+                    const eloCount = document.getElementById('victory-elo-count');
+                    const eloGain = document.getElementById('victory-elo-gain');
+                    const cardDesc = document.getElementById('winner-card-desc');
+                    const cardTitle = document.getElementById('winner-card-container').querySelector('.w-card-title');
+
+                    eloCount.innerText = currentElo;
+                    eloGain.innerText = `+${eloGained} ELO`;
+
+                    // Animaatiosekvenssi ja Pistelaskuri
+                    setTimeout(() => {
+                        window.playC64Sound?.('hit');
+                        const startElo = currentElo;
+                        const finalElo = currentElo + eloGained;
+                        const duration = 1500;
+                        const startTime = performance.now();
+
+                        function updateCounter(currentTime) {
+                            const elapsed = currentTime - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            const easeProgress = progress * (2 - progress);
+                            const currentVal = Math.floor(startElo + (finalElo - startElo) * easeProgress);
+
+                            eloCount.textContent = currentVal;
+
+                            if (progress < 1) {
+                                requestAnimationFrame(updateCounter);
+                            } else {
+                                eloCount.style.color = '#00FFCC';
+                                window.playC64Sound?.('combo');
+                            }
+                        }
+                        requestAnimationFrame(updateCounter);
+                    }, 500);
+                } catch (e) {
+                    console.error("Error parsing user data for ELO", e);
+                }
+            } else {
+                const eloCount = document.getElementById('victory-elo-count');
+                const eloGain = document.getElementById('victory-elo-gain');
+                const cardTitle = document.getElementById('winner-card-container').querySelector('.w-card-title');
+                const cardDesc = document.getElementById('winner-card-desc');
+
+                cardTitle.innerText = "GUEST";
+                eloCount.innerText = score;
+                eloGain.innerText = `${score} POINTS`;
+                cardDesc.innerText = "Log in or create a profile to claim your ELO score.";
+
+                setTimeout(() => {
+                    window.playC64Sound?.('hit');
+                }, 500);
+            }
         }
     }
 

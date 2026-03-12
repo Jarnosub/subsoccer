@@ -195,33 +195,149 @@
             transform: scale(0.95);
         }
 
-        /* End Screen Overlay */
-        #end-overlay {
+        #victory-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10, 10, 10, 0.95);
-            z-index: 200;
+            background: rgba(15, 17, 21, 0.9);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 200;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .winner-content-box {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: max(env(safe-area-inset-top), 10px) 10px 10px 10px;
+            margin: auto;
         }
 
-        .final-score-label {
+        .w-title {
+            font-family: 'SubsoccerLogo', sans-serif;
+            font-size: 4rem;
             color: var(--sub-gold);
-            font-size: 1.5rem;
-            letter-spacing: 5px;
-            margin-bottom: 10px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 0.1s forwards;
+            text-align: center;
+            line-height: 1.1;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
         }
 
-        .final-score-value {
-            font-size: 6rem;
-            color: #fff;
-            margin-bottom: 40px;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        .w-elo {
+            font-family: 'SubsoccerLogo', sans-serif;
+            color: var(--sub-neon);
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 0.3s forwards;
+        }
+
+        .w-card {
+            background: linear-gradient(135deg, #111, #222);
+            border: 1px dashed var(--sub-gold);
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 25px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 0.6s forwards;
+        }
+
+        .w-card-title {
+            font-family: 'SubsoccerLogo', sans-serif;
+            color: var(--sub-gold);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .w-card-desc {
+            color: #aaa;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 0;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .w-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 320px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 1s forwards;
+        }
+
+        .w-actions button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-family: 'SubsoccerLogo', sans-serif;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .w-actions button:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes victoryPop {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes victorySlideUp {
+            0% {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
         }
 
         /* Mic indicator */
@@ -368,33 +484,44 @@
         <button id="btn-start" class="start-btn">START</button>
     </div>
 
-    <!-- Game Over Screen -->
-    <div id="end-overlay">
-        <div class="final-score-label">TIME IS UP!</div>
-        <div class="final-score-label" style="font-size: 1rem; color:#888;">FINAL SCORE</div>
-        <div class="final-score-value" id="final-score">0</div>
+    <!-- Victory Screen (replaces end-overlay) -->
+    <div id="victory-overlay">
+        <!-- Lasers Canvas (Renders behind UI) -->
+        <canvas id="lasers-canvas"
+            style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; display:none;"></canvas>
 
-        <!-- ELO Ranking Section -->
-        <div id="elo-container"
-            style="display: none; flex-direction: column; align-items: center; margin-bottom: 30px;">
-            <div style="font-size: 1rem; color: var(--sub-gold); margin-bottom: 5px; letter-spacing: 2px;">GLOBAL
-                RANKING</div>
-            <div style="display: flex; align-items: baseline; gap: 10px;">
-                <span id="elo-value"
-                    style="font-size: 2.5rem; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); transition: all 0.2s;">1000</span>
-                <span id="elo-gained"
-                    style="font-size: 1.5rem; color: var(--sub-neon); opacity: 0; transform: translateY(10px); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">+0</span>
+        <div class="winner-content-box">
+            <div class="w-title" id="victory-player-name">TIME IS UP!</div>
+
+            <!-- We can use this to show final score or ELO gain in Single Player -->
+            <div id="victory-elo-gain" class="w-elo">+0 POINTS</div>
+
+            <!-- Gamified "Locked Card" Graphic -->
+            <div id="winner-card-container" class="w-card">
+                <!-- Glint effect -->
+                <div id="winner-card-glint"
+                    style="position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:linear-gradient(45deg, transparent 40%, rgba(255,215,0,0.2) 50%, transparent 60%); animation: shimmer 3s infinite;">
+                </div>
+
+                <div
+                    style="font-size: 0.9rem; color: #888; margin-bottom: 5px; font-family: 'Open Sans', sans-serif; letter-spacing: 2px;">
+                    FINAL SCORE</div>
+                <h3 id="victory-elo-count" class="w-card-title"
+                    style="font-size: 3.5rem; font-family: 'SubsoccerLogo', sans-serif; text-shadow: 0 0 20px rgba(255,215,0,0.3); margin-top: 5px; margin-bottom: 10px;">
+                    0</h3>
+                <p id="winner-card-desc" class="w-card-desc">Your arcade challenge score has been recorded.</p>
             </div>
-            <div id="elo-player-name"
-                style="font-size: 0.9rem; color: #aaa; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">
-                PLAYER</div>
-        </div>
 
-        <div style="display:flex; gap:20px;">
-            <button id="btn-restart" class="start-btn"
-                style="font-size:1.2rem; padding: 15px 40px; background: #333;">TRY AGAIN</button>
-            <button onclick="window.location.href='index.html'" class="start-btn"
-                style="font-size:1.2rem; padding: 15px 40px;">EXIT</button>
+            <div class="w-actions">
+                <button id="btn-victory-new-game" onclick="window.location.reload();"
+                    style="background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%); color: #fff; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4); border: none;">
+                    TRY AGAIN
+                </button>
+                <button id="btn-victory-end-game" onclick="window.location.href='index.html'"
+                    style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                    EXIT TO LOBBY
+                </button>
+            </div>
         </div>
     </div>
 
