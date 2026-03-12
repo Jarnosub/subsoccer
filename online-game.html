@@ -21,8 +21,8 @@
 
     <style>
         @font-face {
-            font-family: 'Subsoccer';
-            src: url('fonts/subsoccer-bold.woff2') format('woff2');
+            font-family: 'SubsoccerLogo';
+            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'), url('fonts/Subsoccer-2-Regular.woff') format('woff'), url('fonts/Subsoccer-2-Regular.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
             font-display: swap;
@@ -177,14 +177,13 @@
             transform: scale(1);
         }
 
-        /* Start Button */
         .start-btn {
             background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%);
             color: white;
             border: none;
             padding: 15px 40px;
             font-size: 1.5rem;
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'SubsoccerLogo', sans-serif;
             border-radius: 8px;
             cursor: pointer;
             text-transform: uppercase;
@@ -238,7 +237,7 @@
         }
 
         .victory-player-name {
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'SubsoccerLogo', sans-serif;
             font-size: 2.5rem;
             text-transform: uppercase;
             color: #fff;
@@ -272,7 +271,7 @@
 
         #victory-elo-count {
             color: var(--sub-gold);
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'SubsoccerLogo', sans-serif;
             font-size: 4rem;
             text-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
             animation: victoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s both;
@@ -280,7 +279,7 @@
 
         .victory-gain {
             color: var(--sub-neon);
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'SubsoccerLogo', sans-serif;
             font-size: 1.5rem;
             margin-top: 5px;
             animation: victoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s both;
