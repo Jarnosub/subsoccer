@@ -79,14 +79,11 @@ function playC64Sound(type = 'hit') {
 
 document.addEventListener('DOMContentLoaded', () => {
     const btnStart = document.getElementById('btn-start');
-    const btnRestart = document.getElementById('btn-restart');
 
     // UI Elements
     const timerDisplay = document.getElementById('timer-value');
     const scoreDisplay = document.getElementById('score-value');
     const comboDisplay = document.getElementById('combo-display');
-    const endOverlay = document.getElementById('end-overlay');
-    const finalScoreDisplay = document.getElementById('final-score');
 
     // Camera indicator
     const camDot = document.getElementById('cam-indicator');
@@ -253,17 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    btnRestart.addEventListener('click', () => {
-        endOverlay.style.display = 'none';
-        isReady = false;
-        oppReady = false;
-        isPlaying = false;
-        btnStart.style.display = 'inline-block';
-        btnStart.textContent = "READY FOR BATTLE";
-        statusText.textContent = "Awaiting opponent...";
-        initSelfieCamera();
-        document.getElementById('remote-video').style.display = 'block';
-    });
+    // We handle restart simply by reloading the page using the button's inline onclick in HTML.
 
     initNetwork();
 
