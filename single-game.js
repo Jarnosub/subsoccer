@@ -80,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Make sure vision starts on tap and initialize Audio
     btnStart.addEventListener('click', () => {
         initAudio(); // Required to unlock audio on first user gesture
+        if (window.soundEffects && window.soundEffects.sounds && window.soundEffects.sounds['victory']) {
+            window.soundEffects.sounds['victory'].load();
+        }
         startGame();
     });
     // Check camera status periodically
@@ -240,11 +243,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const eloCount = document.getElementById('victory-elo-count');
                     const eloGain = document.getElementById('victory-elo-gain');
-                    const cardDesc = document.getElementById('winner-card-desc');
-                    const cardTitle = document.getElementById('winner-card-container').querySelector('.w-card-title');
+                    const cardName = document.getElementById('victory-card-name');
+                    const cardAvatar = document.getElementById('victory-card-avatar');
 
-                    eloCount.innerText = currentElo;
-                    eloGain.innerText = `+${eloGained} ELO`;
+                    if (cardName) cardName.textContent = (user.username || user.full_name || "PLAYER").toUpperCase();
+                    if (cardAvatar && user.avatar_url) cardAvatar.src = user.avatar_url;
+
+                    if (eloCount) eloCount.innerText = currentElo + " ELO";
+                    if (eloGain) eloGain.innerText = `+${eloGained} ELO`;
 
                     // Animaatiosekvenssi ja Pistelaskuri
                     setTimeout(() => {
@@ -260,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const easeProgress = progress * (2 - progress);
                             const currentVal = Math.floor(startElo + (finalElo - startElo) * easeProgress);
 
-                            eloCount.textContent = currentVal;
+                            if (eloCount) eloCount.textContent = currentVal + " ELO";
 
                             if (progress < 1) {
                                 requestAnimationFrame(updateCounter);
@@ -277,13 +283,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const eloCount = document.getElementById('victory-elo-count');
                 const eloGain = document.getElementById('victory-elo-gain');
-                const cardTitle = document.getElementById('winner-card-container').querySelector('.w-card-title');
-                const cardDesc = document.getElementById('winner-card-desc');
+                const cardName = document.getElementById('victory-card-name');
+                const cardAvatar = document.getElementById('victory-card-avatar');
 
-                cardTitle.innerText = "GUEST";
-                eloCount.innerText = score;
-                eloGain.innerText = `${score} POINTS`;
-                cardDesc.innerText = "Log in or create a profile to claim your ELO score.";
+                if (cardName) cardName.textContent = "GUEST";
+                if (eloCount) eloCount.innerText = score + " PTS";
+                if (eloGain) eloGain.innerText = `${score} POINTS`;
+                if (cardAvatar) cardAvatar.src = "goalie.png";
 
                 setTimeout(() => {
                     window.playC64Sound?.('hit');
@@ -346,8 +352,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 150);
 
         updateDisplays();
+        triggerCharacterAnimation();
         setNewRandomTarget(); // Arvo uusi palava kohde vasta onnistuneen osuman jälkeen!
     };
+
+    function triggerCharacterAnimation() {
+        const charImg = document.getElementById('game-character');
+        if (charImg) {
+            charImg.style.transform = 'translate(-50%, -50%) scale(1.1)';
+            charImg.style.filter = 'drop-shadow(0 0 50px rgba(0, 255, 204, 0.8))';
+            
+            setTimeout(() => {
+                charImg.style.transform = '';
+                charImg.style.filter = '';
+            }, 300);
+        }
+    }
 
     function showCombo() {
         comboDisplay.textContent = `${currentCombo}X COMBO!`;
