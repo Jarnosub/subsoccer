@@ -316,6 +316,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setNewRandomTarget(); // RANDOM GENERATOR MODE: Arpoo ensimmäisen maalin
         statusText.textContent = "BATTLE IN PROGRESS!";
 
+        // Start gameplay music
+        if (window.soundEffects && typeof window.soundEffects.playGameplayTheme === 'function') {
+            window.soundEffects.playGameplayTheme();
+        }
+
         // Start countdown
         timerInterval = setInterval(() => {
             timeLeft--;
@@ -375,6 +380,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Näytä Victory Overlay (vastaava kuin index.html)
             const victoryOverlay = document.getElementById('victory-overlay');
             if (victoryOverlay) {
+                // Play epic victory music
+                if (window.soundEffects && typeof window.soundEffects.playVictoryTheme === 'function') {
+                    window.soundEffects.playVictoryTheme();
+                }
+
                 victoryOverlay.style.display = 'flex';
                 document.getElementById('victory-player-name').innerText = winnerName;
 

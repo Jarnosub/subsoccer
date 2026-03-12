@@ -134,6 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
         isPlaying = true;
         setNewRandomTarget(); // RANDOM GENERATOR MODE: Arpoo ensimmäisen maalin
 
+        // Start gameplay music
+        if (window.soundEffects && typeof window.soundEffects.playGameplayTheme === 'function') {
+            window.soundEffects.playGameplayTheme();
+        }
+
         // Start countdown
         timerInterval = setInterval(() => {
             timeLeft--;
@@ -156,6 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function endGame() {
         isPlaying = false;
         clearInterval(timerInterval);
+
+        // Play victory/game over music
+        if (window.soundEffects && typeof window.soundEffects.playVictoryTheme === 'function') {
+            window.soundEffects.playVictoryTheme();
+        }
 
         if (window.visionEngine) {
             window.visionEngine.activeZoneId = null; // Näytä kaikki valot kun peli on ohi
