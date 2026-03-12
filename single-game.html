@@ -183,7 +183,7 @@
             border: none;
             padding: 15px 40px;
             font-size: 1.5rem;
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'SubsoccerLogo', sans-serif;
             border-radius: 8px;
             cursor: pointer;
             text-transform: uppercase;
@@ -396,6 +396,40 @@
             animation: hitFlash 0.3s ease-out;
         }
 
+        /* Specific overrides for HUD */
+        .hud-side-box {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .hud-left {
+            left: max(15px, env(safe-area-inset-left));
+        }
+
+        .hud-right {
+            right: max(15px, env(safe-area-inset-right));
+        }
+
+        @media (max-width: 800px) {
+            .hud-side-box {
+                padding: 10px 15px !important;
+            }
+
+            .hud-side-box .stat-value {
+                font-size: 2.5rem !important;
+            }
+
+            #main-panel .stat-box {
+                padding: 10px 20px !important;
+            }
+
+            #main-panel .stat-value {
+                font-size: 2.5rem !important;
+            }
+        }
+
         /* Landscape / Small screen adjustments */
         @media (max-height: 500px) {
             .arcade-container {
@@ -462,18 +496,22 @@
         <span id="cam-text">Camera standby</span>
     </div>
 
+    <!-- HUD Pinned Score Boxes -->
+    <div class="stat-box hud-side-box hud-left"
+        style="padding: 15px 20px; border-color: var(--sub-neon); background: rgba(0,0,0,0.8);">
+        <div class="stat-label">SCORE</div>
+        <div class="stat-value" id="score-value">0</div>
+    </div>
+
     <div class="arcade-container">
         <img src="subsoccer_logo.svg" alt="Subsoccer" class="logo">
         <div class="header-title">SINGLE PLAYER<br>CHALLENGE</div>
 
-        <div class="display-panel" id="main-panel">
-            <div class="stat-box">
-                <div class="stat-label">TIME LEFT</div>
-                <div class="stat-value" id="timer-value">45</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">SCORE</div>
-                <div class="stat-value" id="score-value">0</div>
+        <div class="display-panel" id="main-panel"
+            style="flex-direction: column; justify-content: center; align-items: center;">
+            <div class="stat-box" style="padding: 10px 40px; background: rgba(0,0,0,0.8);">
+                <div class="stat-label" style="color: var(--sub-gold);">TIME LEFT</div>
+                <div class="stat-value" id="timer-value" style="font-size: 3.5rem; color: var(--sub-gold);">45</div>
             </div>
         </div>
 
