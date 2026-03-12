@@ -238,7 +238,7 @@
             border: none;
             padding: 20px 60px;
             font-size: 2rem;
-            font-family: 'SubsoccerLogo', sans-serif;
+            font-family: 'Subsoccer', sans-serif;
             border-radius: 12px;
             cursor: pointer;
             text-transform: uppercase;
@@ -280,7 +280,7 @@
         }
 
         .w-title {
-            font-family: 'SubsoccerLogo', sans-serif;
+            font-family: 'Subsoccer', sans-serif;
             font-size: 6rem;
             color: var(--sub-gold);
             text-transform: uppercase;
@@ -293,7 +293,7 @@
         }
 
         .w-elo {
-            font-family: 'SubsoccerLogo', sans-serif;
+            font-family: 'Subsoccer', sans-serif;
             color: var(--sega-blue);
             font-size: 3.5rem;
             margin-bottom: 30px;
@@ -354,7 +354,7 @@
         }
 
         .w-card-title {
-            font-family: 'SubsoccerLogo', sans-serif;
+            font-family: 'Subsoccer', sans-serif;
             color: var(--sub-gold);
             font-size: 2rem;
             letter-spacing: 2px;
@@ -381,7 +381,7 @@
         .w-actions button {
             padding: 20px 40px;
             font-size: 1.5rem;
-            font-family: 'SubsoccerLogo', sans-serif;
+            font-family: 'Subsoccer', sans-serif;
             border-radius: 12px;
             cursor: pointer;
             text-transform: uppercase;
@@ -502,15 +502,11 @@
                 font-size: 0.8rem;
             }
             .w-title {
-                font-size: 3rem;
+                font-size: 2.5rem;
             }
             .pro-card {
-                transform: scale(0.9) !important;
-                margin-top: -20px;
-            }
-            .w-actions {
-                flex-direction: column;
-                width: 80%;
+                transform: scale(0.85) !important;
+                margin-top: -15px;
             }
         }
 
@@ -523,6 +519,31 @@
             #pudgy-character {
                 top: 55%;
                 width: 60vw;
+            }
+            .w-actions {
+                flex-direction: column;
+                width: 85%;
+            }
+            .w-actions button {
+                padding: 15px 30px;
+                font-size: 1.2rem;
+            }
+            .w-elo {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
+            .pro-card {
+                transform: scale(0.8) !important;
+                margin-top: -30px;
+            }
+        }
+
+        /* Extremely short screens (landscape mobile) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .winner-content-box {
+                transform: scale(0.65);
+                transform-origin: center center;
+                margin-top: -50px;
             }
         }
     </style>
@@ -600,12 +621,12 @@
                         </div>
                         <div style="padding: 10px 15px; flex: 1; display: flex; flex-direction: column;">
                             <div style="color: var(--sub-gold); font-size: 0.6rem; font-weight: 800; letter-spacing: 1px;"><i class="fa-solid fa-location-dot"></i> LOCAL ARENA</div>
-                            <div id="victory-card-name" style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2rem; color: #fff; line-height: 1; margin-top: 2px;">PLAYER</div>
+                            <div id="victory-card-name" style="font-family: 'Subsoccer', sans-serif; font-size: 2rem; color: #fff; line-height: 1; margin-top: 2px;">PLAYER</div>
                             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto;">
-                                <div id="victory-elo-count" style="background: var(--sub-gold); color: #000; padding: 2px 8px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.2rem; border-radius: 3px;">0 ELO</div>
+                                <div id="victory-elo-count" style="background: var(--sub-gold); color: #000; padding: 2px 8px; font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; border-radius: 3px;">0 ELO</div>
                                 <div style="text-align: right;">
                                     <div style="font-size: 0.5rem; color: #888; font-weight: bold;">WIN RATIO</div>
-                                    <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.2rem; color: #fff;">0%</div>
+                                    <div style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">0%</div>
                                 </div>
                             </div>
                         </div>
