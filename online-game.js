@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    function endGame() {
+    async function endGame() {
         isPlaying = false;
         clearInterval(timerInterval);
 
@@ -357,92 +357,65 @@ document.addEventListener('DOMContentLoaded', () => {
             window.visionEngine.stopCamera();
         }
 
-        finalScoreDisplay.textContent = `${score} - ${oppScore}`;
-        endOverlay.style.display = 'flex';
-        btnStart.style.display = 'inline-block';
-        btnStart.textContent = "REMATCH";
-        statusText.textContent = "MATCH FINISHED!";
+        // Piilota start-btn ja muut elementit
+        btnStart.style.display = 'none';
 
-        // Handle ELO update if user is registered and scored
-        const userJson = localStorage.getItem('subsoccer_user');
-        const eloContainer = document.getElementById('elo-container');
+        // Hide standard arcade UI
+        document.querySelector('.arcade-container').style.display = 'none';
 
-        if (userJson && score > 0) {
-            try {
-                const user = JSON.parse(userJson);
-                const currentElo = user.elo || 1000;
+        try {
+            // Import MatchService lennosta
+            const { MatchService } = await import('./match-service.js');
 
-                // Pisteiden perusteella ELO:a: esim. 1 ELO per 200 pistettä
-                const eloGained = Math.max(1, Math.floor(score / 200));
-                user.elo = currentElo + eloGained;
+            let winnerName = myName;
+            if (oppScore > score) winnerName = oppName;
 
-                // Päivitetään Storageen
-                localStorage.setItem('subsoccer_user', JSON.stringify(user));
-
-                // Animaation UI elementit
-                eloContainer.style.display = 'flex';
-                const eloValueEl = document.getElementById('elo-value');
-                const eloGainedEl = document.getElementById('elo-gained');
-                const eloPlayerEl = document.getElementById('elo-player-name');
-
-                eloValueEl.style.color = '#fff';
-                eloValueEl.style.textShadow = 'none';
-                eloValueEl.style.transform = 'scale(1)';
-
-                eloPlayerEl.textContent = user.username || "PLAYER";
-                eloValueEl.textContent = currentElo;
-                eloGainedEl.textContent = `+${eloGained}`;
-                eloGainedEl.style.opacity = '0'; // Reset
-                eloGainedEl.style.transform = 'translateY(10px)'; // Reset
-
-                // Animaatiosekvenssi
-                setTimeout(() => {
-                    playC64Sound('hit');
-                    eloGainedEl.style.opacity = '1';
-                    eloGainedEl.style.transform = 'translateY(0)';
-
-                    // Numerolaskuri nousee
-                    let startElo = currentElo;
-                    const finalElo = currentElo + eloGained;
-                    const duration = 1500;
-                    const startTime = performance.now();
-
-                    function updateCounter(currentTime) {
-                        const elapsed = currentTime - startTime;
-                        const progress = Math.min(elapsed / duration, 1);
-
-                        // easeOutQuad
-                        const easeProgress = progress * (2 - progress);
-                        const currentVal = Math.floor(startElo + (finalElo - startElo) * easeProgress);
-
-                        eloValueEl.textContent = currentVal;
-
-                        if (progress < 1) {
-                            requestAnimationFrame(updateCounter);
-                        } else {
-                            // Tadaa!
-                            eloValueEl.style.color = '#00FFCC';
-                            eloValueEl.style.textShadow = '0 0 20px #00FFCC';
-                            eloValueEl.style.transform = 'scale(1.1)';
-                            playC64Sound('combo');
-                            setTimeout(() => {
-                                eloValueEl.style.transform = 'scale(1)';
-                            }, 300);
-                        }
-                    }
-                    setTimeout(() => {
-                        requestAnimationFrame(updateCounter);
-                    }, 600);
-
-                }, 800);
-
-            } catch (e) {
-                console.error("Error parsing user data for ELO", e);
-                eloContainer.style.display = 'none';
+            // JOS on tasapeli, MatchService.recordMatch tarvitsee kuitenkin jonkun voittajaksi tai hoitaa itsekseen. 
+            // Valitaan satunnaisesti jos tasan.
+            if (score === oppScore) {
+                winnerName = Math.random() > 0.5 ? myName : oppName;
             }
-        } else {
-            // Joko vieras tai ei saanut yhtään pistettä
-            eloContainer.style.display = 'none';
+
+            const result = await MatchService.recordMatch({
+                player1Name: myName,
+                player2Name: oppName,
+                winnerName: winnerName,
+                p1Score: score,
+                p2Score: oppScore,
+                gameId: 'ONLINE-VERSUS'
+            });
+
+            // Näytä Victory Overlay (vastaava kuin index.html)
+            const victoryOverlay = document.getElementById('victory-overlay');
+            if (victoryOverlay) {
+                victoryOverlay.style.display = 'flex';
+                document.getElementById('victory-player-name').innerText = winnerName;
+
+                if (result.success && !result.isGuest) {
+                    const eloCount = document.getElementById('victory-elo-count');
+                    const eloGain = document.getElementById('victory-elo-gain');
+
+                    eloCount.innerText = result.newElo;
+                    eloGain.innerText = `+${result.gain} POINTS`;
+                    eloGain.style.color = '#00FFCC';
+
+                    // Soitetaan ELO kombosound
+                    setTimeout(() => {
+                        window.playC64Sound?.('combo');
+                    }, 500);
+                } else {
+                    document.getElementById('victory-elo-count').innerText = "GUEST";
+                    document.getElementById('victory-elo-gain').innerText = "UNRANKED";
+                }
+            }
+
+        } catch (e) {
+            console.error("Match record failed:", e);
+            // Fallback jos moduuli ei lataudu
+            document.querySelector('.arcade-container').style.display = 'flex';
+            statusText.textContent = "MATCH FINISHED!";
+            btnStart.style.display = 'inline-block';
+            btnStart.textContent = "REMATCH";
         }
     }
 

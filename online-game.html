@@ -196,8 +196,7 @@
             transform: scale(0.95);
         }
 
-        /* End Screen Overlay */
-        #end-overlay {
+        #victory-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -206,23 +205,98 @@
             background: rgba(10, 10, 10, 0.95);
             z-index: 200;
             display: none;
+            /* Flex kun aktiivinen */
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .final-score-label {
-            color: var(--sub-gold);
-            font-size: 1.5rem;
+        @keyframes victoryPop {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes victorySlideUp {
+            0% {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .victory-player-name {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            color: #fff;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            animation: victoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s both;
+            text-align: center;
+        }
+
+        .victory-title {
+            color: #888;
             letter-spacing: 5px;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            animation: victoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
+        }
+
+        .victory-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .victory-label {
+            color: var(--sub-gold);
+            letter-spacing: 2px;
+            font-size: 0.9rem;
             margin-bottom: 10px;
         }
 
-        .final-score-value {
-            font-size: 6rem;
-            color: #fff;
-            margin-bottom: 40px;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        #victory-elo-count {
+            color: var(--sub-gold);
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 4rem;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            animation: victoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s both;
+        }
+
+        .victory-gain {
+            color: var(--sub-neon);
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.5rem;
+            margin-top: 5px;
+            animation: victoryPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s both;
+        }
+
+        .victory-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 300px;
+            animation: victorySlideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.5s both;
+        }
+
+        .victory-controls button {
+            width: 100%;
         }
 
         /* Mic indicator */
@@ -423,33 +497,24 @@
         <button id="btn-start" class="start-btn">READY FOR BATTLE</button>
     </div>
 
-    <!-- Game Over Screen -->
-    <div id="end-overlay">
-        <div class="final-score-label">TIME IS UP!</div>
-        <div class="final-score-label" style="font-size: 1rem; color:#888;">FINAL SCORE</div>
-        <div class="final-score-value" id="final-score">0</div>
+    <!-- Victory Screen (replaces end-overlay) -->
+    <div id="victory-overlay">
+        <div class="victory-player-name" id="victory-player-name">PLAYER NAME</div>
+        <div class="victory-title">VICTORY</div>
 
-        <!-- ELO Ranking Section -->
-        <div id="elo-container"
-            style="display: none; flex-direction: column; align-items: center; margin-bottom: 30px;">
-            <div style="font-size: 1rem; color: var(--sub-gold); margin-bottom: 5px; letter-spacing: 2px;">GLOBAL
-                RANKING</div>
-            <div style="display: flex; align-items: baseline; gap: 10px;">
-                <span id="elo-value"
-                    style="font-size: 2.5rem; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); transition: all 0.2s;">1000</span>
-                <span id="elo-gained"
-                    style="font-size: 1.5rem; color: var(--sub-neon); opacity: 0; transform: translateY(10px); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">+0</span>
-            </div>
-            <div id="elo-player-name"
-                style="font-size: 0.9rem; color: #aaa; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">
-                PLAYER</div>
+        <div class="victory-card">
+            <div class="victory-label">NEW ELO RATING</div>
+            <div id="victory-elo-count">1000</div>
+            <div id="victory-elo-gain" class="victory-gain">+0 POINTS</div>
         </div>
 
-        <div style="display:flex; gap:20px;">
-            <button id="btn-restart" class="start-btn"
-                style="font-size:1.2rem; padding: 15px 40px; background: #333;">TRY AGAIN</button>
-            <button onclick="window.location.href='index.html'" class="start-btn"
-                style="font-size:1.2rem; padding: 15px 40px;">EXIT</button>
+        <div class="victory-controls">
+            <button id="btn-victory-new-game" onclick="window.location.reload();" class="start-btn"
+                style="background:linear-gradient(135deg, var(--sub-gold) 0%, #d4af37 100%); color:#000;">NEW
+                MATCH</button>
+            <button id="btn-victory-end-game" onclick="window.location.href='index.html'" class="start-btn"
+                style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2);">EXIT TO
+                LOBBY</button>
         </div>
     </div>
 
