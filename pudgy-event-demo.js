@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnStart.style.display = 'none';
 
         if (window.visionEngine) {
-            const success = await window.visionEngine.startCamera();
+            const success = await window.visionEngine.startCamera('user');
             if (!success) {
                 alert("Camera access is required for this game mode!");
                 btnStart.style.display = 'inline-block';

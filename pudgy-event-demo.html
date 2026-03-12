@@ -477,8 +477,8 @@
             }
             .top-bar {
                 top: 10px;
-                left: 10px;
-                gap: 10px;
+                left: 0;
+                width: 100vw;
             }
             .back-btn {
                 padding: 6px 12px;
@@ -488,6 +488,11 @@
                 height: 28px !important;
             }
             #camera-status {
+                bottom: 10px;
+                left: 10px;
+                font-size: 0.8rem;
+            }
+            .w-title {
                 bottom: 10px;
                 left: 10px;
                 font-size: 0.8rem;
@@ -514,26 +519,24 @@
                 top: 55%;
                 width: 60vw;
             }
-            .top-bar > div[style*="absolute"] {
-                margin-top: 50px;
-                position: static !important;
-                transform: none !important;
-                width: 100%;
-                display: flex;
-                justify-content: center;
-            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="top-bar" style="align-items: flex-start; gap: 20px; width: 100%;">
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> END EVENT</a>
+    <div class="top-bar" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; width: 100%; padding: 0 20px;">
+        <div style="display: flex; justify-content: flex-start;">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> END EVENT</a>
+        </div>
         
         <!-- Centered Subsoccer Logo -->
-        <div style="position: absolute; left: 50%; transform: translateX(-50%); text-align: center; top: 0;">
+        <div style="display: flex; justify-content: center;">
             <img src="subsoccer_logo.svg" alt="Subsoccer" class="subsoccer-center-logo" style="height: 50px; filter: drop-shadow(0 4px 15px rgba(227, 6, 19, 0.5));" onerror="this.src=''; this.style.display='none';">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <!-- Empty column to force true center -->
         </div>
     </div>
 
