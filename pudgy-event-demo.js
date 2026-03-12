@@ -215,24 +215,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateLasers();
             }
 
-            // Player Card Logic - Get from Storage
-            const userJson = localStorage.getItem('subsoccer_user');
-            if (userJson) {
-                try {
-                    const user = JSON.parse(userJson);
-                    const playerName = (user.username || user.full_name || "STEVE").toUpperCase();
-                    const elo = user.elo || 1300;
-                    const avatar = user.avatar_url || 'pudgy_penguins.png';
-                    
-                    document.getElementById('victory-card-name').textContent = playerName;
-                    document.getElementById('victory-elo-count').textContent = elo + " ELO";
-                    document.getElementById('victory-card-avatar').src = avatar;
-                } catch(e) { console.error('Error loading player profile', e); }
-            } else {
-                // Default if no player signed in
-                document.getElementById('victory-card-name').textContent = "PENGUIN";
-                document.getElementById('victory-elo-count').textContent = "1300 ELO";
-            }
+            // Player Card Logic - Hardcoded for Event Demo
+            document.getElementById('victory-card-name').textContent = "STEVE";
+            document.getElementById('victory-elo-count').textContent = "1300 ELO";
+            document.getElementById('victory-card-avatar').src = "pudgy_penguins.png";
 
             const eloGain = document.getElementById('victory-elo-gain');
             eloGain.innerText = `+${Math.floor(score/100)} EVENT POINTS`;
