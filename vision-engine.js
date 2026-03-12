@@ -274,12 +274,6 @@ class VisionEngine {
             this.ctx.fill();
 
             this.ctx.restore();
-
-            // Teksti
-            this.ctx.font = "bold 16px 'Russo One', sans-serif";
-            this.ctx.fillStyle = "rgba(255,255,255,0.7)";
-            this.ctx.textAlign = "center";
-            this.ctx.fillText("TARGET", centerX, centerY - radius - 15);
         });
 
         // Nollataan lopuksi shadow, jottei se vaikuta muihin
