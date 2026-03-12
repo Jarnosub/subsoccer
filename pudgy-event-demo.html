@@ -458,6 +458,50 @@
         .hit-flash {
             animation: hitFlashSega 0.3s ease-out;
         }
+
+        /* Portrait Mobile Adjustments */
+        @media (orientation: portrait) {
+            .display-panel {
+                top: 25%;
+                padding: 0 5vw;
+            }
+            .stat-box {
+                padding: 12px 20px;
+            }
+            .stat-value {
+                font-size: 3.5rem;
+            }
+            #pudgy-character {
+                top: 55%;
+                width: 60vw;
+            }
+            .start-btn {
+                font-size: 1.2rem;
+                padding: 15px 30px;
+            }
+            .top-bar {
+                top: 10px;
+                left: 5vw;
+            }
+            .top-bar > div[style*="absolute"] {
+                margin-top: 50px;
+                position: static !important;
+                transform: none !important;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            .w-title {
+                font-size: 3rem;
+            }
+            .pro-card {
+                transform: scale(0.9);
+            }
+            .w-actions {
+                flex-direction: column;
+                width: 80%;
+            }
+        }
     </style>
 </head>
 
