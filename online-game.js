@@ -378,18 +378,93 @@ document.addEventListener('DOMContentLoaded', () => {
                 victoryOverlay.style.display = 'flex';
                 document.getElementById('victory-player-name').innerText = winnerName;
 
+                // Initialize Lasers
+                const lasersCanvas = document.getElementById('lasers-canvas');
+                if (lasersCanvas) {
+                    lasersCanvas.style.display = 'block';
+                    lasersCanvas.width = window.innerWidth;
+                    lasersCanvas.height = window.innerHeight;
+                    const ctx = lasersCanvas.getContext('2d');
+
+                    let lasers = [];
+                    for (let i = 0; i < 6; i++) {
+                        lasers.push({
+                            x: (lasersCanvas.width / 7) * (i + 1),
+                            y: lasersCanvas.height + 50,
+                            angle: Math.PI * 1.5 + (Math.random() - 0.5),
+                            targetAngle: Math.PI * 1.5 + (Math.random() - 0.5) * 1.5,
+                            speed: 0.002 + Math.random() * 0.005,
+                            colorStr: i % 2 === 0 ? '227, 6, 19' : '0, 255, 204',
+                            width: 30 + Math.random() * 50,
+                            alpha: 0
+                        });
+                    }
+
+                    function updateLasers() {
+                        if (victoryOverlay.style.display === 'none') return;
+                        ctx.clearRect(0, 0, lasersCanvas.width, lasersCanvas.height);
+                        ctx.globalCompositeOperation = 'screen';
+                        lasers.forEach(laser => {
+                            if (Math.abs(laser.angle - laser.targetAngle) < 0.02) {
+                                laser.targetAngle = Math.PI * 1.5 + (Math.random() - 0.5) * 1.8;
+                                laser.speed = 0.002 + Math.random() * 0.003;
+                            }
+                            laser.angle += (laser.targetAngle - laser.angle) * laser.speed;
+                            if (laser.alpha < 0.5) laser.alpha += 0.005;
+                            const length = lasersCanvas.height * 2;
+                            const endX = laser.x + Math.cos(laser.angle) * length;
+                            const endY = laser.y + Math.sin(laser.angle) * length;
+                            const gradient = ctx.createLinearGradient(laser.x, laser.y, endX, endY);
+                            gradient.addColorStop(0, `rgba(${laser.colorStr}, ${laser.alpha})`);
+                            gradient.addColorStop(1, `rgba(${laser.colorStr}, 0)`);
+                            ctx.beginPath();
+                            ctx.moveTo(laser.x - laser.width / 2, laser.y);
+                            ctx.lineTo(endX - laser.width * 4, endY);
+                            ctx.lineTo(endX + laser.width * 4, endY);
+                            ctx.lineTo(laser.x + laser.width / 2, laser.y);
+                            ctx.closePath();
+                            ctx.fillStyle = gradient;
+                            ctx.fill();
+                        });
+                        ctx.globalCompositeOperation = 'source-over';
+                        requestAnimationFrame(updateLasers);
+                    }
+                    updateLasers();
+                }
+
                 if (result.success && !result.isGuest) {
                     const eloCount = document.getElementById('victory-elo-count');
                     const eloGain = document.getElementById('victory-elo-gain');
 
-                    eloCount.innerText = result.newElo;
+                    eloCount.innerText = result.newElo - result.gain;
                     eloGain.innerText = `+${result.gain} POINTS`;
-                    eloGain.style.color = '#00FFCC';
 
-                    // Soitetaan ELO kombosound
+                    // Animaatiosekvenssi ja Pistelaskuri
                     setTimeout(() => {
-                        window.playC64Sound?.('combo');
+                        window.playC64Sound?.('hit');
+                        const startElo = result.newElo - result.gain;
+                        const finalElo = result.newElo;
+                        const duration = 1500;
+                        const startTime = performance.now();
+
+                        function updateCounter(currentTime) {
+                            const elapsed = currentTime - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            const easeProgress = progress * (2 - progress);
+                            const currentVal = Math.floor(startElo + (finalElo - startElo) * easeProgress);
+
+                            eloCount.textContent = currentVal;
+
+                            if (progress < 1) {
+                                requestAnimationFrame(updateCounter);
+                            } else {
+                                eloCount.style.color = '#00FFCC';
+                                window.playC64Sound?.('combo');
+                            }
+                        }
+                        requestAnimationFrame(updateCounter);
                     }, 500);
+
                 } else {
                     document.getElementById('victory-elo-count').innerText = "GUEST";
                     document.getElementById('victory-elo-gain').innerText = "UNRANKED";
