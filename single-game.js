@@ -67,7 +67,6 @@ function playC64Sound(type = 'hit') {
 
 document.addEventListener('DOMContentLoaded', () => {
     const btnStart = document.getElementById('btn-start');
-    const btnRestart = document.getElementById('btn-restart');
 
     // UI Elements
     const timerDisplay = document.getElementById('timer-value');
@@ -83,11 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initAudio(); // Required to unlock audio on first user gesture
         startGame();
     });
-    btnRestart.addEventListener('click', () => {
-        endOverlay.style.display = 'none';
-        startGame();
-    });
-
     // Check camera status periodically
     setInterval(() => {
         if (!window.visionEngine) return;
