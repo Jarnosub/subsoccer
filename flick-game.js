@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnStart = document.getElementById('btn-start');
     const scoreDisplay = document.getElementById('score-value');
+    const speedDisplay = document.getElementById('speed-value');
     
     // Setup Physics Canvas
     const canvas = document.getElementById('physics-canvas');
@@ -156,6 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillRect(p.x, p.y, 4, 4);
         });
 
+        // Update speed HUD
+        if(window.visionEngine && window.visionEngine.measureBallSpeed) {
+            speedDisplay.innerHTML = `${Math.round(window.visionEngine.currentBallSpeedKmh)}<span style="font-size:1.5rem">KMH</span>`;
+        }
+
         requestID = requestAnimationFrame(gameLoop);
     }
 
@@ -175,6 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // Bind collision loop
             window.visionEngine.onTargetHit = window.handleGoalDetected;
+            // Kytketään päälle koko ruudun kattava pallon nopeusmittaus (Fysiikkamoottori)
+            window.visionEngine.measureBallSpeed = true;
         }
 
         isPlaying = true;

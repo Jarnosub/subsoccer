@@ -90,6 +90,11 @@
             top: 20px;
             right: 20px;
             z-index: 100;
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-box {
             background: rgba(0, 0, 0, 0.8);
             padding: 20px 40px;
             border-radius: 16px;
@@ -121,8 +126,14 @@
     </div>
 
     <div class="display-panel">
-        <div class="stat-label">SCORE</div>
-        <div class="stat-value" id="score-value">0</div>
+        <div class="stat-box">
+            <div class="stat-label">SCORE</div>
+            <div class="stat-value" id="score-value">0</div>
+        </div>
+        <div class="stat-box" style="border-color: #ff3366;">
+            <div class="stat-label" style="color: #ff3366;">SPEED</div>
+            <div class="stat-value" id="speed-value" style="color: #ff3366;">0<span style="font-size:1.5rem">KMH</span></div>
+        </div>
     </div>
 
     <!-- The actual flick physics canvas -->

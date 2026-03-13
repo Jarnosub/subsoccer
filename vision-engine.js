@@ -35,6 +35,11 @@ class VisionEngine {
         this.COOLDOWN_MS = 1500;
 
         this.onTargetHit = null; // Takaisinkutsufunktio kun osuma tapahtuu
+
+        // Pallon nopeuden seuranta (km/h arvio)
+        this.measureBallSpeed = false;
+        this.lastBallPos = null;
+        this.currentBallSpeedKmh = 0;
     }
 
     async init() {
@@ -147,6 +152,10 @@ class VisionEngine {
             this.drawOverlay();
         }
 
+        if (this.measureBallSpeed) {
+            this.calculateBallSpeed(Date.now());
+        }
+
         requestAnimationFrame(() => this.appLoop());
     }
 
@@ -204,6 +213,69 @@ class VisionEngine {
                 }
             }
         });
+    }
+
+    calculateBallSpeed(now) {
+        // Skannataan harvemmalla resoluutiolla nopeutta varten (koko 10 pikselin välein)
+        const step = 15;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        
+        // Vain alempi n. 70% ruudusta on aluetta jossa pallo liikkuu, ei syytä skannata ihan kattoa
+        const startY = Math.floor(h * 0.2); 
+        const scanH = h - startY;
+
+        const imageData = this.ctx.getImageData(0, startY, w, scanH);
+        const data = imageData.data;
+        
+        let sumX = 0, sumY = 0, matchCount = 0;
+
+        for (let y = 0; y < scanH; y += step) {
+            for (let x = 0; x < w; x += step) {
+                const i = (y * w + x) * 4;
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+
+                if (r > 120 && r > g * 1.5 && r > b * 1.5) {
+                    sumX += x;
+                    sumY += (y + startY);
+                    matchCount++;
+                }
+            }
+        }
+
+        if (matchCount > 3) {
+            const cx = sumX / matchCount;
+            const cy = sumY / matchCount;
+
+            if (this.lastBallPos) {
+                const dt = (now - this.lastBallPos.time) / 1000; // sekunteja
+                if (dt > 0 && dt < 0.2) { // Rajoitetaan ettei taukojen jälkeen hypi
+                    const dx = cx - this.lastBallPos.x;
+                    const dy = cy - this.lastBallPos.y;
+                    const pixelSpeed = Math.sqrt(dx * dx + dy * dy) / dt; // pikseliä sekunnissa
+                    
+                    // Karkea arvio: Oletetaan että puhelimen ruudun korkeus vastaa noin 1.2 metrin kenttäpituutta
+                    const metersPerPixel = 1.2 / h; 
+                    const speedMs = pixelSpeed * metersPerPixel; // metriä sekunnissa
+                    let speedKmh = speedMs * 3.6; // km/h
+                    
+                    // Suodatetaan liian kovat virhepiikit pois (yli 150 kmh)
+                    if (speedKmh > 5 && speedKmh < 150) {
+                        // Tasainen liukuva keskiarvo (smoothing)
+                        this.currentBallSpeedKmh = this.currentBallSpeedKmh * 0.7 + speedKmh * 0.3;
+                    }
+                }
+            }
+            this.lastBallPos = { x: cx, y: cy, time: now };
+        } else {
+            // Jos pallo katoaa ruudulta liian pitkäksi aikaa, nollataan edellinen paikka
+            if (this.lastBallPos && (now - this.lastBallPos.time) > 200) {
+                this.lastBallPos = null;
+                // Ei nollata nopeusmittaria heti, jotta numero ehtii näkyä "osuman" hetkellä
+            }
+        }
     }
 
     drawOverlay() {
