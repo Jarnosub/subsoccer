@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <title>Subsoccer - Flick Greybox</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Russo+One&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --sub-red: #E30613;
+            --sub-black: #0A0A0A;
+            --sub-neon: #00FFCC;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--sub-black);
+            color: #fff;
+            font-family: 'Russo One', sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Physics Canvas overlay */
+        #physics-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none; /* Let clicks pass through if needed */
+            z-index: 50; /* Above camera, below UI */
+        }
+
+        /* Start Button */
+        .start-btn {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 8px 30px rgba(227, 6, 19, 0.6);
+        }
+
+        /* Displays (HUD Style mapped to sides) */
+        .display-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 16px;
+            border: 2px solid rgba(0, 255, 204, 0.5);
+            text-align: center;
+        }
+
+        .stat-label {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            color: var(--sub-neon);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .stat-value {
+            font-size: 4rem;
+            line-height: 1;
+            text-shadow: 0 0 20px var(--sub-neon);
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
+    </div>
+
+    <div class="display-panel">
+        <div class="stat-label">SCORE</div>
+        <div class="stat-value" id="score-value">0</div>
+    </div>
+
+    <!-- The actual flick physics canvas -->
+    <canvas id="physics-canvas"></canvas>
+
+    <button id="btn-start" class="start-btn">START GREYBOX</button>
+
+    <!-- Game dependencies -->
+    <script src="sound-effects.js"></script>
+    <script src="vision-engine.js"></script>
+    <script src="flick-game.js"></script>
+
+</body>
+
+</html>
