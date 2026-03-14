@@ -23,21 +23,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let goalie = {
         x: 0,
-        y: -50,
+        y: -150,
         z: 1150, // Just in front of the goal
-        w: 150,
-        h: 200,
-        vx: 8,
+        w: 400,
+        h: 550,
+        vx: 15,
         img: new Image()
     };
     goalie.img.src = 'goalie.png';
 
     const goal = {
         x: 0,
-        y: -100, // Center of goal Y
+        y: -300, // Center of goal Y
         z: 1200, // Far back wall
-        w: 600,  // Width of goal
-        h: 300   // Height of goal
+        w: 2400,  // Width of goal
+        h: 1000   // Height of goal
     };
 
     function spawnObstacles() {
@@ -52,14 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let targetX = goal.x;
         let targetY = goal.y;
         
-        if (zoneId === 'top-left') { targetX = goal.x - goal.w/2 + 60; targetY = goal.y - goal.h/2 + 60; }
-        else if (zoneId === 'top-right') { targetX = goal.x + goal.w/2 - 60; targetY = goal.y - goal.h/2 + 60; }
-        else if (zoneId === 'bottom-left') { targetX = goal.x - goal.w/2 + 60; targetY = goal.y + goal.h/2 - 40; }
-        else if (zoneId === 'bottom-right') { targetX = goal.x + goal.w/2 - 60; targetY = goal.y + goal.h/2 - 40; }
+        if (zoneId === 'top-left') { targetX = goal.x - goal.w/2 + 200; targetY = goal.y - goal.h/2 + 200; }
+        else if (zoneId === 'top-right') { targetX = goal.x + goal.w/2 - 200; targetY = goal.y - goal.h/2 + 200; }
+        else if (zoneId === 'bottom-left') { targetX = goal.x - goal.w/2 + 200; targetY = goal.y + goal.h/2 - 150; }
+        else if (zoneId === 'bottom-right') { targetX = goal.x + goal.w/2 - 200; targetY = goal.y + goal.h/2 - 150; }
 
         // Add some nice random scatter
-        targetX += (Math.random() - 0.5) * 50;
-        targetY += (Math.random() - 0.5) * 50;
+        targetX += (Math.random() - 0.5) * 150;
+        targetY += (Math.random() - 0.5) * 150;
 
         // Get the actual physical speed from our new radar logic
         let speedKmh = 40; // default
