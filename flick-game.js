@@ -75,24 +75,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ballImg = new Image();
     const rawBallImg = new Image();
-    rawBallImg.crossOrigin = "Anonymous";
+    // Removed crossOrigin="Anonymous" as it breaks local file canvas manipulation
     rawBallImg.onload = () => {
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = rawBallImg.width;
-        tempCanvas.height = rawBallImg.height;
-        const tCtx = tempCanvas.getContext('2d');
-        tCtx.drawImage(rawBallImg, 0, 0);
-        
-        // Remove white background and make it transparent
-        const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-        const data = imgData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            if (data[i] > 240 && data[i+1] > 240 && data[i+2] > 240) {
-                data[i+3] = 0; 
+        try {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = rawBallImg.width;
+            tempCanvas.height = rawBallImg.height;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.drawImage(rawBallImg, 0, 0);
+            
+            // Remove white background and make it transparent
+            const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const data = imgData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i] > 240 && data[i+1] > 240 && data[i+2] > 240) {
+                    data[i+3] = 0; 
+                }
             }
+            tCtx.putImageData(imgData, 0, 0);
+            ballImg.src = tempCanvas.toDataURL('image/png');
+        } catch (e) {
+            console.error("Canvas read failed:", e);
+            ballImg.src = 'ball.png'; // Fallback
         }
-        tCtx.putImageData(imgData, 0, 0);
-        ballImg.src = tempCanvas.toDataURL('image/png');
     };
     rawBallImg.src = 'ball.png';
 
@@ -519,9 +524,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Draw Virtual Ball Graphic
             if (p.scale > 0) {
-                if (ballImg && ballImg.complete) {
+                if (ballImg && ballImg.complete && ballImg.width > 0) {
                     const bw = b.radius * 2 * p.scale;
-                    ctx.drawImage(ballImg, p.x - bw/2, p.y - bw/2, bw, bw);
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    // Add cool rotation effect matching ball speed
+                    ctx.rotate(b.z * 0.05); 
+                    ctx.drawImage(ballImg, -bw/2, -bw/2, bw, bw);
+                    ctx.restore();
                 } else {
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, b.radius * p.scale, 0, Math.PI*2);
