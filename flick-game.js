@@ -220,8 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(canvas.width*0.25, canvas.height); ctx.lineTo(canvas.width*0.42, horizonY);
-        ctx.moveTo(canvas.width*0.75, canvas.height); ctx.lineTo(canvas.width*0.58, horizonY);
         ctx.moveTo(0, canvas.height*0.85); ctx.lineTo(canvas.width, canvas.height*0.85);
         ctx.moveTo(0, canvas.height*0.7); ctx.lineTo(canvas.width, canvas.height*0.7);
         ctx.stroke();
@@ -309,16 +307,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 1. Base thick white post
         ctx.strokeStyle = '#F0F0F0';
-        ctx.lineWidth = 30; // Make it thick enough to be clearly visible as a post
+        ctx.lineWidth = 15; // Make it thick enough to be clearly visible as a post
         ctx.beginPath();
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
         // 2. Inner shading to simulate cylinder rounding
         ctx.strokeStyle = 'rgba(200, 200, 200, 0.8)';
-        ctx.lineWidth = 8;
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(f_bl.x + 8, f_bl.y); ctx.lineTo(f_tl.x + 8, f_tl.y + 8); ctx.lineTo(f_tr.x - 8, f_tr.y + 8); ctx.lineTo(f_br.x - 8, f_br.y);
+        ctx.moveTo(f_bl.x + 4, f_bl.y); ctx.lineTo(f_tl.x + 4, f_tl.y + 4); ctx.lineTo(f_tr.x - 4, f_tr.y + 4); ctx.lineTo(f_br.x - 4, f_br.y);
         ctx.stroke();
 
         // Goal Line
