@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add lateral drift based on where it hit (if it hit left, it drifts left)
         let vx = (hitX - canvas.width / 2) * 0.05;
-        let vy = (hitY - canvas.height / 2) * 0.05 - 10; // Kick it slightly upwards
+        let vy = (hitY - canvas.height / 2) * 0.05 - 15; // Kick it slightly more upwards for nice arc
 
         // Virtual ball starts at the screen plane (Z = 0) and flies backwards into the 3D space
         balls.push({
@@ -80,7 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
             vy: vy,
             vz: vz,
             radius: 30, // Base size
-            active: true
+            active: true,
+            history: [] // for the ball trail
         });
 
         document.body.style.background = 'rgba(0, 255, 204, 0.2)';
@@ -113,13 +114,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isPlaying) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Add slight dark gradient at the bottom for contrast
-        const horizonY = canvas.height * 0.5;
+        // Draw Solid Sky Background
+        const horizonY = canvas.height * 0.55;
         
+        let skyGradient = ctx.createLinearGradient(0, 0, 0, horizonY);
+        skyGradient.addColorStop(0, '#0a0f1a'); // Dark top
+        skyGradient.addColorStop(1, '#1e3c5a'); // Lighter horizon
+        ctx.fillStyle = skyGradient;
+        ctx.fillRect(0, 0, canvas.width, horizonY);
+        
+        // Draw Solid Grass Floor
+        let grassGradient = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
+        grassGradient.addColorStop(0, '#2b8a21'); // Deep green horizon
+        grassGradient.addColorStop(1, '#4caf50'); // Bright green bottom
+        ctx.fillStyle = grassGradient;
+        ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+
         // Hide targets from vision-engine for clean view
         if(window.visionEngine) {
             window.visionEngine.showTargets = false;
         }
+
+        // Draw Field Lines (perspective) ON GRASS
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width*0.25, canvas.height); ctx.lineTo(canvas.width*0.42, horizonY);
+        ctx.moveTo(canvas.width*0.75, canvas.height); ctx.lineTo(canvas.width*0.58, horizonY);
+        ctx.moveTo(0, canvas.height*0.85); ctx.lineTo(canvas.width, canvas.height*0.85);
+        ctx.moveTo(0, canvas.height*0.7); ctx.lineTo(canvas.width, canvas.height*0.7);
+        ctx.stroke();
 
         let trackPos = null;
         if(window.visionEngine && window.visionEngine.lastBallPos) {
@@ -193,21 +217,43 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update Balls (Physics in 3D)
         balls = balls.filter(b => b.active);
         balls.forEach(b => {
+             // Record history for trail drawing
+            b.history.push({ x: b.x, y: b.y, z: b.z });
+            if (b.history.length > 50) b.history.shift(); // Max trail length
+
             b.x += b.vx;
             b.y += b.vy;
             b.z += b.vz;
 
             // Gravity in 3D (Y goes down)
-            b.vy += 0.5;
+            b.vy += 0.8; // slightly heavier gravity
 
             // Simple floor bounce
-            if(b.y > canvas.height * 0.5) {
-                b.y = canvas.height * 0.5;
+            if(b.y > canvas.height * 0.55 - 50) { // relative down ground level
+                b.y = canvas.height * 0.55 - 50;
                 b.vy *= -0.6; 
             }
 
             // Project to screen
             const p = project(b.x, b.y, b.z);
+
+            // Draw glowing orange Trail
+            if (b.history.length > 1) {
+                ctx.beginPath();
+                const firstP = project(b.history[0].x, b.history[0].y, b.history[0].z);
+                ctx.moveTo(firstP.x, firstP.y);
+                for (let i = 1; i < b.history.length; i++) {
+                    const hp = project(b.history[i].x, b.history[i].y, b.history[i].z);
+                    if (hp.scale > 0) ctx.lineTo(hp.x, hp.y);
+                }
+                ctx.strokeStyle = 'rgba(255, 120, 0, 0.8)';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#FF5500';
+                ctx.lineWidth = 15 * p.scale; 
+                ctx.stroke();
+                // Reset shadow
+                ctx.shadowBlur = 0;
+            }
 
             // Collisions with Goalie
             if (Math.abs(b.z - goalie.z) < 50) {
@@ -278,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update speed HUD
         if(window.visionEngine && window.visionEngine.measureBallSpeed) {
-            speedDisplay.innerHTML = `${Math.round(window.visionEngine.currentBallSpeedKmh)}<span style="font-size:1rem; margin-left:2px; color:#aaa;">KMH</span>`;
+            speedDisplay.innerHTML = `${Math.round(window.visionEngine.currentBallSpeedKmh)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H</span>`;
         }
 
         requestID = requestAnimationFrame(gameLoop);

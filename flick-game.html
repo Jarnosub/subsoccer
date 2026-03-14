@@ -90,18 +90,6 @@
             top: 20px;
             right: 20px;
             z-index: 100;
-            display: flex;
-            gap: 20px;
-        }
-
-        .stat-box {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            text-align: center;
         }
 
         .stat-label {
@@ -129,14 +117,54 @@
         <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
     </div>
 
+    <style>
+        .hud-container {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .hud-item {
+            padding: 0 15px;
+            text-align: center;
+        }
+
+        .border-right {
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-label {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.7rem;
+            color: #ddd;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            line-height: 1;
+            font-family: 'Russo One', sans-serif;
+            color: #fff;
+        }
+    </style>
     <div class="display-panel">
-        <div class="stat-box">
-            <div class="stat-label">SCORE</div>
-            <div class="stat-value" id="score-value">0</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label">SPEED</div>
-            <div class="stat-value" id="speed-value">0<span style="font-size:1rem; margin-left:2px; color:#aaa;">KMH</span></div>
+        <div class="hud-container">
+            <div class="hud-item border-right">
+                <div class="stat-label">SCORE</div>
+                <div class="stat-value" id="score-value">0</div>
+            </div>
+            <div class="hud-item">
+                <div class="stat-label">SPEED:</div>
+                <div class="stat-value" id="speed-value" style="color: #00FFCC; text-shadow: 0 0 10px rgba(0,255,204,0.5);">0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span></div>
+            </div>
         </div>
     </div>
 
