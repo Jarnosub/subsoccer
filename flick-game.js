@@ -35,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
         totalFrames: 4,     // The sprite sheet has 4 frames
         animCols: 2,        // It's a 2x2 grid
         frameWidth: 320,    // Default, will be updated onload
-        frameHeight: 320
+        frameHeight: 320,
+        direction: 1        // 1 = Right, -1 = Left (Mirror)
     };
     
     // Load and process image to remove magenta "green screen"
@@ -48,11 +49,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const tCtx = tempCanvas.getContext('2d');
         tCtx.drawImage(rawImg, 0, 0);
         
-        // Remove magenta colored background
+        // Remove magenta colored background AND pure black grid lines
         const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
         const data = imgData.data;
         for (let i = 0; i < data.length; i += 4) {
+            // Magenta filter
             if (data[i] > 200 && data[i+1] < 100 && data[i+2] > 200) {
+                data[i+3] = 0; // Make transparent
+            }
+            // Black grid lines filter
+            if (data[i] < 30 && data[i+1] < 30 && data[i+2] < 30) {
                 data[i+3] = 0; // Make transparent
             }
         }
@@ -62,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         goalie.frameWidth = rawImg.width / 2;
         goalie.frameHeight = rawImg.height / 2;
     };
-    rawImg.src = 'goalie_sprite.png';
+    rawImg.src = 'goalie_sprite_v2.png';
 
     const goal = {
         x: 0,
@@ -92,6 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add some nice random scatter
         targetX += (Math.random() - 0.5) * 150;
         targetY += (Math.random() - 0.5) * 150;
+
+        // Tell AI Goalie which way to dive
+        goalie.direction = (targetX > 0) ? 1 : -1;
 
         // Get the actual physical speed from our new radar logic
         let speedKmh = 40; // default
@@ -308,12 +317,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const srcX = col * goalie.frameWidth;
             const srcY = row * goalie.frameHeight;
 
-            // Draw only that specific frame using the 9-argument drawImage format
+            // Draw only that specific frame using the 9-argument drawImage format with Mirroring Support
+            ctx.save();
+            ctx.translate(gop.x, gop.y);
+            ctx.scale(goalie.direction, 1);
             ctx.drawImage(
                 goalie.img, 
                 srcX, srcY, goalie.frameWidth, goalie.frameHeight, // Source clipping rect
-                gop.x - gow/2, gop.y - goh/2, gow, goh // Destination projection rect
+                -gow/2, -goh/2, gow, goh // Destination projection rect relative to center
             );
+            ctx.restore();
         }
 
         // Update Balls (Physics in 3D)
