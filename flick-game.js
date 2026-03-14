@@ -270,9 +270,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sprite Animation Logic: Idle on frame 0, dive if ball is flying
         let isDiving = balls.some(b => b.active);
         
-        goalie.tick++;
         if (isDiving) {
-            if (goalie.tick > 4) { // Animate frames 1-3 MUCH faster to catch the flying ball
+            goalie.tick++;
+            if (goalie.tick > 2) { // Extremely fast animation to catch fast balls
                 goalie.tick = 0;
                 goalie.frame++;
                 if (goalie.frame >= goalie.totalFrames) {
@@ -281,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             goalie.frame = 0; // Reset to ready stance
+            goalie.tick = 0;
         }
         
         const gop = project(goalie.x, goalie.y, goalie.z);
