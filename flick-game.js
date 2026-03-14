@@ -70,6 +70,32 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     rawImg.src = 'goalie_sprite_v2.png';
 
+    const stadiumImg = new Image();
+    stadiumImg.src = 'stadium.png';
+
+    const ballImg = new Image();
+    const rawBallImg = new Image();
+    rawBallImg.crossOrigin = "Anonymous";
+    rawBallImg.onload = () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = rawBallImg.width;
+        tempCanvas.height = rawBallImg.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(rawBallImg, 0, 0);
+        
+        // Remove white background and make it transparent
+        const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            if (data[i] > 240 && data[i+1] > 240 && data[i+2] > 240) {
+                data[i+3] = 0; 
+            }
+        }
+        tCtx.putImageData(imgData, 0, 0);
+        ballImg.src = tempCanvas.toDataURL('image/png');
+    };
+    rawBallImg.src = 'ball.png';
+
     const goal = {
         x: 0,
         y: -300, // Center of goal Y
@@ -164,21 +190,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isPlaying) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Solid Sky Background
+        // Add slight dark gradient at the bottom for contrast
         const horizonY = canvas.height * 0.55;
         
-        let skyGradient = ctx.createLinearGradient(0, 0, 0, horizonY);
-        skyGradient.addColorStop(0, '#0a0f1a'); // Dark top
-        skyGradient.addColorStop(1, '#1e3c5a'); // Lighter horizon
-        ctx.fillStyle = skyGradient;
-        ctx.fillRect(0, 0, canvas.width, horizonY);
-        
-        // Draw Solid Grass Floor
-        let grassGradient = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
-        grassGradient.addColorStop(0, '#2b8a21'); // Deep green horizon
-        grassGradient.addColorStop(1, '#4caf50'); // Bright green bottom
-        ctx.fillStyle = grassGradient;
-        ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+        if (stadiumImg.complete) {
+            ctx.drawImage(stadiumImg, 0, 0, canvas.width, canvas.height);
+        } else {
+            // Draw Solid Sky Background
+            let skyGradient = ctx.createLinearGradient(0, 0, 0, horizonY);
+            skyGradient.addColorStop(0, '#0a0f1a'); // Dark top
+            skyGradient.addColorStop(1, '#1e3c5a'); // Lighter horizon
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, horizonY);
+            
+            // Draw Solid Grass Floor
+            let grassGradient = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
+            grassGradient.addColorStop(0, '#2b8a21'); // Deep green horizon
+            grassGradient.addColorStop(1, '#4caf50'); // Bright green bottom
+            ctx.fillStyle = grassGradient;
+            ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+        }
 
         // Hide targets from vision-engine for clean view
         if(window.visionEngine) {
@@ -314,8 +345,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Calculate which sub-image (frame) to clip from the sprite sheet
             const col = goalie.frame % goalie.animCols;
             const row = Math.floor(goalie.frame / goalie.animCols);
-            const srcX = col * goalie.frameWidth;
-            const srcY = row * goalie.frameHeight;
+            
+            // Add a 2 pixel inset crop to remove any outline artifacts from the bounding box of the frames
+            const cropOffset = 4;
+            const srcX = col * goalie.frameWidth + cropOffset;
+            const srcY = row * goalie.frameHeight + cropOffset;
+            const drawW = goalie.frameWidth - (cropOffset * 2);
+            const drawH = goalie.frameHeight - (cropOffset * 2);
 
             // Draw only that specific frame using the 9-argument drawImage format with Mirroring Support
             ctx.save();
@@ -323,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.scale(goalie.direction, 1);
             ctx.drawImage(
                 goalie.img, 
-                srcX, srcY, goalie.frameWidth, goalie.frameHeight, // Source clipping rect
+                srcX, srcY, drawW, drawH, // Source clipping rect (cropped!)
                 -gow/2, -goh/2, gow, goh // Destination projection rect relative to center
             );
             ctx.restore();
@@ -411,18 +447,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 b.active = false;
             }
 
-            // Draw Virtual Ball
+            // Draw Virtual Ball Graphic
             if (p.scale > 0) {
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, b.radius * p.scale, 0, Math.PI*2);
-                ctx.fillStyle = '#E30613';
-                ctx.fill();
-                
-                // Ball highlight/specular
-                ctx.beginPath();
-                ctx.arc(p.x - (b.radius*0.3)*p.scale, p.y - (b.radius*0.3)*p.scale, b.radius*0.3*p.scale, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                ctx.fill();
+                if (ballImg && ballImg.complete) {
+                    const bw = b.radius * 2 * p.scale;
+                    ctx.drawImage(ballImg, p.x - bw/2, p.y - bw/2, bw, bw);
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, b.radius * p.scale, 0, Math.PI*2);
+                    ctx.fillStyle = '#E30613';
+                    ctx.fill();
+                    
+                    // Ball highlight/specular
+                    ctx.beginPath();
+                    ctx.arc(p.x - (b.radius*0.3)*p.scale, p.y - (b.radius*0.3)*p.scale, b.radius*0.3*p.scale, 0, Math.PI*2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.fill();
+                }
             }
         });
 
