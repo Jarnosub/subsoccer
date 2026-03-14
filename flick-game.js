@@ -268,11 +268,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Sprite Animation Logic: Idle on frame 0, dive if ball is flying
-        let isDiving = balls.some(b => b.active && b.z > 300);
+        let isDiving = balls.some(b => b.active);
         
         goalie.tick++;
         if (isDiving) {
-            if (goalie.tick > 8) { // Animate frames 1-3
+            if (goalie.tick > 4) { // Animate frames 1-3 MUCH faster to catch the flying ball
                 goalie.tick = 0;
                 goalie.frame++;
                 if (goalie.frame >= goalie.totalFrames) {
