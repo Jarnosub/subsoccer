@@ -21,38 +21,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3D Perspective settings
     const focalLength = 300; // Defines perspective depth
 
-    // Greybox entities
-    let balls = [];     // Balls that fly into the screen
-    let obstacles = []; // Boxes acting as targets in the distance
-    let particles = []; // Destroy visual FX
+    // Goalie and Goal entities
+    let goalie = {
+        x: 0,
+        y: -100, // Above ground
+        z: 1400, // Just in front of the goal
+        w: 150,
+        h: 200,
+        vx: 10,
+        img: new Image()
+    };
+    goalie.img.src = 'goalie.png';
+
+    const goal = {
+        x: 0,
+        y: -150,
+        z: 1500, // Back wall
+        w: 500,
+        h: 300
+    };
 
     function spawnObstacles() {
-        obstacles = [];
-        // Spawn obstacles at different Z depths
-        for(let i=0; i < 5; i++) {
-            obstacles.push({
-                id: i,
-                x: (Math.random() - 0.5) * canvas.width * 2, // Physical span
-                y: -Math.random() * canvas.height * 0.5, // Height
-                z: 200 + Math.random() * 800, // Distance into the screen
-                w: 120,
-                h: 120,
-                active: true,
-                color: `hsl(${Math.random()*360}, 100%, 50%)` // Colorful to see pseudo-3D
-            });
-        }
-        // Specific far away targets (Gulf holes / Bullseyes)
-        obstacles.push({
-            id: 'bullseye',
-            x: 0,
-            y: 0,
-            z: 1500,
-            w: 200,
-            h: 200,
-            active: true,
-            color: '#FFD700',
-            isBullseye: true
-        });
+        // We only use the goalie and goal now.
     }
 
     // Called when Vision Engine detects a real-life physical shot hitting the back wall
@@ -124,34 +114,56 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isPlaying) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Sort obstacles by Z (painter's algorithm)
-        obstacles.sort((a,b) => b.z - a.z);
+        // Horizon and Floor
+        const horizonY = canvas.height * 0.5;
+        
+        // Draw Sky (over video feed)
+        ctx.fillStyle = '#6ab8f2';
+        ctx.fillRect(0, 0, canvas.width, horizonY);
+        
+        // Draw Grass (over video feed)
+        ctx.fillStyle = '#398b26';
+        ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
 
-        // Draw targets/obstacles
-        obstacles = obstacles.filter(o => o.active);
-        obstacles.forEach(o => {
-            const p = project(o.x, o.y, o.z);
-            if (p.scale > 0) {
-                const drawW = o.w * p.scale;
-                const drawH = o.h * p.scale;
+        // Draw Field Lines (perspective)
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width*0.3, canvas.height); ctx.lineTo(canvas.width*0.45, horizonY);
+        ctx.moveTo(canvas.width*0.7, canvas.height); ctx.lineTo(canvas.width*0.55, horizonY);
+        ctx.moveTo(0, canvas.height*0.8); ctx.lineTo(canvas.width, canvas.height*0.8);
+        ctx.stroke();
 
-                if (o.isBullseye) {
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, drawW/2, 0, Math.PI*2);
-                    ctx.fillStyle = o.color;
-                    ctx.fill();
-                    ctx.lineWidth = 3 * p.scale;
-                    ctx.strokeStyle = '#fff';
-                    ctx.stroke();
-                } else {
-                    ctx.fillStyle = o.color;
-                    ctx.fillRect(p.x - drawW/2, p.y - drawH/2, drawW, drawH);
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 2 * p.scale;
-                    ctx.strokeRect(p.x - drawW/2, p.y - drawH/2, drawW, drawH);
-                }
-            }
-        });
+        // Draw Goal Net at Z=1500
+        const gp = project(goal.x, goal.y, goal.z);
+        if (gp.scale > 0) {
+            const gw = goal.w * gp.scale;
+            const gh = goal.h * gp.scale;
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillRect(gp.x - gw/2, gp.y - gh/2, gw, gh);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 5 * gp.scale;
+            ctx.strokeRect(gp.x - gw/2, gp.y - gh/2, gw, gh);
+            
+            // Goal posts
+            ctx.lineWidth = 10 * gp.scale;
+            ctx.beginPath();
+            ctx.moveTo(gp.x - gw/2, gp.y + gh/2); ctx.lineTo(gp.x - gw/2, gp.y - gh/2); ctx.lineTo(gp.x + gw/2, gp.y - gh/2); ctx.lineTo(gp.x + gw/2, gp.y + gh/2);
+            ctx.stroke();
+        }
+
+        // Update and Draw Goalie
+        goalie.x += goalie.vx;
+        if (goalie.x > 200 || goalie.x < -200) {
+            goalie.vx *= -1; // Move side to side
+        }
+        
+        const gop = project(goalie.x, goalie.y, goalie.z);
+        if (gop.scale > 0 && goalie.img.complete) {
+            const gow = goalie.w * gop.scale;
+            const goh = goalie.h * gop.scale;
+            ctx.drawImage(goalie.img, gop.x - gow/2, gop.y - goh/2, gow, goh);
+        }
 
         // Update Balls (Physics in 3D)
         balls = balls.filter(b => b.active);
@@ -172,37 +184,44 @@ document.addEventListener('DOMContentLoaded', () => {
             // Project to screen
             const p = project(b.x, b.y, b.z);
 
-            // Collisions with obstacles
-            obstacles.forEach(o => {
-                if(o.active && Math.abs(b.z - o.z) < 50) { // Z-axis collision depth
-                    if(b.x > o.x - o.w/2 && b.x < o.x + o.w/2 &&
-                       b.y > o.y - o.h/2 && b.y < o.y + o.h/2) {
-                        
-                        o.active = false;
-                        
-                        // Impact effect
-                        const proj = project(o.x, o.y, o.z);
-                        createParticles(proj.x, proj.y, proj.scale);
-                        
-                        let pts = o.isBullseye ? 500 : 100;
-                        score += pts;
-                        scoreDisplay.textContent = score;
-                        scoreDisplay.style.transform = 'scale(1.3)';
-                        scoreDisplay.style.color = '#00FFCC';
-                        setTimeout(() => {
-                            scoreDisplay.style.transform = '';
-                            scoreDisplay.style.color = '';
-                        }, 200);
-
-                        if(obstacles.filter(ob=>ob.active).length === 0) {
-                            spawnObstacles();
-                        }
-                    }
+            // Collisions with Goalie
+            if (Math.abs(b.z - goalie.z) < 50) {
+                if (b.x > goalie.x - goalie.w/2 && b.x < goalie.x + goalie.w/2 &&
+                    b.y > goalie.y - goalie.h/2 && b.y < goalie.y + goalie.h/2) {
+                    
+                    // SAVED!
+                    b.active = false;
+                    const proj = project(goalie.x, goalie.y, goalie.z);
+                    createParticles(proj.x, proj.y, proj.scale * 2);
+                    
+                    document.body.style.background = 'rgba(255, 0, 0, 0.3)';
+                    setTimeout(() => document.body.style.background = '', 100);
                 }
-            });
+            }
 
-            // Destroy when far away
-            if (b.z > 2500 || p.scale < 0) {
+            // Collisions with Goal / Back Wall
+            if (b.active && b.z > goal.z) {
+                b.active = false;
+                if (b.x > goal.x - goal.w/2 && b.x < goal.x + goal.w/2 &&
+                    b.y > goal.y - goal.h/2 && b.y < goal.y + goal.h/2) {
+                        
+                    // GOAL SCORED!
+                    const proj = project(b.x, b.y, goal.z);
+                    createParticles(proj.x, proj.y, proj.scale * 3);
+                    
+                    score += 500;
+                    scoreDisplay.textContent = score;
+                    scoreDisplay.style.transform = 'scale(1.5)';
+                    scoreDisplay.style.color = '#00FFCC';
+                    setTimeout(() => {
+                        scoreDisplay.style.transform = '';
+                        scoreDisplay.style.color = '';
+                    }, 400);
+                }
+            }
+
+            // Destroy when far away or behind camera
+            if (b.z > 2000 || p.scale < 0) {
                 b.active = false;
             }
 
