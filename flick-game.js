@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         img: new Image(),
         frame: 0,
         tick: 0,
+        diveTimer: 0, // Keeps track of how long to hold the dive
         totalFrames: 4,     // The sprite sheet has 4 frames
         animCols: 2,        // It's a 2x2 grid
         frameWidth: 320,    // Default, will be updated onload
@@ -267,12 +268,15 @@ document.addEventListener('DOMContentLoaded', () => {
             goalie.vx *= -1;
         }
 
-        // Sprite Animation Logic: Idle on frame 0, dive if ball is flying
-        let isDiving = balls.some(b => b.active);
+        // Sprite Animation Logic: Trigger dive and hold it after ball disappears
+        if (balls.some(b => b.active)) {
+            goalie.diveTimer = 60; // Hold dive for 1 second total
+        }
         
-        if (isDiving) {
+        if (goalie.diveTimer > 0) {
+            goalie.diveTimer--;
             goalie.tick++;
-            if (goalie.tick > 2) { // Extremely fast animation to catch fast balls
+            if (goalie.tick > 4) { // Fast, visible animation
                 goalie.tick = 0;
                 goalie.frame++;
                 if (goalie.frame >= goalie.totalFrames) {
