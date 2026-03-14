@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             vx: vx,
             vy: vy,
             vz: vz,
-            radius: 30, // Base size
+            radius: 70, // Increased base size so it's clearly visible in 3D distance
             active: true,
             history: [] // for the ball trail
         });
@@ -502,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Draw Virtual Ball Graphic
             if (p.scale > 0) {
-                if (ballImg && ballImg.complete && ballImg.width > 0) {
+                if (ballImg && ballImg.complete) {
                     const bw = b.radius * 2 * p.scale;
                     ctx.save();
                     ctx.translate(p.x, p.y);
