@@ -230,22 +230,60 @@ document.addEventListener('DOMContentLoaded', () => {
             trackPos = window.visionEngine.lastBallPos;
         }
 
-        // Draw live real ball tracker
+        // Draw High-Tech Live Ball Tracker (E-Sports Reticle)
         if (trackPos) {
-            ctx.beginPath();
-            ctx.arc(trackPos.x, trackPos.y, 25, 0, Math.PI*2);
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = 'rgba(0, 255, 204, 0.8)';
-            ctx.stroke();
+            ctx.save();
+            ctx.translate(trackPos.x, trackPos.y);
             
+            // Subtle pulse/spin effect based on time
+            const t = Date.now() / 1000;
+            
+            // Outer dashed spinning ring
             ctx.beginPath();
-            ctx.arc(trackPos.x, trackPos.y, 5, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(0, 255, 204, 0.8)';
+            ctx.setLineDash([10, 15]);
+            ctx.arc(0, 0, 35 + Math.sin(t*5)*3, 0, Math.PI*2);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(0, 255, 204, 0.4)';
+            ctx.rotate(t);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Corner brackets
+            ctx.rotate(-t); // Reset rotation for fixed brackets
+            ctx.strokeStyle = '#00FFCC';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#00FFCC';
+            ctx.shadowBlur = 10;
+            
+            const s = 25; // Size of bracket from center
+            const l = 8; // Length of bracket arm
+            
+            // Top Left
+            ctx.beginPath(); ctx.moveTo(-s, -s+l); ctx.lineTo(-s, -s); ctx.lineTo(-s+l, -s); ctx.stroke();
+            // Top Right
+            ctx.beginPath(); ctx.moveTo(s-l, -s); ctx.lineTo(s, -s); ctx.lineTo(s, -s+l); ctx.stroke();
+            // Bottom Right
+            ctx.beginPath(); ctx.moveTo(s, s-l); ctx.lineTo(s, s); ctx.lineTo(s-l, s); ctx.stroke();
+            // Bottom Left
+            ctx.beginPath(); ctx.moveTo(-s+l, s); ctx.lineTo(-s, s); ctx.lineTo(-s, s-l); ctx.stroke();
+            
+            // Solid Center Dot
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, Math.PI*2);
+            ctx.fillStyle = '#00FFCC';
             ctx.fill();
             
-            ctx.font = '12px "Russo One"';
+            // High Tech Data Text
+            ctx.font = '10px "Russo One", monospace';
             ctx.fillStyle = '#00FFCC';
-            ctx.fillText("LOCKED", trackPos.x + 30, trackPos.y);
+            ctx.fillText("TRK_LCK", 30, -10);
+            
+            ctx.font = '8px monospace';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fillText(`X:${Math.round(trackPos.x)} Y:${Math.round(trackPos.y)}`, 30, 0);
+            
+            ctx.restore();
         }
 
         // --- Draw 3D Goal at distance ---
