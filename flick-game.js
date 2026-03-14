@@ -109,8 +109,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Called when Vision Engine detects a real-life physical shot hitting the back wall
+    let lastShotTime = 0;
+    
     window.handleGoalDetected = function(zoneId, index) {
         if (!isPlaying) return;
+
+        // Anti-spam cooldown: prevent multiple rapid accidental shots
+        const now = Date.now();
+        if (now - lastShotTime < 1500) return;
+        lastShotTime = now;
 
         // We map the physical camera hit to a target point on the 3D Goal far away
         let targetX = goal.x;
@@ -403,22 +410,32 @@ document.addEventListener('DOMContentLoaded', () => {
             // Project to screen
             const p = project(b.x, b.y, b.z);
 
-            // Draw glowing orange Trail
+            // Draw glowing cyan/white comet Trail
             if (b.history.length > 1) {
-                ctx.beginPath();
-                const firstP = project(b.history[0].x, b.history[0].y, b.history[0].z);
-                ctx.moveTo(firstP.x, firstP.y);
                 for (let i = 1; i < b.history.length; i++) {
-                    const hp = project(b.history[i].x, b.history[i].y, b.history[i].z);
-                    if (hp.scale > 0) ctx.lineTo(hp.x, hp.y);
+                    const prevP = project(b.history[i-1].x, b.history[i-1].y, b.history[i-1].z);
+                    const currP = project(b.history[i].x, b.history[i].y, b.history[i].z);
+                    
+                    if (prevP.scale > 0 && currP.scale > 0) {
+                        let alpha = i / b.history.length; // 0.0 at tail, 1.0 at head
+                        
+                        // Outer Cyan Glow
+                        ctx.beginPath();
+                        ctx.moveTo(prevP.x, prevP.y);
+                        ctx.lineTo(currP.x, currP.y);
+                        ctx.strokeStyle = `rgba(0, 255, 204, ${alpha * 0.6})`;
+                        ctx.lineWidth = (20 * currP.scale) * alpha; 
+                        ctx.stroke();
+
+                        // Inner Bright White Core
+                        ctx.beginPath();
+                        ctx.moveTo(prevP.x, prevP.y);
+                        ctx.lineTo(currP.x, currP.y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
+                        ctx.lineWidth = (8 * currP.scale) * Math.max(0.2, alpha); 
+                        ctx.stroke();
+                    }
                 }
-                ctx.strokeStyle = 'rgba(255, 120, 0, 0.8)';
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = '#FF5500';
-                ctx.lineWidth = 15 * p.scale; 
-                ctx.stroke();
-                // Reset shadow
-                ctx.shadowBlur = 0;
             }
 
             // Collisions with Goalie
