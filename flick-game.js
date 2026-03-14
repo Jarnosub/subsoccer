@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. Base thick white post
         ctx.strokeStyle = '#F0F0F0';
-        ctx.lineWidth = 16 * f_bl.scale;
+        ctx.lineWidth = 14;
         ctx.beginPath();
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
@@ -326,9 +326,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Inner shadow to simulate cylinder rounding
         ctx.strokeStyle = 'rgba(150, 150, 150, 0.8)';
-        ctx.lineWidth = 4 * f_bl.scale;
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(f_bl.x + 4, f_bl.y); ctx.lineTo(f_tl.x + 4, f_tl.y + 4); ctx.lineTo(f_tr.x - 4, f_tr.y + 4); ctx.lineTo(f_br.x - 4, f_br.y);
+        ctx.moveTo(f_bl.x + 3, f_bl.y); ctx.lineTo(f_tl.x + 3, f_tl.y + 3); ctx.lineTo(f_tr.x - 3, f_tr.y + 3); ctx.lineTo(f_br.x - 3, f_br.y);
         ctx.stroke();
 
         // Goal Line
