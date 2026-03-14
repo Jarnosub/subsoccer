@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         goalie.frameWidth = rawImg.width / 2;
         goalie.frameHeight = rawImg.height / 2;
     };
-    rawImg.src = 'goalie_sprite_v2.png';
+    rawImg.src = 'goalie_sprite_graphic.png';
 
     const stadiumImg = new Image();
     stadiumImg.src = 'stadium.png';
