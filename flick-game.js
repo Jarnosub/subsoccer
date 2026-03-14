@@ -216,13 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.visionEngine.showTargets = false;
         }
 
-        // Draw Field Lines (perspective) ON GRASS
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height*0.85); ctx.lineTo(canvas.width, canvas.height*0.85);
-        ctx.moveTo(0, canvas.height*0.7); ctx.lineTo(canvas.width, canvas.height*0.7);
-        ctx.stroke();
+
 
         let trackPos = null;
         if(window.visionEngine && window.visionEngine.lastBallPos) {
