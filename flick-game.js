@@ -456,10 +456,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Collisions with Goalie
-            if (Math.abs(b.z - goalie.z) < 50) {
-                if (b.x > goalie.x - goalie.w/2 && b.x < goalie.x + goalie.w/2 &&
-                    b.y > goalie.y - goalie.h/2 && b.y < goalie.y + goalie.h/2) {
+            // Collisions with Goalie (Robust Z-depth cross check)
+            if (b.active && b.z >= goalie.z - 50 && b.z <= goalie.z + b.vz + 50) {
+                // Tighten the hitbox to match the actual visual body of the sprite (60% width, 80% height)
+                const hitW = goalie.w * 0.6;
+                const hitH = goalie.h * 0.8;
+                if (b.x > goalie.x - hitW/2 && b.x < goalie.x + hitW/2 &&
+                    b.y > goalie.y - hitH/2 && b.y < goalie.y + hitH/2) {
                     
                     // SAVED!
                     b.active = false;
