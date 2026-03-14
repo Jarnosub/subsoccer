@@ -287,6 +287,12 @@ document.addEventListener('DOMContentLoaded', () => {
             goalie.frame = 0; // Reset to ready stance
             goalie.tick = 0;
         }
+
+        // --- DEBUG TEXT ---
+        ctx.fillStyle = '#fff';
+        ctx.font = '24px Arial';
+        ctx.fillText(`FRAME: ${goalie.frame} | TICK: ${goalie.tick} | TIMER: ${goalie.diveTimer} | BALLS: ${balls.length}`, 20, 100);
+
         
         const gop = project(goalie.x, goalie.y, goalie.z);
         if (gop.scale > 0 && goalie.img.complete) {
