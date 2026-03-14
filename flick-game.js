@@ -21,24 +21,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3D Perspective settings
     const focalLength = 300; // Defines perspective depth
 
-    // Goalie and Goal entities
     let goalie = {
         x: 0,
-        y: -100, // Above ground
-        z: 1400, // Just in front of the goal
-        w: 150,
-        h: 200,
-        vx: 10,
+        y: -50, // Above ground
+        z: 550, // Just in front of the goal
+        w: 200,
+        h: 250,
+        vx: 8,
         img: new Image()
     };
     goalie.img.src = 'goalie.png';
 
     const goal = {
         x: 0,
-        y: -150,
-        z: 1500, // Back wall
-        w: 500,
-        h: 300
+        y: -100,
+        z: 600, // Back wall (closer)
+        w: 600,
+        h: 400
     };
 
     function spawnObstacles() {
@@ -117,16 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Horizon and Floor
         const horizonY = canvas.height * 0.5;
         
-        // Draw Sky (over video feed)
-        ctx.fillStyle = '#6ab8f2';
-        ctx.fillRect(0, 0, canvas.width, horizonY);
-        
-        // Draw Grass (over video feed)
-        ctx.fillStyle = '#398b26';
-        ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
-
         // Draw Field Lines (perspective)
-        ctx.strokeStyle = '#fff';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; // Make lines slightly transparent to see camera
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(canvas.width*0.3, canvas.height); ctx.lineTo(canvas.width*0.45, horizonY);
@@ -134,7 +125,30 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.moveTo(0, canvas.height*0.8); ctx.lineTo(canvas.width, canvas.height*0.8);
         ctx.stroke();
 
-        // Draw Goal Net at Z=1500
+        let trackPos = null;
+        if(window.visionEngine && window.visionEngine.lastBallPos) {
+            trackPos = window.visionEngine.lastBallPos;
+        }
+
+        // Draw live real ball tracker
+        if (trackPos) {
+            ctx.beginPath();
+            ctx.arc(trackPos.x, trackPos.y, 25, 0, Math.PI*2);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(0, 255, 204, 0.8)';
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(trackPos.x, trackPos.y, 5, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(0, 255, 204, 0.8)';
+            ctx.fill();
+            
+            ctx.font = '12px "Russo One"';
+            ctx.fillStyle = '#00FFCC';
+            ctx.fillText("LOCKED", trackPos.x + 30, trackPos.y);
+        }
+
+        // Draw Goal Net
         const gp = project(goal.x, goal.y, goal.z);
         if (gp.scale > 0) {
             const gw = goal.w * gp.scale;
@@ -221,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Destroy when far away or behind camera
-            if (b.z > 2000 || p.scale < 0) {
+            if (b.z > 1500 || p.scale < 0) {
                 b.active = false;
             }
 
