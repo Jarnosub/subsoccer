@@ -148,27 +148,66 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillText("LOCKED", trackPos.x + 30, trackPos.y);
         }
 
-        // Draw Goal Net
-        const gp = project(goal.x, goal.y, goal.z);
-        if (gp.scale > 0) {
-            const gw = goal.w * gp.scale;
-            const gh = goal.h * gp.scale;
-            ctx.fillStyle = 'rgba(255,255,255,0.2)';
-            ctx.fillRect(gp.x - gw/2, gp.y - gh/2, gw, gh);
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 5 * gp.scale;
-            ctx.strokeRect(gp.x - gw/2, gp.y - gh/2, gw, gh);
-            
-            // Goal posts
-            ctx.lineWidth = 10 * gp.scale;
-            ctx.beginPath();
-            ctx.moveTo(gp.x - gw/2, gp.y + gh/2); ctx.lineTo(gp.x - gw/2, gp.y - gh/2); ctx.lineTo(gp.x + gw/2, gp.y - gh/2); ctx.lineTo(gp.x + gw/2, gp.y + gh/2);
-            ctx.stroke();
-        }
+        // Real-world target mapping to 3D Goal Dimensions at Z=0 (Front of goal)
+        const gw3d = canvas.width * 0.44; // From x=0.28 to x=0.72 = 0.44
+        const gh3d = canvas.height * 0.37; // From y=0.15 to y=0.52 = 0.37
+        const gy3d = (canvas.height * 0.67) / 2 - (canvas.height / 2); // Center of that Y space
+
+        const f_tl = project(-gw3d/2, gy3d - gh3d/2, 0);       // Front top left
+        const f_tr = project(gw3d/2, gy3d - gh3d/2, 0);        // Front top right
+        const f_bl = project(-gw3d/2, gy3d + gh3d/2, 0);       // Front bottom left
+        const f_br = project(gw3d/2, gy3d + gh3d/2, 0);        // Front bottom right
+
+        const b_tl = project(-gw3d/2, gy3d - gh3d/2, goal.z);  // Back top left
+        const b_tr = project(gw3d/2, gy3d - gh3d/2, goal.z);   // Back top right
+        const b_bl = project(-gw3d/2, gy3d + gh3d/2, goal.z);  // Back bottom left
+        const b_br = project(gw3d/2, gy3d + gh3d/2, goal.z);   // Back bottom right
+
+        // Draw Nets Fill
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.beginPath(); // Back Net
+        ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(b_bl.x, b_bl.y);
+        ctx.fill();
+        ctx.beginPath(); // Left Net
+        ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_bl.x, b_bl.y); ctx.lineTo(f_bl.x, f_bl.y);
+        ctx.fill();
+        ctx.beginPath(); // Right Net
+        ctx.moveTo(f_tr.x, f_tr.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(f_br.x, f_br.y);
+        ctx.fill();
+        ctx.beginPath(); // Top Net
+        ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(f_tr.x, f_tr.y);
+        ctx.fill();
+
+        // Draw Net Lines (Structure)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Corners Z
+        ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y);
+        ctx.moveTo(f_tr.x, f_tr.y); ctx.lineTo(b_tr.x, b_tr.y);
+        ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(b_bl.x, b_bl.y);
+        ctx.moveTo(f_br.x, f_br.y); ctx.lineTo(b_br.x, b_br.y);
+        // Back frame
+        ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y);
+        ctx.moveTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y);
+        ctx.moveTo(b_br.x, b_br.y); ctx.lineTo(b_bl.x, b_bl.y);
+        ctx.moveTo(b_bl.x, b_bl.y); ctx.lineTo(b_tl.x, b_tl.y);
+        ctx.stroke();
+
+        // Draw Front Goal Posts (Thick White)
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.moveTo(f_bl.x, f_bl.y);
+        ctx.lineTo(f_tl.x, f_tl.y);
+        ctx.lineTo(f_tr.x, f_tr.y);
+        ctx.lineTo(f_br.x, f_br.y);
+        ctx.stroke();
 
         // Update and Draw Goalie
         goalie.x += goalie.vx;
-        if (goalie.x > 200 || goalie.x < -200) {
+        const maxGoaliX = gw3d / 2; // Keep goalie inside goal width
+        if (goalie.x > maxGoaliX || goalie.x < -maxGoaliX) {
             goalie.vx *= -1; // Move side to side
         }
         
@@ -216,8 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Collisions with Goal / Back Wall
             if (b.active && b.z > goal.z) {
                 b.active = false;
-                if (b.x > goal.x - goal.w/2 && b.x < goal.x + goal.w/2 &&
-                    b.y > goal.y - goal.h/2 && b.y < goal.y + goal.h/2) {
+                if (b.x > -gw3d/2 && b.x < gw3d/2 &&
+                    b.y > gy3d - gh3d/2 && b.y < gy3d + gh3d/2) {
                         
                     // GOAL SCORED!
                     const proj = project(b.x, b.y, goal.z);
