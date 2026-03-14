@@ -33,10 +33,35 @@ document.addEventListener('DOMContentLoaded', () => {
         tick: 0,
         totalFrames: 4,     // The sprite sheet has 4 frames
         animCols: 2,        // It's a 2x2 grid
-        frameWidth: 512,    // Half of 1024x1024 image
-        frameHeight: 512
+        frameWidth: 320,    // Default, will be updated onload
+        frameHeight: 320
     };
-    goalie.img.src = 'goalie_sprite.png';
+    
+    // Load and process image to remove magenta "green screen"
+    const rawImg = new Image();
+    rawImg.crossOrigin = "Anonymous";
+    rawImg.onload = () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = rawImg.width;
+        tempCanvas.height = rawImg.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(rawImg, 0, 0);
+        
+        // Remove magenta colored background
+        const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            if (data[i] > 200 && data[i+1] < 100 && data[i+2] > 200) {
+                data[i+3] = 0; // Make transparent
+            }
+        }
+        tCtx.putImageData(imgData, 0, 0);
+        
+        goalie.img.src = tempCanvas.toDataURL('image/png');
+        goalie.frameWidth = rawImg.width / 2;
+        goalie.frameHeight = rawImg.height / 2;
+    };
+    rawImg.src = 'goalie_sprite.png';
 
     const goal = {
         x: 0,
