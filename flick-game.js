@@ -304,31 +304,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Front Goal Posts (Thick 3D White Cylinders)
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
+        ctx.lineJoin = 'miter';
+        ctx.lineCap = 'butt';
         
-        // 1. Drop Shadow for depth
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 10;
-
-        // 2. Base thick white post
+        // 1. Base thick white post
         ctx.strokeStyle = '#F0F0F0';
-        ctx.lineWidth = 14;
+        ctx.lineWidth = 30; // Make it thick enough to be clearly visible as a post
         ctx.beginPath();
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-
-        // 3. Inner shadow to simulate cylinder rounding
-        ctx.strokeStyle = 'rgba(150, 150, 150, 0.8)';
-        ctx.lineWidth = 4;
+        // 2. Inner shading to simulate cylinder rounding
+        ctx.strokeStyle = 'rgba(200, 200, 200, 0.8)';
+        ctx.lineWidth = 8;
         ctx.beginPath();
-        ctx.moveTo(f_bl.x + 3, f_bl.y); ctx.lineTo(f_tl.x + 3, f_tl.y + 3); ctx.lineTo(f_tr.x - 3, f_tr.y + 3); ctx.lineTo(f_br.x - 3, f_br.y);
+        ctx.moveTo(f_bl.x + 8, f_bl.y); ctx.lineTo(f_tl.x + 8, f_tl.y + 8); ctx.lineTo(f_tr.x - 8, f_tr.y + 8); ctx.lineTo(f_br.x - 8, f_br.y);
         ctx.stroke();
 
         // Goal Line
