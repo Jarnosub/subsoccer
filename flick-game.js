@@ -23,10 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let goalie = {
         x: 0,
-        y: -50, // Above ground
-        z: 550, // Just in front of the goal
-        w: 200,
-        h: 250,
+        y: -50,
+        z: 1150, // Just in front of the goal
+        w: 150,
+        h: 200,
         vx: 8,
         img: new Image()
     };
@@ -34,10 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const goal = {
         x: 0,
-        y: -100,
-        z: 600, // Back wall (closer)
-        w: 600,
-        h: 400
+        y: -100, // Center of goal Y
+        z: 1200, // Far back wall
+        w: 600,  // Width of goal
+        h: 300   // Height of goal
     };
 
     function spawnObstacles() {
@@ -48,33 +48,42 @@ document.addEventListener('DOMContentLoaded', () => {
     window.handleGoalDetected = function(zoneId, index) {
         if (!isPlaying) return;
 
-        // Where did it hit on the screen plane?
-        let hitX = canvas.width / 2;
-        let hitY = canvas.height / 2;
+        // We map the physical camera hit to a target point on the 3D Goal far away
+        let targetX = goal.x;
+        let targetY = goal.y;
         
-        const zone = window.visionEngine.zones.find(z => z.id === zoneId);
-        if (zone) {
-            hitX = canvas.width * (zone.x + zone.width/2);
-            hitY = canvas.height * (zone.y + zone.height/2);
-        }
+        if (zoneId === 'top-left') { targetX = goal.x - goal.w/2 + 60; targetY = goal.y - goal.h/2 + 60; }
+        else if (zoneId === 'top-right') { targetX = goal.x + goal.w/2 - 60; targetY = goal.y - goal.h/2 + 60; }
+        else if (zoneId === 'bottom-left') { targetX = goal.x - goal.w/2 + 60; targetY = goal.y + goal.h/2 - 40; }
+        else if (zoneId === 'bottom-right') { targetX = goal.x + goal.w/2 - 60; targetY = goal.y + goal.h/2 - 40; }
+
+        // Add some nice random scatter
+        targetX += (Math.random() - 0.5) * 50;
+        targetY += (Math.random() - 0.5) * 50;
 
         // Get the actual physical speed from our new radar logic
-        let speedKmh = 30; // default
+        let speedKmh = 40; // default
         if(window.visionEngine && window.visionEngine.currentBallSpeedKmh) {
             speedKmh = window.visionEngine.currentBallSpeedKmh;
+            if (speedKmh < 20) speedKmh = 20;
         }
         
-        // Z-velocity correlates to real speed
-        let vz = speedKmh * 1.5 + 5; 
+        // Shoot from bottom center of the screen
+        let startX = 0;
+        let startY = 300; 
         
-        // Add lateral drift based on where it hit (if it hit left, it drifts left)
-        let vx = (hitX - canvas.width / 2) * 0.05;
-        let vy = (hitY - canvas.height / 2) * 0.05 - 15; // Kick it slightly more upwards for nice arc
+        // Calculate velocities to hit the target
+        let vz = speedKmh * 1.5 + 15; 
+        let t = goal.z / vz; // time to reach goal plane
+        let gravity = 0.8;
+        
+        let vx = (targetX - startX) / t;
+        let vy = (targetY - startY) / t - 0.5 * gravity * t; // Calculate arc so it lands on target
 
         // Virtual ball starts at the screen plane (Z = 0) and flies backwards into the 3D space
         balls.push({
-            x: hitX - canvas.width / 2, // Center origin
-            y: hitY - canvas.height / 2, // Center origin
+            x: startX,
+            y: startY,
             z: 0,
             vx: vx,
             vy: vy,
@@ -168,43 +177,58 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillText("LOCKED", trackPos.x + 30, trackPos.y);
         }
 
-        // Real-world target mapping to 3D Goal Dimensions at Z=0 (Front of goal)
-        const gw3d = canvas.width * 0.44; // From x=0.28 to x=0.72 = 0.44
-        const gh3d = canvas.height * 0.37; // From y=0.15 to y=0.52 = 0.37
-        const gy3d = (canvas.height * 0.67) / 2 - (canvas.height / 2); // Center of that Y space
+        // --- Draw 3D Goal at distance ---
+        const f_tl = project(goal.x - goal.w/2, goal.y - goal.h/2, goal.z);
+        const f_tr = project(goal.x + goal.w/2, goal.y - goal.h/2, goal.z);
+        const f_bl = project(goal.x - goal.w/2, goal.y + goal.h/2, goal.z);
+        const f_br = project(goal.x + goal.w/2, goal.y + goal.h/2, goal.z);
 
-        const f_tl = project(-gw3d/2, gy3d - gh3d/2, 0);       // Front top left
-        const f_tr = project(gw3d/2, gy3d - gh3d/2, 0);        // Front top right
-        const f_bl = project(-gw3d/2, gy3d + gh3d/2, 0);       // Front bottom left
-        const f_br = project(gw3d/2, gy3d + gh3d/2, 0);        // Front bottom right
+        const b_tl = project(goal.x - goal.w/2, goal.y - goal.h/2 + 50, goal.z + 200);
+        const b_tr = project(goal.x + goal.w/2, goal.y - goal.h/2 + 50, goal.z + 200);
+        const b_bl = project(goal.x - goal.w/2, goal.y + goal.h/2, goal.z + 200);
+        const b_br = project(goal.x + goal.w/2, goal.y + goal.h/2, goal.z + 200);
 
-        const b_tl = project(-gw3d/2, gy3d - gh3d/2, goal.z);  // Back top left
-        const b_tr = project(gw3d/2, gy3d - gh3d/2, goal.z);   // Back top right
-        const b_bl = project(-gw3d/2, gy3d + gh3d/2, goal.z);  // Back bottom left
-        const b_br = project(gw3d/2, gy3d + gh3d/2, goal.z);   // Back bottom right
+        // Draw Net Fill (semi-transparent white)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        // Back Net
+        ctx.beginPath(); ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(b_bl.x, b_bl.y); ctx.fill();
+        // Left Net
+        ctx.beginPath(); ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_bl.x, b_bl.y); ctx.lineTo(f_bl.x, f_bl.y); ctx.fill();
+        // Right Net
+        ctx.beginPath(); ctx.moveTo(f_tr.x, f_tr.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(f_br.x, f_br.y); ctx.fill();
+        // Top Net
+        ctx.beginPath(); ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.fill();
 
-        // Draw Front Goal Line (Maaliviiva)
+        // Draw Net Lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y);
+        ctx.moveTo(f_tr.x, f_tr.y); ctx.lineTo(b_tr.x, b_tr.y);
+        ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y);
+        ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_bl.x, b_bl.y);
+        ctx.moveTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y);
+        ctx.stroke();
+
+        // Front Goal Posts (Thick White)
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
+        ctx.stroke();
+
+        // Goal Line
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
-        // Draw Front Goal Posts (Thick White)
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 8;
-        ctx.beginPath();
-        ctx.moveTo(f_bl.x, f_bl.y); // Bottom left
-        ctx.lineTo(f_tl.x, f_tl.y); // Top left
-        ctx.lineTo(f_tr.x, f_tr.y); // Top right
-        ctx.lineTo(f_br.x, f_br.y); // Bottom right
-        ctx.stroke();
-
         // Update and Draw Goalie
         goalie.x += goalie.vx;
-        const maxGoaliX = gw3d / 2; // Keep goalie inside goal width
+        const maxGoaliX = goal.w / 2 - goalie.w/2; 
         if (goalie.x > maxGoaliX || goalie.x < -maxGoaliX) {
-            goalie.vx *= -1; // Move side to side
+            goalie.vx *= -1; 
         }
         
         const gop = project(goalie.x, goalie.y, goalie.z);
@@ -273,8 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Collisions with Goal / Back Wall
             if (b.active && b.z > goal.z) {
                 b.active = false;
-                if (b.x > -gw3d/2 && b.x < gw3d/2 &&
-                    b.y > gy3d - gh3d/2 && b.y < gy3d + gh3d/2) {
+                if (b.x > goal.x - goal.w/2 && b.x < goal.x + goal.w/2 &&
+                    b.y > goal.y - goal.h/2 && b.y < goal.y + goal.h/2) {
                         
                     // GOAL SCORED!
                     const proj = project(b.x, b.y, goal.z);
