@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         z: 1150, // Just in front of the goal
         w: 1200,
         h: 1200,
-        vx: 12,
+        vx: 5, // Calm, smooth sliding speed
         img: new Image(),
         frame: 0,
         tick: 0,
@@ -256,11 +256,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.stroke();
 
         // Update and Draw Goalie Sprite
-        // We only move when there's no ball to make it a bit fair, or move slowly
+        // Goalie slides calmly side-to-side
         goalie.x += goalie.vx;
-        const maxGoaliX = goal.w / 2 - goalie.w/3; 
-        if (goalie.x > maxGoaliX || goalie.x < -maxGoaliX) {
+        const maxGoaliX = goal.w / 2 - goalie.w / 2; 
+        if (goalie.x > maxGoaliX) {
+            goalie.x = maxGoaliX;
             goalie.vx *= -1; 
+        } else if (goalie.x < -maxGoaliX) {
+            goalie.x = -maxGoaliX;
+            goalie.vx *= -1;
         }
 
         // Sprite Animation Logic: Idle on frame 0, dive if ball is flying
