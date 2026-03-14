@@ -289,9 +289,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- DEBUG TEXT ---
-        ctx.fillStyle = '#fff';
-        ctx.font = '24px Arial';
-        ctx.fillText(`FRAME: ${goalie.frame} | TICK: ${goalie.tick} | TIMER: ${goalie.diveTimer} | BALLS: ${balls.length}`, 20, 100);
+        const activeBalls = balls.filter(b => b.active).length;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(10, 110, 600, 50);
+        ctx.fillStyle = '#00FFCC';
+        ctx.font = 'bold 28px "Russo One", Arial';
+        ctx.fillText(`FRAME: ${goalie.frame} | TICK: ${goalie.tick} | TIMER: ${goalie.diveTimer} | BALLS: ${activeBalls}`, 20, 145);
 
         
         const gop = project(goalie.x, goalie.y, goalie.z);
