@@ -147,8 +147,10 @@ class VisionEngine {
         // Piirrä videokuva kankaalle leikatussa koossa
         this.ctx.drawImage(this.video, offsetX, offsetY, drawWidth, drawHeight);
 
+        // Always analyse frame to trigger goal hits
+        this.analyseFrame();
+        
         if (this.showTargets) {
-            this.analyseFrame();
             this.drawOverlay();
         }
 
