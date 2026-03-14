@@ -74,32 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stadiumImg.src = 'stadium.png';
 
     const ballImg = new Image();
-    const rawBallImg = new Image();
-    // Removed crossOrigin="Anonymous" as it breaks local file canvas manipulation
-    rawBallImg.onload = () => {
-        try {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = rawBallImg.width;
-            tempCanvas.height = rawBallImg.height;
-            const tCtx = tempCanvas.getContext('2d');
-            tCtx.drawImage(rawBallImg, 0, 0);
-            
-            // Remove white background and make it transparent
-            const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-            const data = imgData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                if (data[i] > 240 && data[i+1] > 240 && data[i+2] > 240) {
-                    data[i+3] = 0; 
-                }
-            }
-            tCtx.putImageData(imgData, 0, 0);
-            ballImg.src = tempCanvas.toDataURL('image/png');
-        } catch (e) {
-            console.error("Canvas read failed:", e);
-            ballImg.src = 'ball.png'; // Fallback
-        }
-    };
-    rawBallImg.src = 'ball.png';
+    ballImg.src = 'ball.png';
 
     const goal = {
         x: 0,
