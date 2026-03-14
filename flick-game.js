@@ -23,11 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let goalie = {
         x: 0,
-        y: -150,
+        y: -100,
         z: 1150, // Just in front of the goal
-        w: 512,
-        h: 512,
-        vx: 15,
+        w: 1200,
+        h: 1200,
+        vx: 12,
         img: new Image(),
         frame: 0,
         tick: 0,
@@ -256,17 +256,27 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.stroke();
 
         // Update and Draw Goalie Sprite
+        // We only move when there's no ball to make it a bit fair, or move slowly
         goalie.x += goalie.vx;
-        const maxGoaliX = goal.w / 2 - goalie.w/2; 
+        const maxGoaliX = goal.w / 2 - goalie.w/3; 
         if (goalie.x > maxGoaliX || goalie.x < -maxGoaliX) {
             goalie.vx *= -1; 
         }
 
-        // Sprite Animation Logic
+        // Sprite Animation Logic: Idle on frame 0, dive if ball is flying
+        let isDiving = balls.some(b => b.active && b.z > 300);
+        
         goalie.tick++;
-        if (goalie.tick > 8) { // Change frame every 8 game loops for smooth speed
-            goalie.tick = 0;
-            goalie.frame = (goalie.frame + 1) % goalie.totalFrames;
+        if (isDiving) {
+            if (goalie.tick > 8) { // Animate frames 1-3
+                goalie.tick = 0;
+                goalie.frame++;
+                if (goalie.frame >= goalie.totalFrames) {
+                    goalie.frame = goalie.totalFrames - 1; // Stay on the last dive frame
+                }
+            }
+        } else {
+            goalie.frame = 0; // Reset to ready stance
         }
         
         const gop = project(goalie.x, goalie.y, goalie.z);
