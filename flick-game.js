@@ -113,17 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isPlaying) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Horizon and Floor
+        // Add slight dark gradient at the bottom for contrast
         const horizonY = canvas.height * 0.5;
         
-        // Draw Field Lines (perspective)
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; // Make lines slightly transparent to see camera
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(canvas.width*0.3, canvas.height); ctx.lineTo(canvas.width*0.45, horizonY);
-        ctx.moveTo(canvas.width*0.7, canvas.height); ctx.lineTo(canvas.width*0.55, horizonY);
-        ctx.moveTo(0, canvas.height*0.8); ctx.lineTo(canvas.width, canvas.height*0.8);
-        ctx.stroke();
+        // Hide targets from vision-engine for clean view
+        if(window.visionEngine) {
+            window.visionEngine.showTargets = false;
+        }
 
         let trackPos = null;
         if(window.visionEngine && window.visionEngine.lastBallPos) {
@@ -163,45 +159,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const b_bl = project(-gw3d/2, gy3d + gh3d/2, goal.z);  // Back bottom left
         const b_br = project(gw3d/2, gy3d + gh3d/2, goal.z);   // Back bottom right
 
-        // Draw Nets Fill
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.beginPath(); // Back Net
-        ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(b_bl.x, b_bl.y);
-        ctx.fill();
-        ctx.beginPath(); // Left Net
-        ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_bl.x, b_bl.y); ctx.lineTo(f_bl.x, f_bl.y);
-        ctx.fill();
-        ctx.beginPath(); // Right Net
-        ctx.moveTo(f_tr.x, f_tr.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(f_br.x, f_br.y);
-        ctx.fill();
-        ctx.beginPath(); // Top Net
-        ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(f_tr.x, f_tr.y);
-        ctx.fill();
-
-        // Draw Net Lines (Structure)
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.lineWidth = 2;
+        // Draw Front Goal Line (Maaliviiva)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 6;
         ctx.beginPath();
-        // Corners Z
-        ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y);
-        ctx.moveTo(f_tr.x, f_tr.y); ctx.lineTo(b_tr.x, b_tr.y);
-        ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(b_bl.x, b_bl.y);
-        ctx.moveTo(f_br.x, f_br.y); ctx.lineTo(b_br.x, b_br.y);
-        // Back frame
-        ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y);
-        ctx.moveTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y);
-        ctx.moveTo(b_br.x, b_br.y); ctx.lineTo(b_bl.x, b_bl.y);
-        ctx.moveTo(b_bl.x, b_bl.y); ctx.lineTo(b_tl.x, b_tl.y);
+        ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
         // Draw Front Goal Posts (Thick White)
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 10;
+        ctx.lineWidth = 8;
         ctx.beginPath();
-        ctx.moveTo(f_bl.x, f_bl.y);
-        ctx.lineTo(f_tl.x, f_tl.y);
-        ctx.lineTo(f_tr.x, f_tr.y);
-        ctx.lineTo(f_br.x, f_br.y);
+        ctx.moveTo(f_bl.x, f_bl.y); // Bottom left
+        ctx.lineTo(f_tl.x, f_tl.y); // Top left
+        ctx.lineTo(f_tr.x, f_tr.y); // Top right
+        ctx.lineTo(f_br.x, f_br.y); // Bottom right
         ctx.stroke();
 
         // Update and Draw Goalie
@@ -304,9 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillRect(p.x, p.y, 4, 4);
         });
 
-        // Display current radar speed
+        // Update speed HUD
         if(window.visionEngine && window.visionEngine.measureBallSpeed) {
-            speedDisplay.innerHTML = `${Math.round(window.visionEngine.currentBallSpeedKmh)}<span style="font-size:1.5rem">KMH</span>`;
+            speedDisplay.innerHTML = `${Math.round(window.visionEngine.currentBallSpeedKmh)}<span style="font-size:1rem; margin-left:2px; color:#aaa;">KMH</span>`;
         }
 
         requestID = requestAnimationFrame(gameLoop);
@@ -328,6 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             window.visionEngine.onTargetHit = window.handleGoalDetected;
             window.visionEngine.measureBallSpeed = true;
+            window.visionEngine.showTargets = false; // Add it here too just to be sure
         }
 
         isPlaying = true;
