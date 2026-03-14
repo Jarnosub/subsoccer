@@ -25,12 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
         x: 0,
         y: -150,
         z: 1150, // Just in front of the goal
-        w: 400,
-        h: 550,
+        w: 512,
+        h: 512,
         vx: 15,
-        img: new Image()
+        img: new Image(),
+        frame: 0,
+        tick: 0,
+        totalFrames: 4,     // The sprite sheet has 4 frames
+        animCols: 2,        // It's a 2x2 grid
+        frameWidth: 512,    // Half of 1024x1024 image
+        frameHeight: 512
     };
-    goalie.img.src = 'goalie.png';
+    goalie.img.src = 'goalie_sprite.png';
 
     const goal = {
         x: 0,
@@ -224,18 +230,37 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
-        // Update and Draw Goalie
+        // Update and Draw Goalie Sprite
         goalie.x += goalie.vx;
         const maxGoaliX = goal.w / 2 - goalie.w/2; 
         if (goalie.x > maxGoaliX || goalie.x < -maxGoaliX) {
             goalie.vx *= -1; 
+        }
+
+        // Sprite Animation Logic
+        goalie.tick++;
+        if (goalie.tick > 8) { // Change frame every 8 game loops for smooth speed
+            goalie.tick = 0;
+            goalie.frame = (goalie.frame + 1) % goalie.totalFrames;
         }
         
         const gop = project(goalie.x, goalie.y, goalie.z);
         if (gop.scale > 0 && goalie.img.complete) {
             const gow = goalie.w * gop.scale;
             const goh = goalie.h * gop.scale;
-            ctx.drawImage(goalie.img, gop.x - gow/2, gop.y - goh/2, gow, goh);
+            
+            // Calculate which sub-image (frame) to clip from the sprite sheet
+            const col = goalie.frame % goalie.animCols;
+            const row = Math.floor(goalie.frame / goalie.animCols);
+            const srcX = col * goalie.frameWidth;
+            const srcY = row * goalie.frameHeight;
+
+            // Draw only that specific frame using the 9-argument drawImage format
+            ctx.drawImage(
+                goalie.img, 
+                srcX, srcY, goalie.frameWidth, goalie.frameHeight, // Source clipping rect
+                gop.x - gow/2, gop.y - goh/2, gow, goh // Destination projection rect
+            );
         }
 
         // Update Balls (Physics in 3D)
