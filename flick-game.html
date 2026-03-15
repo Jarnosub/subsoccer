@@ -361,7 +361,17 @@
     <div id="start-menu">
         <button id="btn-start-touch" class="start-btn start-menu-btn">PLAY AGAIN (TOUCH)</button>
         <button id="btn-start-trackman" class="start-btn start-menu-btn">CONNECT TO SUBSOCCER</button>
-    </div>    <!-- Game dependencies -->
+    </div>
+    
+    <div id="challenge-popup" style="display: none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 2px solid #00FFCC; padding: 25px; text-align: center; z-index: 300; border-radius: 12px; width: 85%; max-width: 320px; box-shadow: 0 0 25px rgba(0,255,204,0.3); flex-direction: column; align-items: center; gap: 10px; backdrop-filter: blur(10px);">
+        <i class="fa-solid fa-gamepad" style="font-size: 2.5rem; color: #00FFCC; text-shadow: 0 0 10px #00FFCC;"></i>
+        <h3 style="color: #fff; font-family: 'Open Sans', sans-serif; font-size: 1.1rem; font-weight: 800; letter-spacing: 2px; margin-top: 10px;">CHALLENGER WAITING</h3>
+        <p style="color: #aaa; font-family: 'Open Sans', sans-serif; font-size: 0.85rem;">Another player wants to play.</p>
+        <button id="btn-accept-challenge" class="start-btn" style="position: relative; left: 0; bottom: 0; transform: none; width: 100%; border-radius: 8px; font-size: 0.9rem; margin-top: 15px; background: linear-gradient(135deg, #00FFCC 0%, #00997A 100%); box-shadow: 0 4px 15px rgba(0,255,204,0.4); border: none; color: #000; font-family: 'Open Sans', sans-serif; font-weight: 800;">ACCEPT BATTLE</button>
+        <button id="btn-decline-challenge" style="background: transparent; border: none; color: #666; font-family: 'Open Sans', sans-serif; font-size: 0.8rem; margin-top: 5px; cursor: pointer; text-transform: uppercase;">DECLINE</button>
+    </div>
+    
+    <!-- Game dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="sound-effects.js"></script>
     <script src="vision-engine.js"></script>

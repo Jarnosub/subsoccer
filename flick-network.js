@@ -20,6 +20,21 @@ function initNetwork() {
         config: { broadcast: { self: false } }
     });
 
+    const btnAccept = document.getElementById('btn-accept-challenge');
+    if (btnAccept) {
+        btnAccept.addEventListener('click', () => {
+            document.getElementById('challenge-popup').style.display = 'none';
+            if (window.startGame) window.startGame(false);
+        });
+    }
+
+    const btnDecline = document.getElementById('btn-decline-challenge');
+    if (btnDecline) {
+        btnDecline.addEventListener('click', () => {
+            document.getElementById('challenge-popup').style.display = 'none';
+        });
+    }
+
     flickChannel.on('broadcast', { event: 'score_update' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
             const oppDisplay = document.getElementById('opp-score-value');
@@ -39,10 +54,15 @@ function initNetwork() {
 
     flickChannel.on('broadcast', { event: 'game_start' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
-            // Opponent started the game, we should start too!
+            // Opponent started the game! Show popup instead of forcing auto-start
             if (window.startGame && !window.isPlaying) {
-                console.log("Opponent started the game! Starting automatically...");
-                window.startGame(false);
+                const popup = document.getElementById('challenge-popup');
+                if (popup) {
+                    popup.style.display = 'flex';
+                } else {
+                    console.log("Opponent started the game! Starting automatically...");
+                    window.startGame(false);
+                }
             } else if (!window.startGame) {
                 console.error("Opponent started but window.startGame is not attached!");
             }
