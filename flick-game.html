@@ -126,17 +126,19 @@
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            gap: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .hud-item {
-            padding: 0 15px;
             text-align: center;
+            width: 100%;
         }
 
-        .border-right {
-            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        .border-bottom {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 15px;
         }
 
         .stat-label {
@@ -157,12 +159,16 @@
     </style>
     <div class="display-panel">
         <div class="hud-container">
-            <div class="hud-item border-right">
+            <div class="hud-item border-bottom">
+                <div class="stat-label">TIME</div>
+                <div class="stat-value" id="time-value">45</div>
+            </div>
+            <div class="hud-item border-bottom">
                 <div class="stat-label">SCORE</div>
                 <div class="stat-value" id="score-value">0</div>
             </div>
             <div class="hud-item">
-                <div class="stat-label">SPEED:</div>
+                <div class="stat-label">SPEED</div>
                 <div class="stat-value" id="speed-value" style="color: #00FFCC; text-shadow: 0 0 10px rgba(0,255,204,0.5);">0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span></div>
             </div>
         </div>

@@ -3,9 +3,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPlaying = false;
     let requestID = null;
 
+    let timeLeft = 45;
+    let timerInterval = null;
+
     const btnStart = document.getElementById('btn-start');
     const scoreDisplay = document.getElementById('score-value');
     const speedDisplay = document.getElementById('speed-value');
+    const timeDisplay = document.getElementById('time-value');
     
     // Setup Physics Canvas
     const canvas = document.getElementById('physics-canvas');
@@ -549,6 +553,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         score = 0;
         scoreDisplay.textContent = score;
+        
+        timeLeft = 45;
+        if(timeDisplay) timeDisplay.textContent = timeLeft;
+        if(timerInterval) clearInterval(timerInterval);
+        
         btnStart.style.display = 'none';
 
         if (window.visionEngine) {
@@ -568,5 +577,19 @@ document.addEventListener('DOMContentLoaded', () => {
         particles = [];
         spawnObstacles();
         gameLoop();
+
+        timerInterval = setInterval(() => {
+            if (!isPlaying) return;
+            timeLeft--;
+            if (timeDisplay) timeDisplay.textContent = timeLeft;
+            
+            // Time is up
+            if (timeLeft <= 0) {
+                isPlaying = false;
+                clearInterval(timerInterval);
+                btnStart.style.display = 'inline-block';
+                btnStart.textContent = "TIME OVER - RETRY";
+            }
+        }, 1000);
     });
 });
