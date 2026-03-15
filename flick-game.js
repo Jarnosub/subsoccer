@@ -556,25 +556,24 @@ window.isPlaying = false;
             ctx.beginPath(); ctx.moveTo(rx, r_y); ctx.lineTo(rx, rb); ctx.stroke();
         }
 
-        // Front Goal Posts (Dark Blue with outer edge specular highlight)
-        ctx.lineJoin = 'miter';
+        // Front Goal Posts (Subsoccer Red with Black Outer Outline)
+        ctx.lineJoin = 'round';
         ctx.lineCap = 'butt';
         
-        // 1. Base thick dark blue post
-        ctx.strokeStyle = '#21314d';
-        ctx.lineWidth = 14; 
+        // 1. Thick black outline (drawn first, behind the red)
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 18; 
         ctx.beginPath();
+        // Go from bottom-left up, across, and down to bottom-right (no bottom line)
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
-        // 2. Highlight reflection on the outer edge
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.lineWidth = 2;
+        // 2. Base thick red post (drawn over the black line)
+        ctx.strokeStyle = '#E30613';
+        ctx.lineWidth = 12; 
         ctx.beginPath();
-        ctx.moveTo(f_bl.x - 6, f_bl.y); 
-        ctx.lineTo(f_tl.x - 6, f_tl.y - 6); 
-        ctx.lineTo(f_tr.x + 6, f_tr.y - 6); 
-        ctx.lineTo(f_br.x + 6, f_br.y);
+        // Go from bottom-left up, across, and down to bottom-right (no bottom line)
+        ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
         // Goal Line (White)
