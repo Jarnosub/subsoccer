@@ -992,12 +992,52 @@ window.isPlaying = false;
                 window.isPlaying = false;
                 clearInterval(timerInterval);
                 
+
                 if (window.soundEffects) {
                     window.soundEffects.fadeOutMusic(5);
                 }
+                
+                // --- Show Victory Screen ---
+                const vOverlay = document.getElementById('victory-overlay');
+                const vName = document.getElementById('victory-player-name');
+                const vEloGain = document.getElementById('victory-elo-gain');
+                const vEloCount = document.getElementById('victory-elo-count');
+                const vCardName = document.getElementById('victory-card-name');
+                const vCanvas = document.getElementById('lasers-canvas');
 
-                if(startMenu) startMenu.style.display = 'flex';
-                if(btnStartTouch) btnStartTouch.textContent = "PLAY AGAIN (TOUCH)";
+                if (vOverlay) {
+                    vOverlay.style.display = 'flex';
+                    if (vEloGain) vEloGain.textContent = score + " POINTS";
+                    if (vEloCount) vEloCount.textContent = score + " PTS";
+                    if (vCardName) vCardName.textContent = window.myName || "PLAYER";
+                    
+                    if (vCanvas && window.startVictoryLasers) {
+                        try { window.startVictoryLasers(vCanvas, "#00FFCC"); } catch(e){}
+                    }
+                    
+                    // Simple ELO animation based on score
+                    let currentVal = 0;
+                    const eloInterval = setInterval(() => {
+                        currentVal += Math.ceil(score / 30);
+                        if (currentVal >= score) {
+                            currentVal = score;
+                            clearInterval(eloInterval);
+                            if (vEloCount) {
+                                vEloCount.textContent = currentVal + " PTS";
+                                vEloCount.style.transform = 'scale(1.2)';
+                                vEloCount.style.background = '#00FFCC';
+                                vEloCount.style.color = '#000';
+                                setTimeout(() => { vEloCount.style.transform = 'scale(1)'; }, 300);
+                            }
+                        } else {
+                            if (vEloCount) vEloCount.textContent = currentVal + " PTS";
+                        }
+                    }, 30);
+                } else {
+                    if(startMenu) startMenu.style.display = 'flex';
+                    if(btnStartTouch) btnStartTouch.textContent = "PLAY AGAIN (TOUCH)";
+                }
+
             }
         }, 1000);
     }
@@ -1060,3 +1100,11 @@ window.isPlaying = false;
         stadiumImg.addEventListener('error', startGameLoop);
     }
 });
+
+window.closeVictoryAndReset = function() {
+    const vOverlay = document.getElementById('victory-overlay');
+    if (vOverlay) vOverlay.style.display = 'none';
+    const startMenu = document.getElementById('start-menu');
+    if (startMenu) startMenu.style.display = 'flex';
+    if(window.gameLoopInterval) cancelAnimationFrame(window.gameLoopInterval);
+};
