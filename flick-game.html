@@ -463,12 +463,18 @@
         /* Responsive Mobile Layout */
         @media (max-width: 768px) and (orientation: portrait) {
             #start-menu {
-                flex-direction: row;
+                flex-direction: column;
                 max-width: 500px;
                 width: 95%;
-                top: 65%; /* Center of the grass */
+                top: 60%; /* Center of the grass */
                 transform: translate(-50%, -50%) scale(0.9);
+                gap: 15px;
+            }
+            .start-menu-buttons {
+                display: flex;
+                flex-direction: row;
                 gap: 10px;
+                width: 100%;
             }
             .start-menu-btn {
                 padding: 12px 10px;
@@ -844,8 +850,13 @@
     <canvas id="physics-canvas"></canvas>
 
     <div id="start-menu">
-        <button id="btn-start-touch" class="start-btn start-menu-btn">PLAY AGAIN (TOUCH)</button>
-        <button id="btn-start-trackman" class="start-btn start-menu-btn">CONNECT TO SUBSOCCER</button>
+        <div style="display: flex; justify-content: center; margin-bottom: 5px;">
+            <img src="goalie_sprite_graphic.png" alt="Goalie on Bench" style="max-height: 250px; width: auto; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8)); transition: transform 0.3s ease;">
+        </div>
+        <div class="start-menu-buttons" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+            <button id="btn-start-touch" class="start-btn start-menu-btn">PLAY AGAIN (TOUCH)</button>
+            <button id="btn-start-trackman" class="start-btn start-menu-btn">CONNECT TO SUBSOCCER</button>
+        </div>
     </div>
     
     <div id="challenge-popup" style="display: none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 2px solid #00FFCC; padding: 25px; text-align: center; z-index: 300; border-radius: 12px; width: 85%; max-width: 320px; box-shadow: 0 0 25px rgba(0,255,204,0.3); flex-direction: column; align-items: center; gap: 10px; backdrop-filter: blur(10px);">
