@@ -1011,8 +1011,56 @@ window.isPlaying = false;
                     if (vEloCount) vEloCount.textContent = score + " PTS";
                     if (vCardName) vCardName.textContent = window.myName || "PLAYER";
                     
-                    if (vCanvas && window.startVictoryLasers) {
-                        try { window.startVictoryLasers(vCanvas, "#00FFCC"); } catch(e){}
+                    if (vCanvas) {
+                        vCanvas.style.display = 'block';
+                        vCanvas.width = window.innerWidth;
+                        vCanvas.height = window.innerHeight;
+                        const ctx = vCanvas.getContext('2d');
+
+                        let lasers = [];
+                        for (let i = 0; i < 6; i++) {
+                            lasers.push({
+                                x: (vCanvas.width / 7) * (i + 1),
+                                y: vCanvas.height + 50,
+                                angle: Math.PI * 1.5 + (Math.random() - 0.5),
+                                targetAngle: Math.PI * 1.5 + (Math.random() - 0.5) * 1.5,
+                                speed: 0.002 + Math.random() * 0.005,
+                                colorStr: i % 2 === 0 ? '227, 6, 19' : '0, 255, 204',
+                                width: 30 + Math.random() * 50,
+                                alpha: 0
+                            });
+                        }
+
+                        function updateLasers() {
+                            if (vOverlay.style.display === 'none') return;
+                            ctx.clearRect(0, 0, vCanvas.width, vCanvas.height);
+                            ctx.globalCompositeOperation = 'screen';
+                            lasers.forEach(laser => {
+                                if (Math.abs(laser.angle - laser.targetAngle) < 0.02) {
+                                    laser.targetAngle = Math.PI * 1.5 + (Math.random() - 0.5) * 1.8;
+                                    laser.speed = 0.002 + Math.random() * 0.003;
+                                }
+                                laser.angle += (laser.targetAngle - laser.angle) * laser.speed;
+                                if (laser.alpha < 0.5) laser.alpha += 0.005;
+                                const length = vCanvas.height * 2;
+                                const endX = laser.x + Math.cos(laser.angle) * length;
+                                const endY = laser.y + Math.sin(laser.angle) * length;
+                                const gradient = ctx.createLinearGradient(laser.x, laser.y, endX, endY);
+                                gradient.addColorStop(0, `rgba(${laser.colorStr}, ${laser.alpha})`);
+                                gradient.addColorStop(1, `rgba(${laser.colorStr}, 0)`);
+                                ctx.beginPath();
+                                ctx.moveTo(laser.x - laser.width / 2, laser.y);
+                                ctx.lineTo(endX - laser.width * 4, endY);
+                                ctx.lineTo(endX + laser.width * 4, endY);
+                                ctx.lineTo(laser.x + laser.width / 2, laser.y);
+                                ctx.closePath();
+                                ctx.fillStyle = gradient;
+                                ctx.fill();
+                            });
+                            ctx.globalCompositeOperation = 'source-over';
+                            requestAnimationFrame(updateLasers);
+                        }
+                        updateLasers();
                     }
                     
                     // Simple ELO animation based on score
