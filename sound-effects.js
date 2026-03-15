@@ -374,8 +374,6 @@ const soundEffects = new SoundEffects();
 // Automatically loads sounds/goal.mp3 and sounds/crowd.mp3 if available
 // Falls back to synthesized sounds if files not found
 try {
-    soundEffects.loadSound('goal', 'sounds/goal.mp3');
-    soundEffects.loadSound('crowd', 'sounds/crowd.mp3');
     soundEffects.loadSound('gameplay', 'sounds/gameplay_theme.m4a');
     soundEffects.loadSound('victory', 'sounds/victory_theme.m4a');
     console.log("🔊 Custom sound files loaded");
