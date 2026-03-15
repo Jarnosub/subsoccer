@@ -258,11 +258,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dt > 800 || dt < 10) return; 
         if (dy > -20) return; 
 
-        // Simulate physical speed (px/ms mapped to km/h)
-        const pixelSpeed = Math.sqrt(dx*dx + dy*dy) / dt; 
-        let simulatedSpeed = pixelSpeed * 35; // tuning factor
-        if (simulatedSpeed > 120) simulatedSpeed = 120;
-        if (simulatedSpeed < 20) simulatedSpeed = 20;
+        // Simulate physical speed (resolution independent)
+        const distanceObj = Math.sqrt(dx*dx + dy*dy);
+        const screensPerSec = (distanceObj / window.innerHeight) / (dt / 1000);
+        
+        let simulatedSpeed = screensPerSec * 30; // 3 screens/sec = 90 km/h
+        if (simulatedSpeed > 150) simulatedSpeed = 150;
+        if (simulatedSpeed < 15) simulatedSpeed = 15;
 
         // Calculate Curve (Spin) by checking deviation from straight line
         let maxDeviation = 0;
@@ -296,24 +298,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // aiming slightly opposite to the curve direction.
         targetX -= spin * 300; 
 
-        // If you swipe too slowly, the ball shouldn't rise off the ground to reach your pointed y.
-        let speedMultiplier = (simulatedSpeed - 30) / 40; // 30km/h = 0 multiplier (ground), 70km/h = 1.0 (reaches finger)
-        if (speedMultiplier < 0) speedMultiplier = 0;
-        
-        // If you flick extremely hard (e.g., > 90 km/h), give it extra carry (flies over your finger)
-        let powerCarry = 1.0;
-        if (simulatedSpeed > 90) {
-            powerCarry = 1.0 + ((simulatedSpeed - 90) / 50); // scales up if you hit harder
-        }
-
-        // Target height is where your finger stopped (pointedY), but pulled down to the floor (bottomY) 
-        // if your flick was too slow, or pushed higher if you absolutely smashed it (powerCarry).
+        // Target height is basically where your finger stopped (pointedY).
         const bottomY = goal.y + goal.h/2 - 150; 
         
-        let liftFactor = speedMultiplier * powerCarry;
-        liftFactor = Math.pow(liftFactor, 1.2); 
-        
-        let targetY = bottomY - (bottomY - pointedY) * liftFactor;
+        let targetY = pointedY;
+
+        // If flick is very slow, keep it closely grounded.
+        if (simulatedSpeed < 35) {
+            targetY = bottomY;
+        } else if (simulatedSpeed > 90) {
+            // Smash it: give it extra carry over what they aimed for
+            const smashLift = (simulatedSpeed - 90) * 2;
+            targetY -= smashLift; 
+        }
+
+        // Prevent it from diving weirdly into the floor
+        if (targetY > bottomY) targetY = bottomY;
 
         // Scatter
         targetX += (Math.random() - 0.5) * 50;
@@ -335,14 +335,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Attach event listeners to physics canvas
     canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
         handleFlickStart(e.touches[0].clientX, e.touches[0].clientY);
     }, {passive: false});
 
     canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
         handleFlickMove(e.touches[0].clientX, e.touches[0].clientY);
     }, {passive: false});
 
     canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
         handleFlickEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
     }, {passive: false});
 
