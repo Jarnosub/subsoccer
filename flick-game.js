@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let timeLeft = 45;
     let timerInterval = null;
 
-    const btnStart = document.getElementById('btn-start');
+    const btnStartTouch = document.getElementById('btn-start-touch');
+    const btnStartTrackman = document.getElementById('btn-start-trackman');
+    const startMenu = document.getElementById('start-menu');
     const scoreDisplay = document.getElementById('score-value');
     const speedDisplay = document.getElementById('speed-value');
     const timeDisplay = document.getElementById('time-value');
@@ -227,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isFlicking = false;
 
     function handleFlickStart(x, y) {
-        if (!isPlaying) return;
+        if (!isPlaying || window.useTrackman) return;
         flickStartX = x;
         flickStartY = y;
         flickCurrentX = x;
@@ -858,42 +860,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Update speed HUD
-        if(window.visionEngine && window.visionEngine.measureBallSpeed) {
+        if(window.useTrackman && window.visionEngine && window.visionEngine.measureBallSpeed) {
             speedDisplay.innerHTML = `${Math.round(window.visionEngine.currentBallSpeedKmh)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H</span>`;
         }
 
         requestID = requestAnimationFrame(gameLoop);
     }
 
-    btnStart.addEventListener('click', async () => {
+    async function startGame(useCamera) {
         if (isPlaying) return;
+        window.useTrackman = useCamera;
         
         score = 0;
         scoreDisplay.textContent = score;
+        speedDisplay.innerHTML = `0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span>`;
         
         timeLeft = 45;
         if(timeDisplay) timeDisplay.textContent = timeLeft;
         if(timerInterval) clearInterval(timerInterval);
         
-        btnStart.style.display = 'none';
+        if(startMenu) startMenu.style.display = 'none';
 
-        if (window.visionEngine) {
+        if (useCamera && window.visionEngine) {
             const success = await window.visionEngine.startCamera();
             if (!success) {
                 alert("Camera access is required");
-                btnStart.style.display = 'inline-block';
+                if(startMenu) startMenu.style.display = 'flex';
                 return;
             }
             window.visionEngine.onTargetHit = window.handleGoalDetected;
             window.visionEngine.measureBallSpeed = true;
-            window.visionEngine.showTargets = false; // Add it here too just to be sure
+            window.visionEngine.showTargets = false; 
         }
 
         isPlaying = true;
         balls = [];
         particles = [];
         spawnObstacles();
-        // gameLoop was already started in background
         
         timerInterval = setInterval(() => {
             if (!isPlaying) return;
@@ -904,11 +907,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timeLeft <= 0) {
                 isPlaying = false;
                 clearInterval(timerInterval);
-                btnStart.style.display = 'inline-block';
-                btnStart.textContent = "TIME OVER - RETRY";
+                if(startMenu) startMenu.style.display = 'flex';
+                if(btnStartTouch) btnStartTouch.textContent = "PLAY AGAIN (TOUCH)";
             }
         }, 1000);
-    });
+    }
+
+    if(btnStartTouch) {
+        btnStartTouch.addEventListener('click', () => startGame(false));
+    }
+    if(btnStartTrackman) {
+        btnStartTrackman.addEventListener('click', () => startGame(true));
+    }
 
     // Start background loop only after stadium image loads to prevent green grass flash
     if (stadiumImg.complete) {
