@@ -799,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     createParticles(proj.x, proj.y, proj.scale * 3);
                     createParticles(proj.x, proj.y, proj.scale * 3); // Extra explosion
                     
-                    if(window.soundEffects) window.soundEffects.playSound('goal');
+                    if(window.soundEffects) window.soundEffects.playGoalSound();
                     
                     score += 1500;
                     scoreDisplay.textContent = score;
@@ -827,8 +827,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     createParticles(proj.x, proj.y, proj.scale * 3);
                     
                     if (window.soundEffects) {
-                        window.soundEffects.playSound('goal');
-                        window.soundEffects.playSound('crowd');
+                        window.soundEffects.playGoalSound();
+                        window.soundEffects.playCrowdCheer();
                     }
 
                     score += 500;
