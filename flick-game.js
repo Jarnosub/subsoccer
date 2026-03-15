@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         shootVirtualBall(targetX, targetY, speedKmh);
     };
 
-    function shootVirtualBall(targetX, targetY, speedKmh) {
+    function shootVirtualBall(targetX, targetY, speedKmh, spin = 0) {
         // Shoot from bottom center of the screen
         let startX = 0;
         let startY = 300; 
@@ -199,8 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
             vx: vx,
             vy: vy,
             vz: vz,
+            vz: vz,
             radius: 70, // Increased base size so it's clearly visible in 3D distance
             active: true,
+            spin: spin, // Add spin for curve effect
             history: [] // for the ball trail
         });
 
@@ -212,19 +214,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let flickStartX = 0;
     let flickStartY = 0;
     let flickStartTime = 0;
+    let flickPoints = [];
 
     function handleFlickStart(x, y) {
         if (!isPlaying) return;
         flickStartX = x;
         flickStartY = y;
         flickStartTime = Date.now();
+        flickPoints = [{x, y}];
+    }
+
+    function handleFlickMove(x, y) {
+        if (!isPlaying || flickPoints.length === 0) return;
+        flickPoints.push({x, y});
     }
 
     function handleFlickEnd(x, y) {
-        if (!isPlaying) return;
+        if (!isPlaying || flickPoints.length === 0) return;
         const dx = x - flickStartX;
         const dy = y - flickStartY;
         const dt = Date.now() - flickStartTime;
+        flickPoints.push({x, y});
 
         // Must be a quick swipe upwards
         if (dt > 800 || dt < 10) return; 
@@ -236,17 +246,50 @@ document.addEventListener('DOMContentLoaded', () => {
         if (simulatedSpeed > 120) simulatedSpeed = 120;
         if (simulatedSpeed < 20) simulatedSpeed = 20;
 
+        // Calculate Curve (Spin) by checking deviation from straight line
+        let maxDeviation = 0;
+        const lineLen = Math.sqrt(dx*dx + dy*dy);
+        if (lineLen > 0) {
+            flickPoints.forEach(p => {
+                // Distance from point to line: cross product 
+                let dev = ((x - flickStartX)*(flickStartY - p.y) - (flickStartX - p.x)*(y - flickStartY)) / lineLen;
+                if (Math.abs(dev) > Math.abs(maxDeviation)) {
+                    maxDeviation = dev;
+                }
+            });
+        }
+        
+        // Convert screen pixel deviation to 3D spin force
+        let spin = (maxDeviation / window.innerWidth) * 20; 
+        // Cap maximum spin
+        if (spin > 2.5) spin = 2.5;
+        if (spin < -2.5) spin = -2.5;
+
         // Map swipe X end position to physical net coordinates
         const cw = window.innerWidth;
+        const ch = window.innerHeight;
         let targetX = goal.x + ((x / cw) * (goal.w * 1.4) - (goal.w * 0.7));
 
-        // Map speed to vertical net height (Y)
+        // Let's deduct the effect of curve from the initial shot target so it actually curves INTO the target, 
+        // aiming slightly opposite to the curve direction.
+        targetX -= spin * 300; 
+
+        // Map speed & flick elevation to vertical net height (Y)
         const bottomY = goal.y + goal.h/2 - 150;
         const topY = goal.y - goal.h/2 + 200;
         
-        let flightPower = (simulatedSpeed - 20) / (80 - 20);
-        if (flightPower < 0) flightPower = 0;
+        let speedPower = (simulatedSpeed - 20) / (80 - 20);
+        if (speedPower < 0) speedPower = 0;
+        
+        // How high on the screen did the flick end? (1.0 = top of screen, 0.0 = bottom)
+        let elevationPower = 1.0 - (y / ch);
+        if (elevationPower < 0) elevationPower = 0;
+        if (elevationPower > 1) elevationPower = 1;
+
+        // Blend 60% elevation, 40% speed for target height
+        let flightPower = (elevationPower * 0.6) + (speedPower * 0.4);
         flightPower = Math.pow(flightPower, 1.2); 
+        
         let targetY = bottomY - (bottomY - topY) * flightPower;
 
         // Scatter
@@ -257,15 +300,23 @@ document.addEventListener('DOMContentLoaded', () => {
         goalie.direction = (targetX > 0) ? 1 : -1;
 
         if(speedDisplay) {
-            speedDisplay.innerHTML = `${Math.round(simulatedSpeed)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H (FLICK)</span>`;
+            let curveText = "";
+            if (spin > 0.5) curveText = " ↷";
+            if (spin < -0.5) curveText = " ↶";
+            speedDisplay.innerHTML = `${Math.round(simulatedSpeed)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H${curveText}</span>`;
         }
         
-        shootVirtualBall(targetX, targetY, simulatedSpeed);
+        shootVirtualBall(targetX, targetY, simulatedSpeed, spin);
+        flickPoints = []; // reset
     }
 
     // Attach event listeners to physics canvas
     canvas.addEventListener('touchstart', (e) => {
         handleFlickStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive: false});
+
+    canvas.addEventListener('touchmove', (e) => {
+        handleFlickMove(e.touches[0].clientX, e.touches[0].clientY);
     }, {passive: false});
 
     canvas.addEventListener('touchend', (e) => {
@@ -276,6 +327,10 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.addEventListener('mousedown', (e) => {
         isMouseDown = true;
         handleFlickStart(e.clientX, e.clientY);
+    });
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isMouseDown) return;
+        handleFlickMove(e.clientX, e.clientY);
     });
     canvas.addEventListener('mouseup', (e) => {
         if (!isMouseDown) return;
@@ -614,6 +669,11 @@ document.addEventListener('DOMContentLoaded', () => {
             b.x += b.vx;
             b.y += b.vy;
             b.z += b.vz;
+            
+            // Apply Magnus effect (Spin Curve) to horizontal velocity
+            if (b.spin) {
+                b.vx += b.spin; 
+            }
 
             // Gravity in 3D (Y goes down)
             b.vy += 0.8; // slightly heavier gravity
