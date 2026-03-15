@@ -20,6 +20,40 @@ try {
     }
 } catch(e) {}
 
+window.onlinePlayers = {};
+
+function trackPlayer(id, name) {
+    if (!name || id === myNetworkId) return;
+    window.onlinePlayers[id] = { name: name, lastSeen: Date.now() };
+    renderOnlinePlayers();
+}
+
+function renderOnlinePlayers() {
+    const list = document.getElementById('online-players-list');
+    if (!list) return;
+    
+    // Clean up older than 15s
+    const now = Date.now();
+    for (const id in window.onlinePlayers) {
+        if (now - window.onlinePlayers[id].lastSeen > 15000) {
+            delete window.onlinePlayers[id];
+        }
+    }
+    
+    // Render list
+    list.innerHTML = '';
+    const players = Object.values(window.onlinePlayers);
+    players.forEach(p => {
+        const badge = document.createElement('div');
+        badge.className = 'online-player-badge';
+        badge.innerHTML = `<i class="fa-solid fa-wifi" style="margin-right: 4px;"></i> ${p.name}`;
+        list.appendChild(badge);
+    });
+}
+
+// Clean up loop for visual display
+setInterval(renderOnlinePlayers, 5000);
+
 function updateOpponentName(name) {
     if (!name) return;
     const oppLabel = document.querySelector('#opp-score-box .stat-label');
@@ -79,6 +113,7 @@ function initNetwork() {
     flickChannel.on('broadcast', { event: 'challenge' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
             updateOpponentName(payload.payload.username);
+            trackPlayer(payload.payload.id, payload.payload.username);
             const popup = document.getElementById('challenge-popup');
             if (popup && !window.isPlaying && !window.isPracticeMode) {
                 popup.style.display = 'flex';
@@ -89,6 +124,7 @@ function initNetwork() {
     flickChannel.on('broadcast', { event: 'accept_challenge' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
             updateOpponentName(payload.payload.username);
+            trackPlayer(payload.payload.id, payload.payload.username);
             const waitingPopup = document.getElementById('waiting-popup');
             if (waitingPopup) waitingPopup.style.display = 'none';
             
@@ -102,6 +138,7 @@ function initNetwork() {
     flickChannel.on('broadcast', { event: 'score_update' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
             updateOpponentName(payload.payload.username);
+            trackPlayer(payload.payload.id, payload.payload.username);
             const oppDisplay = document.getElementById('opp-score-value');
             if (oppDisplay) {
                 oppDisplay.textContent = payload.payload.score;
@@ -138,6 +175,7 @@ function initNetwork() {
         if (payload.payload.id !== myNetworkId) {
              console.log("A new player joined the battle!");
              updateOpponentName(payload.payload.username);
+             trackPlayer(payload.payload.id, payload.payload.username);
              const oppBox = document.getElementById('opp-score-box');
              if(oppBox) {
                  oppBox.style.backgroundColor = 'rgba(0, 255, 204, 0.4)'; // Flash green for connected
@@ -150,6 +188,12 @@ function initNetwork() {
         }
     });
 
+    flickChannel.on('broadcast', { event: 'ping' }, (payload) => {
+        if (payload.payload.id !== myNetworkId) {
+             trackPlayer(payload.payload.id, payload.payload.username);
+        }
+    });
+
     flickChannel.subscribe((status) => {
         console.log("Supabase Network Status:", status);
         if (status === 'SUBSCRIBED') {
@@ -159,6 +203,17 @@ function initNetwork() {
                 event: 'hello',
                 payload: { id: myNetworkId, username: myName }
             });
+            
+            // Heartbeat
+            setInterval(() => {
+                if (flickChannel && flickChannel.state === 'joined') {
+                    flickChannel.send({
+                        type: 'broadcast',
+                        event: 'ping',
+                        payload: { id: myNetworkId, username: myName }
+                    });
+                }
+            }, 5000);
         }
     });
 }

@@ -333,6 +333,39 @@
                 transform: translate(-50%, 0) scale(0.85);
             }
         }
+        
+        #online-players-list {
+            position: absolute;
+            top: calc(env(safe-area-inset-top, 0px) + 20px);
+            right: calc(env(safe-area-inset-right, 0px) + 20px);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 100;
+            pointer-events: none;
+            align-items: flex-end;
+        }
+        
+        .online-player-badge {
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.4);
+            color: #00FFCC;
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 700;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            animation: slideIn 0.3s ease-out;
+            transition: opacity 0.5s;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
     <div class="display-panel">
         <div class="hud-container">
@@ -354,6 +387,8 @@
             </div>
         </div>
     </div>
+    
+    <div id="online-players-list"></div>
 
     <!-- The actual flick physics canvas -->
     <canvas id="physics-canvas"></canvas>
