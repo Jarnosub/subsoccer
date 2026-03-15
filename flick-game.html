@@ -253,6 +253,18 @@
 
         /* Responsive Mobile Layout */
         @media (max-width: 768px) and (orientation: portrait) {
+            #start-menu {
+                flex-direction: row;
+                max-width: 500px;
+                width: 95%;
+                top: 65%; /* Center of the grass */
+                transform: translate(-50%, -50%) scale(0.9);
+                gap: 10px;
+            }
+            .start-menu-btn {
+                padding: 12px 10px;
+                font-size: 0.8rem;
+            }
             .display-panel {
                 top: auto;
                 bottom: calc(env(safe-area-inset-bottom, 0px) + 30px); /* Leave safe space */
