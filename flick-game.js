@@ -405,8 +405,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.beginPath(); ctx.arc(0, 0, tr * 0.6, 0, Math.PI*2);
                 ctx.fillStyle = '#ebeced'; ctx.fill(); ctx.stroke();
                 
-                // Inner Red
-                ctx.beginPath(); ctx.arc(0, 0, tr * 0.25, 0, Math.PI*2);
+                // Inner Red (Increased by 20%)
+                ctx.beginPath(); ctx.arc(0, 0, tr * 0.3, 0, Math.PI*2);
                 ctx.fillStyle = '#c92728'; ctx.fill(); ctx.stroke();
                 
                 ctx.restore();
