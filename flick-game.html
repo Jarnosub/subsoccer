@@ -27,6 +27,8 @@
             --sub-red: #E30613;
             --sub-black: #0A0A0A;
             --sub-neon: #00FFCC;
+            --sega-blue: #0088CC;
+            --sub-gold: #FFD700;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -791,30 +793,30 @@
 
         /* Victory Screen Mobile Details */
         @media (max-width: 1000px) {
-            .w-title { font-size: 2.5rem; margin-bottom: 5px; }
-            .w-elo { font-size: 2rem; margin-bottom: 15px; }
-            .pro-card { transform: scale(0.85) !important; margin-bottom: 0px; margin-top: -15px; }
-            .w-actions button { padding: 15px 30px; font-size: 1.2rem; }
-            /* Reduce gaps to keep everything on screen */
-            #victory-overlay { justify-content: flex-start; padding-top: 5vh; gap: 5px; }
-            .winner-content-box { gap: 5px; justify-content: center; }
+            .w-title { font-size: 2.2rem; margin-bottom: 5px; }
+            .w-elo { font-size: 1.8rem; margin-bottom: 10px; }
+            .pro-card { transform: scale(0.75) !important; margin-bottom: 0px; margin-top: -20px; }
+            .w-actions button { padding: 12px 25px; font-size: 1.1rem; }
+            #victory-overlay { justify-content: flex-start; padding-top: 10vh; gap: 0; }
+            .winner-content-box { gap: 0; justify-content: center; }
         }
 
         @media (orientation: portrait) {
-            .w-actions { flex-direction: column; width: 85%; gap: 10px; align-items: center; margin: 0 auto; }
-            .w-actions button { padding: 12px 25px; font-size: 1.2rem; width: 100%; box-sizing: border-box; }
-            .w-elo { font-size: 1.8rem; margin-bottom: 5px; }
-            .pro-card { transform: scale(0.8) !important; margin-top: -30px; margin-bottom: -10px; }
-            .w-title { font-size: 2.5rem; margin-top: 0px; line-height: 1; }
+            .w-actions { flex-direction: column; width: 90%; max-width: 320px; gap: 10px; align-items: center; margin: 0 auto; margin-top: -15px; }
+            .w-actions button { padding: 15px 20px; font-size: 1.1rem; width: 100%; box-sizing: border-box; }
+            .w-elo { font-size: 1.5rem; margin-bottom: 0px; }
+            .pro-card { transform: scale(0.7) !important; margin-top: -40px; margin-bottom: -20px; }
+            .w-title { font-size: 2.2rem; margin-top: 0px; line-height: 1; }
+            #victory-overlay { padding-top: 5vh; }
         }
 
         @media (max-height: 500px) and (orientation: landscape) {
-            .winner-content-box { transform: scale(0.7); transform-origin: top center; margin-top: -20px; }
+            .winner-content-box { transform: scale(0.6); transform-origin: top center; margin-top: -10px; }
             .w-title { margin-bottom: 0; }
-            .w-elo { margin-bottom: 5px; }
-            .pro-card { margin-bottom: 5px; margin-top: -10px; }
-            .w-actions { margin-top: -5px; gap: 10px; }
-            .w-actions button { padding: 10px 20px; font-size: 1.0rem; }
+            .w-elo { margin-bottom: 0px; }
+            .pro-card { margin-bottom: 5px; margin-top: -15px; }
+            .w-actions { margin-top: -10px; gap: 10px; }
+            .w-actions button { padding: 8px 16px; font-size: 1.0rem; }
             #victory-overlay { padding-top: 10px; justify-content: flex-start; }
         }
 
