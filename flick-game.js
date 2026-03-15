@@ -600,6 +600,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const bw = b.radius * 2 * p.scale;
                     ctx.save();
                     ctx.translate(p.x, p.y);
+                    
+                    // Clip tightly into a perfect circle to hide the square white background
+                    ctx.beginPath();
+                    // Cut slightly inward (0.95) to remove white anti-aliased edge pixels
+                    ctx.arc(0, 0, (bw/2) * 0.95, 0, Math.PI*2);
+                    ctx.clip();
+                    
                     // Add cool rotation effect matching ball speed
                     ctx.rotate(b.z * 0.05); 
                     ctx.drawImage(ballImg, -bw/2, -bw/2, bw, bw);
