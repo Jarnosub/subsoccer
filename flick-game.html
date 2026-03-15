@@ -335,9 +335,6 @@
         }
         
         #online-players-list {
-            position: absolute;
-            top: calc(env(safe-area-inset-top, 0px) + 20px);
-            right: calc(env(safe-area-inset-right, 0px) + 20px);
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -386,9 +383,8 @@
                 <div class="stat-value" id="speed-value" style="color: #00FFCC; text-shadow: 0 0 10px rgba(0,255,204,0.5);">0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span></div>
             </div>
         </div>
+        <div id="online-players-list" style="margin-top: 10px;"></div>
     </div>
-    
-    <div id="online-players-list"></div>
 
     <!-- The actual flick physics canvas -->
     <canvas id="physics-canvas"></canvas>
