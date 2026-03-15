@@ -300,10 +300,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // How high on the screen did the flick end? (1.0 = top of screen, 0.0 = bottom)
         let elevationPower = 1.0 - (y / ch);
         if (elevationPower < 0) elevationPower = 0;
-        if (elevationPower > 1) elevationPower = 1;
+        // Do NOT cap elevationPower at 1.0 anymore! Let it fly over if swiped off the top
 
-        // Blend 60% elevation, 40% speed for target height
-        let flightPower = (elevationPower * 0.6) + (speedPower * 0.4);
+        // If you swipe too slowly, the ball shouldn't rise off the ground.
+        let speedMultiplier = (simulatedSpeed - 30) / 40; // 30km/h = 0 multiplier (ground), 70km/h = 1.0 (normal height)
+        if (speedMultiplier < 0) speedMultiplier = 0;
+        
+        // If you flick extremely hard (e.g., > 90 km/h), give it extra carry
+        let powerCarry = 1.0;
+        if (simulatedSpeed > 90) {
+            powerCarry = 1.0 + ((simulatedSpeed - 90) / 50); // scales up to 1.6x if you hit 120km/h
+        }
+
+        // Target height is primarily based on where your finger stopped, 
+        // gated by speed (slow = no height), and amplified by extreme power (hard = flies over)
+        let flightPower = elevationPower * speedMultiplier * powerCarry;
         flightPower = Math.pow(flightPower, 1.2); 
         
         let targetY = bottomY - (bottomY - topY) * flightPower;
