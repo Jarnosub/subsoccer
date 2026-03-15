@@ -287,9 +287,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Inverse Projection: Map swipe X & Y end position directly onto the 3D goal plane
         // This ensures the point your finger visually lands on screen matches the 3D target exactly!
-        const scale = focalLength / (focalLength + goal.z);
+        const scale = (focalLength / (focalLength + goal.z)) * currentScreenScale;
         const screenX = x - (canvas.width / 2);
-        const screenY = y - (canvas.height / 2);
+        const centerY = bgDrawH > 0 ? (bgDrawY + bgDrawH / 2) : (canvas.height / 2);
+        const screenY = y - centerY;
         
         let targetX = screenX / scale;
         let pointedY = screenY / scale;
@@ -376,12 +377,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let bgDrawY = 0;
+    let bgDrawH = 0;
+    let currentScreenScale = 1.0;
+
     // Convert 3D coords to 2D screen coords
     function project(x, y, z) {
-        const scale = focalLength / (focalLength + z);
+        const scale = (focalLength / (focalLength + z)) * currentScreenScale;
+        const centerY = bgDrawH > 0 ? (bgDrawY + bgDrawH / 2) : (canvas.height / 2);
         return {
             x: (x * scale) + (canvas.width / 2),
-            y: (y * scale) + (canvas.height / 2),
+            y: (y * scale) + centerY,
             scale: scale
         };
     }
@@ -393,7 +399,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const horizonY = canvas.height * 0.55;
         
         if (stadiumImg.complete) {
-            ctx.drawImage(stadiumImg, 0, 0, canvas.width, canvas.height);
+            // Calculate scale to fit screen height (cover vertically)
+            let bgScale = canvas.height / stadiumImg.height; 
+            
+            // But if portrait/narrow, goal (center ~65% of image width) might get cutoff
+            const goalVisWidth = (stadiumImg.width * bgScale) * 0.70; 
+            if (goalVisWidth > canvas.width) {
+                // Scale down so the goal fits exactly on screen
+                bgScale = canvas.width / (stadiumImg.width * 0.70);
+            }
+            
+            const drawW = stadiumImg.width * bgScale;
+            bgDrawH = stadiumImg.height * bgScale;
+            const drawX = (canvas.width - drawW) / 2;
+            
+            // Center vertically if screen is taller, or align bottom? Center is safer for 3D mapping matching
+            bgDrawY = (canvas.height - bgDrawH) / 2; 
+
+            // Default 3D calibration was at roughly 1920 image width
+            currentScreenScale = drawW / 1920; 
+
+            // Fill empty sky/letterbox area if image shifted
+            if (bgDrawY > 0 || drawX > 0) {
+                ctx.fillStyle = '#0a0f1a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            ctx.drawImage(stadiumImg, drawX, bgDrawY, drawW, bgDrawH);
         } else {
             // Draw Solid Sky Background
             let skyGradient = ctx.createLinearGradient(0, 0, 0, horizonY);
