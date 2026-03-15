@@ -932,5 +932,6 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(gameLoop);
     } else {
         stadiumImg.addEventListener('load', () => requestAnimationFrame(gameLoop));
+        stadiumImg.addEventListener('error', () => requestAnimationFrame(gameLoop));
     }
 });
