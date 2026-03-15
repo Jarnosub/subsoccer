@@ -905,7 +905,46 @@ window.isPlaying = false;
         requestID = requestAnimationFrame(gameLoop);
     }
 
-    window.startGame = async function(useCamera) {
+    let countdownInterval = null;
+
+    window.startCountdownAndGame = function(useCamera) {
+        if(startMenu) startMenu.style.display = 'none';
+        const waitingPopup = document.getElementById('waiting-popup');
+        if(waitingPopup) waitingPopup.style.display = 'none';
+        const challengePopup = document.getElementById('challenge-popup');
+        if(challengePopup) challengePopup.style.display = 'none';
+
+        const countdownPopup = document.getElementById('countdown-popup');
+        const countdownValue = document.getElementById('countdown-value');
+        if (countdownPopup && countdownValue) {
+            countdownPopup.style.display = 'flex';
+            let count = 3;
+            countdownValue.textContent = count;
+            // Play a beep
+            if (window.soundEffects && window.soundEffects.playHitSound) window.soundEffects.playHitSound();
+            
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownValue.textContent = count;
+                    if (window.soundEffects && window.soundEffects.playHitSound) window.soundEffects.playHitSound();
+                } else if (count === 0) {
+                    countdownValue.textContent = "GO!";
+                    // Play higher beep for GO!
+                    if (window.soundEffects && window.soundEffects.playGoalSound) window.soundEffects.playGoalSound();
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownPopup.style.display = 'none';
+                    window.actualStartGame(useCamera);
+                }
+            }, 1000);
+        } else {
+            window.actualStartGame(useCamera);
+        }
+    }
+
+    window.actualStartGame = async function(useCamera) {
         if (window.isPlaying) return;
         window.useTrackman = useCamera;
         
@@ -964,13 +1003,21 @@ window.isPlaying = false;
     if(btnStartTouch) {
         btnStartTouch.addEventListener('click', () => {
             if(window.soundEffects) window.soundEffects.resume();
-            window.startGame(false);
+            if (window.flickNetwork) {
+                window.flickNetwork.requestGame(false);
+            } else {
+                window.startCountdownAndGame(false);
+            }
         });
     }
     if(btnStartTrackman) {
         btnStartTrackman.addEventListener('click', () => {
             if(window.soundEffects) window.soundEffects.resume();
-            window.startGame(true);
+            if (window.flickNetwork) {
+                window.flickNetwork.requestGame(true);
+            } else {
+                window.startCountdownAndGame(true);
+            }
         });
     }
 

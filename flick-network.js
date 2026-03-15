@@ -35,11 +35,20 @@ function initNetwork() {
         config: { broadcast: { self: false } }
     });
 
+    window._pendingUseCamera = false;
+
     const btnAccept = document.getElementById('btn-accept-challenge');
     if (btnAccept) {
         btnAccept.addEventListener('click', () => {
             document.getElementById('challenge-popup').style.display = 'none';
-            if (window.startGame) window.startGame(false);
+            if (flickChannel && flickChannel.state === 'joined') {
+                flickChannel.send({
+                    type: 'broadcast',
+                    event: 'accept_challenge',
+                    payload: { id: myNetworkId, username: myName }
+                });
+            }
+            if (window.startCountdownAndGame) window.startCountdownAndGame(window._pendingUseCamera);
         });
     }
 
@@ -49,6 +58,36 @@ function initNetwork() {
             document.getElementById('challenge-popup').style.display = 'none';
         });
     }
+
+    const btnCancelWaiting = document.getElementById('btn-cancel-waiting');
+    if (btnCancelWaiting) {
+        btnCancelWaiting.addEventListener('click', () => {
+            document.getElementById('waiting-popup').style.display = 'none';
+        });
+    }
+
+    flickChannel.on('broadcast', { event: 'challenge' }, (payload) => {
+        if (payload.payload.id !== myNetworkId) {
+            updateOpponentName(payload.payload.username);
+            const popup = document.getElementById('challenge-popup');
+            if (popup && !window.isPlaying) {
+                popup.style.display = 'flex';
+            }
+        }
+    });
+
+    flickChannel.on('broadcast', { event: 'accept_challenge' }, (payload) => {
+        if (payload.payload.id !== myNetworkId) {
+            updateOpponentName(payload.payload.username);
+            const waitingPopup = document.getElementById('waiting-popup');
+            if (waitingPopup) waitingPopup.style.display = 'none';
+            
+            // They accepted! Start the game countdown.
+            if (window.startCountdownAndGame && !window.isPlaying) {
+                window.startCountdownAndGame(window._pendingUseCamera);
+            }
+        }
+    });
 
     flickChannel.on('broadcast', { event: 'score_update' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
@@ -71,17 +110,14 @@ function initNetwork() {
     flickChannel.on('broadcast', { event: 'game_start' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
             updateOpponentName(payload.payload.username);
-            // Opponent started the game! Show popup instead of forcing auto-start
-            if (window.startGame && !window.isPlaying) {
+            // Fallback for older clients that don't do challenge handshake
+            if (window.startCountdownAndGame && !window.isPlaying) {
                 const popup = document.getElementById('challenge-popup');
                 if (popup) {
                     popup.style.display = 'flex';
                 } else {
-                    console.log("Opponent started the game! Starting automatically...");
-                    window.startGame(false);
+                    window.startCountdownAndGame(false);
                 }
-            } else if (!window.startGame) {
-                console.error("Opponent started but window.startGame is not attached!");
             }
         }
     });
@@ -136,9 +172,33 @@ function broadcastGameStart() {
     }
 }
 
+function requestGame(useCamera) {
+    window._pendingUseCamera = useCamera;
+    
+    // Auto-connect single player if no network
+    if (!supabaseClient || !flickChannel || flickChannel.state !== 'joined') {
+        if (window.startCountdownAndGame) window.startCountdownAndGame(useCamera);
+        return;
+    }
+
+    flickChannel.send({
+        type: 'broadcast',
+        event: 'challenge',
+        payload: { id: myNetworkId, username: myName }
+    });
+
+    const waitingPopup = document.getElementById('waiting-popup');
+    if (waitingPopup) {
+        waitingPopup.style.display = 'flex';
+    } else {
+        if (window.startCountdownAndGame) window.startCountdownAndGame(useCamera);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', initNetwork);
 
 window.flickNetwork = {
     broadcastScore,
-    broadcastGameStart
+    broadcastGameStart,
+    requestGame
 };
