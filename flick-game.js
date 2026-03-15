@@ -513,8 +513,8 @@ window.isPlaying = false;
         const b_bl = project(goal.x - goal.w/2, goal.y + goal.h/2, goal.z + 200);
         const b_br = project(goal.x + goal.w/2, goal.y + goal.h/2, goal.z + 200);
 
-        // Draw Net Fill (semi-transparent white)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        // Draw Net Fill (semi-transparent cyan glow)
+        ctx.fillStyle = 'rgba(0, 255, 204, 0.05)';
         // Back Net
         ctx.beginPath(); ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(b_bl.x, b_bl.y); ctx.fill();
         // Left Net
@@ -525,7 +525,7 @@ window.isPlaying = false;
         ctx.beginPath(); ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.fill();
 
         // Draw Net Grid (Horizontal / Depth lines)
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)';
         ctx.lineWidth = 1;
         for (let i = 1; i <= 10; i++) {
             let f_y = f_tl.y + (f_bl.y - f_tl.y) * (i/10);
@@ -556,30 +556,38 @@ window.isPlaying = false;
             ctx.beginPath(); ctx.moveTo(rx, r_y); ctx.lineTo(rx, rb); ctx.stroke();
         }
 
-        // Front Goal Posts (Thick 3D White Cylinders)
+        // Front Goal Posts (Neon Cyberpunk Style)
         ctx.lineJoin = 'miter';
         ctx.lineCap = 'butt';
         
-        // 1. Base thick beige post
-        ctx.strokeStyle = 'rgb(213, 208, 203)';
-        ctx.lineWidth = 15; // Make it thick enough to be clearly visible as a post
+        // 1. Base thick neon glow
+        ctx.shadowColor = '#00FFCC';
+        ctx.shadowBlur = 25;
+        ctx.strokeStyle = '#00FFCC';
+        ctx.lineWidth = 12; 
         ctx.beginPath();
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
-        // 2. Inner shading to simulate cylinder rounding
-        ctx.strokeStyle = 'rgba(200, 200, 200, 0.8)';
+        ctx.shadowBlur = 0; // Turn off heavy shadow for the inner line
+        
+        // 2. Inner sharp white core to make it look like a neon tube
+        ctx.strokeStyle = '#fff';
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(f_bl.x + 4, f_bl.y); ctx.lineTo(f_tl.x + 4, f_tl.y + 4); ctx.lineTo(f_tr.x - 4, f_tr.y + 4); ctx.lineTo(f_br.x - 4, f_br.y);
+        ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
-        // Goal Line
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        // Goal Line (Glowing cyan)
+        ctx.shadowColor = '#00FFCC';
+        ctx.shadowBlur = 10;
+        ctx.strokeStyle = '#00FFCC';
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(0, f_bl.y); ctx.lineTo(canvas.width, f_br.y);
         ctx.stroke();
+        
+        ctx.shadowBlur = 0; // reset for next frame
 
         if (!window.isPlaying) {
             requestID = requestAnimationFrame(gameLoop);
