@@ -50,7 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
         radius: 150, // Start size
         vx: 8,
         vy: 4,
-        active: true
+        active: true,
+        flipActive: false,
+        flipTimer: 0
     };
     
     // Load and process image to remove magenta "green screen"
@@ -395,6 +397,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tr = movingTarget.radius * tp.scale;
                 ctx.save();
                 ctx.translate(tp.x, tp.y);
+
+                // Handle hit flip animation
+                if (movingTarget.flipActive) {
+                    movingTarget.flipTimer -= 0.05;
+                    if (movingTarget.flipTimer <= 0) {
+                        movingTarget.flipActive = false;
+                        movingTarget.flipTimer = 0;
+                    }
+                    // Apply a 3D spin effect by scaling X axis based on cosine
+                    // PI * 4 = 2 full rotations during the 1.0 timer
+                    ctx.scale(Math.cos(movingTarget.flipTimer * Math.PI * 4), 1);
+                }
+
                 // Draw Classic Red/White Target
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
                 ctx.shadowBlur = 15; // Drop shadow for popping off the net
@@ -562,6 +577,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // TARGET HIT!
                     b.active = false;
+                    
+                    // Trigger the spin animation
+                    movingTarget.flipActive = true;
+                    movingTarget.flipTimer = 1.0;
+                    
                     const proj = project(movingTarget.x, movingTarget.y, movingTarget.z);
                     createParticles(proj.x, proj.y, proj.scale * 3);
                     createParticles(proj.x, proj.y, proj.scale * 3); // Extra explosion
