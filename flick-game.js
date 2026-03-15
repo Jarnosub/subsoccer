@@ -556,12 +556,12 @@ window.isPlaying = false;
             ctx.beginPath(); ctx.moveTo(rx, r_y); ctx.lineTo(rx, rb); ctx.stroke();
         }
 
-        // Front Goal Posts (Black with outer edge specular highlight)
+        // Front Goal Posts (Dark Blue with outer edge specular highlight)
         ctx.lineJoin = 'miter';
         ctx.lineCap = 'butt';
         
-        // 1. Base thick black post
-        ctx.strokeStyle = '#151515';
+        // 1. Base thick dark blue post
+        ctx.strokeStyle = '#21314d';
         ctx.lineWidth = 14; 
         ctx.beginPath();
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
