@@ -905,8 +905,8 @@ document.addEventListener('DOMContentLoaded', () => {
         requestID = requestAnimationFrame(gameLoop);
     }
 
-    async function startGame(useCamera) {
-        if (isPlaying) return;
+    window.startGame = async function(useCamera) {
+        if (window.isPlaying) return;
         window.useTrackman = useCamera;
         
         score = 0;
@@ -932,7 +932,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.visionEngine.showTargets = false; 
         }
 
-        isPlaying = true;
+        window.isPlaying = true;
         
         if (window.soundEffects) window.soundEffects.playGameplayTheme();
         if (window.flickNetwork) window.flickNetwork.broadcastGameStart();
@@ -942,13 +942,13 @@ document.addEventListener('DOMContentLoaded', () => {
         spawnObstacles();
         
         timerInterval = setInterval(() => {
-            if (!isPlaying) return;
+            if (!window.isPlaying) return;
             timeLeft--;
             if (timeDisplay) timeDisplay.textContent = timeLeft;
             
             // Time is up
             if (timeLeft <= 0) {
-                isPlaying = false;
+                window.isPlaying = false;
                 clearInterval(timerInterval);
                 
                 if (window.soundEffects) {
@@ -964,13 +964,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if(btnStartTouch) {
         btnStartTouch.addEventListener('click', () => {
             if(window.soundEffects) window.soundEffects.resume();
-            startGame(false);
+            window.startGame(false);
         });
     }
     if(btnStartTrackman) {
         btnStartTrackman.addEventListener('click', () => {
             if(window.soundEffects) window.soundEffects.resume();
-            startGame(true);
+            window.startGame(true);
         });
     }
 

@@ -43,17 +43,38 @@ function initNetwork() {
             if (window.startGame && !window.isPlaying) {
                 console.log("Opponent started the game! Starting automatically...");
                 window.startGame(false);
+            } else if (!window.startGame) {
+                console.error("Opponent started but window.startGame is not attached!");
             }
+        }
+    });
+    
+    flickChannel.on('broadcast', { event: 'hello' }, (payload) => {
+        if (payload.payload.id !== myNetworkId) {
+             console.log("A new player joined the battle!");
+             const oppBox = document.getElementById('opp-score-box');
+             if(oppBox) {
+                 oppBox.style.backgroundColor = 'rgba(0, 255, 204, 0.4)'; // Flash green for connected
+                 setTimeout(() => { oppBox.style.backgroundColor = 'transparent'; }, 800);
+             }
         }
     });
 
     flickChannel.subscribe((status) => {
         console.log("Supabase Network Status:", status);
+        if (status === 'SUBSCRIBED') {
+            // Let others know we are here
+            flickChannel.send({
+                type: 'broadcast',
+                event: 'hello',
+                payload: { id: myNetworkId }
+            });
+        }
     });
 }
 
 function broadcastScore(newScore) {
-    if (flickChannel) {
+    if (flickChannel && flickChannel.state === 'joined') {
         window.myNetworkScore = newScore;
         flickChannel.send({
             type: 'broadcast',
@@ -64,7 +85,7 @@ function broadcastScore(newScore) {
 }
 
 function broadcastGameStart() {
-    if (flickChannel) {
+    if (flickChannel && flickChannel.state === 'joined') {
         flickChannel.send({
             type: 'broadcast',
             event: 'game_start',
