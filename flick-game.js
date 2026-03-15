@@ -799,6 +799,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     createParticles(proj.x, proj.y, proj.scale * 3);
                     createParticles(proj.x, proj.y, proj.scale * 3); // Extra explosion
                     
+                    if(window.soundEffects) window.soundEffects.playSound('goal');
+                    
                     score += 1500;
                     scoreDisplay.textContent = score;
                     scoreDisplay.style.transform = 'scale(2.5)';
@@ -824,6 +826,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const proj = project(b.x, b.y, goal.z);
                     createParticles(proj.x, proj.y, proj.scale * 3);
                     
+                    if (window.soundEffects) {
+                        window.soundEffects.playSound('goal');
+                        window.soundEffects.playSound('crowd');
+                    }
+
                     score += 500;
                     scoreDisplay.textContent = score;
                     scoreDisplay.style.transform = 'scale(1.5)';
@@ -921,6 +928,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         isPlaying = true;
+        
+        if (window.soundEffects) window.soundEffects.playGameplayTheme();
+
         balls = [];
         particles = [];
         spawnObstacles();
@@ -934,6 +944,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timeLeft <= 0) {
                 isPlaying = false;
                 clearInterval(timerInterval);
+                
+                if (window.soundEffects) {
+                    window.soundEffects.stopMusic();
+                    window.soundEffects.playVictoryTheme();
+                }
+
                 if(startMenu) startMenu.style.display = 'flex';
                 if(btnStartTouch) btnStartTouch.textContent = "PLAY AGAIN (TOUCH)";
             }
