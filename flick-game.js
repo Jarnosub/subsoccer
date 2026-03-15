@@ -777,6 +777,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     b.active = false;
                     const proj = project(goalie.x, goalie.y, goalie.z);
                     createParticles(proj.x, proj.y, proj.scale * 2);
+
+                    if (window.soundEffects) window.soundEffects.playC64Sound('hit');
                     
                     document.body.style.background = 'rgba(255, 0, 0, 0.3)';
                     setTimeout(() => document.body.style.background = '', 100);
@@ -946,8 +948,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(timerInterval);
                 
                 if (window.soundEffects) {
-                    window.soundEffects.stopMusic();
-                    window.soundEffects.playVictoryTheme();
+                    window.soundEffects.fadeOutMusic(5);
                 }
 
                 if(startMenu) startMenu.style.display = 'flex';
@@ -957,10 +958,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if(btnStartTouch) {
-        btnStartTouch.addEventListener('click', () => startGame(false));
+        btnStartTouch.addEventListener('click', () => {
+            if(window.soundEffects) window.soundEffects.resume();
+            startGame(false);
+        });
     }
     if(btnStartTrackman) {
-        btnStartTrackman.addEventListener('click', () => startGame(true));
+        btnStartTrackman.addEventListener('click', () => {
+            if(window.soundEffects) window.soundEffects.resume();
+            startGame(true);
+        });
+    }
+
+    // Sound toggle logic
+    const btnSoundToggle = document.getElementById('btn-sound-toggle');
+    if (btnSoundToggle) {
+        // Init state
+        btnSoundToggle.innerHTML = window.soundEffects && window.soundEffects.enabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark"></i>';
+        
+        btnSoundToggle.addEventListener('click', () => {
+            if (window.soundEffects) {
+                window.soundEffects.resume();
+                const isEnabled = window.soundEffects.toggle();
+                btnSoundToggle.innerHTML = isEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark"></i>';
+                
+                // If toggled during gameplay, start or stop music
+                if (isPlaying) {
+                    if (isEnabled) window.soundEffects.playGameplayTheme();
+                    else window.soundEffects.stopMusic();
+                }
+            }
+        });
     }
 
     // Start background loop only after stadium image loads to prevent green grass flash

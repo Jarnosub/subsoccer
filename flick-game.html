@@ -165,7 +165,10 @@
 <body>
 
     <div class="top-bar">
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
+        <div style="display: flex; gap: 10px;">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
+            <button id="btn-sound-toggle" class="back-btn" style="border: none; cursor: pointer; background: rgba(0,0,0,0.5); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0;" title="Toggle Sound"><i class="fa-solid fa-volume-xmark"></i></button>
+        </div>
         
         <!-- Mini Player Card for social media recordings -->
         <div class="mini-player-card" id="mini-player-card">

@@ -6,7 +6,7 @@
 class SoundEffects {
     constructor() {
         this.sounds = {};
-        this.enabled = true;
+        this.enabled = false;
         this.volume = 0.7; // 0.0 to 1.0
 
         // Initialize sounds
@@ -25,6 +25,15 @@ class SoundEffects {
         // Check if browser supports Web Audio API
         if (window.AudioContext || window.webkitAudioContext) {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    /**
+     * Resumes AudioContext on first interaction
+     */
+    resume() {
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
         }
     }
 
@@ -102,14 +111,29 @@ class SoundEffects {
     }
 
     /**
+     * Fade out background music over duration.
+     */
+    fadeOutMusic(durationSeconds = 5) {
+        if (!this.currentMusic) return;
+        let fadeOutInterval = setInterval(() => {
+            if (this.currentMusic.volume > 0.05) {
+                this.currentMusic.volume -= 0.05;
+            } else {
+                clearInterval(fadeOutInterval);
+                this.stopMusic();
+            }
+        }, (durationSeconds * 1000) / (this.volume / 0.05));
+    }
+
+    /**
      * Play goal sound effect
      */
     playGoalSound() {
         if (this.sounds['goal']) {
             this.playSound('goal');
         } else {
-            // Fallback: synthesize goal sound
-            this.synthesizeGoalSound();
+            // Retro hit
+            this.playC64Sound('hit');
         }
     }
 
@@ -120,8 +144,49 @@ class SoundEffects {
         if (this.sounds['crowd']) {
             this.playSound('crowd');
         } else {
-            // Fallback: synthesize crowd cheer
-            this.synthesizeCrowdCheer();
+            // Retro combo
+            this.playC64Sound('combo');
+        }
+    }
+
+    /**
+     * Retro Synth from AR Subsoccer Base
+     */
+    playC64Sound(type = 'hit') {
+        if (!this.audioContext || !this.enabled) return;
+
+        const osc = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+
+        osc.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        const now = this.audioContext.currentTime;
+
+        if (type === 'hit') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(440, now); // A4
+            osc.frequency.setValueAtTime(880, now + 0.1); // Jump to A5
+
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if (type === 'combo') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(349.23, now); // F4
+            osc.frequency.setValueAtTime(440, now + 0.05); // A4
+            osc.frequency.setValueAtTime(523.25, now + 0.1); // C5
+            osc.frequency.setValueAtTime(698.46, now + 0.15); // F5
+
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+            osc.start(now);
+            osc.stop(now + 0.4);
         }
     }
 
