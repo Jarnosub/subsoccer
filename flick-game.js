@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const perspective = focalLength / (focalLength + goal.z);
         const isPortrait = window.innerHeight > window.innerWidth;
         const refW = isPortrait ? 550 : 844;
-        const refH = isPortrait ? 800 : 390;
+        const refH = isPortrait ? 1200 : 390;
         const sx = canvas.width / refW;
         const sy = canvas.height / refH;
 
@@ -396,9 +396,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Calibration for responsive 3D projection against 100% stretched background images.
         // Landscape (stadium1920.jpg) aligns well at 844x390.
-        // Portrait (stadium1080.jpg) aligns well around 550x800.
+        // Portrait (stadium1080.jpg) aligns well around 550x1200 to prevent vertical goal stretching.
         const refW = isPortrait ? 550 : 844;
-        const refH = isPortrait ? 800 : 390;
+        const refH = isPortrait ? 1200 : 390;
 
         let sx = canvas.width / refW;
         let sy = canvas.height / refH;
