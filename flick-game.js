@@ -17,9 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('physics-canvas');
     const ctx = canvas.getContext('2d');
     
+    const stadiumImg = new Image();
+
     function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const expectedSrc = isPortrait ? 'stadium1080.jpg' : 'stadium1920.jpg';
+        if (!stadiumImg.src.includes(expectedSrc)) {
+            stadiumImg.src = expectedSrc;
+        }
     }
     window.addEventListener('resize', resize);
     resize();
@@ -88,12 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     rawImg.src = 'goalie_sprite_graphic.png';
 
-    const stadiumImg = new Image();
-    if (window.innerHeight > window.innerWidth) {
-        stadiumImg.src = 'stadium1080.jpg';
-    } else {
-        stadiumImg.src = 'stadium1920.jpg';
-    }
+    // stadiumImg defined above to support resize handler
 
     const ballImg = new Image();
     const processedBall = document.createElement('canvas');
@@ -291,12 +294,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Inverse Projection: Map swipe X & Y end position directly onto the 3D goal plane
         // This ensures the point your finger visually lands on screen matches the 3D target exactly!
-        const scale = focalLength / (focalLength + goal.z);
+        const perspective = focalLength / (focalLength + goal.z);
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const refW = isPortrait ? 550 : 844;
+        const refH = isPortrait ? 800 : 390;
+        const sx = canvas.width / refW;
+        const sy = canvas.height / refH;
+
         const screenX = x - (canvas.width / 2);
         const screenY = y - (canvas.height / 2);
         
-        let targetX = screenX / scale;
-        let pointedY = screenY / scale;
+        let targetX = screenX / (perspective * sx);
+        let pointedY = screenY / (perspective * sy);
 
         // Let's deduct the effect of curve from the initial shot target so it actually curves INTO the target, 
         // aiming slightly opposite to the curve direction.
@@ -382,11 +391,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Convert 3D coords to 2D screen coords
     function project(x, y, z) {
-        const scale = focalLength / (focalLength + z);
+        const perspective = focalLength / (focalLength + z);
+        const isPortrait = window.innerHeight > window.innerWidth;
+        
+        // Calibration for responsive 3D projection against 100% stretched background images.
+        // Landscape (stadium1920.jpg) aligns well at 844x390.
+        // Portrait (stadium1080.jpg) aligns well around 550x800.
+        const refW = isPortrait ? 550 : 844;
+        const refH = isPortrait ? 800 : 390;
+
+        let sx = canvas.width / refW;
+        let sy = canvas.height / refH;
+
         return {
-            x: (x * scale) + (canvas.width / 2),
-            y: (y * scale) + (canvas.height / 2),
-            scale: scale
+            x: (x * perspective * sx) + (canvas.width / 2),
+            y: (y * perspective * sy) + (canvas.height / 2),
+            scale: perspective * Math.min(sx, sy) // uniform for round shapes (balls/sprites)
         };
     }
 
