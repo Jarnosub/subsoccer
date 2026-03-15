@@ -134,15 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 1. Get horizontal position (X axis) based on the camera's actual ball position
         if (window.visionEngine && window.visionEngine.lastBallPos) {
-            // Map camera width (assume innerWidth) to goal width (goal.w)
+            // Map camera width (assume innerWidth) slightly wider than goal width (goal.w) to allow missing wide
             const cw = window.innerWidth;
             const ballX = window.visionEngine.lastBallPos.x;
-            targetX = goal.x + ((ballX / cw) * goal.w - (goal.w/2));
             
-            // Constrain to the goal limits so it hits the net
-            const maxW = goal.w/2 - 150;
-            if (targetX < -maxW) targetX = -maxW;
-            if (targetX > maxW) targetX = maxW;
+            // Multiply mapping by 1.4 so shooting at the very edges goes wide of the goal posts!
+            targetX = goal.x + ((ballX / cw) * (goal.w * 1.4) - (goal.w * 0.7));
         } else {
             // Fallback if we only have the hit zone
             if (zoneId.includes('left')) targetX = goal.x - goal.w/3;
@@ -160,12 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const bottomY = goal.y + goal.h/2 - 150;
         const topY = goal.y - goal.h/2 + 200;
         
-        // Let's cap logical flight speed between 25 and 80 km/h for the altitude mapping
+        // Let's cap logical flight speed calculation. Do NOT cap maximum mapping so it can soar over!
         let flightPower = (speedKmh - 25) / (75 - 25);
         if (flightPower < 0) flightPower = 0;
-        if (flightPower > 1) flightPower = 1;
-
-        // Apply curve so really hard shots fly high into the roof
+        
+        // Apply curve so really hard shots fly high
         flightPower = Math.pow(flightPower, 1.2); 
         targetY = bottomY - (bottomY - topY) * flightPower;
 
@@ -173,8 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         targetX += (Math.random() - 0.5) * 80;
         targetY += (Math.random() - 0.5) * 80;
 
-        // Limit Y finally just inside the mesh
-        if (targetY < topY - 50) targetY = topY - 50;
+        // Prevent ball from going deep underground, but allow it to fly freely over the top!
         if (targetY > bottomY + 50) targetY = bottomY + 50;
 
         // Tell AI Goalie which way to dive
