@@ -696,6 +696,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     });
 
-    // Start background loop immediately to draw stadium/goal
-    requestAnimationFrame(gameLoop);
+    // Start background loop only after stadium image loads to prevent green grass flash
+    if (stadiumImg.complete) {
+        requestAnimationFrame(gameLoop);
+    } else {
+        stadiumImg.addEventListener('load', () => requestAnimationFrame(gameLoop));
+    }
 });
