@@ -24,7 +24,7 @@ window.isPlaying = false;
         canvas.height = window.innerHeight;
         
         const isPortrait = window.innerHeight > window.innerWidth;
-        const expectedSrc = isPortrait ? 'stadium1080.jpg' : 'stadium1920.jpg';
+        const expectedSrc = isPortrait ? 'stadium1080_night.jpg' : 'stadium1920_night.jpg';
         if (!stadiumImg.src.includes(expectedSrc)) {
             stadiumImg.src = expectedSrc;
         }
