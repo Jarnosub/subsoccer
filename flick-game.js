@@ -992,10 +992,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Start background loop only after stadium image loads to prevent green grass flash
-    if (stadiumImg.complete) {
-        requestAnimationFrame(gameLoop);
+    let gameLoopStarted = false;
+    function startGameLoop() {
+        if (!gameLoopStarted) {
+            gameLoopStarted = true;
+            requestAnimationFrame(gameLoop);
+        }
+    }
+
+    if (stadiumImg.complete && stadiumImg.naturalHeight !== 0) {
+        startGameLoop();
     } else {
-        stadiumImg.addEventListener('load', () => requestAnimationFrame(gameLoop));
-        stadiumImg.addEventListener('error', () => requestAnimationFrame(gameLoop));
+        stadiumImg.addEventListener('load', startGameLoop);
+        stadiumImg.addEventListener('error', startGameLoop);
     }
 });
