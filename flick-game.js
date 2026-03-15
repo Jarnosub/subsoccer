@@ -132,24 +132,53 @@ document.addEventListener('DOMContentLoaded', () => {
         let targetX = goal.x;
         let targetY = goal.y;
         
-        if (zoneId === 'top-left') { targetX = goal.x - goal.w/2 + 200; targetY = goal.y - goal.h/2 + 200; }
-        else if (zoneId === 'top-right') { targetX = goal.x + goal.w/2 - 200; targetY = goal.y - goal.h/2 + 200; }
-        else if (zoneId === 'bottom-left') { targetX = goal.x - goal.w/2 + 200; targetY = goal.y + goal.h/2 - 150; }
-        else if (zoneId === 'bottom-right') { targetX = goal.x + goal.w/2 - 200; targetY = goal.y + goal.h/2 - 150; }
+        // 1. Get horizontal position (X axis) based on the camera's actual ball position
+        if (window.visionEngine && window.visionEngine.lastBallPos) {
+            // Map camera width (assume innerWidth) to goal width (goal.w)
+            const cw = window.innerWidth;
+            const ballX = window.visionEngine.lastBallPos.x;
+            targetX = goal.x + ((ballX / cw) * goal.w - (goal.w/2));
+            
+            // Constrain to the goal limits so it hits the net
+            const maxW = goal.w/2 - 150;
+            if (targetX < -maxW) targetX = -maxW;
+            if (targetX > maxW) targetX = maxW;
+        } else {
+            // Fallback if we only have the hit zone
+            if (zoneId.includes('left')) targetX = goal.x - goal.w/3;
+            if (zoneId.includes('right')) targetX = goal.x + goal.w/3;
+        }
 
-        // Add some nice random scatter
-        targetX += (Math.random() - 0.5) * 150;
-        targetY += (Math.random() - 0.5) * 150;
-
-        // Tell AI Goalie which way to dive
-        goalie.direction = (targetX > 0) ? 1 : -1;
-
-        // Get the actual physical speed from our new radar logic
+        // 2. Get the actual physical speed
         let speedKmh = 40; // default
-        if(window.visionEngine && window.visionEngine.currentBallSpeedKmh) {
+        if (window.visionEngine && window.visionEngine.currentBallSpeedKmh) {
             speedKmh = window.visionEngine.currentBallSpeedKmh;
             if (speedKmh < 20) speedKmh = 20;
         }
+
+        // 3. Get vertical position (Y axis) based entirely on speed!
+        const bottomY = goal.y + goal.h/2 - 150;
+        const topY = goal.y - goal.h/2 + 200;
+        
+        // Let's cap logical flight speed between 25 and 80 km/h for the altitude mapping
+        let flightPower = (speedKmh - 25) / (75 - 25);
+        if (flightPower < 0) flightPower = 0;
+        if (flightPower > 1) flightPower = 1;
+
+        // Apply curve so really hard shots fly high into the roof
+        flightPower = Math.pow(flightPower, 1.2); 
+        targetY = bottomY - (bottomY - topY) * flightPower;
+
+        // Add some nice random scatter (reduced slightly for more precision)
+        targetX += (Math.random() - 0.5) * 80;
+        targetY += (Math.random() - 0.5) * 80;
+
+        // Limit Y finally just inside the mesh
+        if (targetY < topY - 50) targetY = topY - 50;
+        if (targetY > bottomY + 50) targetY = bottomY + 50;
+
+        // Tell AI Goalie which way to dive
+        goalie.direction = (targetX > 0) ? 1 : -1;
         
         // Shoot from bottom center of the screen
         let startX = 0;
