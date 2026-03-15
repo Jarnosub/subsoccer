@@ -287,12 +287,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Inverse Projection: Map swipe X & Y end position directly onto the 3D goal plane
         // This ensures the point your finger visually lands on screen matches the 3D target exactly!
-        const scale = focalLength / (focalLength + goal.z);
+        const perspective = focalLength / (focalLength + goal.z);
+        const sx = canvas.width / 1920;
+        const sy = canvas.height / 1080;
+
         const screenX = x - (canvas.width / 2);
         const screenY = y - (canvas.height / 2);
         
-        let targetX = screenX / scale;
-        let pointedY = screenY / scale;
+        let targetX = screenX / (perspective * sx);
+        let pointedY = screenY / (perspective * sy);
 
         // Let's deduct the effect of curve from the initial shot target so it actually curves INTO the target, 
         // aiming slightly opposite to the curve direction.
@@ -378,11 +381,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Convert 3D coords to 2D screen coords
     function project(x, y, z) {
-        const scale = focalLength / (focalLength + z);
+        const perspective = focalLength / (focalLength + z);
+        const sx = canvas.width / 1920;
+        const sy = canvas.height / 1080;
+        
         return {
-            x: (x * scale) + (canvas.width / 2),
-            y: (y * scale) + (canvas.height / 2),
-            scale: scale
+            x: (x * perspective * sx) + (canvas.width / 2),
+            y: (y * perspective * sy) + (canvas.height / 2),
+            scaleX: perspective * sx,
+            scaleY: perspective * sy,
+            scale: perspective * Math.min(sx, sy) // fallback for uniform round shapes like the ball
         };
     }
 
@@ -659,8 +667,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const gop = project(goalie.x, goalie.y, goalie.z);
         if (gop.scale > 0 && goalie.img.complete) {
-            const gow = goalie.w * gop.scale;
-            const goh = goalie.h * gop.scale;
+            const gow = goalie.w * gop.scaleX;
+            const goh = goalie.h * gop.scaleY;
             
             // Calculate which sub-image (frame) to clip from the sprite sheet
             const col = goalie.frame % goalie.animCols;
