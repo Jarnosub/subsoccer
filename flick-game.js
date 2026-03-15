@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineCap = 'butt';
         
         // 1. Base thick beige post
-        ctx.strokeStyle = 'rgb(189, 180, 160)';
+        ctx.strokeStyle = 'rgb(213, 208, 203)';
         ctx.lineWidth = 15; // Make it thick enough to be clearly visible as a post
         ctx.beginPath();
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
