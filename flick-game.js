@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_br.x, f_br.y);
+        ctx.moveTo(0, f_bl.y); ctx.lineTo(canvas.width, f_br.y);
         ctx.stroke();
 
         // Update and Draw Goalie Sprite
