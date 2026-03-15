@@ -175,6 +175,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Tell AI Goalie which way to dive
         goalie.direction = (targetX > 0) ? 1 : -1;
         
+        shootVirtualBall(targetX, targetY, speedKmh);
+    };
+
+    function shootVirtualBall(targetX, targetY, speedKmh) {
         // Shoot from bottom center of the screen
         let startX = 0;
         let startY = 300; 
@@ -202,7 +206,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.body.style.background = 'rgba(0, 255, 204, 0.2)';
         setTimeout(() => document.body.style.background = '', 100);
-    };
+    }
+
+    // --- Touch / Mouse 'Flick' Controls for Mobile Demo ---
+    let flickStartX = 0;
+    let flickStartY = 0;
+    let flickStartTime = 0;
+
+    function handleFlickStart(x, y) {
+        if (!isPlaying) return;
+        flickStartX = x;
+        flickStartY = y;
+        flickStartTime = Date.now();
+    }
+
+    function handleFlickEnd(x, y) {
+        if (!isPlaying) return;
+        const dx = x - flickStartX;
+        const dy = y - flickStartY;
+        const dt = Date.now() - flickStartTime;
+
+        // Must be a quick swipe upwards
+        if (dt > 800 || dt < 10) return; 
+        if (dy > -20) return; 
+
+        // Simulate physical speed (px/ms mapped to km/h)
+        const pixelSpeed = Math.sqrt(dx*dx + dy*dy) / dt; 
+        let simulatedSpeed = pixelSpeed * 35; // tuning factor
+        if (simulatedSpeed > 120) simulatedSpeed = 120;
+        if (simulatedSpeed < 20) simulatedSpeed = 20;
+
+        // Map swipe X end position to physical net coordinates
+        const cw = window.innerWidth;
+        let targetX = goal.x + ((x / cw) * (goal.w * 1.4) - (goal.w * 0.7));
+
+        // Map speed to vertical net height (Y)
+        const bottomY = goal.y + goal.h/2 - 150;
+        const topY = goal.y - goal.h/2 + 200;
+        
+        let flightPower = (simulatedSpeed - 20) / (80 - 20);
+        if (flightPower < 0) flightPower = 0;
+        flightPower = Math.pow(flightPower, 1.2); 
+        let targetY = bottomY - (bottomY - topY) * flightPower;
+
+        // Scatter
+        targetX += (Math.random() - 0.5) * 50;
+        targetY += (Math.random() - 0.5) * 50;
+        if (targetY > bottomY + 50) targetY = bottomY + 50;
+
+        goalie.direction = (targetX > 0) ? 1 : -1;
+
+        if(speedDisplay) {
+            speedDisplay.innerHTML = `${Math.round(simulatedSpeed)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H (FLICK)</span>`;
+        }
+        
+        shootVirtualBall(targetX, targetY, simulatedSpeed);
+    }
+
+    // Attach event listeners to physics canvas
+    canvas.addEventListener('touchstart', (e) => {
+        handleFlickStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive: false});
+
+    canvas.addEventListener('touchend', (e) => {
+        handleFlickEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    }, {passive: false});
+
+    let isMouseDown = false;
+    canvas.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        handleFlickStart(e.clientX, e.clientY);
+    });
+    canvas.addEventListener('mouseup', (e) => {
+        if (!isMouseDown) return;
+        isMouseDown = false;
+        handleFlickEnd(e.clientX, e.clientY);
+    });
 
     function createParticles(x, y, scale) {
         for(let i = 0; i < 20; i++) {

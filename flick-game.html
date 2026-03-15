@@ -67,7 +67,8 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            pointer-events: none; /* Let clicks pass through if needed */
+            pointer-events: auto; /* Allow touch and flick interactions */
+            touch-action: none; /* Prevent browser scrolling while swiping */
             z-index: 50; /* Above camera, below UI */
         }
 
