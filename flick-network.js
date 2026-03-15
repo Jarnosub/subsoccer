@@ -11,6 +11,21 @@ let flickChannel = null;
 let myNetworkId = Math.random().toString(36).substring(7);
 window.myNetworkScore = 0;
 
+let myName = "PLAYER";
+try {
+    const lsData = localStorage.getItem('subsoccer-user');
+    if (lsData) {
+        const user = JSON.parse(lsData);
+        if (user.username) myName = user.username.toUpperCase();
+    }
+} catch(e) {}
+
+function updateOpponentName(name) {
+    if (!name) return;
+    const oppLabel = document.querySelector('#opp-score-box .stat-label');
+    if(oppLabel) oppLabel.textContent = name;
+}
+
 function initNetwork() {
     if (!supabaseClient) return;
 
@@ -37,6 +52,7 @@ function initNetwork() {
 
     flickChannel.on('broadcast', { event: 'score_update' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
+            updateOpponentName(payload.payload.username);
             const oppDisplay = document.getElementById('opp-score-value');
             if (oppDisplay) {
                 oppDisplay.textContent = payload.payload.score;
@@ -54,6 +70,7 @@ function initNetwork() {
 
     flickChannel.on('broadcast', { event: 'game_start' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
+            updateOpponentName(payload.payload.username);
             // Opponent started the game! Show popup instead of forcing auto-start
             if (window.startGame && !window.isPlaying) {
                 const popup = document.getElementById('challenge-popup');
@@ -72,10 +89,15 @@ function initNetwork() {
     flickChannel.on('broadcast', { event: 'hello' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
              console.log("A new player joined the battle!");
+             updateOpponentName(payload.payload.username);
              const oppBox = document.getElementById('opp-score-box');
              if(oppBox) {
                  oppBox.style.backgroundColor = 'rgba(0, 255, 204, 0.4)'; // Flash green for connected
                  setTimeout(() => { oppBox.style.backgroundColor = 'transparent'; }, 800);
+             }
+             // Send our info back so they know who we are
+             if (flickChannel && window.isPlaying) {
+                 broadcastScore(window.myNetworkScore);
              }
         }
     });
@@ -87,7 +109,7 @@ function initNetwork() {
             flickChannel.send({
                 type: 'broadcast',
                 event: 'hello',
-                payload: { id: myNetworkId }
+                payload: { id: myNetworkId, username: myName }
             });
         }
     });
@@ -99,7 +121,7 @@ function broadcastScore(newScore) {
         flickChannel.send({
             type: 'broadcast',
             event: 'score_update',
-            payload: { id: myNetworkId, score: newScore }
+            payload: { id: myNetworkId, score: newScore, username: myName }
         });
     }
 }
@@ -109,7 +131,7 @@ function broadcastGameStart() {
         flickChannel.send({
             type: 'broadcast',
             event: 'game_start',
-            payload: { id: myNetworkId }
+            payload: { id: myNetworkId, username: myName }
         });
     }
 }
