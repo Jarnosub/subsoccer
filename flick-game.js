@@ -804,6 +804,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(window.soundEffects) window.soundEffects.playGoalSound();
                     
                     score += 1500;
+                    if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
                     scoreDisplay.textContent = score;
                     scoreDisplay.style.transform = 'scale(2.5)';
                     scoreDisplay.style.color = '#E30613'; // Match target red color
@@ -834,6 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     score += 500;
+                    if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
                     scoreDisplay.textContent = score;
                     scoreDisplay.style.transform = 'scale(1.5)';
                     scoreDisplay.style.color = '#00FFCC';
@@ -908,6 +910,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.useTrackman = useCamera;
         
         score = 0;
+        if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
         scoreDisplay.textContent = score;
         speedDisplay.innerHTML = `0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span>`;
         
@@ -932,6 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isPlaying = true;
         
         if (window.soundEffects) window.soundEffects.playGameplayTheme();
+        if (window.flickNetwork) window.flickNetwork.broadcastGameStart();
 
         balls = [];
         particles = [];

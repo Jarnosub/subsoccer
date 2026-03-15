@@ -344,6 +344,10 @@
                 <div class="stat-label">SCORE</div>
                 <div class="stat-value" id="score-value">0</div>
             </div>
+            <div id="opp-score-box" class="hud-item border-bottom" style="transition: background-color 0.3s;">
+                <div class="stat-label" style="color: #E30613;">OPPONENT</div>
+                <div class="stat-value" id="opp-score-value">0</div>
+            </div>
             <div class="hud-item">
                 <div class="stat-label">SPEED</div>
                 <div class="stat-value" id="speed-value" style="color: #00FFCC; text-shadow: 0 0 10px rgba(0,255,204,0.5);">0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span></div>
@@ -358,8 +362,10 @@
         <button id="btn-start-touch" class="start-btn start-menu-btn">PLAY AGAIN (TOUCH)</button>
         <button id="btn-start-trackman" class="start-btn start-menu-btn">CONNECT TO SUBSOCCER</button>
     </div>    <!-- Game dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="sound-effects.js"></script>
     <script src="vision-engine.js"></script>
+    <script src="flick-network.js"></script>
     <script src="flick-game.js"></script>
     <script>
         // Populate Mini Player Card
