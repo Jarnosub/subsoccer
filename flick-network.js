@@ -36,6 +36,7 @@ function initNetwork() {
     });
 
     window._pendingUseCamera = false;
+    window.isPracticeMode = false;
 
     const btnAccept = document.getElementById('btn-accept-challenge');
     if (btnAccept) {
@@ -66,11 +67,20 @@ function initNetwork() {
         });
     }
 
+    const btnPracticeMode = document.getElementById('btn-practice-mode');
+    if (btnPracticeMode) {
+        btnPracticeMode.addEventListener('click', () => {
+            document.getElementById('waiting-popup').style.display = 'none';
+            window.isPracticeMode = true;
+            if (window.startCountdownAndGame) window.startCountdownAndGame(window._pendingUseCamera);
+        });
+    }
+
     flickChannel.on('broadcast', { event: 'challenge' }, (payload) => {
         if (payload.payload.id !== myNetworkId) {
             updateOpponentName(payload.payload.username);
             const popup = document.getElementById('challenge-popup');
-            if (popup && !window.isPlaying) {
+            if (popup && !window.isPlaying && !window.isPracticeMode) {
                 popup.style.display = 'flex';
             }
         }
@@ -83,7 +93,7 @@ function initNetwork() {
             if (waitingPopup) waitingPopup.style.display = 'none';
             
             // They accepted! Start the game countdown.
-            if (window.startCountdownAndGame && !window.isPlaying) {
+            if (window.startCountdownAndGame && !window.isPlaying && !window.isPracticeMode) {
                 window.startCountdownAndGame(window._pendingUseCamera);
             }
         }
@@ -97,12 +107,14 @@ function initNetwork() {
                 oppDisplay.textContent = payload.payload.score;
             }
             // Flash effect for opponent score box
-            const oppBox = document.getElementById('opp-score-box');
-            if(oppBox) {
-                oppBox.style.backgroundColor = 'rgba(227, 6, 19, 0.4)';
-                setTimeout(() => {
-                    oppBox.style.backgroundColor = 'transparent';
-                }, 300);
+            if (!window.isPracticeMode) {
+                const oppBox = document.getElementById('opp-score-box');
+                if(oppBox) {
+                    oppBox.style.backgroundColor = 'rgba(227, 6, 19, 0.4)';
+                    setTimeout(() => {
+                        oppBox.style.backgroundColor = 'transparent';
+                    }, 300);
+                }
             }
         }
     });
@@ -111,7 +123,7 @@ function initNetwork() {
         if (payload.payload.id !== myNetworkId) {
             updateOpponentName(payload.payload.username);
             // Fallback for older clients that don't do challenge handshake
-            if (window.startCountdownAndGame && !window.isPlaying) {
+            if (window.startCountdownAndGame && !window.isPlaying && !window.isPracticeMode) {
                 const popup = document.getElementById('challenge-popup');
                 if (popup) {
                     popup.style.display = 'flex';
@@ -174,9 +186,11 @@ function broadcastGameStart() {
 
 function requestGame(useCamera) {
     window._pendingUseCamera = useCamera;
+    window.isPracticeMode = false;
     
     // Auto-connect single player if no network
     if (!supabaseClient || !flickChannel || flickChannel.state !== 'joined') {
+        window.isPracticeMode = true;
         if (window.startCountdownAndGame) window.startCountdownAndGame(useCamera);
         return;
     }
