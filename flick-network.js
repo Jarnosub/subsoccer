@@ -94,7 +94,7 @@ function initNetwork() {
 }
 
 function broadcastScore(newScore) {
-    if (flickChannel && flickChannel.state === 'joined') {
+    if (flickChannel) {
         window.myNetworkScore = newScore;
         flickChannel.send({
             type: 'broadcast',
@@ -105,7 +105,7 @@ function broadcastScore(newScore) {
 }
 
 function broadcastGameStart() {
-    if (flickChannel && flickChannel.state === 'joined') {
+    if (flickChannel) {
         flickChannel.send({
             type: 'broadcast',
             event: 'game_start',
