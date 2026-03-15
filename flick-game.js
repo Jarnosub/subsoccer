@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     rawImg.src = 'goalie_sprite_graphic.png';
 
     const stadiumImg = new Image();
-    stadiumImg.src = 'stadium.jpg';
+    stadiumImg.src = 'stadium1920.jpg';
 
     const ballImg = new Image();
     const processedBall = document.createElement('canvas');
