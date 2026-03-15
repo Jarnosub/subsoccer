@@ -378,27 +378,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tr = movingTarget.radius * tp.scale;
                 ctx.save();
                 ctx.translate(tp.x, tp.y);
+                // Draw Classic Red/White Target
+                ctx.shadowBlur = 0; // Remove neon glow for classic look
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#000'; // Thin black ring around elements
                 
-                // Draw cool synthwave target
-                ctx.beginPath();
-                ctx.arc(0, 0, tr, 0, Math.PI*2);
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = '#FF00FF'; // Magenta neon
-                ctx.shadowColor = '#FF00FF';
-                ctx.shadowBlur = 15;
-                ctx.stroke();
+                // Outer Red
+                ctx.beginPath(); ctx.arc(0, 0, tr, 0, Math.PI*2);
+                ctx.fillStyle = '#E30613'; ctx.fill(); ctx.stroke();
                 
-                ctx.beginPath();
-                ctx.arc(0, 0, tr * 0.6, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(255, 0, 255, 0.4)';
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.arc(0, 0, tr * 0.2, 0, Math.PI*2);
-                ctx.fillStyle = '#00FFCC';
-                ctx.shadowColor = '#00FFCC';
-                ctx.fill();
+                // Inner White
+                ctx.beginPath(); ctx.arc(0, 0, tr * 0.75, 0, Math.PI*2);
+                ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
+                
+                // Inner Red
+                ctx.beginPath(); ctx.arc(0, 0, tr * 0.5, 0, Math.PI*2);
+                ctx.fillStyle = '#E30613'; ctx.fill(); ctx.stroke();
+                
+                // Center White
+                ctx.beginPath(); ctx.arc(0, 0, tr * 0.25, 0, Math.PI*2);
+                ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
                 
                 ctx.restore();
             }
@@ -547,14 +546,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     score += 1500;
                     scoreDisplay.textContent = score;
                     scoreDisplay.style.transform = 'scale(2.5)';
-                    scoreDisplay.style.color = '#FF00FF'; // Match target neon color
+                    scoreDisplay.style.color = '#E30613'; // Match target red color
                     setTimeout(() => {
                         scoreDisplay.style.transform = '';
                         scoreDisplay.style.color = '';
                     }, 400);
 
                     // Flash background
-                    document.body.style.background = 'rgba(255, 0, 255, 0.3)';
+                    document.body.style.background = 'rgba(227, 6, 19, 0.3)';
                     setTimeout(() => document.body.style.background = '', 100);
                 }
             }
