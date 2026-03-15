@@ -88,6 +88,19 @@ document.addEventListener('DOMContentLoaded', () => {
     stadiumImg.src = 'stadium.png';
 
     const ballImg = new Image();
+    const processedBall = document.createElement('canvas');
+    ballImg.onload = () => {
+        processedBall.width = ballImg.width;
+        processedBall.height = ballImg.height;
+        const bCtx = processedBall.getContext('2d');
+        
+        // Permanent circular mask for the ball
+        bCtx.beginPath();
+        bCtx.arc(ballImg.width/2, ballImg.height/2, (ballImg.width/2) * 0.95, 0, Math.PI*2);
+        bCtx.clip();
+        bCtx.drawImage(ballImg, 0, 0);
+        ballImg.processed = true;
+    };
     ballImg.src = 'ball.png';
 
     const goal = {
@@ -596,20 +609,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Draw Virtual Ball Graphic
             if (p.scale > 0) {
-                if (ballImg && ballImg.complete) {
+                if (ballImg && ballImg.processed) {
                     const bw = b.radius * 2 * p.scale;
                     ctx.save();
                     ctx.translate(p.x, p.y);
-                    
-                    // Clip tightly into a perfect circle to hide the square white background
-                    ctx.beginPath();
-                    // Cut slightly inward (0.95) to remove white anti-aliased edge pixels
-                    ctx.arc(0, 0, (bw/2) * 0.95, 0, Math.PI*2);
-                    ctx.clip();
-                    
                     // Add cool rotation effect matching ball speed
                     ctx.rotate(b.z * 0.05); 
-                    ctx.drawImage(ballImg, -bw/2, -bw/2, bw, bw);
+                    ctx.drawImage(processedBall, -bw/2, -bw/2, bw, bw);
                     ctx.restore();
                 } else {
                     ctx.beginPath();
