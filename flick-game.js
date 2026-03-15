@@ -101,8 +101,8 @@ window.isPlaying = false;
     const ballImg = new Image();
     const processedBall = document.createElement('canvas');
     ballImg.onload = () => {
-        // The original ball.png has a large white padding. We crop into the actual ball texture.
-        const actualBallSize = ballImg.width * 0.72; 
+        // Use full dimensions of the new ball.png
+        const actualBallSize = ballImg.width; 
         
         processedBall.width = actualBallSize;
         processedBall.height = actualBallSize;
@@ -113,9 +113,8 @@ window.isPlaying = false;
         bCtx.arc(actualBallSize/2, actualBallSize/2, actualBallSize/2 - 1, 0, Math.PI*2);
         bCtx.clip();
         
-        // Draw the source image shifted so the padding is outside the canvas
-        const offset = (ballImg.width - actualBallSize) / 2;
-        bCtx.drawImage(ballImg, -offset, -offset, ballImg.width, ballImg.height);
+        // Draw the full source image
+        bCtx.drawImage(ballImg, 0, 0, ballImg.width, ballImg.height);
         
         ballImg.processed = true;
     };
