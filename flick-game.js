@@ -92,15 +92,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const ballImg = new Image();
     const processedBall = document.createElement('canvas');
     ballImg.onload = () => {
-        processedBall.width = ballImg.width;
-        processedBall.height = ballImg.height;
+        // The original ball.png has a large white padding. We crop into the actual ball texture.
+        const actualBallSize = ballImg.width * 0.72; 
+        
+        processedBall.width = actualBallSize;
+        processedBall.height = actualBallSize;
         const bCtx = processedBall.getContext('2d');
         
         // Permanent circular mask for the ball
         bCtx.beginPath();
-        bCtx.arc(ballImg.width/2, ballImg.height/2, (ballImg.width/2) * 0.95, 0, Math.PI*2);
+        bCtx.arc(actualBallSize/2, actualBallSize/2, actualBallSize/2 - 1, 0, Math.PI*2);
         bCtx.clip();
-        bCtx.drawImage(ballImg, 0, 0);
+        
+        // Draw the source image shifted so the padding is outside the canvas
+        const offset = (ballImg.width - actualBallSize) / 2;
+        bCtx.drawImage(ballImg, -offset, -offset, ballImg.width, ballImg.height);
+        
         ballImg.processed = true;
     };
     ballImg.src = 'ball.png';
@@ -828,8 +835,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isFlicking && ballImg && ballImg.processed) {
             ctx.save();
             ctx.translate(flickCurrentX, flickCurrentY);
-            // Size of the ball while held on screen (matches virtual base size)
-            const bw = 140; 
+            // Size of the ball while held on screen (smaller so it doesn't block view)
+            const bw = 90; 
             ctx.drawImage(processedBall, -bw/2, -bw/2, bw, bw);
             ctx.restore();
         }
