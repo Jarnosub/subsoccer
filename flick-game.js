@@ -42,6 +42,16 @@ document.addEventListener('DOMContentLoaded', () => {
         frameHeight: 320,
         direction: 1        // 1 = Right, -1 = Left (Mirror)
     };
+
+    let movingTarget = {
+        x: 0,
+        y: -300,
+        z: 1180, // Behind goalie (1150) but in front of back wall (1200)
+        radius: 150, // Start size
+        vx: 8,
+        vy: 4,
+        active: true
+    };
     
     // Load and process image to remove magenta "green screen"
     const rawImg = new Image();
@@ -349,6 +359,51 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.moveTo(0, f_bl.y); ctx.lineTo(canvas.width, f_br.y);
         ctx.stroke();
 
+        // Update and Draw Moving Target (Behind Goalie)
+        if (movingTarget.active) {
+            movingTarget.x += movingTarget.vx;
+            movingTarget.y += movingTarget.vy;
+            
+            // Bounce inside goal limits
+            const maxTx = goal.w/2 - movingTarget.radius;
+            const maxTy = goal.h/2 - movingTarget.radius;
+            
+            if (movingTarget.x > maxTx) { movingTarget.x = maxTx; movingTarget.vx *= -1; }
+            if (movingTarget.x < -maxTx) { movingTarget.x = -maxTx; movingTarget.vx *= -1; }
+            if (movingTarget.y > goal.y + maxTy) { movingTarget.y = goal.y + maxTy; movingTarget.vy *= -1; }
+            if (movingTarget.y < goal.y - maxTy) { movingTarget.y = goal.y - maxTy; movingTarget.vy *= -1; }
+
+            const tp = project(movingTarget.x, movingTarget.y, movingTarget.z);
+            if (tp.scale > 0) {
+                const tr = movingTarget.radius * tp.scale;
+                ctx.save();
+                ctx.translate(tp.x, tp.y);
+                
+                // Draw cool synthwave target
+                ctx.beginPath();
+                ctx.arc(0, 0, tr, 0, Math.PI*2);
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#FF00FF'; // Magenta neon
+                ctx.shadowColor = '#FF00FF';
+                ctx.shadowBlur = 15;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, tr * 0.6, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(255, 0, 255, 0.4)';
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(0, 0, tr * 0.2, 0, Math.PI*2);
+                ctx.fillStyle = '#00FFCC';
+                ctx.shadowColor = '#00FFCC';
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
         // Update and Draw Goalie Sprite
         // Goalie slides calmly side-to-side
         goalie.x += goalie.vx;
@@ -474,6 +529,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     createParticles(proj.x, proj.y, proj.scale * 2);
                     
                     document.body.style.background = 'rgba(255, 0, 0, 0.3)';
+                    setTimeout(() => document.body.style.background = '', 100);
+                }
+            }
+
+            // Collisions with Moving Target
+            if (b.active && movingTarget.active && b.z >= movingTarget.z - 50 && b.z <= movingTarget.z + b.vz + 50) {
+                if (b.x > movingTarget.x - movingTarget.radius && b.x < movingTarget.x + movingTarget.radius &&
+                    b.y > movingTarget.y - movingTarget.radius && b.y < movingTarget.y + movingTarget.radius) {
+                    
+                    // TARGET HIT!
+                    b.active = false;
+                    const proj = project(movingTarget.x, movingTarget.y, movingTarget.z);
+                    createParticles(proj.x, proj.y, proj.scale * 3);
+                    createParticles(proj.x, proj.y, proj.scale * 3); // Extra explosion
+                    
+                    score += 1500;
+                    scoreDisplay.textContent = score;
+                    scoreDisplay.style.transform = 'scale(2.5)';
+                    scoreDisplay.style.color = '#FF00FF'; // Match target neon color
+                    setTimeout(() => {
+                        scoreDisplay.style.transform = '';
+                        scoreDisplay.style.color = '';
+                    }, 400);
+
+                    // Flash background
+                    document.body.style.background = 'rgba(255, 0, 255, 0.3)';
                     setTimeout(() => document.body.style.background = '', 100);
                 }
             }
