@@ -281,43 +281,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (spin > 2.5) spin = 2.5;
         if (spin < -2.5) spin = -2.5;
 
-        // Map swipe X end position to physical net coordinates
-        const cw = window.innerWidth;
-        const ch = window.innerHeight;
-        let targetX = goal.x + ((x / cw) * (goal.w * 1.4) - (goal.w * 0.7));
+        // Inverse Projection: Map swipe X & Y end position directly onto the 3D goal plane
+        // This ensures the point your finger visually lands on screen matches the 3D target exactly!
+        const scale = focalLength / (focalLength + goal.z);
+        const screenX = x - (canvas.width / 2);
+        const screenY = y - (canvas.height / 2);
+        
+        let targetX = screenX / scale;
+        let pointedY = screenY / scale;
 
         // Let's deduct the effect of curve from the initial shot target so it actually curves INTO the target, 
         // aiming slightly opposite to the curve direction.
         targetX -= spin * 300; 
 
-        // Map speed & flick elevation to vertical net height (Y)
-        const bottomY = goal.y + goal.h/2 - 150;
-        const topY = goal.y - goal.h/2 + 200;
-        
-        let speedPower = (simulatedSpeed - 20) / (80 - 20);
-        if (speedPower < 0) speedPower = 0;
-        
-        // How high on the screen did the flick end? (1.0 = top of screen, 0.0 = bottom)
-        let elevationPower = 1.0 - (y / ch);
-        if (elevationPower < 0) elevationPower = 0;
-        // Do NOT cap elevationPower at 1.0 anymore! Let it fly over if swiped off the top
-
-        // If you swipe too slowly, the ball shouldn't rise off the ground.
-        let speedMultiplier = (simulatedSpeed - 30) / 40; // 30km/h = 0 multiplier (ground), 70km/h = 1.0 (normal height)
+        // If you swipe too slowly, the ball shouldn't rise off the ground to reach your pointed y.
+        let speedMultiplier = (simulatedSpeed - 30) / 40; // 30km/h = 0 multiplier (ground), 70km/h = 1.0 (reaches finger)
         if (speedMultiplier < 0) speedMultiplier = 0;
         
-        // If you flick extremely hard (e.g., > 90 km/h), give it extra carry
+        // If you flick extremely hard (e.g., > 90 km/h), give it extra carry (flies over your finger)
         let powerCarry = 1.0;
         if (simulatedSpeed > 90) {
-            powerCarry = 1.0 + ((simulatedSpeed - 90) / 50); // scales up to 1.6x if you hit 120km/h
+            powerCarry = 1.0 + ((simulatedSpeed - 90) / 50); // scales up if you hit harder
         }
 
-        // Target height is primarily based on where your finger stopped, 
-        // gated by speed (slow = no height), and amplified by extreme power (hard = flies over)
-        let flightPower = elevationPower * speedMultiplier * powerCarry;
-        flightPower = Math.pow(flightPower, 1.2); 
+        // Target height is where your finger stopped (pointedY), but pulled down to the floor (bottomY) 
+        // if your flick was too slow, or pushed higher if you absolutely smashed it (powerCarry).
+        const bottomY = goal.y + goal.h/2 - 150; 
         
-        let targetY = bottomY - (bottomY - topY) * flightPower;
+        let liftFactor = speedMultiplier * powerCarry;
+        liftFactor = Math.pow(liftFactor, 1.2); 
+        
+        let targetY = bottomY - (bottomY - pointedY) * liftFactor;
 
         // Scatter
         targetX += (Math.random() - 0.5) * 50;
