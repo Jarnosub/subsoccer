@@ -213,24 +213,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Touch / Mouse 'Flick' Controls for Mobile Demo ---
     let flickStartX = 0;
     let flickStartY = 0;
+    let flickCurrentX = 0;
+    let flickCurrentY = 0;
     let flickStartTime = 0;
     let flickPoints = [];
+    let isFlicking = false;
 
     function handleFlickStart(x, y) {
         if (!isPlaying) return;
         flickStartX = x;
         flickStartY = y;
+        flickCurrentX = x;
+        flickCurrentY = y;
         flickStartTime = Date.now();
         flickPoints = [{x, y}];
+        isFlicking = true;
     }
 
     function handleFlickMove(x, y) {
-        if (!isPlaying || flickPoints.length === 0) return;
+        if (!isPlaying || !isFlicking) return;
+        flickCurrentX = x;
+        flickCurrentY = y;
         flickPoints.push({x, y});
     }
 
     function handleFlickEnd(x, y) {
-        if (!isPlaying || flickPoints.length === 0) return;
+        if (!isPlaying || !isFlicking) return;
+        isFlicking = false;
         const dx = x - flickStartX;
         const dy = y - flickStartY;
         const dt = Date.now() - flickStartTime;
@@ -814,6 +823,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        // Draw the flicking ball currently held by the finger
+        if (isFlicking && ballImg && ballImg.processed) {
+            ctx.save();
+            ctx.translate(flickCurrentX, flickCurrentY);
+            // Size of the ball while held on screen (matches virtual base size)
+            const bw = 140; 
+            ctx.drawImage(processedBall, -bw/2, -bw/2, bw, bw);
+            ctx.restore();
+        }
 
         // 2D screen particles
         particles = particles.filter(p => p.life > 0);
