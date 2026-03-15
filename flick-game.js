@@ -188,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function gameLoop() {
-        if (!isPlaying) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Add slight dark gradient at the bottom for contrast
@@ -359,6 +358,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.moveTo(0, f_bl.y); ctx.lineTo(canvas.width, f_br.y);
         ctx.stroke();
 
+        if (!isPlaying) {
+            requestID = requestAnimationFrame(gameLoop);
+            return;
+        }
+
         // Update and Draw Moving Target (Behind Goalie)
         if (movingTarget.active) {
             movingTarget.x += movingTarget.vx;
@@ -385,8 +389,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.lineWidth = 1;
                 ctx.strokeStyle = 'rgba(255,255,255,0.2)'; // Faint shine ring
                 
-                // Outer Navy Blue
+                // Outer White Rim
                 ctx.beginPath(); ctx.arc(0, 0, tr, 0, Math.PI*2);
+                ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
+                
+                // Outer Navy Blue
+                ctx.beginPath(); ctx.arc(0, 0, tr * 0.92, 0, Math.PI*2);
                 ctx.fillStyle = '#21314d'; ctx.fill(); ctx.stroke();
                 
                 // Reset shadow after outer circle
@@ -658,8 +666,8 @@ document.addEventListener('DOMContentLoaded', () => {
         balls = [];
         particles = [];
         spawnObstacles();
-        gameLoop();
-
+        // gameLoop was already started in background
+        
         timerInterval = setInterval(() => {
             if (!isPlaying) return;
             timeLeft--;
@@ -674,4 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 1000);
     });
+
+    // Start background loop immediately to draw stadium/goal
+    requestAnimationFrame(gameLoop);
 });
