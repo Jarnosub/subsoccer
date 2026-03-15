@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     let score = 0;
-    let isPlaying = false;
+window.isPlaying = false;
     let requestID = null;
 
     let timeLeft = 45;
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastShotTime = 0;
     
     window.handleGoalDetected = function(zoneId, index) {
-        if (!isPlaying) return;
+        if (!window.isPlaying) return;
 
         // Anti-spam cooldown: prevent multiple rapid accidental shots
         const now = Date.now();
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isFlicking = false;
 
     function handleFlickStart(x, y) {
-        if (!isPlaying || window.useTrackman) return;
+        if (!window.isPlaying || window.useTrackman) return;
         flickStartX = x;
         flickStartY = y;
         flickCurrentX = x;
@@ -247,14 +247,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleFlickMove(x, y) {
-        if (!isPlaying || !isFlicking) return;
+        if (!window.isPlaying || !isFlicking) return;
         flickCurrentX = x;
         flickCurrentY = y;
         flickPoints.push({x, y});
     }
 
     function handleFlickEnd(x, y) {
-        if (!isPlaying || !isFlicking) return;
+        if (!window.isPlaying || !isFlicking) return;
         isFlicking = false;
         const dx = x - flickStartX;
         const dy = y - flickStartY;
@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.moveTo(0, f_bl.y); ctx.lineTo(canvas.width, f_br.y);
         ctx.stroke();
 
-        if (!isPlaying) {
+        if (!window.isPlaying) {
             requestID = requestAnimationFrame(gameLoop);
             return;
         }
@@ -987,7 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnSoundToggle.innerHTML = isEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark"></i>';
                 
                 // If toggled during gameplay, start or stop music
-                if (isPlaying) {
+                if (window.isPlaying) {
                     if (isEnabled) window.soundEffects.playGameplayTheme();
                     else window.soundEffects.stopMusic();
                 }
