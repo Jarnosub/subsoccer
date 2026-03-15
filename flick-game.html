@@ -216,6 +216,39 @@
             font-family: 'Russo One', sans-serif;
             color: #fff;
         }
+
+        /* Responsive Mobile Layout */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .display-panel {
+                top: auto;
+                bottom: 40px; /* Leave space near bottom screen edge */
+                right: 50%;
+                transform: translateX(50%);
+                width: 90%;
+                max-width: 400px;
+            }
+            .hud-container {
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                gap: 5px;
+                padding: 10px 5px;
+            }
+            .hud-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .border-bottom {
+                border-bottom: none;
+                border-right: 1px solid rgba(255, 255, 255, 0.2);
+                padding-bottom: 0;
+            }
+            .stat-value {
+                font-size: 1.4rem;
+            }
+        }
     </style>
     <div class="display-panel">
         <div class="hud-container">
@@ -237,7 +270,7 @@
     <!-- The actual flick physics canvas -->
     <canvas id="physics-canvas"></canvas>
 
-    <div id="start-menu" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; gap: 15px; z-index: 200; width: 100%; max-width: 320px;">
+    <div id="start-menu" style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; gap: 15px; z-index: 200; width: 90%; max-width: 320px;">
         <button id="btn-start-touch" class="start-btn" style="position: relative; left: 0; top: 0; transform: none; width: 100%; font-family: 'SubsoccerLogo', sans-serif; letter-spacing: 1px;">PLAY ON TOUCHSCREEN</button>
         <button id="btn-start-trackman" class="start-btn" style="position: relative; left: 0; top: 0; transform: none; width: 100%; background: #D4AF37; border: none; color: #000; padding: 16px; font-size: 1.1rem; font-family: 'SubsoccerLogo', sans-serif; letter-spacing: 1px; box-shadow: 0 8px 30px rgba(212, 175, 55, 0.3);">CONNECT TO SUBSOCCER</button>
     </div>    <!-- Game dependencies -->
