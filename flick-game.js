@@ -89,7 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
     rawImg.src = 'goalie_sprite_graphic.png';
 
     const stadiumImg = new Image();
-    stadiumImg.src = 'stadium1920.jpg';
+    if (window.innerHeight > window.innerWidth) {
+        stadiumImg.src = 'stadium1080.jpg';
+    } else {
+        stadiumImg.src = 'stadium1920.jpg';
+    }
 
     const ballImg = new Image();
     const processedBall = document.createElement('canvas');
