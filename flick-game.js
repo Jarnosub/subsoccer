@@ -302,32 +302,34 @@ document.addEventListener('DOMContentLoaded', () => {
         // Top Net
         ctx.beginPath(); ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.fill();
 
-        // Draw Net Grid (Horizontal / Depth lines)
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        // Draw Net Mesh (Diamond grid for back net)
+        ctx.save();
+        ctx.beginPath(); ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(b_bl.x, b_bl.y); ctx.closePath();
+        ctx.clip();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
+        for (let i = -20; i <= 40; i++) {
+            let tx = b_tl.x + (b_tr.x - b_tl.x) * (i/20);
+            let bx_right = b_bl.x + (b_br.x - b_bl.x) * ((i+10)/20);
+            let bx_left = b_bl.x + (b_br.x - b_bl.x) * ((i-10)/20);
+            ctx.beginPath(); ctx.moveTo(tx, b_tl.y); ctx.lineTo(bx_right, b_bl.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(tx, b_tl.y); ctx.lineTo(bx_left, b_bl.y); ctx.stroke();
+        }
+        ctx.restore();
+
+        // Draw Net Mesh (Diamond grid for side/top nets simplified)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
         ctx.lineWidth = 1;
         for (let i = 1; i <= 10; i++) {
             let f_y = f_tl.y + (f_bl.y - f_tl.y) * (i/10);
             let b_y = b_tl.y + (b_bl.y - b_tl.y) * (i/10);
-            ctx.beginPath();
-            ctx.moveTo(f_tl.x, f_y); ctx.lineTo(b_tl.x, b_y); ctx.lineTo(b_tr.x, b_y); ctx.lineTo(f_tr.x, f_y);
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(f_tl.x, f_y); ctx.lineTo(b_tl.x, b_y); ctx.lineTo(b_tr.x, b_y); ctx.lineTo(f_tr.x, f_y); ctx.stroke();
         }
-        
-        // Draw Net Grid (Vertical Back lines)
-        for (let i = 1; i <= 20; i++) {
-            let bx = b_tl.x + (b_tr.x - b_tl.x) * (i/20);
-            ctx.beginPath();
-            ctx.moveTo(bx, b_tl.y); ctx.lineTo(bx, b_bl.y);
-            ctx.stroke();
-        }
-
-        // Draw Net Grid (Vertical Side lines)
         for (let i = 1; i <= 5; i++) {
             let lx = f_tl.x + (b_tl.x - f_tl.x) * (i/5);
             let ly = f_tl.y + (b_tl.y - f_tl.y) * (i/5);
             let lb = f_bl.y + (b_bl.y - f_bl.y) * (i/5);
             ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, lb); ctx.stroke();
-
             let rx = f_tr.x + (b_tr.x - f_tr.x) * (i/5);
             let r_y = f_tr.y + (b_tr.y - f_tr.y) * (i/5);
             let rb = f_br.y + (b_br.y - f_br.y) * (i/5);
@@ -338,18 +340,18 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineJoin = 'miter';
         ctx.lineCap = 'butt';
         
-        // 1. Base thick white post
-        ctx.strokeStyle = '#F0F0F0';
-        ctx.lineWidth = 15; // Make it thick enough to be clearly visible as a post
+        // 1. Base thick white metallic post
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 22; // Thicker post
         ctx.beginPath();
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
-        // 2. Inner shading to simulate cylinder rounding
-        ctx.strokeStyle = 'rgba(200, 200, 200, 0.8)';
-        ctx.lineWidth = 4;
+        // 2. Inner strong shading to simulate cylinder rounding
+        ctx.strokeStyle = 'rgba(120, 130, 140, 0.7)';
+        ctx.lineWidth = 6;
         ctx.beginPath();
-        ctx.moveTo(f_bl.x + 4, f_bl.y); ctx.lineTo(f_tl.x + 4, f_tl.y + 4); ctx.lineTo(f_tr.x - 4, f_tr.y + 4); ctx.lineTo(f_br.x - 4, f_br.y);
+        ctx.moveTo(f_bl.x + 6, f_bl.y); ctx.lineTo(f_tl.x + 6, f_tl.y + 6); ctx.lineTo(f_tr.x - 6, f_tr.y + 6); ctx.lineTo(f_br.x - 6, f_br.y);
         ctx.stroke();
 
         // Goal Line
@@ -379,25 +381,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.save();
                 ctx.translate(tp.x, tp.y);
                 // Draw Classic Red/White Target
-                ctx.shadowBlur = 0; // Remove neon glow for classic look
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#000'; // Thin black ring around elements
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                ctx.shadowBlur = 15; // Drop shadow for popping off the net
+                ctx.shadowOffsetY = 10;
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)'; // Faint shine ring
                 
-                // Outer Red
+                // Outer Navy Blue
                 ctx.beginPath(); ctx.arc(0, 0, tr, 0, Math.PI*2);
-                ctx.fillStyle = '#E30613'; ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#21314d'; ctx.fill(); ctx.stroke();
                 
+                // Reset shadow after outer circle
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetY = 0;
+
                 // Inner White
-                ctx.beginPath(); ctx.arc(0, 0, tr * 0.75, 0, Math.PI*2);
-                ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, 0, tr * 0.6, 0, Math.PI*2);
+                ctx.fillStyle = '#ebeced'; ctx.fill(); ctx.stroke();
                 
                 // Inner Red
-                ctx.beginPath(); ctx.arc(0, 0, tr * 0.5, 0, Math.PI*2);
-                ctx.fillStyle = '#E30613'; ctx.fill(); ctx.stroke();
-                
-                // Center White
                 ctx.beginPath(); ctx.arc(0, 0, tr * 0.25, 0, Math.PI*2);
-                ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#c92728'; ctx.fill(); ctx.stroke();
                 
                 ctx.restore();
             }
