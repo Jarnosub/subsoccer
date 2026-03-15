@@ -43,6 +43,9 @@
             top: 20px;
             left: 20px;
             display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
             z-index: 100;
         }
 
@@ -58,6 +61,47 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .mini-player-card {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid #C5A059; /* Subsoccer Gold */
+            border-left: 4px solid #C5A059;
+            padding: 8px 15px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Russo One', sans-serif;
+            transform: scale(0.9);
+            transform-origin: top left;
+        }
+
+        .mini-player-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: #222;
+        }
+
+        .mini-player-name {
+            font-size: 1rem;
+            color: #fff;
+            line-height: 1.1;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .mini-player-elo {
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #C5A059;
+            letter-spacing: 1px;
         }
 
         /* Physics Canvas overlay */
@@ -121,6 +165,15 @@
 
     <div class="top-bar">
         <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
+        
+        <!-- Mini Player Card for social media recordings -->
+        <div class="mini-player-card" id="mini-player-card">
+            <img src="placeholder-silhouette-5-wide.png" class="mini-player-avatar" id="mini-player-avatar" alt="Avatar">
+            <div>
+                <div class="mini-player-name" id="mini-player-name">GUEST</div>
+                <div class="mini-player-elo" id="mini-player-elo">1300 ELO</div>
+            </div>
+        </div>
     </div>
 
     <style>
@@ -189,7 +242,25 @@
     <script src="sound-effects.js"></script>
     <script src="vision-engine.js"></script>
     <script src="flick-game.js"></script>
-
+    <script>
+        // Populate Mini Player Card
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const lsData = localStorage.getItem('subsoccer-user');
+                if (lsData) {
+                    const user = JSON.parse(lsData);
+                    document.getElementById('mini-player-name').textContent = user.username ? user.username.toUpperCase() : 'PLAYER';
+                    document.getElementById('mini-player-elo').textContent = (user.elo || 1300) + ' ELO';
+                    
+                    if (user.avatar_url) {
+                        document.getElementById('mini-player-avatar').src = user.avatar_url;
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not load user data for player card', e);
+            }
+        });
+    </script>
 </body>
 
 </html>
