@@ -412,7 +412,8 @@ window.isPlaying = false;
     }
 
     function gameLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        try {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Add slight dark gradient at the bottom for contrast
         const horizonY = canvas.height * 0.55;
@@ -905,6 +906,12 @@ window.isPlaying = false;
         }
 
         requestID = requestAnimationFrame(gameLoop);
+        } catch(e) {
+            ctx.fillStyle = 'red';
+            ctx.font = '20px sans-serif';
+            ctx.fillText(e.stack || e.message, 50, 50);
+            throw e; // Also log to console
+        }
     }
 
     let countdownInterval = null;
