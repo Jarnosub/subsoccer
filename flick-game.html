@@ -509,12 +509,6 @@
             .stat-value {
                 font-size: 1.4rem;
             }
-            #online-players-list {
-                position: fixed;
-                top: calc(env(safe-area-inset-top, 0px) + 20px);
-                right: calc(env(safe-area-inset-right, 0px) + 20px);
-                margin-top: 0 !important;
-            }
         }
 
         @media (max-height: 600px) and (orientation: landscape) {
@@ -567,13 +561,29 @@
             }
         }
         
+        .ticker-wrapper {
+            width: 100%;
+            overflow: hidden;
+            margin-top: 5px;
+            position: relative;
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        }
+
         #online-players-list {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            display: inline-flex;
+            flex-direction: row;
+            gap: 15px;
             z-index: 100;
             pointer-events: none;
-            align-items: flex-end;
+            align-items: center;
+            padding-left: 100%; /* Push initial content to the right edge of wrapper */
+            animation: tickerScroll 15s linear infinite;
+        }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
         }
         
         .online-player-badge {
@@ -588,13 +598,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
-            animation: slideIn 0.3s ease-out;
-            transition: opacity 0.5s;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            white-space: nowrap;
         }
     #victory-overlay {
             position: fixed;
@@ -847,7 +851,9 @@
                 <div class="stat-value" id="speed-value" style="color: #00FFCC; text-shadow: 0 0 10px rgba(0,255,204,0.5);">0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span></div>
             </div>
         </div>
-        <div id="online-players-list" style="margin-top: 10px;"></div>
+        <div class="ticker-wrapper">
+            <div id="online-players-list"></div>
+        </div>
     </div>
 
     <!-- The actual flick physics canvas -->
