@@ -180,7 +180,6 @@ window.isPlaying = false;
         if (flightPower < 0) flightPower = 0;
         
         // Apply curve so really hard shots fly high
-        // Apply curve so really hard shots fly high
         flightPower = Math.pow(flightPower, 1.2); 
         if (isNaN(flightPower)) flightPower = 0.5;
         targetY = bottomY - (bottomY - topY) * flightPower;
@@ -203,8 +202,12 @@ window.isPlaying = false;
         let startX = 0;
         let startY = 300; 
         
-        // Calculate velocities to hit the target
-        let vz = speedKmh * 1.5 + 15; 
+        // Calculate velocities to hit the target. 
+        // In AR Mode, we want the virtual ball to zip to the goal much faster so it matches the physical ball that just passed the camera.
+        let speedMultiplier = window.useTrackman ? 3.5 : 1.5;
+        let baseVz = window.useTrackman ? 40 : 15;
+        
+        let vz = speedKmh * speedMultiplier + baseVz; 
         let t = goal.z / vz; // time to reach goal plane
         let gravity = 0.8;
         
