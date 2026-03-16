@@ -506,6 +506,46 @@ window.isPlaying = false;
             ctx.fillText(`X:${Math.round(trackPos.x)} Y:${Math.round(trackPos.y)}`, 30, 0);
             
             ctx.restore();
+            
+            // SCREEN-SPACE AR COLLISION: If physical ball overlaps Moving Target instantly score
+            if (window.useTrackman && movingTarget.active && !movingTarget.flipActive) {
+                const tp = project(movingTarget.x, movingTarget.y, movingTarget.z);
+                if (tp.scale > 0) {
+                    const tr = movingTarget.radius * tp.scale; // Screen area of target
+                    const dx = trackPos.x - tp.x;
+                    const dy = trackPos.y - tp.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    // Allow generous hit area in AR. Must be moving to prevent false positives when holding ball
+                    const speed = (window.visionEngine && window.visionEngine.currentBallSpeedKmh) ? window.visionEngine.currentBallSpeedKmh : 0;
+                    if (dist < tr + 60 && speed > 15) {
+                        // INSTANT TARGET HIT!
+                        movingTarget.flipActive = true;
+                        movingTarget.flipTimer = 1.0;
+                        
+                        createParticles(tp.x, tp.y, tp.scale * 3);
+                        createParticles(tp.x, tp.y, tp.scale * 3); // Extra explosion
+                        
+                        if(window.soundEffects) window.soundEffects.playGoalSound();
+                        
+                        score += 1500;
+                        if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
+                        if (scoreDisplay) {
+                            scoreDisplay.textContent = score;
+                            scoreDisplay.style.transform = 'scale(2.5)';
+                            scoreDisplay.style.color = '#E30613'; 
+                            setTimeout(() => {
+                                scoreDisplay.style.transform = '';
+                                scoreDisplay.style.color = '';
+                            }, 400);
+                        }
+
+                        // Flash background
+                        document.body.style.background = 'rgba(227, 6, 19, 0.3)';
+                        setTimeout(() => document.body.style.background = '', 100);
+                    }
+                }
+            }
         }
 
         // --- Draw 3D Goal at distance ---
@@ -746,7 +786,8 @@ window.isPlaying = false;
             const p = project(b.x, b.y, b.z);
 
             // Draw glowing cyan/white comet Trail
-            if (b.history.length > 1) {
+            // Hide graphics in AR mode! Virtual ball is just logic here.
+            if (!window.useTrackman && b.history.length > 1) {
                 for (let i = 1; i < b.history.length; i++) {
                     const prevP = project(b.history[i-1].x, b.history[i-1].y, b.history[i-1].z);
                     const currP = project(b.history[i].x, b.history[i].y, b.history[i].z);
@@ -794,7 +835,8 @@ window.isPlaying = false;
             }
 
             // Collisions with Moving Target
-            if (b.active && movingTarget.active && b.z >= movingTarget.z - 50 && b.z <= movingTarget.z + b.vz + 50) {
+            // In AR mode, collisions are handled instantly in screen-space, so skip virtual ball check
+            if (!window.useTrackman && b.active && movingTarget.active && b.z >= movingTarget.z - 50 && b.z <= movingTarget.z + b.vz + 50) {
                 if (b.x > movingTarget.x - movingTarget.radius && b.x < movingTarget.x + movingTarget.radius &&
                     b.y > movingTarget.y - movingTarget.radius && b.y < movingTarget.y + movingTarget.radius) {
                     
@@ -860,7 +902,8 @@ window.isPlaying = false;
             }
 
             // Draw Virtual Ball Graphic
-            if (p.scale > 0) {
+            // Hide graphics in AR mode! Virtual ball is just logic here.
+            if (!window.useTrackman && p.scale > 0) {
                 if (ballImg && ballImg.processed) {
                     const bw = b.radius * 2 * p.scale;
                     ctx.save();
