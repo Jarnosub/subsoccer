@@ -121,31 +121,6 @@ window.isPlaying = false;
     };
     rawIdleImg.src = 'goalie_idle.png?v=' + Date.now(); // Cache buster so it updates instantly
 
-    goalie.thumbsUpImg = new Image();
-    const rawThumbsUpImg = new Image();
-    rawThumbsUpImg.crossOrigin = "Anonymous";
-    rawThumbsUpImg.onload = () => {
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = rawThumbsUpImg.width;
-        tempCanvas.height = rawThumbsUpImg.height;
-        const tCtx = tempCanvas.getContext('2d');
-        tCtx.drawImage(rawThumbsUpImg, 0, 0);
-        
-        // Remove purely magenta colored background
-        const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-        const data = imgData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            // Magenta filter (High Red, Low Green, High Blue)
-            if (data[i] > 180 && data[i+1] < 120 && data[i+2] > 180) {
-                data[i+3] = 0; // Make transparent
-            }
-        }
-        tCtx.putImageData(imgData, 0, 0);
-        
-        goalie.thumbsUpImg.src = tempCanvas.toDataURL('image/png');
-    };
-    rawThumbsUpImg.src = 'goalie_thumbsup.png?v=' + Date.now(); // Cache buster
-
     // stadiumImg defined above to support resize handler
 
     const ballImg = new Image();
@@ -713,21 +688,14 @@ window.isPlaying = false;
             // Draw Idle Sitting Goalie
             if (!window.useTrackman) {
                 const gop = project(0, goalie.y, goalie.z);
-                const activeImg = (goalie.showThumbsUp && goalie.thumbsUpImg && goalie.thumbsUpImg.complete && goalie.thumbsUpImg.naturalWidth > 0) ? goalie.thumbsUpImg : goalie.idleImg;
-                
-                if (gop.scale > 0 && activeImg && activeImg.complete && activeImg.naturalWidth > 0) {
+                if (gop.scale > 0 && goalie.idleImg && goalie.idleImg.complete && goalie.idleImg.naturalWidth > 0) {
                     const gow = goalie.w * 0.9 * gop.scale; // Width representation
-                    const goh = goalie.w * 0.9 * gop.scale * (activeImg.height / activeImg.width);
+                    const goh = goalie.w * 0.9 * gop.scale * (goalie.idleImg.height / goalie.idleImg.width);
                     ctx.save();
                     // Offset Y slightly downwards to sit perfectly on the bench
-                    // The thumbs up image might be standing, so we might need to adjust Y slightly if it's the thumbs up
-                    if (activeImg === goalie.thumbsUpImg) {
-                        ctx.translate(gop.x, gop.y - goh * 0.15); // Stand up for thumbs up
-                    } else {
-                        ctx.translate(gop.x, gop.y + goh * 0.12); // Sit on bench
-                    }
+                    ctx.translate(gop.x, gop.y + goh * 0.12);
                     ctx.drawImage(
-                        activeImg,
+                        goalie.idleImg,
                         -gow/2, -goh/2, gow, goh
                     );
                     ctx.restore();
@@ -1111,7 +1079,6 @@ window.isPlaying = false;
 
         const countdownPopup = document.getElementById('countdown-popup');
         const countdownValue = document.getElementById('countdown-value');
-        goalie.showThumbsUp = true; // Show exactly during the countdown!
         if (countdownPopup && countdownValue) {
             countdownPopup.style.display = 'flex';
             let count = 3;
@@ -1142,7 +1109,6 @@ window.isPlaying = false;
 
     window.actualStartGame = async function(useCamera) {
         window.isCountingDown = false;
-        goalie.showThumbsUp = false; // Reset to normal playing mode
         if (window.isPlaying) return;
         window.useTrackman = useCamera;
         window.isPlaying = true;
