@@ -123,7 +123,7 @@ function initNetwork() {
             updateOpponentName(payload.payload.username);
             trackPlayer(payload.payload.id, payload.payload.username);
             const popup = document.getElementById('challenge-popup');
-            if (popup && !window.isPlaying && !window.isPracticeMode) {
+            if (popup && !window.isPlaying && !window.isPracticeMode && !window.isCountingDown) {
                 const startMenu = document.getElementById('start-menu');
                 if (startMenu) startMenu.style.display = 'none';
                 popup.style.display = 'flex';
@@ -170,7 +170,7 @@ function initNetwork() {
         if (payload.payload.id !== myNetworkId) {
             updateOpponentName(payload.payload.username);
             // Fallback for older clients that don't do challenge handshake
-            if (window.startCountdownAndGame && !window.isPlaying && !window.isPracticeMode) {
+            if (window.startCountdownAndGame && !window.isPlaying && !window.isPracticeMode && !window.isCountingDown) {
                 const popup = document.getElementById('challenge-popup');
                 if (popup) {
                     popup.style.display = 'flex';
