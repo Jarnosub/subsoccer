@@ -91,6 +91,8 @@ function initNetwork() {
     if (btnDecline) {
         btnDecline.addEventListener('click', () => {
             document.getElementById('challenge-popup').style.display = 'none';
+            const startMenu = document.getElementById('start-menu');
+            if (startMenu) startMenu.style.display = 'flex';
         });
     }
 
@@ -98,6 +100,8 @@ function initNetwork() {
     if (btnCancelWaiting) {
         btnCancelWaiting.addEventListener('click', () => {
             document.getElementById('waiting-popup').style.display = 'none';
+            const startMenu = document.getElementById('start-menu');
+            if (startMenu) startMenu.style.display = 'flex';
         });
     }
 
@@ -116,6 +120,8 @@ function initNetwork() {
             trackPlayer(payload.payload.id, payload.payload.username);
             const popup = document.getElementById('challenge-popup');
             if (popup && !window.isPlaying && !window.isPracticeMode) {
+                const startMenu = document.getElementById('start-menu');
+                if (startMenu) startMenu.style.display = 'none';
                 popup.style.display = 'flex';
             }
         }
@@ -258,6 +264,8 @@ function requestGame(useCamera) {
 
     const waitingPopup = document.getElementById('waiting-popup');
     if (waitingPopup) {
+        const startMenu = document.getElementById('start-menu');
+        if (startMenu) startMenu.style.display = 'none';
         waitingPopup.style.display = 'flex';
     } else {
         if (window.startCountdownAndGame) window.startCountdownAndGame(useCamera);
