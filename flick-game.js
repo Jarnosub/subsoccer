@@ -119,7 +119,7 @@ window.isPlaying = false;
         
         goalie.idleImg.src = tempCanvas.toDataURL('image/png');
     };
-    rawIdleImg.src = 'goalie_standing_sprite_graphic_subsoccer.png?v=' + Date.now(); // Updated cache buster
+    rawIdleImg.src = 'goalie_idle.png?v=' + Date.now(); // Cache buster
 
     goalie.powerMoveImg = new Image();
     const rawPowerMoveImg = new Image();
@@ -718,8 +718,8 @@ window.isPlaying = false;
             if (!window.useTrackman) {
                 const gop = project(0, goalie.y, goalie.z);
                 if (gop.scale > 0 && goalie.idleImg && goalie.idleImg.complete && goalie.idleImg.naturalWidth > 0) {
-                    const gow = goalie.w * 1.3 * gop.scale; // Width representation (scaled up another 20% for Subsoccer table)
-                    const goh = goalie.w * 1.3 * gop.scale * (goalie.idleImg.height / goalie.idleImg.width);
+                    const gow = goalie.w * 0.9 * gop.scale; // Width representation
+                    const goh = goalie.w * 0.9 * gop.scale * (goalie.idleImg.height / goalie.idleImg.width);
                     ctx.save();
                     // Offset Y slightly downwards to sit perfectly on the bench
                     ctx.translate(gop.x, gop.y + goh * 0.12);
