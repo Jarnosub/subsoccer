@@ -77,18 +77,15 @@ window.isPlaying = false;
         const tCtx = tempCanvas.getContext('2d');
         tCtx.drawImage(rawImg, 0, 0);
         
-        // Remove magenta colored background AND pure black grid lines
+        // Remove purely magenta colored background 
         const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
         const data = imgData.data;
         for (let i = 0; i < data.length; i += 4) {
-            // Magenta filter
-            if (data[i] > 200 && data[i+1] < 100 && data[i+2] > 200) {
+            // Magenta filter (High Red, Low Green, High Blue)
+            if (data[i] > 180 && data[i+1] < 120 && data[i+2] > 180) {
                 data[i+3] = 0; // Make transparent
             }
-            // Black grid lines filter
-            if (data[i] < 30 && data[i+1] < 30 && data[i+2] < 30) {
-                data[i+3] = 0; // Make transparent
-            }
+            // Black filter removed - this was causing clothing gaps
         }
         tCtx.putImageData(imgData, 0, 0);
         
@@ -108,18 +105,15 @@ window.isPlaying = false;
         const tCtx = tempCanvas.getContext('2d');
         tCtx.drawImage(rawIdleImg, 0, 0);
         
-        // Remove magenta colored background AND pure black grid lines
+        // Remove purely magenta colored background
         const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
         const data = imgData.data;
         for (let i = 0; i < data.length; i += 4) {
-            // Magenta filter
-            if (data[i] > 200 && data[i+1] < 100 && data[i+2] > 200) {
+            // Magenta filter (High Red, Low Green, High Blue)
+            if (data[i] > 180 && data[i+1] < 120 && data[i+2] > 180) {
                 data[i+3] = 0; // Make transparent
             }
-            // Black grid lines filter
-            if (data[i] < 30 && data[i+1] < 30 && data[i+2] < 30) {
-                data[i+3] = 0; // Make transparent
-            }
+            // Black filter removed
         }
         tCtx.putImageData(imgData, 0, 0);
         
