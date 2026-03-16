@@ -178,7 +178,9 @@ window.isPlaying = false;
         if (flightPower < 0) flightPower = 0;
         
         // Apply curve so really hard shots fly high
+        // Apply curve so really hard shots fly high
         flightPower = Math.pow(flightPower, 1.2); 
+        if (isNaN(flightPower)) flightPower = 0.5;
         targetY = bottomY - (bottomY - topY) * flightPower;
 
         // Add some nice random scatter (reduced slightly for more precision)
@@ -213,9 +215,8 @@ window.isPlaying = false;
             y: startY,
             z: 0,
             vx: vx,
-            vy: vy,
-            vz: vz,
-            vz: vz,
+            vy: isNaN(vy) ? -5 : vy,
+            vz: isNaN(vz) ? 20 : vz,
             radius: 70, // Increased base size so it's clearly visible in 3D distance
             active: true,
             spin: spin, // Add spin for curve effect

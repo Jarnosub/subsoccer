@@ -150,7 +150,8 @@ class VisionEngine {
         // Always analyse frame to trigger goal hits
         this.analyseFrame();
         
-        if (this.showTargets) {
+        // If playing 3D game with Trackman, NEVER show targets over the screen (we use 3D targets instead)
+        if (this.showTargets && !window.useTrackman) {
             this.drawOverlay();
         }
 
