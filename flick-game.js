@@ -518,7 +518,8 @@ window.isPlaying = false;
                     
                     // Allow generous hit area in AR. Must be moving to prevent false positives when holding ball
                     const speed = (window.visionEngine && window.visionEngine.currentBallSpeedKmh) ? window.visionEngine.currentBallSpeedKmh : 0;
-                    if (dist < tr + 60 && speed > 15) {
+                    // Super generous hitbox: 1.8x the target size + 100px padding, lower speed threshold
+                    if (dist < tr * 1.8 + 100 && speed > 5) {
                         // INSTANT TARGET HIT!
                         movingTarget.flipActive = true;
                         movingTarget.flipTimer = 1.0;
