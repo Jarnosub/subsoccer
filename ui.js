@@ -908,10 +908,10 @@ subscribe('user', () => {
         }
 
         // 4. Instant Play -linkin päivitys
-        const instantPlayLink = document.querySelector('a[href*="instant-play.html"]');
+        const instantPlayLink = document.querySelector('a[href*="flick-game.html"]');
         if (instantPlayLink) {
             const userType = state.user.id === 'guest' ? 'guest' : 'registered';
-            instantPlayLink.href = `instant-play.html?game_id=QUICK-PLAY&mode=casual&user_type=${userType}`;
+            instantPlayLink.href = `flick-game.html?game_id=QUICK-PLAY&mode=casual&user_type=${userType}`;
         }
 
         // 5. Komponenttien päivitys
