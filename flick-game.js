@@ -125,7 +125,7 @@ window.isPlaying = false;
         
         goalie.idleImg.src = tempCanvas.toDataURL('image/png');
     };
-    rawIdleImg.src = 'goalie_idle.png';
+    rawIdleImg.src = 'goalie_idle.png?v=' + Date.now(); // Cache buster so it updates instantly
 
     // stadiumImg defined above to support resize handler
 
