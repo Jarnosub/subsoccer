@@ -436,11 +436,9 @@ window.isPlaying = false;
             }
         }
 
-        // Only hide targets if not using Trackman mode (though visionEngine naturally only shows in trackman mode)
-        if(window.visionEngine && !window.useTrackman) {
+        // Hide static vision-engine targets to use our beautiful 3D moving targets and Goal instead
+        if(window.visionEngine) {
             window.visionEngine.showTargets = false;
-        } else if (window.visionEngine && window.useTrackman) {
-            window.visionEngine.showTargets = true;
         }
         let trackPos = null;
         if(window.visionEngine && window.visionEngine.lastBallPos) {
@@ -503,9 +501,8 @@ window.isPlaying = false;
             ctx.restore();
         }
 
-        if (!window.useTrackman) {
-            // --- Draw 3D Goal at distance ---
-            const f_tl = project(goal.x - goal.w/2, goal.y - goal.h/2, goal.z);
+        // --- Draw 3D Goal at distance ---
+        const f_tl = project(goal.x - goal.w/2, goal.y - goal.h/2, goal.z);
         const f_tr = project(goal.x + goal.w/2, goal.y - goal.h/2, goal.z);
         const f_bl = project(goal.x - goal.w/2, goal.y + goal.h/2, goal.z);
         const f_br = project(goal.x + goal.w/2, goal.y + goal.h/2, goal.z);
@@ -584,7 +581,6 @@ window.isPlaying = false;
         ctx.beginPath();
         ctx.moveTo(0, f_bl.y); ctx.lineTo(canvas.width, f_br.y);
         ctx.stroke();
-        } // End of !window.useTrackman background block
 
         if (!window.isPlaying) {
             requestID = requestAnimationFrame(gameLoop);
@@ -981,7 +977,7 @@ window.isPlaying = false;
             }
             window.visionEngine.onTargetHit = window.handleGoalDetected;
             window.visionEngine.measureBallSpeed = true;
-            window.visionEngine.showTargets = true; 
+            window.visionEngine.showTargets = false; 
         }
 
         window.isPlaying = true;
