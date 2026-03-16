@@ -471,9 +471,9 @@
                 flex-direction: column; /* Stack vertically if space gets tight in portrait */
                 max-width: 350px;
                 width: 90%;
-                top: 65%; /* Center of the grass */
+                top: 57%; /* Just below the bench */
                 bottom: auto; 
-                transform: translate(-50%, -50%);
+                transform: translate(-50%, 0); /* Anchor from the top edge */
                 gap: 15px;
             }
             .start-menu-btn {
@@ -508,6 +508,12 @@
             }
             .stat-value {
                 font-size: 1.4rem;
+            }
+            #online-players-list {
+                position: fixed;
+                top: calc(env(safe-area-inset-top, 0px) + 20px);
+                right: calc(env(safe-area-inset-right, 0px) + 20px);
+                margin-top: 0 !important;
             }
         }
 
