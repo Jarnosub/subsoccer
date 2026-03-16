@@ -699,21 +699,53 @@ window.isPlaying = false;
         }
 
         // Update and Draw Goalie Sprite
-        // Goalie slides calmly side-to-side
-        goalie.x += goalie.vx;
         const clampGoaliX = Math.abs(goal.w / 2 - goalie.w / 2); 
-        if (goalie.x > clampGoaliX) {
-            goalie.x = clampGoaliX;
-            goalie.vx *= -1; 
-        } else if (goalie.x < -clampGoaliX) {
-            goalie.x = -clampGoaliX;
-            goalie.vx *= -1;
+        
+        // Find if there is an active ball approaching the goal
+        let incomingBall = balls.find(b => b.active && b.vz > 0 && b.z < goalie.z);
+        
+        if (incomingBall && !window.useTrackman) { // Only track virtual balls when not in Trackman AR mode (where physical real balls exist)
+            // Predict where the ball will intersect the goalie's Z plane
+            let timeToReach = (goalie.z - incomingBall.z) / incomingBall.vz;
+            let predictedX = incomingBall.x + incomingBall.vx * timeToReach;
+            
+            // Include curve evaluation in prediction!
+            if(incomingBall.spin) {
+                 // Roughly estimate spin curve over time (0.5 * a * t^2 type displacement but simplified)
+                 predictedX += incomingBall.spin * timeToReach * 0.5;
+            }
+            
+            // Goalie attempts to move towards predictedX
+            let speed = 25; // Max dive speed
+            let dist = predictedX - goalie.x;
+            
+            if (Math.abs(dist) > speed) {
+                goalie.x += Math.sign(dist) * speed;
+            } else {
+                goalie.x += dist * 0.5; // Smooth approach
+            }
+            
+            // Set dive direction based on where the ball is heading relative to goalie
+            if (goalie.diveTimer <= 0) {
+                 goalie.direction = (dist > 0) ? 1 : -1;
+            }
+
+            // Trigger dive animation early enough to look like a desperate save
+            if (timeToReach < 25 && goalie.diveTimer <= 0) {
+                goalie.diveTimer = 45; 
+            }
+        } else {
+            // Idle State: Slowly return to center and gently sway back and forth
+            let targetIdleX = Math.sin(Date.now() / 800) * 150; 
+            let dist = targetIdleX - goalie.x;
+            if (Math.abs(dist) > 3) {
+                goalie.x += Math.sign(dist) * 3;
+            }
         }
 
-        // Sprite Animation Logic: Trigger dive and hold it after ball disappears
-        if (balls.some(b => b.active)) {
-            goalie.diveTimer = 60; // Hold dive for 1 second total
-        }
+        // Clamp goalie inside goal boundaries
+        if (goalie.x > clampGoaliX) goalie.x = clampGoaliX;
+        if (goalie.x < -clampGoaliX) goalie.x = -clampGoaliX;
         
         if (goalie.diveTimer > 0) {
             goalie.diveTimer--;
