@@ -144,7 +144,7 @@ window.isPlaying = false;
         
         goalie.powerMoveImg.src = tempCanvas.toDataURL('image/png');
     };
-    rawPowerMoveImg.src = 'goalie_powermove.png';
+    rawPowerMoveImg.src = 'goalie_powermove.png?v=' + Date.now(); // Cache buster
 
     // stadiumImg defined above to support resize handler
 
