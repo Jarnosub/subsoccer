@@ -997,9 +997,8 @@ window.isPlaying = false;
                     b.active = false;
                     const proj = project(goalie.x, goalie.y, goalie.z);
                     createParticles(proj.x, proj.y, proj.scale * 2);
-                    
-                    // 15% chance to trigger the dramatic martial arts block, or if the ball was going blazingly fast
-                    if (Math.abs(b.vz) > 60 || Math.random() < 0.15) {
+                    // Trigger the dramatic martial arts block as a punishment if the player shoots "poorly" directly to the center
+                    if (Math.abs(b.x) < 80) {
                         goalie.powerMoveTimer = 70; // 70 frames of epicness
                         if (window.soundEffects && window.soundEffects.playGoalSound) window.soundEffects.playGoalSound(); // big sound
                         // Massive explosion for epic save
