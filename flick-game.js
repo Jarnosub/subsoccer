@@ -121,6 +121,31 @@ window.isPlaying = false;
     };
     rawIdleImg.src = 'goalie_idle.png?v=' + Date.now(); // Cache buster so it updates instantly
 
+    goalie.powerMoveImg = new Image();
+    const rawPowerMoveImg = new Image();
+    rawPowerMoveImg.crossOrigin = "Anonymous";
+    rawPowerMoveImg.onload = () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = rawPowerMoveImg.width;
+        tempCanvas.height = rawPowerMoveImg.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(rawPowerMoveImg, 0, 0);
+        
+        // Remove purely magenta colored background
+        const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            // Magenta filter (High Red, Low Green, High Blue)
+            if (data[i] > 180 && data[i+1] < 120 && data[i+2] > 180) {
+                data[i+3] = 0; // Make transparent
+            }
+        }
+        tCtx.putImageData(imgData, 0, 0);
+        
+        goalie.powerMoveImg.src = tempCanvas.toDataURL('image/png');
+    };
+    rawPowerMoveImg.src = 'goalie_powermove.png';
+
     // stadiumImg defined above to support resize handler
 
     const ballImg = new Image();
@@ -834,7 +859,49 @@ window.isPlaying = false;
         }
 
         const gop = project(goalie.x, goalie.y, goalie.z);
-        if (gop.scale > 0 && goalie.img.complete && goalie.img.naturalWidth > 0) {
+        if (goalie.powerMoveTimer && goalie.powerMoveTimer > 0) {
+            goalie.powerMoveTimer--;
+            if (gop.scale > 0 && goalie.powerMoveImg && goalie.powerMoveImg.complete && goalie.powerMoveImg.naturalWidth > 0) {
+                const gow = goalie.w * 1.6 * gop.scale; // Extra large representation for power move
+                const goh = goalie.w * 1.6 * gop.scale * (goalie.powerMoveImg.height / goalie.powerMoveImg.width);
+                ctx.save();
+                
+                // Screen shake magnitude based on timer
+                const shakeX = (Math.random() - 0.5) * 8 * (goalie.powerMoveTimer / 70);
+                const shakeY = (Math.random() - 0.5) * 8 * (goalie.powerMoveTimer / 70);
+                
+                ctx.translate(gop.x + shakeX, gop.y - goh * 0.2 + shakeY);
+                // Flashy aura glow
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = 'rgba(255, 255, 0, 0.9)';
+                
+                // Face the direction of the dive
+                ctx.scale(goalie.direction, 1);
+                
+                ctx.drawImage(
+                    goalie.powerMoveImg,
+                    -gow/2, -goh/2, gow, goh
+                );
+                ctx.restore();
+                
+                // Epic Comic Text overlay
+                ctx.save();
+                ctx.translate(gop.x, gop.y - goh * 0.7 - (70 - goalie.powerMoveTimer) * 0.5);
+                ctx.font = 'italic 900 3.5rem "Russo One", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = goalie.powerMoveTimer / 70;
+                ctx.rotate(-0.1); // slanted dramatic text
+                
+                // Draw outline
+                ctx.lineWidth = 6;
+                ctx.strokeStyle = '#000';
+                ctx.strokeText("EPIC SAVE!", 0, 0);
+                // Draw inner text
+                ctx.fillStyle = '#FFD700'; // Gold
+                ctx.fillText("EPIC SAVE!", 0, 0);
+                ctx.restore();
+            }
+        } else if (gop.scale > 0 && goalie.img.complete && goalie.img.naturalWidth > 0) {
             const gow = goalie.w * gop.scale;
             const goh = goalie.h * gop.scale;
             
@@ -930,8 +997,17 @@ window.isPlaying = false;
                     b.active = false;
                     const proj = project(goalie.x, goalie.y, goalie.z);
                     createParticles(proj.x, proj.y, proj.scale * 2);
-
-                    if (window.soundEffects) window.soundEffects.playC64Sound('hit');
+                    
+                    // 15% chance to trigger the dramatic martial arts block, or if the ball was going blazingly fast
+                    if (Math.abs(b.vz) > 60 || Math.random() < 0.15) {
+                        goalie.powerMoveTimer = 70; // 70 frames of epicness
+                        if (window.soundEffects && window.soundEffects.playGoalSound) window.soundEffects.playGoalSound(); // big sound
+                        // Massive explosion for epic save
+                        createParticles(proj.x, proj.y, proj.scale * 5);
+                        createParticles(proj.x, proj.y, proj.scale * 5);
+                    } else {
+                        if (window.soundEffects) window.soundEffects.playC64Sound('hit');
+                    }
                     
                     document.body.style.background = 'rgba(255, 0, 0, 0.3)';
                     setTimeout(() => document.body.style.background = '', 100);
