@@ -416,22 +416,24 @@ window.isPlaying = false;
         // Add slight dark gradient at the bottom for contrast
         const horizonY = canvas.height * 0.55;
         
-        if (stadiumImg.complete) {
-            ctx.drawImage(stadiumImg, 0, 0, canvas.width, canvas.height);
-        } else {
-            // Draw Solid Sky Background
-            let skyGradient = ctx.createLinearGradient(0, 0, 0, horizonY);
-            skyGradient.addColorStop(0, '#0a0f1a'); // Dark top
-            skyGradient.addColorStop(1, '#1e3c5a'); // Lighter horizon
-            ctx.fillStyle = skyGradient;
-            ctx.fillRect(0, 0, canvas.width, horizonY);
-            
-            // Draw Solid Grass Floor
-            let grassGradient = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
-            grassGradient.addColorStop(0, '#2b8a21'); // Deep green horizon
-            grassGradient.addColorStop(1, '#4caf50'); // Bright green bottom
-            ctx.fillStyle = grassGradient;
-            ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+        if (!window.useTrackman) {
+            if (stadiumImg.complete) {
+                ctx.drawImage(stadiumImg, 0, 0, canvas.width, canvas.height);
+            } else {
+                // Draw Solid Sky Background
+                let skyGradient = ctx.createLinearGradient(0, 0, 0, horizonY);
+                skyGradient.addColorStop(0, '#0a0f1a'); // Dark top
+                skyGradient.addColorStop(1, '#1e3c5a'); // Lighter horizon
+                ctx.fillStyle = skyGradient;
+                ctx.fillRect(0, 0, canvas.width, horizonY);
+                
+                // Draw Solid Grass Floor
+                let grassGradient = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
+                grassGradient.addColorStop(0, '#2b8a21'); // Deep green horizon
+                grassGradient.addColorStop(1, '#4caf50'); // Bright green bottom
+                ctx.fillStyle = grassGradient;
+                ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+            }
         }
 
         // Hide targets from vision-engine for clean view
@@ -502,8 +504,9 @@ window.isPlaying = false;
             ctx.restore();
         }
 
-        // --- Draw 3D Goal at distance ---
-        const f_tl = project(goal.x - goal.w/2, goal.y - goal.h/2, goal.z);
+        if (!window.useTrackman) {
+            // --- Draw 3D Goal at distance ---
+            const f_tl = project(goal.x - goal.w/2, goal.y - goal.h/2, goal.z);
         const f_tr = project(goal.x + goal.w/2, goal.y - goal.h/2, goal.z);
         const f_bl = project(goal.x - goal.w/2, goal.y + goal.h/2, goal.z);
         const f_br = project(goal.x + goal.w/2, goal.y + goal.h/2, goal.z);
@@ -710,6 +713,7 @@ window.isPlaying = false;
             );
             ctx.restore();
         }
+        } // End of !window.useTrackman block
 
         // Update Balls (Physics in 3D)
         balls = balls.filter(b => b.active);
