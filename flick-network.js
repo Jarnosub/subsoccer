@@ -12,11 +12,15 @@ let myNetworkId = Math.random().toString(36).substring(7);
 window.myNetworkScore = 0;
 
 let myName = "PLAYER";
+window.myName = myName;
 try {
     const lsData = localStorage.getItem('subsoccer-user');
     if (lsData) {
         const user = JSON.parse(lsData);
-        if (user.username) myName = user.username.toUpperCase();
+        if (user.username) {
+            myName = user.username.toUpperCase();
+            window.myName = myName;
+        }
     }
 } catch(e) {}
 
