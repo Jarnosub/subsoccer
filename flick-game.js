@@ -1007,9 +1007,31 @@ window.isPlaying = false;
 
                 if (vOverlay) {
                     vOverlay.style.display = 'flex';
-                    if (vEloGain) vEloGain.textContent = score + " POINTS";
-                    if (vEloCount) vEloCount.textContent = score + " PTS";
-                    if (vCardName) vCardName.textContent = window.myName || "PLAYER";
+                    let isWinner = true;
+                    let tie = false;
+                    let displayScore = score;
+                    let displayName = window.myName || "PLAYER";
+
+                    if (!window.isPracticeMode) {
+                        const oppScoreStr = document.getElementById('opp-score-value')?.textContent || "0";
+                        const oppScore = parseInt(oppScoreStr, 10);
+                        if (oppScore > score) {
+                            isWinner = false;
+                            displayScore = oppScore;
+                            displayName = document.querySelector('#opp-score-box .stat-label')?.textContent || "OPPONENT";
+                        } else if (oppScore === score && score > 0) {
+                            tie = true;
+                        }
+                    }
+
+                    if (vName) {
+                         if(tie) vName.textContent = "TIE!";
+                         else vName.textContent = isWinner ? "YOU WIN!" : "YOU LOSE!";
+                    }
+
+                    if (vEloGain) vEloGain.textContent = displayScore + " POINTS";
+                    if (vEloCount) vEloCount.textContent = displayScore + " PTS";
+                    if (vCardName) vCardName.textContent = displayName;
                     
                     if (vCanvas) {
                         vCanvas.style.display = 'block';
@@ -1066,9 +1088,9 @@ window.isPlaying = false;
                     // Simple ELO animation based on score
                     let currentVal = 0;
                     const eloInterval = setInterval(() => {
-                        currentVal += Math.ceil(score / 30);
-                        if (currentVal >= score) {
-                            currentVal = score;
+                        currentVal += Math.ceil(displayScore / 30) || 1;
+                        if (currentVal >= displayScore) {
+                            currentVal = displayScore;
                             clearInterval(eloInterval);
                             if (vEloCount) {
                                 vEloCount.textContent = currentVal + " PTS";
