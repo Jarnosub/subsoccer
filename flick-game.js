@@ -98,6 +98,35 @@ window.isPlaying = false;
     };
     rawImg.src = 'goalie_sprite_graphic.png';
 
+    goalie.idleImg = new Image();
+    const rawIdleImg = new Image();
+    rawIdleImg.crossOrigin = "Anonymous";
+    rawIdleImg.onload = () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = rawIdleImg.width;
+        tempCanvas.height = rawIdleImg.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(rawIdleImg, 0, 0);
+        
+        // Remove magenta colored background AND pure black grid lines
+        const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            // Magenta filter
+            if (data[i] > 200 && data[i+1] < 100 && data[i+2] > 200) {
+                data[i+3] = 0; // Make transparent
+            }
+            // Black grid lines filter
+            if (data[i] < 30 && data[i+1] < 30 && data[i+2] < 30) {
+                data[i+3] = 0; // Make transparent
+            }
+        }
+        tCtx.putImageData(imgData, 0, 0);
+        
+        goalie.idleImg.src = tempCanvas.toDataURL('image/png');
+    };
+    rawIdleImg.src = 'goalie_idle.png';
+
     // stadiumImg defined above to support resize handler
 
     const ballImg = new Image();
@@ -631,6 +660,23 @@ window.isPlaying = false;
         ctx.stroke();
 
         if (!window.isPlaying) {
+            // Draw Idle Sitting Goalie
+            if (!window.useTrackman) {
+                const gop = project(0, goalie.y, goalie.z);
+                if (gop.scale > 0 && goalie.idleImg && goalie.idleImg.complete && goalie.idleImg.naturalWidth > 0) {
+                    const gow = goalie.w * 0.9 * gop.scale; // Width representation
+                    const goh = goalie.w * 0.9 * gop.scale * (goalie.idleImg.height / goalie.idleImg.width);
+                    ctx.save();
+                    // Offset Y slightly downwards so he is sitting "on" the ground
+                    ctx.translate(gop.x, gop.y + goh * 0.25);
+                    ctx.drawImage(
+                        goalie.idleImg,
+                        -gow/2, -goh/2, gow, goh
+                    );
+                    ctx.restore();
+                }
+            }
+
             requestID = requestAnimationFrame(gameLoop);
             return;
         }
