@@ -603,7 +603,7 @@ window.isPlaying = false;
             ctx.beginPath(); ctx.moveTo(rx, r_y); ctx.lineTo(rx, rb); ctx.stroke();
         }
 
-        // Front Goal Posts (Subsoccer Red with Black Outer Outline)
+        // Front Goal Posts (Neon Green with Black Outer Outline)
         ctx.lineJoin = 'round';
         ctx.lineCap = 'butt';
         
@@ -615,8 +615,8 @@ window.isPlaying = false;
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
-        // 2. Base thick red post (drawn over the black line)
-        ctx.strokeStyle = '#E30613';
+        // 2. Base thick green post (drawn over the black line)
+        ctx.strokeStyle = '#00FFCC';
         ctx.lineWidth = 12; 
         ctx.beginPath();
         // Go from bottom-left up, across, and down to bottom-right (no bottom line)
