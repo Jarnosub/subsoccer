@@ -626,24 +626,55 @@ window.isPlaying = false;
             ctx.beginPath(); ctx.moveTo(rx, r_y); ctx.lineTo(rx, rb); ctx.stroke();
         }
 
-        // Front Goal Posts (Subsoccer Red with Black Outer Outline)
+        // Front Goal Posts (Glossy Subsoccer Red 3D frame)
         ctx.lineJoin = 'round';
         ctx.lineCap = 'butt';
         
-        // 1. Thick black outline (drawn first, behind the red)
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 18; 
+        // 1. Thick dark outer edge (gives depth and shadow)
+        ctx.strokeStyle = '#1a0000';
+        ctx.lineWidth = 20; 
         ctx.beginPath();
-        // Go from bottom-left up, across, and down to bottom-right (no bottom line)
         ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
         ctx.stroke();
 
-        // 2. Base thick red post (drawn over the black line)
-        ctx.strokeStyle = '#E30613';
-        ctx.lineWidth = 12; 
+        // 2. Left Post (Metallic Gradient)
+        const leftGrad = ctx.createLinearGradient(f_tl.x - 8, 0, f_tl.x + 8, 0);
+        leftGrad.addColorStop(0, '#550000');
+        leftGrad.addColorStop(0.3, '#E30613');
+        leftGrad.addColorStop(0.7, '#ff4d4d');
+        leftGrad.addColorStop(1, '#880000');
+        ctx.strokeStyle = leftGrad;
+        ctx.lineWidth = 14; 
+        ctx.beginPath(); ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.stroke();
+
+        // 3. Right Post (Metallic Gradient)
+        const rightGrad = ctx.createLinearGradient(f_tr.x - 8, 0, f_tr.x + 8, 0);
+        rightGrad.addColorStop(0, '#880000');
+        rightGrad.addColorStop(0.3, '#ff4d4d');
+        rightGrad.addColorStop(0.7, '#E30613');
+        rightGrad.addColorStop(1, '#550000');
+        ctx.strokeStyle = rightGrad;
+        ctx.beginPath(); ctx.moveTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y); ctx.stroke();
+
+        // 4. Crossbar (Metallic Gradient)
+        const topGrad = ctx.createLinearGradient(0, f_tl.y - 8, 0, f_tl.y + 8);
+        topGrad.addColorStop(0, '#ff4d4d');
+        topGrad.addColorStop(0.5, '#E30613');
+        topGrad.addColorStop(1, '#550000');
+        ctx.strokeStyle = topGrad;
+        ctx.beginPath(); ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.stroke();
+
+        // 5. Corner Joints (Smooths the connection between gradients)
+        ctx.fillStyle = '#ff4d4d'; // Brightest point
+        ctx.beginPath(); ctx.arc(f_tl.x, f_tl.y, 7, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(f_tr.x, f_tr.y, 7, 0, Math.PI*2); ctx.fill();
+
+        // 6. Specular Glare (The white reflection line that makes it look like polished metal)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        // Go from bottom-left up, across, and down to bottom-right (no bottom line)
-        ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
+        // Inner edge reflection
+        ctx.moveTo(f_bl.x + 3, f_bl.y); ctx.lineTo(f_tl.x + 3, f_tl.y + 3); ctx.lineTo(f_tr.x - 3, f_tr.y + 3); ctx.lineTo(f_br.x - 3, f_br.y);
         ctx.stroke();
 
         // Goal Line (White)
