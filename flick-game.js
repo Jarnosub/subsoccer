@@ -584,6 +584,7 @@ window.isPlaying = false;
         ctx.beginPath();
         ctx.moveTo(0, f_bl.y); ctx.lineTo(canvas.width, f_br.y);
         ctx.stroke();
+        } // End of !window.useTrackman background block
 
         if (!window.isPlaying) {
             requestID = requestAnimationFrame(gameLoop);
@@ -712,7 +713,6 @@ window.isPlaying = false;
             );
             ctx.restore();
         }
-        } // End of !window.useTrackman block
 
         // Update Balls (Physics in 3D)
         balls = balls.filter(b => b.active);
