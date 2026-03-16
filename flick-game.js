@@ -473,19 +473,23 @@ window.isPlaying = false;
         
         if (!window.useTrackman) {
             if (stadiumImg.complete) {
+                // Application style background: blend the stadium with the dark body background
+                ctx.save();
+                ctx.globalAlpha = 0.35;
                 ctx.drawImage(stadiumImg, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
             } else {
                 // Draw Solid Sky Background
                 let skyGradient = ctx.createLinearGradient(0, 0, 0, horizonY);
-                skyGradient.addColorStop(0, '#0a0f1a'); // Dark top
-                skyGradient.addColorStop(1, '#1e3c5a'); // Lighter horizon
+                skyGradient.addColorStop(0, 'rgba(10, 15, 26, 0.4)'); // Dark top transparent
+                skyGradient.addColorStop(1, 'rgba(30, 60, 90, 0.4)'); // Lighter horizon transparent
                 ctx.fillStyle = skyGradient;
                 ctx.fillRect(0, 0, canvas.width, horizonY);
                 
                 // Draw Solid Grass Floor
                 let grassGradient = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
-                grassGradient.addColorStop(0, '#2b8a21'); // Deep green horizon
-                grassGradient.addColorStop(1, '#4caf50'); // Bright green bottom
+                grassGradient.addColorStop(0, 'rgba(43, 138, 33, 0.4)'); // Deep green horizon transparent
+                grassGradient.addColorStop(1, 'rgba(76, 175, 80, 0.4)'); // Bright green bottom transparent
                 ctx.fillStyle = grassGradient;
                 ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
             }
