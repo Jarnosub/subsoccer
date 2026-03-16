@@ -915,6 +915,8 @@ window.isPlaying = false;
         if(waitingPopup) waitingPopup.style.display = 'none';
         const challengePopup = document.getElementById('challenge-popup');
         if(challengePopup) challengePopup.style.display = 'none';
+        
+        window.isCountingDown = true;
 
         const countdownPopup = document.getElementById('countdown-popup');
         const countdownValue = document.getElementById('countdown-value');
@@ -947,8 +949,14 @@ window.isPlaying = false;
     }
 
     window.actualStartGame = async function(useCamera) {
+        window.isCountingDown = false;
         if (window.isPlaying) return;
         window.useTrackman = useCamera;
+        window.isPlaying = true;
+        
+        // Hide overlay, start menus, everything
+        const vOverlay = document.getElementById('victory-overlay');
+        if (vOverlay) vOverlay.style.display = 'none';
         
         score = 0;
         if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
