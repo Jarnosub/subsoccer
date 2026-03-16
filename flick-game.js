@@ -667,8 +667,8 @@ window.isPlaying = false;
                     const gow = goalie.w * 0.9 * gop.scale; // Width representation
                     const goh = goalie.w * 0.9 * gop.scale * (goalie.idleImg.height / goalie.idleImg.width);
                     ctx.save();
-                    // Offset Y slightly upwards to place his feet closer to the goal line
-                    ctx.translate(gop.x, gop.y - goh * 0.2);
+                    // Offset Y slightly downwards to sit perfectly on the bench
+                    ctx.translate(gop.x, gop.y + goh * 0.12);
                     ctx.drawImage(
                         goalie.idleImg,
                         -gow/2, -goh/2, gow, goh
