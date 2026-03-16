@@ -1026,11 +1026,13 @@ window.isPlaying = false;
         if(startMenu) startMenu.style.display = 'none';
 
         if (useCamera && window.visionEngine) {
-            const success = await window.visionEngine.startCamera();
-            if (!success) {
-                alert("Camera access is required");
-                if(startMenu) startMenu.style.display = 'flex';
-                return;
+            if (!window.visionEngine.isScanning) {
+                const success = await window.visionEngine.startCamera();
+                if (!success) {
+                    alert("Camera access is required");
+                    if(startMenu) startMenu.style.display = 'flex';
+                    return;
+                }
             }
             window.visionEngine.onTargetHit = window.handleGoalDetected;
             window.visionEngine.measureBallSpeed = true;
@@ -1187,8 +1189,22 @@ window.isPlaying = false;
         });
     }
     if(btnStartTrackman) {
-        btnStartTrackman.addEventListener('click', () => {
+        btnStartTrackman.addEventListener('click', async () => {
             if(window.soundEffects) window.soundEffects.resume();
+            
+            // Request camera permissions immediately upon user gesture
+            if (window.visionEngine) {
+                startMenu.style.display = 'none'; // Temporary hide while waiting for permission
+                const success = await window.visionEngine.startCamera();
+                if (!success) {
+                    alert("Camera access is required to play Subsoccer AR.");
+                    startMenu.style.display = 'flex';
+                    return;
+                }
+                // Stop rendering target boxes in AR mode immediately
+                window.visionEngine.showTargets = false;
+            }
+
             if (window.flickNetwork) {
                 window.flickNetwork.requestGame(true);
             } else {
