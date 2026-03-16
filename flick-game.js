@@ -119,7 +119,7 @@ window.isPlaying = false;
         
         goalie.idleImg.src = tempCanvas.toDataURL('image/png');
     };
-    rawIdleImg.src = 'goalie_idle.png?v=' + Date.now(); // Cache buster so it updates instantly
+    rawIdleImg.src = 'goalie_standing_sprite_graphic_subsoccer.png?v=' + Date.now(); // Cache buster so it updates instantly
 
     goalie.powerMoveImg = new Image();
     const rawPowerMoveImg = new Image();
