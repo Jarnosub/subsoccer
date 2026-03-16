@@ -5,6 +5,8 @@ window.isPlaying = false;
 
     let timeLeft = 45;
     let timerInterval = null;
+    let balls = [];
+    let particles = [];
 
     const btnStartTouch = document.getElementById('btn-start-touch');
     const btnStartTrackman = document.getElementById('btn-start-trackman');
