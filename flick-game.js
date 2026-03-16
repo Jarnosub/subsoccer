@@ -473,9 +473,9 @@ window.isPlaying = false;
         
         if (!window.useTrackman) {
             if (stadiumImg.complete) {
-                // Application style background: blend the stadium with the dark body background
+                // Application style background: blend the stadium with the dark body background only when idling in menus
                 ctx.save();
-                ctx.globalAlpha = 0.35;
+                ctx.globalAlpha = window.isPlaying ? 1.0 : 0.35;
                 ctx.drawImage(stadiumImg, 0, 0, canvas.width, canvas.height);
                 ctx.restore();
             } else {
