@@ -436,13 +436,12 @@ window.isPlaying = false;
             }
         }
 
-        // Hide targets from vision-engine for clean view
-        if(window.visionEngine) {
+        // Only hide targets if not using Trackman mode (though visionEngine naturally only shows in trackman mode)
+        if(window.visionEngine && !window.useTrackman) {
             window.visionEngine.showTargets = false;
+        } else if (window.visionEngine && window.useTrackman) {
+            window.visionEngine.showTargets = true;
         }
-
-
-
         let trackPos = null;
         if(window.visionEngine && window.visionEngine.lastBallPos) {
             trackPos = window.visionEngine.lastBallPos;
@@ -982,7 +981,7 @@ window.isPlaying = false;
             }
             window.visionEngine.onTargetHit = window.handleGoalDetected;
             window.visionEngine.measureBallSpeed = true;
-            window.visionEngine.showTargets = false; 
+            window.visionEngine.showTargets = true; 
         }
 
         window.isPlaying = true;
