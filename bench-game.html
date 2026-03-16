@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <title>Subsoccer - Flick Greybox</title>
+
+    <!-- App / PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Subsoccer">
+
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Russo+One&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @font-face {
+            font-family: 'SubsoccerLogo';
+            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2');
+        }
+
+        :root {
+            --sub-red: #E30613;
+            --sub-black: #0A0A0A;
+            --sub-neon: #00FFCC;
+            --sega-blue: #0088CC;
+            --sub-gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--sub-black);
+            color: #fff;
+            font-family: 'Russo One', sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .top-bar {
+            position: absolute;
+            top: calc(env(safe-area-inset-top, 0px) + 20px);
+            left: calc(env(safe-area-inset-left, 0px) + 20px);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .mini-player-card {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid #C5A059; /* Subsoccer Gold */
+            border-left: 4px solid #C5A059;
+            padding: 8px 15px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Russo One', sans-serif;
+            transform: scale(0.9);
+            transform-origin: top left;
+        }
+
+        .mini-player-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: #222;
+        }
+
+        .mini-player-name {
+            font-size: 1rem;
+            color: #fff;
+            line-height: 1.1;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .mini-player-elo {
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #C5A059;
+            letter-spacing: 1px;
+        }
+
+        /* Physics Canvas overlay */
+        #physics-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: auto; /* Allow touch and flick interactions */
+            touch-action: none; /* Prevent browser scrolling while swiping */
+            z-index: 50; /* Above camera, below UI */
+        }
+
+        /* Start Button */
+        .start-btn {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(227, 6, 19, 0.4);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        /* Start Menu Container */
+        #start-menu {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 200;
+            width: 90%;
+            max-width: 320px;
+        }
+
+        .start-menu-btn {
+            position: relative;
+            left: 0;
+            top: 0;
+            transform: none;
+            width: 100%;
+            font-family: 'Open Sans', sans-serif;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        #btn-start-trackman {
+            background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Displays (HUD Style mapped to sides) */
+        .display-panel {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 0px) + 20px);
+            right: calc(env(safe-area-inset-right, 0px) + 20px);
+            z-index: 100;
+        }
+
+        .stat-label {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.7rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 3px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            line-height: 1;
+            font-family: 'Russo One', sans-serif;
+            color: #fff;
+        }
+
+    #victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .winner-content-box {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .w-title {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 6rem;
+            color: var(--sub-gold);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 0.1s forwards;
+            text-align: center;
+            line-height: 1.1;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        }
+
+        .w-elo {
+            font-family: 'Subsoccer', sans-serif;
+            color: var(--sega-blue);
+            font-size: 3.5rem;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 0.3s forwards;
+            text-shadow: 0 0 20px var(--sega-blue);
+            position: relative;
+            z-index: 20;
+        }
+
+        /* Player Card formatting for Victory */
+        .pro-card {
+            width: 250px;
+            height: 350px;
+            perspective: 1000px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: victorySpinIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.6s forwards;
+            cursor: pointer;
+        }
+
+        .pro-card-flipper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .pro-card.flipped .pro-card-flipper {
+            transform: rotateY(180deg);
+        }
+
+        .pro-card-front, .pro-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: translateZ(1px); /* Safari 3D fix */
+        }
+
+        .pro-card-front {
+            background: linear-gradient(rgba(0,0,0,0.3), #111), url('card-stadium.jpg') center/cover;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pro-card-back {
+            background: #111;
+            transform: rotateY(180deg);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .w-card-title {
+            font-family: 'Subsoccer', sans-serif;
+            color: var(--sub-gold);
+            font-size: 2rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .w-card-desc {
+            color: #ccc;
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 0;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .w-actions {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 1s forwards;
+        }
+
+        .w-actions button {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            font-family: 'Subsoccer', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        @keyframes victorySpinIn {
+            0% {
+                transform: translateY(100px) rotateY(-180deg) scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) rotateY(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes victorySlideUp {
+            0% {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        /* Mic indicator */
+        #camera-status {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .mic-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #444;
+        }
+
+        .mic-dot.active {
+            background: var(--sub-red);
+            box-shadow: 0 0 15px var(--sub-red);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+        <div style="display: flex; gap: 10px;">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
+            <button id="btn-sound-toggle" class="back-btn" style="border: none; cursor: pointer; background: rgba(0,0,0,0.5); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0;" title="Toggle Sound"><i class="fa-solid fa-volume-xmark"></i></button>
+        </div>
+        
+        <!-- Mini Player Card for social media recordings -->
+        <div class="mini-player-card" id="mini-player-card">
+            <img src="placeholder-silhouette-5-wide.png" class="mini-player-avatar" id="mini-player-avatar" alt="Avatar">
+            <div>
+                <div class="mini-player-name" id="mini-player-name">GUEST</div>
+                <div class="mini-player-elo" id="mini-player-elo">1300 ELO</div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .hud-container {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .hud-item {
+            text-align: center;
+            width: 100%;
+        }
+
+        .border-bottom {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 15px;
+        }
+
+        .stat-label {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.7rem;
+            color: #ddd;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            line-height: 1;
+            font-family: 'Russo One', sans-serif;
+            color: #fff;
+        }
+
+        /* Responsive Mobile Layout */
+        @media (max-width: 768px) and (orientation: portrait) {
+            #start-menu {
+                flex-direction: row;
+                max-width: 500px;
+                width: 95%;
+                top: 65%; /* Center of the grass */
+                transform: translate(-50%, -50%) scale(0.9);
+                gap: 10px;
+            }
+            .start-menu-btn {
+                padding: 12px 10px;
+                font-size: 0.8rem;
+            }
+            .display-panel {
+                top: auto;
+                bottom: calc(env(safe-area-inset-bottom, 0px) + 30px); /* Leave safe space */
+                right: 50%;
+                transform: translateX(50%);
+                width: 90%;
+                max-width: 400px;
+            }
+            .hud-container {
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                gap: 5px;
+                padding: 10px 5px;
+            }
+            .hud-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .border-bottom {
+                border-bottom: none;
+                border-right: 1px solid rgba(255, 255, 255, 0.2);
+                padding-bottom: 0;
+            }
+            .stat-value {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-height: 600px) and (orientation: landscape) {
+            .display-panel {
+                top: calc(env(safe-area-inset-top, 0px) + 10px);
+                right: calc(env(safe-area-inset-right, 0px) + 10px);
+            }
+            .hud-container {
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 15px;
+                border-radius: 12px;
+                transform: scale(0.85);
+                transform-origin: top right;
+            }
+            .hud-item {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            .border-bottom {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                border-right: none;
+                padding-bottom: 8px;
+                padding-right: 0;
+            }
+            .stat-value {
+                font-size: 1.3rem;
+            }
+            .stat-label {
+                font-size: 0.6rem;
+                margin-bottom: 0;
+            }
+            .top-bar {
+                top: calc(env(safe-area-inset-top, 0px) + 10px);
+                left: calc(env(safe-area-inset-left, 0px) + 10px);
+                transform: scale(0.85);
+                transform-origin: top left;
+            }
+            #start-menu {
+                flex-direction: row;
+                max-width: 600px;
+                width: 90%;
+                top: auto;
+                bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+                transform: translate(-50%, 0) scale(0.85);
+            }
+        }
+        
+        #online-players-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 100;
+            pointer-events: none;
+            align-items: flex-end;
+        }
+        
+        .online-player-badge {
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.4);
+            color: #00FFCC;
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 700;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            animation: slideIn 0.3s ease-out;
+            transition: opacity 0.5s;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    #victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .winner-content-box {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .w-title {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 6rem;
+            color: var(--sub-gold);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 0.1s forwards;
+            text-align: center;
+            line-height: 1.1;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        }
+
+        .w-elo {
+            font-family: 'Subsoccer', sans-serif;
+            color: var(--sega-blue);
+            font-size: 3.5rem;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 0.3s forwards;
+            text-shadow: 0 0 20px var(--sega-blue);
+            position: relative;
+            z-index: 20;
+        }
+
+        /* Player Card formatting for Victory */
+        .pro-card {
+            width: 250px;
+            height: 350px;
+            perspective: 1000px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: victorySpinIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.6s forwards;
+            cursor: pointer;
+        }
+
+        .pro-card-flipper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .pro-card.flipped .pro-card-flipper {
+            transform: rotateY(180deg);
+        }
+
+        .pro-card-front, .pro-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: translateZ(1px); /* Safari 3D fix */
+        }
+
+        .pro-card-front {
+            background: linear-gradient(rgba(0,0,0,0.3), #111), url('card-stadium.jpg') center/cover;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pro-card-back {
+            background: #111;
+            transform: rotateY(180deg);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .w-card-title {
+            font-family: 'Subsoccer', sans-serif;
+            color: var(--sub-gold);
+            font-size: 2rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .w-card-desc {
+            color: #ccc;
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 0;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .w-actions {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 20px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 1s forwards;
+        }
+
+        .w-actions button {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            font-family: 'Subsoccer', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        @keyframes victorySpinIn {
+            0% {
+                transform: translateY(100px) rotateY(-180deg) scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) rotateY(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes victorySlideUp {
+            0% {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        /* Mic indicator */
+        #camera-status {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .mic-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #444;
+        }
+
+        .mic-dot.active {
+            background: var(--sub-red);
+            box-shadow: 0 0 15px var(--sub-red);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Victory Screen Mobile Details */
+        @media (max-width: 1000px) {
+            .w-title { font-size: 2.2rem; margin-bottom: 5px; }
+            .w-elo { font-size: 1.8rem; margin-bottom: 10px; }
+            .pro-card { transform: scale(0.75) !important; margin-bottom: 0px; margin-top: -20px; }
+            .w-actions button { padding: 12px 25px; font-size: 1.1rem; }
+            .winner-content-box { gap: 0; justify-content: center; }
+        }
+
+        @media (orientation: portrait) {
+            .w-actions { flex-direction: column; width: 90%; max-width: 320px; gap: 10px; align-items: center; margin: 0 auto; margin-top: -15px; }
+            .w-actions button { padding: 15px 20px; font-size: 1.1rem; width: 100%; box-sizing: border-box; }
+            .w-elo { font-size: 1.5rem; margin-bottom: 0px; }
+            .pro-card { transform: scale(0.7) !important; margin-top: -40px; margin-bottom: -20px; }
+            .w-title { font-size: 2.2rem; margin-top: 0px; line-height: 1; }
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            .winner-content-box { transform: scale(0.6); transform-origin: center center; margin-top: 0; }
+            .w-title { margin-bottom: 0; }
+            .w-elo { margin-bottom: 0px; }
+            .pro-card { margin-bottom: 5px; margin-top: -15px; }
+            .w-actions { margin-top: -10px; gap: 10px; }
+            .w-actions button { padding: 8px 16px; font-size: 1.0rem; }
+        }
+
+    </style>
+    <div class="display-panel">
+        <div class="hud-container">
+            <div class="hud-item border-bottom">
+                <div class="stat-label">TIME</div>
+                <div class="stat-value" id="time-value">45</div>
+            </div>
+            <div class="hud-item border-bottom">
+                <div class="stat-label">SCORE</div>
+                <div class="stat-value" id="score-value">0</div>
+            </div>
+            <div id="opp-score-box" class="hud-item border-bottom" style="transition: background-color 0.3s;">
+                <div class="stat-label" style="color: #E30613;">OPPONENT</div>
+                <div class="stat-value" id="opp-score-value">0</div>
+            </div>
+            <div class="hud-item">
+                <div class="stat-label">SPEED</div>
+                <div class="stat-value" id="speed-value" style="color: #00FFCC; text-shadow: 0 0 10px rgba(0,255,204,0.5);">0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span></div>
+            </div>
+        </div>
+        <div id="online-players-list" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- The actual flick physics canvas -->
+    <canvas id="physics-canvas"></canvas>
+
+    <div id="start-menu">
+        <button id="btn-start-touch" class="start-btn start-menu-btn">PLAY AGAIN (TOUCH)</button>
+        <button id="btn-start-trackman" class="start-btn start-menu-btn">CONNECT TO SUBSOCCER</button>
+    </div>
+    
+    <div id="challenge-popup" style="display: none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 2px solid #00FFCC; padding: 25px; text-align: center; z-index: 300; border-radius: 12px; width: 85%; max-width: 320px; box-shadow: 0 0 25px rgba(0,255,204,0.3); flex-direction: column; align-items: center; gap: 10px; backdrop-filter: blur(10px);">
+        <i class="fa-solid fa-gamepad" style="font-size: 2.5rem; color: #00FFCC; text-shadow: 0 0 10px #00FFCC;"></i>
+        <h3 style="color: #fff; font-family: 'Open Sans', sans-serif; font-size: 1.1rem; font-weight: 800; letter-spacing: 2px; margin-top: 10px;">CHALLENGER WAITING</h3>
+        <p style="color: #aaa; font-family: 'Open Sans', sans-serif; font-size: 0.85rem;">Another player wants to play.</p>
+        <button id="btn-accept-challenge" class="start-btn" style="position: relative; left: 0; bottom: 0; transform: none; width: 100%; border-radius: 8px; font-size: 0.9rem; margin-top: 15px; background: linear-gradient(135deg, #00FFCC 0%, #00997A 100%); box-shadow: 0 4px 15px rgba(0,255,204,0.4); border: none; color: #000; font-family: 'Open Sans', sans-serif; font-weight: 800;">ACCEPT BATTLE</button>
+        <button id="btn-decline-challenge" style="background: transparent; border: none; color: #666; font-family: 'Open Sans', sans-serif; font-size: 0.8rem; margin-top: 5px; cursor: pointer; text-transform: uppercase;">DECLINE</button>
+    </div>
+    <div id="waiting-popup" style="display: none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 2px solid #E30613; padding: 25px; text-align: center; z-index: 300; border-radius: 12px; width: 85%; max-width: 320px; box-shadow: 0 0 25px rgba(227,6,19,0.3); flex-direction: column; align-items: center; gap: 10px; backdrop-filter: blur(10px);">
+        <i class="fa-solid fa-hourglass-half" style="font-size: 2.5rem; color: #E30613; text-shadow: 0 0 10px #E30613; animation: pulse 1.5s infinite;"></i>
+        <h3 style="color: #fff; font-family: 'Open Sans', sans-serif; font-size: 1.1rem; font-weight: 800; letter-spacing: 2px; margin-top: 10px;">WAITING FOR OPPONENT</h3>
+        <p style="color: #aaa; font-family: 'Open Sans', sans-serif; font-size: 0.85rem;">Waiting for them to accept...</p>
+        <button id="btn-practice-mode" class="start-btn" style="position: relative; left: 0; bottom: 0; transform: none; width: 100%; border-radius: 8px; font-size: 0.9rem; margin-top: 15px; background: linear-gradient(135deg, #FFD700 0%, #E6A800 100%); box-shadow: 0 4px 15px rgba(255,215,0,0.4); border: none; color: #000; font-family: 'Open Sans', sans-serif; font-weight: 800;">PLAY PRACTICE</button>
+        <button id="btn-cancel-waiting" style="background: transparent; border: none; color: #666; font-family: 'Open Sans', sans-serif; font-size: 0.8rem; margin-top: 5px; cursor: pointer; text-transform: uppercase;">CANCEL</button>
+    </div>
+
+    <div id="countdown-popup" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 400; text-align: center; flex-direction: column; align-items: center; gap: 10px; pointer-events: none;">
+        <h2 style="color: #fff; font-family: 'SubsoccerLogo', sans-serif; font-size: 4rem; margin: 0; letter-spacing: 4px;">GET READY</h2>
+        <div id="countdown-value" style="color: #fff; font-family: 'SubsoccerLogo', sans-serif; font-size: 10rem; line-height: 1;">3</div>
+    </div>
+    <!-- Victory Screen -->
+    <div id="victory-overlay">
+        <!-- Lasers Canvas (Renders behind UI) -->
+        <canvas id="lasers-canvas"
+            style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; display:none;"></canvas>
+
+        <div class="winner-content-box">
+            <div class="w-title" id="victory-player-name">TIME IS UP!</div>
+
+            <!-- We can use this to show final score or ELO gain in Single Player -->
+            <div id="victory-elo-gain" class="w-elo">+0 POINTS</div>
+
+            <!-- Gamified "Locked Card" Graphic -->
+            <div id="winner-card-container" class="pro-card" onclick="this.classList.toggle('flipped')">
+                <div class="pro-card-flipper">
+                    <div class="pro-card-front">
+                        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2; background: rgba(0,0,0,0.6);">
+                            <div style="font-size: 0.65rem; color: var(--sub-gold); font-weight: 800; letter-spacing: 1px;">PRO CARD // 2026</div>
+                        </div>
+                        <div style="width: 100%; height: 160px; background: #1a1a1a; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <img src="goalie.png" id="victory-card-avatar" style="width: 100%; height: 100%; object-fit: cover; object-position: top center;">
+                        </div>
+                        <div style="padding: 10px 15px; flex: 1; display: flex; flex-direction: column;">
+                            <div style="color: var(--sub-gold); font-size: 0.6rem; font-weight: 800; letter-spacing: 1px;"><i class="fa-solid fa-location-dot"></i> LOCAL ARENA</div>
+                            <div id="victory-card-name" style="font-family: 'Subsoccer', sans-serif; font-size: 2rem; color: #fff; line-height: 1; margin-top: 2px;">PLAYER</div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto;">
+                                <div id="victory-elo-count" style="background: var(--sub-gold); color: #000; padding: 2px 8px; font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; border-radius: 3px;">0 ELO</div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 0.5rem; color: #888; font-weight: bold;">WIN RATIO</div>
+                                    <div style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pro-card-back">
+                        <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px;">
+                            <h4 style="color:var(--sub-gold); font-family:'Russo One', sans-serif; margin:0;">PLAYER DOSSIER</h4>
+                        </div>
+                        <div style="color:#aaa; font-family:'Open Sans'; font-size:0.8rem;">
+                            Excellent run! Your arcade score has been recorded for the Single Player Challenge.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-actions">
+                <button id="btn-victory-new-game" onclick="closeVictoryAndReset();"
+                    style="background: linear-gradient(135deg, var(--sega-blue) 0%, #003d99 100%); color: #fff; box-shadow: 0 5px 20px rgba(0, 92, 230, 0.4); border: none;">
+                    NEW CHALLENGER
+                </button>
+                <button id="btn-victory-end-game" onclick="window.location.href='index.html';"
+                    style="background: transparent; border: 2px solid rgba(255,255,255,0.2); color: #fff;">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Game dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="sound-effects.js"></script>
+    <script src="vision-engine.js"></script>
+    <script src="flick-network.js"></script>
+    <script src="bench-game.js"></script>
+    <script>
+        // Populate Mini Player Card
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const lsData = localStorage.getItem('subsoccer-user');
+                if (lsData) {
+                    const user = JSON.parse(lsData);
+                    document.getElementById('mini-player-name').textContent = user.username ? user.username.toUpperCase() : 'PLAYER';
+                    document.getElementById('mini-player-elo').textContent = (user.elo || 1300) + ' ELO';
+                    
+                    if (user.avatar_url) {
+                        document.getElementById('mini-player-avatar').src = user.avatar_url;
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not load user data for player card', e);
+            }
+        });
+    </script>
+</body>
+
+</html>
