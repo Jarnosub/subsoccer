@@ -653,12 +653,12 @@ window.isPlaying = false;
         // Update and Draw Goalie Sprite
         // Goalie slides calmly side-to-side
         goalie.x += goalie.vx;
-        const maxGoaliX = goal.w / 2 - goalie.w / 2; 
-        if (goalie.x > maxGoaliX) {
-            goalie.x = maxGoaliX;
+        const clampGoaliX = Math.abs(goal.w / 2 - goalie.w / 2); 
+        if (goalie.x > clampGoaliX) {
+            goalie.x = clampGoaliX;
             goalie.vx *= -1; 
-        } else if (goalie.x < -maxGoaliX) {
-            goalie.x = -maxGoaliX;
+        } else if (goalie.x < -clampGoaliX) {
+            goalie.x = -clampGoaliX;
             goalie.vx *= -1;
         }
 
@@ -683,7 +683,7 @@ window.isPlaying = false;
         }
 
         const gop = project(goalie.x, goalie.y, goalie.z);
-        if (gop.scale > 0 && goalie.img.complete) {
+        if (gop.scale > 0 && goalie.img.complete && goalie.img.naturalWidth > 0) {
             const gow = goalie.w * gop.scale;
             const goh = goalie.h * gop.scale;
             
