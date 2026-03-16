@@ -714,8 +714,8 @@ window.isPlaying = false;
             if (!window.useTrackman) {
                 const gop = project(0, goalie.y, goalie.z);
                 if (gop.scale > 0 && goalie.idleImg && goalie.idleImg.complete && goalie.idleImg.naturalWidth > 0) {
-                    const gow = goalie.w * 1.08 * gop.scale; // Width representation (scaled up 20% for Subsoccer table)
-                    const goh = goalie.w * 1.08 * gop.scale * (goalie.idleImg.height / goalie.idleImg.width);
+                    const gow = goalie.w * 1.3 * gop.scale; // Width representation (scaled up another 20% for Subsoccer table)
+                    const goh = goalie.w * 1.3 * gop.scale * (goalie.idleImg.height / goalie.idleImg.width);
                     ctx.save();
                     // Offset Y slightly downwards to sit perfectly on the bench
                     ctx.translate(gop.x, gop.y + goh * 0.12);
