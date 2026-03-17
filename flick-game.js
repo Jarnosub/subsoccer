@@ -815,14 +815,14 @@ window.isPlaying = false;
                  predictedX += incomingBall.spin * timeToReach * 0.5;
             }
             
-            // Goalie attempts to move towards predictedX
-            let speed = 25; // Max dive speed
+            // Goalie attempts to move towards predictedX. Increased speed significantly for better responsiveness
+            let speed = 60; // Max dive speed
             let dist = predictedX - goalie.x;
             
             if (Math.abs(dist) > speed) {
                 goalie.x += Math.sign(dist) * speed;
             } else {
-                goalie.x += dist * 0.5; // Smooth approach
+                goalie.x += dist * 0.8; // Very aggressive approach
             }
             
             // Set dive direction based on where the ball is heading relative to goalie
@@ -1001,8 +1001,8 @@ window.isPlaying = false;
                     b.active = false;
                     const proj = project(goalie.x, goalie.y, goalie.z);
                     createParticles(proj.x, proj.y, proj.scale * 2);
-                    // Trigger the dramatic martial arts block as a punishment if the player shoots "poorly" directly to the center
-                    if (Math.abs(b.x) < 80) {
+                    // Trigger the dramatic martial arts block on a wider center area for easier demoing!
+                    if (Math.abs(b.x) < 180) {
                         goalie.powerMoveTimer = 70; // 70 frames of epicness
                         if (window.soundEffects && window.soundEffects.playGoalSound) window.soundEffects.playGoalSound(); // big sound
                         // Massive explosion for epic save
