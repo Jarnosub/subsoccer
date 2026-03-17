@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer - Kinetic Labyrinth</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Russo+One&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sub-red: #E30613;
+            --sub-black: #0A0A0A;
+            --sub-neon: #00FFCC;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--sub-black);
+            color: #fff;
+            font-family: 'Russo One', sans-serif;
+            overflow: hidden;
+            touch-action: none; /* Prevent scrolling */
+        }
+
+        #game-canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .score-display {
+            background: rgba(10, 10, 10, 0.85);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 1.5rem;
+            color: var(--sub-neon);
+        }
+
+        #message-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            text-align: center;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+            transition: opacity 0.3s;
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            text-align: center;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+            left: 0;
+        }
+
+        /* Virtual Joypad Area */
+        #joypad-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            pointer-events: auto;
+            z-index: 100;
+        }
+
+        .back-btn {
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Russo One', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="game-canvas"></canvas>
+
+    <div id="ui-layer">
+        <div class="top-bar">
+            <a href="index.html" class="back-btn">← LOBBY</a>
+            <div class="score-display">LEVEL <span id="level-val">1</span></div>
+        </div>
+        
+        <div id="message-overlay">
+            <div>KICK TO START</div>
+            <div style="font-size: 1rem; margin-top: 10px; font-family: 'Open Sans'; color: #00FFCC;">(Flick ball upwards)</div>
+        </div>
+
+        <div class="controls-hint">USE THUMBS TO TILT THE BOARD AFTER KICKING</div>
+    </div>
+
+    <!-- The area where user puts thumbs to tilt the board -->
+    <div id="joypad-area"></div>
+
+    <script src="labyrinth-game.js"></script>
+</body>
+</html>
