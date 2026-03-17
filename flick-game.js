@@ -804,7 +804,7 @@ window.isPlaying = false;
         // Find if there is an active ball approaching the goal
         let incomingBall = balls.find(b => b.active && b.vz > 0 && b.z < goalie.z);
         
-        if (incomingBall && !window.useTrackman) { // Only track virtual balls when not in Trackman AR mode (where physical real balls exist)
+        if (incomingBall) { // Track virtual balls in both local flick and Trackman AR mode
             // Predict where the ball will intersect the goalie's Z plane
             let timeToReach = (goalie.z - incomingBall.z) / incomingBall.vz;
             let predictedX = incomingBall.x + incomingBall.vx * timeToReach;
