@@ -1299,14 +1299,13 @@
                     }
                     if (cardDesc) cardDesc.innerHTML = "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!";
                 }
-
-                startLasers();
             } else {
                 // Costco Logic
                 if (endBtn) endBtn.style.display = 'inline-block';
-                
-                // Do NOT start lasers for Costco to keep it super clean!
             }
+
+            // Always start lasers, even for Costco
+            startLasers();
 
             // Soita yleisön hurraus voiton hetkellä
             if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
