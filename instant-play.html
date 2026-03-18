@@ -956,27 +956,64 @@
             // Costco Bilingual Rules Check
             if (urlParams.get('partner') === 'costco') {
                 const rh = document.querySelector('.rules-header');
-                if (rh) rh.innerHTML = 'OFFICIAL RULES <br><span style="font-size:1.2rem; color:#fff; display:block; margin-top:5px;">RÈGLES OFFICIELLES</span>';
                 
+                // Add toggle buttons
+                const toggleHTML = `<div style="display:flex; justify-content:center; gap:10px; margin-top:-15px; margin-bottom: 20px;">
+                    <button id="lang-en" style="background:#333; color:#fff; border:1px solid var(--sub-gold); padding:5px 15px; border-radius:5px; cursor:pointer;" onclick="setCostcoLang('en')">EN</button>
+                    <button id="lang-fr" style="background:#111; color:#888; border:1px solid #333; padding:5px 15px; border-radius:5px; cursor:pointer;" onclick="setCostcoLang('fr')">FR</button>
+                </div>`;
+                
+                if (rh) {
+                    rh.insertAdjacentHTML('afterend', toggleHTML);
+                }
+                
+                // Store elements
                 const ruleTitles = document.querySelectorAll('.rule-title');
                 const ruleDescs = document.querySelectorAll('.rule-desc');
-                
-                if (ruleTitles.length >= 3 && ruleDescs.length >= 3) {
-                    ruleTitles[0].innerHTML = 'START <span style="color:#aaa; font-size:0.8rem;">/ DÉMARRER</span>';
-                    ruleDescs[0].innerHTML = 'The winner of Rock/Paper/Scissors starts.<br><span style="color:#aaa; font-style:italic;">Le gagnant de Pierre/Papier/Ciseaux commence.</span>';
+                const playBtn = document.querySelector('button[onclick="enterFullscreenGame()"]');
+                const hostLink = document.querySelector('a[href="./?page=tournament&tab=tournament"]');
+
+                // Toggle logic attached to window for scope access
+                window.setCostcoLang = function(lang) {
+                    const btnEn = document.getElementById('lang-en');
+                    const btnFr = document.getElementById('lang-fr');
                     
-                    ruleTitles[1].innerHTML = 'KICK-OFF <span style="color:#aaa; font-size:0.8rem;">/ COUP D\'ENVOI</span>';
-                    ruleDescs[1].innerHTML = 'Kick-off must be taken inside your own goal area.<br><span style="color:#aaa; font-style:italic;">Le coup d\'envoi doit être tiré depuis votre propre zone de but.</span>';
-                    
-                    ruleTitles[2].innerHTML = 'WINNER <span style="color:#aaa; font-size:0.8rem;">/ GAGNANT</span>';
-                    ruleDescs[2].innerHTML = 'The first player to score ' + WIN_SCORE + ' goals wins.<br><span style="color:#aaa; font-style:italic;">Le premier joueur à marquer ' + WIN_SCORE + ' buts gagne.</span>';
-                }
-                
-                // Update Play button
-                const ruleBtns = document.querySelectorAll('button[onclick="enterFullscreenGame()"]');
-                if (ruleBtns.length > 0) {
-                    ruleBtns[0].innerHTML = 'I UNDERSTAND - PLAY <br><span style="font-size:0.7rem; letter-spacing:1px; margin-top:5px; display:inline-block;">JE COMPRENDS - JOUER</span>';
-                }
+                    if (lang === 'fr') {
+                        if(btnFr) {
+                            btnFr.style.background = '#333'; btnFr.style.color = '#fff'; btnFr.style.borderColor = 'var(--sub-gold)';
+                            btnEn.style.background = '#111'; btnEn.style.color = '#888'; btnEn.style.borderColor = '#333';
+                        }
+                        
+                        if (rh) rh.innerHTML = 'RÈGLES OFFICIELLES';
+                        if (ruleTitles.length >= 3) {
+                            ruleTitles[0].innerHTML = "DÉMARRER";
+                            ruleDescs[0].innerHTML = "Le gagnant de Pierre/Papier/Ciseaux commence.";
+                            ruleTitles[1].innerHTML = "COUP D'ENVOI";
+                            ruleDescs[1].innerHTML = "Le coup d'envoi doit être tiré depuis votre propre zone de but.";
+                            ruleTitles[2].innerHTML = "GAGNANT";
+                            ruleDescs[2].innerHTML = "Le premier joueur à marquer " + WIN_SCORE + " buts gagne.";
+                        }
+                        if (playBtn) playBtn.innerHTML = "JE COMPRENDS - JOUER";
+                        if (hostLink) hostLink.innerHTML = '<i class="fa-solid fa-qrcode" style="margin-right:4px;"></i> Héberger un tournoi';
+                    } else {
+                        if(btnEn) {
+                            btnEn.style.background = '#333'; btnEn.style.color = '#fff'; btnEn.style.borderColor = 'var(--sub-gold)';
+                            btnFr.style.background = '#111'; btnFr.style.color = '#888'; btnFr.style.borderColor = '#333';
+                        }
+                        
+                        if (rh) rh.innerHTML = 'OFFICIAL RULES';
+                        if (ruleTitles.length >= 3) {
+                            ruleTitles[0].innerHTML = 'START';
+                            ruleDescs[0].innerHTML = 'The winner of Rock/Paper/Scissors starts.';
+                            ruleTitles[1].innerHTML = 'KICK-OFF';
+                            ruleDescs[1].innerHTML = 'Kick-off must be taken inside your own goal area.';
+                            ruleTitles[2].innerHTML = 'WINNER';
+                            ruleDescs[2].innerHTML = 'The first player to score ' + WIN_SCORE + ' goals wins.';
+                        }
+                        if (playBtn) playBtn.innerHTML = 'I UNDERSTAND - PLAY';
+                        if (hostLink) hostLink.innerHTML = '<i class="fa-solid fa-qrcode" style="margin-right:4px;"></i> Host a tournament';
+                    }
+                };
             }
 
             currentGameId = gameId;
