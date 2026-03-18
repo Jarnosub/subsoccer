@@ -930,6 +930,26 @@
 
     <script type="module">
         import { BroadcastService } from './broadcast-service.js';
+        import { _supabase } from './config.js';
+
+        async function logTrackingEvent(eventType, matchScore = null) {
+            try {
+                if (!_supabase) return;
+                const urlParams = new URLSearchParams(window.location.search);
+                const partner = urlParams.get('partner') || 'social';
+                const gId = urlParams.get('sn') || urlParams.get('game_id') || 'PUBLIC-APP';
+
+                await _supabase.from('public_tracking').insert({
+                    event_type: eventType,
+                    game_code: gId.toUpperCase(),
+                    match_score: matchScore,
+                    source_partner: partner,
+                    user_agent: navigator.userAgent
+                });
+            } catch (err) {
+                console.warn("Tracking error:", err);
+            }
+        }
 
         // Game state
         let scoreP1 = 0;
@@ -943,6 +963,7 @@
 
         // Initialize
         window.addEventListener('load', () => {
+            logTrackingEvent('app_opened');
             // Check for Game ID or Serial Number (sn) in URL
             const urlParams = new URLSearchParams(window.location.search);
             // Use URL param 'sn' (serial number) primarily, or fallback to 'game_id', or default to 'QUICK-PLAY'
@@ -1224,6 +1245,7 @@
 
         // Show winner
         function showWinner(player) {
+            logTrackingEvent('game_finished', scoreP1 + '-' + scoreP2);
             let winText = `PLAYER ${player} WINS!`;
             if (window.costcoCurrentLang === 'fr') {
                 winText = `JOUEUR ${player} GAGNE !`;
