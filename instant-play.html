@@ -959,7 +959,7 @@
                 
                 // Add toggle buttons
                 const toggleHTML = `<div style="display:flex; justify-content:center; gap:10px; margin-top:-15px; margin-bottom: 20px;">
-                    <button id="lang-en" style="background:#333; color:#fff; border:1px solid var(--sub-gold); padding:5px 15px; border-radius:5px; cursor:pointer;" onclick="setCostcoLang('en')">EN</button>
+                    <button id="lang-en" style="background:#E30613; color:#fff; border:1px solid #E30613; padding:5px 15px; border-radius:5px; cursor:pointer; box-shadow: 0 0 10px rgba(227,6,19,0.5);" onclick="setCostcoLang('en')">EN</button>
                     <button id="lang-fr" style="background:#111; color:#888; border:1px solid #333; padding:5px 15px; border-radius:5px; cursor:pointer;" onclick="setCostcoLang('fr')">FR</button>
                 </div>`;
                 
@@ -990,8 +990,8 @@
                     
                     if (lang === 'fr') {
                         if(btnFr) {
-                            btnFr.style.background = '#333'; btnFr.style.color = '#fff'; btnFr.style.borderColor = 'var(--sub-gold)';
-                            btnEn.style.background = '#111'; btnEn.style.color = '#888'; btnEn.style.borderColor = '#333';
+                            btnFr.style.background = '#E30613'; btnFr.style.color = '#fff'; btnFr.style.borderColor = '#E30613'; btnFr.style.boxShadow = '0 0 10px rgba(227,6,19,0.5)';
+                            btnEn.style.background = '#111'; btnEn.style.color = '#888'; btnEn.style.borderColor = '#333'; btnEn.style.boxShadow = 'none';
                         }
                         
                         if (rh) rh.innerHTML = 'RÈGLES OFFICIELLES';
@@ -1006,8 +1006,8 @@
                         if (playBtn) playBtn.innerHTML = "DÉMARRER LE COMPTEUR";
                     } else {
                         if(btnEn) {
-                            btnEn.style.background = '#333'; btnEn.style.color = '#fff'; btnEn.style.borderColor = 'var(--sub-gold)';
-                            btnFr.style.background = '#111'; btnFr.style.color = '#888'; btnFr.style.borderColor = '#333';
+                            btnEn.style.background = '#E30613'; btnEn.style.color = '#fff'; btnEn.style.borderColor = '#E30613'; btnEn.style.boxShadow = '0 0 10px rgba(227,6,19,0.5)';
+                            btnFr.style.background = '#111'; btnFr.style.color = '#888'; btnFr.style.borderColor = '#333'; btnFr.style.boxShadow = 'none';
                         }
                         
                         if (rh) rh.innerHTML = 'OFFICIAL RULES';
