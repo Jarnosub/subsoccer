@@ -983,6 +983,15 @@
                     hostLink.style.display = 'none'; // Hide tournament link
                 }
 
+                // Costco specific UX cleanup for victory screen
+                const wCardContainer = document.getElementById('winner-card-container');
+                const wEloGain = document.getElementById('victory-elo-gain');
+                const baseCvBtn = document.getElementById('claim-victory-btn');
+
+                if (wCardContainer) wCardContainer.style.display = 'none';
+                if (wEloGain) wEloGain.style.display = 'none';
+                if (baseCvBtn) baseCvBtn.style.display = 'none';
+
                 // Toggle logic attached to window for scope access
                 window.costcoCurrentLang = 'en';
 
