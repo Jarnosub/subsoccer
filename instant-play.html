@@ -930,6 +930,26 @@
 
     <script type="module">
         import { BroadcastService } from './broadcast-service.js';
+        import { _supabase } from './config.js';
+
+        async function logTrackingEvent(eventType, matchScore = null) {
+            try {
+                if (!_supabase) return;
+                const urlParams = new URLSearchParams(window.location.search);
+                const partner = urlParams.get('partner') || 'social';
+                const gId = urlParams.get('sn') || urlParams.get('game_id') || 'PUBLIC-APP';
+
+                await _supabase.from('public_tracking').insert({
+                    event_type: eventType,
+                    game_code: gId.toUpperCase(),
+                    match_score: matchScore,
+                    source_partner: partner,
+                    user_agent: navigator.userAgent
+                });
+            } catch (err) {
+                console.warn("Tracking error:", err);
+            }
+        }
 
         // Game state
         let scoreP1 = 0;
@@ -943,6 +963,7 @@
 
         // Initialize
         window.addEventListener('load', () => {
+            logTrackingEvent('app_opened');
             // Check for Game ID or Serial Number (sn) in URL
             const urlParams = new URLSearchParams(window.location.search);
             // Use URL param 'sn' (serial number) primarily, or fallback to 'game_id', or default to 'QUICK-PLAY'
@@ -953,9 +974,142 @@
             const urlWinScore = urlParams.get('win_score');
             if (urlWinScore) WIN_SCORE = parseInt(urlWinScore);
 
+            // Costco Bilingual Rules Check
+            if (urlParams.get('partner') === 'costco') {
+                const rh = document.querySelector('.rules-header');
+                
+                // Add toggle buttons
+                const toggleHTML = `<div style="display:flex; justify-content:center; gap:10px; margin-top:-15px; margin-bottom: 20px;">
+                    <button id="lang-en" style="background:#E30613; color:#fff; border:1px solid #E30613; padding:5px 15px; border-radius:5px; cursor:pointer; box-shadow: 0 0 10px rgba(227,6,19,0.5);" onclick="setCostcoLang('en')">EN</button>
+                    <button id="lang-fr" style="background:#111; color:#888; border:1px solid #333; padding:5px 15px; border-radius:5px; cursor:pointer;" onclick="setCostcoLang('fr')">FR</button>
+                </div>`;
+                
+                if (rh) {
+                    rh.insertAdjacentHTML('afterend', toggleHTML);
+                }
+                
+                // Store elements
+                const ruleTitles = document.querySelectorAll('.rule-title');
+                const ruleDescs = document.querySelectorAll('.rule-desc');
+                const playBtn = document.querySelector('button[onclick="enterFullscreenGame()"]');
+                const hostLink = document.querySelector('a[href="./?page=tournament&tab=tournament"]');
+
+                // Initialize UI overrides for Costco
+                if (playBtn) {
+                    playBtn.style.background = '#E30613'; // Make it solid red
+                    playBtn.style.color = '#FFFFFF';
+                    playBtn.style.boxShadow = '0 0 20px rgba(227, 6, 19, 0.8)'; // Stronger glow
+                }
+                if (hostLink) {
+                    hostLink.style.display = 'none'; // Hide tournament link
+                }
+
+                // Costco specific UX cleanup for victory screen
+                const wCardContainer = document.getElementById('winner-card-container');
+                const wEloGain = document.getElementById('victory-elo-gain');
+                const baseCvBtn = document.getElementById('claim-victory-btn');
+
+                if (wCardContainer) wCardContainer.style.display = 'none';
+                if (wEloGain) wEloGain.style.display = 'none';
+                if (baseCvBtn) baseCvBtn.style.display = 'none';
+
+                // Toggle logic attached to window for scope access
+                window.costcoCurrentLang = 'en';
+
+                window.setCostcoLang = function(lang) {
+                    window.costcoCurrentLang = lang;
+                    const btnEn = document.getElementById('lang-en');
+                    const btnFr = document.getElementById('lang-fr');
+                    const playerLabels = document.querySelectorAll('.player-label');
+                    const wTitle = document.getElementById('winner-card-title');
+                    const wDesc = document.getElementById('winner-card-desc');
+                    const playAgainBtn = document.querySelector('button[onclick="playAgain()"]');
+                    const cvBtn = document.getElementById('claim-victory-btn');
+                    const endBtn = document.getElementById('end-game-btn');
+                    const wText = document.getElementById('winner-text');
+                    
+                    if (lang === 'fr') {
+                        if(btnFr) {
+                            btnFr.style.background = '#E30613'; btnFr.style.color = '#fff'; btnFr.style.borderColor = '#E30613'; btnFr.style.boxShadow = '0 0 10px rgba(227,6,19,0.5)';
+                            btnEn.style.background = '#111'; btnEn.style.color = '#888'; btnEn.style.borderColor = '#333'; btnEn.style.boxShadow = 'none';
+                        }
+                        
+                        // Rules
+                        if (rh) rh.innerHTML = 'RÈGLES OFFICIELLES';
+                        if (ruleTitles.length >= 3) {
+                            ruleTitles[0].innerHTML = "DÉMARRER";
+                            ruleDescs[0].innerHTML = "Le gagnant de Pierre/Papier/Ciseaux commence.";
+                            ruleTitles[1].innerHTML = "COUP D'ENVOI";
+                            ruleDescs[1].innerHTML = "Le coup d'envoi doit être tiré depuis votre propre zone de but.";
+                            ruleTitles[2].innerHTML = "GAGNANT";
+                            ruleDescs[2].innerHTML = "Le premier joueur à marquer " + WIN_SCORE + " buts gagne.";
+                        }
+                        if (playBtn) playBtn.innerHTML = "DÉMARRER LE COMPTEUR";
+                        
+                        // Game view
+                        if (playerLabels.length >= 2) {
+                            playerLabels[0].innerHTML = "JOUEUR 1";
+                            playerLabels[1].innerHTML = "JOUEUR 2";
+                        }
+                        
+                        // Winner view static text
+                        if (wTitle) wTitle.innerHTML = "CARTE PRO DÉVERROUILLÉE";
+                        if (wDesc) wDesc.innerHTML = "Vous jouez actuellement en tant qu'invité. Réclamez votre classement officiel Subsoccer ELO avant de quitter la table.";
+                        if (playAgainBtn) playAgainBtn.innerHTML = '<i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NOUVEAU MATCH INVITÉS';
+                        if (endBtn) endBtn.innerHTML = "QUITTER LE MATCH";
+                        
+                        // Re-translate winner text if overlay is visible
+                        if (wText && wText.innerHTML.includes('WINS')) {
+                            wText.innerHTML = wText.innerHTML.replace('PLAYER 1 WINS!', 'JOUEUR 1 GAGNE !').replace('PLAYER 2 WINS!', 'JOUEUR 2 GAGNE !');
+                        }
+                    } else {
+                        if(btnEn) {
+                            btnEn.style.background = '#E30613'; btnEn.style.color = '#fff'; btnEn.style.borderColor = '#E30613'; btnEn.style.boxShadow = '0 0 10px rgba(227,6,19,0.5)';
+                            btnFr.style.background = '#111'; btnFr.style.color = '#888'; btnFr.style.borderColor = '#333'; btnFr.style.boxShadow = 'none';
+                        }
+                        
+                        // Rules
+                        if (rh) rh.innerHTML = 'OFFICIAL RULES';
+                        if (ruleTitles.length >= 3) {
+                            ruleTitles[0].innerHTML = 'START';
+                            ruleDescs[0].innerHTML = 'The winner of Rock/Paper/Scissors starts.';
+                            ruleTitles[1].innerHTML = 'KICK-OFF';
+                            ruleDescs[1].innerHTML = 'Kick-off must be taken inside your own goal area.';
+                            ruleTitles[2].innerHTML = 'WINNER';
+                            ruleDescs[2].innerHTML = 'The first player to score ' + WIN_SCORE + ' goals wins.';
+                        }
+                        if (playBtn) playBtn.innerHTML = 'START COUNTER';
+                        
+                        // Game view
+                        if (playerLabels.length >= 2) {
+                            playerLabels[0].innerHTML = "Player 1";
+                            playerLabels[1].innerHTML = "Player 2";
+                        }
+                        
+                        // Winner view static text
+                        if (wTitle) wTitle.innerHTML = "PRO CARD UNLOCKED";
+                        if (wDesc) wDesc.innerHTML = "You are currently playing as a Guest. Claim your official Subsoccer ELO ranking before you leave the table.";
+                        if (playAgainBtn) playAgainBtn.innerHTML = '<i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NEW GAME GUESTS';
+                        if (endBtn) endBtn.innerHTML = "EXIT MATCH";
+                        
+                        // Re-translate winner text if overlay is visible
+                        if (wText && wText.innerHTML.includes('GAGNE')) {
+                            wText.innerHTML = wText.innerHTML.replace('JOUEUR 1 GAGNE !', 'PLAYER 1 WINS!').replace('JOUEUR 2 GAGNE !', 'PLAYER 2 WINS!');
+                        }
+                    }
+                };
+            
+                // Init in English by default
+                window.setCostcoLang('en');
+            }
+
             currentGameId = gameId;
             document.getElementById('table-id-value').textContent = gameId;
-            document.getElementById('table-id-display').style.display = 'block';
+            
+            // Only show table ID on UI if it's an actual specific table/QR, not generic quick-play
+            if (gameId && gameId !== 'QUICK-PLAY') {
+                document.getElementById('table-id-display').style.display = 'block';
+            }
 
             // Start broadcasting ONLY if we have a specific serial number/game ID
             if (gameId !== 'QUICK-PLAY') {
@@ -987,7 +1141,7 @@
 
             // Check if we should skip fullscreen
             const urlParams = new URLSearchParams(window.location.search);
-            const skipFullscreen = urlParams.get('nofullscreen') === 'true';
+            const skipFullscreen = urlParams.get('nofullscreen') === 'true' || urlParams.get('partner') === 'costco';
 
             // Try to request fullscreen
             if (!skipFullscreen) {
@@ -1091,7 +1245,12 @@
 
         // Show winner
         function showWinner(player) {
-            document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
+            logTrackingEvent('game_finished', scoreP1 + '-' + scoreP2);
+            let winText = `PLAYER ${player} WINS!`;
+            if (window.costcoCurrentLang === 'fr') {
+                winText = `JOUEUR ${player} GAGNE !`;
+            }
+            document.getElementById('winner-text').textContent = winText;
             document.getElementById('winner-overlay').classList.add('show');
 
             // Generate a fake, motivating ELO gain for the session to hook the player
@@ -1106,55 +1265,74 @@
             const urlParams = new URLSearchParams(window.location.search);
             const isCasual = urlParams.get('mode') === 'casual';
             const userType = urlParams.get('user_type') || 'guest';
+            const isCostco = urlParams.get('partner') === 'costco';
 
             const claimBtn = document.getElementById('claim-victory-btn');
             const endBtn = document.getElementById('end-game-btn');
 
-            // Dynamic Player Card in Overlay
-            const cardContainer = document.getElementById('winner-card-container');
-            const cardIcon = document.getElementById('winner-card-icon');
-            const cardTitle = document.getElementById('winner-card-title');
-            const cardDesc = document.getElementById('winner-card-desc');
-            const cardGlint = document.getElementById('winner-card-glint');
+            if (!isCostco) {
+                // Normal Instant Play Logic
+                if (claimBtn) claimBtn.style.display = 'block';
 
-            if (claimBtn) claimBtn.style.display = 'block';
+                const cardContainer = document.getElementById('winner-card-container');
+                const cardIcon = document.getElementById('winner-card-icon');
+                const cardTitle = document.getElementById('winner-card-title');
+                const cardDesc = document.getElementById('winner-card-desc');
+                const cardGlint = document.getElementById('winner-card-glint');
 
-            if (isCasual && userType === 'registered') {
-                // Registered player from app - Show Pro Card
-                if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT";
-                if (endBtn) endBtn.style.display = 'block';
+                if (isCasual && userType === 'registered') {
+                    // Registered player from app - Show Pro Card
+                    if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT";
+                    if (endBtn) endBtn.style.display = 'block';
 
-                cardContainer.style.background = "linear-gradient(135deg, #1a1500, #332600)";
-                cardContainer.style.border = "2px solid var(--sub-gold)";
-                cardContainer.style.transform = "scale(1.05)";
-                cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)";
-                cardIcon.className = "fa-solid fa-trophy";
-                cardIcon.style.color = "var(--sub-gold)";
-                cardTitle.textContent = "PRO CARD UPGRADE";
-                cardTitle.style.color = "#fff";
-                cardDesc.textContent = "Great win! Save this result to boost your global rank and update your digital Pro Card.";
+                    if (cardContainer) {
+                        cardContainer.style.background = "linear-gradient(135deg, #1a1500, #332600)";
+                        cardContainer.style.border = "2px solid var(--sub-gold)";
+                        cardContainer.style.transform = "scale(1.05)";
+                    }
+                    if (cardGlint) cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)";
+                    if (cardIcon) {
+                        cardIcon.className = "fa-solid fa-trophy";
+                        cardIcon.style.color = "var(--sub-gold)";
+                    }
+                    if (cardTitle) {
+                        cardTitle.textContent = "PRO CARD UPGRADE";
+                        cardTitle.style.color = "#fff";
+                    }
+                    if (cardDesc) cardDesc.textContent = "Great win! Save this result to boost your global rank and update your digital Pro Card.";
+                } else {
+                    // Guest (QR Code or Guest in app) - Show Rookie Card
+                    if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
+                    if (endBtn) endBtn.style.display = 'none';
+
+                    if (cardContainer) {
+                        cardContainer.style.background = "linear-gradient(135deg, #111, #222)";
+                        cardContainer.style.border = "1px dashed #666";
+                        cardContainer.style.transform = "scale(1)";
+                    }
+                    if (cardGlint) cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)";
+                    if (cardIcon) {
+                        cardIcon.className = "fa-solid fa-lock";
+                        cardIcon.style.color = "#666";
+                    }
+                    if (cardTitle) {
+                        cardTitle.textContent = "ROOKIE CARD";
+                        cardTitle.style.color = "#888";
+                    }
+                    if (cardDesc) cardDesc.innerHTML = "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!";
+                }
             } else {
-                // Guest (QR Code or Guest in app) - Show Rookie Card
-                if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
-                if (endBtn) endBtn.style.display = 'none';
-
-                cardContainer.style.background = "linear-gradient(135deg, #111, #222)";
-                cardContainer.style.border = "1px dashed #666";
-                cardContainer.style.transform = "scale(1)";
-                cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)";
-                cardIcon.className = "fa-solid fa-lock";
-                cardIcon.style.color = "#666";
-                cardTitle.textContent = "ROOKIE CARD";
-                cardTitle.style.color = "#888";
-                cardDesc.innerHTML = "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!";
+                // Costco Logic
+                if (endBtn) endBtn.style.display = 'inline-block';
             }
+
+            // Always start lasers, even for Costco
+            startLasers();
 
             // Soita yleisön hurraus voiton hetkellä
             if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
                 window.soundEffects.playCrowdCheer();
             }
-
-            startLasers();
         }
 
         // Play again
