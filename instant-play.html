@@ -1029,7 +1029,11 @@
 
             currentGameId = gameId;
             document.getElementById('table-id-value').textContent = gameId;
-            document.getElementById('table-id-display').style.display = 'block';
+            
+            // Only show table ID on UI if it's an actual specific table/QR, not generic quick-play
+            if (gameId && gameId !== 'QUICK-PLAY') {
+                document.getElementById('table-id-display').style.display = 'block';
+            }
 
             // Start broadcasting ONLY if we have a specific serial number/game ID
             if (gameId !== 'QUICK-PLAY') {
