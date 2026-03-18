@@ -984,9 +984,19 @@
                 }
 
                 // Toggle logic attached to window for scope access
+                window.costcoCurrentLang = 'en';
+
                 window.setCostcoLang = function(lang) {
+                    window.costcoCurrentLang = lang;
                     const btnEn = document.getElementById('lang-en');
                     const btnFr = document.getElementById('lang-fr');
+                    const playerLabels = document.querySelectorAll('.player-label');
+                    const wTitle = document.getElementById('winner-card-title');
+                    const wDesc = document.getElementById('winner-card-desc');
+                    const playAgainBtn = document.querySelector('button[onclick="playAgain()"]');
+                    const cvBtn = document.getElementById('claim-victory-btn');
+                    const endBtn = document.getElementById('end-game-btn');
+                    const wText = document.getElementById('winner-text');
                     
                     if (lang === 'fr') {
                         if(btnFr) {
@@ -994,6 +1004,7 @@
                             btnEn.style.background = '#111'; btnEn.style.color = '#888'; btnEn.style.borderColor = '#333'; btnEn.style.boxShadow = 'none';
                         }
                         
+                        // Rules
                         if (rh) rh.innerHTML = 'RÈGLES OFFICIELLES';
                         if (ruleTitles.length >= 3) {
                             ruleTitles[0].innerHTML = "DÉMARRER";
@@ -1004,12 +1015,31 @@
                             ruleDescs[2].innerHTML = "Le premier joueur à marquer " + WIN_SCORE + " buts gagne.";
                         }
                         if (playBtn) playBtn.innerHTML = "DÉMARRER LE COMPTEUR";
+                        
+                        // Game view
+                        if (playerLabels.length >= 2) {
+                            playerLabels[0].innerHTML = "JOUEUR 1";
+                            playerLabels[1].innerHTML = "JOUEUR 2";
+                        }
+                        
+                        // Winner view static text
+                        if (wTitle) wTitle.innerHTML = "CARTE PRO DÉVERROUILLÉE";
+                        if (wDesc) wDesc.innerHTML = "Vous jouez actuellement en tant qu'invité. Réclamez votre classement officiel Subsoccer ELO avant de quitter la table.";
+                        if (playAgainBtn) playAgainBtn.innerHTML = '<i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NOUVEAU MATCH INVITÉS';
+                        if (cvBtn) cvBtn.innerHTML = '<i class="fa-solid fa-id-card" style="margin-right:10px;"></i> RÉCLAMER MA CARTE PRO';
+                        if (endBtn) endBtn.innerHTML = "QUITTER LE MATCH";
+                        
+                        // Re-translate winner text if overlay is visible
+                        if (wText && wText.innerHTML.includes('WINS')) {
+                            wText.innerHTML = wText.innerHTML.replace('PLAYER 1 WINS!', 'JOUEUR 1 GAGNE !').replace('PLAYER 2 WINS!', 'JOUEUR 2 GAGNE !');
+                        }
                     } else {
                         if(btnEn) {
                             btnEn.style.background = '#E30613'; btnEn.style.color = '#fff'; btnEn.style.borderColor = '#E30613'; btnEn.style.boxShadow = '0 0 10px rgba(227,6,19,0.5)';
                             btnFr.style.background = '#111'; btnFr.style.color = '#888'; btnFr.style.borderColor = '#333'; btnFr.style.boxShadow = 'none';
                         }
                         
+                        // Rules
                         if (rh) rh.innerHTML = 'OFFICIAL RULES';
                         if (ruleTitles.length >= 3) {
                             ruleTitles[0].innerHTML = 'START';
@@ -1020,6 +1050,24 @@
                             ruleDescs[2].innerHTML = 'The first player to score ' + WIN_SCORE + ' goals wins.';
                         }
                         if (playBtn) playBtn.innerHTML = 'START COUNTER';
+                        
+                        // Game view
+                        if (playerLabels.length >= 2) {
+                            playerLabels[0].innerHTML = "Player 1";
+                            playerLabels[1].innerHTML = "Player 2";
+                        }
+                        
+                        // Winner view static text
+                        if (wTitle) wTitle.innerHTML = "PRO CARD UNLOCKED";
+                        if (wDesc) wDesc.innerHTML = "You are currently playing as a Guest. Claim your official Subsoccer ELO ranking before you leave the table.";
+                        if (playAgainBtn) playAgainBtn.innerHTML = '<i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NEW GAME GUESTS';
+                        if (cvBtn) cvBtn.innerHTML = '<i class="fa-solid fa-id-card" style="margin-right:10px;"></i> CLAIM MY PRO CARD';
+                        if (endBtn) endBtn.innerHTML = "EXIT MATCH";
+                        
+                        // Re-translate winner text if overlay is visible
+                        if (wText && wText.innerHTML.includes('GAGNE')) {
+                            wText.innerHTML = wText.innerHTML.replace('JOUEUR 1 GAGNE !', 'PLAYER 1 WINS!').replace('JOUEUR 2 GAGNE !', 'PLAYER 2 WINS!');
+                        }
                     }
                 };
             
@@ -1169,7 +1217,11 @@
 
         // Show winner
         function showWinner(player) {
-            document.getElementById('winner-text').textContent = `PLAYER ${player} WINS!`;
+            let winText = `PLAYER ${player} WINS!`;
+            if (window.costcoCurrentLang === 'fr') {
+                winText = `JOUEUR ${player} GAGNE !`;
+            }
+            document.getElementById('winner-text').textContent = winText;
             document.getElementById('winner-overlay').classList.add('show');
 
             // Generate a fake, motivating ELO gain for the session to hook the player
