@@ -1258,55 +1258,76 @@
             const urlParams = new URLSearchParams(window.location.search);
             const isCasual = urlParams.get('mode') === 'casual';
             const userType = urlParams.get('user_type') || 'guest';
+            const isCostco = urlParams.get('partner') === 'costco';
 
             const claimBtn = document.getElementById('claim-victory-btn');
             const endBtn = document.getElementById('end-game-btn');
 
-            // Dynamic Player Card in Overlay
-            const cardContainer = document.getElementById('winner-card-container');
-            const cardIcon = document.getElementById('winner-card-icon');
-            const cardTitle = document.getElementById('winner-card-title');
-            const cardDesc = document.getElementById('winner-card-desc');
-            const cardGlint = document.getElementById('winner-card-glint');
+            if (!isCostco) {
+                // Normal Instant Play Logic
+                if (claimBtn) claimBtn.style.display = 'block';
 
-            if (claimBtn) claimBtn.style.display = 'block';
+                const cardContainer = document.getElementById('winner-card-container');
+                const cardIcon = document.getElementById('winner-card-icon');
+                const cardTitle = document.getElementById('winner-card-title');
+                const cardDesc = document.getElementById('winner-card-desc');
+                const cardGlint = document.getElementById('winner-card-glint');
 
-            if (isCasual && userType === 'registered') {
-                // Registered player from app - Show Pro Card
-                if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT";
-                if (endBtn) endBtn.style.display = 'block';
+                if (isCasual && userType === 'registered') {
+                    // Registered player from app - Show Pro Card
+                    if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-floppy-disk' style='margin-right:10px;'></i> SAVE RESULT";
+                    if (endBtn) endBtn.style.display = 'block';
 
-                cardContainer.style.background = "linear-gradient(135deg, #1a1500, #332600)";
-                cardContainer.style.border = "2px solid var(--sub-gold)";
-                cardContainer.style.transform = "scale(1.05)";
-                cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)";
-                cardIcon.className = "fa-solid fa-trophy";
-                cardIcon.style.color = "var(--sub-gold)";
-                cardTitle.textContent = "PRO CARD UPGRADE";
-                cardTitle.style.color = "#fff";
-                cardDesc.textContent = "Great win! Save this result to boost your global rank and update your digital Pro Card.";
+                    if (cardContainer) {
+                        cardContainer.style.background = "linear-gradient(135deg, #1a1500, #332600)";
+                        cardContainer.style.border = "2px solid var(--sub-gold)";
+                        cardContainer.style.transform = "scale(1.05)";
+                    }
+                    if (cardGlint) cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)";
+                    if (cardIcon) {
+                        cardIcon.className = "fa-solid fa-trophy";
+                        cardIcon.style.color = "var(--sub-gold)";
+                    }
+                    if (cardTitle) {
+                        cardTitle.textContent = "PRO CARD UPGRADE";
+                        cardTitle.style.color = "#fff";
+                    }
+                    if (cardDesc) cardDesc.textContent = "Great win! Save this result to boost your global rank and update your digital Pro Card.";
+                } else {
+                    // Guest (QR Code or Guest in app) - Show Rookie Card
+                    if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
+                    if (endBtn) endBtn.style.display = 'none';
+
+                    if (cardContainer) {
+                        cardContainer.style.background = "linear-gradient(135deg, #111, #222)";
+                        cardContainer.style.border = "1px dashed #666";
+                        cardContainer.style.transform = "scale(1)";
+                    }
+                    if (cardGlint) cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)";
+                    if (cardIcon) {
+                        cardIcon.className = "fa-solid fa-lock";
+                        cardIcon.style.color = "#666";
+                    }
+                    if (cardTitle) {
+                        cardTitle.textContent = "ROOKIE CARD";
+                        cardTitle.style.color = "#888";
+                    }
+                    if (cardDesc) cardDesc.innerHTML = "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!";
+                }
+
+                startLasers();
             } else {
-                // Guest (QR Code or Guest in app) - Show Rookie Card
-                if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
-                if (endBtn) endBtn.style.display = 'none';
-
-                cardContainer.style.background = "linear-gradient(135deg, #111, #222)";
-                cardContainer.style.border = "1px dashed #666";
-                cardContainer.style.transform = "scale(1)";
-                cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)";
-                cardIcon.className = "fa-solid fa-lock";
-                cardIcon.style.color = "#666";
-                cardTitle.textContent = "ROOKIE CARD";
-                cardTitle.style.color = "#888";
-                cardDesc.innerHTML = "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!";
+                // Costco Logic
+                if (claimBtn) claimBtn.style.display = 'inline-block';
+                if (endBtn) endBtn.style.display = 'inline-block';
+                
+                // Do NOT start lasers for Costco to keep it super clean!
             }
 
             // Soita yleisön hurraus voiton hetkellä
             if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
                 window.soundEffects.playCrowdCheer();
             }
-
-            startLasers();
         }
 
         // Play again
