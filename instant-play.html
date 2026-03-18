@@ -973,6 +973,16 @@
                 const playBtn = document.querySelector('button[onclick="enterFullscreenGame()"]');
                 const hostLink = document.querySelector('a[href="./?page=tournament&tab=tournament"]');
 
+                // Initialize UI overrides for Costco
+                if (playBtn) {
+                    playBtn.style.background = '#E30613'; // Make it solid red
+                    playBtn.style.color = '#FFFFFF';
+                    playBtn.style.boxShadow = '0 0 20px rgba(227, 6, 19, 0.8)'; // Stronger glow
+                }
+                if (hostLink) {
+                    hostLink.style.display = 'none'; // Hide tournament link
+                }
+
                 // Toggle logic attached to window for scope access
                 window.setCostcoLang = function(lang) {
                     const btnEn = document.getElementById('lang-en');
@@ -993,8 +1003,7 @@
                             ruleTitles[2].innerHTML = "GAGNANT";
                             ruleDescs[2].innerHTML = "Le premier joueur à marquer " + WIN_SCORE + " buts gagne.";
                         }
-                        if (playBtn) playBtn.innerHTML = "JE COMPRENDS - JOUER";
-                        if (hostLink) hostLink.innerHTML = '<i class="fa-solid fa-qrcode" style="margin-right:4px;"></i> Héberger un tournoi';
+                        if (playBtn) playBtn.innerHTML = "DÉMARRER LE COMPTEUR";
                     } else {
                         if(btnEn) {
                             btnEn.style.background = '#333'; btnEn.style.color = '#fff'; btnEn.style.borderColor = 'var(--sub-gold)';
@@ -1010,10 +1019,12 @@
                             ruleTitles[2].innerHTML = 'WINNER';
                             ruleDescs[2].innerHTML = 'The first player to score ' + WIN_SCORE + ' goals wins.';
                         }
-                        if (playBtn) playBtn.innerHTML = 'I UNDERSTAND - PLAY';
-                        if (hostLink) hostLink.innerHTML = '<i class="fa-solid fa-qrcode" style="margin-right:4px;"></i> Host a tournament';
+                        if (playBtn) playBtn.innerHTML = 'START COUNTER';
                     }
                 };
+            
+                // Init in English by default
+                window.setCostcoLang('en');
             }
 
             currentGameId = gameId;
