@@ -560,7 +560,7 @@ header {
     transform-style: preserve-3d;
     -webkit-transform-style: preserve-3d;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
-    border-radius: var(--sub-radius);
+    border-radius: 2px;
     background: transparent;
 }
 
@@ -595,7 +595,7 @@ header {
 .card-front {
     background: #000 !important;
     border: none !important;
-    border-radius: var(--sub-radius) !important;
+    border-radius: 2px;
 }
 
 .card-inner-frame {
@@ -603,7 +603,7 @@ header {
     height: 100%;
     border: 3px solid var(--sub-gold);
     /* Yellow border 2mm inside cut */
-    border-radius: var(--sub-radius);
+    border-radius: 2px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -1587,7 +1587,7 @@ select.dark-select {
     margin-top: 15px;
     background: rgba(255, 255, 255, 0.05);
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 2px;
     border: 1px solid #222;
 }
 
@@ -1964,7 +1964,7 @@ select.dark-select {
     mix-blend-mode: overlay;
     opacity: 0;
     transition: opacity 0.3s;
-    border-radius: inherit;
+    border-radius: 2px;
 }
 
 .pro-card:hover .card-shine,
@@ -3271,7 +3271,7 @@ body.live-mode {
     aspect-ratio: 2.5/3.5;
     /* Standardi korttisuhde */
     background: #0a0a0a;
-    border-radius: 6px;
+    border-radius: 2px;
     border: 2px solid #333;
     position: relative;
     overflow: hidden;
@@ -3597,7 +3597,7 @@ body.live-mode {
     transform-style: preserve-3d;
     -webkit-transform-style: preserve-3d;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(212, 175, 55, 0.15);
-    border-radius: 15px;
+    border-radius: 2px;
     background: transparent;
 }
 
@@ -3612,7 +3612,7 @@ body.live-mode {
     height: 100%;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    border-radius: 15px;
+    border-radius: 2px;
     border: 1px solid rgba(212, 175, 55, 0.5);
     overflow: hidden;
     display: flex;
