@@ -990,20 +990,7 @@
 
                 if (wCardContainer) wCardContainer.style.display = 'none';
                 if (wEloGain) wEloGain.style.display = 'none';
-                
-                // Convert claim victory button to a neutral link
-                if (baseCvBtn) {
-                    baseCvBtn.onclick = () => window.open('https://subsoccer.pro/', '_blank');
-                    baseCvBtn.style.background = 'transparent';
-                    baseCvBtn.style.color = '#888';
-                    baseCvBtn.style.boxShadow = 'none';
-                    baseCvBtn.style.border = 'none';
-                    baseCvBtn.style.fontSize = '0.9rem';
-                    baseCvBtn.style.padding = '5px';
-                    baseCvBtn.style.marginTop = '15px';
-                    baseCvBtn.style.textTransform = 'none';
-                    baseCvBtn.classList.remove('claim-victory-btn');
-                }
+                if (baseCvBtn) baseCvBtn.style.display = 'none';
 
                 // Toggle logic attached to window for scope access
                 window.costcoCurrentLang = 'en';
@@ -1135,7 +1122,7 @@
 
             // Check if we should skip fullscreen
             const urlParams = new URLSearchParams(window.location.search);
-            const skipFullscreen = urlParams.get('nofullscreen') === 'true';
+            const skipFullscreen = urlParams.get('nofullscreen') === 'true' || urlParams.get('partner') === 'costco';
 
             // Try to request fullscreen
             if (!skipFullscreen) {
