@@ -151,61 +151,68 @@ export function updateProfileCard() {
         badges.push({ icon: 'fa-shield', color: '#CD7F32', title: 'S3 OWNER' }); // Bronze
     }
 
+    const wins = u.wins || 0;
+    const losses = u.losses || 0;
+    const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
+    const avatarUrl = (u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png';
+
     container.innerHTML = `
+    <style>
+        .card-bleed-edge { position: absolute; inset: 0; background: linear-gradient(135deg, #181818, #2a2a2a); overflow: hidden; border-radius: 10px; }
+        .card-safe-zone { position: absolute; inset: 15px; border: 3px solid var(--sub-gold, #FFD700); background: #0a0a0a; display: flex; flex-direction: column; overflow: hidden; box-shadow: inset 0 0 30px rgba(0,0,0,0.9); }
+        .holo-overlay { position: absolute; top: -100%; left: -100%; width: 300%; height: 300%; background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.5) 45%, rgba(0,255,204,0.4) 50%, rgba(255,0,102,0.4) 55%, transparent 60%); mix-blend-mode: color-dodge; pointer-events: none; transition: transform 0.4s ease-out; z-index: 20; transform: translate(-30%, -30%); }
+        .pro-card:hover .holo-overlay { transform: translate(30%, 30%); }
+        .card-serial { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: var(--sub-gold); border: 1px solid var(--sub-gold); padding: 2px 6px; font-family: 'Russo One'; font-size: 0.55rem; z-index: 10; border-radius: 2px; }
+        .card-rc-badge { position: absolute; top: 10px; left: 10px; background: linear-gradient(45deg, silver, #fff, silver); color: #000; border: 1px solid #555; padding: 3px 6px; font-family: 'Russo One'; font-size: 0.65rem; z-index: 10; border-radius: 3px; transform: rotate(-5deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        .card-image-box { height: 60%; width: 100%; position: relative; border-bottom: 2px solid var(--sub-gold); background: #000; }
+        .card-signature { position: absolute; bottom: 10px; width: 100%; text-align: center; color: rgba(255,255,255,0.9); font-family: 'Brush Script MT', 'Great Vibes', cursive; font-size: 2.2rem; transform: rotate(-8deg); z-index: 5; text-shadow: 0 0 10px rgba(0,100,255,0.8); }
+        .card-data-box { height: 40%; width: 100%; background: linear-gradient(180deg, #111, #000); padding: 10px; display: flex; flex-direction: column; justify-content: space-between; }
+    </style>
     <div class="pro-card ${editionClass} ${rookieClass}" style="margin:0 auto; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
-        <div class="pro-card-flipper">
+        <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 10px; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(212, 175, 55, 0.15);">
             <!-- FRONT SIDE -->
-            <div class="pro-card-front">
-                <!-- Top strip: Text + Icon -->
-                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2;">
-                    <div style="font-size: 0.65rem; color: #D4AF37; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                        ${editionLabel} // 2026</div>
-                    <div style="display: flex; gap: 5px;">
-                        ${badges.map(b => `<div style="background: #111; color: ${b.color}; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; box-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="${b.title}"><i class="fa-solid ${b.icon}"></i></div>`).join('')}
-                    </div>
-                </div>
-
-                <!-- Full-width image area -->
-                <div style="width: 100%; height: 225px; flex-shrink: 0; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" referrerpolicy="no-referrer" style="width: 100%; height: 100%; object-fit: cover; object-position: top center;" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                </div>
-
-                <!-- Bottom info area -->
-                <div style="width: 100%; padding: 12px 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
-                    <!-- Pin + Location -->
-                    <div style="display: flex; align-items: center; gap: 6px; color: #D4AF37; font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; width:100%; box-sizing: border-box;">
-                        <i class="fa-solid fa-location-dot"></i> <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">${u.city || 'LOCAL ARENA'}</span>
-                        <div style="margin-left:auto; display:flex; align-items:center;">
-                            ${state.brandLogo ? `<img src="${state.brandLogo}" style="height:20px; object-fit:contain;">` : ''}
+            <div class="card-front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; background: transparent; border: none;">
+                <div class="card-bleed-edge">
+                    <!-- The outer bleed edge area -->
+                    <div class="holo-overlay"></div>
+                    <div class="card-safe-zone">
+                        ${wins+losses < 5 ? '<div class="card-rc-badge">RC</div>' : ''}
+                        <div class="card-serial"># 1 OF 1</div>
+                        
+                        <!-- Player Image Area -->
+                        <div class="card-image-box">
+                            <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover; filter: contrast(1.1) saturate(1.1);" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                            <div class="card-signature">${(u.username||'').substring(0, 10)}${(u.username||'').length > 10 ? '.' : ''}</div>
                         </div>
-                    </div>
 
-                    <!-- Huge Name (scaled down) -->
-                    <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.2rem; text-transform: uppercase; color: #fff; margin-top: 4px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
-                        ${u.team_data ? `<span style="color:var(--sub-gold); font-size:0.35em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${u.team_data.tag}]</span>` : ''}${(u.username || '').toUpperCase()}</div>
+                        <!-- Data Area -->
+                        <div class="card-data-box">
+                            <div style="text-align: center; margin-bottom: 5px;">
+                                <div style="font-family:'Russo One'; color:#fff; font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; text-shadow: 1px 1px 0 #000;">
+                                    ${u.team_data ? `<span style="color:var(--sub-gold); font-size:0.6em; vertical-align:middle; margin-right:4px;">[${u.team_data.tag}]</span>` : ''}${u.username}
+                                </div>
+                                <div style="font-family:'Resolve'; color:var(--sub-gold); font-size: 0.6rem; letter-spacing: 2px;">OFFICIAL ${editionLabel}</div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; background: rgba(0,0,0,0.5); border: 1px solid #333; border-radius: 4px; padding: 5px 10px;">
+                                <div style="text-align:center;"><div style="color:#666; font-size:0.55rem; font-family:'Resolve';">ELO</div><div style="color:#fff; font-family:'Russo One'; font-size:1rem;">${u.elo || 1000}</div></div>
+                                <div style="text-align:center;"><div style="color:#666; font-size:0.55rem; font-family:'Resolve';">W</div><div style="color:#4CAF50; font-family:'Russo One'; font-size:1rem;">${wins}</div></div>
+                                <div style="text-align:center;"><div style="color:#666; font-size:0.55rem; font-family:'Resolve';">L</div><div style="color:#E30613; font-family:'Russo One'; font-size:1rem;">${losses}</div></div>
+                                <div style="text-align:center;"><div style="color:#666; font-size:0.55rem; font-family:'Resolve';">RATIO</div><div style="color:#00FFCC; font-family:'Russo One'; font-size:1rem;">${ratio}</div></div>
+                            </div>
 
-                    <!-- ELO box and Win Ratio -->
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 2px;">
-                        <div style="background: #D4AF37; color: #000; padding: 4px 8px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.2rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
-                            ${u.elo || 1300} ELO
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 0.55rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
-                                WIN RATIO</div>
-                            <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.2rem; color: #fff; line-height: 1;">
-                                ${((u.wins / (Math.max(1, (u.wins || 0) + (u.losses || 0)))) * 100).toFixed(0)}%</div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 5px;">
+                                <img src="https://flagcdn.com/w20/${(u.country || 'fi').toLowerCase()}.png" width="20" style="border-radius:2px; border:1px solid #333;">
+                                ${state.brandLogo ? `<img src="${state.brandLogo}" style="height:18px; object-fit:contain;">` : `<div style="color:#555; font-size:0.5rem; font-family:'Russo One';">SUBSOCCER THE FORGE</div>`}
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Bottom edge "TAP TO FLIP" -->
-                <div style="position: absolute; bottom: 8px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
-                    <i class="fa-solid fa-rotate" style="margin-right: 3px;"></i> TAP TO FLIP
-                </div>
+                <div style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Resolve'; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
             </div>
             
             <!-- BACK SIDE -->
-            <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+            <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; background-color: #0a0a0a; background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%); transform: rotateY(180deg); display: flex; flex-direction: column; overflow: hidden; border: 2px solid #333;">
                 <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px; padding:20px 20px 0 20px;">
                     <h4 style="color:#D4AF37; font-family:'Russo One', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
                     <div style="color:#fff; font-size:0.75rem; font-family:'Open Sans', sans-serif; margin-top:5px; text-transform:uppercase;">${u.username}</div>
