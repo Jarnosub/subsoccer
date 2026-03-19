@@ -237,10 +237,6 @@ export function updateProfileCard() {
             </div>
         </div>
     </div>
-    
-    <div style="text-align: center; margin-top: 30px;">
-        <button onclick="document.body.classList.toggle('print-mode-active')" style="background: linear-gradient(135deg, #00FFCC, #0099aa); color: #000; border: none; font-family: 'Russo One', sans-serif; padding: 12px 25px; border-radius: 5px; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,255,204,0.3); transition: transform 0.2s;"><i class="fa-solid fa-print"></i> EXPORT TO PRESS (300DPI)</button>
-    </div>
     `;
 
     // Fetch and populate back side data asynchronously (Premium Stats Layout)
