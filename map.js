@@ -79,17 +79,34 @@ export async function fetchPublicGamesMap() {
     }
 
     // 2. Fetch Upcoming/Ongoing Tournaments linked to games
-    // We use !inner to ensure we only get tournaments that have a valid game link
     const { data: tournaments } = await _supabase
         .from('tournament_history')
         .select('*, games!inner(*)')
         .in('status', ['scheduled', 'ongoing'])
         .gt('end_datetime', new Date().toISOString());
 
+    // 3. Fetch Active Tables Today (from matches and public_tracking)
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const todayIso = today.toISOString();
+
+    const [matchesReq, trackingReq] = await Promise.all([
+        _supabase.from('matches').select('game_id').gte('created_at', todayIso),
+        _supabase.from('public_tracking').select('game_code').eq('event_type', 'game_finished').gte('client_time', todayIso)
+    ]);
+
+    const activeGameIds = new Set();
+    const activeSerials = new Set();
+
+    if (matchesReq.data) matchesReq.data.forEach(m => { if (m.game_id) activeGameIds.add(m.game_id); });
+    if (trackingReq.data) trackingReq.data.forEach(t => { if (t.game_code && t.game_code !== 'PUBLIC-APP') activeSerials.add(t.game_code.toUpperCase()); });
+
     // Store data for filtering
     state.mapData = {
         games: fetchedGames,
-        tournaments: tournaments || []
+        tournaments: tournaments || [],
+        activeGameIds,
+        activeSerials
     };
 
     if (state.mapData.games.length > 0 || state.mapData.tournaments.length > 0) {
@@ -151,20 +168,24 @@ export function filterMap(type) {
             if (type === 'verified' && !g.verified) return;
 
             if (g.latitude && g.longitude) {
-                let iconColor = g.is_public ? (g.verified ? 'var(--sub-gold)' : 'var(--sub-red)') : '#4a9eff'; // Blue for Private
-                const verifiedBadge = g.verified ? '<div style="color:var(--sub-gold); font-size:0.6rem; font-weight:bold; margin-bottom:4px;">⭐ VERIFIED TABLE</div>' : '';
-                const privateBadge = !g.is_public ? '<div style="color:#4a9eff; font-size:0.6rem; font-weight:bold; margin-bottom:4px;"><i class="fa fa-lock"></i> PRIVATE HOME TABLE</div>' : '';
-                const verifiedClass = g.verified && g.is_public ? 'verified-marker-pulse' : '';
+                const isActiveToday = (state.mapData.activeGameIds && state.mapData.activeGameIds.has(g.id)) || 
+                                      (state.mapData.activeSerials && state.mapData.activeSerials.has((g.serial_number || '').toUpperCase()));
+
+                let iconColor = isActiveToday ? '#FFFF00' : (g.is_public ? (g.verified ? 'var(--sub-gold)' : 'var(--sub-red)') : '#4a9eff');
+                const verifiedClass = g.verified && g.is_public && !isActiveToday ? 'verified-marker-pulse' : '';
+                const pulseStyle = isActiveToday ? 'animation: markerPulse 1.0s infinite; box-shadow: 0 0 15px #FFFF00;' : 'box-shadow: 0 0 10px rgba(0,0,0,0.5);';
 
                 const subsoccerIcon = L.divIcon({
                     className: `custom-div-icon ${verifiedClass}`,
-                    html: `<div style='background-color:${iconColor}; width:12px; height:12px; border-radius:50%; border:2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);'></div>`,
+                    html: `<div style='background-color:${iconColor}; width:12px; height:12px; border-radius:50%; border:2px solid ${isActiveToday ? '#fff' : 'white'}; ${pulseStyle}'></div>`,
                     iconSize: [16, 16],
                     iconAnchor: [8, 8]
                 });
 
                 let popupContent = `<div style="min-width:160px; text-align:center;">`;
-                if (g.verified) {
+                if (isActiveToday) {
+                    popupContent += `<div style="background:#FFFF00; color:#000; font-family:'Russo One'; font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px; animation: markerPulse 1.5s infinite;">⚡ ACTIVE TODAY!</div>`;
+                } else if (g.verified) {
                     popupContent += `
                         <div style="background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px;">
                             OFFICIAL ARENA
