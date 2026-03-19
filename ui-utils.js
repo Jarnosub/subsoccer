@@ -113,6 +113,7 @@ export function closeModal(id = 'generic-modal') {
     if (modal) modal.style.display = 'none';
     const openModals = document.querySelectorAll('.modal-overlay[style*="display: flex"]');
     if (openModals.length === 0) document.body.style.overflow = '';
+    document.body.classList.remove('print-mode-active');
 }
 
 // Make available globally for legacy/inline calls
