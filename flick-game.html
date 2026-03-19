@@ -230,95 +230,84 @@
         }
 
         .w-title {
-            font-family: 'Subsoccer', sans-serif;
-            font-size: 6rem;
+            font-family: 'Russo One', sans-serif;
+            font-size: 5rem;
             color: var(--sub-gold);
             text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             opacity: 0;
             animation: victorySlideUp 0.8s ease-out 0.1s forwards;
             text-align: center;
             line-height: 1.1;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            letter-spacing: 2px;
         }
 
         .w-elo {
-            font-family: 'Subsoccer', sans-serif;
-            color: var(--sega-blue);
-            font-size: 3.5rem;
+            font-family: 'Russo One', sans-serif;
+            color: #00FFCC;
+            font-size: 3rem;
             margin-bottom: 30px;
             opacity: 0;
             animation: victorySlideUp 0.8s ease-out 0.3s forwards;
-            text-shadow: 0 0 20px var(--sega-blue);
+            text-shadow: 0 0 20px rgba(0,255,204,0.5);
             position: relative;
             z-index: 20;
         }
 
         /* Player Card formatting for Victory */
         .pro-card {
-            width: 250px;
-            height: 350px;
+            width: 280px;
+            height: 390px;
             perspective: 1000px;
             margin-bottom: 40px;
             opacity: 0;
             animation: victorySpinIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.6s forwards;
             cursor: pointer;
+            border-radius: 0;
         }
 
-        .pro-card-flipper {
+        .card-flipper {
             width: 100%;
             height: 100%;
             position: relative;
-            transition: transform 0.8s;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
         }
 
-        .pro-card.flipped .pro-card-flipper {
-            transform: rotateY(180deg);
+        .pro-card.flipped .card-flipper {
+            transform: rotateY(180deg) scale(1.05);
         }
 
-        .pro-card-front, .pro-card-back {
+        .card-front, .card-back {
             position: absolute;
             width: 100%;
             height: 100%;
-            -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
-            border-radius: 2px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            border: 1px solid rgba(255,255,255,0.1);
-            transform: translateZ(1px); /* Safari 3D fix */
+            border-radius: 0;
+            background: transparent;
         }
 
-        .pro-card-front {
-            background: linear-gradient(rgba(0,0,0,0.3), #111), url('card-stadium.jpg') center/cover;
+        .card-back {
+            transform: rotateY(180deg);
+            background-color: #0a0a0a;
+            background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%);
+            border: 1px solid #333;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
-        .pro-card-back {
-            background: #111;
-            transform: rotateY(180deg);
-            padding: 20px;
-            text-align: center;
-        }
-
-        .w-card-title {
-            font-family: 'Subsoccer', sans-serif;
-            color: var(--sub-gold);
-            font-size: 2rem;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .w-card-desc {
-            color: #ccc;
-            font-size: 1.2rem;
-            line-height: 1.5;
-            margin-bottom: 0;
-            font-family: 'Open Sans', sans-serif;
-        }
+        /* Premium Turqoise Bleed & Boundaries */
+        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC; background-size: 8px 8px; border: 1px solid #00ccaa; }
+        .card-safe-zone { position: absolute; inset: 16px; border: 1px solid #999; border-top: 2px solid #fff; border-bottom: 2px solid #555; background: #050505; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .card-serial { position: absolute; top: 10px; right: 10px; background: transparent; color: #444; font-family: 'Open Sans', sans-serif; font-size: 0.55rem; font-weight: bold; z-index: 10; letter-spacing: 1px; }
+        .card-rc-badge { position: absolute; top: 10px; left: 10px; background: transparent; color: #E30613; font-family: 'Russo One', sans-serif; font-size: 1rem; z-index: 10; font-style: italic; text-shadow: 1px 1px 0 #fff; }
+        .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
+        .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
+        .card-data-box { height: 35%; width: 100%; background: #1a1a1a; padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
+        .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
 
         .w-actions {
             display: flex;
@@ -897,33 +886,55 @@
             <div id="victory-elo-gain" class="w-elo">+0 POINTS</div>
 
             <!-- Gamified "Locked Card" Graphic -->
-            <div id="winner-card-container" class="pro-card" onclick="this.classList.toggle('flipped')">
-                <div class="pro-card-flipper">
-                    <div class="pro-card-front">
-                        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2; background: rgba(0,0,0,0.6);">
-                            <div style="font-size: 0.65rem; color: var(--sub-gold); font-weight: 800; letter-spacing: 1px;">PRO CARD // 2026</div>
-                        </div>
-                        <div style="width: 100%; height: 160px; background: #1a1a1a; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <img src="goalie.png" id="victory-card-avatar" style="width: 100%; height: 100%; object-fit: cover; object-position: top center;">
-                        </div>
-                        <div style="padding: 10px 15px; flex: 1; display: flex; flex-direction: column;">
-                            <div style="color: var(--sub-gold); font-size: 0.6rem; font-weight: 800; letter-spacing: 1px;"><i class="fa-solid fa-location-dot"></i> LOCAL ARENA</div>
-                            <div id="victory-card-name" style="font-family: 'Subsoccer', sans-serif; font-size: 2rem; color: #fff; line-height: 1; margin-top: 2px;">PLAYER</div>
-                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto;">
-                                <div id="victory-elo-count" style="background: var(--sub-gold); color: #000; padding: 2px 8px; font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; border-radius: 3px;">0 ELO</div>
-                                <div style="text-align: right;">
-                                    <div style="font-size: 0.5rem; color: #888; font-weight: bold;">WIN RATIO</div>
-                                    <div style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">0%</div>
+            <div id="winner-card-container" class="pro-card" style="margin:0 auto 30px auto; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
+                <div class="card-flipper">
+                    <!-- FRONT SIDE -->
+                    <div class="card-front">
+                        <div class="card-bleed-edge">
+                            <div class="card-safe-zone">
+                                <div class="card-serial">NO. 1</div>
+                                
+                                <div class="card-image-box">
+                                    <img src="goalie.png" id="victory-card-avatar" style="width:100%; height:100%; object-fit:cover; object-position:top center;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                                    <div class="card-nameplate">
+                                        <div style="font-family:'Open Sans', sans-serif; color:#FFD700; font-size:0.6rem; font-weight:bold; margin-bottom:2px; letter-spacing:1px; text-transform:uppercase;">🏆 LOCAL ARENA</div>
+                                        <div id="victory-card-name" style="font-family:'Russo One', sans-serif; color:#fff; font-size:1.6rem; line-height:1; text-transform:uppercase;">PLAYER</div>
+                                    </div>
+                                </div>
+
+                                <div class="card-data-box">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <div style="font-family:'Open Sans', sans-serif; color:#888; font-size:0.5rem; font-weight:800; letter-spacing:1px;">MATCH SCORE</div>
+                                            <div id="victory-elo-count" style="font-family:'Russo One', sans-serif; color:#fff; font-size:1.2rem;">0 PTS</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-family:'Open Sans', sans-serif; color:#888; font-size:0.5rem; font-weight:800; letter-spacing:1px;">WIN RATIO</div>
+                                            <div style="font-family:'Russo One', sans-serif; color:#00FFCC; font-size:1.2rem;">100%</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="display: flex; gap: 15px; margin-top: 5px; border-top: 1px solid #333; padding-top: 8px;">
+                                        <div style="text-align:left;"><div style="color:#666; font-size:0.5rem; font-family:'Open Sans', sans-serif; font-weight:bold;">WINS</div><div style="color:#fff; font-family:'Russo One', sans-serif; font-size:0.9rem;">1</div></div>
+                                        <div style="text-align:left;"><div style="color:#666; font-size:0.5rem; font-family:'Open Sans', sans-serif; font-weight:bold;">LOSSES</div><div style="color:#fff; font-family:'Russo One', sans-serif; font-size:0.9rem;">0</div></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <img src="stamp.png" class="pro-stamp">
+                        <div style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Open Sans', sans-serif; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
                     </div>
-                    <div class="pro-card-back">
-                        <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px;">
-                            <h4 style="color:var(--sub-gold); font-family:'Russo One', sans-serif; margin:0;">PLAYER DOSSIER</h4>
+                    
+                    <!-- BACK SIDE -->
+                    <div class="card-back">
+                        <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px; padding:20px 20px 0 20px;">
+                            <h4 style="color:#D4AF37; font-family:'Russo One', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
                         </div>
-                        <div style="color:#aaa; font-family:'Open Sans'; font-size:0.8rem;">
+                        <div style="color:#aaa; font-family:'Open Sans'; font-size:0.8rem; padding: 0 20px;">
                             Excellent run! Your arcade score has been recorded for the Single Player Challenge.
+                        </div>
+                        <div style="position: absolute; bottom: 8px; width: 100%; left: 0; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
+                            <i class="fa-solid fa-rotate-left" style="margin-right: 3px;"></i> TAP TO FLIP
                         </div>
                     </div>
                 </div>
@@ -931,11 +942,11 @@
 
             <div class="w-actions">
                 <button id="btn-victory-new-game" onclick="closeVictoryAndReset();"
-                    style="background: linear-gradient(135deg, var(--sega-blue) 0%, #003d99 100%); color: #fff; box-shadow: 0 5px 20px rgba(0, 92, 230, 0.4); border: none;">
+                    style="background: linear-gradient(135deg, #FFD700 0%, #E6A800 100%); color: #000; box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4); border: none; font-family: 'Russo One', sans-serif; z-index: 50;">
                     NEW CHALLENGER
                 </button>
                 <button id="btn-victory-end-game" onclick="window.location.href='index.html';"
-                    style="background: transparent; border: 2px solid rgba(255,255,255,0.2); color: #fff;">
+                    style="background: transparent; border: 2px solid #555; color: #aaa; font-family: 'Open Sans', sans-serif; z-index: 50;">
                     CLOSE
                 </button>
             </div>
