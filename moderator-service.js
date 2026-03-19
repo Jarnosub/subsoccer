@@ -255,6 +255,9 @@ export async function openAdminPrintMode(username) {
                     body.print-mode-active #card-modal .modal-header, body.print-mode-active #card-modal .btn-close, body.print-mode-active #card-modal button { display: none !important; }
                     body.print-mode-active #card-modal .modal-body { flex: none; overflow: visible; display: flex; justify-content: center; height: 100%; align-items: center; width: 100%; }
                     body.print-mode-active .pro-card { width: 330px !important; height: 450px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; position: static !important; transform: none !important; }
+                    body.print-mode-active .card-bleed-edge { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
+                    body.print-mode-active .card-safe-zone { inset: 30px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
+                    body.print-mode-active .pro-stamp { top: 16px !important; left: 16px !important; }
                 `;
                 document.head.appendChild(s);
             }
