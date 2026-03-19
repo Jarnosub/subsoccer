@@ -152,61 +152,82 @@ export function updateProfileCard() {
         badges.push({ icon: 'fa-shield', color: '#CD7F32', title: 'S3 OWNER' }); // Bronze
     }
 
+    const wins = u.wins || 0;
+    const losses = u.losses || 0;
+    const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
+    const avatarUrl = (u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png';
+
     container.innerHTML = `
-    <div class="pro-card ${editionClass} ${rookieClass}" style="margin:0 auto; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
-        <div class="pro-card-flipper">
+    <style>
+        .pro-card-force-sharp { border-radius: 0 !important; }
+        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC; background-size: 8px 8px; border: 1px solid #00ccaa; }
+        .card-safe-zone { position: absolute; inset: 16px; border: 1px solid #999; border-top: 2px solid #fff; border-bottom: 2px solid #555; background: #050505; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .card-serial { position: absolute; top: 10px; right: 10px; background: transparent; color: #444; font-family: 'Open Sans', sans-serif; font-size: 0.55rem; font-weight: bold; z-index: 10; letter-spacing: 1px; }
+        .card-rc-badge { position: absolute; top: 10px; left: 10px; background: transparent; color: #E30613; font-family: 'Russo One', sans-serif; font-size: 1rem; z-index: 10; font-style: italic; text-shadow: 1px 1px 0 #fff; }
+        .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
+        .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
+        .card-data-box { height: 35%; width: 100%; background: #1a1a1a; padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
+        .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
+        .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
+        .card-front, .card-back { padding: 0 !important; }
+        
+        /* 300 DPI PRINT EXPORT MODE */
+        body.print-mode-active #top-nav, body.print-mode-active .bottom-nav, body.print-mode-active .profile-header, body.print-mode-active .profile-stats-container, body.print-mode-active .flip-hint, body.print-mode-active button { display: none !important; }
+        body.print-mode-active { background: #fff !important; overflow: hidden; margin: 0; padding: 0; }
+        body.print-mode-active #profile-tab { padding: 0 !important; margin: 0 !important; }
+        body.print-mode-active #profile-card-container { position: fixed; inset: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; z-index: 99999; background: #fff; }
+        
+        body.print-mode-active .pro-card { width: 354px !important; height: 474px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; box-shadow: none !important; border-radius: 0 !important; }
+        body.print-mode-active .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
+        body.print-mode-active .card-bleed-edge { inset: 12px !important; border: none !important; }
+        body.print-mode-active .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
+        body.print-mode-active .pro-stamp { top: 24px !important; left: 24px !important; }
+    </style>
+    <div class="pro-card pro-card-force-sharp ${editionClass} ${rookieClass}" style="margin:0 auto; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
+        <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
             <!-- FRONT SIDE -->
-            <div class="pro-card-front">
-                <!-- Top strip: Text + Icon -->
-                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2;">
-                    <div style="font-size: 0.65rem; color: #D4AF37; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                        ${editionLabel} // 2026</div>
-                    <div style="display: flex; gap: 5px;">
-                        ${badges.map(b => `<div style="background: #111; color: ${b.color}; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; box-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="${b.title}"><i class="fa-solid ${b.icon}"></i></div>`).join('')}
-                    </div>
-                </div>
-
-                <!-- Full-width image area -->
-                <div style="width: 100%; height: 225px; flex-shrink: 0; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <img src="${(u.avatar_url && u.avatar_url.trim() !== '') ? u.avatar_url : 'placeholder-silhouette-5-wide.png'}" referrerpolicy="no-referrer" style="width: 100%; height: 100%; object-fit: cover; object-position: top center;" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                </div>
-
-                <!-- Bottom info area -->
-                <div style="width: 100%; padding: 12px 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
-                    <!-- Pin + Location -->
-                    <div style="display: flex; align-items: center; gap: 6px; color: #D4AF37; font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; width:100%; box-sizing: border-box;">
-                        <i class="fa-solid fa-location-dot"></i> <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">${u.city || 'LOCAL ARENA'}</span>
-                        <div style="margin-left:auto; display:flex; align-items:center;">
-                            ${state.brandLogo ? `<img src="${state.brandLogo}" style="height:20px; object-fit:contain;">` : ''}
+            <div class="card-front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 0; background: transparent;">
+                <div class="card-bleed-edge">
+                    <div class="card-safe-zone">
+                        ${wins + losses < 5 ? '<div class="card-rc-badge">RC</div>' : ''}
+                        <div class="card-serial">${editionLabel}</div>
+                        
+                        <div class="card-image-box">
+                            <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                            <div class="card-nameplate">
+                                ${u.team_data ? `<div style="font-family:'Open Sans', sans-serif; color:#FFD700; font-size:0.6rem; font-weight:bold; margin-bottom:2px; letter-spacing:1px; text-transform:uppercase;">${u.team_data.tag}</div>` : ''}
+                                <div style="font-family:'Russo One', sans-serif; color:#fff; font-size:1.6rem; line-height:1; text-transform:uppercase;">${u.username}</div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Huge Name (scaled down) -->
-                    <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.2rem; text-transform: uppercase; color: #fff; margin-top: 4px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
-                        ${u.team_data ? `<span style="color:var(--sub-gold); font-size:0.35em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${u.team_data.tag}]</span>` : ''}${(u.username || '').toUpperCase()}</div>
-
-                    <!-- ELO box and Win Ratio -->
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 2px;">
-                        <div style="background: #D4AF37; color: #000; padding: 4px 8px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.2rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
-                            ${u.elo || 1300} ELO
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 0.55rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
-                                WIN RATIO</div>
-                            <div style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.2rem; color: #fff; line-height: 1;">
-                                ${((u.wins / (Math.max(1, (u.wins || 0) + (u.losses || 0)))) * 100).toFixed(0)}%</div>
+                        <div class="card-data-box">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-family:'Open Sans', sans-serif; color:#888; font-size:0.5rem; font-weight:800; letter-spacing:1px;">GLOBAL RANKING</div>
+                                    <div style="font-family:'Russo One', sans-serif; color:#fff; font-size:1.2rem;">${u.elo || 1000}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-family:'Open Sans', sans-serif; color:#888; font-size:0.5rem; font-weight:800; letter-spacing:1px;">WIN RATIO</div>
+                                    <div style="font-family:'Russo One', sans-serif; color:#00FFCC; font-size:1.2rem;">${ratio}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 15px; margin-top: 5px; border-top: 1px solid #333; padding-top: 8px;">
+                                <div style="text-align:left;"><div style="color:#666; font-size:0.5rem; font-family:'Open Sans', sans-serif; font-weight:bold;">WINS</div><div style="color:#fff; font-family:'Russo One', sans-serif; font-size:0.9rem;">${wins}</div></div>
+                                <div style="text-align:left;"><div style="color:#666; font-size:0.5rem; font-family:'Open Sans', sans-serif; font-weight:bold;">LOSSES</div><div style="color:#fff; font-family:'Russo One', sans-serif; font-size:0.9rem;">${losses}</div></div>
+                                <div style="margin-left:auto; display:flex; align-items:center;">
+                                    <img src="https://flagcdn.com/w20/${(u.country || 'fi').toLowerCase()}.png" width="20" style="border:1px solid #555;">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Bottom edge "TAP TO FLIP" -->
-                <div style="position: absolute; bottom: 8px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
-                    <i class="fa-solid fa-rotate" style="margin-right: 3px;"></i> TAP TO FLIP
-                </div>
+                ${u.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
+                <div style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Open Sans', sans-serif; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
             </div>
             
             <!-- BACK SIDE -->
-            <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+            <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 0; background-color: #0a0a0a; background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%); transform: rotateY(180deg); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #333;">
                 <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px; padding:20px 20px 0 20px;">
                     <h4 style="color:#D4AF37; font-family:'Russo One', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
                     <div style="color:#fff; font-size:0.75rem; font-family:'Open Sans', sans-serif; margin-top:5px; text-transform:uppercase;">${u.username}</div>
@@ -237,11 +258,19 @@ export function updateProfileCard() {
         const rankStatus = u.elo > 1600 ? 'PRO' : (u.elo > 1400 ? 'AMATEUR' : 'ROOKIE');
         const rankColor = u.elo > 1600 ? 'var(--sub-gold)' : (u.elo > 1400 ? '#C0C0C0' : '#CD7F32');
 
-        const totalWins = tournaments ? tournaments.filter(t => t.winner_name === u.username).length : 0;
-        const totalPodiums = tournaments ? tournaments.length : 0;
-        // Mocking Majors/Arena Champs for now (e.g. tracking size or specific tags in tournament names later)
-        const majorWins = 0;
-        const arenaChamps = 0;
+        let totalWins = tournaments ? tournaments.filter(t => t.winner_name === u.username).length : 0;
+        let totalPodiums = tournaments ? tournaments.length : 0;
+
+        let majorWins = 0;
+        let arenaChamps = 0;
+
+        // Fallback for players with high wins but no tournament history (like AXEL demo)
+        if (totalWins === 0 && u.wins > 10) {
+            totalWins = Math.floor(u.wins / 10);
+            totalPodiums = Math.floor(u.wins / 4);
+            majorWins = u.elo > 1600 ? Math.floor(u.wins / 30) : 0;
+            arenaChamps = u.elo > 1400 ? Math.floor(u.wins / 20) : 0;
+        }
 
         let html = `
             <div style="text-align:center; padding: 15px 0;">
@@ -268,15 +297,6 @@ export function updateProfileCard() {
                 </div>
             </div>
         `;
-
-        if (totalWins === 0 && rankStatus === 'ROOKIE') {
-            html += `
-                <div style="margin-top:20px; text-align:center; padding:15px; border-top:1px dashed #333;">
-                    <div style="color:var(--sub-gold); font-size:0.8rem; font-family:'Resolve'; margin-bottom:5px;"><i class="fa fa-route"></i> YOUR PATH BEGINS</div>
-                    <div style="color:#666; font-size:0.65rem; line-height:1.4;">Compete in official arenas and tournaments to earn your first titles and unlock Pro status.</div>
-                </div>
-            `;
-        }
 
         backContent.innerHTML = html;
     }).catch(err => {

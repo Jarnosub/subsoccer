@@ -115,33 +115,64 @@ export async function viewPlayerCard(targetUsername) {
     }
 
     const html = `
-    <div class="pro-card ${rookieClass}" style="margin:0; width:100% !important; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
-        <div class="card-flipper">
+    <style>
+        .pro-card-force-sharp { border-radius: 0 !important; }
+        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC; background-size: 8px 8px; border: 1px solid #00ccaa; }
+        .card-safe-zone { position: absolute; inset: 16px; border: 1px solid #999; border-top: 2px solid #fff; border-bottom: 2px solid #555; background: #050505; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .card-serial { position: absolute; top: 10px; right: 10px; background: transparent; color: #444; font-family: 'Open Sans', sans-serif; font-size: 0.55rem; font-weight: bold; z-index: 10; letter-spacing: 1px; }
+        .card-rc-badge { position: absolute; top: 10px; left: 10px; background: transparent; color: #E30613; font-family: 'Russo One', sans-serif; font-size: 1rem; z-index: 10; font-style: italic; text-shadow: 1px 1px 0 #fff; }
+        .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
+        .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
+        .card-data-box { height: 35%; width: 100%; background: #1a1a1a; padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
+        .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
+        .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
+        .card-front, .card-back { padding: 0 !important; }
+    </style>
+    <div class="pro-card pro-card-force-sharp ${rookieClass}" style="margin:0; width:100% !important; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
+        <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
             <!-- FRONT SIDE -->
-            <div class="card-front" style="background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;">
-                <div class="card-inner-frame">
-                    <div class="card-header-stripe">${cardHeader} CARD</div>
-                    <div class="card-image-area" style="position:relative;">
-                        <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                    <div class="card-name-strip">${p.team_data ? `<span style="color:var(--sub-gold); font-size:0.4em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${p.team_data.tag}]</span>` : ''}${p.username}</div>
-                    <div class="card-info-area">
-                        <div class="card-stats-row">
-                            <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div>
-                            <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div>
-                            <div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div>
-                            <div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div>
+            <div class="card-front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 0; background: transparent;">
+                <div class="card-bleed-edge">
+                    <div class="card-safe-zone">
+                        ${wins + losses < 5 ? '<div class="card-rc-badge">RC</div>' : ''}
+                        <div class="card-serial">NO. 1</div>
+                        
+                        <div class="card-image-box">
+                            <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                            <div class="card-nameplate">
+                                ${p.team_data ? `<div style="font-family:'Open Sans', sans-serif; color:#FFD700; font-size:0.6rem; font-weight:bold; margin-bottom:2px; letter-spacing:1px; text-transform:uppercase;">${p.team_data.tag}</div>` : ''}
+                                <div style="font-family:'Russo One', sans-serif; color:#fff; font-size:1.6rem; line-height:1; text-transform:uppercase;">${p.username}</div>
+                            </div>
                         </div>
-                        <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Resolve';">REPRESENTING</span></div>
-                            ${state.brandLogo ? `<img src="${state.brandLogo}" style="height:22px; width:auto; object-fit:contain;">` : `<div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Resolve';">CLUB: PRO</div>`}
+
+                        <div class="card-data-box">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-family:'Open Sans', sans-serif; color:#888; font-size:0.5rem; font-weight:800; letter-spacing:1px;">GLOBAL RANKING</div>
+                                    <div style="font-family:'Russo One', sans-serif; color:#fff; font-size:1.2rem;">${p.elo}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-family:'Open Sans', sans-serif; color:#888; font-size:0.5rem; font-weight:800; letter-spacing:1px;">WIN RATIO</div>
+                                    <div style="font-family:'Russo One', sans-serif; color:#00FFCC; font-size:1.2rem;">${ratio}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 15px; margin-top: 5px; border-top: 1px solid #333; padding-top: 8px;">
+                                <div style="text-align:left;"><div style="color:#666; font-size:0.5rem; font-family:'Open Sans', sans-serif; font-weight:bold;">WINS</div><div style="color:#fff; font-family:'Russo One', sans-serif; font-size:0.9rem;">${wins}</div></div>
+                                <div style="text-align:left;"><div style="color:#666; font-size:0.5rem; font-family:'Open Sans', sans-serif; font-weight:bold;">LOSSES</div><div style="color:#fff; font-family:'Russo One', sans-serif; font-size:0.9rem;">${losses}</div></div>
+                                <div style="margin-left:auto; display:flex; align-items:center;">
+                                    <img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="20" style="border:1px solid #555;">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="flip-hint" style="position:absolute; bottom:5px; right:15px; color:#888; font-size:0.55rem; font-family:'Resolve';"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
+                ${p.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
+                <div style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Open Sans', sans-serif; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
             </div>
             
             <!-- BACK SIDE -->
-            <div class="card-back" style="background-color: #0a0a0a; background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%);">
+            <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 0; background-color: #0a0a0a; background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%); border: 1px solid #333; overflow-y: auto; overflow-x: hidden;">
                 <div class="card-inner-frame" style="padding:15px; display:block; text-align:left; overflow-y:auto; overflow-x:hidden;">
                     <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:5px;">
                         <h4 style="color:var(--sub-gold); font-family:'Russo One'; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
@@ -150,7 +181,7 @@ export async function viewPlayerCard(targetUsername) {
                     ${historyHtml}
                     ${matchesHtml}
                 </div>
-                <div class="flip-hint" style="position:absolute; bottom:-25px; left:15px; color:#c0c0c0; font-size:0.55rem; font-family:'Resolve';"><i class="fa-solid fa-rotate-left"></i> TAP TO FLIP</div>
+                <div class="flip-hint" style="position:absolute; bottom:8px; width:100%; text-align:center; left:0; color:rgba(255,255,255,0.3); font-size:0.6rem; font-weight:bold; letter-spacing:1.5px; z-index:2; pointer-events:none;"><i class="fa-solid fa-rotate-left"></i> TAP TO FLIP</div>
             </div>
         </div>
     </div>`;

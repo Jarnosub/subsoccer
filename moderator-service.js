@@ -231,6 +231,37 @@ export async function viewAllUsers() {
     }
 }
 
+export async function openAdminPrintMode(username) {
+    import('./player-card-ui.js').then(module => {
+        if (window.closeModal) window.closeModal('generic-modal');
+
+        module.viewPlayerCard(username);
+
+        setTimeout(() => {
+            document.body.classList.add('print-mode-active');
+            
+            if (!document.getElementById('admin-print-style')) {
+                const s = document.createElement('style');
+                s.id = 'admin-print-style';
+                s.innerHTML = `
+                    body.print-mode-active .modal-overlay:not(#card-modal) { display: none !important; }
+                    body.print-mode-active #card-modal { background: #fff !important; z-index: 999999 !important; display: flex !important; align-items: center; justify-content: center; }
+                    body.print-mode-active #card-modal .modal-content { width: 100vw !important; height: 100vh !important; max-width: none !important; max-height: none !important; border-radius: 0 !important; margin: 0 !important; background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; display: flex !important; flex-direction: column; justify-content: center; align-items: center; }
+                    body.print-mode-active #card-modal .modal-header, body.print-mode-active #card-modal .btn-close, body.print-mode-active #card-modal button { display: none !important; }
+                    body.print-mode-active #card-modal .modal-body { flex: none; overflow: visible; display: flex; justify-content: center; height: 100%; align-items: center; width: 100%; }
+                    body.print-mode-active .pro-card { width: 354px !important; height: 474px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; position: static !important; transform: none !important; }
+                    body.print-mode-active .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
+                    body.print-mode-active .card-bleed-edge { inset: 12px !important; border: none !important; }
+                    body.print-mode-active .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
+                    body.print-mode-active .pro-stamp { top: 24px !important; left: 24px !important; }
+                `;
+                document.head.appendChild(s);
+            }
+        }, 800);
+    });
+}
+window.openAdminPrintMode = openAdminPrintMode;
+
 export async function toggleAdminStatus(userId, currentStatus) {
     if (userId === state.user?.id) {
         showNotification("You cannot change your own admin status", "error");
