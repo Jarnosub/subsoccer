@@ -115,29 +115,58 @@ export async function viewPlayerCard(targetUsername) {
     }
 
     const html = `
+    <style>
+        .card-bleed-edge { position: absolute; inset: 0; background: linear-gradient(135deg, #181818, #2a2a2a); overflow: hidden; border-radius: 10px; }
+        .card-safe-zone { position: absolute; inset: 15px; border: 3px solid var(--sub-gold, #FFD700); background: #0a0a0a; display: flex; flex-direction: column; overflow: hidden; box-shadow: inset 0 0 30px rgba(0,0,0,0.9); }
+        .holo-overlay { position: absolute; top: -100%; left: -100%; width: 300%; height: 300%; background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.5) 45%, rgba(0,255,204,0.4) 50%, rgba(255,0,102,0.4) 55%, transparent 60%); mix-blend-mode: color-dodge; pointer-events: none; transition: transform 0.4s ease-out; z-index: 20; transform: translate(-30%, -30%); }
+        .pro-card:hover .holo-overlay { transform: translate(30%, 30%); }
+        .card-serial { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: var(--sub-gold); border: 1px solid var(--sub-gold); padding: 2px 6px; font-family: 'Russo One'; font-size: 0.55rem; z-index: 10; border-radius: 2px; }
+        .card-rc-badge { position: absolute; top: 10px; left: 10px; background: linear-gradient(45deg, silver, #fff, silver); color: #000; border: 1px solid #555; padding: 3px 6px; font-family: 'Russo One'; font-size: 0.65rem; z-index: 10; border-radius: 3px; transform: rotate(-5deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        .card-image-box { height: 60%; width: 100%; position: relative; border-bottom: 2px solid var(--sub-gold); background: #000; }
+        .card-signature { position: absolute; bottom: 10px; width: 100%; text-align: center; color: rgba(255,255,255,0.9); font-family: 'Brush Script MT', 'Great Vibes', cursive; font-size: 2.2rem; transform: rotate(-8deg); z-index: 5; text-shadow: 0 0 10px rgba(0,100,255,0.8); }
+        .card-data-box { height: 40%; width: 100%; background: linear-gradient(180deg, #111, #000); padding: 10px; display: flex; flex-direction: column; justify-content: space-between; }
+    </style>
     <div class="pro-card ${rookieClass}" style="margin:0; width:100% !important; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
         <div class="card-flipper">
             <!-- FRONT SIDE -->
-            <div class="card-front" style="background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 8px 8px; background-color: #0a0a0a;">
-                <div class="card-inner-frame">
-                    <div class="card-header-stripe">${cardHeader} CARD</div>
-                    <div class="card-image-area" style="position:relative;">
-                        <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                    <div class="card-name-strip">${p.team_data ? `<span style="color:var(--sub-gold); font-size:0.4em; vertical-align:middle; text-shadow:none; letter-spacing:0; margin-right:4px;">[${p.team_data.tag}]</span>` : ''}${p.username}</div>
-                    <div class="card-info-area">
-                        <div class="card-stats-row">
-                            <div class="card-stat-item"><div class="card-stat-label">RANK</div><div class="card-stat-value">${p.elo}</div></div>
-                            <div class="card-stat-item"><div class="card-stat-label">WINS</div><div class="card-stat-value">${wins}</div></div>
-                            <div class="card-stat-item"><div class="card-stat-label">LOSS</div><div class="card-stat-value">${losses}</div></div>
-                            <div class="card-stat-item"><div class="card-stat-label">W/L</div><div class="card-stat-value">${ratio}</div></div>
+            <div class="card-front" style="background: transparent; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+                <div class="card-bleed-edge">
+                    <!-- The outer bleed edge area -->
+                    <div class="holo-overlay"></div>
+                    <div class="card-safe-zone">
+                        ${wins+losses < 5 ? '<div class="card-rc-badge">RC</div>' : ''}
+                        <div class="card-serial"># 1 OF 1</div>
+                        
+                        <!-- Player Image Area -->
+                        <div class="card-image-box">
+                            <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover; filter: contrast(1.1) saturate(1.1);" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                            <div class="card-signature">${p.username.substring(0, 10)}${p.username.length > 10 ? '.' : ''}</div>
                         </div>
-                        <div class="card-bottom-row" style="border-top: 1px solid #222; padding-top: 4px; display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:5px;"><img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="16"><span style="color:#888; font-size:0.55rem; font-family:'Resolve';">REPRESENTING</span></div>
-                            ${state.brandLogo ? `<img src="${state.brandLogo}" style="height:22px; width:auto; object-fit:contain;">` : `<div style="color:var(--sub-gold); font-size:0.55rem; font-family:'Resolve';">CLUB: PRO</div>`}
+
+                        <!-- Data Area -->
+                        <div class="card-data-box">
+                            <div style="text-align: center; margin-bottom: 5px;">
+                                <div style="font-family:'Russo One'; color:#fff; font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; text-shadow: 1px 1px 0 #000;">
+                                    ${p.team_data ? `<span style="color:var(--sub-gold); font-size:0.6em; vertical-align:middle; margin-right:4px;">[${p.team_data.tag}]</span>` : ''}${p.username}
+                                </div>
+                                <div style="font-family:'Resolve'; color:var(--sub-gold); font-size: 0.6rem; letter-spacing: 2px;">OFFICIAL ${cardHeader}</div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; background: rgba(0,0,0,0.5); border: 1px solid #333; border-radius: 4px; padding: 5px 10px;">
+                                <div style="text-align:center;"><div style="color:#666; font-size:0.55rem; font-family:'Resolve';">ELO</div><div style="color:#fff; font-family:'Russo One'; font-size:1rem;">${p.elo}</div></div>
+                                <div style="text-align:center;"><div style="color:#666; font-size:0.55rem; font-family:'Resolve';">W</div><div style="color:#4CAF50; font-family:'Russo One'; font-size:1rem;">${wins}</div></div>
+                                <div style="text-align:center;"><div style="color:#666; font-size:0.55rem; font-family:'Resolve';">L</div><div style="color:#E30613; font-family:'Russo One'; font-size:1rem;">${losses}</div></div>
+                                <div style="text-align:center;"><div style="color:#666; font-size:0.55rem; font-family:'Resolve';">RATIO</div><div style="color:#00FFCC; font-family:'Russo One'; font-size:1rem;">${ratio}</div></div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 5px;">
+                                <img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="20" style="border-radius:2px; border:1px solid #333;">
+                                ${state.brandLogo ? `<img src="${state.brandLogo}" style="height:18px; object-fit:contain;">` : `<div style="color:#555; font-size:0.5rem; font-family:'Russo One';">SUBSOCCER THE FORGE</div>`}
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="flip-hint" style="position:absolute; bottom:5px; right:15px; color:#888; font-size:0.55rem; font-family:'Resolve';"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
+                <div style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Resolve'; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
             </div>
             
             <!-- BACK SIDE -->
