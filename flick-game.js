@@ -1281,6 +1281,20 @@ window.isPlaying = false;
                     if (vEloCount) vEloCount.textContent = displayScore + " PTS";
                     if (vCardName) vCardName.textContent = displayName;
                     
+                    try {
+                        const vAvatar = document.getElementById('victory-card-avatar');
+                        if (vAvatar && isWinner) {
+                            const user = JSON.parse(localStorage.getItem('subsoccer-user') || '{}');
+                            if (user.avatar_url && user.avatar_url.trim() !== '') {
+                                vAvatar.src = user.avatar_url;
+                            } else {
+                                vAvatar.src = 'placeholder-silhouette-5-wide.png';
+                            }
+                        } else if (vAvatar && !isWinner) {
+                            vAvatar.src = 'placeholder-silhouette-5-wide.png'; // Fallback for opponent
+                        }
+                    } catch(e) {}
+                    
                     if (vCanvas) {
                         vCanvas.style.display = 'block';
                         vCanvas.width = window.innerWidth;
