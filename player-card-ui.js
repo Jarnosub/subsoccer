@@ -179,7 +179,7 @@ export async function viewPlayerCard(targetUsername) {
                     ${historyHtml}
                     ${matchesHtml}
                 </div>
-                <div class="flip-hint" style="position:absolute; bottom:-25px; left:15px; color:#c0c0c0; font-size:0.55rem; font-family:'Resolve';"><i class="fa-solid fa-rotate-left"></i> TAP TO FLIP</div>
+                <div class="flip-hint" style="position:absolute; bottom:8px; width:100%; text-align:center; left:0; color:rgba(255,255,255,0.3); font-size:0.6rem; font-weight:bold; letter-spacing:1.5px; z-index:2; pointer-events:none;"><i class="fa-solid fa-rotate-left"></i> TAP TO FLIP</div>
             </div>
         </div>
     </div>`;

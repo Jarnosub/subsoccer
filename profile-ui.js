@@ -276,15 +276,6 @@ export function updateProfileCard() {
             </div>
         `;
 
-        if (totalWins === 0 && rankStatus === 'ROOKIE') {
-            html += `
-                <div style="margin-top:20px; text-align:center; padding:15px; border-top:1px dashed #333;">
-                    <div style="color:var(--sub-gold); font-size:0.8rem; font-family:'Resolve'; margin-bottom:5px;"><i class="fa fa-route"></i> YOUR PATH BEGINS</div>
-                    <div style="color:#666; font-size:0.65rem; line-height:1.4;">Compete in official arenas and tournaments to earn your first titles and unlock Pro status.</div>
-                </div>
-            `;
-        }
-
         backContent.innerHTML = html;
     }).catch(err => {
         console.error("Error fetching card dossier stats:", err);
