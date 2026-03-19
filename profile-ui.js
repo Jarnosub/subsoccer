@@ -169,6 +169,13 @@ export function updateProfileCard() {
         .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
         .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
         .card-front, .card-back { padding: 0 !important; }
+        
+        /* 300 DPI PRINT EXPORT MODE */
+        body.print-mode-active #top-nav, body.print-mode-active .bottom-nav, body.print-mode-active .profile-header, body.print-mode-active .profile-stats-container, body.print-mode-active .flip-hint, body.print-mode-active button { display: none !important; }
+        body.print-mode-active { background: #fff !important; overflow: hidden; margin: 0; padding: 0; }
+        body.print-mode-active #profile-tab { padding: 0 !important; margin: 0 !important; }
+        body.print-mode-active #profile-card-container { position: fixed; inset: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; z-index: 99999; background: #fff; }
+        body.print-mode-active .pro-card { width: 330px !important; height: 450px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; }
     </style>
     <div class="pro-card pro-card-force-sharp ${editionClass} ${rookieClass}" style="margin:0 auto; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
         <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
@@ -229,6 +236,10 @@ export function updateProfileCard() {
                 </div>
             </div>
         </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px;">
+        <button onclick="document.body.classList.toggle('print-mode-active')" style="background: linear-gradient(135deg, #00FFCC, #0099aa); color: #000; border: none; font-family: 'Russo One', sans-serif; padding: 12px 25px; border-radius: 5px; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,255,204,0.3); transition: transform 0.2s;"><i class="fa-solid fa-print"></i> EXPORT TO PRESS (300DPI)</button>
     </div>
     `;
 
