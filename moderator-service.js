@@ -217,11 +217,6 @@ export async function viewAllUsers() {
                                     onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
                                 ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
                             </button>
-                            <button class="btn-red" 
-                                    style="font-size:0.6rem; padding:4px 8px; background:#00FFCC; color:#000; border:none; width:auto; min-width:80px; font-family:'Russo One', sans-serif;"
-                                    onclick="openAdminPrintMode('${u.username}')">
-                                <i class="fa-solid fa-print"></i> EXPORT
-                            </button>
                         </div>
                     </div>
                 `).join('')}
