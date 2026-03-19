@@ -217,6 +217,11 @@ export async function viewAllUsers() {
                                     onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
                                 ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
                             </button>
+                            <button class="btn-red" 
+                                    style="font-size:0.6rem; padding:4px 8px; background:#00FFCC; color:#000; border:none; width:auto; min-width:80px; font-family:'Russo One', sans-serif;"
+                                    onclick="openAdminPrintMode('${u.username}')">
+                                <i class="fa-solid fa-print"></i> EXPORT
+                            </button>
                         </div>
                     </div>
                 `).join('')}
@@ -230,6 +235,33 @@ export async function viewAllUsers() {
         hideLoading();
     }
 }
+
+export async function openAdminPrintMode(username) {
+    import('./player-card-ui.js').then(module => {
+        const overlay = document.getElementById('modal-overlay');
+        if (overlay) overlay.style.display = 'none';
+
+        module.viewPlayerCard(username);
+
+        setTimeout(() => {
+            document.body.classList.add('print-mode-active');
+            
+            if (!document.getElementById('admin-print-style')) {
+                const s = document.createElement('style');
+                s.id = 'admin-print-style';
+                s.innerHTML = `
+                    body.print-mode-active #modal-overlay { background: #fff !important; z-index: 999999 !important; display: block !important; }
+                    body.print-mode-active .modal { width: 100vw !important; height: 100vh !important; max-width: none !important; max-height: none !important; border-radius: 0 !important; margin: 0 !important; background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; display: flex !important; flex-direction: column; justify-content: center; align-items: center; }
+                    body.print-mode-active .modal-header, body.print-mode-active .btn-close, body.print-mode-active button { display: none !important; }
+                    body.print-mode-active .modal-body { flex: none; overflow: visible; display: flex; justify-content: center; height: 100%; align-items: center; }
+                    body.print-mode-active .pro-card { width: 330px !important; height: 450px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; position: static !important; transform: none !important; }
+                `;
+                document.head.appendChild(s);
+            }
+        }, 800);
+    });
+}
+window.openAdminPrintMode = openAdminPrintMode;
 
 export async function toggleAdminStatus(userId, currentStatus) {
     if (userId === state.user?.id) {
