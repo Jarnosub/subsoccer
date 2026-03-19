@@ -116,6 +116,7 @@ export async function viewPlayerCard(targetUsername) {
 
     const html = `
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap');
         .pro-card-force-sharp { border-radius: 0 !important; }
         .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC; background-size: 8px 8px; border: 1px solid #00ccaa; }
         .card-safe-zone { position: absolute; inset: 16px; border: 1px solid #999; border-top: 2px solid #fff; border-bottom: 2px solid #555; background: #050505; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
@@ -124,6 +125,7 @@ export async function viewPlayerCard(targetUsername) {
         .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
         .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
         .card-data-box { height: 35%; width: 100%; background: #1a1a1a; padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-autograph { position: absolute; top: 48%; left: -5%; width: 110%; text-align: center; color: rgba(255, 255, 255, 0.95); font-family: 'Caveat', cursive; font-size: 3.5rem; transform: rotate(-8deg); z-index: 50; pointer-events: none; text-shadow: 2px 2px 10px rgba(0,0,0,0.9); white-space: nowrap; overflow: hidden; line-height: 1; }
     </style>
     <div class="pro-card pro-card-force-sharp ${rookieClass}" style="margin:0; width:100% !important; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
         <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
@@ -134,6 +136,8 @@ export async function viewPlayerCard(targetUsername) {
                         ${wins+losses < 5 ? '<div class="card-rc-badge">RC</div>' : ''}
                         <div class="card-serial">NO. 1</div>
                         
+                        <div class="card-autograph">${p.username}</div>
+
                         <div class="card-image-box">
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                             <div class="card-nameplate">
