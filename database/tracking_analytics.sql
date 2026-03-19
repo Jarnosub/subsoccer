@@ -10,8 +10,12 @@ CREATE TABLE IF NOT EXISTS public_tracking (
     match_score TEXT,                 -- score '3-1', default null on open
     source_partner TEXT,              -- extracted partner from URL (e.g., 'free', 'costco')
     user_agent TEXT,                  -- browser type for device tracking
+    location TEXT,                    -- The user's timezone/location when scanning
     client_time TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
+
+-- NOTE: If you already ran this script previously, just run this single line to add location:
+-- ALTER TABLE public_tracking ADD COLUMN location TEXT;
 
 -- Turn on Row Level Security
 ALTER TABLE public_tracking ENABLE ROW LEVEL SECURITY;

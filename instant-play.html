@@ -935,12 +935,15 @@
                 const partner = urlParams.get('partner') || 'social';
                 const gId = urlParams.get('sn') || urlParams.get('game_id') || 'PUBLIC-APP';
 
+                const userLoc = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+
                 await _supabase.from('public_tracking').insert({
                     event_type: eventType,
                     game_code: gId.toUpperCase(),
                     match_score: matchScore,
                     source_partner: partner,
-                    user_agent: navigator.userAgent
+                    user_agent: navigator.userAgent,
+                    location: userLoc
                 });
             } catch (err) {
                 console.warn("Tracking error:", err);

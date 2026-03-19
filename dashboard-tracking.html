@@ -56,12 +56,13 @@
                     <th>Event</th>
                     <th>Code / Table ID</th>
                     <th>Source</th>
+                    <th>Location</th>
                     <th>Score</th>
                     <th>Device</th>
                 </tr>
             </thead>
             <tbody id="log-body">
-                <tr><td colspan="6" style="text-align:center; padding: 30px;">Loading data from Supabase...</td></tr>
+                <tr><td colspan="7" style="text-align:center; padding: 30px;">Loading data from Supabase...</td></tr>
             </tbody>
         </table>
     </div>
@@ -86,7 +87,7 @@
                 if (error) throw error;
 
                 if (!events || events.length === 0) {
-                    document.getElementById('log-body').innerHTML = '<tr><td colspan="6" style="text-align:center;">No tracking data found yet. Scan a code to test!</td></tr>';
+                    document.getElementById('log-body').innerHTML = '<tr><td colspan="7" style="text-align:center;">No tracking data found yet. Scan a code to test!</td></tr>';
                     return;
                 }
 
@@ -113,6 +114,7 @@
                             <td><span class="badge ${badgeClass}">${typeLabel}</span></td>
                             <td style="font-weight:bold; color:var(--sub-gold);">${code}</td>
                             <td>${ev.source_partner || 'N/A'}</td>
+                            <td style="color:#00FFCC;">${ev.location || 'Unknown'}</td>
                             <td>${ev.match_score || '-'}</td>
                             <td style="font-size:0.7rem; color:#666; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${ev.user_agent}">${ev.user_agent}</td>
                         </tr>
@@ -136,7 +138,7 @@
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('log-body').innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Error loading data: ${err.message}. Ensure the SQL table is created.</td></tr>`;
+                document.getElementById('log-body').innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">Error loading data: ${err.message}. Ensure the SQL table is created.</td></tr>`;
             }
         }
 
