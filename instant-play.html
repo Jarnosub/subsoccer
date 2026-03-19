@@ -936,6 +936,14 @@
                 const gId = urlParams.get('sn') || urlParams.get('game_id') || 'PUBLIC-APP';
 
                 const userLoc = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+                const lang = navigator.language || navigator.userLanguage || 'Unknown';
+                const isReturning = !!localStorage.getItem('subsoccer-user');
+                
+                let duration = null;
+                if (!window.__trackingStartTime) window.__trackingStartTime = Date.now();
+                if (eventType === 'game_finished') {
+                    duration = Math.floor((Date.now() - window.__trackingStartTime) / 1000); // seconds
+                }
 
                 await _supabase.from('public_tracking').insert({
                     event_type: eventType,
@@ -943,7 +951,10 @@
                     match_score: matchScore,
                     source_partner: partner,
                     user_agent: navigator.userAgent,
-                    location: userLoc
+                    location: userLoc,
+                    is_returning: isReturning,
+                    browser_lang: lang,
+                    session_duration: duration
                 });
             } catch (err) {
                 console.warn("Tracking error:", err);

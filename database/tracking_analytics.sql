@@ -11,11 +11,17 @@ CREATE TABLE IF NOT EXISTS public_tracking (
     source_partner TEXT,              -- extracted partner from URL (e.g., 'free', 'costco')
     user_agent TEXT,                  -- browser type for device tracking
     location TEXT,                    -- The user's timezone/location when scanning
+    is_returning BOOLEAN,             -- Did they already have a Pro Card?
+    browser_lang TEXT,                -- e.g. 'fi-FI', 'en-US'
+    session_duration INTEGER,         -- Length of session in seconds (for game_finished)
     client_time TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- NOTE: If you already ran this script previously, just run this single line to add location:
+-- NOTE: If you already ran this script previously, just run these lines to add the new fields:
 -- ALTER TABLE public_tracking ADD COLUMN location TEXT;
+-- ALTER TABLE public_tracking ADD COLUMN is_returning BOOLEAN;
+-- ALTER TABLE public_tracking ADD COLUMN browser_lang TEXT;
+-- ALTER TABLE public_tracking ADD COLUMN session_duration INTEGER;
 
 -- Turn on Row Level Security
 ALTER TABLE public_tracking ENABLE ROW LEVEL SECURITY;
