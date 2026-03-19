@@ -624,6 +624,49 @@
                     LOGS</button>
                 <button id="btn-mod-reset-lb" class="btn-red mod-btn mod-btn-secondary">RESET GLOBAL
                     LEADERBOARD</button>
+                    
+                <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
+                <h3 style="font-family:'Resolve'; text-transform:uppercase; color:#00FFCC; letter-spacing:2px; margin-bottom:15px;">
+                    📊 QR Campaign Analytics</h3>
+                
+                <div class="stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                    <div style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
+                        <div style="font-size:0.7rem; color:#888;">Total Opens</div>
+                        <div id="mod-total-opens" style="font-family:'Jockey One'; font-size:2rem; color:#fff;">-</div>
+                    </div>
+                    <div style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
+                        <div style="font-size:0.7rem; color:#888;">Games Finished</div>
+                        <div id="mod-total-finished" style="font-family:'Jockey One'; font-size:2rem; color:var(--sub-gold);">-</div>
+                    </div>
+                    <div style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
+                        <div style="font-size:0.7rem; color:#888;">Top Code</div>
+                        <div id="mod-top-code" style="font-family:'Jockey One'; font-size:1.5rem; color:#00FFCC; margin-top:5px;">-</div>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <div style="font-family:'Russo One'; font-size:1.1rem; color:#fff;">Live Scanner Feed</div>
+                    <button id="btn-refresh-tracking" class="btn-red" style="padding: 6px 12px; font-size:0.75rem;">Sync Data</button>
+                </div>
+                
+                <div style="overflow-x:auto; max-height:400px; border:1px solid #222; border-radius:4px;">
+                    <table style="width:100%; text-align:left; border-collapse:collapse; font-size:0.8rem;">
+                        <thead style="background:#1a1500; font-family:'Jockey One'; color:var(--sub-gold); font-size:1rem; position:sticky; top:0; z-index:5;">
+                            <tr>
+                                <th style="padding:10px; border-bottom:1px solid #333;">Time</th>
+                                <th style="padding:10px; border-bottom:1px solid #333;">Event</th>
+                                <th style="padding:10px; border-bottom:1px solid #333;">Code</th>
+                                <th style="padding:10px; border-bottom:1px solid #333;">Player</th>
+                                <th style="padding:10px; border-bottom:1px solid #333;">Lang</th>
+                                <th style="padding:10px; border-bottom:1px solid #333;">Loc</th>
+                                <th style="padding:10px; border-bottom:1px solid #333;">Dur</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mod-tracking-list">
+                            <tr><td colspan="7" style="padding:20px; text-align:center;">Click Sync Data to load.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 

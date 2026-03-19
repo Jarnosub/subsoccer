@@ -363,11 +363,85 @@ export async function resetGlobalLeaderboard() {
             .neq('username', 'SYSTEM_RESERVED_NAME');
 
         if (error) throw error;
+        if (error) throw error;
         showNotification('Leaderboard reset successfully', 'success');
     } catch (e) {
         showNotification('Reset failed: ' + e.message, 'error');
     } finally {
         hideLoading();
+    }
+}
+
+export async function refreshTrackingAnalytics() {
+    if (!isAdmin()) {
+        showNotification("Access denied: Admin privileges required.", "error");
+        return;
+    }
+
+    const tbody = document.getElementById('mod-tracking-list');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center;">Loading data from Supabase...</td></tr>';
+
+    try {
+        let { data: events, error } = await _supabase
+            .from('public_tracking')
+            .select('*')
+            .order('client_time', { ascending: false })
+            .limit(500);
+
+        if (error) throw error;
+
+        if (!events || events.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center;">No tracking data found yet.</td></tr>';
+            return;
+        }
+
+        let opens = 0;
+        let finished = 0;
+        let codeCounts = {};
+        let html = '';
+
+        events.forEach(ev => {
+            if (ev.event_type === 'app_opened') opens++;
+            if (ev.event_type === 'game_finished') finished++;
+
+            const code = ev.game_code || 'Unknown';
+            codeCounts[code] = (codeCounts[code] || 0) + 1;
+
+            let badgeClass = ev.event_type === 'game_finished' ? 'background:#E30613; padding:2px 4px; border-radius:3px;' : 'background:#4CAF50; padding:2px 4px; border-radius:3px;';
+            let typeLabel = ev.event_type === 'game_finished' ? 'GAME FINISHED' : 'APP OPENED';
+            let dateStr = new Date(ev.client_time).toLocaleString();
+            let returningBadge = ev.is_returning ? '<span style="color:#00FFCC; font-weight:bold;">PRO</span>' : '<span style="color:#888;">NEW</span>';
+            let durationText = ev.session_duration ? Math.floor(ev.session_duration / 60) + 'm ' + (ev.session_duration % 60) + 's' : '-';
+
+            html += `
+                <tr style="border-bottom:1px solid #222;">
+                    <td style="padding:10px; color:#888;">${dateStr.split(',')[1]}</td>
+                    <td style="padding:10px;"><span style="${badgeClass} color:#fff; font-size:0.75rem; font-weight:bold;">${typeLabel}</span></td>
+                    <td style="padding:10px; font-weight:bold; color:var(--sub-gold);">${code}</td>
+                    <td style="padding:10px;">${returningBadge}</td>
+                    <td style="padding:10px;"><span style="font-size:0.8rem; background:#333; padding:2px 5px; border-radius:3px;">${ev.browser_lang || '-'}</span></td>
+                    <td style="padding:10px; color:#00FFCC;">${ev.location || 'Unknown'}</td>
+                    <td style="padding:10px; color:#FFD700; font-family:'Jockey One', sans-serif;">${durationText}</td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+        document.getElementById('mod-total-opens').textContent = opens;
+        document.getElementById('mod-total-finished').textContent = finished;
+
+        let topCode = '-';
+        let maxCount = 0;
+        for (const [code, count] of Object.entries(codeCounts)) {
+            if (count > maxCount) { maxCount = count; topCode = code; }
+        }
+        document.getElementById('mod-top-code').textContent = topCode;
+
+    } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; color:red; text-align:center;">Error: ${err.message}</td></tr>`;
     }
 }
 
@@ -383,5 +457,14 @@ export function setupModeratorListeners() {
     });
     document.getElementById('btn-mod-reset-lb')?.addEventListener('click', () => {
         resetGlobalLeaderboard();
+    });
+    document.getElementById('btn-refresh-tracking')?.addEventListener('click', () => {
+        refreshTrackingAnalytics();
+    });
+    // Auto-load if tab is opened? We can just hook up a click event on the mod tab.
+    document.getElementById('menu-item-moderator')?.addEventListener('click', () => {
+        if (isAdmin()) {
+            refreshTrackingAnalytics();
+        }
     });
 }
