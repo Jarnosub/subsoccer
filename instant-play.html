@@ -1053,10 +1053,10 @@
                         }
                         
                         // Winner view static text
-                        if (wTitle) wTitle.innerHTML = "CARTE PRO DÉVERROUILLÉE";
-                        if (wDesc) wDesc.innerHTML = "Vous jouez actuellement en tant qu'invité. Réclamez votre classement officiel Subsoccer ELO avant de quitter la table.";
-                        if (playAgainBtn) playAgainBtn.innerHTML = '<i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NOUVEAU MATCH INVITÉS';
-                        if (endBtn) endBtn.innerHTML = "QUITTER LE MATCH";
+                        if (wTitle) wTitle.innerHTML = "";
+                        if (wDesc) wDesc.innerHTML = "";
+                        if (playAgainBtn) playAgainBtn.innerHTML = '<i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NOUVELLE PARTIE';
+                        if (endBtn) endBtn.style.display = "none";
                         
                         // Re-translate winner text if overlay is visible
                         if (wText && wText.innerHTML.includes('WINS')) {
@@ -1087,10 +1087,10 @@
                         }
                         
                         // Winner view static text
-                        if (wTitle) wTitle.innerHTML = "PRO CARD UNLOCKED";
-                        if (wDesc) wDesc.innerHTML = "You are currently playing as a Guest. Claim your official Subsoccer ELO ranking before you leave the table.";
-                        if (playAgainBtn) playAgainBtn.innerHTML = '<i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NEW GAME GUESTS';
-                        if (endBtn) endBtn.innerHTML = "EXIT MATCH";
+                        if (wTitle) wTitle.innerHTML = "";
+                        if (wDesc) wDesc.innerHTML = "";
+                        if (playAgainBtn) playAgainBtn.innerHTML = '<i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NEW GAME';
+                        if (endBtn) endBtn.style.display = "none";
                         
                         // Re-translate winner text if overlay is visible
                         if (wText && wText.innerHTML.includes('GAGNE')) {
@@ -1323,7 +1323,15 @@
                 }
             } else {
                 // Costco Logic
-                if (endBtn) endBtn.style.display = 'inline-block';
+                if (endBtn) endBtn.style.display = 'none';
+
+                // Add an idle timer to automatically reset for the next customer
+                window.costcoResetTimeout = setTimeout(() => {
+                    const params = new URLSearchParams(window.location.search);
+                    if (params.get('partner') === 'costco') {
+                        window.location.reload();
+                    }
+                }, 20000);
             }
 
             // Always start lasers, even for Costco
@@ -1337,6 +1345,14 @@
 
         // Play again
         function playAgain() {
+            if (window.costcoResetTimeout) clearTimeout(window.costcoResetTimeout);
+            
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('partner') === 'costco') {
+                window.location.reload();
+                return;
+            }
+            
             resetGame();
             document.getElementById('winner-overlay').classList.remove('show');
             stopLasers();
