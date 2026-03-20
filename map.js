@@ -92,21 +92,32 @@ export async function fetchPublicGamesMap() {
 
     const [matchesReq, trackingReq] = await Promise.all([
         _supabase.from('matches').select('game_id').gte('created_at', todayIso),
-        _supabase.from('public_tracking').select('game_code').eq('event_type', 'game_finished').gte('client_time', todayIso)
+        _supabase.from('public_tracking').select('game_code, event_type, location').gte('client_time', todayIso)
     ]);
 
     const activeGameIds = new Set();
     const activeSerials = new Set();
+    const scanLocations = new Set();
 
     if (matchesReq.data) matchesReq.data.forEach(m => { if (m.game_id) activeGameIds.add(m.game_id); });
-    if (trackingReq.data) trackingReq.data.forEach(t => { if (t.game_code && t.game_code !== 'PUBLIC-APP') activeSerials.add(t.game_code.toUpperCase()); });
+    if (trackingReq.data) {
+        trackingReq.data.forEach(t => { 
+            if (t.event_type === 'game_finished' && t.game_code && t.game_code !== 'PUBLIC-APP') {
+                activeSerials.add(t.game_code.toUpperCase()); 
+            }
+            if (t.location && t.location.includes('/')) {
+                scanLocations.add(t.location);
+            }
+        });
+    }
 
     // Store data for filtering
     state.mapData = {
         games: fetchedGames,
         tournaments: tournaments || [],
         activeGameIds,
-        activeSerials
+        activeSerials,
+        scanLocations: Array.from(scanLocations)
     };
 
     if (state.mapData.games.length > 0 || state.mapData.tournaments.length > 0) {
@@ -253,6 +264,42 @@ export function filterMap(type) {
     if (state.publicMap) {
         const center = state.publicMap.getCenter();
         updateNearestList(center.lat, center.lng);
+    }
+
+    // Render Anonymous Scans as Small Cyan Dots
+    if ((type === 'all' || type === 'verified') && state.mapData.scanLocations) {
+        state.mapData.scanLocations.forEach(async (tz) => {
+            let city = tz.split('/').pop().replace(/_/g, ' ');
+            if (!city) return;
+            
+            state.tzCache = state.tzCache || {};
+            let coords = state.tzCache[tz];
+            
+            if (!coords) {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&city=${encodeURIComponent(city)}&limit=1`);
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                        state.tzCache[tz] = coords;
+                    }
+                } catch(e) {}
+            }
+
+            if (coords && state.clusterGroup) {
+                // Determine a slight offset so multiple cities don't overlap perfectly if they share the same timezone string perfectly
+                // For timezone level granularity, it's fine.
+                const scanIcon = L.divIcon({
+                    className: `custom-div-icon`,
+                    html: `<div style='background-color:#00FFCC; width:8px; height:8px; border-radius:50%; border:1px solid #fff; box-shadow: 0 0 12px #00FFCC; animation: markerPulse 1.5s infinite;'></div>`,
+                    iconSize: [10, 10],
+                    iconAnchor: [5, 5]
+                });
+                const scanMarker = L.marker(coords, { icon: scanIcon })
+                    .bindPopup(`<div style="color:#00FFCC; font-size:0.75rem; text-align:center; font-family:'Russo One'; text-transform:uppercase;">⚡ LIVE SCAN<br><span style="color:#fff; font-size:1.1rem; line-height:1.5;">${city}</span></div>`);
+                state.clusterGroup.addLayer(scanMarker);
+            }
+        });
     }
 }
 
