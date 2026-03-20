@@ -660,8 +660,12 @@
                             </div>
                         </div>
                         
-                        <div style="overflow:auto; overscroll-behavior: contain; touch-action: pan-y pan-x; max-height:400px; border:1px solid #222; border-radius:4px;">
-                            <table style="width:100%; text-align:left; border-collapse:collapse; font-size:0.8rem;">
+                        <div 
+                            style="overflow:auto; overscroll-behavior:none; -webkit-overflow-scrolling:touch; touch-action:pan-y pan-x; max-height:400px; border:1px solid #222; border-radius:4px; width:100%;" 
+                            ontouchmove="event.stopPropagation();" 
+                            onwheel="event.stopPropagation();"
+                            onscroll="event.stopPropagation();">
+                            <table style="width:100%; min-width: 600px; text-align:left; border-collapse:collapse; font-size:0.8rem;">
                                 <thead style="background:#1a1500; font-family:'Jockey One'; color:var(--sub-gold); font-size:1rem; position:sticky; top:0; z-index:5;">
                                     <tr>
                                         <th style="padding:10px; border-bottom:1px solid #333;">Time</th>
