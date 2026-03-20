@@ -445,6 +445,62 @@ export async function refreshTrackingAnalytics() {
     }
 }
 
+export async function exportTrackingCSV() {
+    if (!isAdmin()) {
+        showNotification("Access denied: Admin privileges required.", "error");
+        return;
+    }
+
+    showLoading('Generating CSV logs...');
+    try {
+        const { data, error } = await _supabase
+            .from('public_tracking')
+            .select('*')
+            .order('client_time', { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            showNotification('No tracking data found', 'info');
+            return;
+        }
+
+        const headers = ['ID', 'Client Time', 'Event Type', 'Game Code', 'Score', 'Source Partner', 'Location', 'Is Returning', 'Language', 'Duration (s)'];
+        const csvRows = [headers.join(',')];
+
+        data.forEach(m => {
+            const row = [
+                m.id, 
+                m.client_time, 
+                m.event_type, 
+                m.game_code, 
+                m.score, 
+                m.source_partner, 
+                m.location, 
+                m.is_returning, 
+                m.browser_lang, 
+                m.session_duration
+            ];
+            csvRows.push(row.map(v => `"${v === null || v === undefined ? '' : String(v).replace(/"/g, '""')}"`).join(','));
+        });
+
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', `subsoccer_qr_analytics_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showNotification('Analytics downloaded successfully!', 'success');
+    } catch (e) {
+        showNotification('Download failed: ' + e.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
 export function setupModeratorListeners() {
     document.getElementById('btn-mod-partner-gen')?.addEventListener('click', () => {
         showPartnerLinkGenerator();
@@ -460,6 +516,9 @@ export function setupModeratorListeners() {
     });
     document.getElementById('btn-refresh-tracking')?.addEventListener('click', () => {
         refreshTrackingAnalytics();
+    });
+    document.getElementById('btn-export-tracking')?.addEventListener('click', () => {
+        exportTrackingCSV();
     });
     // Auto-load if tab is opened? We can just hook up a click event on the mod tab.
     document.getElementById('menu-item-moderator')?.addEventListener('click', () => {
