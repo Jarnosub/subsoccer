@@ -1141,32 +1141,12 @@
 
         // Enter Fullscreen and Start
         window.enterFullscreenGame = function () {
-            const elem = document.documentElement;
-
             // Hide overlay immediately to ensure game starts
             document.getElementById('actual-rules-overlay').style.display = 'none';
 
             // Scroll to hide address bar (iOS hack)
             window.scrollTo(0, 1);
 
-            // Check if we should skip fullscreen
-            const urlParams = new URLSearchParams(window.location.search);
-            const skipFullscreen = urlParams.get('nofullscreen') === 'true' || urlParams.get('partner') === 'costco' || urlParams.get('partner') === 'linkedin';
-            
-            // Try to request fullscreen
-            if (!skipFullscreen) {
-                try {
-                    if (elem.requestFullscreen) {
-                        elem.requestFullscreen().catch(err => console.log(err));
-                    } else if (elem.webkitRequestFullscreen) { /* Safari */
-                        elem.webkitRequestFullscreen();
-                    } else if (elem.msRequestFullscreen) { /* IE11 */
-                        elem.msRequestFullscreen();
-                    }
-                } catch (e) {
-                    console.log('Fullscreen not supported');
-                }
-            }
 
             // Skip auto-starting microphone to avoid immediate browser permission prompt
             // Let the user start it manually via the microphone button
