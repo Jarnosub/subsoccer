@@ -1151,8 +1151,8 @@
 
             // Check if we should skip fullscreen
             const urlParams = new URLSearchParams(window.location.search);
-            const skipFullscreen = urlParams.get('nofullscreen') === 'true' || urlParams.get('partner') === 'costco';
-
+            const skipFullscreen = urlParams.get('nofullscreen') === 'true' || urlParams.get('partner') === 'costco' || urlParams.get('partner') === 'linkedin';
+            
             // Try to request fullscreen
             if (!skipFullscreen) {
                 try {
