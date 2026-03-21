@@ -171,16 +171,30 @@ export function updateProfileCard() {
         .card-front, .card-back { padding: 0 !important; }
         
         /* 300 DPI PRINT EXPORT MODE */
-        body.print-mode-active #top-nav, body.print-mode-active .bottom-nav, body.print-mode-active .profile-header, body.print-mode-active .profile-stats-container, body.print-mode-active .flip-hint, body.print-mode-active button { display: none !important; }
-        body.print-mode-active { background: #fff !important; overflow: hidden; margin: 0; padding: 0; }
+        body.print-mode-active #top-nav, body.print-mode-active .bottom-nav, body.print-mode-active .profile-header, body.print-mode-active .profile-stats-container, body.print-mode-active button { display: none !important; }
+        body.print-mode-active { background: #fff !important; overflow: auto; margin: 0; padding: 0; }
         body.print-mode-active #profile-tab { padding: 0 !important; margin: 0 !important; }
-        body.print-mode-active #profile-card-container { position: fixed; inset: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; z-index: 99999; background: #fff; }
+        body.print-mode-active #profile-card-container { position: relative; width: 100vw; min-height: 100vh; display: flex; align-items: center; justify-content: center; z-index: 99999; background: #fff; padding: 40px; }
         
-        body.print-mode-active .pro-card { width: 354px !important; height: 474px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; box-shadow: none !important; border-radius: 0 !important; }
-        body.print-mode-active .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
+        /* UNROLL THE CARD FOR PRINTING (BOTH SIDES VISIBLE) */
+        body.print-mode-active .pro-card { width: auto !important; height: auto !important; max-width: none !important; margin: 0 !important; zoom: 1.5; box-shadow: none !important; border-radius: 0 !important; background: transparent !important; }
+        body.print-mode-active .card-flipper { position: static !important; transform: none !important; transform-style: flat !important; display: flex !important; gap: 40px !important; justify-content: center; box-shadow: none !important; }
+        body.print-mode-active .card-front, body.print-mode-active .card-back { position: relative !important; width: 354px !important; height: 474px !important; transform: none !important; backface-visibility: visible !important; border: 1px solid #ddd !important; border-radius: 0 !important; box-shadow: none !important; }
+        
+        body.print-mode-active .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; }
         body.print-mode-active .card-bleed-edge { inset: 12px !important; border: none !important; }
         body.print-mode-active .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
         body.print-mode-active .pro-stamp { top: 24px !important; left: 24px !important; }
+        
+        /* HIDE UI HINTS */
+        body.print-mode-active .flip-hint, body.print-mode-active .fa-rotate-right, body.print-mode-active .fa-rotate-left { display: none !important; }
+        
+        /* PRINT MEDIA QUERIES FOR PDF/PRINTER */
+        @media print {
+            body.print-mode-active .pro-card { zoom: 1 !important; }
+            body.print-mode-active .card-flipper { flex-direction: column !important; gap: 50px !important; page-break-inside: avoid; }
+            body.print-mode-active .card-front, body.print-mode-active .card-back { page-break-after: always; break-inside: avoid; }
+        }
     </style>
     <div class="pro-card pro-card-force-sharp ${editionClass} ${rookieClass}" style="margin:0 auto; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
         <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
