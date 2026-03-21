@@ -243,66 +243,104 @@ export async function openAdminPrintMode(username) {
     import('./player-card-ui.js').then(module => {
         if (window.closeModal) window.closeModal('generic-modal');
 
-        // Ladataan kortti modaaliin näkymättömästi tai näkyvästi
+        // Ladataan kortti modaaliin taustalla (DOM generation)
         module.viewPlayerCard(username);
 
         setTimeout(async () => {
              try {
-                const front = document.querySelector('#card-modal .card-front');
-                const back = document.querySelector('#card-modal .card-back');
+                const liveFront = document.querySelector('#card-modal .card-front');
+                const liveBack = document.querySelector('#card-modal .card-back');
                 
-                if (!front || !back) {
-                    throw new Error("Card elements not found");
-                }
+                if (!liveFront || !liveBack) throw new Error("Card elements not found");
 
-                // 1. Pura 3D-kikkailut pois ja lätkäise vierekkäin domissa, ohita selaimen rajat
-                const flipper = document.querySelector('#card-modal .card-flipper');
-                const proCard = document.querySelector('#card-modal .pro-card');
-                
-                proCard.style.width = 'auto';
-                proCard.style.height = 'auto';
-                proCard.style.margin = '0';
-                proCard.style.boxShadow = 'none';
-                proCard.style.background = 'transparent';
+                // Odota hetki jotta grafiikat ja fontit varmasti latautuvat modaalissa
+                await new Promise(r => setTimeout(r, 600));
 
-                flipper.style.transform = 'none';
-                flipper.style.transformStyle = 'flat';
-                flipper.style.display = 'flex';
-                flipper.style.gap = '50px';
-                flipper.style.boxShadow = 'none';
+                // 1. CLONE STRATEGY: Eristetään elementit täysin modaalista
+                // Html2canvas menee täysin sekaisin absolute/inset/3D elementeistä mitkä on flex-keskitetty
+                const trap = document.createElement('div');
+                trap.style.position = 'absolute';
+                trap.style.top = '0';
+                trap.style.left = '-9999px'; // Ruudun ulkopuolelle
+                trap.style.width = '354px';
+                trap.style.display = 'block';
+                document.body.appendChild(trap);
                 
-                front.style.position = 'relative'; // Must be relative so internal absolute elements don't escape!
+                const front = liveFront.cloneNode(true);
+                const back = liveBack.cloneNode(true);
+
+                // Siivotaan visuaaliset UI-roskat pysyvästi
+                front.querySelectorAll('.fa-rotate-right, .fa-rotate-left').forEach(e => {
+                    if (e.parentNode) e.parentNode.style.display = 'none';
+                });
+                back.querySelectorAll('.fa-rotate-right, .fa-rotate-left').forEach(e => {
+                    if (e.parentNode) e.parentNode.style.display = 'none';
+                });
+
+                // Apufunktio inset offset bugien korjaamiseen
+                const fixInsets = (el) => {
+                    el.querySelectorAll('.card-bleed-edge').forEach(e => { 
+                        e.style.top='0px'; e.style.left='0px'; e.style.bottom='0px'; e.style.right='0px'; e.style.inset='auto'; 
+                    });
+                    el.querySelectorAll('.card-safe-zone').forEach(z => { 
+                        z.style.top='16px'; z.style.left='16px'; z.style.bottom='16px'; z.style.right='16px'; z.style.inset='auto'; 
+                    });
+                };
+
+                // Valmistellaan ETUPUOLI litteään kaappaukseen origossa (0,0)
+                front.style.position = 'relative';
                 front.style.transform = 'none';
                 front.style.backfaceVisibility = 'visible';
                 front.style.width = '354px';
                 front.style.height = '474px';
-                
-                back.style.position = 'relative'; // Must be relative
-                back.style.transform = 'none';
-                back.style.backfaceVisibility = 'visible';
-                back.style.width = '354px';
-                back.style.height = '474px';
+                front.style.margin = '0';
+                front.style.overflow = 'hidden';
+                fixInsets(front);
 
-                // Piilota roskat
-                document.querySelectorAll('.flip-hint, .fa-rotate-right, .fa-rotate-left').forEach(e => e.style.display = 'none');
+                trap.appendChild(front);
 
-                // Odota hetki jotta grafiikat ja fontit varmasti latautuvat näkyviin layoutin hajoamisen jälkeen
-                await new Promise(r => setTimeout(r, 500));
-
-                // 2. Ota 4x yliskaalattu (yli 300 DPI) kaappaus suoraan RGB-kanvakselle!
+                // 2. Kaappaus ETUPUOLI: 4x skaalaus (suuri 300+ DPI resoluutio painoon)
                 const frontCanvas = await html2canvas(front, { 
                     scale: 4, 
                     useCORS: true, 
                     backgroundColor: null,
-                    logging: false
+                    logging: false,
+                    windowWidth: 354,
+                    windowHeight: 474
                 });
                 
+                trap.innerHTML = ''; // Tyhjennä trap
+
+                // Valmistellaan TAKAPUOLI 
+                back.style.position = 'relative';
+                back.style.transform = 'none';
+                back.style.backfaceVisibility = 'visible';
+                back.style.width = '354px';
+                back.style.height = '474px';
+                back.style.margin = '0';
+                back.style.overflow = 'hidden'; // Katkaisee ylipitkän tyhjän tilan
+                
+                // Rajoitetaan flex-listan rajaton ylikasvu kaappauksessa (joka näkyi oudoissa back prewiewissa)
+                const bb = back.querySelector('#profile-card-back-content');
+                if(bb) {
+                    bb.style.flex = 'none';
+                    bb.style.height = '290px'; // Pakota korkeus kiinteäksi
+                    bb.style.overflow = 'hidden';
+                }
+                fixInsets(back);
+                
+                trap.appendChild(back);
+
                 const backCanvas = await html2canvas(back, { 
                     scale: 4, 
                     useCORS: true, 
                     backgroundColor: '#0a0a0a',
-                    logging: false
+                    logging: false,
+                    windowWidth: 354,
+                    windowHeight: 474
                 });
+                
+                document.body.removeChild(trap); // Poista jäte
 
                 // 3. Generoi lataukset painoa varten
                 const link1 = document.createElement('a');
