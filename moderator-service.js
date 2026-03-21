@@ -214,11 +214,6 @@ export async function viewAllUsers() {
                             <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1rem;">${u.elo}</div>
                             <div style="display:flex; gap: 5px; width: 100%; justify-content: flex-end;">
                                 <button class="btn-red" 
-                                        style="font-size:0.6rem; padding:4px 8px; background:#4CAF50; color:#fff; border:none; width:auto; min-width:60px;"
-                                        onclick="openAdminPrintMode('${u.username}')">
-                                    <i class="fa fa-download"></i> HI-RES PRINT PNGs
-                                </button>
-                                <button class="btn-red" 
                                         style="font-size:0.6rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : 'var(--sub-gold)'}; color:${u.is_admin ? '#fff' : '#000'}; border:none; width:auto; min-width:80px;"
                                         onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
                                     ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
