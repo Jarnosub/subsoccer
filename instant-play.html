@@ -388,29 +388,29 @@
 
         @media (orientation: portrait) {
             .scoreboard {
-                flex-direction: column;
+                flex-direction: row;
             }
 
             .center-divider {
-                width: 100%;
-                height: 2px;
-                background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.5), transparent);
+                width: 2px;
+                height: 100%;
+                background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.5), transparent);
             }
 
             .score {
-                font-size: 7rem;
-                margin-top: 70px;
-                /* Drop the score significantly */
+                font-size: clamp(10rem, 15vw, 20rem);
+                margin-top: clamp(30px, 8vh, 80px);
             }
 
             .goals-visual {
-                margin-top: 40px;
-                /* Drop the goal circles further down */
+                font-size: clamp(2rem, 5vh, 4rem);
+                margin-top: clamp(8px, 1.5vh, 16px);
+                letter-spacing: clamp(5px, 2vw, 10px);
             }
 
             .player-label {
-                top: 45px !important;
-                /* Move label slightly up to sit nicely above the dropped score */
+                top: 30px !important;
+                font-size: clamp(1.5rem, 4vw, 2rem) !important;
             }
 
             .game-logo {
@@ -418,7 +418,6 @@
                 height: 30px !important;
             }
 
-            /* Pystyasennossa EI käännetä pelaajaa, vaan pidetään numerot luettavissa (päällekkäin) */
             .player-left {
                 transform: none;
             }
