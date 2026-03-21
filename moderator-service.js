@@ -212,11 +212,18 @@ export async function viewAllUsers() {
                         </div>
                         <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">
                             <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1rem;">${u.elo}</div>
-                            <button class="btn-red" 
-                                    style="font-size:0.6rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : 'var(--sub-gold)'}; color:${u.is_admin ? '#fff' : '#000'}; border:none; width:auto; min-width:80px;"
-                                    onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
-                                ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
-                            </button>
+                            <div style="display:flex; gap: 5px; width: 100%; justify-content: flex-end;">
+                                <button class="btn-red" 
+                                        style="font-size:0.6rem; padding:4px 8px; background:#4CAF50; color:#fff; border:none; width:auto; min-width:60px;"
+                                        onclick="openAdminPrintMode('${u.username}')">
+                                    <i class="fa fa-download"></i> HI-RES PRINT PNGs
+                                </button>
+                                <button class="btn-red" 
+                                        style="font-size:0.6rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : 'var(--sub-gold)'}; color:${u.is_admin ? '#fff' : '#000'}; border:none; width:auto; min-width:80px;"
+                                        onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
+                                    ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `).join('')}
@@ -232,32 +239,93 @@ export async function viewAllUsers() {
 }
 
 export async function openAdminPrintMode(username) {
+    showLoading('Generating 300 DPI HI-RES Origins...');
     import('./player-card-ui.js').then(module => {
         if (window.closeModal) window.closeModal('generic-modal');
 
+        // Ladataan kortti modaaliin näkymättömästi tai näkyvästi
         module.viewPlayerCard(username);
 
-        setTimeout(() => {
-            document.body.classList.add('print-mode-active');
-            
-            if (!document.getElementById('admin-print-style')) {
-                const s = document.createElement('style');
-                s.id = 'admin-print-style';
-                s.innerHTML = `
-                    body.print-mode-active .modal-overlay:not(#card-modal) { display: none !important; }
-                    body.print-mode-active #card-modal { background: #fff !important; z-index: 999999 !important; display: flex !important; align-items: center; justify-content: center; }
-                    body.print-mode-active #card-modal .modal-content { width: 100vw !important; height: 100vh !important; max-width: none !important; max-height: none !important; border-radius: 0 !important; margin: 0 !important; background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; display: flex !important; flex-direction: column; justify-content: center; align-items: center; }
-                    body.print-mode-active #card-modal .modal-header, body.print-mode-active #card-modal .btn-close, body.print-mode-active #card-modal button { display: none !important; }
-                    body.print-mode-active #card-modal .modal-body { flex: none; overflow: visible; display: flex; justify-content: center; height: 100%; align-items: center; width: 100%; }
-                    body.print-mode-active .pro-card { width: 354px !important; height: 474px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; position: static !important; transform: none !important; }
-                    body.print-mode-active .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
-                    body.print-mode-active .card-bleed-edge { inset: 12px !important; border: none !important; }
-                    body.print-mode-active .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
-                    body.print-mode-active .pro-stamp { top: 24px !important; left: 24px !important; }
-                `;
-                document.head.appendChild(s);
-            }
-        }, 800);
+        setTimeout(async () => {
+             try {
+                const front = document.querySelector('#card-modal .card-front');
+                const back = document.querySelector('#card-modal .card-back');
+                
+                if (!front || !back) {
+                    throw new Error("Card elements not found");
+                }
+
+                // 1. Pura 3D-kikkailut pois ja lätkäise vierekkäin domissa, ohita selaimen rajat
+                const flipper = document.querySelector('#card-modal .card-flipper');
+                const proCard = document.querySelector('#card-modal .pro-card');
+                
+                proCard.style.width = 'auto';
+                proCard.style.height = 'auto';
+                proCard.style.margin = '0';
+                proCard.style.boxShadow = 'none';
+                proCard.style.background = 'transparent';
+
+                flipper.style.transform = 'none';
+                flipper.style.transformStyle = 'flat';
+                flipper.style.display = 'flex';
+                flipper.style.gap = '50px';
+                flipper.style.boxShadow = 'none';
+                
+                front.style.position = 'static';
+                front.style.transform = 'none';
+                front.style.backfaceVisibility = 'visible';
+                front.style.width = '354px';
+                front.style.height = '474px';
+                
+                back.style.position = 'static';
+                back.style.transform = 'none';
+                back.style.backfaceVisibility = 'visible';
+                back.style.width = '354px';
+                back.style.height = '474px';
+
+                // Piilota roskat
+                document.querySelectorAll('.flip-hint, .fa-rotate-right, .fa-rotate-left').forEach(e => e.style.display = 'none');
+
+                // Odota hetki jotta grafiikat ja fontit varmasti latautuvat näkyviin layoutin hajoamisen jälkeen
+                await new Promise(r => setTimeout(r, 500));
+
+                // 2. Ota 4x yliskaalattu (yli 300 DPI) kaappaus suoraan RGB-kanvakselle!
+                const frontCanvas = await html2canvas(front, { 
+                    scale: 4, 
+                    useCORS: true, 
+                    backgroundColor: null,
+                    logging: false
+                });
+                
+                const backCanvas = await html2canvas(back, { 
+                    scale: 4, 
+                    useCORS: true, 
+                    backgroundColor: '#0a0a0a',
+                    logging: false
+                });
+
+                // 3. Generoi lataukset painoa varten
+                const link1 = document.createElement('a');
+                link1.download = `SUBSOCCER_PRO_CARD_${username}_FRONT_PRINT.png`;
+                link1.href = frontCanvas.toDataURL('image/png');
+                link1.click();
+                
+                setTimeout(() => {
+                    const link2 = document.createElement('a');
+                    link2.download = `SUBSOCCER_PRO_CARD_${username}_BACK_PRINT.png`;
+                    link2.href = backCanvas.toDataURL('image/png');
+                    link2.click();
+                    
+                    showNotification('Hi-Res Print Originals Downloaded!', 'success');
+                    hideLoading();
+                }, 800);
+
+             } catch(err) {
+                 console.error("Print generation failed:", err);
+                 showNotification("Failed to generate prints", "error");
+                 hideLoading();
+             }
+        }, 1200); // Allow time for DB fetch of tournament histories
     });
 }
 window.openAdminPrintMode = openAdminPrintMode;
