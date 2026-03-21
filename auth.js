@@ -189,8 +189,10 @@ export async function handleSignUp() {
     const u = document.getElementById('reg-user').value.replace(/\s+/g, ' ').trim().toUpperCase();
     const email = document.getElementById('reg-email')?.value.trim();
     const p = document.getElementById('reg-pass').value.trim();
+    const gdpr = document.getElementById('reg-gdpr-consent');
 
     if (!u || !p || !email) return showNotification("Fill all fields including email", "error");
+    if (gdpr && !gdpr.checked) return showNotification("You must accept the Terms & Privacy Policy to register.", "error");
 
     // Tarkistetaan onko nimi jo varattu (huomioidaan eri välilyönnit)
     let { data: matches } = await _supabase.from('players').select('*').ilike('username', u);
