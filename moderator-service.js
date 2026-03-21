@@ -239,11 +239,11 @@ export async function viewAllUsers() {
 }
 
 export async function openAdminPrintMode(username) {
-    showLoading('Generating 300 DPI HI-RES Origins...');
+    showLoading('Generating 300+ DPI Origials...');
     import('./player-card-ui.js').then(module => {
         if (window.closeModal) window.closeModal('generic-modal');
 
-        // Ladataan kortti modaaliin taustalla (DOM generation)
+        // Ladataan kortti modaaliin, mutta ei rikota sitä visuaalisesti!
         module.viewPlayerCard(username);
 
         setTimeout(async () => {
@@ -253,15 +253,15 @@ export async function openAdminPrintMode(username) {
                 
                 if (!liveFront || !liveBack) throw new Error("Card elements not found");
 
-                // Odota hetki jotta grafiikat ja fontit varmasti latautuvat modaalissa
+                // Odota graafikoiden ja fonttien latausta
                 await new Promise(r => setTimeout(r, 600));
 
-                // 1. CLONE STRATEGY: Eristetään elementit täysin modaalista
-                // Html2canvas menee täysin sekaisin absolute/inset/3D elementeistä mitkä on flex-keskitetty
+                // 1. CLONE STRATEGY: Eristetään kaappaus kokonaan ruudulta
+                // Pidetään alkuperäinen modaali ehjänä, ettei käyttäjän UI hajoa.
                 const trap = document.createElement('div');
-                trap.style.position = 'fixed';
-                trap.style.top = '0px';
-                trap.style.left = '0px'; // Pakko olla nollassa (0,0), koska html2canvas offset-bugin takia -9999px aiheuttaa massiivisen tyhjän puskurin tulostiedostoon!
+                trap.style.position = 'absolute'; // ABSOLUTE on oikein, yhdistettynä top: 0 koodiin
+                trap.style.top = '0px'; // Pakotetaan DOkumentin yläreunaan, ei viewportin, välttääksemme scroll offsetit!
+                trap.style.left = '0px'; 
                 trap.style.zIndex = '-9999'; // Piiloon muun sisällön taakse
                 trap.style.width = '354px';
                 trap.style.display = 'block';
@@ -270,11 +270,11 @@ export async function openAdminPrintMode(username) {
                 const front = liveFront.cloneNode(true);
                 const back = liveBack.cloneNode(true);
 
-                // Siivotaan visuaaliset UI-roskat pysyvästi
-                front.querySelectorAll('.fa-rotate-right, .fa-rotate-left').forEach(e => {
+                // Siivotaan kääntönapit klooneista
+                front.querySelectorAll('.fa-rotate-right, .fa-rotate-left, .flip-hint').forEach(e => {
                     if (e.parentNode) e.parentNode.style.display = 'none';
                 });
-                back.querySelectorAll('.fa-rotate-right, .fa-rotate-left').forEach(e => {
+                back.querySelectorAll('.fa-rotate-right, .fa-rotate-left, .flip-hint').forEach(e => {
                     if (e.parentNode) e.parentNode.style.display = 'none';
                 });
 
@@ -288,7 +288,7 @@ export async function openAdminPrintMode(username) {
                     });
                 };
 
-                // Valmistellaan ETUPUOLI litteään kaappaukseen origossa (0,0)
+                // Valmistellaan ETUPUOLI suoraan (0,0) origoon
                 front.style.position = 'relative';
                 front.style.transform = 'none';
                 front.style.backfaceVisibility = 'visible';
@@ -300,19 +300,22 @@ export async function openAdminPrintMode(username) {
 
                 trap.appendChild(front);
 
-                // 2. Kaappaus ETUPUOLI: 4x skaalaus (suuri 300+ DPI resoluutio painoon)
-                const frontCanvas = await html2canvas(front, { 
+                // KORJAUS: Nollataan html2canvas mahdolliset offset/scroll -bugit täysin 
+                const canvasOpts = {
                     scale: 4, 
                     useCORS: true, 
-                    backgroundColor: null,
                     logging: false,
+                    x: 0,
+                    y: 0,
+                    scrollX: 0,
+                    scrollY: 0,
                     width: 354,
-                    height: 474,
-                    windowWidth: 354,
-                    windowHeight: 474
-                });
-                
-                trap.innerHTML = ''; // Tyhjennä trap
+                    height: 474
+                };
+
+                // 2. Kaappaus ETUPUOLI
+                const frontCanvas = await html2canvas(front, { ...canvasOpts, backgroundColor: null });
+                trap.innerHTML = ''; // Tyhjennä 
 
                 // Valmistellaan TAKAPUOLI 
                 back.style.position = 'relative';
@@ -323,7 +326,7 @@ export async function openAdminPrintMode(username) {
                 back.style.margin = '0';
                 back.style.overflow = 'hidden'; // Katkaisee ylipitkän tyhjän tilan
                 
-                // Rajoitetaan flex-listan rajaton ylikasvu kaappauksessa (joka näkyi oudoissa back prewiewissa)
+                // Rajoitetaan lista
                 const bb = back.querySelector('#profile-card-back-content');
                 if(bb) {
                     bb.style.flex = 'none';
@@ -334,20 +337,11 @@ export async function openAdminPrintMode(username) {
                 
                 trap.appendChild(back);
 
-                const backCanvas = await html2canvas(back, { 
-                    scale: 4, 
-                    useCORS: true, 
-                    backgroundColor: '#0a0a0a',
-                    logging: false,
-                    width: 354,
-                    height: 474,
-                    windowWidth: 354,
-                    windowHeight: 474
-                });
-                
-                document.body.removeChild(trap); // Poista jäte
+                // Kaappaus TAKAPUOLI
+                const backCanvas = await html2canvas(back, { ...canvasOpts, backgroundColor: '#0a0a0a' });
+                document.body.removeChild(trap); 
 
-                // 3. Generoi lataukset painoa varten
+                // 3. Lataukset
                 const link1 = document.createElement('a');
                 link1.download = `SUBSOCCER_PRO_CARD_${username}_FRONT_PRINT.png`;
                 link1.href = frontCanvas.toDataURL('image/png');
@@ -368,7 +362,7 @@ export async function openAdminPrintMode(username) {
                  showNotification("Failed to generate prints", "error");
                  hideLoading();
              }
-        }, 1200); // Allow time for DB fetch of tournament histories
+        }, 1200); 
     });
 }
 window.openAdminPrintMode = openAdminPrintMode;
