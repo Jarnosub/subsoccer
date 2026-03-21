@@ -351,7 +351,7 @@ function updateNearestList(lat, lng) {
                     <div style="font-family:'Russo One'; color:${titleColor}; font-size:0.95rem; margin-bottom:3px; text-transform:uppercase;">
                         ${badge}${g.game_name}
                     </div>
-                    <div style="font-size:0.75rem; color:var(--sub-red); opacity:0.9;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${g.location}</div>
+                    <div style="font-size:0.75rem; color:#ffffff; opacity:0.9;"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:var(--sub-red);"></i>${g.location}</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:0.8rem; font-weight:bold; color:#ccc; margin-bottom:3px;">${distDisplay}</div>
