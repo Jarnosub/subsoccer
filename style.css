@@ -2379,7 +2379,7 @@ body.live-mode {
 .rules-header {
     font-family: 'Resolve', sans-serif;
     font-size: 2.5rem;
-    color: var(--sub-gold);
+    color: #ffffff;
     margin-bottom: 30px;
     text-transform: uppercase;
     letter-spacing: 2px;
