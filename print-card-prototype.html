@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer Card Architecture Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jockey+One&family=Open+Sans:wght@400;700&family=Russo+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --sub-gold: #D4AF37;
+            --sub-red: #E30613;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            font-family: 'Open Sans', sans-serif;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .controls {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #222;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Russo One', sans-serif;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+        button:hover { background: var(--sub-red); }
+        button.active { background: var(--sub-gold); color: #000; }
+
+        /* =========================================================================
+           1. FLAT, PURE 2D ARCHITECTURE (Default State & Print State)
+           ========================================================================= */
+        .card-container {
+            display: flex;
+            flex-direction: row;
+            gap: 40px;
+            justify-content: center;
+            align-items: flex-start;
+            max-width: 900px;
+            perspective: 1000px; /* Ready for 3D */
+            transition: all 0.5s ease;
+        }
+
+        /* Common properties for both sides */
+        .card-side {
+            width: 320px;
+            height: 450px;
+            position: relative; /* Static side-by-side mode */
+            border-radius: 12px; /* Can be 0 for print */
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid #ddd;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* Print colors explicitly forced */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* FRONT DESIGN */
+        .card-front {
+            background: #0a0a0a;
+            background-image: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px), linear-gradient(135deg, #111, #000);
+            background-size: 8px 8px, 100% 100%;
+        }
+        
+        /* INNER SAFE ZONE BORDERS */
+        .safe-zone {
+            position: absolute;
+            inset: 12px;
+            border: 1px solid #555;
+            display: flex;
+            flex-direction: column;
+            background: #111;
+        }
+
+        .avatar-area {
+            height: 65%;
+            background: #222;
+            border-bottom: 2px solid var(--sub-red);
+            position: relative;
+            background-image: url('placeholder-silhouette-5-wide.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .nameplate {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px 10px 10px 10px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            color: #fff;
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.6rem;
+            text-transform: uppercase;
+        }
+
+        .stats-area {
+            height: 35%;
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #fff;
+            background: #1a1a1a;
+        }
+
+        /* BACK DESIGN */
+        .card-back {
+            background-color: #0a0a0a;
+            background-image: radial-gradient(circle at center, #2a0000 0%, #000 100%);
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #fff;
+        }
+        
+        .dossier-header {
+            text-align: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .dossier-header h4 {
+            color: var(--sub-gold);
+            font-family: 'Russo One', sans-serif;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        /* =========================================================================
+           2. THE "SPINNY CONTRAPTION" LAYER (Progressive Enhancement)
+           ========================================================================= */
+        .card-container.interactive-3d {
+            /* Transform the wrapper into a 3D stage */
+            width: 320px;
+            height: 450px;
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card-container.interactive-3d .card-side {
+            /* Stack them absolutely on top of each other */
+            position: absolute;
+            top: 0;
+            left: 0;
+            margin: 0;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            backface-visibility: hidden; /* Hide the back of each side */
+        }
+
+        /* The back side rests initially rotated 180deg */
+        .card-container.interactive-3d .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Actively flipped state */
+        .card-container.interactive-3d.flipped {
+            transform: rotateY(180deg) scale(1.05); /* Entire container rotates */
+        }
+
+
+        /* =========================================================================
+           3. BULLETPROOF PRINTING (Bypasses 3D state automatically)
+           ========================================================================= */
+        @media print {
+            body { background: #fff !important; padding: 0; margin: 0; }
+            .controls { display: none !important; }
+            
+            /* Strip 3D enhancement entirely to ensure side-by-side or stacked simple blocks */
+            .card-container {
+                display: flex !important;
+                flex-direction: row !important; /* or column depending on page fit */
+                gap: 20px !important;
+                width: 100% !important;
+                height: auto !important;
+                position: static !important;
+                transform: none !important;
+                transform-style: flat !important;
+            }
+            .card-side {
+                position: relative !important;
+                transform: none !important;
+                backface-visibility: visible !important;
+                border-radius: 0 !important; /* Sharp edges for printing cuts */
+                box-shadow: none !important; /* No shadows on print */
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button id="btn-3d" onclick="toggle3D()">ENABLE 3D FLIP MODE</button>
+        <button onclick="window.print()" style="background: #2196F3;">PRINT DOSSIER (PDF)</button>
+    </div>
+
+    <!-- SEMANTIC, FLAT FOUNDATION -->
+    <div id="demo-card" class="card-container">
+        
+        <!-- SIDE 1: FRONT -->
+        <div class="card-side card-front">
+            <div class="safe-zone">
+                <div style="position:absolute; top:10px; right:10px; color:#444; font-weight:bold; font-size:0.6rem; z-index:10;">NO. 1</div>
+                <div class="avatar-area">
+                    <div class="nameplate">AXEL</div>
+                </div>
+                <div class="stats-area">
+                    <div style="font-size:0.6rem; color:#888; font-weight:bold;">GLOBAL RANKING</div>
+                    <div style="font-family:'Russo One'; font-size:1.5rem; color:#fff;">1750</div>
+                    <div style="border-top:1px solid #333; margin-top:10px; padding-top:10px; display:flex; justify-content:space-between;">
+                        <div>
+                            <div style="font-size:0.5rem; color:#888;">WINS</div>
+                            <div style="font-family:'Russo One'; font-size:1rem;">125</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.5rem; color:#888;">LOSSES</div>
+                            <div style="font-family:'Russo One'; font-size:1rem;">18</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDE 2: BACK -->
+        <div class="card-side card-back">
+            <div class="dossier-header">
+                <h4>PLAYER DOSSIER</h4>
+                <div style="font-size:0.8rem; color:#888; margin-top:5px;">AXEL</div>
+            </div>
+            
+            <div style="text-align:center; padding: 20px 0;">
+                <div style="font-size:0.7rem; color:#888; letter-spacing:2px;">CURRENT STATUS</div>
+                <div style="font-family:'Russo One'; color:var(--sub-gold); font-size:1.8rem; letter-spacing:3px;">PRO</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; border:1px solid #333; text-align:center;">
+                    <div style="font-family:'Russo One'; font-size:1.5rem; color:#fff;">12</div>
+                    <div style="font-size:0.6rem; color:#888;">TOURNAMENT VIS</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; border:1px solid #333; text-align:center;">
+                    <div style="font-family:'Russo One'; font-size:1.5rem; color:#fff;">35</div>
+                    <div style="font-size:0.6rem; color:#888;">PODIUMS</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const container = document.getElementById('demo-card');
+        const btn = document.getElementById('btn-3d');
+
+        function toggle3D() {
+            container.classList.toggle('interactive-3d');
+            
+            if (container.classList.contains('interactive-3d')) {
+                btn.classList.add('active');
+                btn.innerText = 'DISABLE 3D (FLAT MODE)';
+            } else {
+                btn.classList.remove('active');
+                btn.innerText = 'ENABLE 3D FLIP MODE';
+                container.classList.remove('flipped'); // Reset flip if returning to flat
+            }
+        }
+
+        // Tap to flip functionality (only works when interactive 3D is active)
+        container.addEventListener('click', () => {
+            if (container.classList.contains('interactive-3d')) {
+                container.classList.toggle('flipped');
+            }
+        });
+    </script>
+</body>
+</html>
