@@ -1083,9 +1083,8 @@ button {
     left: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    background: var(--sub-surface) !important;
-    backdrop-filter: blur(25px) !important;
-    -webkit-backdrop-filter: blur(25px) !important;
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.9)), url('card-stadium.jpg') no-repeat center center !important;
+    background-size: cover !important;
     z-index: 100000000 !important;
     /* Korkein mahdollinen taso */
     display: none;
