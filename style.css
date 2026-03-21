@@ -1392,11 +1392,12 @@ select.dark-select {
 
 .pro-player-name {
     font-family: 'SubsoccerLogo', sans-serif;
-    font-size: 1.2rem;
-    color: #666;
+    font-size: 2rem;
+    color: #ffffff;
     position: absolute;
     top: 30px;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .pro-score {
