@@ -425,6 +425,16 @@
             .player-left.goal-flash {
                 animation: goalFlash 0.5s ease-in-out;
             }
+
+            #table-id-display {
+                top: 50% !important;
+                left: 50% !important;
+                bottom: auto !important; /* This prevents the previous stretch bug */
+                transform: translate(-50%, -50%) !important;
+                font-size: 0.7rem !important;
+                padding: 4px 10px !important;
+                z-index: 50 !important;
+            }
         }
 
         /* Landscape optimization for mobile screens */
