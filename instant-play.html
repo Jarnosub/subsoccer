@@ -97,8 +97,8 @@
         .score {
             font-family: 'Subsoccer', sans-serif;
             font-size: 10rem;
-            color: var(--sub-gold);
-            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            color: #ffffff;
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
             line-height: 1;
         }
 
@@ -117,7 +117,7 @@
             }
 
             50% {
-                background: var(--sub-gold);
+                background: #ffffff;
                 transform: scale(1.05);
             }
 
@@ -135,7 +135,7 @@
             }
 
             50% {
-                background: var(--sub-gold);
+                background: #ffffff;
                 transform: rotate(180deg) scale(1.05);
             }
 
@@ -149,12 +149,12 @@
             animation: goalFlash 0.5s ease-in-out;
         }
 
-        /* Center divider - Golden gradient */
+        /* Center divider - Subsoccer style */
         .center-divider {
             width: 2px;
             height: 100%;
-            background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
-            box-shadow: 0 0 20px var(--sub-gold);
+            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.5), transparent);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         }
 
         /* New Control Bar Styles */
@@ -392,7 +392,7 @@
             .center-divider {
                 width: 100%;
                 height: 2px;
-                background: linear-gradient(to right, transparent, var(--sub-gold), transparent);
+                background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.5), transparent);
             }
 
             .score {
