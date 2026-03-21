@@ -1406,11 +1406,12 @@ select.dark-select {
     color: #ffffff;
     text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
     line-height: 1;
+    margin-top: clamp(30px, 8vh, 80px); /* Push the whole block downwards */
 }
 
 .pro-goals-visual {
     font-size: clamp(2rem, 5vh, 4rem);
-    margin-top: clamp(16px, 3.2vh, 32px);
+    margin-top: clamp(8px, 1.5vh, 16px); /* Very tight gap to the score */
     letter-spacing: clamp(10px, 2vw, 20px);
 }
 
