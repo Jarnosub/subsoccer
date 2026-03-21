@@ -212,18 +212,11 @@ export async function viewAllUsers() {
                         </div>
                         <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">
                             <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1rem;">${u.elo}</div>
-                            <div style="display:flex; gap: 5px; width: 100%; justify-content: flex-end;">
-                                <button class="btn-red" 
-                                        style="font-size:0.6rem; padding:4px 8px; background:#4CAF50; color:#fff; border:none; width:auto; min-width:60px;"
-                                        onclick="openAdminPrintMode('${u.username}')">
-                                    <i class="fa fa-print"></i> PRINT
-                                </button>
-                                <button class="btn-red" 
-                                        style="font-size:0.6rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : 'var(--sub-gold)'}; color:${u.is_admin ? '#fff' : '#000'}; border:none; width:auto; min-width:80px;"
-                                        onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
-                                    ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
-                                </button>
-                            </div>
+                            <button class="btn-red" 
+                                    style="font-size:0.6rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : 'var(--sub-gold)'}; color:${u.is_admin ? '#fff' : '#000'}; border:none; width:auto; min-width:80px;"
+                                    onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
+                                ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
+                            </button>
                         </div>
                     </div>
                 `).join('')}
@@ -252,52 +245,18 @@ export async function openAdminPrintMode(username) {
                 s.id = 'admin-print-style';
                 s.innerHTML = `
                     body.print-mode-active .modal-overlay:not(#card-modal) { display: none !important; }
-                    body.print-mode-active #card-modal { background: #fff !important; z-index: 999999 !important; display: flex !important; align-items: flex-start; justify-content: center; overflow: auto !important;}
-                    body.print-mode-active #card-modal .modal-content { width: 100vw !important; min-height: 100vh !important; max-width: none !important; max-height: none !important; border-radius: 0 !important; margin: 0 !important; background: #fff !important; border: none !important; box-shadow: none !important; padding: 40px !important; display: flex !important; flex-direction: column; justify-content: flex-start; align-items: center; }
+                    body.print-mode-active #card-modal { background: #fff !important; z-index: 999999 !important; display: flex !important; align-items: center; justify-content: center; }
+                    body.print-mode-active #card-modal .modal-content { width: 100vw !important; height: 100vh !important; max-width: none !important; max-height: none !important; border-radius: 0 !important; margin: 0 !important; background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; display: flex !important; flex-direction: column; justify-content: center; align-items: center; }
                     body.print-mode-active #card-modal .modal-header, body.print-mode-active #card-modal .btn-close, body.print-mode-active #card-modal button { display: none !important; }
-                    body.print-mode-active #card-modal .modal-body { flex: none; overflow: visible; display: flex; justify-content: center; align-items: flex-start; width: 100%; }
-                    
-                    /* UNROLL THE CARD FOR PRINTING (BOTH SIDES VISIBLE) */
-                    body.print-mode-active .pro-card { width: auto !important; height: auto !important; max-width: none !important; margin: 0 !important; zoom: 1.5; box-shadow: none !important; border-radius: 0 !important; background: transparent !important; }
-                    body.print-mode-active .card-flipper { position: static !important; transform: none !important; transform-style: flat !important; display: flex !important; flex-direction: row !important; gap: 40px !important; justify-content: center; box-shadow: none !important; }
-                    body.print-mode-active .card-front, body.print-mode-active .card-back { position: relative !important; width: 354px !important; height: 474px !important; transform: none !important; backface-visibility: visible !important; border: 1px solid #ddd !important; border-radius: 0 !important; box-shadow: none !important; }
-                    
-                    body.print-mode-active .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; }
+                    body.print-mode-active #card-modal .modal-body { flex: none; overflow: visible; display: flex; justify-content: center; height: 100%; align-items: center; width: 100%; }
+                    body.print-mode-active .pro-card { width: 354px !important; height: 474px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; position: static !important; transform: none !important; }
+                    body.print-mode-active .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
                     body.print-mode-active .card-bleed-edge { inset: 12px !important; border: none !important; }
                     body.print-mode-active .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
                     body.print-mode-active .pro-stamp { top: 24px !important; left: 24px !important; }
-                    
-                    /* EXIT BUTTON JUST FOR THE SCREEN */
-                    #exit-print-btn { display: block !important; position: fixed; top: 20px; right: 20px; padding: 10px 20px; background: #E30613; color: white; border: none; border-radius: 4px; font-family: 'Russo One'; cursor: pointer; z-index: 1000000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-                    @media print { 
-                        #exit-print-btn { display: none !important; }
-                        body.print-mode-active .pro-card { zoom: 1 !important; }
-                        body.print-mode-active .card-flipper { flex-direction: column !important; gap: 40px !important; break-inside: avoid; page-break-inside: avoid; }
-                        body.print-mode-active .card-front, body.print-mode-active .card-back { page-break-after: always; break-inside: avoid; }
-                    }
                 `;
                 document.head.appendChild(s);
             }
-
-            // Create Exit button
-            let exitBtn = document.getElementById('exit-print-btn');
-            if (!exitBtn) {
-                exitBtn = document.createElement('button');
-                exitBtn.id = 'exit-print-btn';
-                exitBtn.innerHTML = 'CLOSE PRINT MODE';
-                exitBtn.onclick = () => {
-                    document.body.classList.remove('print-mode-active');
-                    if (window.closeModal) window.closeModal('card-modal');
-                    exitBtn.remove();
-                };
-                document.body.appendChild(exitBtn);
-            }
-            
-            // Auto open print dialog when rendering is completed
-            setTimeout(() => {
-                window.print();
-            }, 1000);
-
         }, 800);
     });
 }
