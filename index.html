@@ -384,7 +384,10 @@
     <!-- Navigation Tabs (Moved above app-content for desktop stability) -->
     <div class="nav-tabs" id="nav-tabs" style="display:none;">
         <div class="tab" id="tab-tournament" data-page="tournament">
-            <i class="fa-solid fa-gamepad"></i>
+            <svg viewBox="0 0 330.94 241.09" fill="currentColor" style="height: 22px; width: auto; display: block; margin: 0 auto; transition: transform 0.2s ease;">
+                <path d="M183.79,98.33c-7.64,0-13.85,6.35-13.85,14.15s6.21,14.15,13.85,14.15,13.85-6.35,13.85-14.15-6.21-14.15-13.85-14.15"/>
+                <path d="M283.37,68.63h-41.21v-21.11c0-12.9-10.48-23.36-23.4-23.36h-106.59c-12.92,0-23.4,10.46-23.4,23.36v21.11h-41.22c-12.92,0-23.4,10.46-23.4,23.36v34.64h23.65v-34.97h41.4v34.97h23.73V47.19h105.07v79.44h23.65v-34.97h41.47v34.97h23.65v-34.64c0-12.9-10.48-23.36-23.4-23.36"/>
+            </svg>
             <span style="font-size:0.65rem; margin-top:2px;">PLAY</span>
         </div>
         <div class="tab" id="tab-map" data-page="map">
@@ -1114,8 +1117,8 @@
             <i class="fa-solid fa-xmark"></i>
         </button>
 
-        <!-- Bottom Control Bar -->
-        <div class="pro-controls-bar">
+        <!-- Bottom Control Bar (Disabled) -->
+        <div class="pro-controls-bar" style="display: none !important;">
             <button id="btn-pro-undo" class="pro-control-btn" title="Undo Last Goal"><i
                     class="fa-solid fa-rotate-left"></i></button>
             <button id="btn-pro-reset" class="pro-control-btn" title="Reset Match"><i
