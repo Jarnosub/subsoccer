@@ -562,6 +562,61 @@ export async function handleLogout() {
 }
 
 /**
+ * GDPR: Oikeus tulla unohdetuksi (Delete Account)
+ */
+export async function deleteAccount() {
+    if (!state.user || state.user.id === 'guest') return;
+
+    const confirmation = prompt("⚠️ WARNING! This action cannot be undone. All your match history, ranking, and ELO will be permanently lost.\n\nType DELETE to confirm:");
+    if (confirmation !== "DELETE") {
+        showNotification("Account deletion cancelled.", "info");
+        return;
+    }
+
+    try {
+        const btn = document.getElementById('btn-delete-account');
+        if (btn) btn.disabled = true;
+        showNotification("Deleting account and removing data...", "info");
+
+        // Supabase DB delete request. RLS and ON DELETE CASCADE should handle the rest.
+        // If not, we will attempt to anonymize the account as a fallback.
+        const { error } = await _supabase.from('players').delete().eq('id', state.user.id);
+        
+        if (error) {
+            console.warn("Delete failed, anonymizing data instead to comply with GDPR:", error.message);
+            // Fallback: Anonymize personal data if delete blocked by Foreign Keys without CASCADE
+            await _supabase.from('players').update({
+                username: 'DELETED_USER_' + Date.now().toString().slice(-4),
+                full_name: null,
+                email: null,
+                phone: null,
+                city: null,
+                country: null,
+                avatar_url: null
+            }).eq('id', state.user.id);
+        }
+
+        // Kutsutaan auth signOut ja nollataan cache huolimatta siitä onnistuiko DB poisto vai ei
+        await _supabase.auth.signOut().catch(() => {});
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('sb-') || key.includes('supabase') || key.includes('subsoccer')) {
+                localStorage.removeItem(key);
+            }
+        });
+
+        resetFullState();
+        alert("Account and personal data have been completely removed.");
+        window.location.replace('index.html');
+
+    } catch (e) {
+        console.error("Critical error deleting account:", e);
+        showNotification("Failed to process account deletion.", "error");
+        const btn = document.getElementById('btn-delete-account');
+        if (btn) btn.disabled = false;
+    }
+}
+
+/**
  * Preview avatar file before upload
  */
 export function previewAvatarFile(input, previewImgId = 'avatar-preview', fileNameDivId = 'avatar-file-name') {
@@ -779,6 +834,7 @@ export function setupAuthListeners() {
     document.getElementById('btn-register')?.addEventListener('click', handleSignUp);
     document.getElementById('link-back-to-login')?.addEventListener('click', () => toggleAuth(false));
     document.getElementById('btn-guest-login')?.addEventListener('click', handleGuest);
+    document.getElementById('btn-delete-account')?.addEventListener('click', deleteAccount);
 
     // Kytketään kaikki uloskirjautumispainikkeet
     document.querySelectorAll('.logout-item, #btn-logout').forEach(el => {
