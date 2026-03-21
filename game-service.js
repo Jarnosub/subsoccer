@@ -88,7 +88,7 @@ export function initEditGame(id) {
         setTimeout(() => {
             // Try to init map if missing
             if (!state.gameMap && typeof window.initGameMap === 'function') {
-                try { window.initGameMap(); } catch (e) { /* log */ }
+                try { window.initGameMap(); } catch (e) { console.warn("Map auto-init failed", e); }
             }
 
             if (state.gameMap) {

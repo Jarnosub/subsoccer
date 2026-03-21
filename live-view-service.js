@@ -381,6 +381,7 @@ function renderLiveBracketHtml(t) {
                     matchesInRound = finalMatch ? [finalMatch] : [];
                 }
             } catch (e) {
+                console.warn("Error filtering final round:", e);
             }
         }
 
@@ -696,6 +697,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                         </div>
                     `;
         } catch (err) {
+            console.warn("Skipping broken tournament in Live View:", t.id, err);
             return '';
         }
     }).join('')}

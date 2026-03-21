@@ -320,7 +320,7 @@ async function uploadEventImage(file, optimize = false) {
             fileToUpload = await compressImage(file);
             fileExt = 'jpg';
         } catch (e) {
-
+            console.warn('Image compression failed, uploading original:', e);
         }
     }
     const fileName = `${state.user.id}-${Date.now()}.${fileExt}`;
