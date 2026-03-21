@@ -1410,7 +1410,7 @@ select.dark-select {
 
 .pro-goals-visual {
     font-size: clamp(2rem, 5vh, 4rem);
-    margin-top: clamp(20px, 4vh, 40px);
+    margin-top: clamp(16px, 3.2vh, 32px);
     letter-spacing: clamp(10px, 2vw, 20px);
 }
 
