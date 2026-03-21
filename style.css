@@ -235,7 +235,7 @@ header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     font-family: 'Resolve', sans-serif;
     font-size: 1.2rem;
-    color: var(--sub-gold);
+    color: #ffffff;
     letter-spacing: 3px;
     text-transform: uppercase;
 }
@@ -266,13 +266,13 @@ header {
     font-size: 1.2rem;
     width: 24px;
     text-align: center;
-    color: var(--sub-gold);
+    color: var(--sub-red);
     opacity: 0.8;
 }
 
 .menu-item:hover {
-    background: rgba(255, 215, 0, 0.1);
-    border-color: rgba(255, 215, 0, 0.3);
+    background: rgba(227, 6, 19, 0.1);
+    border-color: rgba(227, 6, 19, 0.3);
     color: #fff;
     transform: translateX(-5px);
     /* Pieni liike vasemmalle houkuttelee */

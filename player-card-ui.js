@@ -296,7 +296,7 @@ export function showCardShop() {
 export function showAppConcept() {
     const html = `
     <div style="color: #fff; font-family: 'Resolve'; max-height: 75vh; overflow-y: auto; padding-right: 15px; scrollbar-width: thin;">
-        <h2 style="color: var(--sub-gold); font-size: 1.1rem; margin-bottom: 25px; line-height: 1.4; font-family: 'Russo One'; text-transform: uppercase;">
+        <h2 style="color: #ffffff; font-size: 1.1rem; margin-bottom: 25px; line-height: 1.4; font-family: 'Russo One'; text-transform: uppercase;">
             From Living Room to Virtual Arena
         </h2>
 
@@ -350,7 +350,7 @@ export function showAppConcept() {
         <button onclick="closeModal()" class="btn-red" style="width: 100%; font-family: 'Russo One'; padding: 15px; margin-top: 10px; border-radius: 8px;">UNDERSTOOD</button>
     </div>
     `;
-    showModal('DIGITAL CONCEPT', html, { maxWidth: '450px', borderColor: 'var(--sub-gold)' });
+    showModal('DIGITAL CONCEPT', html, { maxWidth: '450px', borderColor: '#ffffff' });
 }
 
 export async function purchaseEdition(editionId) {
