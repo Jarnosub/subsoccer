@@ -1402,16 +1402,16 @@ select.dark-select {
 
 .pro-score {
     font-family: 'SubsoccerLogo', sans-serif;
-    font-size: 10rem;
+    font-size: clamp(10rem, 30vh, 20rem);
     color: #ffffff;
     text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
     line-height: 1;
 }
 
 .pro-goals-visual {
-    font-size: 2rem;
-    margin-top: 20px;
-    letter-spacing: 10px;
+    font-size: clamp(2rem, 5vh, 4rem);
+    margin-top: clamp(20px, 4vh, 40px);
+    letter-spacing: clamp(10px, 2vw, 20px);
 }
 
 .pro-status {
