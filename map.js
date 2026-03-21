@@ -342,8 +342,8 @@ function updateNearestList(lat, lng) {
         const isPrivate = !g.is_public;
 
         const borderStyle = isVerified ? 'border-left: 4px solid var(--sub-red); background: rgba(227, 6, 19, 0.05);' : (isPrivate ? 'border-left: 4px solid #4a9eff; background: rgba(74, 158, 255, 0.05);' : 'border-left: 4px solid #333;');
-        const titleColor = isVerified ? 'var(--sub-red)' : (isPrivate ? '#4a9eff' : '#fff');
-        const badge = isVerified ? '<span style="background:var(--sub-gold); color:#000; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">PRO ARENA</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
+        const titleColor = isVerified ? '#fff' : (isPrivate ? '#4a9eff' : '#fff');
+        const badge = isVerified ? '<span style="background:var(--sub-red); color:#fff; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">PRO ARENA</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
 
         return `
             <div class="nearest-game-item" style="${borderStyle} padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;" data-action="fly-to-location" data-lat="${g.latitude}" data-lng="${g.longitude}">
