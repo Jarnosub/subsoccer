@@ -50,7 +50,7 @@ function initAudioContext() {
         // Yritetään käyttää olemassa olevaa contextia (SoundEffects), jotta säästetään resursseja mobiilissa
         if (window.soundEffects && window.soundEffects.audioContext) {
             audioContext = window.soundEffects.audioContext;
-            console.log("AudioEngine: Reusing SoundEffects AudioContext");
+
         } else {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
@@ -302,7 +302,7 @@ function confirmGoal(goalNumber) {
     if (typeof window.handleGoalDetected === 'function') {
         window.handleGoalDetected(scoringPlayer);
     } else {
-        console.warn("window.handleGoalDetected not found. Make sure it's defined in script.js");
+
     }
 
     // Visual/audio feedback (optional - can be enhanced)
@@ -361,7 +361,7 @@ function playTestSound(goalNumber) {
     osc.start(audioContext.currentTime);
     osc.stop(audioContext.currentTime + 0.5);
 
-    console.log(`🔊 Playing test sound for Goal ${goalNumber}: ${freq}Hz`);
+
 }
 
 /**

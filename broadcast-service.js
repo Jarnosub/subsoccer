@@ -33,14 +33,14 @@ export const BroadcastService = {
 
         currentChannel.subscribe((status) => {
             if (status === 'SUBSCRIBED') {
-                console.log(`📡 Broadcast started on room: ${currentRoomId}`);
+
             }
         });
 
         // Whenever a new TV joins, immediately sync it with the ongoing score
         currentChannel.on('broadcast', { event: 'PEER_READY' }, (p) => {
             if (p.payload && p.payload.fromRole === 'viewer' && BroadcastService.latestScore) {
-                console.log("TV joined. Resyncing current score state.");
+
                 currentChannel.send({
                     type: 'broadcast',
                     event: 'SCORE_UPDATE',
@@ -52,7 +52,7 @@ export const BroadcastService = {
         // Fallback for older TV clients still sending VIEWER_READY
         currentChannel.on('broadcast', { event: 'VIEWER_READY' }, () => {
             if (BroadcastService.latestScore) {
-                console.log("Legacy TV joined. Resyncing current score state.");
+
                 currentChannel.send({
                     type: 'broadcast',
                     event: 'SCORE_UPDATE',
@@ -85,7 +85,7 @@ export const BroadcastService = {
             event: 'SCORE_UPDATE',
             payload: payload
         }).catch(err => {
-            console.warn("Broadcast channel not fully subscribed yet orREST fallback warned:", err);
+
         });
     },
 
@@ -95,7 +95,7 @@ export const BroadcastService = {
             _supabase.removeChannel(currentChannel);
             currentChannel = null;
             // We intentionally do NOT reset currentRoomId so it persists
-            console.log("⏹️ Broadcast stopped.");
+
         }
     }
 };

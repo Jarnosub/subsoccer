@@ -93,7 +93,7 @@ export function applyBranding() {
         if (brandFromUrl) {
             showPartnerSplashScreen(logoUrl, primaryColor);
         }
-        console.log(`🤝 Branding Applied: ${brandId}`);
+
     } else {
         // Palautetaan oletusilme (Subsoccer)
         document.documentElement.style.setProperty('--sub-red', '#E30613');

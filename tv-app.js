@@ -17,7 +17,7 @@ const peerConnections = {};
 const iceQueues = {};
 
 function handleScoreUpdateData(data) {
-    console.log("Applying Score Update:", data);
+
     document.getElementById('waiting-screen').style.display = 'none';
     document.getElementById('scoreboard').style.display = 'flex';
 
@@ -65,7 +65,7 @@ function triggerGoalExplosion(scorerName) {
 
 function getOrCreatePeerConnection(remoteRole) {
     if (!peerConnections[remoteRole]) {
-        console.log(`Creating new peer connection for ${remoteRole}`);
+
         const pc = new RTCPeerConnection(rtcConfig);
         peerConnections[remoteRole] = pc;
         iceQueues[remoteRole] = iceQueues[remoteRole] || [];
@@ -85,7 +85,7 @@ function getOrCreatePeerConnection(remoteRole) {
         };
 
         pc.ontrack = (event) => {
-            console.log(`Got video track from ${remoteRole}!`);
+
             const videoElemId = remoteRole === 'camera' ? 'arena-video' : 'vip-video';
             const videoElem = document.getElementById(videoElemId);
 
@@ -101,7 +101,7 @@ function getOrCreatePeerConnection(remoteRole) {
                 }
 
                 videoElem.play().catch(e => {
-                    console.warn(`Autoplay blocked for ${remoteRole}, falling back to muted`);
+
                     videoElem.muted = true;
                     videoElem.play().then(() => {
                         if (remoteRole === 'caster' && !document.getElementById('unmute-btn')) {
@@ -159,7 +159,7 @@ function attachSignaling() {
         const { targetRole, fromRole, offer } = p.payload;
         const myRole = role || 'viewer';
         if (targetRole === myRole) {
-            console.log(`Received Offer from ${fromRole}`);
+
 
             if (peerConnections[fromRole]) {
                 peerConnections[fromRole].close();
@@ -189,7 +189,7 @@ function attachSignaling() {
         const { targetRole, fromRole, answer } = p.payload;
         const myRole = role || 'viewer';
         if (targetRole === myRole) {
-            console.log(`Received Answer from ${fromRole}`);
+
             const pc = peerConnections[fromRole];
             if (pc) {
                 await pc.setRemoteDescription(new RTCSessionDescription(answer));
@@ -204,7 +204,7 @@ function attachSignaling() {
     channel.on('broadcast', { event: 'PEER_READY' }, async (p) => {
         const { fromRole } = p.payload;
         if ((role === 'caster' || role === 'camera') && fromRole !== role && localStream) {
-            console.log(`${fromRole} declared ready, sending offer...`);
+
             await createAndSendOffer(fromRole);
         }
     });
@@ -215,7 +215,7 @@ function attachSignaling() {
 
     channel.on('broadcast', { event: 'DIRECTOR_COMMAND' }, (p) => {
         const { action } = p.payload;
-        console.log("DIRECTOR_COMMAND:", action);
+
 
         if (action === 'TOGGLE_SCOREBOARD') {
             const sb = document.getElementById('scoreboard');
@@ -291,7 +291,7 @@ function initViewerMode() {
 
     channel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-            console.log("Viewer Connected to Stream");
+
             const roomIdDisplay = document.getElementById('room-id-display');
             if (roomIdDisplay) {
                 roomIdDisplay.textContent = `CONNECTED. WAITING FOR MATCH...`;
@@ -336,7 +336,7 @@ function initSenderMode() {
             }
 
             floatBtn.style.display = 'none';
-            console.log(`${role} started...`);
+
 
             channel.send({ type: 'broadcast', event: 'PEER_READY', payload: { fromRole: role } });
 

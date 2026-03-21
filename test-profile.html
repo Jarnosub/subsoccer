@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer - Profile Sandbox</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> <!-- Importtaa ohjelman päätyylit -->
+
+    <style>
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.9)), url('card-stadium.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        /* Ambient spotlight effect behind card */
+        .spotlight {
+            position: absolute;
+            width: 300px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(227, 6, 19, 0.4) 0%, transparent 60%);
+            filter: blur(40px);
+            z-index: 0;
+            animation: pulse 4s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+                transform: scale(0.9);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2 style="margin-bottom: 20px; font-family: 'SubsoccerLogo', sans-serif; text-align: center;">HIEKKALAATIKKO:
+        PROFIILIKORTTI</h2>
+    <div style="margin-bottom: 30px; text-align: center; color: #888; font-family: 'Open Sans', sans-serif;">
+        Tämä sivu käyttää N-Y-T tismalleen samoja luokkia kuin itse sovellus.
+    </div>
+
+    <div
+        style="position: relative; display: flex; justify-content: center; align-items: center; width: 300px; height: 420px;">
+        <div class="spotlight"></div>
+        <div id="profile-container" style="z-index: 2; width: 100%;">
+            <!-- TÄMÄ ON TARGETTI. Käyttää nyt suoraan style.css:n .pro-card formaattia -->
+            <div class="pro-card" onclick="this.classList.toggle('flipped')">
+                <div class="pro-card-flipper">
+                    <!-- FRONT SIDE -->
+                    <div class="pro-card-front">
+                        <!-- Top strip: Text + Icon -->
+                        <div
+                            style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2;">
+                            <div
+                                style="font-size: 0.65rem; color: #D4AF37; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                                PRO CARD // 2026</div>
+                            <div style="display: flex; gap: 5px;">
+                                <div
+                                    style="background: #111; color: #D4AF37; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                                    <i class="fa-solid fa-crown"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Full-width image area -->
+                        <div
+                            style="width: 100%; height: 225px; flex-shrink: 0; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <img src="placeholder-silhouette-5-wide.png"
+                                style="width: 100%; height: 100%; object-fit: cover; object-position: top center;"
+                                onerror="this.src='placeholder-silhouette-5-wide.png'">
+                        </div>
+
+                        <!-- Bottom info area -->
+                        <div
+                            style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
+                            <!-- Pin + Location -->
+                            <div
+                                style="display: flex; align-items: center; gap: 6px; color: #D4AF37; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; width:100%; box-sizing: border-box;">
+                                <i class="fa-solid fa-location-dot"></i> <span
+                                    style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">LOCAL
+                                    ARENA</span>
+                            </div>
+
+                            <!-- Huge Name -->
+                            <div
+                                style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                                JARNO</div>
+
+                            <!-- ELO box and Win Ratio -->
+                            <div
+                                style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
+                                <div
+                                    style="background: #D4AF37; color: #000; padding: 4px 10px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
+                                    1271 ELO
+                                </div>
+                                <div style="text-align: right;">
+                                    <div
+                                        style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
+                                        WIN RATIO</div>
+                                    <div
+                                        style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; color: #fff; line-height: 1;">
+                                        46%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom edge "TAP TO FLIP" -->
+                        <div
+                            style="position: absolute; bottom: 8px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
+                            <i class="fa-solid fa-rotate" style="margin-right: 3px;"></i> TAP TO FLIP
+                        </div>
+                    </div>
+
+                    <!-- BACK SIDE -->
+                    <div class="pro-card-back"
+                        style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+                        <div
+                            style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px; padding:20px 20px 0 20px;">
+                            <h4
+                                style="color:#D4AF37; font-family:'Russo One', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">
+                                PLAYER DOSSIER</h4>
+                            <div
+                                style="color:#fff; font-size:0.75rem; font-family:'Open Sans', sans-serif; margin-top:5px; text-transform:uppercase;">
+                                JARNO</div>
+                        </div>
+                        <div id="profile-card-back-content" style="flex:1;">
+                            <p style="text-align:center; color:#666; font-size:0.8rem; margin-top:50px;"><i
+                                    class="fa fa-spinner fa-spin"></i> Loading Data...</p>
+                        </div>
+                        <div
+                            style="position: absolute; bottom: 8px; width: 100%; left: 0; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
+                            <i class="fa-solid fa-rotate-left" style="margin-right: 3px;"></i> TAP TO FLIP
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

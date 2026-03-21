@@ -466,13 +466,7 @@
             }
         }
 
-        @media (orientation: landscape) {
 
-            .pro-controls-bar,
-            .pro-control-btn.top-right {
-                display: none !important;
-            }
-        }
 
         /* Table ID display */
         #table-id-display {
@@ -961,7 +955,7 @@
                     session_duration: duration
                 });
             } catch (err) {
-                console.warn("Tracking error:", err);
+
             }
         }
 
@@ -1461,7 +1455,7 @@
         window.handleGoalDetected = function (playerNumber) {
             // Sallitaan maalin lisäys testausta varten vaikka mikrofoni olisi pois päältä
             if (!micEnabled) {
-                console.warn("⚠️ Maali tunnistettu (Mic OFF) - Testitila");
+
             }
             addGoal(playerNumber);
         };

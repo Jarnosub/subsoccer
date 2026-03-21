@@ -29,7 +29,6 @@ export function startTournament() {
  * Advances to the next round (if manual control is enabled).
  */
 export function advanceRound() {
-    console.log("Advance round requested");
     // Current BracketEngine propagates automatically, but this can be used for UI transitions
 }
 

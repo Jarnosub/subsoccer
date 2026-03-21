@@ -26,7 +26,7 @@ export function initGameMap() {
 export function setMapLocation(lat, lng, name) {
     state.selLat = lat; state.selLng = lng;
     if (!state.gameMap || typeof state.gameMap.addLayer !== 'function') {
-        console.warn("setMapLocation: Map not ready or invalid");
+
         return;
     }
     if (state.gameMarker) state.gameMap.removeLayer(state.gameMarker);

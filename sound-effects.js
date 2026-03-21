@@ -38,7 +38,7 @@ class SoundEffects {
         audio.volume = this.volume;
         audio.preload = 'auto';
         this.sounds[name] = audio;
-        console.log(`🔊 Loaded sound: ${name} from ${url}`);
+
     }
     
     /**
@@ -52,9 +52,9 @@ class SoundEffects {
             // Clone the audio to allow overlapping plays
             const sound = this.sounds[name].cloneNode();
             sound.volume = this.volume;
-            sound.play().catch(e => console.log('Sound play failed:', e));
+            sound.play().catch(e => {});
         } else {
-            console.warn(`Sound not found: ${name}`);
+
         }
     }
     
@@ -268,12 +268,12 @@ const soundEffects = new SoundEffects();
 try {
     soundEffects.loadSound('goal', 'sounds/goal.mp3');
     soundEffects.loadSound('crowd', 'sounds/crowd.mp3');
-    console.log("🔊 Custom sound files loaded");
+
 } catch (e) {
-    console.log("🔊 Using synthesized sounds (custom files not found)");
+
 }
 
 // Export to window
 window.soundEffects = soundEffects;
 
-console.log("🔊 Sound Effects System loaded");
+

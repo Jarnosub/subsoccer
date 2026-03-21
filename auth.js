@@ -15,7 +15,7 @@ export async function initApp() {
         const { data: { session }, error } = await _supabase.auth.getSession();
 
         if (error) {
-            console.warn("Supabase auth warning (usually safe to ignore):", error.message);
+:", error.message);
             // Jos refresh token on vanhentunut, siivotaan paikallinen sessio pois jotta virheet loppuvat
             if (error.message.includes("Invalid Refresh Token")) {
                 await _supabase.auth.signOut().catch(() => { });
@@ -28,7 +28,6 @@ export async function initApp() {
         if (!session && !state.user) {
             const params = new URLSearchParams(window.location.search);
             if (params.get('page') === 'events') {
-                console.log("👀 Public access: Spectator Mode enabled");
                 state.user = {
                     id: 'spectator',
                     username: 'Spectator',
@@ -73,7 +72,6 @@ export function toggleAuth(s) {
  */
 async function hashPassword(password) {
     if (!window.crypto || !crypto.subtle) {
-        console.warn("SHA-256 requires HTTPS or localhost. Falling back to plain text for legacy check.");
         return password;
     }
     const msgUint8 = new TextEncoder().encode(password);
@@ -110,11 +108,10 @@ async function refreshUserProfile(userId) {
         if (profile) {
             state.user = profile;
             localStorage.setItem('subsoccer-user', JSON.stringify(profile));
-            console.log("👤 CURRENT USER ID (Copy this for config.js):", profile.id);
+:", profile.id);
         } else {
             // Profiili puuttuu players-taulusta, mutta käyttäjä on Auth-istunnossa.
             // Luodaan profiili automaattisesti käyttäen Auth-metadatan tietoja.
-            console.log("Profiili puuttuu, luodaan automaattisesti ID:lle:", userId);
             const { data: { user } } = await _supabase.auth.getUser();
 
             const newProfile = {
@@ -235,7 +232,6 @@ export async function handleSignUp() {
         authError.code === 'user_already_exists'
     );
     if (isAlreadyReg) {
-        console.log("Email already in Auth, attempting to verify password via sign-in...");
         const { data: signInData, error: signInError } = await _supabase.auth.signInWithPassword({
             email: email,
             password: p
@@ -257,14 +253,12 @@ export async function handleSignUp() {
         let profileError;
 
         if (existing) {
-            console.log("Migrating existing record:", existing.username, "ID:", existing.id, "to UUID:", authData.user.id);
 
             const oldId = existing.id;
             const newId = authData.user.id;
 
             // Jos ID on jo sama (käyttäjä on jo migroitu mutta sähköposti puuttui players-taulusta)
             if (oldId === newId) {
-                console.log("User already has correct UUID, updating email only...");
                 await _supabase.from('players').update({ email: email }).eq('id', newId);
                 showNotification("Account updated successfully! 🎉", "success");
                 if (!authData.session) toggleAuth(false);
@@ -279,10 +273,8 @@ export async function handleSignUp() {
             const updatePayload = { ...playerStats, email: email };
 
             if (checkNew) {
-                console.log("Updating existing UUID record with legacy stats...");
                 await _supabase.from('players').update(updatePayload).eq('id', newId);
             } else {
-                console.log("Creating new UUID record with legacy stats...");
                 // Käytetään väliaikaista nimeä jos alkuperäinen on vielä varattu vanhalla rivillä
                 await _supabase.from('players').insert([{ ...updatePayload, id: newId, username: username + '_MIGRATING' }]);
             }
@@ -290,10 +282,8 @@ export async function handleSignUp() {
             // 2. Viittaukset päivittyvät nyt automaattisesti tietokannassa (ON UPDATE CASCADE)
             // Meidän tarvitsee vain varmistaa, että kaikki taulut, joita ei ole linkitetty FK:lla, päivitetään.
             // Mutta useimmat on nyt linkitetty.
-            console.log("Database cascade handling references...");
 
             // 3. Poistetaan vanha legacy-rivi ja palautetaan oikea käyttäjänimi
-            console.log("Finalizing migration...");
             await _supabase.from('players').delete().eq('id', oldId);
             const { error: finalError } = await _supabase.from('players').update({ username: username }).eq('id', newId);
             profileError = finalError;
@@ -351,7 +341,6 @@ export async function handleSignUp() {
             if (pending) {
                 try {
                     const matchData = JSON.parse(pending);
-                    console.log("Found pending match to claim for new user:", matchData);
 
                     // Piilotetaan kirjautuminen ja palataan claim-näkymään
                     if (window.showAuthPage) window.showAuthPage('app');
@@ -364,7 +353,6 @@ export async function handleSignUp() {
                         }
                     }, 1000);
                 } catch (e) {
-                    console.warn("Failed to process pending match:", e);
                 }
             }
         }
@@ -385,7 +373,6 @@ export async function handleAuth(event) {
 
     const btn = document.getElementById('btn-login');
     if (btn && btn.disabled) {
-        console.warn("⚠️ Login already in progress, ignoring duplicate attempt.");
         return;
     }
 
@@ -404,18 +391,15 @@ export async function handleAuth(event) {
 
         // 1. Yritetään ensin kirjautua sähköpostilla (uusi tapa)
         if (input.includes('@')) {
-            console.log("📧 Attempting email login via Supabase Auth...");
             const { data: authData, error } = await _supabase.auth.signInWithPassword({
                 email: input,
                 password: p
             });
 
             if (!error) {
-                console.log("✅ Email login successful");
                 showNotification("Welcome back!", "success");
                 return;
             }
-            console.log("Supabase Auth login failed:", error.message);
 
             // Tarkistetaan löytyykö sähköposti players-taulusta (migraatiotuki)
             const { data: emailMatches, error: emailErr } = await _supabase
@@ -427,7 +411,6 @@ export async function handleAuth(event) {
                 const hashed = await hashPassword(p);
                 const userRecord = emailMatches.find(m => m.password === hashed || m.password === p) || emailMatches[0];
 
-                console.log("Legacy record found by email:", userRecord.username);
                 if (isUuid(userRecord.id)) {
                     // Käyttäjä on jo migroitu, joten signInWithPassword virhe oli aito
                     if (error.message.toLowerCase().includes("email not confirmed")) {
@@ -446,13 +429,11 @@ export async function handleAuth(event) {
         }
 
         // 2. Tarkistetaan players-taulu (käyttäjänimellä)
-        console.log("🔍 Searching players table by username...");
 
         // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
         let { data: nameMatches, error: nameErr } = await _supabase
             .from('players').select('*').ilike('username', input);
 
-        console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
 
         if (nameErr) {
             if (nameErr.message?.includes('AbortError')) return; // Ohitetaan keskeytykset
@@ -461,7 +442,6 @@ export async function handleAuth(event) {
         }
 
         if (!nameMatches || nameMatches.length === 0) {
-            console.log("Direct search failed, trying fuzzy search...");
             const fuzzyInput = input.replace(/\s+/g, '%');
             const { data: fuzzyMatches } = await _supabase
                 .from('players')
@@ -471,29 +451,24 @@ export async function handleAuth(event) {
         }
 
         if (nameMatches && nameMatches.length > 0) {
-            console.log(`🔑 Found ${nameMatches.length} matching records. Checking credentials...`);
             const hashed = await hashPassword(p);
 
             // 1. Kokeillaan ensin migroituja tilejä (UUID + Email)
             const migratedMatch = nameMatches.find(m => isUuid(m.id) && m.email);
             if (migratedMatch) {
-                console.log("Migrated record found, attempting Auth login for:", migratedMatch.email);
                 const { data: authData, error: authErr } = await _supabase.auth.signInWithPassword({
                     email: migratedMatch.email,
                     password: p
                 });
                 if (!authErr) {
-                    console.log("Auth login successful for:", migratedMatch.email);
                     showNotification("Welcome back!", "success");
                     return;
                 }
-                console.log("Auth login failed:", authErr.message);
             }
 
             // 2. Jos Auth-kirjautuminen ei onnistunut, kokeillaan legacy-salasanaa osumiin
             const legacyRecord = nameMatches.find(m => m.password === hashed || m.password === p);
             if (legacyRecord) {
-                console.log("Legacy password match found for ID:", legacyRecord.id);
                 promptForEmailMigration(legacyRecord, p);
                 return;
             }
@@ -583,7 +558,6 @@ export async function deleteAccount() {
         const { error } = await _supabase.from('players').delete().eq('id', state.user.id);
         
         if (error) {
-            console.warn("Delete failed, anonymizing data instead to comply with GDPR:", error.message);
             // Fallback: Anonymize personal data if delete blocked by Foreign Keys without CASCADE
             await _supabase.from('players').update({
                 username: 'DELETED_USER_' + Date.now().toString().slice(-4),
@@ -665,7 +639,6 @@ async function uploadPlayerAvatar(file, customUserId = null) {
         const fileName = `${userId}_${Date.now()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
 
-        console.log('Uploading avatar:', filePath);
 
         const { data, error } = await _supabase.storage
             .from('event-images')
@@ -684,7 +657,6 @@ async function uploadPlayerAvatar(file, customUserId = null) {
             .from('event-images')
             .getPublicUrl(filePath);
 
-        console.log('Avatar uploaded successfully:', urlData.publicUrl);
         return urlData.publicUrl;
 
     } catch (error) {
@@ -697,7 +669,6 @@ async function uploadPlayerAvatar(file, customUserId = null) {
  * Generoi AI-avatar (Placeholder tulevaa integraatiota varten)
  */
 async function generateAiAvatar(imageUrl) {
-    console.log("AI Stylizing image:", imageUrl);
     // Tähän tulee myöhemmin kutsu AI-rajapintaan
     return imageUrl;
 }
