@@ -18,7 +18,7 @@ export async function fetchLB() {
 
         let html = `
             <div style="text-align:center; margin-bottom:15px;">
-                <h2 style="font-family:var(--sub-name-font); font-size:1.5rem; color:var(--sub-gold); margin:0; letter-spacing:2px;">GLOBAL RANKING</h2>
+                <h2 style="font-family:var(--sub-name-font); font-size:1.5rem; color:#ffffff; margin:0; letter-spacing:2px;">GLOBAL RANKING</h2>
             </div>`;
 
         if (FLAGS.ENABLE_TEAMS) {
