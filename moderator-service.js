@@ -271,13 +271,13 @@ export async function openAdminPrintMode(username) {
                 flipper.style.gap = '50px';
                 flipper.style.boxShadow = 'none';
                 
-                front.style.position = 'static';
+                front.style.position = 'relative'; // Must be relative so internal absolute elements don't escape!
                 front.style.transform = 'none';
                 front.style.backfaceVisibility = 'visible';
                 front.style.width = '354px';
                 front.style.height = '474px';
                 
-                back.style.position = 'static';
+                back.style.position = 'relative'; // Must be relative
                 back.style.transform = 'none';
                 back.style.backfaceVisibility = 'visible';
                 back.style.width = '354px';
