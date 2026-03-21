@@ -341,8 +341,8 @@ function updateNearestList(lat, lng) {
         const isVerified = g.verified;
         const isPrivate = !g.is_public;
 
-        const borderStyle = isVerified ? 'border-left: 4px solid var(--sub-gold); background: rgba(255, 215, 0, 0.05);' : (isPrivate ? 'border-left: 4px solid #4a9eff; background: rgba(74, 158, 255, 0.05);' : 'border-left: 4px solid #333;');
-        const titleColor = isVerified ? 'var(--sub-gold)' : (isPrivate ? '#4a9eff' : '#fff');
+        const borderStyle = isVerified ? 'border-left: 4px solid var(--sub-red); background: rgba(227, 6, 19, 0.05);' : (isPrivate ? 'border-left: 4px solid #4a9eff; background: rgba(74, 158, 255, 0.05);' : 'border-left: 4px solid #333;');
+        const titleColor = isVerified ? 'var(--sub-red)' : (isPrivate ? '#4a9eff' : '#fff');
         const badge = isVerified ? '<span style="background:var(--sub-gold); color:#000; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">PRO ARENA</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
 
         return `
@@ -351,11 +351,11 @@ function updateNearestList(lat, lng) {
                     <div style="font-family:'Russo One'; color:${titleColor}; font-size:0.95rem; margin-bottom:3px; text-transform:uppercase;">
                         ${badge}${g.game_name}
                     </div>
-                    <div style="font-size:0.75rem; color:#888;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${g.location}</div>
+                    <div style="font-size:0.75rem; color:var(--sub-red); opacity:0.9;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${g.location}</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:0.8rem; font-weight:bold; color:#ccc; margin-bottom:3px;">${distDisplay}</div>
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=${g.latitude},${g.longitude}" target="_blank" data-action="external-link" style="color:var(--sub-gold); font-size:1.1rem; padding:5px; display:inline-block;" title="Get Directions">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${g.latitude},${g.longitude}" target="_blank" data-action="external-link" style="color:var(--sub-red); font-size:1.1rem; padding:5px; display:inline-block;" title="Get Directions">
                         <i class="fa-solid fa-diamond-turn-right"></i>
                     </a>
                 </div>
