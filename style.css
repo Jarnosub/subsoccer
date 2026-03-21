@@ -33,7 +33,7 @@
     --sub-white: #FFFFFF;
     --sub-gold: #FFD700;
     --sub-border: rgba(255, 255, 255, 0.08);
-    --sub-surface: rgba(16, 16, 16, 0.95);
+    --sub-surface: rgba(13, 22, 32, 0.95); /* Deep petrol blue */
     --sub-logo-font: 'SubsoccerLogo', sans-serif;
     --sub-name-font: 'Resolve', sans-serif;
     --sub-body-font: 'ResolveRegular', sans-serif;
