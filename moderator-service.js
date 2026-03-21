@@ -259,9 +259,10 @@ export async function openAdminPrintMode(username) {
                 // 1. CLONE STRATEGY: Eristetään elementit täysin modaalista
                 // Html2canvas menee täysin sekaisin absolute/inset/3D elementeistä mitkä on flex-keskitetty
                 const trap = document.createElement('div');
-                trap.style.position = 'absolute';
-                trap.style.top = '0';
-                trap.style.left = '-9999px'; // Ruudun ulkopuolelle
+                trap.style.position = 'fixed';
+                trap.style.top = '0px';
+                trap.style.left = '0px'; // Pakko olla nollassa (0,0), koska html2canvas offset-bugin takia -9999px aiheuttaa massiivisen tyhjän puskurin tulostiedostoon!
+                trap.style.zIndex = '-9999'; // Piiloon muun sisällön taakse
                 trap.style.width = '354px';
                 trap.style.display = 'block';
                 document.body.appendChild(trap);
@@ -305,6 +306,8 @@ export async function openAdminPrintMode(username) {
                     useCORS: true, 
                     backgroundColor: null,
                     logging: false,
+                    width: 354,
+                    height: 474,
                     windowWidth: 354,
                     windowHeight: 474
                 });
@@ -336,6 +339,8 @@ export async function openAdminPrintMode(username) {
                     useCORS: true, 
                     backgroundColor: '#0a0a0a',
                     logging: false,
+                    width: 354,
+                    height: 474,
                     windowWidth: 354,
                     windowHeight: 474
                 });
