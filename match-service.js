@@ -151,7 +151,10 @@ export const MatchService = {
             }
 
             // Check Level Up
-            if (!wasCapped && Math.floor(newElo / 100) > Math.floor(winnerCurrentElo / 100)) {
+            // ONLY show the Rank Up pop-up if the winner is actually logged in on THIS device (not for tournament hosts/moderators)
+            const isWinnerLoggedInHere = state.user && state.user.id === winnerData.id;
+
+            if (!wasCapped && isWinnerLoggedInHere && Math.floor(newElo / 100) > Math.floor(winnerCurrentElo / 100)) {
                 setTimeout(() => { if (window.showLevelUpCard) window.showLevelUpCard(winnerName, newElo); }, 2000);
             }
 

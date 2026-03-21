@@ -205,7 +205,7 @@ export async function showLevelUpCard(playerName, newElo) {
             </div>
             <p style="color:#aaa; font-size:0.85rem; margin-bottom:20px;">Your Official Pro Card has been updated.</p>
 
-            <div id="level-up-card-preview" style="transform:scale(0.8); margin:-40px 0;">
+            <div id="level-up-card-preview" style="display:flex; justify-content:center; align-items:center; width:100%; height:340px; margin: 10px 0;">
                 <p style="text-align:center; color:#888;">Updating Identity...</p>
             </div>
             
@@ -235,7 +235,19 @@ export async function showLevelUpCard(playerName, newElo) {
     closeModal('card-modal');
 
     const previewCard = document.getElementById('level-up-card-preview').querySelector('.pro-card');
-    if (previewCard) initTiltEffect(previewCard);
+    if (previewCard) {
+        previewCard.style.transform = 'scale(0.7)';
+        previewCard.style.transformOrigin = 'center center';
+        previewCard.style.margin = '0 auto';
+        
+        // Hide the messy TAP TO FLIP hint in this small preview mode to avoid visual clutter
+        const hints = document.getElementById('level-up-card-preview').querySelectorAll('.fa-rotate-right, .fa-rotate-left');
+        hints.forEach(icon => {
+            if(icon.parentElement) icon.parentElement.style.display = 'none';
+        });
+
+        initTiltEffect(previewCard);
+    }
 }
 
 export function showPhysicalOrderDialog() {
