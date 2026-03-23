@@ -575,10 +575,18 @@
             z-index: 300;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
             text-align: center;
+            overflow-y: auto;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            justify-content: flex-start;
+        }
+        @media (min-height: 700px) {
+            .rules-overlay {
+                justify-content: center;
+                padding: 20px;
+            }
         }
 
         .rules-header {

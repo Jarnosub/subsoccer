@@ -2372,9 +2372,18 @@ body.live-mode {
     z-index: 200;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     text-align: center;
+    overflow-y: auto;
+    padding: 20px 0;
+    box-sizing: border-box;
+    justify-content: flex-start;
+}
+
+@media (min-height: 700px) {
+    .rules-overlay {
+        justify-content: center;
+    }
 }
 
 .rules-header {
