@@ -16,12 +16,14 @@ import './stats-service.js';
 import './card-generator.js';
 import './sound-effects.js';
 import './live-view-service.js';
+import { setupHardwareGarage } from './hardware-service.js';
 
 // Käynnistä sovellus kun sivu on ladattu
 const start = () => {
     setupGlobalErrorHandling();
     checkLiveEventParam();
     checkQRJoinParam();
+    setupHardwareGarage();
 
     // UI Enhancements for Tournament flow
     const urlParams = new URLSearchParams(window.location.search);

@@ -4,12 +4,16 @@ import { populateCountries } from './auth.js';
 import { showNotification } from './ui-utils.js';
 import { initTiltEffect } from './ui.js';
 import { initTeamUI } from './team-service.js';
+import { loadHardwareGarage } from './hardware-service.js';
 
 /**
  * Lataa ja näyttää käyttäjän profiilin tiedot
  */
 export async function loadUserProfile() {
     if (!state.user || !state.user.id) return;
+    
+    // Lataa rekisteröidyt laitteet
+    try { await loadHardwareGarage(); } catch(e) { console.error('Garage load error:', e); }
 
     // Päivitä avatar
     const avatarEl = document.getElementById('profile-avatar-display');

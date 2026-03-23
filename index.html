@@ -52,7 +52,10 @@
     <!-- Global Menu -->
     <div id="settings-menu">
         <div class="menu-header">SETTINGS</div>
-
+        
+        <button id="menu-item-register-hardware" class="menu-item" style="color:var(--sub-gold); font-weight:bold; border-color:var(--sub-gold); background:rgba(255,215,0,0.1);">
+            <i class="fa-solid fa-plus-circle"></i> ADD HARDWARE
+        </button>
 
         <button id="menu-item-leaderboard" class="menu-item">
             <i class="fa-solid fa-ranking-star"></i> GLOBAL RANKING
@@ -442,6 +445,19 @@
                         style="font-family: 'Open Sans', sans-serif; font-size: 0.75rem; color: #ffffff; margin-bottom: 25px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-id-card-clip" style="color: var(--sub-gold);"></i> Official Federation
                         Member Details
+                    </div>
+
+                    <!-- HARDWARE GARAGE (Under Profile) -->
+                    <div id="hardware-garage-container" style="background:var(--sub-background); padding: 15px; border-radius: 8px; margin: 15px 0 25px; border: 1px solid #333; text-align: left;">
+                        <div style="color:var(--sub-gold); font-family:'SubsoccerLogo', sans-serif; font-size:1.0rem; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span>MY HARDWARE</span>
+                            <i class="fa-solid fa-server"></i>
+                        </div>
+                        <div id="hardware-garage-list" style="display:flex; flex-direction:column; gap:8px;">
+                            <!-- Claimed hardware injected here -->
+                            <div style="font-size:0.75rem; color:#888;">No registered tables or devices yet.</div>
+                        </div>
+                        <button id="btn-open-garage-claim" style="margin-top:15px; width:100%; padding:10px; background:#111; color:var(--sub-gold); border: 1px dashed var(--sub-gold); border-radius: 4px; font-family:'SubsoccerLogo', sans-serif; font-size:0.8rem; cursor:pointer;" onclick="openHardwareClaimModal()">+ REGISTER NEW HARDWARE</button>
                     </div>
 
                     <div style="margin-bottom: 20px; border-top: 1px solid #222; padding-top: 20px;">
@@ -1048,6 +1064,38 @@
 
     <script type="module" src="main.js?v=card_fix_3"></script>
     <div class="app-version">v.1.0.4</div>
+
+    <!-- HARDWARE CLAIM MODAL -->
+    <div id="hardware-claim-modal" class="generic-modal-overlay" style="display:none; z-index:9999; backdrop-filter:blur(5px); background:rgba(0,0,0,0.8);">
+        <div class="generic-modal-content" style="background:#111; max-width:400px; padding:30px; border-radius:12px; border:1px solid #333; position:relative; overflow:hidden;">
+            <button onclick="document.getElementById('hardware-claim-modal').style.display='none'" style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:#888; font-size:1.5rem; cursor:pointer;">&times;</button>
+            <div style="text-align:center; color:var(--sub-gold); margin-bottom:15px;">
+                <i class="fa-solid fa-gem" style="font-size:2rem;"></i>
+            </div>
+            <h2 style="font-family:'SubsoccerLogo', sans-serif; color:#fff; text-align:center; margin-bottom:10px; font-size:1.4rem;">REGISTER HARDWARE</h2>
+            <p style="text-align:center; color:#aaa; font-size:0.85rem; margin-bottom:20px; font-family:'Open Sans', sans-serif;">
+                Enter the serial number found on the metal plate of your Subsoccer Game Table or Dock.
+            </p>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <div>
+                    <label style="display:block; font-size:0.6rem; color:#888; margin-bottom:5px; text-transform:uppercase;">Serial Number</label>
+                    <input type="text" id="hardware-serial-input" placeholder="e.g. SSDOCK-V01-26PO1-XXXX" style="width:100%; padding:12px; border-radius:6px; border:1px solid #444; background:#222; color:#fff; font-family:monospace; font-size:1rem; text-align:center; text-transform:uppercase;" oninput="this.value = this.value.toUpperCase()">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.6rem; color:#888; margin-bottom:5px; text-transform:uppercase;">Location</label>
+                    <select id="hardware-location-input" style="width:100%; padding:12px; border-radius:6px; border:1px solid #444; background:#222; color:#fff;">
+                        <option value="Home">Private Home</option>
+                        <option value="Public Venue">Public Venue (Bar, Event etc.)</option>
+                        <option value="Office">Office / Workplace</option>
+                    </select>
+                </div>
+                <button id="btn-submit-hardware-claim" style="background:linear-gradient(90deg, #ffc107, #ff8f00); color:#000; font-family:'SubsoccerLogo', sans-serif; border:none; border-radius:6px; padding:15px; font-size:1rem; cursor:pointer; margin-top:10px; font-weight:bold;">
+                    ACTIVATE DEVICE
+                </button>
+                <div id="hardware-claim-message" style="text-align:center; font-size:0.8rem; height:20px;"></div>
+            </div>
+        </div>
+    </div>
 
     <div id="card-modal" class="card-modal-overlay">
         <div id="modal-card-container"></div>

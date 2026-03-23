@@ -505,6 +505,11 @@ export function setupUIListeners() {
 
     // Settings Menu
     document.getElementById('menu-toggle-btn')?.addEventListener('click', (e) => toggleSettingsMenu(e));
+    document.getElementById('menu-item-register-hardware')?.addEventListener('click', (e) => {
+        closeSettingsMenu(e);
+        if(window.openHardwareClaimModal) window.openHardwareClaimModal();
+    });
+
     document.getElementById('menu-item-leaderboard')?.addEventListener('click', (e) => {
         showPage('leaderboard');
         toggleSettingsMenu(e);
