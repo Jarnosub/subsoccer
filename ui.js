@@ -506,7 +506,7 @@ export function setupUIListeners() {
     // Settings Menu
     document.getElementById('menu-toggle-btn')?.addEventListener('click', (e) => toggleSettingsMenu(e));
     document.getElementById('menu-item-register-hardware')?.addEventListener('click', (e) => {
-        closeSettingsMenu(e);
+        toggleSettingsMenu(e);
         if(window.openHardwareClaimModal) window.openHardwareClaimModal();
     });
 
