@@ -52,9 +52,9 @@ BEGIN
         RAISE EXCEPTION 'Not authenticated';
     END IF;
 
-    -- Find the hardware
+    -- Find the hardware (case insensitive)
     SELECT * INTO found_hardware FROM public.hardware_registry 
-    WHERE serial_number = target_serial_number;
+    WHERE upper(serial_number) = upper(target_serial_number);
 
     -- Check if it exists
     IF NOT FOUND THEN
