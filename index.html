@@ -418,6 +418,19 @@
             </div>
             <div class="container" style="text-align:center;">
 
+                <!-- HARDWARE GARAGE (Under Profile) -->
+                <div id="hardware-garage-container" style="background:var(--sub-background); padding: 15px; border-radius: 8px; margin: 15px 0 25px; border: 1px solid #333; text-align: left;">
+                    <div style="color:var(--sub-gold); font-family:'SubsoccerLogo', sans-serif; font-size:1.0rem; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>MY HARDWARE</span>
+                        <i class="fa-solid fa-server"></i>
+                    </div>
+                    <div id="hardware-garage-list" style="display:flex; flex-direction:column; gap:8px;">
+                        <!-- Claimed hardware injected here -->
+                        <div style="font-size:0.75rem; color:#888;">No registered tables or devices yet.</div>
+                    </div>
+                    <button id="btn-open-garage-claim" style="margin-top:15px; width:100%; padding:10px; background:#111; color:var(--sub-gold); border: 1px dashed var(--sub-gold); border-radius: 4px; font-family:'SubsoccerLogo', sans-serif; font-size:0.8rem; cursor:pointer;" onclick="openHardwareClaimModal()">+ REGISTER NEW HARDWARE</button>
+                </div>
+
                 <!-- Edit Profile Form (Hidden) -->
                 <div id="profile-edit-fields" class="profile-edit-container"
                     style="background: #111; padding: 25px 20px 30px; border: 1px solid #222; border-radius: 4px; margin-top: 20px; text-align: left; display: none;">
@@ -445,19 +458,6 @@
                         style="font-family: 'Open Sans', sans-serif; font-size: 0.75rem; color: #ffffff; margin-bottom: 25px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-id-card-clip" style="color: var(--sub-gold);"></i> Official Federation
                         Member Details
-                    </div>
-
-                    <!-- HARDWARE GARAGE (Under Profile) -->
-                    <div id="hardware-garage-container" style="background:var(--sub-background); padding: 15px; border-radius: 8px; margin: 15px 0 25px; border: 1px solid #333; text-align: left;">
-                        <div style="color:var(--sub-gold); font-family:'SubsoccerLogo', sans-serif; font-size:1.0rem; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                            <span>MY HARDWARE</span>
-                            <i class="fa-solid fa-server"></i>
-                        </div>
-                        <div id="hardware-garage-list" style="display:flex; flex-direction:column; gap:8px;">
-                            <!-- Claimed hardware injected here -->
-                            <div style="font-size:0.75rem; color:#888;">No registered tables or devices yet.</div>
-                        </div>
-                        <button id="btn-open-garage-claim" style="margin-top:15px; width:100%; padding:10px; background:#111; color:var(--sub-gold); border: 1px dashed var(--sub-gold); border-radius: 4px; font-family:'SubsoccerLogo', sans-serif; font-size:0.8rem; cursor:pointer;" onclick="openHardwareClaimModal()">+ REGISTER NEW HARDWARE</button>
                     </div>
 
                     <div style="margin-bottom: 20px; border-top: 1px solid #222; padding-top: 20px;">
