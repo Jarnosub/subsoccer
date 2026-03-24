@@ -8,6 +8,38 @@ export function setupHardwareGarage() {
         document.getElementById('hardware-claim-modal').style.display = 'flex';
     };
 
+    // Auto-open logic for physical packaging QR codes: ?action=register
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'register' || urlParams.get('action') === 'claim') {
+        let attempts = 0;
+        const checkAuthId = setInterval(async () => {
+            attempts++;
+            if (attempts > 300) { clearInterval(checkAuthId); return; } // stop checking after ~7 minutes to save battery
+
+            const { data } = await _supabase.auth.getUser();
+            if (data && data.user) {
+                clearInterval(checkAuthId);
+                
+                // Clean the URL so refreshing doesn't re-trigger it
+                const url = new URL(window.location);
+                url.searchParams.delete('action');
+                window.history.replaceState({}, '', url);
+
+                // Navigate to the profile view
+                if (typeof window.showPage === 'function') {
+                    window.showPage('profile');
+                } else {
+                    document.getElementById('nav-profile')?.click();
+                }
+                
+                // Open the modal after a short delay for smooth UX
+                setTimeout(() => {
+                    if (window.openHardwareClaimModal) window.openHardwareClaimModal();
+                }, 800);
+            }
+        }, 1500);
+    }
+
     const submitBtn = document.getElementById('btn-submit-hardware-claim');
     if (submitBtn) {
         submitBtn.addEventListener('click', async () => {
