@@ -370,10 +370,7 @@ header {
     line-height: 1.2;
 }
 
-/* Tummennetaan harmaata karttaa, jotta se sulautuu mustaan taustaan */
-#public-game-map .leaflet-tile-pane {
-    filter: brightness(1.1) contrast(1.1) grayscale(0.2) !important;
-}
+
 
 #public-game-map {
     background: var(--sub-black) !important;

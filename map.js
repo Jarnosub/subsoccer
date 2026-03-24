@@ -42,7 +42,7 @@ export async function fetchPublicGamesMap() {
     if (!state.publicMap) {
         state.publicMap = L.map('public-game-map').setView([60.1699, 24.9384], 11);
         state.publicMap.attributionControl.setPrefix(false); // Remove Leaflet prefix
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
 
         // Initialize Cluster Group
         state.clusterGroup = L.markerClusterGroup({
