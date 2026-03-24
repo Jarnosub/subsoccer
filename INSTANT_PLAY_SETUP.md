@@ -34,13 +34,29 @@
 
 1. Mene sivulle: https://www.qr-code-generator.com/
 2. Valitse "URL"
-3. Syötä URL:
+3. Syötä haluamasi URL. Valitse alapuolelta sopiva osoite käyttötarkoituksen mukaan:
+
+   **A) Perusosoite (Yleinen peli):**
    ```
-   https://yourdomain.com/subsoccer/instant-play.html
+   https://subsoccer.pro/instant-play.html
    ```
-   TAI paikallinen testi:
+
+   **B) Yksilöity Laite (Fyysiset tuotteet):**
+   Sitouttaa pöydän The Arena -järjestelmään kytkemällä pelit suoraan pöydän sarjanumeroon (!).
    ```
-   http://localhost:8000/instant-play.html
+   https://subsoccer.pro/instant-play.html?sn=SS7-V02-24-Hki1
+   ```
+
+   **C) Kampanja / Uudelleenohjaus (Esim. vanhat sääntötarrat):**
+   Loistava tapa mitata datasta (Posthog/Analytics) mistä liikenne tuli.
+   ```
+   https://subsoccer.pro/instant-play.html?source=rules_sticker
+   ```
+
+   **D) Livetapahtuma (Event Mode):**
+   Kytkee pöydän automaattisesti käynnissä olevaan tapahtumaan/turnaukseen.
+   ```
+   https://subsoccer.pro/instant-play.html?live_event=HEL2026
    ```
 
 4. Lataa QR-koodi (PNG, 300x300px tai suurempi)
