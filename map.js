@@ -199,7 +199,7 @@ export function filterMap(type) {
                 } else if (g.verified) {
                     popupContent += `
                         <div style="background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px;">
-                            OFFICIAL ARENA
+                            VERIFIED TABLE
                         </div>
                         <i class="fa-solid fa-crown" style="color:var(--sub-gold); font-size:1.5rem; margin-bottom:5px;"></i>
                     `;
@@ -343,7 +343,7 @@ function updateNearestList(lat, lng) {
 
         const borderStyle = isVerified ? 'border-left: 4px solid var(--sub-red); background: rgba(255, 255, 255, 0.03);' : (isPrivate ? 'border-left: 4px solid #4a9eff; background: rgba(255, 255, 255, 0.03);' : 'border-left: 4px solid #333;');
         const titleColor = isVerified ? '#fff' : (isPrivate ? '#4a9eff' : '#fff');
-        const badge = isVerified ? '<span style="background:var(--sub-red); color:#fff; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">PRO ARENA</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
+        const badge = isVerified ? '<span style="background:var(--sub-red); color:#fff; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">VERIFIED TABLE</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
 
         return `
             <div class="nearest-game-item" style="${borderStyle} padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;" data-action="fly-to-location" data-lat="${g.latitude}" data-lng="${g.longitude}">

@@ -120,8 +120,8 @@ export const CardGenerator = {
             const file = new File([blob], `subsoccer-${playerName}.png`, { type: 'image/png' });
             try {
                 await navigator.share({
-                    title: `Subsoccer Pro Card: ${playerName}`,
-                    text: `Check out my official Subsoccer Pro Card! ⚽🔥`,
+                    title: `Subsoccer GO Card: ${playerName}`,
+                    text: `Check out my official Subsoccer GO Card! ⚽🔥`,
                     files: [file]
                 });
             } catch (err) {

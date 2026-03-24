@@ -203,7 +203,7 @@ export async function showLevelUpCard(playerName, newElo) {
             <div style="font-family:'Russo One'; color:var(--sub-gold); font-size:1.5rem; letter-spacing:2px; margin-bottom:10px; text-transform:uppercase; animation: pulse 1.5s infinite;">
                 RANK CAP CROSSED
             </div>
-            <p style="color:#aaa; font-size:0.85rem; margin-bottom:20px;">Your Official Pro Card has been updated.</p>
+            <p style="color:#aaa; font-size:0.85rem; margin-bottom:20px;">Your Official GO Card has been updated.</p>
 
             <div id="level-up-card-preview" style="display:flex; justify-content:center; align-items:center; width:100%; height:340px; margin: 10px 0;">
                 <p style="text-align:center; color:#888;">Updating Identity...</p>
@@ -256,7 +256,7 @@ export function showPhysicalOrderDialog() {
         <i class="fa-solid fa-truck-fast" style="font-size:3rem; color:var(--sub-gold); margin-bottom:20px;"></i>
         <h3 style="font-family:'Russo One'; margin-bottom:10px;">PREMIUM COLLECTIBLE</h3>
         <p style="color:#888; font-size:0.85rem; line-height:1.5; margin-bottom:20px;">
-            Order your official high-quality PVC printed **Pro Card** delivered to your door. Includes NFC chip for instant login at Verified Arenas.
+            Order your official high-quality PVC printed **GO Card** delivered to your door. Includes NFC chip for instant login at Verified Tables.
         </p>
         <div style="background:#111; padding:15px; border-radius:12px; border:1px solid #333; margin-bottom:20px;">
             <div style="display:flex; justify-content:space-between; color:#fff;">
@@ -309,7 +309,7 @@ export function showAppConcept() {
     const html = `
     <div style="color: #fff; font-family: 'Resolve'; max-height: 75vh; overflow-y: auto; padding-right: 15px; scrollbar-width: thin;">
         <h2 style="color: #ffffff; font-size: 1.1rem; margin-bottom: 25px; line-height: 1.4; font-family: 'Russo One'; text-transform: uppercase;">
-            From Living Room to Virtual Arena
+            From Living Room to Subsoccer World
         </h2>
 
         <div style="margin-bottom: 25px; display: grid; gap: 20px;">
@@ -327,7 +327,7 @@ export function showAppConcept() {
                     <i class="fa-solid fa-id-card"></i> 2. IDENTITY: THE PRO CARD
                 </div>
                 <div style="font-size: 0.8rem; color: #aaa; line-height: 1.5; padding-left: 20px;">
-                    Your Subsoccer Pro Card is a collectible identity storing your ELO, titles, and match legacy.
+                    Your Subsoccer Digital PRO Card is a collectible identity storing your ELO, titles, and match legacy.
                 </div>
             </div>
 
@@ -336,7 +336,7 @@ export function showAppConcept() {
                     <i class="fa-solid fa-earth-europe"></i> 3. THE BALANCED ECOSYSTEM
                 </div>
                 <div style="font-size: 0.8rem; color: #aaa; line-height: 1.5; padding-left: 20px;">
-                    Practice at home (B2C), but rank up to "Legend" (1600+ ELO) by playing at official Verified Arenas (B2B).
+                    Practice at home (B2C), but rank up to "Legend" (1600+ ELO) by playing at official Verified Tables (B2B).
                 </div>
             </div>
 

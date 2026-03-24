@@ -138,7 +138,7 @@ export const MatchService = {
                     
                     <div style="background:rgba(227, 6, 19, 0.1); border:1px solid rgba(227, 6, 19, 0.3); border-radius:8px; padding:15px; margin-bottom:25px;">
                         <p style="color:#fff; font-size:0.85rem; line-height:1.5; margin:0;">
-                            To climb the Global Leaderboard and reach the true <strong>Pro Ranks</strong>, you need to step outside. Find an official <span style="color:var(--sub-gold); font-weight:bold;">Verified Public Arena</span> and prove your skills against real challengers.
+                            To climb the Global Leaderboard and reach the true <strong>Top Ranks</strong>, you need to step outside. Find an official <span style="color:var(--sub-gold); font-weight:bold;">Verified Table</span> and prove your skills against real challengers.
                         </p>
                     </div>
 

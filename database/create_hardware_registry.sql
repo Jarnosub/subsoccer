@@ -77,7 +77,7 @@ BEGIN
         is_claimed = true,
         claimed_at = now(),
         location_type = claim_location_type
-    WHERE serial_number = target_serial_number;
+    WHERE serial_number = found_hardware.serial_number;
 
     RETURN jsonb_build_object(
         'success', true, 

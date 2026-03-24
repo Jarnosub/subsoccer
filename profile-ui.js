@@ -292,7 +292,7 @@ export function updateProfileCard() {
                 </div>
                 <div style="background:rgba(255,255,255,0.05); border:1px solid #333; padding:15px 10px; border-radius:8px; text-align:center; opacity:0.5;">
                     <div style="font-size:1.2rem; font-family:'Russo One'; color:#fff;">${arenaChamps}</div>
-                    <div style="font-size:0.55rem; color:#888; font-family:'Resolve'; margin-top:5px; text-transform:uppercase; letter-spacing:1px;">Arena<br>Champs</div>
+                    <div style="font-size:0.55rem; color:#888; font-family:'Resolve'; margin-top:5px; text-transform:uppercase; letter-spacing:1px;">Global<br>Titles</div>
                 </div>
                 <div style="background:rgba(255,255,255,0.05); border:1px solid #333; padding:15px 10px; border-radius:8px; text-align:center; opacity:0.5;">
                     <div style="font-size:1.2rem; font-family:'Russo One'; color:#fff;">${majorWins}</div>
