@@ -215,7 +215,23 @@ export function filterMap(type) {
     });
 
     state.clusterGroup.clearLayers();
+    state.mapMarkers = {}; // Cache markers to allow external triggering
     const { games, tournaments } = state.mapData;
+
+    // Define global marker trigger handler
+    window.triggerMarkerClick = (markerId) => {
+        if (state.mapMarkers && state.mapMarkers[markerId]) {
+            // Un-cluster and zoom down slightly if we're bundled before firing
+            const targetZm = state.publicMap.getZoom() > 13 ? state.publicMap.getZoom() : 13;
+            if (state.publicMap.getZoom() < targetZm) {
+                state.publicMap.setZoom(targetZm);
+            }
+            // Add a small delay so the cluster breaks apart before clicking the sub-marker
+            setTimeout(() => {
+                state.mapMarkers[markerId].fire('click');
+            }, 100);
+        }
+    };
 
     // Render Games (if type is 'all' or 'verified')
     if (type === 'all' || type === 'verified') {
@@ -328,6 +344,7 @@ export function filterMap(type) {
                         }
                     });
 
+                state.mapMarkers[g.id] = marker;
                 state.clusterGroup.addLayer(marker);
             }
         });
@@ -365,7 +382,7 @@ export function filterMap(type) {
                             <i class="fa-solid fa-location-dot"></i> ${g.game_name}
                         </div>
                     </div>`);
-
+                state.mapMarkers[t.id] = marker;
                 state.clusterGroup.addLayer(marker);
             }
         });
@@ -458,7 +475,7 @@ function updateNearestList(lat, lng) {
         const badge = isVerified ? '<span style="background:var(--sub-red); color:#fff; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">VERIFIED TABLE</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
 
         return `
-            <div class="nearest-game-item" style="${borderStyle} padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;" data-action="fly-to-location" data-lat="${g.latitude}" data-lng="${g.longitude}">
+            <div class="nearest-game-item" style="${borderStyle} padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;" onclick="if(!event.target.closest('a')) { window.triggerMarkerClick('${g.id}'); }">
                 <div style="flex-grow:1; cursor:pointer;">
                     <div style="font-family:'Russo One'; color:${titleColor}; font-size:0.95rem; margin-bottom:3px; text-transform:uppercase;">
                         ${badge}${g.game_name}
