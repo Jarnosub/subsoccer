@@ -20,20 +20,43 @@ export async function fetchAllGames() {
 export async function registerGame(e) {
     const btn = e?.currentTarget || e?.target;
     const originalText = btn ? btn.textContent : '';
-    const serialNumber = document.getElementById('game-serial-input').value.trim();
+    let serialNumber = document.getElementById('game-serial-input').value.trim();
     const gameName = document.getElementById('game-name-input').value.trim();
     const location = document.getElementById('game-address-input').value.trim();
     const visibility = document.getElementById('game-visibility-input').value;
     const isPublic = visibility === 'public';
 
+    // Auto-generate a basic serial number if the user leaves it empty (Basic Registration)
+    let isBasic = false;
+    if (!serialNumber) {
+        serialNumber = 'BASIC-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        isBasic = true;
+    }
+
     try {
         if (btn) { btn.disabled = true; btn.textContent = 'Registering...'; }
-        if (!serialNumber || !gameName || !location || !state.selLat) {
-            showNotification("Please fill all fields and select location on map.", "error");
+        
+        console.log("REGISTER ATTEMPT - Name:", gameName, "Location:", location, "Serial:", serialNumber, "Lat:", state.selLat, "Lng:", state.selLng);
+        
+        // Debugging / Specific Validation error
+        if (!gameName) {
+            showNotification("Please give a name for your game.", "error");
+            if (btn) { btn.disabled = false; btn.textContent = originalText; }
+            return;
+        }
+        if (!location) {
+            showNotification("Please type an address for your game.", "error");
+            if (btn) { btn.disabled = false; btn.textContent = originalText; }
+            return;
+        }
+        if (!state.selLat || !state.selLng) {
+            showNotification("Please click the magnifying glass to pin location on map.", "error");
+            if (btn) { btn.disabled = false; btn.textContent = originalText; }
             return;
         }
         if (state.user.id === 'guest') {
             showNotification("Guests cannot register games. Please create an account.", "error");
+            if (btn) { btn.disabled = false; btn.textContent = originalText; }
             return;
         }
 
@@ -43,21 +66,45 @@ export async function registerGame(e) {
             const { data: ownerData } = await _supabase.from('players').select('username').eq('id', existingGame.owner_id).maybeSingle();
             existingGame.players = ownerData;
             showOwnershipTransferDialog(existingGame, serialNumber, gameName, location, isPublic);
+            if (btn) { btn.disabled = false; btn.textContent = originalText; }
             return;
         }
 
         const uniqueCode = serialNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        
+        // 1. Insert into hardware_registry so it appears in The Vault
+        const { error: hwError } = await _supabase.from('hardware_registry').insert([{
+            serial_number: serialNumber,
+            product_category: 'table',
+            product_model: isBasic ? 'Basic App Table' : 'Standard Edition',
+            owner_id: state.user.id,
+            is_claimed: true,
+            claimed_at: new Date().toISOString()
+        }]);
+        
+        if (hwError) {
+            console.error("Hardware Registry validation error:", hwError);
+            throw hwError;
+        }
+        
+        // 2. Insert into the public map games database
         const { error } = await _supabase.from('games').insert([{
             unique_code: uniqueCode, game_name: gameName, location: location, owner_id: state.user.id,
             latitude: state.selLat, longitude: state.selLng, is_public: isPublic,
-            serial_number: serialNumber, verified: true, registered_at: new Date().toISOString()
+            serial_number: serialNumber, verified: !isBasic, registered_at: new Date().toISOString()
         }]);
+        
         if (error) throw error;
 
-        showNotification(`Game "${gameName}" registered successfully! ⭐ VERIFIED`, "success");
+        showNotification(isBasic ? `Basic Game "${gameName}" registered & added to Vault!` : `Game "${gameName}" registered successfully! ⭐ VERIFIED`, "success");
         cancelEdit();
         await fetchAllGames();
         fetchMyGames();
+        
+        // If the garage fetch is available, refresh the Vault!
+        if (window.loadHardwareGarage) {
+            window.loadHardwareGarage();
+        }
     } catch (error) {
         showNotification("Failed to register game: " + error.message, "error");
     } finally { if (btn) { btn.disabled = false; btn.textContent = originalText; } }
@@ -71,14 +118,20 @@ export function initEditGame(id) {
     // Switch page first to ensure DOM elements are visible and map initializes
     state.currentPage = 'games';
 
-    document.getElementById('game-serial-input').value = game.serial_number || '';
-    document.getElementById('game-serial-input').disabled = true;
-    document.getElementById('game-name-input').value = game.game_name;
-    document.getElementById('game-address-input').value = game.location;
+    const serialInput = document.getElementById('game-serial-input');
+    if (serialInput) {
+        serialInput.value = game.serial_number || '';
+        serialInput.disabled = true;
+    }
+    const nameInput = document.getElementById('game-name-input');
+    if (nameInput) nameInput.value = game.game_name;
+    const addressInput = document.getElementById('game-address-input');
+    if (addressInput) addressInput.value = game.location;
 
     // Set Visibility State
     const visibility = game.is_public ? 'public' : 'private'; // Simplified mapping for now
-    document.getElementById('game-visibility-input').value = visibility;
+    const visInput = document.getElementById('game-visibility-input');
+    if (visInput) visInput.value = visibility;
     document.querySelectorAll('.visibility-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-value') === visibility);
     });
@@ -107,24 +160,32 @@ export function initEditGame(id) {
 
 export function cancelEdit() {
     state.editingGameId = null;
-    document.getElementById('game-serial-input').value = '';
-    document.getElementById('game-serial-input').disabled = false;
-    document.getElementById('game-name-input').value = '';
-    document.getElementById('game-address-input').value = '';
+    const serialInput = document.getElementById('game-serial-input');
+    if (serialInput) {
+        serialInput.value = '';
+        serialInput.disabled = false;
+    }
+    const nameInput = document.getElementById('game-name-input');
+    if (nameInput) nameInput.value = '';
+    const addressInput = document.getElementById('game-address-input');
+    if (addressInput) addressInput.value = '';
 
     // Reset Visibility
-    document.getElementById('game-visibility-input').value = 'public';
+    const visInput = document.getElementById('game-visibility-input');
+    if (visInput) visInput.value = 'public';
     document.querySelectorAll('.visibility-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-value') === 'public');
     });
 
-    document.getElementById('location-confirm').innerText = '';
+    document.getElementById('location-confirm') && (document.getElementById('location-confirm').innerText = '');
     state.selLat = null; state.selLng = null;
     if (state.gameMarker) {
         try { state.gameMap?.removeLayer(state.gameMarker); } catch (e) { }
     }
-    document.getElementById('btn-reg-game').style.display = 'block';
-    document.getElementById('btn-edit-group').style.display = 'none';
+    const btnReg = document.getElementById('btn-reg-game');
+    if (btnReg) btnReg.style.display = 'block';
+    const btnEdit = document.getElementById('btn-edit-group');
+    if (btnEdit) btnEdit.style.display = 'none';
 }
 
 export async function updateGame(e) {

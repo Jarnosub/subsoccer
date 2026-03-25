@@ -65,16 +65,28 @@ export async function fetchPublicGamesMap() {
             fullscreenBtn.addEventListener('click', () => {
                 mapWrapper.classList.toggle('map-fullscreen');
                 
-                // Toggle Icon
+                // Toggle Icon & Fix positioning
                 const icon = fullscreenBtn.querySelector('i');
                 if (mapWrapper.classList.contains('map-fullscreen')) {
                     icon.classList.remove('fa-expand');
                     icon.classList.add('fa-compress');
                     document.body.style.overflow = 'hidden'; 
+                    
+                    // Force button to stay fixed relative to viewport so it never slides off
+                    fullscreenBtn.style.position = 'fixed';
+                    fullscreenBtn.style.bottom = '30px';
+                    fullscreenBtn.style.left = 'min(15px, 2vw)';
+                    fullscreenBtn.style.zIndex = '10000';
                 } else {
                     icon.classList.remove('fa-compress');
                     icon.classList.add('fa-expand');
                     document.body.style.overflow = '';
+                    
+                    // Revert to absolute relative to map wrapper
+                    fullscreenBtn.style.position = 'absolute';
+                    fullscreenBtn.style.bottom = '20px';
+                    fullscreenBtn.style.left = '10px';
+                    fullscreenBtn.style.zIndex = '1000';
                 }
                 
                 setTimeout(() => state.publicMap.invalidateSize(), 350);
@@ -114,25 +126,34 @@ export async function fetchPublicGamesMap() {
     today.setHours(0, 0, 0, 0);
     const todayIso = today.toISOString();
 
-    const [matchesReq, trackingReq] = await Promise.all([
-        _supabase.from('matches').select('game_id').gte('created_at', todayIso),
-        _supabase.from('public_tracking').select('game_code, event_type, location').gte('client_time', todayIso)
-    ]);
+    // Use a try-catch for these optional active tracking queries so they don't break the main map if columns are missing
+    let activeGameIds = new Set();
+    let activeSerials = new Set();
+    let scanLocations = new Set();
 
-    const activeGameIds = new Set();
-    const activeSerials = new Set();
-    const scanLocations = new Set();
+    try {
+        const [matchesReq, trackingReq] = await Promise.all([
+            // Changed from select('game_id') to select('id') to avoid 400 Bad Request since matches table lacks game_id
+            _supabase.from('matches').select('id, tournament_id').gte('created_at', todayIso),
+            // The public_tracking table actually uses client_time, not created_at
+            _supabase.from('public_tracking').select('game_code, event_type, location').gte('client_time', todayIso)
+        ]);
 
-    if (matchesReq.data) matchesReq.data.forEach(m => { if (m.game_id) activeGameIds.add(m.game_id); });
-    if (trackingReq.data) {
-        trackingReq.data.forEach(t => {
-            if (t.event_type === 'game_finished' && t.game_code && t.game_code !== 'PUBLIC-APP') {
-                activeSerials.add(t.game_code.toUpperCase());
-            }
-            if (t.location && t.location.includes('/')) {
-                scanLocations.add(t.location);
-            }
-        });
+        if (matchesReq.data) {
+            // No game_id exists on matches table yet, so this array just validates if tournaments are active
+        }
+        if (trackingReq.data) {
+            trackingReq.data.forEach(t => {
+                if (t.event_type === 'game_finished' && t.game_code && t.game_code !== 'PUBLIC-APP') {
+                    activeSerials.add(t.game_code.toUpperCase());
+                }
+                if (t.location && t.location.includes('/')) {
+                    scanLocations.add(t.location);
+                }
+            });
+        }
+    } catch (metricErr) {
+        console.warn("Could not fetch active table metrics for map (schema mismatch)", metricErr);
     }
 
     // Store data for filtering
@@ -160,8 +181,8 @@ export async function fetchPublicGamesMap() {
             mapContainer.appendChild(locateBtn);
         }
 
-        // Initial Render (Verified Focus)
-        filterMap('verified');
+        // Initial Render (Show All Tables so new users see their own immediately)
+        filterMap('all');
 
         // Initial Nearest List (based on map center)
         const center = state.publicMap.getCenter();
@@ -202,45 +223,111 @@ export function filterMap(type) {
             // Filter verified if requested
             if (type === 'verified' && !g.verified) return;
 
+            // Stealth mode completely removes the table from the visual map
+            if (g.privacy_mode === 'stealth') return;
+
             if (g.latitude && g.longitude) {
+                let markerLat = g.latitude;
+                let markerLng = g.longitude;
+
+                // City-Level Private Blur Logic (Math.round to nearest 0.05 degrees ~ 5km)
+                // Defaulting legacy non-public tables to blur behavior as well
+                if (g.privacy_mode === 'private' || (!g.is_public && !g.privacy_mode)) {
+                    markerLat = Math.round(markerLat * 20) / 20;
+                    markerLng = Math.round(markerLng * 20) / 20;
+                }
+
                 const isActiveToday = (state.mapData.activeGameIds && state.mapData.activeGameIds.has(g.id)) ||
                     (state.mapData.activeSerials && state.mapData.activeSerials.has((g.serial_number || '').toUpperCase()));
 
-                // Default Unverified Public Table color -> slightly darker red/orange
-                let iconColor = isActiveToday ? '#FFFF00' : (g.is_public ? (g.verified ? 'var(--sub-red)' : '#ff5722') : '#4a9eff');
+                // Reverted back to dark blue for unverified/private for better map contrast
+                let iconColor = isActiveToday ? '#FFFF00' : (g.is_public ? (g.verified ? 'var(--sub-red)' : '#ff5722') : '#0033cc');
                 const verifiedClass = g.verified && g.is_public && !isActiveToday ? 'verified-marker-pulse' : '';
-                const pulseStyle = isActiveToday ? 'animation: markerPulse 1.0s infinite; box-shadow: 0 0 15px #FFFF00;' : 'box-shadow: 0 0 10px rgba(0,0,0,0.5);';
+                
+                // Determine pulse animation based on color
+                let pulseName = 'bluePulse';
+                if (isActiveToday) pulseName = 'yellowPulse';
+                else if (g.is_public && g.verified) pulseName = 'markerPulse';
+                else if (g.is_public) pulseName = 'orangePulse';
+
+                // Add a strong LED-like glow and pulsing ring
+                const glowStyle = `animation: ${pulseName} 2.0s infinite; box-shadow: 0 0 15px ${iconColor};`;
 
                 const subsoccerIcon = L.divIcon({
                     className: `custom-div-icon ${verifiedClass}`,
-                    html: `<div style='background-color:${iconColor}; width:12px; height:12px; border-radius:50%; border:2px solid ${isActiveToday ? '#fff' : 'white'}; ${pulseStyle}'></div>`,
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8]
+                    html: `<div style='background-color:${iconColor}; width:18px; height:18px; border-radius:50%; border:2px solid rgba(255,255,255,0.9); ${glowStyle}'></div>`,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
                 });
 
-                let popupContent = `<div style="min-width:160px; text-align:center;">`;
+                let popupContent = `
+                    <div style="text-align:center; padding-bottom: 20px;">
+                `;
                 if (isActiveToday) {
-                    popupContent += `<div style="background:#FFFF00; color:#000; font-family:var(--sub-name-font); font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px; animation: markerPulse 1.5s infinite;">⚡ ACTIVE TODAY!</div>`;
+                    popupContent += `<div style="display:inline-block; background:#FFFF00; color:#000; font-family:var(--sub-name-font); font-size:0.7rem; padding:4px 10px; letter-spacing:1px; border-radius:15px; text-transform:uppercase; margin-bottom:15px; animation: markerPulse 1.5s infinite; font-weight:bold;">⚡ ACTIVE TODAY!</div>`;
                 } else if (g.verified) {
                     popupContent += `
-                        <div style="background:var(--sub-red); color:#fff; font-family:var(--sub-name-font); font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px;">
-                            VERIFIED TABLE
+                        <div style="display:inline-block; background:var(--sub-red); color:#fff; font-family:var(--sub-name-font); font-size:0.7rem; padding:4px 10px; letter-spacing:1px; border-radius:15px; text-transform:uppercase; margin-bottom:15px; box-shadow:0 0 10px rgba(227,6,19,0.5);">
+                            <i class="fa-solid fa-crown" style="margin-right:5px;"></i> VERIFIED TABLE
                         </div>
-                        <i class="fa-solid fa-crown" style="color:var(--sub-red); font-size:1.5rem; margin-bottom:5px;"></i>
                     `;
-                } else if (!g.is_public) {
-                    popupContent += `<div style="color:#4a9eff; font-size:0.6rem; font-weight:bold; margin-bottom:4px; font-family:var(--sub-name-font);"><i class="fa fa-lock"></i> PRIVATE HOME TABLE</div>`;
+                } else if (!g.is_public || g.privacy_mode === 'private') {
+                    popupContent += `<div style="display:inline-block; border: 1px dashed #4a9eff; color:#4a9eff; font-size:0.65rem; padding:4px 10px; border-radius:15px; font-weight:bold; margin-bottom:15px; font-family:var(--sub-name-font); text-transform:uppercase;"><i class="fa fa-mask"></i> CITY-LEVEL PRIVATE</div>`;
                 }
 
                 popupContent += `
-                    <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; font-family:var(--sub-name-font);">${g.game_name}</b>
-                    <div style="color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">
-                        <i class="fa-solid fa-location-dot" style="color:${iconColor}; margin-right:5px;"></i>${g.location}
+                    <h2 style="font-size:1.8rem; text-transform:uppercase; color:#fff; margin-bottom:10px; font-family:var(--sub-name-font); letter-spacing: 1px;">
+                        ${g.privacy_mode === 'private' ? 'HIDDEN VENUE' : g.game_name}
+                    </h2>
+                    <div style="color:#aaa; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:25px; line-height: 1.5;">
+                        <i class="fa-solid fa-location-dot" style="color:${iconColor}; margin-right:8px; font-size: 1.1rem;"></i> 
+                        ${g.privacy_mode === 'private' ? 'Location Obscured' : g.location}
                     </div>
-                </div>`;
+                    ${g.privacy_mode !== 'private' ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${markerLat},${markerLng}" target="_blank" style="display:inline-block; width: 100%; border:none; margin-top:5px; padding:15px 0; background:var(--sub-gold); color:#000; font-family:'Russo One', sans-serif; text-decoration:none; font-size:1rem; border-radius:8px; letter-spacing:1px; text-align:center; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);"><i class="fa-solid fa-diamond-turn-right" style="margin-right:10px;"></i> GET DIRECTIONS</a>` : ''}
+                `;
 
-                const marker = L.marker([g.latitude, g.longitude], { icon: subsoccerIcon })
-                    .bindPopup(popupContent);
+                const marker = L.marker([markerLat, markerLng], { icon: subsoccerIcon })
+                    .on('click', () => {
+                        const content = document.getElementById('venue-card-content');
+                        if(content) {
+                            const statsContainerId = `stats-container-${g.id}`;
+                            const fullHTML = popupContent + `
+                                <div id="${statsContainerId}" style="margin-top: 20px; background: #080808; border: 1px solid #222; border-radius: 8px; padding: 15px;">
+                                    <i class="fa-solid fa-circle-notch fa-spin" style="color:var(--sub-gold); font-size:1.5rem;"></i>
+                                </div>
+                            </div>`; // Closes the main wrapper right here
+                            
+                            content.innerHTML = fullHTML;
+                            document.getElementById('venue-card-modal').classList.add('active');
+                            // Gently fly to the marker slightly above center so the bottom sheet doesn't cover it
+                            state.publicMap.flyTo([markerLat - 0.005, markerLng], state.publicMap.getZoom() > 13 ? state.publicMap.getZoom() : 13, { animate: true, duration: 0.5 });
+                            
+                            // Fetch real backend data!
+                            if (g.serial_number) {
+                                _supabase.from('public_tracking')
+                                    .select('*', { count: 'exact', head: true })
+                                    .eq('game_code', g.serial_number.toUpperCase())
+                                    .then(({ count, error }) => {
+                                        const statsDiv = document.getElementById(statsContainerId);
+                                        if (statsDiv) {
+                                            const totalGames = count || 0;
+                                            statsDiv.innerHTML = `
+                                                <div style="font-size: 0.7rem; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px;">GAMES PLAYED HERE</div>
+                                                <div style="font-family: 'Russo One', sans-serif; font-size: 2.2rem; color: var(--sub-gold); text-shadow: 0 0 15px rgba(255, 215, 0, 0.2); line-height:1;">${totalGames}</div>
+                                            `;
+                                        }
+                                    });
+                            } else {
+                                const statsDiv = document.getElementById(statsContainerId);
+                                if (statsDiv) {
+                                    statsDiv.innerHTML = `
+                                        <div style="font-size: 0.7rem; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px;">GAMES PLAYED HERE</div>
+                                        <div style="font-family: 'Russo One', sans-serif; font-size: 2.2rem; color: #444; line-height:1;">0</div>
+                                    `;
+                                }
+                            }
+                        }
+                    });
 
                 state.clusterGroup.addLayer(marker);
             }
@@ -314,11 +401,12 @@ export function filterMap(type) {
             if (coords && state.clusterGroup) {
                 // Determine a slight offset so multiple cities don't overlap perfectly if they share the same timezone string perfectly
                 // For timezone level granularity, it's fine.
+                // Scan markers restored to cyan for lightning feel
                 const scanIcon = L.divIcon({
                     className: `custom-div-icon`,
-                    html: `<div style='background-color:#00FFCC; width:8px; height:8px; border-radius:50%; border:1px solid #fff; box-shadow: 0 0 12px #00FFCC; animation: markerPulse 1.5s infinite;'></div>`,
-                    iconSize: [10, 10],
-                    iconAnchor: [5, 5]
+                    html: `<div style='background-color:#00FFCC; width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.9); box-shadow: 0 0 15px #00FFCC; animation: bluePulse 1.5s infinite;'></div>`,
+                    iconSize: [18, 18],
+                    iconAnchor: [9, 9]
                 });
                 const scanMarker = L.marker(coords, { icon: scanIcon })
                     .bindPopup(`<div style="color:#00FFCC; font-size:0.75rem; text-align:center; font-family:'Russo One'; text-transform:uppercase;">⚡ LIVE SCAN<br><span style="color:#fff; font-size:1.1rem; line-height:1.5;">${city}</span></div>`);

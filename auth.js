@@ -190,6 +190,7 @@ export async function handleSignUp() {
     const email = document.getElementById('reg-email')?.value.trim();
     const p = document.getElementById('reg-pass').value.trim();
     const gdpr = document.getElementById('reg-gdpr-consent');
+    const marketingOptIn = document.getElementById('reg-marketing-consent')?.checked || false;
 
     if (!u || !p || !email) return showNotification("Fill all fields including email", "error");
     if (gdpr && !gdpr.checked) return showNotification("You must accept the Terms & Privacy Policy to register.", "error");
@@ -222,7 +223,8 @@ export async function handleSignUp() {
             data: {
                 username: u,
                 full_name: u,      // Näkyy Supabase Dashboardissa
-                display_name: u    // Yleinen standardi metadatalle
+                display_name: u,    // Yleinen standardi metadatalle
+                marketing_consent: marketingOptIn
             }
         }
     });

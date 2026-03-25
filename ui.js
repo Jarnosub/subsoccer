@@ -506,6 +506,7 @@ export function setupUIListeners() {
     // Settings Menu
     document.getElementById('menu-toggle-btn')?.addEventListener('click', (e) => toggleSettingsMenu(e));
     document.getElementById('menu-item-register-hardware')?.addEventListener('click', (e) => {
+        cancelEdit(); // Explicitly clear any edit locks before entering
         toggleSettingsMenu(e);
         if(window.openHardwareClaimModal) window.openHardwareClaimModal();
     });
@@ -549,7 +550,7 @@ export function setupUIListeners() {
     document.getElementById('btn-dashboard-play')?.addEventListener('click', () => showPage('tournament'));
     document.getElementById('btn-dashboard-arena')?.addEventListener('click', () => showPage('map'));
     document.getElementById('btn-profile-history')?.addEventListener('click', () => showPage('history'));
-    document.getElementById('btn-profile-register-game')?.addEventListener('click', () => showPage('games'));
+    document.getElementById('btn-profile-register-game')?.addEventListener('click', () => { cancelEdit(); showPage('games'); });
     document.getElementById('menu-item-concept')?.addEventListener('click', () => {
         showAppConcept();
         document.getElementById('settings-menu').style.display = 'none';
