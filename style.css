@@ -517,30 +517,30 @@ header {
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
-    background-color: rgba(255, 215, 0, 0.2) !important;
+    background-color: rgba(227, 6, 19, 0.2) !important;
 }
 
 .marker-cluster div {
     background-color: rgba(10, 10, 10, 0.9) !important;
-    color: var(--sub-gold) !important;
-    font-family: 'Russo One', sans-serif !important;
-    border: 1px solid var(--sub-gold) !important;
+    color: #fff !important;
+    font-family: var(--sub-name-font) !important;
+    border: 1px solid var(--sub-red) !important;
     border-radius: 50% !important;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3) !important;
+    box-shadow: 0 0 10px rgba(227, 6, 19, 0.5) !important;
 }
 
 /* Pulse animation for Verified markers */
 @keyframes markerPulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6);
+        box-shadow: 0 0 0 0 rgba(227, 6, 19, 0.6);
     }
 
     70% {
-        box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+        box-shadow: 0 0 0 10px rgba(227, 6, 19, 0);
     }
 
     100% {
-        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+        box-shadow: 0 0 0 0 rgba(227, 6, 19, 0);
     }
 }
 

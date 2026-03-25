@@ -178,9 +178,9 @@ export function filterMap(type) {
         if (btnFilter === type) {
             btn.classList.add('active');
             if (type === 'verified') {
-                btn.style.background = 'rgba(255, 215, 0, 0.1)';
-                btn.style.borderColor = 'var(--sub-gold)';
-                btn.style.color = 'var(--sub-gold)';
+                btn.style.background = 'rgba(227, 6, 19, 0.1)';
+                btn.style.borderColor = 'var(--sub-red)';
+                btn.style.color = 'var(--sub-red)';
             } else {
                 btn.style.background = '#222';
                 btn.style.color = '#fff';
@@ -206,7 +206,8 @@ export function filterMap(type) {
                 const isActiveToday = (state.mapData.activeGameIds && state.mapData.activeGameIds.has(g.id)) ||
                     (state.mapData.activeSerials && state.mapData.activeSerials.has((g.serial_number || '').toUpperCase()));
 
-                let iconColor = isActiveToday ? '#FFFF00' : (g.is_public ? (g.verified ? 'var(--sub-gold)' : 'var(--sub-red)') : '#4a9eff');
+                // Default Unverified Public Table color -> slightly darker red/orange
+                let iconColor = isActiveToday ? '#FFFF00' : (g.is_public ? (g.verified ? 'var(--sub-red)' : '#ff5722') : '#4a9eff');
                 const verifiedClass = g.verified && g.is_public && !isActiveToday ? 'verified-marker-pulse' : '';
                 const pulseStyle = isActiveToday ? 'animation: markerPulse 1.0s infinite; box-shadow: 0 0 15px #FFFF00;' : 'box-shadow: 0 0 10px rgba(0,0,0,0.5);';
 
@@ -219,20 +220,20 @@ export function filterMap(type) {
 
                 let popupContent = `<div style="min-width:160px; text-align:center;">`;
                 if (isActiveToday) {
-                    popupContent += `<div style="background:#FFFF00; color:#000; font-family:'Russo One'; font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px; animation: markerPulse 1.5s infinite;">⚡ ACTIVE TODAY!</div>`;
+                    popupContent += `<div style="background:#FFFF00; color:#000; font-family:var(--sub-name-font); font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px; animation: markerPulse 1.5s infinite;">⚡ ACTIVE TODAY!</div>`;
                 } else if (g.verified) {
                     popupContent += `
-                        <div style="background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px;">
+                        <div style="background:var(--sub-red); color:#fff; font-family:var(--sub-name-font); font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px;">
                             VERIFIED TABLE
                         </div>
-                        <i class="fa-solid fa-crown" style="color:var(--sub-gold); font-size:1.5rem; margin-bottom:5px;"></i>
+                        <i class="fa-solid fa-crown" style="color:var(--sub-red); font-size:1.5rem; margin-bottom:5px;"></i>
                     `;
                 } else if (!g.is_public) {
-                    popupContent += `<div style="color:#4a9eff; font-size:0.6rem; font-weight:bold; margin-bottom:4px;"><i class="fa fa-lock"></i> PRIVATE HOME TABLE</div>`;
+                    popupContent += `<div style="color:#4a9eff; font-size:0.6rem; font-weight:bold; margin-bottom:4px; font-family:var(--sub-name-font);"><i class="fa fa-lock"></i> PRIVATE HOME TABLE</div>`;
                 }
 
                 popupContent += `
-                    <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; font-family:'Russo One';">${g.game_name}</b>
+                    <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; font-family:var(--sub-name-font);">${g.game_name}</b>
                     <div style="color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">
                         <i class="fa-solid fa-location-dot" style="color:${iconColor}; margin-right:5px;"></i>${g.location}
                     </div>
@@ -265,13 +266,13 @@ export function filterMap(type) {
 
                 const marker = L.marker([g.latitude, g.longitude], { icon: tournamentIcon })
                     .bindPopup(`<div style="min-width:180px;">
-                        <div style="color:var(--sub-red); font-size:0.65rem; font-weight:bold; margin-bottom:4px; letter-spacing:1px;">
+                        <div style="color:var(--sub-red); font-size:0.65rem; font-weight:bold; margin-bottom:4px; letter-spacing:1px; font-family: var(--sub-name-font);">
                             ${isLive ? '● LIVE TOURNAMENT' : '📅 UPCOMING TOURNAMENT'}
                         </div>
-                        <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; line-height:1.2;">
+                        <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; line-height:1.2; font-family: var(--sub-name-font);">
                             ${t.tournament_name}
                         </b>
-                        <div style="color:#ccc; font-size:0.8rem; margin-bottom:8px;">
+                        <div style="color:#ccc; font-size:0.8rem; margin-bottom:8px; font-family: var(--sub-body-font);">
                             ${dateStr} @ ${timeStr}
                         </div>
                         <div style="color:#888; font-size:0.7rem; border-top:1px solid #333; padding-top:5px;">
