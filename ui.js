@@ -291,8 +291,8 @@ function initSwipeListener() {
     if (!appContent) return;
 
     appContent.addEventListener('touchstart', (e) => {
-        // Estä sivun vaihto jos käyttäjä on kartan päällä tai kortin päällä tai elementissä jossa on 'no-swipe'
-        if (e.target.closest('.leaflet-container') || e.target.closest('.no-swipe') || e.target.closest('input[type="range"]') || e.target.closest('.pro-card')) {
+        // Estä sivun vaihto jos käyttäjä on kartan päällä, vaultissa tai kortin päällä
+        if (e.target.closest('.leaflet-container') || e.target.closest('.no-swipe') || e.target.closest('#hardware-garage-list') || e.target.closest('.venue-card') || e.target.closest('input[type="range"]') || e.target.closest('.pro-card')) {
             touchStartX = null;
             return;
         }
