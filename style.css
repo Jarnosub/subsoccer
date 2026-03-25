@@ -33,7 +33,8 @@
     --sub-white: #FFFFFF;
     --sub-gold: #FFD700;
     --sub-border: rgba(255, 255, 255, 0.08);
-    --sub-surface: rgba(13, 22, 32, 0.95); /* Deep petrol blue */
+    --sub-surface: rgba(13, 22, 32, 0.95);
+    /* Deep petrol blue */
     --sub-logo-font: 'SubsoccerLogo', sans-serif;
     --sub-name-font: 'Resolve', sans-serif;
     --sub-body-font: 'ResolveRegular', sans-serif;
@@ -370,7 +371,10 @@ header {
     line-height: 1.2;
 }
 
-
+/* Tummennetaan harmaata karttaa, jotta se sulautuu mustaan taustaan */
+#public-game-map .leaflet-tile-pane {
+    filter: brightness(1.1) contrast(1.1) grayscale(0.2) !important;
+}
 
 #public-game-map {
     background: var(--sub-black) !important;
@@ -1379,11 +1383,13 @@ select.dark-select {
 }
 
 .pro-player-left {
-    background: linear-gradient(135deg, #243647 0%, #121e2b 100%); /* Deep Petrol Blue */
+    background: linear-gradient(135deg, #243647 0%, #121e2b 100%);
+    /* Deep Petrol Blue */
 }
 
 .pro-player-right {
-    background: linear-gradient(135deg, var(--sub-red) 0%, #900000 100%); /* Subsoccer Red */
+    background: linear-gradient(135deg, var(--sub-red) 0%, #900000 100%);
+    /* Subsoccer Red */
 }
 
 .pro-player-name {
@@ -1402,12 +1408,14 @@ select.dark-select {
     color: #ffffff;
     text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
     line-height: 1;
-    margin-top: clamp(30px, 8vh, 80px); /* Push the whole block downwards */
+    margin-top: clamp(30px, 8vh, 80px);
+    /* Push the whole block downwards */
 }
 
 .pro-goals-visual {
     font-size: clamp(2rem, 5vh, 4rem);
-    margin-top: clamp(8px, 1.5vh, 16px); /* Very tight gap to the score */
+    margin-top: clamp(8px, 1.5vh, 16px);
+    /* Very tight gap to the score */
     letter-spacing: clamp(10px, 2vw, 20px);
 }
 
@@ -3655,3 +3663,16 @@ body.live-mode {
     pointer-events: none;
     z-index: 10;
 }
+.map-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    z-index: 9999 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+}
+

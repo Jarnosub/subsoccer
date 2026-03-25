@@ -42,7 +42,7 @@ export async function fetchPublicGamesMap() {
     if (!state.publicMap) {
         state.publicMap = L.map('public-game-map').setView([60.1699, 24.9384], 11);
         state.publicMap.attributionControl.setPrefix(false); // Remove Leaflet prefix
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
 
         // Initialize Cluster Group
         state.clusterGroup = L.markerClusterGroup({
@@ -57,6 +57,30 @@ export async function fetchPublicGamesMap() {
             const center = state.publicMap.getCenter();
             updateNearestList(center.lat, center.lng);
         });
+
+        // Setup Fullscreen Toggle
+        const fullscreenBtn = document.getElementById('btn-map-fullscreen');
+        const mapWrapper = document.getElementById('map-wrapper');
+        if (fullscreenBtn && mapWrapper) {
+            fullscreenBtn.addEventListener('click', () => {
+                mapWrapper.classList.toggle('map-fullscreen');
+                
+                // Toggle Icon
+                const icon = fullscreenBtn.querySelector('i');
+                if (mapWrapper.classList.contains('map-fullscreen')) {
+                    icon.classList.remove('fa-expand');
+                    icon.classList.add('fa-compress');
+                    document.body.style.overflow = 'hidden'; 
+                } else {
+                    icon.classList.remove('fa-compress');
+                    icon.classList.add('fa-expand');
+                    document.body.style.overflow = '';
+                }
+                
+                setTimeout(() => state.publicMap.invalidateSize(), 350);
+            });
+        }
+
     } else {
         setTimeout(() => state.publicMap.invalidateSize(), 200);
     }
@@ -87,7 +111,7 @@ export async function fetchPublicGamesMap() {
 
     // 3. Fetch Active Tables Today (from matches and public_tracking)
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     const todayIso = today.toISOString();
 
     const [matchesReq, trackingReq] = await Promise.all([
@@ -101,9 +125,9 @@ export async function fetchPublicGamesMap() {
 
     if (matchesReq.data) matchesReq.data.forEach(m => { if (m.game_id) activeGameIds.add(m.game_id); });
     if (trackingReq.data) {
-        trackingReq.data.forEach(t => { 
+        trackingReq.data.forEach(t => {
             if (t.event_type === 'game_finished' && t.game_code && t.game_code !== 'PUBLIC-APP') {
-                activeSerials.add(t.game_code.toUpperCase()); 
+                activeSerials.add(t.game_code.toUpperCase());
             }
             if (t.location && t.location.includes('/')) {
                 scanLocations.add(t.location);
@@ -179,8 +203,8 @@ export function filterMap(type) {
             if (type === 'verified' && !g.verified) return;
 
             if (g.latitude && g.longitude) {
-                const isActiveToday = (state.mapData.activeGameIds && state.mapData.activeGameIds.has(g.id)) || 
-                                      (state.mapData.activeSerials && state.mapData.activeSerials.has((g.serial_number || '').toUpperCase()));
+                const isActiveToday = (state.mapData.activeGameIds && state.mapData.activeGameIds.has(g.id)) ||
+                    (state.mapData.activeSerials && state.mapData.activeSerials.has((g.serial_number || '').toUpperCase()));
 
                 let iconColor = isActiveToday ? '#FFFF00' : (g.is_public ? (g.verified ? 'var(--sub-gold)' : 'var(--sub-red)') : '#4a9eff');
                 const verifiedClass = g.verified && g.is_public && !isActiveToday ? 'verified-marker-pulse' : '';
@@ -271,10 +295,10 @@ export function filterMap(type) {
         state.mapData.scanLocations.forEach(async (tz) => {
             let city = tz.split('/').pop().replace(/_/g, ' ');
             if (!city) return;
-            
+
             state.tzCache = state.tzCache || {};
             let coords = state.tzCache[tz];
-            
+
             if (!coords) {
                 try {
                     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&city=${encodeURIComponent(city)}&limit=1`);
@@ -283,7 +307,7 @@ export function filterMap(type) {
                         coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
                         state.tzCache[tz] = coords;
                     }
-                } catch(e) {}
+                } catch (e) { }
             }
 
             if (coords && state.clusterGroup) {

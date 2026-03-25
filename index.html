@@ -836,8 +836,12 @@
                     </button>
                 </div>
 
-                <div id="public-game-map"
-                    style="width: 100%; height: 40vh; min-height: 350px; border-radius: var(--sub-radius); border: 2px solid #222; flex-shrink: 0; margin-top: 5px; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
+                <!-- Map Container with Fullscreen toggle -->
+                <div id="map-wrapper" style="position: relative; width: 100%; height: 40vh; min-height: 350px; border-radius: var(--sub-radius); border: 2px solid rgba(255,255,255,0.1); margin-top: 5px; box-shadow:0 10px 20px rgba(0,0,0,0.5); overflow: hidden; transition: all 0.3s ease;">
+                    <div id="public-game-map" style="width: 100%; height: 100%;"></div>
+                    <button id="btn-map-fullscreen" style="position: absolute; bottom: 20px; left: 10px; z-index: 1000; background: var(--sub-red); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.2rem;">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
                 </div>
 
                 <!-- Nearest Games List -->
