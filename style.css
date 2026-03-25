@@ -3790,6 +3790,7 @@ body.live-mode {
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
     padding: 24px;
     border-top: 1px solid #333;
+    box-sizing: border-box;
 }
 
 .venue-bottom-sheet.active {
