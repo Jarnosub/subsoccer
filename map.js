@@ -297,8 +297,11 @@ export function filterMap(type) {
                     </h2>
                     <div style="color:#aaa; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:25px; line-height: 1.5;">
                         <i class="fa-solid fa-location-dot" style="color:${iconColor}; margin-right:8px; font-size: 1.1rem;"></i> 
-                        ${g.privacy_mode === 'private' ? 'Location Obscured' : g.location}
-                    ${g.privacy_mode !== 'private' ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${markerLat},${markerLng}" target="_blank" style="display:inline-block; width: 100%; box-sizing: border-box; border:none; margin-top:5px; padding:15px 0; background:var(--sub-gold); color:#000; font-family:'Russo One', sans-serif; text-decoration:none; font-size:1rem; border-radius:8px; letter-spacing:1px; text-align:center; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);"><i class="fa-solid fa-diamond-turn-right" style="margin-right:10px;"></i> GET DIRECTIONS</a>` : ''}
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        ${g.serial_number ? `<button class="btn-dark" onclick="window.openPublicVenueCardModal('${g.id}')" style="width: 100%; box-sizing: border-box; border:1px solid #333; padding:15px 0; background:#111; color:#aaa; font-family:'Russo One', sans-serif; font-size:1rem; border-radius:8px; letter-spacing:1px; text-align:center;"><i class="fa-solid fa-id-card" style="margin-right:10px;"></i> VIEW PRO CARD</button>` : ''}
+                        ${g.privacy_mode !== 'private' ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${markerLat},${markerLng}" target="_blank" style="display:inline-block; width: 100%; box-sizing: border-box; border:none; padding:15px 0; background:var(--sub-gold); color:#000; font-family:'Russo One', sans-serif; text-decoration:none; font-size:1rem; border-radius:8px; letter-spacing:1px; text-align:center; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);"><i class="fa-solid fa-diamond-turn-right" style="margin-right:10px;"></i> GET DIRECTIONS</a>` : ''}
+                    </div>
                 `;
 
                 const marker = L.marker([markerLat, markerLng], { icon: subsoccerIcon })

@@ -397,6 +397,141 @@ window.openVenueCardModal = (serial) => {
     renderKingWidget(gameData?.id, item.owner_id, `king-widget-full-${item.serial_number}`);
 };
 
+
+// OPEN A VENUE PRO CARD FROM THE PUBLIC MAP (Fetch Dynamic Data without Ownership restrictions)
+window.openPublicVenueCardModal = async (gameId) => {
+    // 1. Fetch game details directly
+    const { data: gameData } = await _supabase.from('games').select('*').eq('id', gameId).single();
+    if (!gameData) return;
+    
+    // 2. Fallback hardware registry features if serial exists
+    let item = { product_model: 'SUBSOCCER TABLE', serial_number: gameData.serial_number || 'UNKNOWN', owner_id: null };
+    if (gameData.serial_number) {
+        const { data: hw } = await _supabase.from('hardware_registry').select('*').eq('serial_number', gameData.serial_number).single();
+        if (hw) item = hw;
+    }
+
+    const venueName = gameData.game_name || item.product_model;
+    const locationStr = gameData.location || (item.location_type || 'PUBLIC TABLE');
+    const isVerified = gameData.verified ? 'VERIFIED TABLE' : 'UNVERIFIED LOCATION';
+    const badgeColor = gameData.verified ? 'var(--sub-gold)' : '#4a9eff'; 
+    const imageUrl = gameData.image_url || 'lauttasaari_hq.png'; 
+    const wins = gameData.wins || 0;
+    const uniquePlayers = gameData.unique_players || 0;
+
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(0,0,0,0.85)';
+    overlay.style.backdropFilter = 'blur(5px)';
+    overlay.style.zIndex = '99999';
+    overlay.style.display = 'flex';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    overlay.style.flexDirection = 'column';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '20px';
+    closeBtn.style.right = '20px';
+    closeBtn.style.background = 'none';
+    closeBtn.style.border = 'none';
+    closeBtn.style.color = '#fff';
+    closeBtn.style.fontSize = '2rem';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.onclick = () => document.body.removeChild(overlay);
+    overlay.appendChild(closeBtn);
+
+    const cardHtml = `
+        <div class="venue-card" onclick="this.classList.toggle('flipped')" style="box-shadow: 0 10px 40px rgba(0,0,0,0.9);">
+            <div class="card-flipper">
+                <!-- FRONT OF CARD -->
+                <div class="card-front">
+                    <div class="venue-safe-zone">
+                        <div style="width: 100%; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; z-index: 2; background: rgba(0,0,0,0.5);">
+                            <div style="font-size: 0.65rem; color: #fff; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                                VENUE CARD // ${new Date().getFullYear()}
+                            </div>
+                            <div style="background: ${badgeColor}; color: #000; padding: 2px 6px; border-radius: 3px; font-size: 0.6rem; font-weight: bold; font-family:var(--sub-name-font); box-shadow: 0 0 10px rgba(255,215,0,0.5);">
+                                ${isVerified}
+                            </div>
+                        </div>
+
+                        <div style="width: 100%; height: 200px; background: #222; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-bottom: 2px solid ${badgeColor};">
+                            <img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <div style="position: absolute; bottom:0; left:0; width:100%; height:60%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);"></div>
+                            <div style="position: absolute; bottom: 10px; left: 15px; display: flex; align-items: center; gap: 6px; color: #fff; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                                <i class="fa-solid fa-location-dot" style="color: ${badgeColor};"></i> <span>${locationStr}</span>
+                            </div>
+                        </div>
+
+                        <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; background: linear-gradient(135deg, #111 0%, #050505 100%);">
+                            <div style="font-family: var(--sub-name-font); font-size: 1.8rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px;">
+                                ${venueName}
+                            </div>
+                            <div style="color: #888; font-size: 0.7rem; font-family: monospace; margin-top: 5px;">SN: ${item.serial_number}</div>
+
+                            <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-bottom: 5px;">
+                                <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; border-left: 3px solid ${badgeColor};">
+                                    <div style="font-size: 0.6rem; color: #aaa; font-weight: bold; letter-spacing: 0.5px;">WINS HERE</div>
+                                    <div style="font-family: var(--sub-name-font); font-size: 1.6rem; color: #fff; line-height: 1; margin-top: 3px;">${wins}</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; border-left: 3px solid ${badgeColor};">
+                                    <div style="font-size: 0.6rem; color: #aaa; font-weight: bold; letter-spacing: 0.5px;">UNIQUE PLAYERS</div>
+                                    <div style="font-family: var(--sub-name-font); font-size: 1.6rem; color: #fff; line-height: 1; margin-top: 3px;">${uniquePlayers}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="position: absolute; bottom: 8px; width: 100%; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2; text-transform:uppercase;">
+                            <i class="fa-solid fa-rotate" style="margin-right: 3px;"></i> STATS & KING
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BACK OF CARD -->
+                <div class="card-back" style="padding: 20px; box-sizing: border-box;">
+                    <div class="venue-safe-zone">
+                        <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid #333; margin-bottom:15px; margin-top:15px;">
+                            <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:2px; font-size:1.2rem;">
+                                <i class="fa-solid fa-crown" style="margin-right:5px;"></i> KING OF THE GAME
+                            </h4>
+                        </div>
+                        
+                        <!-- Placeholder King Info (Injected dynamically) -->
+                        <div id="king-widget-full-${item.serial_number}-pub">
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100px;">
+                                <i class="fa-solid fa-spinner fa-spin" style="color: var(--sub-gold); font-size: 2rem;"></i>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: auto; margin-bottom: 35px; display:flex; padding: 0 15px; justify-content:center;">
+                           <div style="color:#aaa; font-size:0.7rem; text-transform:uppercase; text-align:center; font-family:'Open Sans'; margin-top:10px;">
+                               THIS IS A PUBLIC PRO-CARD.<br>OWNERSHIP CONFIGURATION HIDDEN.
+                           </div>
+                        </div>
+
+                        <div style="position:absolute; bottom:12px; width:100%; left:0; text-align:center; color:rgba(255,255,255,0.4); font-size:0.6rem; font-weight:bold; letter-spacing:1.5px; z-index:2; cursor:pointer;" onclick="this.closest('.venue-card').classList.toggle('flipped')">
+                            <i class="fa-solid fa-rotate-left" style="margin-right: 3px;"></i> FLIP BACK
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const cardContainer = document.createElement('div');
+    cardContainer.innerHTML = cardHtml;
+    overlay.appendChild(cardContainer);
+    document.body.appendChild(overlay);
+
+    renderKingWidget(gameData.id, item.owner_id, `king-widget-full-${item.serial_number}-pub`);
+};
+
 // Render the KING OF THE TABLE dynamic widget
 async function renderKingWidget(gameId, ownerId, containerId) {
     const container = document.getElementById(containerId);
