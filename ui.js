@@ -226,13 +226,13 @@ export function showMatchMode(mode) {
         quickBtn.style.background = 'linear-gradient(135deg, #E30613 0%, #c00510 100%)';
         quickBtn.style.color = '#fff';
         quickBtn.style.border = 'none';
-        quickBtn.style.boxShadow = 'none';
+        quickBtn.style.boxShadow = '0 4px 15px rgba(227, 6, 19, 0.3)';
 
         // Tournament - inactive
         tournamentBtn.style.background = '#1a1a1a';
         tournamentBtn.style.color = '#888';
         tournamentBtn.style.border = '2px solid #333';
-        tournamentBtn.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.3)'; // Keltainen hohde
+        tournamentBtn.style.boxShadow = 'none';
         if (tourIcon) tourIcon.style.color = '#666';
     } else {
         quickSection.style.display = 'none';
@@ -242,14 +242,14 @@ export function showMatchMode(mode) {
         quickBtn.style.background = '#1a1a1a';
         quickBtn.style.color = '#888';
         quickBtn.style.border = '2px solid #333';
-        quickBtn.style.boxShadow = '0 0 15px rgba(227, 6, 19, 0.3)'; // Punainen hohde
+        quickBtn.style.boxShadow = 'none';
 
-        // Tournament - active (Kultainen teema)
-        tournamentBtn.style.background = 'linear-gradient(135deg, #FFD700 0%, #d4af37 100%)';
-        tournamentBtn.style.color = '#000';
+        // Tournament - active (Brand Red Theme)
+        tournamentBtn.style.background = 'linear-gradient(135deg, #E30613 0%, #c00510 100%)';
+        tournamentBtn.style.color = '#fff';
         tournamentBtn.style.border = 'none';
-        tournamentBtn.style.boxShadow = 'none';
-        if (tourIcon) tourIcon.style.color = '#000'; // Ikoni mustaksi kultaa vasten
+        tournamentBtn.style.boxShadow = '0 4px 15px rgba(227, 6, 19, 0.3)';
+        if (tourIcon) tourIcon.style.color = '#fff';
         populateEventDropdown();
     }
 }
