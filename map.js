@@ -522,10 +522,40 @@ export async function searchLocation() {
 }
 
 export async function searchPublicMap() {
-    const q = document.getElementById('public-map-search').value;
+    const q = document.getElementById('public-map-search').value.trim().toLowerCase();
     if (!q) return;
+
+    // 1. Native Search: Try to find a matching Subsoccer Venue or Tournament first!
+    if (state.mapData) {
+        const matchingGame = state.mapData.games?.find(g => 
+            g.game_name?.toLowerCase().includes(q) || 
+            (g.location && g.location.toLowerCase().includes(q))
+        );
+        if (matchingGame && matchingGame.id) {
+            showNotification(`Found venue: ${matchingGame.game_name}`, "success");
+            document.getElementById('public-map-search').value = '';
+            // Blur the keyboard
+            document.getElementById('public-map-search').blur();
+            window.triggerMarkerClick(matchingGame.id);
+            return; // Stop here, we found our table natively!
+        }
+
+        const matchingTour = state.mapData.tournaments?.find(t => 
+            t.tournament_name?.toLowerCase().includes(q) || 
+            t.name?.toLowerCase().includes(q)
+        );
+        if (matchingTour && matchingTour.id) {
+            showNotification(`Found event: ${matchingTour.name || matchingTour.tournament_name}`, "success");
+            document.getElementById('public-map-search').value = '';
+            document.getElementById('public-map-search').blur();
+            window.triggerMarkerClick(matchingTour.id);
+            return;
+        }
+    }
+
+    // 2. Global Fallback: Search for a City/Country using OpenStreetMap
     try {
-        showNotification("Searching...", "info");
+        showNotification("Searching regions...", "info");
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
         const data = await res.json();
         if (data && data.length > 0) {
@@ -534,6 +564,8 @@ export async function searchPublicMap() {
             if (state.publicMap) {
                 state.publicMap.flyTo([lat, lon], 12);
                 showNotification(`Moved to ${data[0].display_name.split(',')[0]}`, "success");
+                document.getElementById('public-map-search').value = '';
+                document.getElementById('public-map-search').blur();
             }
         }
         else showNotification("Location not found", "error");
