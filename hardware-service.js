@@ -180,7 +180,7 @@ export async function loadHardwareGarage() {
 
                                         <!-- Bottom Info -->
                                         <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; background: linear-gradient(135deg, #111 0%, #050505 100%);">
-                                            <div style="font-family: var(--sub-name-font); font-size: 1.8rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px;">
+                                            <div style="font-family: var(--sub-name-font); font-size: 1.25rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px; word-wrap: break-word; overflow-wrap: break-word; width: 100%;">
                                                 ${venueName}
                                             </div>
                                             <div style="color: #888; font-size: 0.7rem; font-family: monospace; margin-top: 5px;">SN: ${item.serial_number}</div>
