@@ -329,7 +329,7 @@ window.openVenueCardModal = (serial) => {
 
                         <!-- Bottom Info -->
                         <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; background: linear-gradient(135deg, #111 0%, #050505 100%);">
-                            <div style="font-family: var(--sub-name-font); font-size: 1.8rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px;">
+                            <div style="font-family: var(--sub-name-font); font-size: 1.25rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">
                                 ${venueName}
                             </div>
                             <div style="color: #888; font-size: 0.7rem; font-family: monospace; margin-top: 5px;">SN: ${item.serial_number}</div>
@@ -470,7 +470,7 @@ window.openPublicVenueCardModal = async (gameId) => {
                         </div>
 
                         <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; background: linear-gradient(135deg, #111 0%, #050505 100%);">
-                            <div style="font-family: var(--sub-name-font); font-size: 1.8rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px;">
+                            <div style="font-family: var(--sub-name-font); font-size: 1.3rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">
                                 ${venueName}
                             </div>
                             <div style="color: #888; font-size: 0.7rem; font-family: monospace; margin-top: 5px;">SN: ${item.serial_number}</div>
@@ -831,25 +831,25 @@ window.configureVenue = async (serial) => {
             </div>
 
             <div style="display:flex; flex-direction:column; gap: 15px;" id="privacyToggleGroup-${serial}">
-                <label style="display:flex; gap:12px; background:#222; padding:15px; border-radius:4px; border:1px solid ${currentPrivacy === 'public' ? 'var(--sub-red)' : '#555'}; cursor:pointer;" onclick="this.parentElement.querySelectorAll('label').forEach(l=>l.style.borderColor='#555'); this.style.borderColor='var(--sub-red)';">
-                    <input type="radio" name="privacy-${serial}" value="public" style="margin-top:2px; flex-shrink:0; transform: scale(1.2);" ${currentPrivacy === 'public' ? 'checked' : ''}>
-                    <div style="flex:1; min-width:0; word-wrap:break-word;">
+                <label style="display:grid; grid-template-columns: 20px 1fr; gap:12px; align-items:start; background:#222; padding:15px; border-radius:4px; border:1px solid ${currentPrivacy === 'public' ? 'var(--sub-red)' : '#555'}; cursor:pointer;" onclick="this.parentElement.querySelectorAll('label').forEach(l=>l.style.borderColor='#555'); this.style.borderColor='var(--sub-red)';">
+                    <input type="radio" name="privacy-${serial}" value="public" style="margin-top:2px;" ${currentPrivacy === 'public' ? 'checked' : ''}>
+                    <div style="word-wrap:break-word; overflow-wrap:break-word; width:100%;">
                         <div style="font-weight:bold; font-size:1.1rem; text-transform:uppercase;">PUBLIC ARENA</div>
                         <div style="font-size:0.75rem; color:#888; font-family:'Open Sans'; margin-top:5px; line-height:1.4;">Exact address is shown. Custom pin. Tournaments can be hosted here.</div>
                     </div>
                 </label>
 
-                <label style="display:flex; gap:12px; background:#222; padding:15px; border-radius:4px; border:1px solid ${currentPrivacy === 'private' ? 'var(--sub-red)' : '#555'}; cursor:pointer;" onclick="this.parentElement.querySelectorAll('label').forEach(l=>l.style.borderColor='#555'); this.style.borderColor='var(--sub-red)';">
-                    <input type="radio" name="privacy-${serial}" value="private" style="margin-top:2px; flex-shrink:0; transform: scale(1.2);" ${currentPrivacy === 'private' ? 'checked' : ''}>
-                    <div style="flex:1; min-width:0; word-wrap:break-word;">
+                <label style="display:grid; grid-template-columns: 20px 1fr; gap:12px; align-items:start; background:#222; padding:15px; border-radius:4px; border:1px solid ${currentPrivacy === 'private' ? 'var(--sub-red)' : '#555'}; cursor:pointer;" onclick="this.parentElement.querySelectorAll('label').forEach(l=>l.style.borderColor='#555'); this.style.borderColor='var(--sub-red)';">
+                    <input type="radio" name="privacy-${serial}" value="private" style="margin-top:2px;" ${currentPrivacy === 'private' ? 'checked' : ''}>
+                    <div style="word-wrap:break-word; overflow-wrap:break-word; width:100%;">
                         <div style="font-weight:bold; font-size:1.1rem; text-transform:uppercase;">CITY-LEVEL PRIVATE</div>
                         <div style="font-size:0.75rem; color:#888; font-family:'Open Sans'; margin-top:5px; line-height:1.4;">Your exact home is hidden. Appears blurred (City center) to grow your city's heatmap. No tournaments.</div>
                     </div>
                 </label>
 
-                <label style="display:flex; gap:12px; background:#222; padding:15px; border-radius:4px; border:1px solid ${currentPrivacy === 'stealth' ? 'var(--sub-red)' : '#555'}; cursor:pointer;" onclick="this.parentElement.querySelectorAll('label').forEach(l=>l.style.borderColor='#555'); this.style.borderColor='var(--sub-red)';">
-                    <input type="radio" name="privacy-${serial}" value="stealth" style="margin-top:2px; flex-shrink:0; transform: scale(1.2);" ${currentPrivacy === 'stealth' ? 'checked' : ''}>
-                    <div style="flex:1; min-width:0; word-wrap:break-word;">
+                <label style="display:grid; grid-template-columns: 20px 1fr; gap:12px; align-items:start; background:#222; padding:15px; border-radius:4px; border:1px solid ${currentPrivacy === 'stealth' ? 'var(--sub-red)' : '#555'}; cursor:pointer;" onclick="this.parentElement.querySelectorAll('label').forEach(l=>l.style.borderColor='#555'); this.style.borderColor='var(--sub-red)';">
+                    <input type="radio" name="privacy-${serial}" value="stealth" style="margin-top:2px;" ${currentPrivacy === 'stealth' ? 'checked' : ''}>
+                    <div style="word-wrap:break-word; overflow-wrap:break-word; width:100%;">
                         <div style="font-weight:bold; font-size:1.1rem; text-transform:uppercase;">STEALTH MODE</div>
                         <div style="font-size:0.75rem; color:#888; font-family:'Open Sans'; margin-top:5px; line-height:1.4;">Completely hidden from public map. Only visible to you in your inventory.</div>
                     </div>
