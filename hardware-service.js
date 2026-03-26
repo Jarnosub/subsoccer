@@ -810,7 +810,7 @@ window.configureVenue = async (serial) => {
     overlay.style.fontFamily = 'var(--sub-name-font)';
     
     overlay.innerHTML = `
-        <div style="background: #111; border: 1px solid #333; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: left; color:#fff;">
+        <div style="background: #111; border: 1px solid #333; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; box-sizing: border-box; max-height: 90vh; overflow-y: auto; overflow-x: hidden; text-align: left; color:#fff;">
             <h2 style="color:var(--sub-gold); margin-bottom: 20px;">CONFIGURE VENUE</h2>
             
             <p style="font-size: 0.8rem; color:#aaa; margin-bottom:20px;">
