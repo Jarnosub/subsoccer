@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer GO - Batch QR Generator for Export</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sub-red: #E30613;
+        }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: #111;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            font-family: 'Teko', sans-serif;
+            font-size: 3rem;
+            color: var(--sub-red);
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        .controls {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+            border: 1px solid #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #aaa;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--sub-red);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.5rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+        button:hover { background: #c00000; }
+        
+        #print-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            background: #fff; /* White background for printing */
+            border-radius: 8px;
+            min-height: 400px;
+        }
+        
+        .qr-sticker {
+            border: 2px dashed #000;
+            padding: 15px;
+            text-align: center;
+            background: #fff;
+            color: #000;
+            page-break-inside: avoid;
+        }
+        
+        .qr-sticker h3 {
+            font-family: 'Teko', sans-serif;
+            font-size: 1.8rem;
+            margin: 0 0 10px 0;
+            color: #000;
+        }
+        
+        .qr-placeholder {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 10px auto;
+        }
+        
+        .serial-text {
+            font-family: monospace;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .cta-text {
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        @media print {
+            body { background: #fff; padding: 0; }
+            .controls, .header { display: none; }
+            #print-area { padding: 0; display: block; border: none; }
+            .qr-sticker {
+                display: inline-block;
+                width: 45%;
+                margin: 2%;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">SUBSOCCER GO - BATCH QR EXPORT</div>
+    
+    <div class="controls">
+        <p style="text-align:center; font-size:0.9rem; color:#888; margin-top:0;">Generate sticker-ready Instant Play QR codes for an entire container.</p>
+        
+        <div class="form-group">
+            <label>Base URL</label>
+            <input type="text" id="baseUrl" value="https://subsoccer.pro/instant-play.html">
+        </div>
+        
+        <div class="form-group">
+            <label>Batch Prefix (e.g. GERMANY-2026-)</label>
+            <input type="text" id="prefix" value="GER-SUB-">
+        </div>
+
+        <div class="form-group">
+            <label>Start Number</label>
+            <input type="number" id="startNum" value="1">
+        </div>
+
+        <div class="form-group">
+            <label>Quantity of Tables (Container Size)</label>
+            <input type="number" id="qty" value="20" max="500">
+        </div>
+        
+        <button onclick="generateBatch()">GENERATE BATCH FOR PRINTING</button>
+        <button onclick="window.print()" style="background:#555; margin-top:10px; border:1px solid #777;">PRINT STICKERS</button>
+    </div>
+
+    <!-- This is where all the generated QR stickers will go -->
+    <div id="print-area">
+        <div style="text-align:center; width:100%; color:#000; opacity:0.5; padding:50px;">
+            Click "Generate Batch" to create the printable stickers.
+        </div>
+    </div>
+
+    <script>
+        function generateBatch() {
+            const printArea = document.getElementById('print-area');
+            printArea.innerHTML = ''; // Clear previous
+            
+            const baseUrl = document.getElementById('baseUrl').value;
+            const prefix = document.getElementById('prefix').value;
+            const startNum = parseInt(document.getElementById('startNum').value);
+            const qty = parseInt(document.getElementById('qty').value);
+            
+            for(let i = 0; i < qty; i++) {
+                const currentNum = String(startNum + i).padStart(3, '0');
+                const serial = prefix + currentNum;
+                const finalUrl = baseUrl + "?sn=" + encodeURIComponent(serial);
+                
+                // Create sticker container
+                const sticker = document.createElement('div');
+                sticker.className = 'qr-sticker';
+                
+                sticker.innerHTML = `
+                    <h3>SUBSOCCER GO</h3>
+                    <div class="cta-text">SCAN TO PLAY INSTANTLY</div>
+                    <div id="qr-${serial}" class="qr-placeholder"></div>
+                    <div class="serial-text">SN: ${serial}</div>
+                `;
+                
+                printArea.appendChild(sticker);
+                
+                // Generate the QR code inside the placeholder
+                new QRCode(document.getElementById('qr-' + serial), {
+                    text: finalUrl,
+                    width: 150,
+                    height: 150,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            }
+        }
+    </script>
+</body>
+</html>
