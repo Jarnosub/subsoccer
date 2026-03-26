@@ -2829,10 +2829,13 @@ body.live-mode {
 
 .tour-roster-list {
     padding: 10px;
-    min-height: 150px;
     max-height: 400px;
     overflow-y: auto;
     background: #0a0a0a;
+}
+
+.tour-roster-list:empty {
+    display: none;
 }
 
 .btn-start-tour {

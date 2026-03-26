@@ -784,12 +784,6 @@ export function updatePoolUI() {
     if (!list) return;
     list.innerHTML = '';
     if (state.pool.length === 0) {
-        list.innerHTML = `
-            <div style="text-align:center; color:#444; padding:30px 0; font-size:0.8rem;">
-                <i class="fa fa-users" style="font-size:2rem; margin-bottom:10px; opacity:0.3;"></i><br>
-                Add players to start
-            </div>
-        `;
         if (countSpan) countSpan.innerText = 0;
         return;
     }
