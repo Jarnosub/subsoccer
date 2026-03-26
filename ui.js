@@ -583,6 +583,9 @@ export function setupUIListeners() {
 
     // Map Section
     document.getElementById('btn-search-public-map')?.addEventListener('click', () => searchPublicMap());
+    document.getElementById('public-map-search')?.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') searchPublicMap();
+    });
 
     // Quick Match Section
     document.getElementById('btn-quick-match-mode')?.addEventListener('click', () => showMatchMode('quick'));
