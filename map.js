@@ -71,21 +71,14 @@ export async function fetchPublicGamesMap() {
                     icon.classList.remove('fa-expand');
                     icon.classList.add('fa-compress');
                     document.body.style.overflow = 'hidden'; 
-                    
-                    // Force button to stay fixed relative to viewport so it never slides off
-                    fullscreenBtn.style.position = 'fixed';
-                    fullscreenBtn.style.bottom = '30px';
-                    fullscreenBtn.style.left = 'min(15px, 2vw)';
+                    // Force extremely high z-index to stay above leaflet
                     fullscreenBtn.style.zIndex = '10000';
                 } else {
                     icon.classList.remove('fa-compress');
                     icon.classList.add('fa-expand');
                     document.body.style.overflow = '';
                     
-                    // Revert to absolute relative to map wrapper
-                    fullscreenBtn.style.position = 'absolute';
-                    fullscreenBtn.style.bottom = '20px';
-                    fullscreenBtn.style.left = '10px';
+                    // Revert z-index
                     fullscreenBtn.style.zIndex = '1000';
                 }
                 
