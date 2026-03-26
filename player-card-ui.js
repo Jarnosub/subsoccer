@@ -20,6 +20,22 @@ export async function viewPlayerCard(targetUsername) {
         };
     }
 
+    // Fetch Tournament History (Podiums)
+    const { data: tournaments } = await _supabase
+        .from('tournament_history')
+        .select('tournament_name, winner_name, second_place_name, third_place_name, created_at')
+        .or(`winner_name.eq.${targetUsername},second_place_name.eq.${targetUsername},third_place_name.eq.${targetUsername}`)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false });
+
+    // NEW: Fetch Recent Matches (Last 10 games played)
+    const { data: recentMatches } = await _supabase
+        .from('matches')
+        .select('*')
+        .or(`player1.eq.${targetUsername},player2.eq.${targetUsername}`)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
     const wins = p.wins || 0;
     const losses = p.losses || 0;
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
@@ -27,6 +43,76 @@ export async function viewPlayerCard(targetUsername) {
     const cardHeader = state.brand ? "PARTNER" : rank;
     const avatarUrl = (p.avatar_url && p.avatar_url.trim() !== '') ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
     const rookieClass = (wins + losses) < 5 ? 'status-rookie' : '';
+
+    let historyHtml = '';
+    if (tournaments && tournaments.length > 0) {
+        historyHtml = `
+            <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
+                <div style="font-family:var(--sub-name-font); color:#888; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; text-transform:uppercase;">🏆 Trophy Room</div>
+                <div style="max-height: 150px; overflow-y: auto; padding-right:5px;">
+                    ${tournaments.map(t => {
+            let place = '';
+            let color = '#666';
+            let icon = '';
+            if (t.winner_name === targetUsername) { place = 'WINNER'; color = 'var(--sub-gold)'; icon = '🥇'; }
+            else if (t.second_place_name === targetUsername) { place = 'FINALIST'; color = '#C0C0C0'; icon = '🥈'; }
+            else if (t.third_place_name === targetUsername) { place = '3RD PLACE'; color = '#CD7F32'; icon = '🥉'; }
+
+            const date = new Date(t.created_at).toLocaleDateString();
+            return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:#111; margin-bottom:5px; border-radius:4px; border-left:2px solid ${color};">
+                                <div>
+                                    <div style="color:#fff; font-size:0.8rem; font-family:var(--sub-name-font); text-transform:uppercase;">${t.tournament_name || 'Tournament'}</div>
+                                    <div style="color:#666; font-size:0.6rem;">${date}</div>
+                                </div>
+                                <div style="color:${color}; font-size:0.7rem; font-weight:bold; font-family:var(--sub-name-font);">${icon} ${place}</div>
+                            </div>
+                        `;
+        }).join('')}
+                </div>
+            </div>
+        `;
+    } else {
+        historyHtml = `
+            <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; text-align:center;">
+                <div style="font-family:var(--sub-name-font); color:#444; font-size:0.7rem; letter-spacing:1px;">NO TOURNAMENT TROPHIES YET</div>
+            </div>
+        `;
+    }
+
+    let matchesHtml = '';
+    if (recentMatches && recentMatches.length > 0) {
+        matchesHtml = `
+            <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
+                <div style="font-family:var(--sub-name-font); color:#888; font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; text-transform:uppercase;">📜 Recent Matches</div>
+                <div style="max-height: 200px; overflow-y: auto; padding-right:5px;">
+                    ${recentMatches.map(m => {
+            const isP1 = m.player1 === targetUsername;
+            const opponent = isP1 ? m.player2 : m.player1;
+            const isWinner = m.winner === targetUsername;
+            const resultColor = isWinner ? 'var(--sub-gold)' : '#666';
+            const score = (m.player1_score !== null && m.player2_score !== null)
+                ? (isP1 ? `${m.player1_score}-${m.player2_score}` : `${m.player2_score}-${m.player1_score}`)
+                : (isWinner ? 'WIN' : 'LOSS');
+
+            const date = new Date(m.created_at).toLocaleDateString();
+
+            return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#111; margin-bottom:4px; border-radius:4px; border-left:2px solid ${resultColor};">
+                                <div style="display:flex; flex-direction:column;">
+                                    <div style="color:#fff; font-size:0.75rem; font-family:var(--sub-name-font);">vs ${opponent}</div>
+                                    <div style="color:#666; font-size:0.6rem;">${date} • ${m.tournament_name || 'Quick Match'}</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="color:${resultColor}; font-size:0.8rem; font-weight:bold; font-family:'Russo One';">${score}</div>
+                                </div>
+                            </div>
+                        `;
+        }).join('')}
+                </div>
+            </div>
+        `;
+    }
 
     const html = `
     <style>
@@ -39,10 +125,11 @@ export async function viewPlayerCard(targetUsername) {
         .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
         .card-data-box { height: 35%; width: 100%; background: linear-gradient(135deg, #1a2737 0%, #0d1620 100%); padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
         .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
-        .card-front { padding: 0 !important; }
+        .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
+        .card-front, .card-back { padding: 0 !important; }
     </style>
-    <div class="pro-card pro-card-force-sharp ${rookieClass}" style="margin:0; width:100% !important; background:transparent; box-shadow:none;">
-        <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
+    <div class="pro-card pro-card-force-sharp ${rookieClass}" style="margin:0; width:100% !important; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
+        <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
             <!-- FRONT SIDE -->
             <div class="card-front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 0; background: transparent;">
                 <div class="card-bleed-edge">
@@ -81,6 +168,20 @@ export async function viewPlayerCard(targetUsername) {
                     </div>
                 </div>
                 ${p.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
+                <div style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Open Sans', sans-serif; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
+            </div>
+            
+            <!-- BACK SIDE -->
+            <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 0; background-color: #0a0a0a; background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%); border: 1px solid #333; overflow-y: auto; overflow-x: hidden;">
+                <div class="card-inner-frame" style="padding:15px; display:block; text-align:left; overflow-y:auto; overflow-x:hidden;">
+                    <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:5px;">
+                        <h4 style="color:var(--sub-gold); font-family:'Russo One'; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
+                        <div style="color:#fff; font-size:0.75rem; font-family:'Resolve'; margin-top:5px; text-transform:uppercase;">${p.username}</div>
+                    </div>
+                    ${historyHtml}
+                    ${matchesHtml}
+                </div>
+                <div class="flip-hint" style="position:absolute; bottom:8px; width:100%; text-align:center; left:0; color:rgba(255,255,255,0.3); font-size:0.6rem; font-weight:bold; letter-spacing:1.5px; z-index:2; pointer-events:none;"><i class="fa-solid fa-rotate-left"></i> TAP TO FLIP</div>
             </div>
         </div>
     </div>`;
@@ -138,11 +239,11 @@ export async function showLevelUpCard(playerName, newElo) {
         previewCard.style.transform = 'scale(0.7)';
         previewCard.style.transformOrigin = 'center center';
         previewCard.style.margin = '0 auto';
-        
+
         // Hide the messy TAP TO FLIP hint in this small preview mode to avoid visual clutter
         const hints = document.getElementById('level-up-card-preview').querySelectorAll('.fa-rotate-right, .fa-rotate-left');
         hints.forEach(icon => {
-            if(icon.parentElement) icon.parentElement.style.display = 'none';
+            if (icon.parentElement) icon.parentElement.style.display = 'none';
         });
 
         initTiltEffect(previewCard);
