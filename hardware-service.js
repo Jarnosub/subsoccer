@@ -94,13 +94,14 @@ export async function loadHardwareGarage() {
     if (!listContainer) return;
 
     try {
-        const { data: { user } } = await _supabase.auth.getUser();
-        if (!user) return;
+        // Fallback to state if we don't need a roundtrip
+        const userId = window.state?.user?.id || (await _supabase.auth.getSession()).data?.session?.user?.id;
+        if (!userId || userId === 'guest') return;
 
         const { data: hardware, error } = await _supabase
             .from('hardware_registry')
             .select('*')
-            .eq('owner_id', user.id)
+            .eq('owner_id', userId)
             .order('claimed_at', { ascending: false });
 
         if (error) {
