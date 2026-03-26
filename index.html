@@ -820,33 +820,50 @@
 
                 <!-- QUICK MATCH SECTION -->
                 <div id="quick-match-section" style="display:block;">
-                    <h2 class="section-title"
-                        style="margin-top: 20px; font-size: 1.1rem; color: #888; letter-spacing: 2px;">MATCH SETUP</h2>
-
-                    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-                        <div style="position:relative;">
-                            <input type="text" id="p1-quick-search" placeholder="Home Player" style="margin-bottom:0;">
-                            <div id="p1-results" class="quick-results"></div>
+                    <!-- PREMIUM MATCH SETUP CARD -->
+                    <div style="background: rgba(10,10,10,0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 25px 20px; text-align: center; margin-bottom: 25px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1;">
+                        
+                        <!-- Background Icon Container (Overflow hidden to clip the icon) -->
+                        <div style="position: absolute; inset: 0; border-radius: 12px; overflow: hidden; pointer-events: none; z-index: 0;">
+                            <div style="position: absolute; top: -40px; left: -40px; opacity: 0.05; transform: rotate(15deg);">
+                                <i class="fa-solid fa-bolt" style="font-size: 8rem;"></i>
+                            </div>
                         </div>
-                        <div
-                            style="color:var(--sub-gold); font-family:'Resolve'; font-size:1.1rem; letter-spacing:3px; margin: 5px 0; opacity:0.8;">
-                            VS</div>
-                        <div style="position:relative;">
-                            <input type="text" id="p2-quick-search" placeholder="Away Player" style="margin-bottom:0;">
-                            <div id="p2-results" class="quick-results"></div>
+
+                        <!-- Content (Z-index 1 so it sits above background icon) -->
+                        <div style="position: relative; z-index: 1;">
+                            <h2 style="font-family: 'Russo One', sans-serif; font-size: 1.8rem; color: #fff; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px;">
+                                MATCH SETUP
+                            </h2>
+
+                            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:25px;">
+                                <div style="position:relative;">
+                                    <input type="text" id="p1-quick-search" placeholder="Home Player" style="margin-bottom:0; background:#111; border:1px solid #333;">
+                                    <div id="p1-results" class="quick-results"></div>
+                                </div>
+                                <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1.1rem; letter-spacing:3px; margin: 5px 0; opacity:0.8;">
+                                    VS
+                                </div>
+                                <div style="position:relative;">
+                                    <input type="text" id="p2-quick-search" placeholder="Away Player" style="margin-bottom:0; background:#111; border:1px solid #333;">
+                                    <div id="p2-results" class="quick-results"></div>
+                                </div>
+                            </div>
+
+                            <button class="btn-red" id="start-quick-match" style="width: 100%; border-radius: 8px; font-family:'Russo One'; background: linear-gradient(135deg, var(--sub-red), #8a0000); color: #fff; font-size: 1.1rem; padding: 15px; box-shadow: 0 5px 15px rgba(227, 6, 19, 0.4); border: 1px solid rgba(255,255,255,0.1);">
+                                START MATCH
+                            </button>
                         </div>
                     </div>
 
-                    <div id="elo-preview" class="elo-preview-box">
+                    <!-- ELO Preview Box -->
+                    <div id="elo-preview" class="elo-preview-box" style="margin-top: 5px;">
                         <div class="elo-preview-label">ELO PREDICTION</div>
                         <div id="elo-prediction-text"></div>
-                        <button id="btn-clear-quick-players" class="tour-mode-toggle btn-clear-players"
-                            title="Clear players and start fresh">NEW
-                            PLAYERS</button>
+                        <button id="btn-clear-quick-players" class="tour-mode-toggle btn-clear-players" title="Clear players and start fresh">
+                            NEW PLAYERS
+                        </button>
                     </div>
-
-                    <button class="btn-red" id="start-quick-match" style="font-size: 1.5rem; letter-spacing: 2px;">START
-                        MATCH</button>
 
                 </div>
 
