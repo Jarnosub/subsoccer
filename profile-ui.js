@@ -487,12 +487,16 @@ export async function exportPhysicalCardToPDF() {
         clone.style.transform = 'none';
         clone.style.boxShadow = 'none';
         clone.style.margin = '0';
+        clone.style.padding = '0';
+        clone.style.maxWidth = 'none';
+        clone.style.aspectRatio = 'auto';
+        clone.style.width = '340px';
+        clone.style.height = '465px';
         clone.className = clone.className.replace('flipped', '');
 
         const flipper = clone.querySelector('.card-flipper');
         flipper.style.transform = 'none';
         flipper.style.display = 'block';
-        // 68mm x 93mm (5px per mm scaling for DOM mapping)
         flipper.style.width = '340px'; 
         flipper.style.height = '465px';
         flipper.style.boxShadow = 'none';
@@ -517,9 +521,15 @@ export async function exportPhysicalCardToPDF() {
         // 1mm = 5px on this scale. 2mm bleed = 10px inset.
         clone.querySelectorAll('.card-bleed-edge').forEach(el => {
             el.style.border = 'none'; // pure bleed visual
-            el.style.inset = '10px';
+            el.style.inset = '0px'; // FILL THE ENTIRE 340x465 WITH NEON!
         });
-        clone.querySelectorAll('.card-safe-zone').forEach(el => el.style.inset = '20px');
+        clone.querySelectorAll('.card-safe-zone').forEach(el => el.style.inset = '20px'); // 10px bleed + 10px internal rim = 20px from edge.
+
+        // Also scale the stamp a bit more towards center
+        clone.querySelectorAll('.pro-stamp').forEach(el => {
+            el.style.top = '30px';
+            el.style.left = '30px';
+        });
 
         // Strip holo-glow and flip hints to get pure printed ink look
         clone.querySelectorAll('.holo-glow, .flip-hint').forEach(el => el.remove());
