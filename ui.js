@@ -18,6 +18,7 @@ import {
 } from './quick-match.js';
 import { shareLiveEventLink } from './live-view-service.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
+import { processConsentRequestParams } from './anti-cheat.js';
 import { hostWithQR, cancelQRHost, startQRBracket } from './qr-lobby.js';
 import { startTournament, advanceRound, saveTour, replayTournament, populateEventDropdown } from './tournament.js';
 import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard, setupModeratorListeners } from './moderator-service.js';
@@ -957,6 +958,7 @@ subscribe('user', () => {
                     state.currentPage = 'profile'; // Oletuksena näytetään The Vault & Player Card
                 }
             }
+            processConsentRequestParams();
         }
     } catch (err) {
         console.error("Error in user state subscription:", err);

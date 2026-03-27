@@ -2,6 +2,7 @@ import { _supabase, state, isAdmin } from './config.js';
 import { showNotification, safeHTML } from './ui-utils.js';
 import { MatchService } from './match-service.js';
 import { BroadcastService } from './broadcast-service.js';
+import { requestConsentSequence } from './anti-cheat.js';
 
 /**
  * ============================================================
@@ -89,7 +90,7 @@ export async function startQuickMatch() {
     if (!state.quickP1 || !state.quickP2) return showNotification("Select both players!", "error");
     if (state.quickP1 === state.quickP2) return showNotification("Select different players!", "error");
 
-    startProMatch();
+    requestConsentSequence(state.quickP1, state.quickP2, startProMatch);
 }
 
 export async function finalizeQuickMatch(winnerName, context = null) {
