@@ -582,6 +582,12 @@ export function setupUIListeners() {
         showPage('map');
         toggleSettingsMenu(e);
     });
+    document.getElementById('menu-item-export-pdf')?.addEventListener('click', async (e) => {
+        toggleSettingsMenu(e); // Close menu
+        const { exportPhysicalCardToPDF } = await import('./profile-ui.js');
+        exportPhysicalCardToPDF();
+    });
+
     document.getElementById('menu-item-edit-profile')?.addEventListener('click', (e) => {
         showPage('profile');
         showEditProfile();

@@ -9,6 +9,11 @@
 
     <!-- HTML5 QR Code Library for Universal Scanner -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <!-- PDF & Canvas rendering libraries for High-Res Print Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -73,6 +78,10 @@
         <button id="menu-item-moderator" class="menu-item"
             style="display:none; border-color:var(--sub-gold); background:rgba(255,215,0,0.05);">
             <i class="fa-solid fa-user-shield"></i> MODERATOR TOOLS
+        </button>
+
+        <button id="menu-item-export-pdf" class="menu-item">
+            <i class="fa-solid fa-file-pdf"></i> PRINT PHYSICAL CARD (PDF)
         </button>
 
         <button id="menu-item-edit-profile" class="menu-item">
@@ -1012,7 +1021,7 @@
 
     </div>
 
-    <script type="module" src="main.js?v=25"></script>
+    <script type="module" src="main.js?v=26"></script>
     <div class="app-version">v.1.0.4</div>
 
     <!-- HARDWARE CLAIM MODAL -->

@@ -449,3 +449,108 @@ window.loadUserProfile = loadUserProfile;
 window.showEditProfile = showEditProfile;
 window.cancelEditProfile = cancelEditProfile;
 window.updateProfileCard = updateProfileCard;
+
+/**
+ * 300 DPI -luokan PDF Export-työkalu fyysiselle Vault Assetille.
+ * Renderöi tallennetun korttimuistin Canvas-kirjastoilla painokelpoiseksi.
+ */
+export async function exportPhysicalCardToPDF() {
+    const originalCard = document.querySelector('.pro-card');
+    if (!originalCard) return alert("Pro Card ei ole vielä latautunut!");
+
+    if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+        alert("Odota hetki, tallennuskirjastoja ladataan...");
+        return;
+    }
+
+    const loader = document.createElement('div');
+    loader.innerHTML = '<div style="background:rgba(0,0,0,0.9); color:#fff; position:fixed; inset:0; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:\'Russo One\',sans-serif; font-size:1.5rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-bottom:20px; color:var(--sub-gold); font-size:3rem;"></i>MINTING PRO CARD...<div style="font-family:\'Open Sans\'; font-size:0.8rem; color:#888; margin-top:10px;">GENERATING 300 DPI PRINT ASSET FOR VAULT</div></div>';
+    document.body.appendChild(loader);
+
+    const staging = document.createElement('div');
+    staging.style.position = 'absolute';
+    staging.style.left = '-9999px';
+    staging.style.top = '0';
+    staging.style.width = '800px'; 
+    staging.style.height = '600px';
+    staging.style.display = 'flex';
+    staging.style.alignItems = 'flex-start';
+    staging.style.justifyContent = 'flex-start';
+    staging.style.background = '#ffffff'; 
+    document.body.appendChild(staging);
+
+    try {
+        const clone = originalCard.cloneNode(true);
+        clone.style.transform = 'none';
+        clone.style.boxShadow = 'none';
+        clone.style.margin = '0';
+        clone.className = clone.className.replace('flipped', '');
+
+        const flipper = clone.querySelector('.card-flipper');
+        flipper.style.transform = 'none';
+        flipper.style.display = 'flex';
+        flipper.style.flexDirection = 'row';
+        flipper.style.gap = '20px';
+        flipper.style.width = '728px'; // (354 * 2) + 20
+        flipper.style.height = '474px';
+        flipper.style.boxShadow = 'none';
+
+        const front = clone.querySelector('.card-front');
+        const back = clone.querySelector('.card-back');
+        
+        [front, back].forEach(side => {
+            side.style.position = 'relative';
+            side.style.transform = 'none';
+            side.style.backfaceVisibility = 'visible';
+            side.style.width = '354px';
+            side.style.height = '474px';
+            side.style.border = '1px solid #ddd';
+            side.style.padding = '0';
+            side.style.margin = '0';
+            side.style.flexShrink = '0';
+        });
+
+        clone.querySelectorAll('.flip-hint').forEach(el => el.remove());
+
+        staging.appendChild(clone);
+
+        await new Promise(r => setTimeout(r, 200));
+
+        const canvas = await html2canvas(flipper, {
+            scale: 3, 
+            useCORS: true, 
+            allowTaint: true,
+            backgroundColor: '#ffffff'
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4' 
+        });
+
+        // 63x88mm is standard card. We scale nicely. 69x94 with bleeds.
+        const cardW = 69;
+        const cardH = 94;
+        const gap = 10;
+        const totalW = (cardW * 2) + gap;
+        
+        const startX = (297 - totalW) / 2;
+        const startY = (210 - cardH) / 2;
+
+        pdf.addImage(imgData, 'JPEG', startX, startY, totalW, cardH);
+        
+        const username = window.state.get().user?.username || 'Player';
+        pdf.save(`Subsoccer_ProCard_${username}.pdf`);
+
+    } catch (e) {
+        console.error("PDF Export failed:", e);
+        alert("Pahoittelut, kortin vienti epäonnistui visuaalimoottorin virheen vuoksi.");
+    } finally {
+        staging.remove();
+        loader.remove();
+    }
+}
