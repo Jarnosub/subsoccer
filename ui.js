@@ -83,6 +83,14 @@ export function showAuthPage(mode = 'landing') {
         if (navTabs) navTabs.style.display = 'flex';
         const header = document.querySelector('header');
         if (header) header.style.display = 'flex';
+        
+        // Ensure URL routing works smoothly upon app unlock
+        const urlParams = new URLSearchParams(window.location.search);
+        const pageToLoad = urlParams.get('page');
+        if (pageToLoad) {
+            showPage(pageToLoad);
+        }
+        
         // Ensure auth page doesn't hide other UI elements
         return;
     }
