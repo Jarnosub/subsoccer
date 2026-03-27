@@ -353,9 +353,20 @@ function initSwipeListener() {
     const appContent = document.getElementById('app-content');
     if (!appContent) return;
 
+    const shouldIgnoreSwipe = (target) => {
+        return target.closest('.leaflet-container') 
+            || target.closest('.no-swipe') 
+            || target.closest('#map-wrapper') 
+            || target.closest('#hardware-garage-list') 
+            || target.closest('.venue-card') 
+            || target.closest('input[type="range"]') 
+            || target.closest('.pro-card')
+            || target.closest('button');
+    };
+
     appContent.addEventListener('touchstart', (e) => {
-        // Estä sivun vaihto jos käyttäjä on kartan päällä, vaultissa tai kortin päällä
-        if (e.target.closest('.leaflet-container') || e.target.closest('.no-swipe') || e.target.closest('#hardware-garage-list') || e.target.closest('.venue-card') || e.target.closest('input[type="range"]') || e.target.closest('.pro-card')) {
+        // Estä sivun vaihto jos käyttäjä on kartan päällä, vaultissa tai painamassa jotain nappia
+        if (shouldIgnoreSwipe(e.target)) {
             touchStartX = null;
             return;
         }
@@ -364,8 +375,18 @@ function initSwipeListener() {
 
     appContent.addEventListener('touchend', (e) => {
         if (touchStartX === null) return;
+        
+        if (shouldIgnoreSwipe(e.target)) {
+            touchStartX = null;
+            return;
+        }
+        
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
+        
+        // Nollaa AINA kosketuksen lähtöpiste, ettei se jää "kummittelemaan" ja laukaise 
+        // satunnaisia siirtymiä seuraavasta irrallisesta touchend-tapahtumasta (kuten kartan nappeja painaessa).
+        touchStartX = null;
     }, { passive: true });
 }
 
