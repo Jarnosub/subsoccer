@@ -492,8 +492,9 @@ export async function exportPhysicalCardToPDF() {
         const flipper = clone.querySelector('.card-flipper');
         flipper.style.transform = 'none';
         flipper.style.display = 'block';
-        flipper.style.width = '354px'; 
-        flipper.style.height = '474px';
+        // 68mm x 93mm (5px per mm scaling for DOM mapping)
+        flipper.style.width = '340px'; 
+        flipper.style.height = '465px';
         flipper.style.boxShadow = 'none';
 
         const front = clone.querySelector('.card-front');
@@ -505,12 +506,20 @@ export async function exportPhysicalCardToPDF() {
             side.style.left = '0';
             side.style.transform = 'none';
             side.style.backfaceVisibility = 'visible';
-            side.style.width = '354px';
-            side.style.height = '474px';
+            side.style.width = '340px';
+            side.style.height = '465px';
             side.style.border = 'none'; // No border line -> clean bleeds
             side.style.padding = '0';
             side.style.margin = '0';
         });
+
+        // Setup Bleed and Safe Zones for the exact 2mm physical cut margin
+        // 1mm = 5px on this scale. 2mm bleed = 10px inset.
+        clone.querySelectorAll('.card-bleed-edge').forEach(el => {
+            el.style.border = 'none'; // pure bleed visual
+            el.style.inset = '10px';
+        });
+        clone.querySelectorAll('.card-safe-zone').forEach(el => el.style.inset = '20px');
 
         // Strip holo-glow and flip hints to get pure printed ink look
         clone.querySelectorAll('.holo-glow, .flip-hint').forEach(el => el.remove());
@@ -537,9 +546,9 @@ export async function exportPhysicalCardToPDF() {
         const backImg = backCanvas.toDataURL('image/jpeg', 1.0);
 
         // Create PDF that exactly matches the print format
-        // Standard Card: 63x88mm. With 3mm bleeds per side -> 69x94mm.
-        const cardW = 69;
-        const cardH = 94;
+        // Request: 64x89mm card + 2mm bleed = 68x93mm total doc size
+        const cardW = 68;
+        const cardH = 93;
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
