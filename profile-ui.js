@@ -455,7 +455,7 @@ window.updateProfileCard = updateProfileCard;
  * Renderöi tallennetun korttimuistin Canvas-kirjastoilla painokelpoiseksi.
  */
 export async function exportPhysicalCardToPDF() {
-    const originalCard = document.querySelector('.pro-card');
+    const originalCard = document.querySelector('#profile-card-container .pro-card');
     if (!originalCard) return alert("Pro Card ei ole vielä latautunut!");
 
     if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
