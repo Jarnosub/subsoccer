@@ -491,10 +491,8 @@ export async function exportPhysicalCardToPDF() {
 
         const flipper = clone.querySelector('.card-flipper');
         flipper.style.transform = 'none';
-        flipper.style.display = 'flex';
-        flipper.style.flexDirection = 'row';
-        flipper.style.gap = '20px';
-        flipper.style.width = '728px'; // (354 * 2) + 20
+        flipper.style.display = 'block';
+        flipper.style.width = '354px'; 
         flipper.style.height = '474px';
         flipper.style.boxShadow = 'none';
 
@@ -502,52 +500,63 @@ export async function exportPhysicalCardToPDF() {
         const back = clone.querySelector('.card-back');
         
         [front, back].forEach(side => {
-            side.style.position = 'relative';
+            side.style.position = 'absolute';
+            side.style.top = '0';
+            side.style.left = '0';
             side.style.transform = 'none';
             side.style.backfaceVisibility = 'visible';
             side.style.width = '354px';
             side.style.height = '474px';
-            side.style.border = '1px solid #ddd';
+            side.style.border = 'none'; // No border line -> clean bleeds
             side.style.padding = '0';
             side.style.margin = '0';
-            side.style.flexShrink = '0';
         });
 
-        clone.querySelectorAll('.flip-hint').forEach(el => el.remove());
+        // Strip holo-glow and flip hints to get pure printed ink look
+        clone.querySelectorAll('.holo-glow, .flip-hint').forEach(el => el.remove());
+
+        // Hide back initially
+        back.style.display = 'none';
 
         staging.appendChild(clone);
 
+        // Wait for DOM
         await new Promise(r => setTimeout(r, 200));
 
-        const canvas = await html2canvas(flipper, {
-            scale: 3, 
-            useCORS: true, 
-            allowTaint: true,
-            backgroundColor: '#ffffff'
-        });
+        // Capture PAGE 1 (FRONT) at 3x scale (~390 DPI)
+        const frontCanvas = await html2canvas(front, { scale: 3, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' });
+        const frontImg = frontCanvas.toDataURL('image/jpeg', 1.0);
 
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        // Hide front, show back
+        front.style.display = 'none';
+        back.style.display = 'flex';
+        await new Promise(r => setTimeout(r, 100));
+
+        // Capture PAGE 2 (BACK) at 3x scale
+        const backCanvas = await html2canvas(back, { scale: 3, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' });
+        const backImg = backCanvas.toDataURL('image/jpeg', 1.0);
+
+        // Create PDF that exactly matches the print format
+        // Standard Card: 63x88mm. With 3mm bleeds per side -> 69x94mm.
+        const cardW = 69;
+        const cardH = 94;
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
-            orientation: 'landscape',
+            orientation: 'portrait',
             unit: 'mm',
-            format: 'a4' 
+            format: [cardW, cardH] // Exactly the size of a single bleeding card
         });
 
-        // 63x88mm is standard card. We scale nicely. 69x94 with bleeds.
-        const cardW = 69;
-        const cardH = 94;
-        const gap = 10;
-        const totalW = (cardW * 2) + gap;
+        // Page 1: Front
+        pdf.addImage(frontImg, 'JPEG', 0, 0, cardW, cardH);
         
-        const startX = (297 - totalW) / 2;
-        const startY = (210 - cardH) / 2;
-
-        pdf.addImage(imgData, 'JPEG', startX, startY, totalW, cardH);
+        // Page 2: Back
+        pdf.addPage([cardW, cardH], 'portrait');
+        pdf.addImage(backImg, 'JPEG', 0, 0, cardW, cardH);
         
         const username = state.user?.username || 'Player';
-        pdf.save(`Subsoccer_ProCard_${username}.pdf`);
+        pdf.save(`Subsoccer_ProCard_${username}_PrintReady.pdf`);
 
     } catch (e) {
         console.error("PDF Export failed:", e);
