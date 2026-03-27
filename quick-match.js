@@ -76,15 +76,15 @@ export async function selectQuickPlayer(name, slot) {
         
         // Try to fetch Avatar & ELO dynamically
         try {
-            const { data } = await _supabase.from('players').select('profile_image_url, elo').ilike('username', name).maybeSingle();
+            const { data } = await _supabase.from('players').select('avatar_url, elo').ilike('username', name).maybeSingle();
             const imgEl = document.getElementById(`${slot}-faceoff-img`);
             const iconEl = document.getElementById(`${slot}-faceoff-icon`);
             const eloEl = document.getElementById(`${slot}-faceoff-elo`);
             
             if (data) {
                 eloEl.innerText = `${data.elo} RANK`;
-                if (data.profile_image_url) {
-                    imgEl.src = data.profile_image_url;
+                if (data.avatar_url) {
+                    imgEl.src = data.avatar_url;
                     imgEl.style.display = 'block';
                     iconEl.style.display = 'none';
                 } else {
