@@ -244,16 +244,26 @@ export function updateProfileCard() {
         .card-front, .card-back { padding: 0 !important; }
         
         /* 300 DPI PRINT EXPORT MODE */
-        body.print-mode-active #top-nav, body.print-mode-active .bottom-nav, body.print-mode-active .profile-header, body.print-mode-active .profile-stats-container, body.print-mode-active .flip-hint, body.print-mode-active button { display: none !important; }
-        body.print-mode-active { background: #fff !important; overflow: hidden; margin: 0; padding: 0; }
-        body.print-mode-active #profile-tab { padding: 0 !important; margin: 0 !important; }
-        body.print-mode-active #profile-card-container { position: fixed; inset: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; z-index: 99999; background: #fff; }
-        
-        body.print-mode-active .pro-card { width: 354px !important; height: 474px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; box-shadow: none !important; border-radius: 0 !important; }
-        body.print-mode-active .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
-        body.print-mode-active .card-bleed-edge { inset: 12px !important; border: none !important; }
-        body.print-mode-active .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
-        body.print-mode-active .pro-stamp { top: 24px !important; left: 24px !important; }
+        @media print {
+            body { background: #fff !important; margin: 0; padding: 0; overflow: visible !important; }
+            header, .nav-tabs, #settings-menu, .app-version, #rank-progress-container, #hardware-garage-container, #section-tournaments, #section-map, #section-events, #hero-bg-container, #camera-modal, #universal-scanner-modal, #hardware-claim-modal, #victory-overlay { display: none !important; }
+            
+            #section-profile { margin: 0 !important; padding: 0 !important; justify-content: flex-start !important; align-items: flex-start !important; min-height: auto !important; width: 100vw !important; height: 100vh !important; display: flex !important; background: #fff !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: 999999 !important; }
+            
+            #profile-card-container { display: flex !important; flex-direction: row !important; gap: 30px !important; align-items: flex-start !important; justify-content: flex-start !important; padding: 20px !important; margin: 0 !important; transform: none !important; position: static !important; perspective: none !important; }
+            
+            .pro-card { width: 354px !important; height: 474px !important; zoom: 1 !important; margin: 0 !important; background: transparent !important; box-shadow: none !important; transform: none !important; perspective: none !important; max-width: none !important; }
+            
+            .card-flipper { transform: none !important; display: flex !important; flex-direction: row !important; gap: 30px !important; width: auto !important; height: auto !important; box-shadow: none !important; }
+            
+            .card-front, .card-back { position: relative !important; backface-visibility: visible !important; transform: none !important; width: 354px !important; height: 474px !important; border: 1px solid #ddd !important; border-radius: 0 !important; margin: 0 !important; display: flex !important; flex-shrink: 0 !important; }
+            
+            .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
+            .card-bleed-edge { inset: 12px !important; border: none !important; }
+            .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
+            .pro-stamp { top: 24px !important; left: 24px !important; }
+            .flip-hint { display: none !important; }
+        }
         .holo-glow { position: absolute; inset: 0; background: radial-gradient(circle at calc(var(--gx, 50) * 1%) calc(var(--gy, -20) * 1%), rgba(255, 230, 100, 0.45) 0%, rgba(255, 255, 255, 0.1) 30%, transparent 60%); mix-blend-mode: color-dodge; z-index: 40; pointer-events: none; opacity: 1; transition: opacity 0.3s; }
     </style>
     <div class="pro-card pro-card-force-sharp ${editionClass} ${rookieClass}" style="margin:0 auto; width:100%; max-width:320px; aspect-ratio:2.5/3.5; background:transparent; box-shadow:none; cursor:pointer; perspective: 1000px;">
@@ -316,11 +326,6 @@ export function updateProfileCard() {
                 </div>
             </div>
         </div>
-    </div>
-    <div style="margin-top: 15px; text-align: center; z-index: 20; position: relative;">
-        <button id="btn-print-card" style="background: transparent; color: var(--sub-gold); border: 1px dashed var(--sub-gold); padding: 8px 15px; border-radius: 4px; font-family: 'SubsoccerLogo', sans-serif; font-size: 0.75rem; letter-spacing: 1px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,215,0,0.1)';" onmouseout="this.style.background='transparent';" onclick="document.body.classList.add('print-mode-active'); setTimeout(() => { window.print(); document.body.classList.remove('print-mode-active'); }, 500);">
-            <i class="fa-solid fa-print"></i> EXPORT TO PRINT
-        </button>
     </div>
     `;
 
