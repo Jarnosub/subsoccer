@@ -245,12 +245,14 @@ export function updateProfileCard() {
         
         /* 300 DPI PRINT EXPORT MODE */
         @media print {
-            body { background: #fff !important; margin: 0; padding: 0; overflow: visible !important; }
-            header, .nav-tabs, #settings-menu, .app-version, #rank-progress-container, #hardware-garage-container, #section-tournaments, #section-map, #section-events, #hero-bg-container, #camera-modal, #universal-scanner-modal, #hardware-claim-modal, #victory-overlay { display: none !important; }
+            @page { margin: 0; size: A4 landscape; }
+            body { background: #fff !important; margin: 0; padding: 10mm; overflow: visible !important; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
+            * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
+            header, .nav-tabs, #settings-menu, .app-version, #rank-progress-container, #hardware-garage-container, #section-tournaments, #section-map, #section-events, #hero-bg-container, #camera-modal, #universal-scanner-modal, #hardware-claim-modal, #victory-overlay, #profile-dashboard-ui, #profile-team-ui, .container > div:not(#profile-card-container) { display: none !important; }
             
-            #section-profile { margin: 0 !important; padding: 0 !important; justify-content: flex-start !important; align-items: flex-start !important; min-height: auto !important; width: 100vw !important; height: 100vh !important; display: flex !important; background: #fff !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: 999999 !important; }
+            #section-profile { margin: 0 !important; padding: 0 !important; justify-content: flex-start !important; align-items: flex-start !important; min-height: auto !important; width: 100vw !important; height: 100vh !important; display: flex !important; background: transparent !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: 999999 !important; }
             
-            #profile-card-container { display: flex !important; flex-direction: row !important; gap: 30px !important; align-items: flex-start !important; justify-content: flex-start !important; padding: 20px !important; margin: 0 !important; transform: none !important; position: static !important; perspective: none !important; }
+            #profile-card-container { display: flex !important; flex-direction: row !important; gap: 30px !important; align-items: flex-start !important; justify-content: flex-start !important; padding: 20px !important; margin: 0 !important; transform: scale(0.9) !important; transform-origin: top left !important; position: static !important; perspective: none !important; }
             
             .pro-card { width: 354px !important; height: 474px !important; zoom: 1 !important; margin: 0 !important; background: transparent !important; box-shadow: none !important; transform: none !important; perspective: none !important; max-width: none !important; }
             
@@ -307,7 +309,7 @@ export function updateProfileCard() {
                     </div>
                 </div>
                 ${u.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
-                <div style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Open Sans', sans-serif; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
+                <div class="flip-hint" style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Open Sans', sans-serif; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
             </div>
             
             <!-- BACK SIDE -->
@@ -321,7 +323,7 @@ export function updateProfileCard() {
                     <!-- Async content loads here, spinner removed for cleaner static state -->
                 </div>
                 <!-- Bottom edge "TAP TO FLIP" -->
-                <div style="position: absolute; bottom: 8px; width: 100%; left: 0; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
+                <div class="flip-hint" style="position: absolute; bottom: 8px; width: 100%; left: 0; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
                     <i class="fa-solid fa-rotate-left" style="margin-right: 3px;"></i> TAP TO FLIP
                 </div>
             </div>
