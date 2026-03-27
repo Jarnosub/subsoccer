@@ -464,8 +464,9 @@ export async function exportPhysicalCardToPDF() {
     }
 
     const loader = document.createElement('div');
-    loader.innerHTML = '<div style="background:rgba(0,0,0,0.9); color:#fff; position:fixed; inset:0; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:\'Russo One\',sans-serif; font-size:1.5rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-bottom:20px; color:var(--sub-gold); font-size:3rem;"></i>MINTING PRO CARD...<div style="font-family:\'Open Sans\'; font-size:0.8rem; color:#888; margin-top:10px;">GENERATING 300 DPI PRINT ASSET FOR VAULT</div></div>';
+    loader.innerHTML = '<div style="background:rgba(0,0,0,0.9); color:#fff; position:fixed; inset:0; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:\'Russo One\',sans-serif; font-size:1.5rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-bottom:20px; color:var(--sub-gold); font-size:3rem;"></i>MINTING PRO CARD...<div id="pdf-mint-status" style="font-family:\'Open Sans\'; font-size:0.8rem; color:#888; margin-top:10px;">GENERATING 300 DPI PRINT ASSET</div></div>';
     document.body.appendChild(loader);
+    const statusText = document.getElementById('pdf-mint-status');
 
     const staging = document.createElement('div');
     staging.style.position = 'absolute';
@@ -575,7 +576,33 @@ export async function exportPhysicalCardToPDF() {
         pdf.addImage(backImg, 'JPEG', 0, 0, cardW, cardH);
         
         const username = state.user?.username || 'Player';
-        pdf.save(`Subsoccer_ProCard_${username}_PrintReady.pdf`);
+        const safeName = username.replace(/[^a-zA-Z0-9]/g, '_');
+        
+        statusText.innerText = "UPLOADING SECURE ASSET TO CLOUD...";
+        const pdfBlob = pdf.output('blob');
+        const fileName = `pro_cards/${safeName}_Card_${Date.now()}.pdf`;
+        
+        const { error: uploadError } = await _supabase.storage
+            .from('event-images')
+            .upload(fileName, pdfBlob, { contentType: 'application/pdf', upsert: true });
+
+        if (uploadError) {
+            console.error("Upload error:", uploadError);
+            throw new Error("Failed to upload PDF to cloud.");
+        }
+
+        const { data } = _supabase.storage.from('event-images').getPublicUrl(fileName);
+        const pdfUrl = data.publicUrl;
+
+        statusText.innerText = "OPENING EMAIL CLIENT...";
+        await new Promise(r => setTimeout(r, 800));
+
+        // Simuloi PDF:n siirtoa painotalolle lähettämällä tilaus sähköpostilla Public Linkin avulla
+        const emailBody = `Hei!\n\nHaluaisin tilata oheisen Subsoccer Pro Cardini fyysisenä keräilykorttina.\n\nKortin painovalmis, kaksisivuinen aineisto (68x93mm leikkuuvaroilla 300dpi): \n${pdfUrl}\n\nYstävällisin terveisin,\n${username}`;
+        window.location.href = `mailto:print@subsoccer.com?subject=Pro Card Tilaus / Painoaineisto: ${username}&body=${encodeURIComponent(emailBody)}`;
+
+        // Halutessaan, ladataan myös lokaalisti, jotta käyttäjälle jää tiedosto:
+        pdf.save(`Subsoccer_ProCard_${safeName}.pdf`);
 
     } catch (e) {
         console.error("PDF Export failed:", e);
