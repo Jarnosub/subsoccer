@@ -128,7 +128,7 @@ export async function viewPlayerCard(targetUsername) {
         .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
         .card-front, .card-back { padding: 0 !important; }
     </style>
-    <div class="pro-card pro-card-force-sharp ${rookieClass}" style="margin:0; width:100% !important; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
+    <div class="pro-card pro-card-force-sharp ${rookieClass}" style="margin:0 auto; width:100% !important; max-width:320px; aspect-ratio: 2.5/3.5; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
         <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
             <!-- FRONT SIDE -->
             <div class="card-front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 0; background: transparent;">
