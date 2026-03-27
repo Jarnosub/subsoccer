@@ -2798,17 +2798,17 @@ body.live-mode {
 }
 
 .tour-roster-card {
-    background: #000;
-    border: 1px solid #333;
-    border-radius: var(--sub-radius);
+    background: rgba(10, 10, 10, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
     overflow: hidden;
     margin-bottom: 25px;
 }
 
 .tour-roster-header {
-    background: #1a1a1a;
+    background: rgba(0, 0, 0, 0.4);
     padding: 10px 15px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-between;
     align-items: center;
