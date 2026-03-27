@@ -67,7 +67,7 @@ const initialState = {
     activeCardEdition: 'standard',
     brand: null, // Nykyinen brändi (esim. 'coca-cola')
     brandLogo: null, // Brändin logo-URL
-    currentPage: 'tournament', // Ohjaa näkyvää sivua
+    currentPage: 'profile', // Ohjaa näkyvää sivua
     victoryData: null // Tallentaa voittotiedot animaatiota varten
 };
 
@@ -97,7 +97,7 @@ export const resetFullState = () => {
     state.activeCardEdition = 'standard';
     state.brand = null;
     state.brandLogo = null;
-    state.currentPage = 'tournament';
+    state.currentPage = 'profile';
     state.victoryData = null;
 
     localStorage.clear(); // Vaihe C: Tyhjennä välimuisti

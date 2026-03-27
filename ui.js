@@ -26,7 +26,7 @@ import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobal
 let touchStartX = null;
 let touchEndX = 0;
 const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'moderator'];
-let currentPageIndex = 1; // Aloitetaan play-sivulta
+let currentPageIndex = 0;
 
 /**
  * Shows the victory animation overlay.
