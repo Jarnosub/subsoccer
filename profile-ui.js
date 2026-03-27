@@ -579,29 +579,33 @@ export async function exportPhysicalCardToPDF() {
         const safeName = username.replace(/[^a-zA-Z0-9]/g, '_');
         
         statusText.innerText = "UPLOADING SECURE ASSET TO CLOUD...";
-        const pdfBlob = pdf.output('blob');
-        const fileName = `pro_cards/${safeName}_Card_${Date.now()}.pdf`;
+
+        // Convert base64 JPEG to Blob to satisfy 'event-images' bucket MIME restrictions (image/jpeg)
+        const fetchRes = await fetch(frontImg);
+        const imgBlob = await fetchRes.blob();
+        
+        const fileName = `pro_cards/${safeName}_Card_${Date.now()}.jpg`;
         
         const { error: uploadError } = await _supabase.storage
             .from('event-images')
-            .upload(fileName, pdfBlob, { contentType: 'application/pdf', upsert: true });
+            .upload(fileName, imgBlob, { contentType: 'image/jpeg', upsert: true });
 
         if (uploadError) {
             console.error("Upload error:", uploadError);
-            throw new Error("Failed to upload PDF to cloud.");
+            throw new Error("Failed to upload preview to cloud: " + uploadError.message);
         }
 
         const { data } = _supabase.storage.from('event-images').getPublicUrl(fileName);
-        const pdfUrl = data.publicUrl;
+        const imgUrl = data.publicUrl;
 
         statusText.innerText = "OPENING EMAIL CLIENT...";
         await new Promise(r => setTimeout(r, 800));
 
         // Simuloi PDF:n siirtoa painotalolle lähettämällä tilaus sähköpostilla Public Linkin avulla
-        const emailBody = `Hei!\n\nHaluaisin tilata oheisen Subsoccer Pro Cardini fyysisenä keräilykorttina.\n\nKortin painovalmis, kaksisivuinen aineisto (68x93mm leikkuuvaroilla 300dpi): \n${pdfUrl}\n\nYstävällisin terveisin,\n${username}`;
+        const emailBody = `Hei!\n\nHaluaisin tilata oheisen Subsoccer Pro Cardini fyysisenä keräilykorttina.\n\nKortin esikatselukuva: \n${imgUrl}\n\nHUOM: Olen liittänyt tähän sähköpostiin järjestelmän generoiman PDF-painoaineiston (68x93mm leikkuuvaroilla).\n\nYstävällisin terveisin,\n${username}`;
         window.location.href = `mailto:print@subsoccer.com?subject=Pro Card Tilaus / Painoaineisto: ${username}&body=${encodeURIComponent(emailBody)}`;
 
-        // Halutessaan, ladataan myös lokaalisti, jotta käyttäjälle jää tiedosto:
+        // Ladataan itse painoaineisto (PDF) lokaalisti, jotta käyttäjä voi liittää sen laitteeltaan!
         pdf.save(`Subsoccer_ProCard_${safeName}.pdf`);
 
     } catch (e) {
