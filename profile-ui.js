@@ -469,8 +469,11 @@ export async function exportPhysicalCardToPDF() {
 
     const staging = document.createElement('div');
     staging.style.position = 'absolute';
-    staging.style.left = '-9999px';
+    staging.style.left = '0'; // Keep in viewport but hide with opacity
     staging.style.top = '0';
+    staging.style.opacity = '0.01';
+    staging.style.pointerEvents = 'none';
+    staging.style.zIndex = '-99';
     staging.style.width = '800px'; 
     staging.style.height = '600px';
     staging.style.display = 'flex';
@@ -548,7 +551,7 @@ export async function exportPhysicalCardToPDF() {
 
     } catch (e) {
         console.error("PDF Export failed:", e);
-        alert("Pahoittelut, kortin vienti epäonnistui visuaalimoottorin virheen vuoksi.");
+        alert("Kortin vienti epäonnistui moottorin virheen vuoksi: " + (e.message || String(e)));
     } finally {
         staging.remove();
         loader.remove();
