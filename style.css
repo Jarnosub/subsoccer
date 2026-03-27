@@ -826,6 +826,14 @@ input {
     box-sizing: border-box;
 }
 
+input[type="checkbox"],
+input[type="radio"] {
+    width: auto !important;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+    cursor: pointer;
+}
+
 input::placeholder {
     color: rgba(255, 255, 255, 0.8) !important;
     text-transform: uppercase;
