@@ -153,46 +153,35 @@ function updateRankProgress() {
     
     const progress = Math.min(100, Math.max(0, ((elo - minElo) / (maxElo - minElo)) * 100));
     const pointsNeeded = maxElo - elo;
-    const avatarUrl = (state.user.avatar_url && state.user.avatar_url.trim() !== '') ? state.user.avatar_url : 'placeholder-silhouette-5-wide.png';
-
-    const circumference = 251.2;
-    const dashoffset = circumference - (progress / 100) * circumference;
 
     container.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center; background: rgba(10,10,10,0.8); border: 1px solid rgba(255,255,255,0.05); padding: 25px; border-radius: 8px; position:relative; overflow:hidden;">
-            <!-- Glow background blob -->
-            <div style="position:absolute; inset:0; background:radial-gradient(circle at center, ${rankColor}11 0%, transparent 60%); pointer-events:none;"></div>
-            
-            <div style="font-family:'SubsoccerLogo', sans-serif; font-size:1.3rem; color:${rankColor}; text-shadow:0 0 15px ${rankColor}88; letter-spacing:2px; margin-bottom:5px;">STATUS: ${currentRank}</div>
-            <div style="font-family:'Open Sans', sans-serif; font-size:0.65rem; color:#888; font-weight:bold; letter-spacing:1px; margin-bottom:15px;">CURRENT ELO: <span style="color:#fff;">${elo}</span></div>
-            
-            <div style="position:relative; width:120px; height:120px; margin:5px 0 15px 0;">
-                <svg width="120" height="120" viewBox="0 0 100 100" style="transform: rotate(-90deg); filter:drop-shadow(0 0 6px ${rankColor}66);">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#222" stroke-width="6" />
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="${rankColor}" stroke-width="6"
-                        stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}"
-                        stroke-linecap="round" style="transition: stroke-dashoffset 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);" />
-                </svg>
-                <div style="position:absolute; top:10px; left:10px; width:100px; height:100px; border-radius:50%; overflow:hidden; border:2px solid ${rankColor}; box-sizing:border-box; box-shadow:inset 0 0 20px rgba(0,0,0,0.8);">
-                    <img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover;">
+        <div style="background: rgba(10,10,10,0.6); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; width:100%; box-sizing:border-box;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                <div style="text-align: left;">
+                    <div style="font-family:'Open Sans', sans-serif; font-size:0.6rem; color:#666; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">Current ELO: <span style="color:#fff;">${elo}</span></div>
+                    <div style="font-family:'SubsoccerLogo', sans-serif; font-size:1.0rem; color:${rankColor}; text-shadow:0 0 10px ${rankColor}66; margin-top:2px; letter-spacing:1px;">${currentRank}</div>
+                </div>
+                <div style="text-align: right;">
+                    ${currentRank !== 'ELITE' ? 
+                    `<div style="font-family:'Open Sans', sans-serif; font-size:0.55rem; color:#888; font-weight:bold; letter-spacing:1px; text-transform:uppercase;"><span style="color:#fff;">${pointsNeeded} PTS</span> TO ${nextRank}</div>
+                    <div style="font-family:'Russo One', sans-serif; font-size:0.9rem; color:#fff; margin-top:2px;">${Math.round(progress)}%</div>` : 
+                    `<div style="font-family:'Open Sans', sans-serif; font-size:0.55rem; color:#888; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">MAX STATUS UNLOCKED</div>
+                    <div style="font-family:'Russo One', sans-serif; font-size:0.9rem; color:${rankColor}; margin-top:2px;">MAX</div>`
+                    }
                 </div>
             </div>
-            ${currentRank !== 'ELITE' ? 
-                `<div style="font-family:'Open Sans', sans-serif; font-size:0.75rem; color:#aaa; max-width:220px; line-height:1.5; text-align:center;">
-                    <strong style="color:var(--sub-red); font-size:1.1em;">${pointsNeeded}</strong> ELO points to reach <br><strong style="color:${rankColor};">${nextRank}</strong> STATUS
-                </div>` : 
-                `<div style="font-family:'Open Sans', sans-serif; font-size:0.75rem; color:#aaa; max-width:220px; line-height:1.5; text-align:center;">
-                    <strong style="color:${rankColor};">MAXIMUM STATUS UNLOCKED</strong>
-                </div>`
-            }
+            
+            <div style="width: 100%; height: 6px; background: #1a1a1a; border-radius: 3px; overflow: hidden; position: relative;">
+                <div id="rank-progress-fill" style="position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: linear-gradient(90deg, rgba(255,255,255,0.1), ${rankColor}); border-radius: 3px; transition: width 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 10px ${rankColor}66;"></div>
+            </div>
         </div>
     `;
     
-    const circle = container.querySelector('circle:nth-child(2)');
-    if (circle) {
+    const fillBar = container.querySelector('#rank-progress-fill');
+    if (fillBar) {
         setTimeout(() => {
-            circle.style.strokeDashoffset = dashoffset;
-        }, 300);
+            fillBar.style.width = `${progress}%`;
+        }, 150);
     }
 }
 
