@@ -634,14 +634,24 @@ async function renderKingWidget(gameId, ownerId, containerId) {
             avatarHtml = `<img src="${kingAvatar}" style="width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; z-index:1;" onerror="this.src='placeholder-silhouette-5-wide.png'">`;
         }
 
+        let sealHtml = '';
+        if (kingElo >= 1700) {
+            sealHtml = `<img src="stamp.png" style="position:absolute; top:-12px; left:-12px; width:45px; height:auto; z-index:50; transform: rotate(-15deg); filter: hue-rotate(180deg) brightness(1.5) sepia(0.5) drop-shadow(0 2px 4px rgba(0,0,0,0.8)); pointer-events:none;">`;
+        } else if (kingElo >= 1500) {
+            sealHtml = `<img src="stamp.png" style="position:absolute; top:-12px; left:-12px; width:45px; height:auto; z-index:50; transform: rotate(-15deg); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); pointer-events:none;">`;
+        }
+
         container.innerHTML = `
-            <div style="display: flex; align-items: stretch; gap: 15px; margin-bottom: 20px; background: #0a0a0a; border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 6px; padding: 12px; position: relative; overflow: hidden;">
+            <div style="display: flex; align-items: stretch; gap: 15px; margin-bottom: 20px; background: #0a0a0a; border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 6px; padding: 12px; position: relative;">
                 <!-- Subtle gold glow for the King -->
                 <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 10% 50%, rgba(212,175,55,0.1) 0%, transparent 60%); z-index: 1;"></div>
                 
-                <div style="width: 60px; height: 80px; background: #111; border: 2px solid var(--sub-gold); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; border-radius: 4px; z-index: 2; box-shadow: 0 0 10px rgba(212,175,55,0.3); position: relative; overflow: hidden;">
-                    ${avatarHtml}
-                    <div style="width: 100%; text-align: center; background: var(--sub-gold); color: #000; font-size: 0.55rem; font-weight: 900; padding: 2px 0; border-top: 1px solid #fff; z-index:2;">${kingElo} ELO</div>
+                <div style="position: relative; width: 60px; height: 80px; z-index: 2;">
+                    <div style="width: 100%; height: 100%; background: #111; border: 2px solid var(--sub-gold); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; border-radius: 4px; box-shadow: 0 0 10px rgba(212,175,55,0.3); position: relative; overflow: hidden;">
+                        ${avatarHtml}
+                        <div style="width: 100%; text-align: center; background: var(--sub-gold); color: #000; font-size: 0.55rem; font-weight: 900; padding: 2px 0; border-top: 1px solid #fff; z-index:2;">${kingElo} ELO</div>
+                    </div>
+                    ${sealHtml}
                 </div>
                 
                 <div style="z-index: 2; flex: 1; display: flex; flex-direction: column; justify-content: center;">
