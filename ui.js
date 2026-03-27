@@ -124,6 +124,60 @@ export function showAuthPage(mode = 'landing') {
 
 window.showAuthPage = showAuthPage;
 
+// --- UNIVERSAL QR SCANNER (HTML5-QRCode) ---
+let html5QrCode = null;
+
+window.openUniversalScanner = function() {
+    const modal = document.getElementById('universal-scanner-modal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    
+    if (typeof Html5Qrcode === 'undefined') {
+        alert("Scanner library is loading, please wait and try again in a few seconds.");
+        modal.style.display = 'none';
+        return;
+    }
+
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("universal-reader");
+    }
+
+    const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+
+    html5QrCode.start({ facingMode: "environment" }, config, 
+    (decodedText) => {
+        // Handle successful scan
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        window.closeUniversalScanner();
+        
+        // Action routing based on QR content
+        if (decodedText.includes('join=') || decodedText.includes('subsoccer.com') || decodedText.includes('192.168.')) {
+            // Forward everything back to standard browser navigation
+            window.location.href = decodedText;
+        } else {
+            console.error("Unknown QR code format:", decodedText);
+            alert("This doesn't seem to be a valid Subsoccer QR code.");
+        }
+    }, 
+    (errorMessage) => {
+        // Expected non-critical decode errors; silent ignore
+    }).catch((err) => {
+        console.error("Scanner failed to start", err);
+        alert("Camera access was denied or is completely unavailable.");
+        window.closeUniversalScanner();
+    });
+};
+
+window.closeUniversalScanner = function() {
+    const modal = document.getElementById('universal-scanner-modal');
+    if (modal) modal.style.display = 'none';
+    if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => {
+            html5QrCode.clear();
+        }).catch(err => console.error("Failed to stop scanner", err));
+    }
+};
+
 function updatePageUI(p) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
