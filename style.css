@@ -3128,6 +3128,15 @@ body.live-mode {
     margin-bottom: 5px;
 }
 
+/* Haptic Feedback */
+button:active, .btn:active, .btn-red:active, .action-btn:active, .tour-mode-toggle:active {
+    transform: scale(0.95);
+    transition: transform 0.05s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+button, .btn, .btn-red, .action-btn, .tour-mode-toggle {
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+
 .btn-clear-players {
     padding: 8px 15px !important;
     font-size: 0.75rem !important;

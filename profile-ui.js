@@ -185,8 +185,9 @@ export function updateProfileCard() {
         body.print-mode-active .card-bleed-edge { inset: 12px !important; border: none !important; }
         body.print-mode-active .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
         body.print-mode-active .pro-stamp { top: 24px !important; left: 24px !important; }
+        .holo-glow { position: absolute; inset: 0; background: radial-gradient(circle at calc(var(--gx, 50) * 1%) calc(var(--gy, -20) * 1%), rgba(255, 230, 100, 0.45) 0%, rgba(255, 255, 255, 0.1) 30%, transparent 60%); mix-blend-mode: color-dodge; z-index: 40; pointer-events: none; opacity: 1; transition: opacity 0.3s; }
     </style>
-    <div class="pro-card pro-card-force-sharp ${editionClass} ${rookieClass}" style="margin:0 auto; width:100%; max-width:320px; aspect-ratio:2.5/3.5; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
+    <div class="pro-card pro-card-force-sharp ${editionClass} ${rookieClass}" style="margin:0 auto; width:100%; max-width:320px; aspect-ratio:2.5/3.5; background:transparent; box-shadow:none; cursor:pointer; perspective: 1000px;">
         <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
             <!-- FRONT SIDE -->
             <div class="card-front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 0; background: transparent;">
@@ -197,6 +198,7 @@ export function updateProfileCard() {
                         
                         <div class="card-image-box">
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                            <div class="holo-glow"></div>
                             <div class="card-nameplate">
                                 ${u.team_data ? `<div style="font-family:'Open Sans', sans-serif; color:#FFD700; font-size:0.6rem; font-weight:bold; margin-bottom:2px; letter-spacing:1px; text-transform:uppercase;">${u.team_data.tag}</div>` : ''}
                                 <div style="font-family:'Russo One', sans-serif; color:#fff; font-size:1.6rem; line-height:1; text-transform:uppercase;">${u.username}</div>
@@ -306,8 +308,81 @@ export function updateProfileCard() {
         console.error("Error fetching card dossier stats:", err);
     });
 
-    const card = container.querySelector('.topps-collectible-card');
-    if (card) initTiltEffect(card);
+    const cardEl = container.querySelector('.pro-card');
+    const flipper = container.querySelector('.card-flipper');
+    
+    if (cardEl && flipper) {
+        let isFlipping = false;
+        
+        cardEl.addEventListener('click', () => {
+            isFlipping = true;
+            cardEl.classList.toggle('flipped');
+            if (cardEl.classList.contains('flipped')) {
+                flipper.style.transform = `rotateY(180deg) scale(1.05)`;
+            } else {
+                flipper.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                cardEl.style.setProperty('--gx', 50);
+                cardEl.style.setProperty('--gy', -20);
+            }
+            setTimeout(() => isFlipping = false, 600);
+        });
+
+        // Mouse Hover Engine (Desktop)
+        cardEl.addEventListener('mousemove', (e) => {
+            if (isFlipping) return;
+            const rect = cardEl.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const gx = (x / rect.width) * 100;
+            const gy = (y / rect.height) * 100;
+            
+            const rx = ((y / rect.height) - 0.5) * -20;
+            const ry = ((x / rect.width) - 0.5) * 20;
+
+            cardEl.style.setProperty('--gx', gx);
+            cardEl.style.setProperty('--gy', gy);
+            
+            if (!cardEl.classList.contains('flipped')) {
+               flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
+            }
+        });
+        
+        cardEl.addEventListener('mouseleave', () => {
+            if (isFlipping) return;
+            cardEl.style.setProperty('--gx', 50);
+            cardEl.style.setProperty('--gy', -20);
+            if (!cardEl.classList.contains('flipped')) {
+               flipper.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            }
+        });
+
+        // Device Orientation Engine (Mobile Gyroscope)
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', (e) => {
+                if (isFlipping || !document.contains(cardEl)) return;
+                
+                let gamma = e.gamma || 0;
+                let beta = e.beta || 0;
+                
+                gamma = Math.max(-45, Math.min(45, gamma));
+                beta = Math.max(0, Math.min(90, beta));
+                
+                const gx = ((gamma + 45) / 90) * 100;
+                const gy = (beta / 90) * 100;
+                
+                const rx = ((beta - 45) / 45) * -15;
+                const ry = (gamma / 45) * 15;
+                
+                cardEl.style.setProperty('--gx', gx);
+                cardEl.style.setProperty('--gy', gy);
+                
+                if (!cardEl.classList.contains('flipped')) {
+                   flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+                }
+            }, true);
+        }
+    }
 }
 
 window.loadUserProfile = loadUserProfile;
