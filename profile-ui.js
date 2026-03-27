@@ -317,6 +317,11 @@ export function updateProfileCard() {
             </div>
         </div>
     </div>
+    <div style="margin-top: 15px; text-align: center; z-index: 20; position: relative;">
+        <button id="btn-print-card" style="background: transparent; color: var(--sub-gold); border: 1px dashed var(--sub-gold); padding: 8px 15px; border-radius: 4px; font-family: 'SubsoccerLogo', sans-serif; font-size: 0.75rem; letter-spacing: 1px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,215,0,0.1)';" onmouseout="this.style.background='transparent';" onclick="document.body.classList.add('print-mode-active'); setTimeout(() => { window.print(); document.body.classList.remove('print-mode-active'); }, 500);">
+            <i class="fa-solid fa-print"></i> EXPORT TO PRINT
+        </button>
+    </div>
     `;
 
     // Fetch and populate back side data asynchronously (Premium Stats Layout)
