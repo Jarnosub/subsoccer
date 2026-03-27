@@ -15,7 +15,6 @@ export async function requiresConsent(username) {
     if (!username) return false;
     username = username.toUpperCase();
     
-    if (state.sessionGuests && state.sessionGuests.includes(username)) return false;
     if (state.user && state.user.username && state.user.username.toUpperCase() === username) return false;
     if (username === 'GUEST') return false;
     
