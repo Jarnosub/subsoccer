@@ -63,6 +63,44 @@ export async function selectQuickPlayer(name, slot) {
         return;
     }
     if (slot === 'p1') state.quickP1 = name; else state.quickP2 = name;
+    
+    // NEW: Populate Face-Off Arena Visuals
+    const slotEl = document.getElementById(`${slot}-faceoff-slot`);
+    if (slotEl) {
+        slotEl.classList.remove('empty');
+        slotEl.classList.add('filled');
+        document.getElementById(`${slot}-faceoff-name`).innerText = name;
+        
+        // Hide input field wrapper to clean UI
+        if(input && input.parentElement) input.parentElement.style.display = 'none';
+        
+        // Try to fetch Avatar & ELO dynamically
+        try {
+            const { data } = await _supabase.from('players').select('profile_image_url, elo').ilike('username', name).maybeSingle();
+            const imgEl = document.getElementById(`${slot}-faceoff-img`);
+            const iconEl = document.getElementById(`${slot}-faceoff-icon`);
+            const eloEl = document.getElementById(`${slot}-faceoff-elo`);
+            
+            if (data) {
+                eloEl.innerText = `${data.elo} RANK`;
+                if (data.profile_image_url) {
+                    imgEl.src = data.profile_image_url;
+                    imgEl.style.display = 'block';
+                    iconEl.style.display = 'none';
+                } else {
+                    imgEl.style.display = 'none';
+                    iconEl.className = 'fa-solid fa-user';
+                    iconEl.style.display = 'block';
+                }
+            } else {
+                eloEl.innerText = "GUEST";
+                imgEl.style.display = 'none';
+                iconEl.className = 'fa-solid fa-user';
+                iconEl.style.display = 'block';
+            }
+        } catch(e) { console.error("Face-off avatar error:", e); }
+    }
+
     if (state.quickP1 && state.quickP2) {
         updateEloPreview();
         if (state.proModeEnabled) {
@@ -209,12 +247,34 @@ export function handleQuickWinner(winnerName, btn) {
 }
 
 export function clearQuickMatchPlayers() {
-    document.getElementById('p1-quick-search').value = '';
-    document.getElementById('p2-quick-search').value = '';
+    const p1Input = document.getElementById('p1-quick-search');
+    const p2Input = document.getElementById('p2-quick-search');
+    p1Input.value = '';
+    p2Input.value = '';
+    
+    // Unhide inputs
+    if(p1Input && p1Input.parentElement) p1Input.parentElement.style.display = 'block';
+    if(p2Input && p2Input.parentElement) p2Input.parentElement.style.display = 'block';
+
+    // Clear Face-Off Slots
+    ['p1', 'p2'].forEach(slot => {
+        const slotEl = document.getElementById(`${slot}-faceoff-slot`);
+        if (slotEl) {
+            slotEl.classList.remove('filled');
+            slotEl.classList.add('empty');
+            document.getElementById(`${slot}-faceoff-name`).innerText = slot === 'p1' ? 'HOME' : 'AWAY';
+            document.getElementById(`${slot}-faceoff-elo`).innerText = '---';
+            document.getElementById(`${slot}-faceoff-img`).style.display = 'none';
+            document.getElementById(`${slot}-faceoff-img`).src = '';
+            document.getElementById(`${slot}-faceoff-icon`).className = 'fa-solid fa-user-plus';
+            document.getElementById(`${slot}-faceoff-icon`).style.display = 'block';
+        }
+    });
+
     state.quickP1 = null; state.quickP2 = null;
     document.getElementById('elo-preview').style.display = 'none';
     document.getElementById('audio-status-panel').style.display = 'none';
-    document.getElementById('p1-quick-search').focus();
+    p1Input.focus();
 }
 
 /**

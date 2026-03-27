@@ -1766,27 +1766,28 @@ select.dark-select {
     -webkit-backdrop-filter: blur(8px);
     z-index: 10000;
     display: none;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    padding: 20px;
+    padding: 0;
     box-sizing: border-box;
 }
 
 .modal-content {
     background: #141414;
-    border: 2px solid var(--sub-gold);
-    border-radius: 12px;
+    border-bottom: none;
+    border-radius: 24px 24px 0 0;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
-    animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.8);
+    animation: bottomSheetSlideUp 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+    padding-bottom: env(safe-area-inset-bottom, 20px);
 }
 
 .modal-header {
-    padding: 20px;
-    border-bottom: 1px solid #222;
+    padding: 25px 20px 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1827,18 +1828,18 @@ select.dark-select {
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 20px 20px 40px 20px;
 }
 
-@keyframes modalFadeIn {
+@keyframes bottomSheetSlideUp {
     from {
-        opacity: 0;
-        transform: scale(0.95) translateY(10px);
+        opacity: 0.5;
+        transform: translateY(100%);
     }
 
     to {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: translateY(0);
     }
 }
 
@@ -3808,4 +3809,86 @@ body.live-mode {
 
 .venue-bottom-sheet::-webkit-scrollbar {
     display: none;
+}
+
+/* ============================================================ */
+/* NEW V2.0 FACEOFF ARENA STYLES                                */
+/* ============================================================ */
+
+.faceoff-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 40%;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.faceoff-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: 2px dashed rgba(255,255,255,0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #666;
+    font-size: 1.5rem;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: all 0.3s;
+}
+
+.faceoff-slot.filled .faceoff-avatar {
+    border-style: solid;
+    border-color: var(--sub-gold);
+    background: #111;
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+
+.faceoff-name {
+    font-family: 'Resolve', sans-serif;
+    font-size: 0.85rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.faceoff-elo {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.7rem;
+    color: var(--sub-gold);
+    font-weight: bold;
+}
+
+.faceoff-vs-badge {
+    position: absolute;
+    left: 50%;
+    top: 35px;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--sub-red), #8a0000);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #111;
+    box-shadow: 0 0 15px rgba(227, 6, 19, 0.6);
+    z-index: 2;
+}
+
+.faceoff-vs-badge .vs-text {
+    font-family: 'Resolve', sans-serif;
+    color: #fff;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    margin-left: 2px;
 }
