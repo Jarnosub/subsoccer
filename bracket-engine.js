@@ -287,6 +287,7 @@ export class BracketEngine {
                             window.state.quickP2 = match.p2;
                             window.startProMatch({
                                 isTournament: true,
+                                skipRules: true,
                                 onComplete: (winnerName) => { this.setMatchWinner(rIndex, mIndex, winnerName); },
                                 onCancel: () => { console.log("Tournament Counter cancelled."); }
                             });
@@ -340,6 +341,7 @@ export class BracketEngine {
                         window.state.quickP2 = this.bronzeMatch.p2;
                         window.startProMatch({
                             isTournament: true,
+                            skipRules: true,
                             onComplete: (winnerName) => { this.setBronzeWinner(winnerName); },
                             onCancel: () => { console.log("Tournament Bronze Counter cancelled."); }
                         });

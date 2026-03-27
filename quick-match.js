@@ -343,7 +343,7 @@ export async function startProMatch(context = null) {
     document.getElementById('pro-mode-view').style.display = 'flex';
 
     const rulesOverlay = document.getElementById('pro-rules-overlay');
-    if (rulesOverlay) {
+    if (rulesOverlay && !(context && context.skipRules)) {
         rulesOverlay.style.display = 'flex';
         state.proModeActive = false;
         const playBtn = rulesOverlay.querySelector('button');
