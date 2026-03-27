@@ -315,7 +315,10 @@ export function toggleProMode() {
     }
 }
 
-export async function startProMatch() {
+export let activeProMatchContext = null;
+
+export async function startProMatch(context = null) {
+    activeProMatchContext = context;
     state.proScoreP1 = 0; state.proScoreP2 = 0; state.proGoalHistory = [];
     isMatchEnding = false; state.proModeActive = true;
 
@@ -436,7 +439,14 @@ async function finishProMatch(winnerName) {
     BroadcastService.stopBroadcasting();
     document.getElementById('pro-mode-view').style.display = 'none';
     document.getElementById('pro-audio-meter').style.display = 'none';
-    await finalizeQuickMatch(winnerName);
+    
+    if (activeProMatchContext && activeProMatchContext.onComplete) {
+        document.getElementById('app-content').style.display = 'flex';
+        activeProMatchContext.onComplete(winnerName);
+        activeProMatchContext = null;
+    } else {
+        await finalizeQuickMatch(winnerName);
+    }
 }
 
 export function exitProMode() {
@@ -447,6 +457,11 @@ export function exitProMode() {
     document.getElementById('pro-mode-view').style.display = 'none';
     document.getElementById('pro-audio-meter').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
+    
+    if (activeProMatchContext && activeProMatchContext.onCancel) {
+        activeProMatchContext.onCancel();
+        activeProMatchContext = null;
+    }
 }
 
 export function handleGoalDetected(playerNumber) {
@@ -717,6 +732,7 @@ export function copyVipLink() {
 // NOTE: Functions imported as ES modules in ui.js do NOT need window.* here.
 // These are kept because they are called from audio-engine.js, inline onclick HTML,
 // or other places that cannot use ES module imports directly.
+window.startProMatch = startProMatch;
 window.handleGoalDetected = handleGoalDetected;   // audio-engine.js calls this
 window.toggleProMode = toggleProMode;             // called from pro mode UI buttons
 window.cancelQuickMatch = cancelQuickMatch;       // called from non-module contexts

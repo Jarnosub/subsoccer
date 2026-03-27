@@ -273,10 +273,29 @@ export class BracketEngine {
 
                 // Player 1 Button
                 const btn1 = this.createPlayerBtn(match.p1, match, rIndex, mIndex);
-                // VS separator
+                // VS separator (Clickable to start Counter mode)
                 const vs = document.createElement('div');
                 vs.className = 'match-vs';
-                vs.innerText = 'vs';
+                
+                // Add a small VS play icon if the match is pending and both players are known
+                if (match.p1 && match.p2 && !match.winner && match.p1 !== 'BYE' && match.p2 !== 'BYE') {
+                    vs.innerHTML = `<button style="background:transparent; border:none; color:var(--sub-gold); cursor:pointer; font-family:'Russo One'; display:flex; flex-direction:column; align-items:center; opacity:0.8; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.2)';" onmouseout="this.style.transform='scale(1)';"><i class="fa-solid fa-stopwatch" style="font-size:1.2rem; margin-bottom:5px;"></i><span style="font-size:0.6rem;">VS</span></button>`;
+                    vs.onclick = () => {
+                        if (window.startProMatch) {
+                            window.state = window.state || {};
+                            window.state.quickP1 = match.p1;
+                            window.state.quickP2 = match.p2;
+                            window.startProMatch({
+                                isTournament: true,
+                                onComplete: (winnerName) => { this.setMatchWinner(rIndex, mIndex, winnerName); },
+                                onCancel: () => { console.log("Tournament Counter cancelled."); }
+                            });
+                        }
+                    };
+                } else {
+                    vs.innerText = 'vs';
+                }
+                
                 // Player 2 Button
                 const btn2 = this.createPlayerBtn(match.p2, match, rIndex, mIndex);
 
@@ -311,7 +330,24 @@ export class BracketEngine {
             
             const vsDiv = document.createElement('div');
             vsDiv.className = 'match-vs';
-            vsDiv.innerText = 'vs';
+            
+            if (this.bronzeMatch.p1 && this.bronzeMatch.p2 && !this.bronzeMatch.winner && this.bronzeMatch.p1 !== 'BYE' && this.bronzeMatch.p2 !== 'BYE') {
+                vsDiv.innerHTML = `<button style="background:transparent; border:none; color:var(--sub-gold); cursor:pointer; font-family:'Russo One'; display:flex; flex-direction:column; align-items:center; opacity:0.8; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.2)';" onmouseout="this.style.transform='scale(1)';"><i class="fa-solid fa-stopwatch" style="font-size:1.2rem; margin-bottom:5px;"></i><span style="font-size:0.6rem;">VS</span></button>`;
+                vsDiv.onclick = () => {
+                    if (window.startProMatch) {
+                        window.state = window.state || {};
+                        window.state.quickP1 = this.bronzeMatch.p1;
+                        window.state.quickP2 = this.bronzeMatch.p2;
+                        window.startProMatch({
+                            isTournament: true,
+                            onComplete: (winnerName) => { this.setBronzeWinner(winnerName); },
+                            onCancel: () => { console.log("Tournament Bronze Counter cancelled."); }
+                        });
+                    }
+                };
+            } else {
+                vsDiv.innerText = 'vs';
+            }
             matchDiv.appendChild(vsDiv);
             
             matchDiv.appendChild(this.createPlayerBtn(this.bronzeMatch.p2, this.bronzeMatch, -1, -1, true));
