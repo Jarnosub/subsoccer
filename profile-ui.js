@@ -116,6 +116,86 @@ export function cancelEditProfile() {
     if (profileGamesUi) profileGamesUi.style.display = 'none';
 }
 
+function updateRankProgress() {
+    const container = document.getElementById('rank-progress-container');
+    if (!container || !state.user || state.user.id === 'guest') {
+        if (container) container.innerHTML = '';
+        return;
+    }
+
+    const elo = state.user.elo || 1000;
+    
+    let currentRank = "ROOKIE";
+    let nextRank = "AMATEUR";
+    let minElo = 0;
+    let maxElo = 1200;
+    let rankColor = "#C0C0C0";
+    
+    if (elo >= 1200 && elo < 1600) {
+        currentRank = "AMATEUR";
+        nextRank = "PRO";
+        minElo = 1200;
+        maxElo = 1600;
+        rankColor = "#CD7F32";
+    } else if (elo >= 1600 && elo < 2000) {
+        currentRank = "PRO";
+        nextRank = "ELITE";
+        minElo = 1600;
+        maxElo = 2000;
+        rankColor = "var(--sub-gold)";
+    } else if (elo >= 2000) {
+        currentRank = "ELITE";
+        nextRank = "ELITE";
+        minElo = 2000;
+        maxElo = 3000;
+        rankColor = "#00FFCC"; 
+    }
+    
+    const progress = Math.min(100, Math.max(0, ((elo - minElo) / (maxElo - minElo)) * 100));
+    const pointsNeeded = maxElo - elo;
+    const avatarUrl = (state.user.avatar_url && state.user.avatar_url.trim() !== '') ? state.user.avatar_url : 'placeholder-silhouette-5-wide.png';
+
+    const circumference = 251.2;
+    const dashoffset = circumference - (progress / 100) * circumference;
+
+    container.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; background: rgba(10,10,10,0.8); border: 1px solid rgba(255,255,255,0.05); padding: 25px; border-radius: 8px; position:relative; overflow:hidden;">
+            <!-- Glow background blob -->
+            <div style="position:absolute; inset:0; background:radial-gradient(circle at center, ${rankColor}11 0%, transparent 60%); pointer-events:none;"></div>
+            
+            <div style="font-family:'SubsoccerLogo', sans-serif; font-size:1.3rem; color:${rankColor}; text-shadow:0 0 15px ${rankColor}88; letter-spacing:2px; margin-bottom:5px;">STATUS: ${currentRank}</div>
+            <div style="font-family:'Open Sans', sans-serif; font-size:0.65rem; color:#888; font-weight:bold; letter-spacing:1px; margin-bottom:15px;">CURRENT ELO: <span style="color:#fff;">${elo}</span></div>
+            
+            <div style="position:relative; width:120px; height:120px; margin:5px 0 15px 0;">
+                <svg width="120" height="120" viewBox="0 0 100 100" style="transform: rotate(-90deg); filter:drop-shadow(0 0 6px ${rankColor}66);">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#222" stroke-width="6" />
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="${rankColor}" stroke-width="6"
+                        stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}"
+                        stroke-linecap="round" style="transition: stroke-dashoffset 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);" />
+                </svg>
+                <div style="position:absolute; top:10px; left:10px; width:100px; height:100px; border-radius:50%; overflow:hidden; border:2px solid ${rankColor}; box-sizing:border-box; box-shadow:inset 0 0 20px rgba(0,0,0,0.8);">
+                    <img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+            </div>
+            ${currentRank !== 'ELITE' ? 
+                `<div style="font-family:'Open Sans', sans-serif; font-size:0.75rem; color:#aaa; max-width:220px; line-height:1.5; text-align:center;">
+                    <strong style="color:var(--sub-red); font-size:1.1em;">${pointsNeeded}</strong> ELO points to reach <br><strong style="color:${rankColor};">${nextRank}</strong> STATUS
+                </div>` : 
+                `<div style="font-family:'Open Sans', sans-serif; font-size:0.75rem; color:#aaa; max-width:220px; line-height:1.5; text-align:center;">
+                    <strong style="color:${rankColor};">MAXIMUM STATUS UNLOCKED</strong>
+                </div>`
+            }
+        </div>
+    `;
+    
+    const circle = container.querySelector('circle:nth-child(2)');
+    if (circle) {
+        setTimeout(() => {
+            circle.style.strokeDashoffset = dashoffset;
+        }, 300);
+    }
+}
+
 /**
  * Päivittää profiilin näkymän (Dashboard kortti)
  */
@@ -383,6 +463,8 @@ export function updateProfileCard() {
             }, true);
         }
     }
+
+    updateRankProgress();
 }
 
 window.loadUserProfile = loadUserProfile;
