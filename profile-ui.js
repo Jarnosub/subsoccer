@@ -243,29 +243,6 @@ export function updateProfileCard() {
         .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
         .card-front, .card-back { padding: 0 !important; }
         
-        /* 300 DPI PRINT EXPORT MODE */
-        @media print {
-            @page { margin: 0; size: A4 landscape; }
-            body { background: #fff !important; margin: 0; padding: 10mm; overflow: visible !important; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
-            * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
-            header, .nav-tabs, #settings-menu, .app-version, #rank-progress-container, #hardware-garage-container, #section-tournaments, #section-map, #section-events, #hero-bg-container, #camera-modal, #universal-scanner-modal, #hardware-claim-modal, #victory-overlay, #profile-dashboard-ui, #profile-team-ui, .container > div:not(#profile-card-container) { display: none !important; }
-            
-            #section-profile { margin: 0 !important; padding: 0 !important; justify-content: flex-start !important; align-items: flex-start !important; min-height: auto !important; width: 100vw !important; height: 100vh !important; display: flex !important; background: transparent !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: 999999 !important; }
-            
-            #profile-card-container { display: flex !important; flex-direction: row !important; gap: 30px !important; align-items: flex-start !important; justify-content: flex-start !important; padding: 20px !important; margin: 0 !important; transform: scale(0.9) !important; transform-origin: top left !important; position: static !important; perspective: none !important; }
-            
-            .pro-card { width: 354px !important; height: 474px !important; zoom: 1 !important; margin: 0 !important; background: transparent !important; box-shadow: none !important; transform: none !important; perspective: none !important; max-width: none !important; }
-            
-            .card-flipper { transform: none !important; display: flex !important; flex-direction: row !important; gap: 30px !important; width: auto !important; height: auto !important; box-shadow: none !important; }
-            
-            .card-front, .card-back { position: relative !important; backface-visibility: visible !important; transform: none !important; width: 354px !important; height: 474px !important; border: 1px solid #ddd !important; border-radius: 0 !important; margin: 0 !important; display: flex !important; flex-shrink: 0 !important; }
-            
-            .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
-            .card-bleed-edge { inset: 12px !important; border: none !important; }
-            .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
-            .pro-stamp { top: 24px !important; left: 24px !important; }
-            .flip-hint { display: none !important; }
-        }
         .holo-glow { position: absolute; inset: 0; background: radial-gradient(circle at calc(var(--gx, 50) * 1%) calc(var(--gy, -20) * 1%), rgba(255, 230, 100, 0.45) 0%, rgba(255, 255, 255, 0.1) 30%, transparent 60%); mix-blend-mode: color-dodge; z-index: 40; pointer-events: none; opacity: 1; transition: opacity 0.3s; }
     </style>
     <div class="pro-card pro-card-force-sharp ${editionClass} ${rookieClass}" style="margin:0 auto; width:100%; max-width:320px; aspect-ratio:2.5/3.5; background:transparent; box-shadow:none; cursor:pointer; perspective: 1000px;">
