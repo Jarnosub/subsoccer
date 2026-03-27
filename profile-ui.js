@@ -546,7 +546,7 @@ export async function exportPhysicalCardToPDF() {
 
         pdf.addImage(imgData, 'JPEG', startX, startY, totalW, cardH);
         
-        const username = window.state.get().user?.username || 'Player';
+        const username = state.user?.username || 'Player';
         pdf.save(`Subsoccer_ProCard_${username}.pdf`);
 
     } catch (e) {
