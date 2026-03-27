@@ -954,7 +954,7 @@ subscribe('user', () => {
                         showMatchMode('tournament');
                     }
                 } else {
-                    state.currentPage = 'tournament'; // Oletuksena näytetään Play/Quick Match
+                    state.currentPage = 'profile'; // Oletuksena näytetään The Vault & Player Card
                 }
             }
         }
