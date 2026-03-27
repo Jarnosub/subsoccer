@@ -220,23 +220,23 @@ export async function loadHardwareGarage() {
                                             </div>
                                         </div>
 
-                                        <div style="flex:1; display:flex; flex-direction:column; gap:8px; margin-top:5px; padding:0 15px;">
-                                           <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
-                                               <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>ACTIVE EVENT</span> <i class="fa-solid fa-calendar" style="color:#4a9eff;"></i></div>
-                                               <div style="color:#666; font-size:0.9rem; font-family:'Russo One';">NO EVENTS SCHEDULED</div>
+                                        <div style="flex:1; display:flex; flex-direction:row; gap:8px; margin-top:5px; padding:0 15px;">
+                                           <div style="flex:1; background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:8px;">
+                                               <div style="color:#aaa; font-size:0.5rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>UPCOMING</span> <i class="fa-solid fa-calendar" style="color:#4a9eff;"></i></div>
+                                               <div style="color:#666; font-size:0.7rem; font-family:'Russo One'; line-height:1.2;">NONE</div>
                                            </div>
-                                           <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
-                                               <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>LOBBY LINK</span> <i class="fa-solid fa-link" style="color:#555;"></i></div>
-                                               <div style="color:#666; font-size:0.7rem; font-family:'Open Sans'; font-weight:bold; word-wrap:break-word;">NOT PUBLISHED</div>
+                                           <div style="flex:1; background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:8px;">
+                                               <div style="color:#aaa; font-size:0.5rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>STATUS</span> <i class="fa-solid fa-lock" style="color:#555;"></i></div>
+                                               <div style="color:#666; font-size:0.6rem; font-family:'Open Sans'; font-weight:bold; line-height:1.2;">PRIVATE TABLE</div>
                                            </div>
                                         </div>
 
-                                        <div style="margin-top: auto; margin-bottom: 35px; display:flex; gap: 8px; padding: 0 15px;">
-                                           <button onclick="event.stopPropagation(); window.uploadVenuePhoto('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 8px 0; font-size:0.6rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;">
-                                               <i class="fa-solid fa-camera" style="font-size:1rem; color:#aaa;"></i> UPDATE PHOTO
+                                        <div style="margin-top: auto; margin-bottom: 25px; display:flex; gap: 8px; padding: 0 15px;">
+                                           <button onclick="event.stopPropagation(); window.uploadVenuePhoto('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 3px; padding: 6px 0; font-size:0.5rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:4px; white-space:nowrap;">
+                                               <i class="fa-solid fa-camera" style="font-size:0.7rem; color:#aaa;"></i> UPDATE
                                            </button>
-                                           <button onclick="event.stopPropagation(); window.configureVenue('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 8px 0; font-size:0.6rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;">
-                                               <i class="fa-solid fa-gear" style="font-size:1rem; color:var(--sub-red);"></i> CONFIGURE
+                                           <button onclick="event.stopPropagation(); window.configureVenue('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 3px; padding: 6px 0; font-size:0.5rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:4px; white-space:nowrap;">
+                                               <i class="fa-solid fa-gear" style="font-size:0.7rem; color:var(--sub-red);"></i> CONFIGURE
                                            </button>
                                         </div>
 
@@ -383,20 +383,23 @@ window.openVenueCardModal = (serial) => {
                         <div style="flex:1; display:flex; flex-direction:column; gap:8px; margin-top:5px; padding:0 15px;">
                            <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
                                <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>ACTIVE EVENT</span> <i class="fa-solid fa-calendar" style="color:#4a9eff;"></i></div>
-                               <div style="color:#666; font-size:0.9rem; font-family:'Russo One';">NO EVENTS SCHEDULED</div>
+                        <div style="flex:1; display:flex; flex-direction:row; gap:4px; margin-top:5px; padding:0 15px;">
+                           <div style="flex:1; background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:3px; padding:6px;">
+                               <div style="color:#aaa; font-size:0.4rem; font-weight:bold; letter-spacing:1px; margin-bottom:2px; display:flex; justify-content:space-between;"><span>UPCOMING</span> <i class="fa-solid fa-calendar" style="color:#4a9eff;"></i></div>
+                               <div style="color:#666; font-size:0.5rem; font-family:'Russo One'; line-height:1.2;">NONE</div>
                            </div>
-                           <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
-                               <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>LOBBY LINK</span> <i class="fa-solid fa-link" style="color:#555;"></i></div>
-                               <div style="color:#666; font-size:0.7rem; font-family:'Open Sans'; font-weight:bold; word-wrap:break-word;">NOT PUBLISHED</div>
+                           <div style="flex:1; background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:3px; padding:6px;">
+                               <div style="color:#aaa; font-size:0.4rem; font-weight:bold; letter-spacing:1px; margin-bottom:2px; display:flex; justify-content:space-between;"><span>STATUS</span> <i class="fa-solid fa-lock" style="color:#555;"></i></div>
+                               <div style="color:#666; font-size:0.4rem; font-family:'Open Sans'; font-weight:bold; line-height:1.2;">PRIVATE TABLE</div>
                            </div>
                         </div>
 
-                        <div style="margin-top: auto; margin-bottom: 35px; display:flex; gap: 8px; padding: 0 15px;">
-                           <button onclick="event.stopPropagation(); window.uploadVenuePhoto('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 8px 0; font-size:0.6rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;">
-                               <i class="fa-solid fa-camera" style="font-size:1rem; color:#aaa;"></i> UPDATE PHOTO
+                        <div style="margin-top: auto; margin-bottom: 25px; display:flex; gap: 4px; padding: 0 15px;">
+                           <button onclick="event.stopPropagation(); window.uploadVenuePhoto('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 3px; padding: 4px 0; font-size:0.4rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:3px; white-space:nowrap;">
+                               <i class="fa-solid fa-camera" style="font-size:0.6rem; color:#aaa;"></i> UPDATE
                            </button>
-                           <button onclick="event.stopPropagation(); window.configureVenue('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 8px 0; font-size:0.6rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;">
-                               <i class="fa-solid fa-gear" style="font-size:1rem; color:var(--sub-red);"></i> CONFIGURE
+                           <button onclick="event.stopPropagation(); window.configureVenue('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 3px; padding: 4px 0; font-size:0.4rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:3px; white-space:nowrap;">
+                               <i class="fa-solid fa-gear" style="font-size:0.6rem; color:var(--sub-red);"></i> CONFIG
                            </button>
                         </div>
 
@@ -531,17 +534,21 @@ window.openPublicVenueCardModal = async (gameId) => {
                             </div>
                         </div>
 
-                        <div style="flex:1; display:flex; flex-direction:column; gap:8px; margin-top:5px; padding:0 15px;">
-                           <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
-                               <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>ACTIVE EVENT</span> <i class="fa-solid fa-calendar" style="color:#4a9eff;"></i></div>
-                               <div style="color:#666; font-size:0.9rem; font-family:'Russo One';">NO EVENTS SCHEDULED</div>
-                           </div>
-                        </div>
+                        <div style="flex:1; display:flex; flex-direction:row; gap:8px; margin-top:5px; padding:0 15px;">
+                                           <div style="flex:1; background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:8px;">
+                                               <div style="color:#aaa; font-size:0.5rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>UPCOMING</span> <i class="fa-solid fa-calendar" style="color:#4a9eff;"></i></div>
+                                               <div style="color:#666; font-size:0.7rem; font-family:'Russo One'; line-height:1.2;">NONE</div>
+                                           </div>
+                                           <div style="flex:1; background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:8px;">
+                                               <div style="color:#aaa; font-size:0.5rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>STATUS</span> <i class="fa-solid fa-lock" style="color:#555;"></i></div>
+                                               <div style="color:#666; font-size:0.6rem; font-family:'Open Sans'; font-weight:bold; line-height:1.2;">PUBLIC</div>
+                                           </div>
+                                        </div>
 
-                        <div style="margin-top: auto; margin-bottom: 35px; display:flex; padding: 0 15px; justify-content:center;">
-                           <div style="color:#666; font-size:0.65rem; text-transform:uppercase; text-align:center; font-family:'Open Sans'; margin-top:10px; font-weight:bold;">
-                               <i class="fa-solid fa-lock" style="margin-bottom:5px; display:block; font-size:1rem; opacity:0.5;"></i>
-                               PUBLIC CARD - CONFIGURATION HIDDEN
+                        <div style="margin-top: auto; margin-bottom: 25px; display:flex; padding: 0 15px; justify-content:center;">
+                           <div style="color:#666; font-size:0.55rem; text-transform:uppercase; text-align:center; font-family:'Open Sans'; margin-top:10px; font-weight:bold;">
+                               <i class="fa-solid fa-lock" style="margin-bottom:3px; display:block; font-size:0.9rem; opacity:0.5;"></i>
+                               CONFIGURATION HIDDEN
                            </div>
                         </div>
 
