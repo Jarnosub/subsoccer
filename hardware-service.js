@@ -208,7 +208,7 @@ export async function loadHardwareGarage() {
                                 <div class="card-back" style="padding: 2px; box-sizing: border-box;">
                                     <div class="venue-safe-zone" style="background-image: radial-gradient(circle at center, #2a0000 0%, #000 100%);">
                                         <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid #333; margin-bottom:15px; margin-top:15px;">
-                                            <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:2px; font-size:1.2rem;">
+                                            <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:1px; font-size:1rem;">
                                                 <i class="fa-solid fa-crown" style="margin-right:5px;"></i> CHAMPION OF THE GAME
                                             </h4>
                                         </div>
@@ -220,12 +220,23 @@ export async function loadHardwareGarage() {
                                             </div>
                                         </div>
 
-                                        <div style="margin-top: auto; margin-bottom: 35px; display:flex; gap: 10px; padding: 0 15px;">
-                                           <button style="flex:1; background: #111; border: 1px solid #444; color: #aaa; border-radius: 4px; padding: 10px 0; font-size:0.55rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:column; align-items:center;">
-                                               <i class="fa-solid fa-camera" style="font-size:1.2rem; margin-bottom:5px; color:#fff;"></i> PHOTO
+                                        <div style="flex:1; display:flex; flex-direction:column; gap:8px; margin-top:5px; padding:0 15px;">
+                                           <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
+                                               <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>ACTIVE EVENT</span> <i class="fa-solid fa-calendar" style="color:#4a9eff;"></i></div>
+                                               <div style="color:#666; font-size:0.9rem; font-family:'Russo One';">NO EVENTS SCHEDULED</div>
+                                           </div>
+                                           <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
+                                               <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>LOBBY LINK</span> <i class="fa-solid fa-link" style="color:#555;"></i></div>
+                                               <div style="color:#666; font-size:0.7rem; font-family:'Open Sans'; font-weight:bold; word-wrap:break-word;">NOT PUBLISHED</div>
+                                           </div>
+                                        </div>
+
+                                        <div style="margin-top: auto; margin-bottom: 35px; display:flex; gap: 8px; padding: 0 15px;">
+                                           <button onclick="event.stopPropagation(); window.uploadVenuePhoto('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 8px 0; font-size:0.6rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;">
+                                               <i class="fa-solid fa-camera" style="font-size:1rem; color:#aaa;"></i> UPDATE PHOTO
                                            </button>
-                                           <button style="flex:1; background: #111; border: 1px solid #444; color: #aaa; border-radius: 4px; padding: 10px 0; font-size:0.55rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:column; align-items:center;">
-                                               <i class="fa-solid fa-gear" style="font-size:1.2rem; margin-bottom:5px; color:var(--sub-red);"></i> CONFIGURE
+                                           <button onclick="event.stopPropagation(); window.configureVenue('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 8px 0; font-size:0.6rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;">
+                                               <i class="fa-solid fa-gear" style="font-size:1rem; color:var(--sub-red);"></i> CONFIGURE
                                            </button>
                                         </div>
 
@@ -357,7 +368,7 @@ window.openVenueCardModal = (serial) => {
                 <div class="card-back" style="padding: 20px; box-sizing: border-box;">
                     <div class="venue-safe-zone">
                         <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid #333; margin-bottom:15px; margin-top:15px;">
-                            <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:2px; font-size:1.2rem;">
+                            <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:1px; font-size:1rem;">
                                 <i class="fa-solid fa-crown" style="margin-right:5px;"></i> CHAMPION OF THE GAME
                             </h4>
                         </div>
@@ -369,12 +380,23 @@ window.openVenueCardModal = (serial) => {
                             </div>
                         </div>
 
-                        <div style="margin-top: auto; margin-bottom: 35px; display:flex; gap: 10px; padding: 0 15px;">
-                           <button onclick="event.stopPropagation(); window.uploadVenuePhoto('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #aaa; border-radius: 4px; padding: 10px 0; font-size:0.55rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:column; align-items:center;">
-                               <i class="fa-solid fa-camera" style="font-size:1.2rem; margin-bottom:5px; color:#fff;"></i> PHOTO
+                        <div style="flex:1; display:flex; flex-direction:column; gap:8px; margin-top:5px; padding:0 15px;">
+                           <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
+                               <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>ACTIVE EVENT</span> <i class="fa-solid fa-calendar" style="color:#4a9eff;"></i></div>
+                               <div style="color:#666; font-size:0.9rem; font-family:'Russo One';">NO EVENTS SCHEDULED</div>
+                           </div>
+                           <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
+                               <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>LOBBY LINK</span> <i class="fa-solid fa-link" style="color:#555;"></i></div>
+                               <div style="color:#666; font-size:0.7rem; font-family:'Open Sans'; font-weight:bold; word-wrap:break-word;">NOT PUBLISHED</div>
+                           </div>
+                        </div>
+
+                        <div style="margin-top: auto; margin-bottom: 35px; display:flex; gap: 8px; padding: 0 15px;">
+                           <button onclick="event.stopPropagation(); window.uploadVenuePhoto('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 8px 0; font-size:0.6rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;">
+                               <i class="fa-solid fa-camera" style="font-size:1rem; color:#aaa;"></i> UPDATE PHOTO
                            </button>
-                           <button onclick="event.stopPropagation(); window.configureVenue('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #aaa; border-radius: 4px; padding: 10px 0; font-size:0.55rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:column; align-items:center;">
-                               <i class="fa-solid fa-gear" style="font-size:1.2rem; margin-bottom:5px; color:var(--sub-red);"></i> CONFIGURE
+                           <button onclick="event.stopPropagation(); window.configureVenue('${item.serial_number}')" style="flex:1; background: #111; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 8px 0; font-size:0.6rem; font-family:'Open Sans', sans-serif; font-weight:bold; cursor:pointer; letter-spacing: 1px; transition: all 0.2s; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;">
+                               <i class="fa-solid fa-gear" style="font-size:1rem; color:var(--sub-red);"></i> CONFIGURE
                            </button>
                         </div>
 
@@ -497,7 +519,7 @@ window.openPublicVenueCardModal = async (gameId) => {
                 <div class="card-back" style="padding: 20px; box-sizing: border-box;">
                     <div class="venue-safe-zone">
                         <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid #333; margin-bottom:15px; margin-top:15px;">
-                            <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:2px; font-size:1.2rem;">
+                            <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:1px; font-size:1rem;">
                                 <i class="fa-solid fa-crown" style="margin-right:5px;"></i> CHAMPION OF THE GAME
                             </h4>
                         </div>
@@ -509,9 +531,17 @@ window.openPublicVenueCardModal = async (gameId) => {
                             </div>
                         </div>
 
+                        <div style="flex:1; display:flex; flex-direction:column; gap:8px; margin-top:5px; padding:0 15px;">
+                           <div style="background: rgba(255,255,255,0.03); border:1px solid #222; border-radius:4px; padding:10px;">
+                               <div style="color:#aaa; font-size:0.6rem; font-weight:bold; letter-spacing:1px; margin-bottom:4px; display:flex; justify-content:space-between;"><span>ACTIVE EVENT</span> <i class="fa-solid fa-calendar" style="color:#4a9eff;"></i></div>
+                               <div style="color:#666; font-size:0.9rem; font-family:'Russo One';">NO EVENTS SCHEDULED</div>
+                           </div>
+                        </div>
+
                         <div style="margin-top: auto; margin-bottom: 35px; display:flex; padding: 0 15px; justify-content:center;">
-                           <div style="color:#aaa; font-size:0.7rem; text-transform:uppercase; text-align:center; font-family:'Open Sans'; margin-top:10px;">
-                               THIS IS A PUBLIC PRO-CARD.<br>OWNERSHIP CONFIGURATION HIDDEN.
+                           <div style="color:#666; font-size:0.65rem; text-transform:uppercase; text-align:center; font-family:'Open Sans'; margin-top:10px; font-weight:bold;">
+                               <i class="fa-solid fa-lock" style="margin-bottom:5px; display:block; font-size:1rem; opacity:0.5;"></i>
+                               PUBLIC CARD - CONFIGURATION HIDDEN
                            </div>
                         </div>
 
