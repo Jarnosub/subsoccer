@@ -209,7 +209,7 @@ export async function loadHardwareGarage() {
                                     <div class="venue-safe-zone" style="background-image: radial-gradient(circle at center, #2a0000 0%, #000 100%);">
                                         <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid #333; margin-bottom:15px; margin-top:15px;">
                                             <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:2px; font-size:1.2rem;">
-                                                <i class="fa-solid fa-crown" style="margin-right:5px;"></i> KING OF THE GAME
+                                                <i class="fa-solid fa-crown" style="margin-right:5px;"></i> CHAMPION OF THE GAME
                                             </h4>
                                         </div>
                                         
@@ -358,7 +358,7 @@ window.openVenueCardModal = (serial) => {
                     <div class="venue-safe-zone">
                         <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid #333; margin-bottom:15px; margin-top:15px;">
                             <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:2px; font-size:1.2rem;">
-                                <i class="fa-solid fa-crown" style="margin-right:5px;"></i> KING OF THE GAME
+                                <i class="fa-solid fa-crown" style="margin-right:5px;"></i> CHAMPION OF THE GAME
                             </h4>
                         </div>
                         
@@ -498,7 +498,7 @@ window.openPublicVenueCardModal = async (gameId) => {
                     <div class="venue-safe-zone">
                         <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid #333; margin-bottom:15px; margin-top:15px;">
                             <h4 style="color:var(--sub-gold); font-family:var(--sub-name-font); margin:0; letter-spacing:2px; font-size:1.2rem;">
-                                <i class="fa-solid fa-crown" style="margin-right:5px;"></i> KING OF THE GAME
+                                <i class="fa-solid fa-crown" style="margin-right:5px;"></i> CHAMPION OF THE GAME
                             </h4>
                         </div>
                         
