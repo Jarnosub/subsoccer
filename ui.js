@@ -452,7 +452,7 @@ export function initTiltEffect(card) {
                 const rotateX = (centerY - y) / 12;
                 const rotateY = (x - centerX) / 12;
 
-                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
                 card.style.setProperty('--x', `${x} px`);
                 card.style.setProperty('--y', `${y} px`);
 
@@ -463,7 +463,7 @@ export function initTiltEffect(card) {
     };
 
     const handleReset = () => {
-        card.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     };
 
     // Desktop Hover
@@ -493,7 +493,7 @@ export function initTiltEffect(card) {
             const rx = ((beta - 45) / 45) * -15;
             const ry = (gamma / 45) * 15;
             
-            card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
+            card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
         }, true);
     }
     
