@@ -466,9 +466,40 @@ export function initTiltEffect(card) {
         card.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     };
 
-    // 3D Hover Tilt is strictly for mouse devices to prevent mobile touch/click cancellations
+    // Desktop Hover
     card.addEventListener('mousemove', handleMove);
     card.addEventListener('mouseleave', handleReset);
+
+    // Mobile Phone Gyroscope (Tilt to parallax)
+    if (window.DeviceOrientationEvent) {
+        // Request iOS 13+ permission upon first user interaction
+        card.addEventListener('click', () => {
+             if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                  DeviceOrientationEvent.requestPermission().catch(console.error);
+             }
+        }, { once: true });
+
+        window.addEventListener('deviceorientation', (e) => {
+            if (!document.contains(card)) return;
+            
+            let gamma = e.gamma || 0;
+            let beta = e.beta || 0;
+            
+            // Sanitize rotation values
+            gamma = Math.max(-45, Math.min(45, gamma));
+            beta = Math.max(0, Math.min(90, beta));
+            
+            // Apply gentle perspective transform based on gravity vector
+            const rx = ((beta - 45) / 45) * -15;
+            const ry = (gamma / 45) * 15;
+            
+            card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
+        }, true);
+    }
+    
+    // Fallback: manual finger sweep on card for mobile if gyro permission is denied
+    card.addEventListener('touchmove', handleMove, { passive: true });
+    card.addEventListener('touchend', handleReset);
 }
 
 /**
