@@ -77,6 +77,7 @@ export function showAuthPage(mode = 'landing') {
     const appContent = document.getElementById('app-content');
     const navTabs = document.getElementById('nav-tabs');
     const menuBtn = document.getElementById('menu-toggle-btn');
+    const feedbackBtn = document.getElementById('floating-feedback-btn');
 
     if (mode === 'app') {
         if (authPage) authPage.style.display = 'none';
@@ -84,7 +85,14 @@ export function showAuthPage(mode = 'landing') {
         if (navTabs) navTabs.style.display = 'flex';
         const header = document.querySelector('header');
         if (header) header.style.display = 'flex';
+        if (feedbackBtn) feedbackBtn.style.display = 'flex';
         
+        // Show Beta Welcome Modal for new users
+        if (!localStorage.getItem('subsoccer_beta_welcome_seen')) {
+            const welcomeModal = document.getElementById('beta-welcome-modal');
+            if (welcomeModal) welcomeModal.style.display = 'flex';
+        }
+
         // Ensure URL routing works smoothly upon app unlock
         const urlParams = new URLSearchParams(window.location.search);
         const pageToLoad = urlParams.get('page');
@@ -100,6 +108,7 @@ export function showAuthPage(mode = 'landing') {
     if (appContent) appContent.style.display = 'none';
     if (navTabs) navTabs.style.display = 'none';
     if (menuBtn) menuBtn.style.display = 'none';
+    if (feedbackBtn) feedbackBtn.style.display = 'none';
     const header = document.querySelector('header');
     if (header) header.style.display = 'none';
 

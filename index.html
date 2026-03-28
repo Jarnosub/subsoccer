@@ -1336,5 +1336,33 @@
         <div id="venue-card-content"></div>
         <button onclick="document.getElementById('venue-card-modal').classList.remove('active')" class="btn-red" style="margin-top:15px; width:100%; font-size:1.1rem; box-shadow:0 0 15px rgba(227,6,19,0.3);">BACK TO MAP</button>
     </div>
+
+    <!-- BETA WELCOME MODAL -->
+    <div id="beta-welcome-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); z-index:999999; justify-content:center; align-items:center; flex-direction:column; padding:20px;">
+        <div style="background:linear-gradient(135deg, #111 0%, #050505 100%); border:1px solid #333; border-top:2px solid var(--sub-red); width:100%; max-width:400px; border-radius:8px; display:flex; flex-direction:column; align-items:center; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.9);">
+            <div style="width:100%; background:var(--sub-red); display:flex; justify-content:center; align-items:center; padding:15px; position:relative;">
+                <img src="subsoccer_logo.svg" style="height:25px; filter:brightness(0) invert(1);" alt="logo">
+            </div>
+            <div style="padding:30px 20px; text-align:center;">
+                <h3 style="color:#fff; font-family:'Resolve'; text-transform:uppercase; margin:0 0 10px 0; font-size:1.4rem;">Welcome to Subsoccer GO Beta!</h3>
+                <p style="color:#aaa; font-family:'Open Sans'; font-size:0.9rem; line-height:1.6; margin-bottom:20px;">
+                    We are thrilled to have your early feedback. As one of our pioneer players, you get to experience the new Pro League ecosystem first. Your progress will be saved.
+                </p>
+                <div style="background:rgba(255,215,0,0.05); border:1px solid rgba(212,175,55,0.3); padding:10px; border-radius:4px; display:inline-block; font-family:'Russo One'; color:var(--sub-gold); font-size:1.1rem; letter-spacing:2px; margin-bottom:25px;">
+                    FOUNDATION MEMBER
+                </div>
+                <button onclick="document.getElementById('beta-welcome-modal').style.display='none'; localStorage.setItem('subsoccer_beta_welcome_seen', 'true');" class="btn-red" style="width:100%; box-shadow: 0 4px 15px rgba(227,6,19,0.4);">
+                    <i class="fa-solid fa-play" style="margin-right:8px;"></i> START PLAYING
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEEDBACK FLOATING BUTTON -->
+    <a href="mailto:beta@subsoccer.com?subject=Subsoccer GO Beta Feedback" id="floating-feedback-btn" class="no-swipe" style="display:none; position:fixed; bottom:75px; right:15px; width:45px; height:45px; background:#111; border:1px solid #444; color:#fff; border-radius:50%; padding:0; justify-content:center; align-items:center; z-index:900; box-shadow:0 4px 10px rgba(0,0,0,0.8); text-decoration:none;" title="Send Feedback">
+        <i class="fa-solid fa-comment-dots" style="font-size:1.2rem; color:var(--sub-gold);"></i>
+    </a>
+
+    <script type="module" src="main.js?v=40"></script>
 </body>
 </html>
