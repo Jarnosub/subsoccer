@@ -637,7 +637,7 @@ export async function viewCardOrders() {
                                 ${o.shipping_name}
                             </div>
                             <div style="font-size:0.7rem; color:#666;">
-                                ${new Date(o.created_at).toLocaleDateString()} • Status: <span style="color:${o.status === 'pending' ? 'var(--sub-red)' : '#4CAF50'}; font-weight:bold;">${o.status.toUpperCase()}</span>
+                                ${new Date(o.created_at).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • Status: <span style="color:${o.status === 'pending' ? 'var(--sub-red)' : '#4CAF50'}; font-weight:bold;">${o.status.toUpperCase()}</span>
                             </div>
                             <div style="font-size:0.6rem; color:#888;">
                                 ${o.shipping_street}, ${o.shipping_zip} ${o.shipping_city}, ${o.shipping_country}
