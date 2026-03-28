@@ -238,8 +238,8 @@ export function updateProfileCard() {
         .card-rc-badge { position: absolute; top: 10px; left: 10px; background: transparent; color: #E30613; font-family: 'Russo One', sans-serif; font-size: 1rem; z-index: 10; font-style: italic; text-shadow: 1px 1px 0 #fff; }
         .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
         .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
-        .card-data-box { height: 35%; width: 100%; background: #1a1a1a; padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
-        .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
+        .card-data-box { height: 35%; width: 100%; position: relative; background: #1a1a1a; padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
+        .pro-stamp { position: absolute; top: 55%; left: 15px; width: 75px; height: auto; z-index: 50; transform: translateY(-50%); filter: drop-shadow(0 5px 10px rgba(0,0,0,0.6)); pointer-events: none; }
         .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
         .card-front, .card-back { padding: 0 !important; }
         
@@ -255,6 +255,9 @@ export function updateProfileCard() {
                         <div class="card-serial">${editionLabel}</div>
                         
                         <div class="card-image-box">
+                            <div style="position:absolute; top:0; left:12px; background:#E30613; padding:5px 8px; z-index:20;">
+                                <img src="subsoccer_logo.svg" alt="Subsoccer" style="height:14px; filter: brightness(0) invert(1);">
+                            </div>
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                             <div class="holo-glow"></div>
                             <div class="card-nameplate">
@@ -282,10 +285,10 @@ export function updateProfileCard() {
                                     <img src="https://flagcdn.com/w20/${(u.country || 'fi').toLowerCase()}.png" width="20" style="border:1px solid #555;">
                                 </div>
                             </div>
+                            ${u.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
                         </div>
                     </div>
                 </div>
-                ${u.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
                 <div class="flip-hint" style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Open Sans', sans-serif; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
             </div>
             
