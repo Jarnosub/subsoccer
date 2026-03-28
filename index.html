@@ -681,7 +681,10 @@
 
         <div id="section-moderator" class="section">
             <div class="container">
-                <h3 style="font-family:'Resolve'; text-transform:uppercase; color:#ffffff; letter-spacing:2px;">
+                <div onclick="window.showPage ? window.showPage('profile') : location.reload()" style="font-family:'Russo One'; color:#e30613; font-size:1rem; margin-bottom:20px; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-arrow-left"></i> BACK TO DASHBOARD
+                </div>
+                <h3 style="font-family:'Resolve'; text-transform:uppercase; color:#ffffff; letter-spacing:2px; margin-top:0;">
                     🛡️ Moderator Tools</h3>
                 <p style="font-size:0.8rem; color:#666; margin-bottom:20px;">System administration for Jarno Saarinen
                 </p>
@@ -801,6 +804,10 @@
                                 </tbody>
                             </table>
                         </div>
+                        <button onclick="this.parentElement.style.display = 'none'; this.parentElement.previousElementSibling.querySelector('.fa-chevron-down').style.transform = 'rotate(0deg)';"
+                            class="btn-red" style="width:100%; margin-top:15px; background:transparent; border:1px solid #333; color:#aaa; font-family:'Resolve'; letter-spacing:1px; cursor:pointer;">
+                            <i class="fa-solid fa-chevron-up" style="margin-right:8px;"></i> CLOSE ANALYTICS
+                        </button>
                     </div>
                 </div>
             </div>
