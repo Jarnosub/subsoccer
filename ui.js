@@ -77,7 +77,6 @@ export function showAuthPage(mode = 'landing') {
     const appContent = document.getElementById('app-content');
     const navTabs = document.getElementById('nav-tabs');
     const menuBtn = document.getElementById('menu-toggle-btn');
-    const feedbackBtn = document.getElementById('floating-feedback-btn');
 
     if (mode === 'app') {
         if (authPage) authPage.style.display = 'none';
@@ -85,8 +84,7 @@ export function showAuthPage(mode = 'landing') {
         if (navTabs) navTabs.style.display = 'flex';
         const header = document.querySelector('header');
         if (header) header.style.display = 'flex';
-        if (feedbackBtn) feedbackBtn.style.display = 'flex';
-        
+
         // Show Beta Welcome Modal for new users
         if (!localStorage.getItem('subsoccer_beta_welcome_seen')) {
             const welcomeModal = document.getElementById('beta-welcome-modal');
@@ -99,7 +97,7 @@ export function showAuthPage(mode = 'landing') {
         if (pageToLoad) {
             showPage(pageToLoad);
         }
-        
+
         // Ensure auth page doesn't hide other UI elements
         return;
     }
@@ -108,7 +106,6 @@ export function showAuthPage(mode = 'landing') {
     if (appContent) appContent.style.display = 'none';
     if (navTabs) navTabs.style.display = 'none';
     if (menuBtn) menuBtn.style.display = 'none';
-    if (feedbackBtn) feedbackBtn.style.display = 'none';
     const header = document.querySelector('header');
     if (header) header.style.display = 'none';
 
@@ -136,11 +133,11 @@ window.showAuthPage = showAuthPage;
 // --- UNIVERSAL QR SCANNER (HTML5-QRCode) ---
 let html5QrCode = null;
 
-window.openUniversalScanner = function() {
+window.openUniversalScanner = function () {
     const modal = document.getElementById('universal-scanner-modal');
     if (!modal) return;
     modal.style.display = 'flex';
-    
+
     if (typeof Html5Qrcode === 'undefined') {
         alert("Scanner library is loading, please wait and try again in a few seconds.");
         modal.style.display = 'none';
@@ -153,31 +150,31 @@ window.openUniversalScanner = function() {
 
     const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
 
-    html5QrCode.start({ facingMode: "environment" }, config, 
-    (decodedText) => {
-        // Handle successful scan
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-        window.closeUniversalScanner();
-        
-        // Action routing based on QR content
-        if (decodedText.includes('join=') || decodedText.includes('subsoccer.com') || decodedText.includes('192.168.')) {
-            // Forward everything back to standard browser navigation
-            window.location.href = decodedText;
-        } else {
-            console.error("Unknown QR code format:", decodedText);
-            alert("This doesn't seem to be a valid Subsoccer QR code.");
-        }
-    }, 
-    (errorMessage) => {
-        // Expected non-critical decode errors; silent ignore
-    }).catch((err) => {
-        console.error("Scanner failed to start", err);
-        alert("Camera access was denied or is completely unavailable.");
-        window.closeUniversalScanner();
-    });
+    html5QrCode.start({ facingMode: "environment" }, config,
+        (decodedText) => {
+            // Handle successful scan
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            window.closeUniversalScanner();
+
+            // Action routing based on QR content
+            if (decodedText.includes('join=') || decodedText.includes('subsoccer.com') || decodedText.includes('192.168.')) {
+                // Forward everything back to standard browser navigation
+                window.location.href = decodedText;
+            } else {
+                console.error("Unknown QR code format:", decodedText);
+                alert("This doesn't seem to be a valid Subsoccer QR code.");
+            }
+        },
+        (errorMessage) => {
+            // Expected non-critical decode errors; silent ignore
+        }).catch((err) => {
+            console.error("Scanner failed to start", err);
+            alert("Camera access was denied or is completely unavailable.");
+            window.closeUniversalScanner();
+        });
 };
 
-window.closeUniversalScanner = function() {
+window.closeUniversalScanner = function () {
     const modal = document.getElementById('universal-scanner-modal');
     if (modal) modal.style.display = 'none';
     if (html5QrCode && html5QrCode.isScanning) {
@@ -363,12 +360,12 @@ function initSwipeListener() {
     if (!appContent) return;
 
     const shouldIgnoreSwipe = (target) => {
-        return target.closest('.leaflet-container') 
-            || target.closest('.no-swipe') 
-            || target.closest('#map-wrapper') 
-            || target.closest('#hardware-garage-list') 
-            || target.closest('.venue-card') 
-            || target.closest('input[type="range"]') 
+        return target.closest('.leaflet-container')
+            || target.closest('.no-swipe')
+            || target.closest('#map-wrapper')
+            || target.closest('#hardware-garage-list')
+            || target.closest('.venue-card')
+            || target.closest('input[type="range"]')
             || target.closest('.pro-card')
             || target.closest('button');
     };
@@ -384,15 +381,15 @@ function initSwipeListener() {
 
     appContent.addEventListener('touchend', (e) => {
         if (touchStartX === null) return;
-        
+
         if (shouldIgnoreSwipe(e.target)) {
             touchStartX = null;
             return;
         }
-        
+
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
-        
+
         // Nollaa AINA kosketuksen lähtöpiste, ettei se jää "kummittelemaan" ja laukaise 
         // satunnaisia siirtymiä seuraavasta irrallisesta touchend-tapahtumasta (kuten kartan nappeja painaessa).
         touchStartX = null;
@@ -601,7 +598,7 @@ export function setupUIListeners() {
     document.getElementById('menu-item-register-hardware')?.addEventListener('click', (e) => {
         cancelEdit(); // Explicitly clear any edit locks before entering
         toggleSettingsMenu(e);
-        if(window.openHardwareClaimModal) window.openHardwareClaimModal();
+        if (window.openHardwareClaimModal) window.openHardwareClaimModal();
     });
 
     document.getElementById('menu-item-leaderboard')?.addEventListener('click', (e) => {

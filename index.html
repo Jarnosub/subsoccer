@@ -9,11 +9,11 @@
 
     <!-- HTML5 QR Code Library for Universal Scanner -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    
+
     <!-- PDF & Canvas rendering libraries for High-Res Print Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -27,17 +27,25 @@
 </head>
 
 <body>
-    
+
     <!-- UNIVERSAL QR SCANNER MODAL -->
-    <div id="universal-scanner-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:#000; flex-direction:column; justify-content:center; align-items:center;">
-        <div style="position:absolute; top:20px; left:20px; z-index:100; color:#fff; font-family:'SubsoccerLogo', sans-serif; font-size:1.2rem; letter-spacing:1px; text-shadow:0 2px 4px rgba(0,0,0,0.8);">
+    <div id="universal-scanner-modal"
+        style="display:none; position:fixed; inset:0; z-index:999999; background:#000; flex-direction:column; justify-content:center; align-items:center;">
+        <div
+            style="position:absolute; top:20px; left:20px; z-index:100; color:#fff; font-family:'SubsoccerLogo', sans-serif; font-size:1.2rem; letter-spacing:1px; text-shadow:0 2px 4px rgba(0,0,0,0.8);">
             SUBSOCCER <span style="color:var(--sub-red);">SCAN</span>
         </div>
-        <button onclick="closeUniversalScanner()" style="position:absolute; top:20px; right:20px; z-index:100; background:rgba(0,0,0,0.5); border:1px solid #333; color:#fff; width:45px; height:45px; border-radius:50%; font-size:1.5rem; cursor:pointer; display:flex; justify-content:center; align-items:center; transition:background 0.2s;" onmouseover="this.style.background='var(--sub-red)';" onmouseout="this.style.background='rgba(0,0,0,0.5)';" title="Close Scanner">
+        <button onclick="closeUniversalScanner()"
+            style="position:absolute; top:20px; right:20px; z-index:100; background:rgba(0,0,0,0.5); border:1px solid #333; color:#fff; width:45px; height:45px; border-radius:50%; font-size:1.5rem; cursor:pointer; display:flex; justify-content:center; align-items:center; transition:background 0.2s;"
+            onmouseover="this.style.background='var(--sub-red)';" onmouseout="this.style.background='rgba(0,0,0,0.5)';"
+            title="Close Scanner">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <div id="universal-reader" style="width:100%; max-width:500px; height:auto; overflow:hidden; border-radius:12px; box-shadow:0 0 30px rgba(0,0,0,0.5);"></div>
-        <div style="position:absolute; bottom:50px; width:100%; text-align:center; color:#888; font-family:'Open Sans', sans-serif; font-size:0.8rem; padding:0 20px; box-sizing:border-box;">
+        <div id="universal-reader"
+            style="width:100%; max-width:500px; height:auto; overflow:hidden; border-radius:12px; box-shadow:0 0 30px rgba(0,0,0,0.5);">
+        </div>
+        <div
+            style="position:absolute; bottom:50px; width:100%; text-align:center; color:#888; font-family:'Open Sans', sans-serif; font-size:0.8rem; padding:0 20px; box-sizing:border-box;">
             Point your camera at a Player's QR, Table QR, or Subsoccer Event Code.
         </div>
     </div>
@@ -337,17 +345,27 @@
                             style="flex:1; padding: 12px; font-size:0.85rem; background: rgba(255, 255, 255, 0.03); border: 1px solid #222; border-radius: 2px; color: #fff; font-family: 'Open Sans', sans-serif; outline: none; box-sizing: border-box;">
                     </div>
 
-                    <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:15px; margin-top:5px; text-align:left;">
-                        <input type="checkbox" id="reg-gdpr-consent" style="accent-color: var(--sub-red); cursor:pointer; margin-top:3px;">
-                        <label for="reg-gdpr-consent" style="font-size:0.7rem; color:#888; font-family:'Resolve', sans-serif; line-height:1.4;">
-                            I accept the <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank" style="color:var(--sub-gold); text-decoration:none; font-weight:bold;">Terms of Service</a> and <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank" style="color:var(--sub-gold); text-decoration:none; font-weight:bold;">Privacy Policy</a> (GDPR).
+                    <div
+                        style="display:flex; align-items:flex-start; gap:10px; margin-bottom:15px; margin-top:5px; text-align:left;">
+                        <input type="checkbox" id="reg-gdpr-consent"
+                            style="accent-color: var(--sub-red); cursor:pointer; margin-top:3px;">
+                        <label for="reg-gdpr-consent"
+                            style="font-size:0.7rem; color:#888; font-family:'Resolve', sans-serif; line-height:1.4;">
+                            I accept the <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank"
+                                style="color:var(--sub-gold); text-decoration:none; font-weight:bold;">Terms of
+                                Service</a> and <a href="https://www.subsoccer.com/policies/privacy-policy"
+                                target="_blank"
+                                style="color:var(--sub-gold); text-decoration:none; font-weight:bold;">Privacy
+                                Policy</a> (GDPR).
                         </label>
                     </div>
 
                     <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:20px; text-align:left;">
-                        <input type="checkbox" id="reg-marketing-consent" checked style="accent-color: var(--sub-red); cursor:pointer; margin-top:3px;">
-                        <label for="reg-marketing-consent" style="font-size:0.7rem; color:#888; font-family:'Resolve', sans-serif; line-height:1.4;">
-                            I want to receive news, tournament updates and exclusive offers from Subsoccer. 
+                        <input type="checkbox" id="reg-marketing-consent" checked
+                            style="accent-color: var(--sub-red); cursor:pointer; margin-top:3px;">
+                        <label for="reg-marketing-consent"
+                            style="font-size:0.7rem; color:#888; font-family:'Resolve', sans-serif; line-height:1.4;">
+                            I want to receive news, tournament updates and exclusive offers from Subsoccer.
                         </label>
                     </div>
 
@@ -406,9 +424,12 @@
     <!-- Navigation Tabs (Moved above app-content for desktop stability) -->
     <div class="nav-tabs" id="nav-tabs" style="display:none;">
         <div class="tab" id="tab-tournament" data-page="tournament">
-            <svg viewBox="0 0 300 108" fill="currentColor" style="height: 18px; width: auto; display: block; margin: 0 auto; transition: transform 0.2s ease;">
-                <path d="M168.21,79.7c-7.64,0-13.85,6.35-13.85,14.15s6.21,14.15,13.85,14.15,13.85-6.35,13.85-14.15-6.21-14.15-13.85-14.15"/>
-                <path d="M275.16,46.82h-43.75v-22.41c0-13.7-11.12-24.8-24.84-24.8h-113.14c-13.72,0-24.84,11.1-24.84,24.8v22.41H24.84c-13.72,0-24.84,11.1-24.84,24.8v36.77h25.11v-37.12h43.94v37.12h25.19V24.06h111.53v84.33h25.11v-37.12h44.02v37.12h25.11v-36.77c0-13.7-11.12-24.8-24.84-24.8"/>
+            <svg viewBox="0 0 300 108" fill="currentColor"
+                style="height: 18px; width: auto; display: block; margin: 0 auto; transition: transform 0.2s ease;">
+                <path
+                    d="M168.21,79.7c-7.64,0-13.85,6.35-13.85,14.15s6.21,14.15,13.85,14.15,13.85-6.35,13.85-14.15-6.21-14.15-13.85-14.15" />
+                <path
+                    d="M275.16,46.82h-43.75v-22.41c0-13.7-11.12-24.8-24.84-24.8h-113.14c-13.72,0-24.84,11.1-24.84,24.8v22.41H24.84c-13.72,0-24.84,11.1-24.84,24.8v36.77h25.11v-37.12h43.94v37.12h25.19V24.06h111.53v84.33h25.11v-37.12h44.02v37.12h25.11v-36.77c0-13.7-11.12-24.8-24.84-24.8" />
             </svg>
             <span style="font-size:0.65rem; margin-top:2px;">PLAY</span>
         </div>
@@ -436,24 +457,31 @@
                 </div>
             </div>
             <div class="container" style="text-align:center;">
-                
+
                 <!-- ROAD TO RANK PROGRESS -->
                 <div id="rank-progress-container" style="margin: 10px 0 25px 0;"></div>
 
                 <!-- HARDWARE GARAGE (Under Profile) -->
-                <div id="hardware-garage-container" style="background:var(--sub-background); padding: 15px; border-radius: 8px; margin: 15px 0 25px; border: 1px solid #333; text-align: left;">
-                    <div style="color:var(--sub-gold); font-family:'SubsoccerLogo', sans-serif; font-size:1.0rem; display:flex; justify-content:space-between; align-items:center;">
+                <div id="hardware-garage-container"
+                    style="background:var(--sub-background); padding: 15px; border-radius: 8px; margin: 15px 0 25px; border: 1px solid #333; text-align: left;">
+                    <div
+                        style="color:var(--sub-gold); font-family:'SubsoccerLogo', sans-serif; font-size:1.0rem; display:flex; justify-content:space-between; align-items:center;">
                         <span>THE VAULT</span>
                         <i class="fa-solid fa-vault"></i>
                     </div>
-                    <div style="font-size:0.75rem; color:#888; font-family:'Open Sans', sans-serif; margin-top:5px; margin-bottom:15px; line-height: 1.4;">
-                        Unlock games, physical tables, rare cards, apparel, and digital skins to build your ultimate arsenal.
+                    <div
+                        style="font-size:0.75rem; color:#888; font-family:'Open Sans', sans-serif; margin-top:5px; margin-bottom:15px; line-height: 1.4;">
+                        Unlock games, physical tables, rare cards, apparel, and digital skins to build your ultimate
+                        arsenal.
                     </div>
-                    <div id="hardware-garage-list" style="display:flex; flex-direction:row; gap:15px; overflow-x:auto; padding: 10px 5px 20px 5px; scroll-snap-type: x mandatory; align-items: center;">
+                    <div id="hardware-garage-list"
+                        style="display:flex; flex-direction:row; gap:15px; overflow-x:auto; padding: 10px 5px 20px 5px; scroll-snap-type: x mandatory; align-items: center;">
                         <!-- Claimed hardware injected here -->
                         <div style="font-size:0.75rem; color:#888;">The Vault is empty.</div>
                     </div>
-                    <button id="btn-open-garage-claim" style="margin-top:15px; width:100%; padding:10px; background:#111; color:var(--sub-gold); border: 1px dashed var(--sub-gold); border-radius: 4px; font-family:'SubsoccerLogo', sans-serif; font-size:0.8rem; cursor:pointer; letter-spacing: 1px;" onclick="openHardwareClaimModal()">+ ADD TO VAULT</button>
+                    <button id="btn-open-garage-claim"
+                        style="margin-top:15px; width:100%; padding:10px; background:#111; color:var(--sub-gold); border: 1px dashed var(--sub-gold); border-radius: 4px; font-family:'SubsoccerLogo', sans-serif; font-size:0.8rem; cursor:pointer; letter-spacing: 1px;"
+                        onclick="openHardwareClaimModal()">+ ADD TO VAULT</button>
                 </div>
 
                 <!-- Edit Profile Form (Hidden) -->
@@ -610,9 +638,12 @@
                             CANCEL
                         </button>
                     </div>
-                    
+
                     <div style="margin-top:25px; padding-top:20px; border-top: 1px dotted #333; text-align:center;">
-                        <button id="btn-delete-account" style="background:transparent; color:#E30613; border:none; font-family:'Open Sans', sans-serif; font-size:0.75rem; text-decoration:underline; cursor:pointer; opacity:0.7; padding:10px; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">Delete Account & All Data</button>
+                        <button id="btn-delete-account"
+                            style="background:transparent; color:#E30613; border:none; font-family:'Open Sans', sans-serif; font-size:0.75rem; text-decoration:underline; cursor:pointer; opacity:0.7; padding:10px; transition:opacity 0.2s;"
+                            onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">Delete Account &
+                            All Data</button>
                     </div>
                 </div>
 
@@ -654,7 +685,7 @@
                     LOGS</button>
                 <button id="btn-mod-reset-lb" class="btn-red mod-btn mod-btn-secondary">RESET GLOBAL
                     LEADERBOARD</button>
-                    
+
                 <div style="margin-top: 30px; border-top: 1px solid #222; padding-top: 20px;">
                     <div onclick="var content = this.nextElementSibling; var icon = this.querySelector('.fa-chevron-down'); var isHidden = content.style.display === 'none'; content.style.display = isHidden ? 'block' : 'none'; icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';"
                         style="font-family: 'SubsoccerLogo', sans-serif; font-size: 0.85rem; color: #ffffff; margin-bottom: 15px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
@@ -667,36 +698,48 @@
                     </div>
 
                     <div style="display: none;">
-                        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-                            <div style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
+                        <div class="stats-grid"
+                            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                            <div
+                                style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
                                 <div style="font-size:0.7rem; color:#888;">Total Opens</div>
-                                <div id="mod-total-opens" style="font-family:'Jockey One'; font-size:2rem; color:#fff;">-</div>
+                                <div id="mod-total-opens" style="font-family:'Jockey One'; font-size:2rem; color:#fff;">
+                                    -</div>
                             </div>
-                            <div style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
+                            <div
+                                style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
                                 <div style="font-size:0.7rem; color:#888;">Games Finished</div>
-                                <div id="mod-total-finished" style="font-family:'Jockey One'; font-size:2rem; color:var(--sub-gold);">-</div>
+                                <div id="mod-total-finished"
+                                    style="font-family:'Jockey One'; font-size:2rem; color:var(--sub-gold);">-</div>
                             </div>
-                            <div style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
+                            <div
+                                style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
                                 <div style="font-size:0.7rem; color:#888;">Top Code</div>
-                                <div id="mod-top-code" style="font-family:'Jockey One'; font-size:1.5rem; color:#00FFCC; margin-top:5px;">-</div>
+                                <div id="mod-top-code"
+                                    style="font-family:'Jockey One'; font-size:1.5rem; color:#00FFCC; margin-top:5px;">-
+                                </div>
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                             <div style="font-family:'Russo One'; font-size:1.1rem; color:#fff;">Live Scanner Feed</div>
                             <div style="display:flex; gap:10px;">
-                                <button id="btn-export-tracking" class="btn-red" style="padding: 6px 12px; font-size:0.75rem; background:#333; color:#fff; border:1px solid #555;">Export CSV</button>
-                                <button id="btn-refresh-tracking" class="btn-red" style="padding: 6px 12px; font-size:0.75rem;">Sync Data</button>
+                                <button id="btn-export-tracking" class="btn-red"
+                                    style="padding: 6px 12px; font-size:0.75rem; background:#333; color:#fff; border:1px solid #555;">Export
+                                    CSV</button>
+                                <button id="btn-refresh-tracking" class="btn-red"
+                                    style="padding: 6px 12px; font-size:0.75rem;">Sync Data</button>
                             </div>
                         </div>
-                        
-                        <div 
-                            style="overflow:auto; overscroll-behavior:none; -webkit-overflow-scrolling:touch; touch-action:pan-y pan-x; max-height:400px; border:1px solid #222; border-radius:4px; width:100%;" 
-                            ontouchmove="event.stopPropagation();" 
-                            onwheel="event.stopPropagation();"
+
+                        <div style="overflow:auto; overscroll-behavior:none; -webkit-overflow-scrolling:touch; touch-action:pan-y pan-x; max-height:400px; border:1px solid #222; border-radius:4px; width:100%;"
+                            ontouchmove="event.stopPropagation();" onwheel="event.stopPropagation();"
                             onscroll="event.stopPropagation();">
-                            <table style="width:100%; min-width: 600px; text-align:left; border-collapse:collapse; font-size:0.8rem;">
-                                <thead style="background:#1a1500; font-family:'Jockey One'; color:var(--sub-gold); font-size:1rem; position:sticky; top:0; z-index:5;">
+                            <table
+                                style="width:100%; min-width: 600px; text-align:left; border-collapse:collapse; font-size:0.8rem;">
+                                <thead
+                                    style="background:#1a1500; font-family:'Jockey One'; color:var(--sub-gold); font-size:1rem; position:sticky; top:0; z-index:5;">
                                     <tr>
                                         <th style="padding:10px; border-bottom:1px solid #333;">Time</th>
                                         <th style="padding:10px; border-bottom:1px solid #333;">Event</th>
@@ -708,7 +751,10 @@
                                     </tr>
                                 </thead>
                                 <tbody id="mod-tracking-list">
-                                    <tr><td colspan="7" style="padding:20px; text-align:center;">Click Sync Data to load.</td></tr>
+                                    <tr>
+                                        <td colspan="7" style="padding:20px; text-align:center;">Click Sync Data to
+                                            load.</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -766,9 +812,11 @@
                 </div>
 
                 <!-- Map Container with Fullscreen toggle -->
-                <div id="map-wrapper" style="position: relative; width: 100%; height: 40vh; min-height: 350px; border-radius: var(--sub-radius); border: 2px solid rgba(255,255,255,0.1); margin-top: 5px; box-shadow:0 10px 20px rgba(0,0,0,0.5); overflow: hidden; transition: all 0.3s ease;">
+                <div id="map-wrapper"
+                    style="position: relative; width: 100%; height: 40vh; min-height: 350px; border-radius: var(--sub-radius); border: 2px solid rgba(255,255,255,0.1); margin-top: 5px; box-shadow:0 10px 20px rgba(0,0,0,0.5); overflow: hidden; transition: all 0.3s ease;">
                     <div id="public-game-map" style="width: 100%; height: 100%;"></div>
-                    <button id="btn-map-fullscreen" style="position: absolute; bottom: 20px; left: 10px; z-index: 1000; background: var(--sub-red); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.2rem;">
+                    <button id="btn-map-fullscreen"
+                        style="position: absolute; bottom: 20px; left: 10px; z-index: 1000; background: var(--sub-red); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.2rem;">
                         <i class="fa-solid fa-expand"></i>
                     </button>
                 </div>
@@ -822,27 +870,34 @@
                 <!-- QUICK MATCH SECTION -->
                 <div id="quick-match-section" style="display:block;">
                     <!-- PREMIUM MATCH SETUP CARD -->
-                    <div style="background: rgba(10,10,10,0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 25px 20px; text-align: center; margin-bottom: 25px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1;">
-                        
+                    <div
+                        style="background: rgba(10,10,10,0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 25px 20px; text-align: center; margin-bottom: 25px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1;">
+
                         <!-- Background Icon Container (Overflow hidden to clip the icon) -->
-                        <div style="position: absolute; inset: 0; border-radius: 12px; overflow: hidden; pointer-events: none; z-index: 0;">
-                            <div style="position: absolute; top: -40px; left: -40px; opacity: 0.05; transform: rotate(15deg);">
+                        <div
+                            style="position: absolute; inset: 0; border-radius: 12px; overflow: hidden; pointer-events: none; z-index: 0;">
+                            <div
+                                style="position: absolute; top: -40px; left: -40px; opacity: 0.05; transform: rotate(15deg);">
                                 <i class="fa-solid fa-bolt" style="font-size: 8rem;"></i>
                             </div>
                         </div>
 
                         <!-- Content (Z-index 1 so it sits above background icon) -->
                         <div style="position: relative; z-index: 1;">
-                            <h2 style="font-family: 'Russo One', sans-serif; font-size: 1.8rem; color: #fff; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px;">
+                            <h2
+                                style="font-family: 'Russo One', sans-serif; font-size: 1.8rem; color: #fff; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px;">
                                 MATCH SETUP
                             </h2>
 
-                            <div class="faceoff-arena" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; position: relative; padding: 10px 0;">
+                            <div class="faceoff-arena"
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; position: relative; padding: 10px 0;">
                                 <!-- P1 Slot -->
-                                <div id="p1-faceoff-slot" class="faceoff-slot empty" style="cursor:pointer;" onclick="document.getElementById('p1-quick-search').focus()">
+                                <div id="p1-faceoff-slot" class="faceoff-slot empty" style="cursor:pointer;"
+                                    onclick="document.getElementById('p1-quick-search').focus()">
                                     <div class="faceoff-avatar">
                                         <i class="fa-solid fa-user-plus" id="p1-faceoff-icon"></i>
-                                        <img src="" id="p1-faceoff-img" style="display:none; width:100%; height:100%; object-fit:cover;">
+                                        <img src="" id="p1-faceoff-img"
+                                            style="display:none; width:100%; height:100%; object-fit:cover;">
                                     </div>
                                     <div class="faceoff-name" id="p1-faceoff-name">HOME</div>
                                     <div class="faceoff-elo" id="p1-faceoff-elo">---</div>
@@ -854,10 +909,12 @@
                                 </div>
 
                                 <!-- P2 Slot -->
-                                <div id="p2-faceoff-slot" class="faceoff-slot empty" style="cursor:pointer;" onclick="document.getElementById('p2-quick-search').focus()">
+                                <div id="p2-faceoff-slot" class="faceoff-slot empty" style="cursor:pointer;"
+                                    onclick="document.getElementById('p2-quick-search').focus()">
                                     <div class="faceoff-avatar">
                                         <i class="fa-solid fa-user-plus" id="p2-faceoff-icon"></i>
-                                        <img src="" id="p2-faceoff-img" style="display:none; width:100%; height:100%; object-fit:cover;">
+                                        <img src="" id="p2-faceoff-img"
+                                            style="display:none; width:100%; height:100%; object-fit:cover;">
                                     </div>
                                     <div class="faceoff-name" id="p2-faceoff-name">AWAY</div>
                                     <div class="faceoff-elo" id="p2-faceoff-elo">---</div>
@@ -866,16 +923,19 @@
 
                             <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:25px;">
                                 <div style="position:relative;">
-                                    <input type="text" id="p1-quick-search" placeholder="Select Home Player..." style="text-align:center; padding-left:15px; margin-bottom:0px;">
+                                    <input type="text" id="p1-quick-search" placeholder="Select Home Player..."
+                                        style="text-align:center; padding-left:15px; margin-bottom:0px;">
                                     <div id="p1-results" class="quick-results"></div>
                                 </div>
                                 <div style="position:relative;">
-                                    <input type="text" id="p2-quick-search" placeholder="Select Away Player..." style="text-align:center; padding-left:15px; margin-bottom:0px;">
+                                    <input type="text" id="p2-quick-search" placeholder="Select Away Player..."
+                                        style="text-align:center; padding-left:15px; margin-bottom:0px;">
                                     <div id="p2-results" class="quick-results"></div>
                                 </div>
                             </div>
 
-                            <button class="btn-red" id="start-quick-match" style="width: 100%; border-radius: 8px; font-family:'Russo One'; background: linear-gradient(135deg, var(--sub-red), #8a0000); color: #fff; font-size: 1.1rem; padding: 15px; box-shadow: 0 5px 15px rgba(227, 6, 19, 0.4); border: 1px solid rgba(255,255,255,0.1);">
+                            <button class="btn-red" id="start-quick-match"
+                                style="width: 100%; border-radius: 8px; font-family:'Russo One'; background: linear-gradient(135deg, var(--sub-red), #8a0000); color: #fff; font-size: 1.1rem; padding: 15px; box-shadow: 0 5px 15px rgba(227, 6, 19, 0.4); border: 1px solid rgba(255,255,255,0.1);">
                                 START MATCH
                             </button>
                         </div>
@@ -885,7 +945,8 @@
                     <div id="elo-preview" class="elo-preview-box" style="margin-top: 5px;">
                         <div class="elo-preview-label">ELO PREDICTION</div>
                         <div id="elo-prediction-text"></div>
-                        <button id="btn-clear-quick-players" class="tour-mode-toggle btn-clear-players" title="Clear players and start fresh">
+                        <button id="btn-clear-quick-players" class="tour-mode-toggle btn-clear-players"
+                            title="Clear players and start fresh">
                             NEW PLAYERS
                         </button>
                     </div>
@@ -918,7 +979,7 @@
                     <!-- Add Player Card (Redesigned for manual entry fallback) -->
                     <div class="tour-card"
                         style="background: rgba(10,10,10,0.6); border: 1px solid rgba(255,255,255,0.05); padding-top:20px;">
-                        
+
                         <div class="add-player-input-group" style="position: relative; display:flex; gap:8px;">
                             <input type="text" id="add-p-input" placeholder="Player Name..."
                                 style="margin-bottom:0; flex-grow:1; text-align: left;">
@@ -1027,31 +1088,45 @@
     <!-- HARDWARE CLAIM MODAL -->
     <div id="hardware-claim-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 400px; border-top: 2px solid var(--sub-gold); padding: 30px;">
-            <div style="width: 100%; display: flex; justify-content: center; position: absolute; top: 8px; left: 0; z-index: 10; pointer-events: none;">
+            <div
+                style="width: 100%; display: flex; justify-content: center; position: absolute; top: 8px; left: 0; z-index: 10; pointer-events: none;">
                 <div style="width: 40px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px;"></div>
             </div>
-            <button onclick="document.getElementById('hardware-claim-modal').style.display='none'" style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:#888; font-size:1.5rem; cursor:pointer;">&times;</button>
+            <button onclick="document.getElementById('hardware-claim-modal').style.display='none'"
+                style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:#888; font-size:1.5rem; cursor:pointer;">&times;</button>
             <div style="text-align:center; color:var(--sub-gold); margin-bottom:15px;">
                 <i class="fa-solid fa-gem" style="font-size:2rem;"></i>
             </div>
-            <h2 style="font-family:'SubsoccerLogo', sans-serif; color:#fff; text-align:center; margin-bottom:10px; font-size:1.4rem;">UNLOCK TO VAULT</h2>
-            <p style="text-align:center; color:#aaa; font-size:0.85rem; margin-bottom:20px; font-family:'Open Sans', sans-serif;">
-                Enter the unique code found on your physical Subsoccer gear, rare cards, apparel, or digital skins to claim them.
+            <h2
+                style="font-family:'SubsoccerLogo', sans-serif; color:#fff; text-align:center; margin-bottom:10px; font-size:1.4rem;">
+                UNLOCK TO VAULT</h2>
+            <p
+                style="text-align:center; color:#aaa; font-size:0.85rem; margin-bottom:20px; font-family:'Open Sans', sans-serif;">
+                Enter the unique code found on your physical Subsoccer gear, rare cards, apparel, or digital skins to
+                claim them.
             </p>
             <div style="display:flex; flex-direction:column; gap:15px;">
                 <div>
-                    <label style="display:block; font-size:0.6rem; color:#888; margin-bottom:5px; text-transform:uppercase;">Secret Code / Serial Number</label>
-                    <input type="text" id="hardware-serial-input" placeholder="e.g. SSDOCK-V01-XXXX" style="width:100%; padding:12px; border-radius:6px; border:1px solid #444; background:#222; color:#fff; font-family:monospace; font-size:1rem; text-align:center; text-transform:uppercase;" oninput="this.value = this.value.toUpperCase()">
+                    <label
+                        style="display:block; font-size:0.6rem; color:#888; margin-bottom:5px; text-transform:uppercase;">Secret
+                        Code / Serial Number</label>
+                    <input type="text" id="hardware-serial-input" placeholder="e.g. SSDOCK-V01-XXXX"
+                        style="width:100%; padding:12px; border-radius:6px; border:1px solid #444; background:#222; color:#fff; font-family:monospace; font-size:1rem; text-align:center; text-transform:uppercase;"
+                        oninput="this.value = this.value.toUpperCase()">
                 </div>
                 <div>
-                    <label style="display:block; font-size:0.6rem; color:#888; margin-bottom:5px; text-transform:uppercase;">Primary Location (Optional)</label>
-                    <select id="hardware-location-input" style="width:100%; padding:12px; border-radius:6px; border:1px solid #444; background:#222; color:#fff;">
+                    <label
+                        style="display:block; font-size:0.6rem; color:#888; margin-bottom:5px; text-transform:uppercase;">Primary
+                        Location (Optional)</label>
+                    <select id="hardware-location-input"
+                        style="width:100%; padding:12px; border-radius:6px; border:1px solid #444; background:#222; color:#fff;">
                         <option value="Home">Private / Collection</option>
                         <option value="Public Venue">Public Venue (Bar, Event etc.)</option>
                         <option value="Office">Office / Workplace</option>
                     </select>
                 </div>
-                <button id="btn-submit-hardware-claim" style="background:linear-gradient(90deg, #ffc107, #ff8f00); color:#000; font-family:'SubsoccerLogo', sans-serif; border:none; border-radius:6px; padding:15px; font-size:1rem; cursor:pointer; margin-top:10px; font-weight:bold;">
+                <button id="btn-submit-hardware-claim"
+                    style="background:linear-gradient(90deg, #ffc107, #ff8f00); color:#000; font-family:'SubsoccerLogo', sans-serif; border:none; border-radius:6px; padding:15px; font-size:1rem; cursor:pointer; margin-top:10px; font-weight:bold;">
                     UNLOCK ITEM
                 </button>
                 <div id="hardware-claim-message" style="text-align:center; font-size:0.8rem; height:20px;"></div>
@@ -1334,35 +1409,10 @@
     <!-- VENUE CARD BOTTOM SHEET MODAL -->
     <div id="venue-card-modal" class="venue-bottom-sheet">
         <div id="venue-card-content"></div>
-        <button onclick="document.getElementById('venue-card-modal').classList.remove('active')" class="btn-red" style="margin-top:15px; width:100%; font-size:1.1rem; box-shadow:0 0 15px rgba(227,6,19,0.3);">BACK TO MAP</button>
+        <button onclick="document.getElementById('venue-card-modal').classList.remove('active')" class="btn-red"
+            style="margin-top:15px; width:100%; font-size:1.1rem; box-shadow:0 0 15px rgba(227,6,19,0.3);">BACK TO
+            MAP</button>
     </div>
-
-    <!-- BETA WELCOME MODAL -->
-    <div id="beta-welcome-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); z-index:999999; justify-content:center; align-items:center; flex-direction:column; padding:20px;">
-        <div style="background:linear-gradient(135deg, #111 0%, #050505 100%); border:1px solid #333; border-top:2px solid var(--sub-red); width:100%; max-width:400px; border-radius:8px; display:flex; flex-direction:column; align-items:center; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.9);">
-            <div style="width:100%; background:var(--sub-red); display:flex; justify-content:center; align-items:center; padding:15px; position:relative;">
-                <img src="subsoccer_logo.svg" style="height:25px; filter:brightness(0) invert(1);" alt="logo">
-            </div>
-            <div style="padding:30px 20px; text-align:center;">
-                <h3 style="color:#fff; font-family:'Resolve'; text-transform:uppercase; margin:0 0 10px 0; font-size:1.4rem;">Welcome to Subsoccer GO Beta!</h3>
-                <p style="color:#aaa; font-family:'Open Sans'; font-size:0.9rem; line-height:1.6; margin-bottom:20px;">
-                    We are thrilled to have your early feedback. As one of our pioneer players, you get to experience the new Pro League ecosystem first. Your progress will be saved.
-                </p>
-                <div style="background:rgba(255,215,0,0.05); border:1px solid rgba(212,175,55,0.3); padding:10px; border-radius:4px; display:inline-block; font-family:'Russo One'; color:var(--sub-gold); font-size:1.1rem; letter-spacing:2px; margin-bottom:25px;">
-                    FOUNDATION MEMBER
-                </div>
-                <button onclick="document.getElementById('beta-welcome-modal').style.display='none'; localStorage.setItem('subsoccer_beta_welcome_seen', 'true');" class="btn-red" style="width:100%; box-shadow: 0 4px 15px rgba(227,6,19,0.4);">
-                    <i class="fa-solid fa-play" style="margin-right:8px;"></i> START PLAYING
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- FEEDBACK FLOATING BUTTON -->
-    <a href="mailto:beta@subsoccer.com?subject=Subsoccer GO Beta Feedback" id="floating-feedback-btn" class="no-swipe" style="display:none; position:fixed; bottom:75px; right:15px; width:45px; height:45px; background:#111; border:1px solid #444; color:#fff; border-radius:50%; padding:0; justify-content:center; align-items:center; z-index:900; box-shadow:0 4px 10px rgba(0,0,0,0.8); text-decoration:none;" title="Send Feedback">
-        <i class="fa-solid fa-comment-dots" style="font-size:1.2rem; color:var(--sub-gold);"></i>
-    </a>
-
-    <script type="module" src="main.js?v=40"></script>
 </body>
+
 </html>
