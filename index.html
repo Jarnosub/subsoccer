@@ -685,18 +685,43 @@
                     🛡️ Moderator Tools</h3>
                 <p style="font-size:0.8rem; color:#666; margin-bottom:20px;">System administration for Jarno Saarinen
                 </p>
-                <button id="btn-mod-control-room" class="btn-red mod-btn mod-btn-secondary"
-                    onclick="window.open('https://subsoccer.pro/control-room.html', '_blank')">🎛️ CONTROL ROOM</button>
-                <button id="btn-mod-batch-qr" class="btn-red mod-btn mod-btn-secondary"
-                    onclick="window.open('qr-batch-exporter.html', '_blank')">🖨️ BATCH QR EXPORTER</button>
-                <button id="btn-mod-partner-gen" class="btn-red mod-btn mod-btn-secondary">🤝 PARTNER LINK
-                    GENERATOR</button>
-                <button id="btn-mod-view-users" class="btn-red mod-btn mod-btn-secondary">VIEW ALL REGISTERED
-                    USERS</button>
-                <button id="btn-mod-download-logs" class="btn-red mod-btn mod-btn-secondary">DOWNLOAD SYSTEM
-                    LOGS</button>
-                <button id="btn-mod-reset-lb" class="btn-red mod-btn mod-btn-secondary">RESET GLOBAL
-                    LEADERBOARD</button>
+                <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 6px; overflow: hidden; margin-bottom: 25px; display: flex; flex-direction: column;">
+                    <button id="btn-mod-control-room" style="width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid #1a1a1a; padding:16px 20px; color:#999; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#161616'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#999';" onclick="window.open('https://subsoccer.pro/control-room.html', '_blank')">
+                        <i class="fa-solid fa-satellite-dish" style="width:20px; text-align:center; color:var(--sub-gold); opacity:0.7;"></i>
+                        <span>Control Room</span>
+                        <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
+                    </button>
+                    
+                    <button id="btn-mod-view-users" style="width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid #1a1a1a; padding:16px 20px; color:#999; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#161616'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#999';">
+                        <i class="fa-solid fa-users" style="width:20px; text-align:center; color:var(--sub-gold); opacity:0.7;"></i>
+                        <span>User Directory Analysis</span>
+                        <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
+                    </button>
+
+                    <button id="btn-mod-batch-qr" style="width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid #1a1a1a; padding:16px 20px; color:#999; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#161616'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#999';" onclick="window.open('qr-batch-exporter.html', '_blank')">
+                        <i class="fa-solid fa-qrcode" style="width:20px; text-align:center; color:var(--sub-gold); opacity:0.7;"></i>
+                        <span>QR Campaign Exporter</span>
+                        <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
+                    </button>
+
+                    <button id="btn-mod-partner-gen" style="width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid #1a1a1a; padding:16px 20px; color:#999; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#161616'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#999';">
+                        <i class="fa-solid fa-handshake" style="width:20px; text-align:center; color:var(--sub-gold); opacity:0.7;"></i>
+                        <span>Partner Lead Generator</span>
+                        <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
+                    </button>
+
+                    <button id="btn-mod-download-logs" style="width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid #1a1a1a; padding:16px 20px; color:#999; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#161616'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#999';">
+                        <i class="fa-solid fa-file-export" style="width:20px; text-align:center; color:var(--sub-gold); opacity:0.7;"></i>
+                        <span>System Performance Logs</span>
+                        <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
+                    </button>
+
+                    <button id="btn-mod-reset-lb" style="width:100%; text-align:left; background:transparent; border:none; padding:16px 20px; color:#cc4444; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#1f0000'; this.style.color='#ff4444';" onmouseout="this.style.background='transparent'; this.style.color='#cc4444';">
+                        <i class="fa-solid fa-triangle-exclamation" style="width:20px; text-align:center; color:#ff4444; opacity:0.7;"></i>
+                        <span>Purge Global Leaderboard</span>
+                        <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
+                    </button>
+                </div>
 
                 <div style="margin-top: 30px; border-top: 1px solid #222; padding-top: 20px;">
                     <div onclick="var content = this.nextElementSibling; var icon = this.querySelector('.fa-chevron-down'); var isHidden = content.style.display === 'none'; content.style.display = isHidden ? 'block' : 'none'; icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';"
