@@ -232,7 +232,7 @@ export function updateProfileCard() {
     container.innerHTML = `
     <style>
         .pro-card-force-sharp { border-radius: 0 !important; }
-        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC; background-size: 8px 8px; border: 1px solid #00ccaa; }
+        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFFF; background-size: 8px 8px; border: 1px solid #00FFFF; }
         .card-safe-zone { position: absolute; inset: 16px; border: 1px solid #999; border-top: 2px solid #fff; border-bottom: 2px solid #555; background: #050505; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .card-serial { position: absolute; top: 10px; right: 10px; background: transparent; color: #444; font-family: 'Open Sans', sans-serif; font-size: 0.55rem; font-weight: bold; z-index: 10; letter-spacing: 1px; }
         .card-rc-badge { position: absolute; top: 10px; left: 10px; background: transparent; color: #E30613; font-family: 'Russo One', sans-serif; font-size: 1rem; z-index: 10; font-style: italic; text-shadow: 1px 1px 0 #fff; }
@@ -272,7 +272,7 @@ export function updateProfileCard() {
                                 </div>
                                 <div style="text-align: right;">
                                     <div style="font-family:'Open Sans', sans-serif; color:#888; font-size:0.5rem; font-weight:800; letter-spacing:1px;">WIN RATIO</div>
-                                    <div style="font-family:'Russo One', sans-serif; color:#00FFCC; font-size:1.2rem;">${ratio}</div>
+                                    <div style="font-family:'Russo One', sans-serif; color:#00FFFF; font-size:1.2rem;">${ratio}</div>
                                 </div>
                             </div>
                             
@@ -526,7 +526,7 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
             el.style.inset = '0px'; // FILL THE ENTIRE 340x465 WITH NEON!
 
             // Fix html2canvas radial-gradient issue by providing a reliable SVG
-            el.style.backgroundColor = '#00FFCC';
+            el.style.backgroundColor = '#00FFFF';
             el.style.backgroundImage = `url("data:image/svg+xml,%3Csvg width='8' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='4' cy='4' r='1.5' fill='rgba(0,0,0,0.15)'/%3E%3C/svg%3E")`;
             el.style.backgroundRepeat = 'repeat';
             el.style.backgroundSize = '8px 8px';
