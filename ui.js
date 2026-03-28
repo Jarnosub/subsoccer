@@ -643,10 +643,23 @@ export function setupUIListeners() {
         showPage('map');
         toggleSettingsMenu(e);
     });
-    document.getElementById('menu-item-export-pdf')?.addEventListener('click', (e) => {
-        toggleSettingsMenu(e); // Close menu
-        
-        // Render Card Preview visually for the user
+    const orderBtn = document.getElementById('menu-item-export-pdf');
+    const isProd = window.location.hostname === 'subsoccer.pro' || window.location.hostname === 'www.subsoccer.pro';
+    if (orderBtn) {
+        if (isProd) {
+            orderBtn.style.opacity = '0.5';
+            orderBtn.style.cursor = 'not-allowed';
+            orderBtn.style.color = '#777';
+            orderBtn.innerHTML = '<i class="fa-solid fa-lock" style="color:#555;"></i> PRO CARD (SOON)';
+            orderBtn.addEventListener('click', (e) => {
+                toggleSettingsMenu(e); // Close menu
+                alert("Physical Pro Card Ordering is unlocking for all ranked players very soon! Stay tuned.");
+            });
+        } else {
+            orderBtn.addEventListener('click', (e) => {
+                toggleSettingsMenu(e); // Close menu
+                
+                // Render Card Preview visually for the user
         const previewContainer = document.getElementById('card-order-preview');
         const originalCard = document.querySelector('#profile-card-container .pro-card');
         if (previewContainer && originalCard) {
@@ -709,7 +722,9 @@ export function setupUIListeners() {
 
         const modal = document.getElementById('order-card-modal');
         if (modal) modal.style.display = 'flex';
-    });
+            });
+        }
+    }
 
     document.getElementById('btn-submit-card-order')?.addEventListener('click', async (e) => {
         const modal = document.getElementById('order-card-modal');
