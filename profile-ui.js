@@ -11,9 +11,9 @@ import { loadHardwareGarage } from './hardware-service.js';
  */
 export async function loadUserProfile() {
     if (!state.user || !state.user.id) return;
-    
+
     // Lataa rekisteröidyt laitteet
-    try { await loadHardwareGarage(); } catch(e) { console.error('Garage load error:', e); }
+    try { await loadHardwareGarage(); } catch (e) { console.error('Garage load error:', e); }
 
     // Päivitä avatar
     const avatarEl = document.getElementById('profile-avatar-display');
@@ -124,13 +124,13 @@ function updateRankProgress() {
     }
 
     const elo = state.user.elo || 1000;
-    
+
     let currentRank = "ROOKIE";
     let nextRank = "AMATEUR";
     let minElo = 0;
     let maxElo = 1200;
     let rankColor = "#C0C0C0";
-    
+
     if (elo >= 1200 && elo < 1600) {
         currentRank = "AMATEUR";
         nextRank = "PRO";
@@ -148,9 +148,9 @@ function updateRankProgress() {
         nextRank = "ELITE";
         minElo = 2000;
         maxElo = 3000;
-        rankColor = "#00FFCC"; 
+        rankColor = "#00FFCC";
     }
-    
+
     const progress = Math.min(100, Math.max(0, ((elo - minElo) / (maxElo - minElo)) * 100));
     const pointsNeeded = maxElo - elo;
 
@@ -162,12 +162,12 @@ function updateRankProgress() {
                     <div style="font-family:'SubsoccerLogo', sans-serif; font-size:1.0rem; color:${rankColor}; text-shadow:0 0 10px ${rankColor}66; margin-top:2px; letter-spacing:1px;">${currentRank}</div>
                 </div>
                 <div style="text-align: right;">
-                    ${currentRank !== 'ELITE' ? 
-                    `<div style="font-family:'Open Sans', sans-serif; font-size:0.55rem; color:#888; font-weight:bold; letter-spacing:1px; text-transform:uppercase;"><span style="color:#fff;">${pointsNeeded} PTS</span> TO ${nextRank}</div>
-                    <div style="font-family:'Russo One', sans-serif; font-size:0.9rem; color:#fff; margin-top:2px;">${Math.round(progress)}%</div>` : 
-                    `<div style="font-family:'Open Sans', sans-serif; font-size:0.55rem; color:#888; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">MAX STATUS UNLOCKED</div>
+                    ${currentRank !== 'ELITE' ?
+            `<div style="font-family:'Open Sans', sans-serif; font-size:0.55rem; color:#888; font-weight:bold; letter-spacing:1px; text-transform:uppercase;"><span style="color:#fff;">${pointsNeeded} PTS</span> TO ${nextRank}</div>
+                    <div style="font-family:'Russo One', sans-serif; font-size:0.9rem; color:#fff; margin-top:2px;">${Math.round(progress)}%</div>` :
+            `<div style="font-family:'Open Sans', sans-serif; font-size:0.55rem; color:#888; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">MAX STATUS UNLOCKED</div>
                     <div style="font-family:'Russo One', sans-serif; font-size:0.9rem; color:${rankColor}; margin-top:2px;">MAX</div>`
-                    }
+        }
                 </div>
             </div>
             
@@ -176,7 +176,7 @@ function updateRankProgress() {
             </div>
         </div>
     `;
-    
+
     const fillBar = container.querySelector('#rank-progress-fill');
     if (fillBar) {
         setTimeout(() => {
@@ -368,10 +368,10 @@ export function updateProfileCard() {
 
     const cardEl = container.querySelector('.pro-card');
     const flipper = container.querySelector('.card-flipper');
-    
+
     if (cardEl && flipper) {
         let isFlipping = false;
-        
+
         cardEl.addEventListener('click', () => {
             isFlipping = true;
             cardEl.classList.toggle('flipped');
@@ -391,27 +391,27 @@ export function updateProfileCard() {
             const rect = cardEl.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
+
             const gx = (x / rect.width) * 100;
             const gy = (y / rect.height) * 100;
-            
+
             const rx = ((y / rect.height) - 0.5) * -20;
             const ry = ((x / rect.width) - 0.5) * 20;
 
             cardEl.style.setProperty('--gx', gx);
             cardEl.style.setProperty('--gy', gy);
-            
+
             if (!cardEl.classList.contains('flipped')) {
-               flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
+                flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
             }
         });
-        
+
         cardEl.addEventListener('mouseleave', () => {
             if (isFlipping) return;
             cardEl.style.setProperty('--gx', 50);
             cardEl.style.setProperty('--gy', -20);
             if (!cardEl.classList.contains('flipped')) {
-               flipper.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                flipper.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
             }
         });
 
@@ -419,24 +419,24 @@ export function updateProfileCard() {
         if (window.DeviceOrientationEvent) {
             window.addEventListener('deviceorientation', (e) => {
                 if (isFlipping || !document.contains(cardEl)) return;
-                
+
                 let gamma = e.gamma || 0;
                 let beta = e.beta || 0;
-                
+
                 gamma = Math.max(-45, Math.min(45, gamma));
                 beta = Math.max(0, Math.min(90, beta));
-                
+
                 const gx = ((gamma + 45) / 90) * 100;
                 const gy = (beta / 90) * 100;
-                
+
                 const rx = ((beta - 45) / 45) * -15;
                 const ry = (gamma / 45) * 15;
-                
+
                 cardEl.style.setProperty('--gx', gx);
                 cardEl.style.setProperty('--gy', gy);
-                
+
                 if (!cardEl.classList.contains('flipped')) {
-                   flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+                    flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
                 }
             }, true);
         }
@@ -475,12 +475,12 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
     staging.style.opacity = '0.01';
     staging.style.pointerEvents = 'none';
     staging.style.zIndex = '-99';
-    staging.style.width = '800px'; 
+    staging.style.width = '800px';
     staging.style.height = '600px';
     staging.style.display = 'flex';
     staging.style.alignItems = 'flex-start';
     staging.style.justifyContent = 'flex-start';
-    staging.style.background = '#ffffff'; 
+    staging.style.background = '#ffffff';
     document.body.appendChild(staging);
 
     try {
@@ -498,13 +498,13 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
         const flipper = clone.querySelector('.card-flipper') || clone.querySelector('.pro-card-flipper');
         flipper.style.transform = 'none';
         flipper.style.display = 'block';
-        flipper.style.width = '340px'; 
+        flipper.style.width = '340px';
         flipper.style.height = '465px';
         flipper.style.boxShadow = 'none';
 
         const front = clone.querySelector('.card-front') || clone.querySelector('.pro-card-front');
         const back = clone.querySelector('.card-back') || clone.querySelector('.pro-card-back');
-        
+
         [front, back].forEach(side => {
             side.style.position = 'absolute';
             side.style.top = '0';
@@ -523,7 +523,7 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
         clone.querySelectorAll('.card-bleed-edge').forEach(el => {
             el.style.border = 'none'; // pure bleed visual
             el.style.inset = '0px'; // FILL THE ENTIRE 340x465 WITH NEON!
-            
+
             // Fix html2canvas radial-gradient issue by providing a reliable SVG
             el.style.backgroundColor = '#00FFCC';
             el.style.backgroundImage = `url("data:image/svg+xml,%3Csvg width='8' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='4' cy='4' r='1.5' fill='rgba(0,0,0,0.15)'/%3E%3C/svg%3E")`;
@@ -532,7 +532,7 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
         });
         clone.querySelectorAll('.card-safe-zone').forEach(el => el.style.inset = '20px'); // 10px bleed + 10px internal rim = 20px from edge.
 
-        // The pro-stamp is now dynamically centered in data-box so we don't need to manually move it here.
+        // Stamp is now naturally centered on the left in the UI, no need to manually shift it.
 
         // Strip holo-glow and flip hints to get pure printed ink look
         clone.querySelectorAll('.holo-glow, .flip-hint').forEach(el => el.remove());
@@ -572,20 +572,20 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
 
         // Page 1: Front
         pdf.addImage(frontImg, 'JPEG', 0, 0, cardW, cardH);
-        
+
         // Page 2: Back
         pdf.addPage([cardW, cardH], 'portrait');
         pdf.addImage(backImg, 'JPEG', 0, 0, cardW, cardH);
-        
+
         const username = state.user?.username || 'Player';
         const safeName = username.replace(/[^a-zA-Z0-9]/g, '_');
-        
+
         statusText.innerText = "UPLOADING ASSET TO FACTORY...";
 
         // Convert PDF to Blob
         const pdfBlob = pdf.output('blob');
         const fileName = `${state.user.id}/${safeName}_Card_${Date.now()}.pdf`;
-        
+
         const { error: uploadError } = await _supabase.storage
             .from('print_assets')
             .upload(fileName, pdfBlob, { contentType: 'application/pdf', upsert: true });
@@ -599,7 +599,7 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
         const pdfUrl = data.publicUrl;
 
         statusText.innerText = "SECURING PRINT ORDER...";
-        
+
         if (shippingInfo) {
             const { error: dbError } = await _supabase.from('card_orders').insert([{
                 user_id: state.user.id,
