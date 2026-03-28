@@ -195,14 +195,13 @@ export async function handleSignUp() {
     if (!u || !p || !email) return showNotification("Fill all fields including email", "error");
     if (gdpr && !gdpr.checked) return showNotification("You must accept the Terms & Privacy Policy to register.", "error");
 
-    // Tarkistetaan onko nimi jo varattu (huomioidaan eri välilyönnit)
-    let { data: matches } = await _supabase.from('players').select('id, username, email').ilike('username', u);
+    let { data: matches } = await _supabase.from('players').select('id, username, email, elo, wins, losses, team, rank, avatar_url, country, phone, city, acquired_via').ilike('username', u);
 
     if (!matches || matches.length === 0) {
         const fuzzyName = u.replace(/\s+/g, '%');
         const { data: fuzzyMatches } = await _supabase
             .from('players')
-            .select('id, username, email')
+            .select('id, username, email, elo, wins, losses, team, rank, avatar_url, country, phone, city, acquired_via')
             .ilike('username', fuzzyName);
         matches = fuzzyMatches || [];
     }
