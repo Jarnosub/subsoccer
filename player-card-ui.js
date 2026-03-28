@@ -117,14 +117,14 @@ export async function viewPlayerCard(targetUsername) {
     const html = `
     <style>
         .pro-card-force-sharp { border-radius: 0 !important; }
-        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC; background-size: 8px 8px; border: 1px solid #00ccaa; }
+        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFFF; background-size: 8px 8px; border: 1px solid #00FFFF; }
         .card-safe-zone { position: absolute; inset: 16px; border: 1px solid #999; border-top: 2px solid #fff; border-bottom: 2px solid #555; background: #050505; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .card-serial { position: absolute; top: 10px; right: 10px; background: transparent; color: #444; font-family: 'Open Sans', sans-serif; font-size: 0.55rem; font-weight: bold; z-index: 10; letter-spacing: 1px; }
         .card-rc-badge { position: absolute; top: 10px; left: 10px; background: transparent; color: #E30613; font-family: 'Russo One', sans-serif; font-size: 1rem; z-index: 10; font-style: italic; text-shadow: 1px 1px 0 #fff; }
         .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
         .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
-        .card-data-box { height: 35%; width: 100%; background: linear-gradient(135deg, #1a2737 0%, #0d1620 100%); padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
-        .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
+        .card-data-box { height: 35%; width: 100%; position: relative; background-color: #111111; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath fill='%231e1e1e' d='M0 0h2v2H0zM2 2h2v2H2z'/%3E%3C/svg%3E"); padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
+        .pro-stamp { position: absolute; top: 6px; right: 6px; left: auto; width: 62px; height: auto; z-index: 50; transform: rotate(12deg); pointer-events: none; }
         .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
         .card-front, .card-back { padding: 0 !important; }
     </style>
@@ -138,6 +138,7 @@ export async function viewPlayerCard(targetUsername) {
                         <div class="card-serial">NO. 1</div>
                         
                         <div class="card-image-box">
+                            <img src="subsoccer_logo.svg" alt="Subsoccer" width="69" height="24" style="position:absolute; top:0; left:12px; z-index:20;">
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                             <div class="card-nameplate">
                                 ${p.team_data ? `<div style="font-family:'Open Sans', sans-serif; color:#FFD700; font-size:0.6rem; font-weight:bold; margin-bottom:2px; letter-spacing:1px; text-transform:uppercase;">${p.team_data.tag}</div>` : ''}
@@ -153,7 +154,7 @@ export async function viewPlayerCard(targetUsername) {
                                 </div>
                                 <div style="text-align: right;">
                                     <div style="font-family:'Open Sans', sans-serif; color:#888; font-size:0.5rem; font-weight:800; letter-spacing:1px;">WIN RATIO</div>
-                                    <div style="font-family:'Russo One', sans-serif; color:#00FFCC; font-size:1.2rem;">${ratio}</div>
+                                    <div style="font-family:'Russo One', sans-serif; color:#00FFFF; font-size:1.2rem;">${ratio}</div>
                                 </div>
                             </div>
                             
@@ -172,7 +173,7 @@ export async function viewPlayerCard(targetUsername) {
             </div>
             
             <!-- BACK SIDE -->
-            <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 0; background-color: #0a0a0a; background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%); border: 1px solid #333; overflow-y: auto; overflow-x: hidden;">
+            <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 0; background-color: #0d0d0d; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath fill='%23161616' d='M0 0h2v2H0zM2 2h2v2H2z'/%3E%3C/svg%3E&quot;); border: 1px solid #333; overflow-y: auto; overflow-x: hidden;">
                 <div class="card-inner-frame" style="padding:15px; display:block; text-align:left; overflow-y:auto; overflow-x:hidden;">
                     <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:5px;">
                         <h4 style="color:var(--sub-gold); font-family:'Russo One'; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
