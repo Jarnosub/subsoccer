@@ -255,7 +255,7 @@ export function updateProfileCard() {
                         <div class="card-serial">${editionLabel}</div>
                         
                         <div class="card-image-box">
-                            <img src="subsoccer_logo.svg" alt="Subsoccer" style="position:absolute; top:0; left:12px; height:24px; z-index:20; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4));">
+                            <img src="subsoccer_logo.svg" alt="Subsoccer" style="position:absolute; top:0; left:12px; width:69.4px; height:24px; z-index:20; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4));">
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                             <div class="holo-glow"></div>
                             <div class="card-nameplate">
@@ -533,7 +533,15 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
         });
         clone.querySelectorAll('.card-safe-zone').forEach(el => el.style.inset = '20px'); // 10px bleed + 10px internal rim = 20px from edge.
 
-        // Stamp is now naturally centered on the left in the UI, no need to manually shift it.
+        // Stamp is now handled natively, no manual shift needed.
+
+        // Fix html2canvas SVG scaling and filter bugs
+        clone.querySelectorAll('img[src="subsoccer_logo.svg"]').forEach(el => {
+            el.style.filter = 'none'; // html2canvas struggles with drop-shadows on SVGs
+            el.style.width = '69.4px';
+            el.style.maxWidth = '69.4px';
+            el.style.height = '24px';
+        });
 
         // Strip holo-glow and flip hints to get pure printed ink look
         clone.querySelectorAll('.holo-glow, .flip-hint').forEach(el => el.remove());
