@@ -1482,9 +1482,14 @@
                 <input type="text" id="order-shipping-country" value="Finland" style="width:100%; padding:12px; background:#222; border:1px solid #444; border-radius:6px; color:#fff;">
             </div>
 
-            <button class="btn-red" id="btn-submit-card-order" style="width:100%; padding:16px; border-radius:8px; font-family:'Russo One'; font-size:1.1rem; filter:drop-shadow(0 5px 15px rgba(227,6,19,0.3)); cursor:pointer; border:1px solid rgba(255,255,255,0.1);">
-                <i class="fa-solid fa-cart-arrow-down" style="margin-right:8px;"></i> PROCEED TO CHECKOUT
-            </button>
+            <div style="display:flex; gap:15px;">
+                <button class="btn-primary" onclick="document.getElementById('order-card-modal').style.display='none'" style="flex:1; padding:16px; border-radius:8px; font-family:'Russo One'; font-size:1.1rem; cursor:pointer; background:#333; color:#fff; border:1px solid rgba(255,255,255,0.1);">
+                    <i class="fa-solid fa-arrow-left" style="margin-right:8px;"></i> RETURN
+                </button>
+                <button class="btn-red" id="btn-submit-card-order" style="flex:2; padding:16px; border-radius:8px; font-family:'Russo One'; font-size:1.1rem; filter:drop-shadow(0 5px 15px rgba(227,6,19,0.3)); cursor:pointer; border:1px solid rgba(255,255,255,0.1);">
+                    <i class="fa-solid fa-cart-arrow-down" style="margin-right:8px;"></i> CHECKOUT
+                </button>
+            </div>
             <div style="color:#555; font-size:0.7rem; margin-top:12px;">
                 You will be redirected to the official Subsoccer Shopify store to complete your payment.
             </div>
