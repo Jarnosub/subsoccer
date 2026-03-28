@@ -34,7 +34,7 @@ CREATE POLICY "Users can view their own orders"
 -- Create the bucket for storing 300 DPI print PDFs
 -- Run this in Supabase SQL Editor if buckets cannot be created programmatically without Superuser permissions.
 INSERT INTO storage.buckets (id, name, public) 
-VALUES ('print_assets', 'print_assets', false) 
+VALUES ('print_assets', 'print_assets', true) 
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage RLS: Users can insert their own PDFs

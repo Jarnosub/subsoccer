@@ -582,7 +582,7 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
 
         // Convert PDF to Blob
         const pdfBlob = pdf.output('blob');
-        const fileName = `pro_cards/${safeName}_Card_${Date.now()}.pdf`;
+        const fileName = `${state.user.id}/${safeName}_Card_${Date.now()}.pdf`;
         
         const { error: uploadError } = await _supabase.storage
             .from('print_assets')
