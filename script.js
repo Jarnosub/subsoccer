@@ -11,11 +11,9 @@ export async function handleSearch(v) {
     const q = v.trim().toUpperCase();
     let dbNames = [];
 
-    // FIX: Haetaan pelaajat suoraan tietokannasta (state.allDbNames poistettiin optimoinnin vuoksi)
-    try {
-        const { data } = await _supabase.from('players').select('username').ilike('username', `%${q}%`).limit(5);
-        if (data) dbNames = data.map(p => p.username);
-    } catch (e) { console.error(e); }
+    // SECURITY/UX PATCH: Do not allow searching the entire DB for online players.
+    // Online players must join via QR. Manual additions are for Local Guests only.
+    // We keep dbNames empty so only sessionGuests and raw manual names are used.
 
     const combined = [...new Set([...dbNames, ...state.sessionGuests])];
     const f = combined.filter(n => n.toUpperCase().includes(q) && !state.pool.includes(n));
