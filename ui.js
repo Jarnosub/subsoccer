@@ -631,10 +631,10 @@ export function setupUIListeners() {
             cloneFront.style.pointerEvents = 'none'; 
             cloneFront.style.margin = '0';
             cloneFront.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
-            const bBackToDel = cloneFront.querySelector('.pro-card-back');
+            const bBackToDel = cloneFront.querySelector('.pro-card-back') || cloneFront.querySelector('.card-back');
             if (bBackToDel) bBackToDel.remove();
             
-            const frontFlipper = cloneFront.querySelector('.pro-card-flipper');
+            const frontFlipper = cloneFront.querySelector('.pro-card-flipper') || cloneFront.querySelector('.card-flipper');
             if(frontFlipper) {
                 frontFlipper.style.transition = 'none';
                 frontFlipper.style.transform = 'none';
@@ -649,20 +649,20 @@ export function setupUIListeners() {
             
             // For the back proof, we literally just delete the front side
             // and remove any rotateY on the back side so it faces forward naturally
-            const bFront = cloneBack.querySelector('.pro-card-front');
+            const bFront = cloneBack.querySelector('.pro-card-front') || cloneBack.querySelector('.card-front');
             if (bFront) bFront.remove();
             
-            const bBack = cloneBack.querySelector('.pro-card-back');
+            const bBack = cloneBack.querySelector('.pro-card-back') || cloneBack.querySelector('.card-back');
             if (bBack) {
                 bBack.style.display = 'flex';
                 bBack.style.transform = 'none'; // Overwrite rotateY(180deg) so it faces camera
                 bBack.style.zIndex = '5';
             }
             
-            const backFlipper = cloneBack.querySelector('.pro-card-flipper');
+            const backFlipper = cloneBack.querySelector('.pro-card-flipper') || cloneBack.querySelector('.card-flipper');
             if(backFlipper) {
                 backFlipper.style.transition = 'none';
-                backFlipper.style.transform = 'none'; // Don't rotate the container either
+                backFlipper.style.transform = 'none';
             }
             cloneBack.querySelectorAll('.flip-hint').forEach(e => e.style.display = 'none');
 
