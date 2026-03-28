@@ -252,7 +252,7 @@ function updatePageUI(p) {
 export function populateGameSelect() {
     const sel = document.getElementById('tournament-game-select');
     if (!sel) return;
-    sel.innerHTML = '<option value="" disabled selected>Select Game Table</option>';
+    sel.innerHTML = '<option value="" disabled selected>Select Game</option>';
     state.allGames.forEach(g => {
         const opt = document.createElement('option');
         opt.value = g.id;
@@ -673,7 +673,7 @@ export function setupUIListeners() {
             const desc = document.getElementById('visibility-desc');
             if (val === 'public') desc.innerText = "Visible to all players on the global map.";
             else if (val === 'private') desc.innerText = "Hidden from others, but visible to you on your personal map.";
-            else desc.innerText = "Completely hidden from the map. Only visible in your 'My Game Tables' list.";
+            else desc.innerText = "Completely hidden from the map. Only visible in your 'My Games' list.";
         });
     });
 

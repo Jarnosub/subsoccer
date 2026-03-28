@@ -143,7 +143,7 @@ export async function processConsentRequestParams() {
                 event: 'CONSENT_GRANTED',
                 payload: { player: targetPlayer.toUpperCase() }
             }).then(() => {
-                showNotification(`Consent granted to the Arena table!`, 'success');
+                showNotification(`Consent granted to the Arena game!`, 'success');
                 setTimeout(() => {
                     closeModal('consent-sending-modal');
                     // Remove the query parameters smoothly without reloading
