@@ -239,7 +239,7 @@ export function updateProfileCard() {
         .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
         .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
         .card-data-box { height: 35%; width: 100%; position: relative; background: #1a1a1a; padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
-        .pro-stamp { position: absolute; top: 55%; left: 25px; width: 75px; height: auto; z-index: 50; transform: translateY(-50%); filter: drop-shadow(0 5px 10px rgba(0,0,0,0.6)); pointer-events: none; }
+        .pro-stamp { position: absolute; top: 8px; right: 8px; left: auto; width: 75px; height: auto; z-index: 50; transform: rotate(8deg); filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6)); pointer-events: none; }
         .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
         .card-front, .card-back { padding: 0 !important; }
         
@@ -256,6 +256,7 @@ export function updateProfileCard() {
                         
                         <div class="card-image-box">
                             <img src="subsoccer_logo.svg" alt="Subsoccer" style="position:absolute; top:0; left:12px; height:24px; z-index:20; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4));">
+                            ${u.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                             <div class="holo-glow"></div>
                             <div class="card-nameplate">
@@ -283,7 +284,6 @@ export function updateProfileCard() {
                                     <img src="https://flagcdn.com/w20/${(u.country || 'fi').toLowerCase()}.png" width="20" style="border:1px solid #555;">
                                 </div>
                             </div>
-                            ${u.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
                         </div>
                     </div>
                 </div>
