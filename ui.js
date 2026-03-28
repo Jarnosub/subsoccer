@@ -630,6 +630,7 @@ export function setupUIListeners() {
             const cloneFront = originalCard.cloneNode(true);
             cloneFront.style.pointerEvents = 'none'; 
             cloneFront.style.margin = '0';
+            cloneFront.style.transform = 'none'; // Clear any inherited 3D hover tilt
             cloneFront.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
             const bBackToDel = cloneFront.querySelector('.pro-card-back') || cloneFront.querySelector('.card-back');
             if (bBackToDel) bBackToDel.remove();
@@ -645,6 +646,7 @@ export function setupUIListeners() {
             const cloneBack = originalCard.cloneNode(true);
             cloneBack.style.pointerEvents = 'none'; 
             cloneBack.style.margin = '0';
+            cloneBack.style.transform = 'none'; // Clear any inherited 3D hover tilt
             cloneBack.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
             
             // For the back proof, we literally just delete the front side
