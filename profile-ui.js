@@ -495,15 +495,15 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
         clone.style.height = '465px';
         clone.className = clone.className.replace('flipped', '');
 
-        const flipper = clone.querySelector('.card-flipper');
+        const flipper = clone.querySelector('.card-flipper') || clone.querySelector('.pro-card-flipper');
         flipper.style.transform = 'none';
         flipper.style.display = 'block';
         flipper.style.width = '340px'; 
         flipper.style.height = '465px';
         flipper.style.boxShadow = 'none';
 
-        const front = clone.querySelector('.card-front');
-        const back = clone.querySelector('.card-back');
+        const front = clone.querySelector('.card-front') || clone.querySelector('.pro-card-front');
+        const back = clone.querySelector('.card-back') || clone.querySelector('.pro-card-back');
         
         [front, back].forEach(side => {
             side.style.position = 'absolute';
