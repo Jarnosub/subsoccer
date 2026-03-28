@@ -71,7 +71,7 @@ async function renderPlayersLB(container) {
             const rank = i + 1;
             const imageSrc = player.avatar_url || 'placeholder-silhouette-5-wide.png';
             const flag = player.country ? player.country.toLowerCase() : 'fi';
-            const teamTag = player.team_data ? unsafeHTML(`<div style="color:var(--sub-gold); font-size:0.6rem; margin-bottom:2px; font-weight:bold;">[${player.team_data.tag}]</div>`) : '';
+            const teamTag = player.team_data ? safeHTML`<div style="color:var(--sub-gold); font-size:0.6rem; margin-bottom:2px; font-weight:bold;">[${player.team_data.tag}]</div>` : '';
 
             html += safeHTML`
             <div class="podium-place p-${rank}">
@@ -96,7 +96,7 @@ async function renderPlayersLB(container) {
         html += data.slice(3).map((p, i) => {
             const flag = p.country ? p.country.toLowerCase() : 'fi';
             const rank = i + 4;
-            const teamTag = p.team_data ? unsafeHTML(`<span style="color:var(--sub-gold); font-size:0.7rem; margin-right:5px; font-weight:bold;">[${p.team_data.tag}]</span>`) : '';
+            const teamTag = p.team_data ? safeHTML`<span style="color:var(--sub-gold); font-size:0.7rem; margin-right:5px; font-weight:bold;">[${p.team_data.tag}]</span>` : '';
             return safeHTML`
             <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid #333; transition:all 0.3s ease;" data-username="${p.username}">
                 <div style="display:flex; align-items:center; gap:15px;">

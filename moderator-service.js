@@ -466,10 +466,7 @@ export async function toggleAdminStatus(userId, currentStatus) {
 
     showLoading('Updating permissions...');
     try {
-        const { error } = await _supabase
-            .from('players')
-            .update({ is_admin: !currentStatus })
-            .eq('id', userId);
+        const { error } = await _supabase.rpc('toggle_admin_status', { p_target: userId });
 
         if (error) throw error;
 
