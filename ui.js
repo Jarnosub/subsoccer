@@ -617,13 +617,32 @@ export function setupUIListeners() {
         const originalCard = document.querySelector('#profile-card-container .pro-card');
         if (previewContainer && originalCard) {
             previewContainer.innerHTML = '';
-            const clone = originalCard.cloneNode(true);
-            clone.style.transform = 'scale(0.45)';
-            clone.style.transformOrigin = 'top center';
-            clone.style.pointerEvents = 'none'; // Disable 3D flip on the clone to keep it simple
-            clone.style.margin = '0 auto';
-            clone.style.boxShadow = '0 10px 30px rgba(0,0,0,0.8)';
-            previewContainer.appendChild(clone);
+            
+            const scaleWrapper = document.createElement('div');
+            scaleWrapper.style.display = 'flex';
+            scaleWrapper.style.gap = '30px';
+            scaleWrapper.style.transform = 'scale(0.42)'; // Scale down both
+            scaleWrapper.style.transformOrigin = 'top center';
+            scaleWrapper.style.width = '710px'; // 340+340+30 to avoid flex-shrink
+            scaleWrapper.style.justifyContent = 'center';
+
+            // Front Proof
+            const cloneFront = originalCard.cloneNode(true);
+            cloneFront.classList.remove('flipped');
+            cloneFront.style.pointerEvents = 'none'; 
+            cloneFront.style.margin = '0';
+            cloneFront.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
+            
+            // Back Proof
+            const cloneBack = originalCard.cloneNode(true);
+            cloneBack.classList.add('flipped');
+            cloneBack.style.pointerEvents = 'none'; 
+            cloneBack.style.margin = '0';
+            cloneBack.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
+
+            scaleWrapper.appendChild(cloneFront);
+            scaleWrapper.appendChild(cloneBack);
+            previewContainer.appendChild(scaleWrapper);
         }
 
         const modal = document.getElementById('order-card-modal');
