@@ -70,9 +70,7 @@ function showConsentQR(player, onConsentGranted) {
             
             <button class="btn-grey" onclick="closeModal('consent-modal')" style="width:100%; border-radius:4px; padding:15px; font-family:'Russo One'; margin-bottom:10px; background:#222; color:#fff; border:1px solid #444; cursor:pointer;">CANCEL MATCH</button>
             
-            <div style="text-align:right; margin-top:10px;">
-                <span id="force-consent-btn" style="font-family:'Open Sans'; font-size:0.55rem; color:#444; cursor:pointer; text-transform:uppercase; letter-spacing:2px;" onclick="document.dispatchEvent(new CustomEvent('force-consent-granted'))">Force Override (Dev)</span>
-            </div>
+            <!-- Div removed (Dev override disabled for production) -->
         </div>
     `.toString();
 

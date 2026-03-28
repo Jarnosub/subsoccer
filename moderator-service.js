@@ -541,10 +541,7 @@ export async function resetGlobalLeaderboard() {
     showLoading('Resetting ELOs...');
     try {
         // Päivitetään kaikki pelaajat (käytetään ehtoa joka täsmää kaikkiin)
-        const { error } = await _supabase
-            .from('players')
-            .update({ elo: 1300, wins: 0, losses: 0 })
-            .neq('username', 'SYSTEM_RESERVED_NAME');
+        const { error } = await _supabase.rpc('reset_global_leaderboard');
 
         if (error) throw error;
         if (error) throw error;
