@@ -52,6 +52,11 @@
     --sub-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
 }
 
+html {
+    height: -webkit-fill-available;
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: var(--sub-body-font) !important;
     background-color: var(--sub-black);
@@ -60,8 +65,12 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    /* Käytetään 100dvh (Dynamic Viewport Height), korjaa Safarin "jumittamisen" */
     min-height: 100vh;
-    overflow-x: hidden;
+    min-height: 100dvh;
+    width: 100vw;
+    /* Vaihdetaan overflow-x hidden -> clip jotta ios pystysuuntainen scrollaus ei jäädy */
+    overflow-x: clip;
 }
 
 /* Header adjustments */
