@@ -685,18 +685,37 @@
                     🛡️ Moderator Tools</h3>
                 <p style="font-size:0.8rem; color:#666; margin-bottom:20px;">System administration for Jarno Saarinen
                 </p>
-                <button id="btn-mod-control-room" class="btn-red mod-btn mod-btn-secondary"
-                    onclick="window.open('https://subsoccer.pro/control-room.html', '_blank')">🎛️ CONTROL ROOM</button>
-                <button id="btn-mod-batch-qr" class="btn-red mod-btn mod-btn-secondary"
-                    onclick="window.open('qr-batch-exporter.html', '_blank')">🖨️ BATCH QR EXPORTER</button>
-                <button id="btn-mod-partner-gen" class="btn-red mod-btn mod-btn-secondary">🤝 PARTNER LINK
-                    GENERATOR</button>
-                <button id="btn-mod-view-users" class="btn-red mod-btn mod-btn-secondary">VIEW ALL REGISTERED
-                    USERS</button>
-                <button id="btn-mod-download-logs" class="btn-red mod-btn mod-btn-secondary">DOWNLOAD SYSTEM
-                    LOGS</button>
-                <button id="btn-mod-reset-lb" class="btn-red mod-btn mod-btn-secondary">RESET GLOBAL
-                    LEADERBOARD</button>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; margin-bottom: 25px;">
+                    <button id="btn-mod-control-room" style="background:#111; border:1px solid #333; padding:20px 10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:12px; color:#fff; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--sub-gold)'; this.style.background='#1a1a1a';" onmouseout="this.style.borderColor='#333'; this.style.background='#111';" onclick="window.open('https://subsoccer.pro/control-room.html', '_blank')">
+                        <i class="fa-solid fa-satellite-dish" style="font-size:1.8rem; color:var(--sub-gold);"></i>
+                        <div style="font-family:'Russo One'; font-size:0.75rem; letter-spacing:1px; text-align:center;">CONTROL ROOM</div>
+                    </button>
+                    
+                    <button id="btn-mod-view-users" style="background:#111; border:1px solid #333; padding:20px 10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:12px; color:#fff; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--sub-gold)'; this.style.background='#1a1a1a';" onmouseout="this.style.borderColor='#333'; this.style.background='#111';">
+                        <i class="fa-solid fa-users-gear" style="font-size:1.8rem; color:var(--sub-gold);"></i>
+                        <div style="font-family:'Russo One'; font-size:0.75rem; letter-spacing:1px; text-align:center;">USER DIRECTORY</div>
+                    </button>
+
+                    <button id="btn-mod-batch-qr" style="background:#111; border:1px solid #333; padding:20px 10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:12px; color:#fff; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--sub-gold)'; this.style.background='#1a1a1a';" onmouseout="this.style.borderColor='#333'; this.style.background='#111';" onclick="window.open('qr-batch-exporter.html', '_blank')">
+                        <i class="fa-solid fa-qrcode" style="font-size:1.8rem; color:var(--sub-gold);"></i>
+                        <div style="font-family:'Russo One'; font-size:0.75rem; letter-spacing:1px; text-align:center;">QR EXPORTER</div>
+                    </button>
+
+                    <button id="btn-mod-partner-gen" style="background:#111; border:1px solid #333; padding:20px 10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:12px; color:#fff; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--sub-gold)'; this.style.background='#1a1a1a';" onmouseout="this.style.borderColor='#333'; this.style.background='#111';">
+                        <i class="fa-solid fa-handshake" style="font-size:1.8rem; color:var(--sub-gold);"></i>
+                        <div style="font-family:'Russo One'; font-size:0.75rem; letter-spacing:1px; text-align:center;">PARTNER LINKS</div>
+                    </button>
+
+                    <button id="btn-mod-download-logs" style="background:#111; border:1px solid #333; padding:20px 10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:12px; color:#fff; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--sub-gold)'; this.style.background='#1a1a1a';" onmouseout="this.style.borderColor='#333'; this.style.background='#111';">
+                        <i class="fa-solid fa-file-export" style="font-size:1.8rem; color:var(--sub-gold);"></i>
+                        <div style="font-family:'Russo One'; font-size:0.75rem; letter-spacing:1px; text-align:center;">SYSTEM LOGS</div>
+                    </button>
+
+                    <button id="btn-mod-reset-lb" style="background:#1a0a0a; border:1px solid #4a1111; padding:20px 10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:12px; color:#ff4444; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='#ff3333'; this.style.background='#2a0a0a';" onmouseout="this.style.borderColor='#4a1111'; this.style.background='#1a0a0a';">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size:1.8rem; color:#ff4444;"></i>
+                        <div style="font-family:'Russo One'; font-size:0.75rem; letter-spacing:1px; text-align:center;">RESET LEADERBOARD</div>
+                    </button>
+                </div>
 
                 <div style="margin-top: 30px; border-top: 1px solid #222; padding-top: 20px;">
                     <div onclick="var content = this.nextElementSibling; var icon = this.querySelector('.fa-chevron-down'); var isHidden = content.style.display === 'none'; content.style.display = isHidden ? 'block' : 'none'; icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';"
