@@ -611,6 +611,21 @@ export function setupUIListeners() {
     });
     document.getElementById('menu-item-export-pdf')?.addEventListener('click', (e) => {
         toggleSettingsMenu(e); // Close menu
+        
+        // Render Card Preview visually for the user
+        const previewContainer = document.getElementById('card-order-preview');
+        const originalCard = document.querySelector('#profile-card-container .pro-card');
+        if (previewContainer && originalCard) {
+            previewContainer.innerHTML = '';
+            const clone = originalCard.cloneNode(true);
+            clone.style.transform = 'scale(0.45)';
+            clone.style.transformOrigin = 'top center';
+            clone.style.pointerEvents = 'none'; // Disable 3D flip on the clone to keep it simple
+            clone.style.margin = '0 auto';
+            clone.style.boxShadow = '0 10px 30px rgba(0,0,0,0.8)';
+            previewContainer.appendChild(clone);
+        }
+
         const modal = document.getElementById('order-card-modal');
         if (modal) modal.style.display = 'flex';
     });
