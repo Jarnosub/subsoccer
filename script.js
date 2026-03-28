@@ -25,17 +25,25 @@ export async function handleSearch(v) {
 
 export function addP() {
     const i = document.getElementById('add-p-input');
-    const n = i.value.trim().toUpperCase();
-    if (n && !state.pool.includes(n)) { state.pool = [...state.pool, n]; }
+    let raw = i.value.trim().toUpperCase();
+    if (!raw) return;
+    
+    // Prefix with \u200B (Zero-Width Space) to ensure it fails exact DB username matched in MatchService
+    const n = '\u200B' + raw;
+    if (!state.pool.includes(n)) { state.pool = [...state.pool, n]; }
     i.value = '';
     document.getElementById('search-results').style.display = 'none';
 }
 
 export function directAdd(n) {
     const nameUpper = n.toUpperCase();
-    if (!state.pool.includes(nameUpper)) { state.pool = [...state.pool, nameUpper]; }
-    document.getElementById('add-p-input').value = '';
-    document.getElementById('search-results').style.display = 'none';
+    // Prefix with \u200B if not already there, guaranteeing it fails DB ilike lookups
+    const finalName = nameUpper.startsWith('\u200B') ? nameUpper : ('\u200B' + nameUpper);
+    if (!state.pool.includes(finalName)) { state.pool = [...state.pool, finalName]; }
+    const i = document.getElementById('add-p-input');
+    if (i) i.value = '';
+    const r = document.getElementById('search-results');
+    if (r) r.style.display = 'none';
 }
 
 // ============================================================
