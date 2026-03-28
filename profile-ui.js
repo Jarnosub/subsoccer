@@ -403,7 +403,7 @@ export function updateProfileCard() {
             cardEl.style.setProperty('--gy', gy);
             
             if (!cardEl.classList.contains('flipped')) {
-               flipper.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
+               flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
             }
         });
         
@@ -412,7 +412,7 @@ export function updateProfileCard() {
             cardEl.style.setProperty('--gx', 50);
             cardEl.style.setProperty('--gy', -20);
             if (!cardEl.classList.contains('flipped')) {
-               flipper.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+               flipper.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
             }
         });
 
@@ -444,7 +444,7 @@ export function updateProfileCard() {
                 cardEl.style.setProperty('--gy', gy);
                 
                 if (!cardEl.classList.contains('flipped')) {
-                   flipper.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+                   flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
                 }
             }, true);
         }
@@ -468,7 +468,7 @@ export function updateProfileCard() {
             cardEl.style.setProperty('--gy', gy);
             
             if (!cardEl.classList.contains('flipped')) {
-               flipper.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
+               flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
             }
         }, { passive: true });
 
@@ -477,7 +477,7 @@ export function updateProfileCard() {
             cardEl.style.setProperty('--gx', 50);
             cardEl.style.setProperty('--gy', -20);
             if (!cardEl.classList.contains('flipped')) {
-               flipper.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+               flipper.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
             }
         });
     }
