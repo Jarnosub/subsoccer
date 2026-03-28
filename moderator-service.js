@@ -192,40 +192,127 @@ export async function viewAllUsers() {
         const { data, error } = await _supabase
             .from('players')
             .select('id, username, elo, wins, losses, country, created_at, is_admin, email')
-            .order('username');
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
 
         // Suodatetaan pois vieraat (ne joilla ei ole sähköpostia)
         const registeredUsers = data.filter(u => u.email);
+        
+        // Tilastot
+        const totalUsers = registeredUsers.length;
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const newThisWeek = registeredUsers.filter(u => new Date(u.created_at) > oneWeekAgo).length;
+
+        // Maakohtainen erittely
+        const countryCounts = {};
+        registeredUsers.forEach(u => {
+            const c = (u.country || 'FI').toUpperCase();
+            countryCounts[c] = (countryCounts[c] || 0) + 1;
+        });
+        const countryOptions = Object.entries(countryCounts)
+            .sort((a,b) => b[1] - a[1])
+            .map(([c, count]) => `<option value="${c}">${c} (${count})</option>`)
+            .join('');
 
         const html = `
-            <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
-                ${registeredUsers.map(u => `
-                    <div style="background:#111; padding:12px; border-radius:4px; margin-bottom:8px; border-left:3px solid ${u.is_admin ? 'var(--sub-gold)' : '#333'}; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div style="font-family:'Resolve'; color:#fff; font-size:0.9rem;">
-                                ${u.is_admin ? '⭐ ' : ''}${u.username}
-                            </div>
-                            <div style="font-size:0.7rem; color:#666;">${u.country?.toUpperCase() || 'FI'} • Joined ${new Date(u.created_at).toLocaleDateString()}</div>
-                            <div style="font-size:0.6rem; color:#444;">${u.email}</div>
-                        </div>
-                        <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">
-                            <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1rem;">${u.elo}</div>
-                            <div style="display:flex; gap: 5px; width: 100%; justify-content: flex-end;">
-                                <button class="btn-red" 
-                                        style="font-size:0.6rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : 'var(--sub-gold)'}; color:${u.is_admin ? '#fff' : '#000'}; border:none; width:auto; min-width:80px;"
-                                        onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
-                                    ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
+            <style>
+               .stat-box { flex: 1; background: #111; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; }
+               .stat-val { font-family: 'Russo One'; color: var(--sub-gold); font-size: 1.8rem; line-height: 1; margin-bottom: 5px; text-shadow: 0 0 10px rgba(255,215,0,0.2); }
+               .stat-label { font-size: 0.65rem; color: #888; font-family: 'Open Sans', sans-serif; font-weight: bold; letter-spacing: 1px; }
+               .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+               .filter-input { flex: 2; background: #111; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 4px; font-family: 'Open Sans', sans-serif; font-size: 0.9rem; }
+               .filter-select { flex: 1; background: #111; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 4px; font-family: 'Open Sans', sans-serif; font-size: 0.9rem; }
+            </style>
+            
+            <div style="display:flex; gap:10px; margin-bottom: 20px;">
+                <div class="stat-box">
+                    <div class="stat-val">${totalUsers}</div>
+                    <div class="stat-label">TOTAL REGISTERED</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" style="color: #00FFCC; text-shadow: 0 0 10px rgba(0,255,204,0.3);">+${newThisWeek}</div>
+                    <div class="stat-label">NEW THIS 7 DAYS</div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <input type="text" id="admin-user-search" class="filter-input" placeholder="Search username, email...">
+                <select id="admin-country-filter" class="filter-select">
+                    <option value="">All Countries</option>
+                    ${countryOptions}
+                </select>
+            </div>
+
+            <div id="admin-users-list" style="max-height: 350px; overflow-y: auto; padding-right: 5px; display:flex; flex-direction:column; gap:8px;">
+                <!-- List renders here -->
             </div>
         `;
 
-        showModal('REGISTERED USERS', html, { maxWidth: '450px' });
+        // Renderöintilogiikka modaaliin asettamisen jälkeen
+        const renderList = (users) => {
+            const list = document.getElementById('admin-users-list');
+            if (!list) return;
+            
+            if (users.length === 0) {
+                list.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">No users match your filters.</div>';
+                return;
+            }
+
+            list.innerHTML = users.map(u => `
+                <div style="background:#111; padding:12px; border-radius:6px; border-left:3px solid ${u.is_admin ? 'var(--sub-gold)' : '#333'}; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-family:'Russo One', sans-serif; color:#fff; font-size:0.9rem; letter-spacing:1px; display:flex; align-items:center; gap:6px;">
+                            ${u.is_admin ? '<i class="fa-solid fa-crown" style="color:var(--sub-gold); font-size:0.8rem;"></i>' : ''}${u.username.toUpperCase()}
+                        </div>
+                        <div style="font-size:0.7rem; color:#888; font-family:'Open Sans', sans-serif; margin-top:4px;">
+                            <img src="https://flagcdn.com/w20/${(u.country || 'fi').toLowerCase()}.png" width="14" style="vertical-align:middle; border-radius:2px; margin-right:4px; opacity:0.8;">
+                            ${(u.country||'FI').toUpperCase()} • Joined ${new Date(u.created_at).toLocaleDateString()}
+                        </div>
+                        <div style="font-size:0.6rem; color:#555; font-family:'Open Sans', sans-serif; margin-top:2px;">${u.email}</div>
+                    </div>
+                    <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">
+                        <div style="color:var(--sub-gold); font-family:'Russo One', sans-serif; font-size:1.1rem;">${u.elo} <span style="font-size:0.55rem; color:#888;">ELO</span></div>
+                        <div style="display:flex; gap: 5px; width: 100%; justify-content: flex-end;">
+                            <button class="btn-red" 
+                                    style="font-size:0.55rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : '#222'}; color:${u.is_admin ? '#fff' : 'var(--sub-gold)'}; border:1px solid ${u.is_admin ? 'transparent' : 'var(--sub-gold)'}; width:auto; min-width:85px; font-weight:bold; letter-spacing:1px; cursor:pointer;"
+                                    onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
+                                ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        showModal('USER ANALYTICS', html, { maxWidth: '550px' });
+        
+        // Listeners for runtime filtering
+        setTimeout(() => {
+            const searchInput = document.getElementById('admin-user-search');
+            const countryFilter = document.getElementById('admin-country-filter');
+            
+            const applyFilters = () => {
+                const term = searchInput.value.toLowerCase();
+                const country = countryFilter.value.toUpperCase();
+                
+                const filtered = registeredUsers.filter(u => {
+                    const matchesSearch = u.username.toLowerCase().includes(term) || u.email.toLowerCase().includes(term);
+                    const matchesCountry = country === '' || (u.country || 'FI').toUpperCase() === country;
+                    return matchesSearch && matchesCountry;
+                });
+                
+                renderList(filtered);
+            };
+
+            if(searchInput) searchInput.addEventListener('input', applyFilters);
+            if(countryFilter) countryFilter.addEventListener('change', applyFilters);
+            
+            // Initial render
+            renderList(registeredUsers);
+        }, 100);
+
     } catch (e) {
         showNotification('Failed to fetch users: ' + e.message, 'error');
     } finally {

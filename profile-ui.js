@@ -307,6 +307,9 @@ export function updateProfileCard() {
             </div>
         </div>
     </div>
+    <div style="margin-top: 25px;">
+        <button id="btn-order-card" onclick="window.openCardOrderModal()" class="btn-red" style="width: 100%; border: 1px solid var(--sub-gold); color: var(--sub-gold); background: transparent; font-family: 'Russo One', sans-serif; letter-spacing: 2px; padding: 12px; transition: all 0.2s;" onmouseover="this.style.background='var(--sub-gold)'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='var(--sub-gold)';">ORDER PRO CARD</button>
+    </div>
     `;
 
     // Fetch and populate back side data asynchronously (Premium Stats Layout)
@@ -418,6 +421,13 @@ export function updateProfileCard() {
 
         // Device Orientation Engine (Mobile Gyroscope)
         if (window.DeviceOrientationEvent) {
+            // Request iOS 13+ permission on first tap
+            cardEl.addEventListener('click', () => {
+                 if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                      DeviceOrientationEvent.requestPermission().catch(console.error);
+                 }
+            }, { once: true });
+
             window.addEventListener('deviceorientation', (e) => {
                 if (isFlipping || !document.contains(cardEl)) return;
 
@@ -441,6 +451,38 @@ export function updateProfileCard() {
                 }
             }, true);
         }
+
+        // Mobile fallback (tilt with finger swipe if gyro unsupported/denied)
+        cardEl.addEventListener('touchmove', (e) => {
+            if (isFlipping) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const rect = cardEl.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            
+            const gx = (x / rect.width) * 100;
+            const gy = (y / rect.height) * 100;
+            
+            const rx = ((y / rect.height) - 0.5) * -20;
+            const ry = ((x / rect.width) - 0.5) * 20;
+
+            cardEl.style.setProperty('--gx', gx);
+            cardEl.style.setProperty('--gy', gy);
+            
+            if (!cardEl.classList.contains('flipped')) {
+               flipper.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
+            }
+        }, { passive: true });
+
+        cardEl.addEventListener('touchend', () => {
+            if (isFlipping) return;
+            cardEl.style.setProperty('--gx', 50);
+            cardEl.style.setProperty('--gy', -20);
+            if (!cardEl.classList.contains('flipped')) {
+               flipper.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            }
+        });
     }
 
     updateRankProgress();
@@ -450,6 +492,31 @@ window.loadUserProfile = loadUserProfile;
 window.showEditProfile = showEditProfile;
 window.cancelEditProfile = cancelEditProfile;
 window.updateProfileCard = updateProfileCard;
+window.openCardOrderModal = function() {
+    const html = `
+        <div style="text-align:left; font-family:'Open Sans', sans-serif; font-size:0.9rem;">
+            <p style="color:#aaa; margin-bottom:20px;">Toiselta puolelta löytyy pelaaja-arvosi huippuhetket. Anna toimitusosoite varmentaaksesi oikeuden painoon.</p>
+            <input id="so-name" placeholder="Full Name" style="width:100%; box-sizing:border-box; border-radius:4px; padding:10px; border:1px solid #333; background:#000; color:#fff; margin-bottom:10px;">
+            <input id="so-street" placeholder="Street Address" style="width:100%; box-sizing:border-box; border-radius:4px; padding:10px; border:1px solid #333; background:#000; color:#fff; margin-bottom:10px;">
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <input id="so-zip" placeholder="Zip Code" style="flex:1; box-sizing:border-box; border-radius:4px; padding:10px; border:1px solid #333; background:#000; color:#fff;">
+                <input id="so-city" placeholder="City" style="flex:2; box-sizing:border-box; border-radius:4px; padding:10px; border:1px solid #333; background:#000; color:#fff;">
+            </div>
+            <input id="so-country" placeholder="Country" value="Finland" style="width:100%; box-sizing:border-box; border-radius:4px; padding:10px; border:1px solid #333; background:#000; color:#fff; margin-bottom:20px;">
+            <button class="btn-red" style="width:100%; background:var(--sub-gold); border:none; color:#000; padding:15px; font-weight:bold; letter-spacing:1px;" onclick="
+                const n=document.getElementById('so-name').value;
+                const s=document.getElementById('so-street').value;
+                const z=document.getElementById('so-zip').value;
+                const c=document.getElementById('so-city').value;
+                const co=document.getElementById('so-country').value;
+                if(!n||!s||!z||!c||!co) return alert('Fill all fields!');
+                if (window.closeModal) window.closeModal();
+                window.exportPhysicalCardToPDF({name:n, street:s, zip:z, city:c, country:co});
+            ">SECURE & MINT PHYSICAL CARD</button>
+        </div>
+    `;
+    if (window.showModal) window.showModal('SHIPPING DETAILS', html, { maxWidth: '400px' });
+};
 
 /**
  * 300 DPI -luokan PDF Export-työkalu fyysiselle Vault Assetille.
