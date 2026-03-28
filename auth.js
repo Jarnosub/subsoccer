@@ -96,7 +96,7 @@ async function refreshUserProfile(userId) {
     try {
         const { data, error } = await _supabase
             .from('players')
-            .select('*, team_data:teams!players_team_id_fkey(*)')
+            .select('id, username, email, elo, wins, losses, country, avatar_url, rank, is_admin, full_name, phone, city, acquired_via, team_id, team_data:teams!players_team_id_fkey(*)')
             .eq('id', userId);
 
         const profile = data?.[0]; // Otetaan manuaalisesti ensimmäinen tulos
@@ -421,12 +421,12 @@ export async function handleAuth(event) {
             // Tarkistetaan löytyykö sähköposti players-taulusta (migraatiotuki)
             const { data: emailMatches, error: emailErr } = await _supabase
                 .from('players')
-                .select('*')
+                .select('id, username, email, password')
                 .ilike('email', input);
 
             if (!emailErr && emailMatches && emailMatches.length > 0) {
                 const hashed = await hashPassword(p);
-                const userRecord = emailMatches.find(m => m.password === hashed || m.password === p) || emailMatches[0];
+                const userRecord = emailMatches.find(m => m.password === hashed) || emailMatches[0];
 
                 console.log("Legacy record found by email:", userRecord.username);
                 if (isUuid(userRecord.id)) {
@@ -437,7 +437,7 @@ export async function handleAuth(event) {
                     throw error;
                 } else {
                     // Legacy-käyttäjä jolla on sähköposti. Tarkistetaan vanha salasana.
-                    if (userRecord.password === hashed || userRecord.password === p) {
+                    if (userRecord.password === hashed) {
                         promptForEmailMigration(userRecord, p);
                         return;
                     }
@@ -451,7 +451,7 @@ export async function handleAuth(event) {
 
         // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
         let { data: nameMatches, error: nameErr } = await _supabase
-            .from('players').select('*').ilike('username', input);
+            .from('players').select('id, username, email, password, elo, wins, losses, is_admin, avatar_url, country, rank').ilike('username', input);
 
         console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
 
@@ -466,7 +466,7 @@ export async function handleAuth(event) {
             const fuzzyInput = input.replace(/\s+/g, '%');
             const { data: fuzzyMatches } = await _supabase
                 .from('players')
-                .select('*')
+                .select('id, username, email, password, elo, wins, losses, is_admin, avatar_url, country, rank')
                 .ilike('username', fuzzyInput);
             nameMatches = fuzzyMatches || [];
         }
@@ -492,7 +492,7 @@ export async function handleAuth(event) {
             }
 
             // 2. Jos Auth-kirjautuminen ei onnistunut, kokeillaan legacy-salasanaa osumiin
-            const legacyRecord = nameMatches.find(m => m.password === hashed || m.password === p);
+            const legacyRecord = nameMatches.find(m => m.password === hashed);
             if (legacyRecord) {
                 console.log("Legacy password match found for ID:", legacyRecord.id);
                 promptForEmailMigration(legacyRecord, p);
@@ -771,8 +771,7 @@ export async function saveProfile(e) {
                 showNotification("Password update failed: " + pwdError.message, "error");
                 return;
             }
-            // Sync password with players table to keep username login working
-            updates.password = await hashPassword(newPassword);
+            // Note: Legacy password update removed as Trigger blocks it. Auth handles it.
         }
 
         if (Object.keys(updates).length === 0) {
