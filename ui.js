@@ -632,6 +632,12 @@ export function setupUIListeners() {
             cloneFront.style.pointerEvents = 'none'; 
             cloneFront.style.margin = '0';
             cloneFront.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
+            const frontFlipper = cloneFront.querySelector('.pro-card-flipper');
+            if(frontFlipper) {
+                frontFlipper.style.transition = 'none';
+                frontFlipper.style.transform = 'rotateY(0deg)';
+            }
+            cloneFront.querySelectorAll('.flip-hint').forEach(e => e.style.display = 'none');
             
             // Back Proof
             const cloneBack = originalCard.cloneNode(true);
@@ -639,6 +645,12 @@ export function setupUIListeners() {
             cloneBack.style.pointerEvents = 'none'; 
             cloneBack.style.margin = '0';
             cloneBack.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
+            const backFlipper = cloneBack.querySelector('.pro-card-flipper');
+            if(backFlipper) {
+                backFlipper.style.transition = 'none'; // Force instant flip
+                backFlipper.style.transform = 'rotateY(180deg)';
+            }
+            cloneBack.querySelectorAll('.flip-hint').forEach(e => e.style.display = 'none');
 
             scaleWrapper.appendChild(cloneFront);
             scaleWrapper.appendChild(cloneBack);
