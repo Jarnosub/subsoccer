@@ -255,7 +255,7 @@ export function updateProfileCard() {
                         <div class="card-serial">${editionLabel}</div>
                         
                         <div class="card-image-box">
-                            <img src="subsoccer_logo.svg" alt="Subsoccer" style="position:absolute; top:0; left:12px; width:69.4px; height:24px; z-index:20; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4));">
+                            <img src="subsoccer_logo.svg" alt="Subsoccer" width="69" height="24" style="position:absolute; top:0; left:12px; z-index:20;">
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                             <div class="holo-glow"></div>
                             <div class="card-nameplate">
