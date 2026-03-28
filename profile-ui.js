@@ -307,11 +307,6 @@ export function updateProfileCard() {
             </div>
         </div>
     </div>
-    <div style="margin-top: 25px;">
-        <button id="btn-order-card" onclick="alert('Physical Pro Card Ordering is unlocking for all ranked players very soon! Stay tuned.')" class="btn-red" style="width: 100%; border: 1px dashed #444; color: #777; background: transparent; font-family: 'Russo One', sans-serif; letter-spacing: 2px; padding: 12px; transition: all 0.2s; cursor: not-allowed; opacity: 0.8;">
-            <i class="fa-solid fa-lock" style="margin-right:8px; color:#555;"></i> ORDER PRO CARD
-        </button>
-        <div style="text-align:center; font-family:'Open Sans'; font-size:0.65rem; color:#555; margin-top:8px;">Drops on Monday</div>
     </div>
     `;
 
