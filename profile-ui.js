@@ -307,8 +307,6 @@ export function updateProfileCard() {
             </div>
         </div>
     </div>
-    <div style="margin-top: 25px;">
-        <button id="btn-order-card" onclick="document.getElementById('menu-item-export-pdf').click()" class="btn-red" style="width: 100%; border: 1px solid var(--sub-gold); color: var(--sub-gold); background: transparent; font-family: 'Russo One', sans-serif; letter-spacing: 2px; padding: 12px; transition: all 0.2s;" onmouseover="this.style.background='var(--sub-gold)'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='var(--sub-gold)';">ORDER PRO CARD</button>
     </div>
     `;
 
