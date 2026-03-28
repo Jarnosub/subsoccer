@@ -123,8 +123,8 @@ export async function viewPlayerCard(targetUsername) {
         .card-rc-badge { position: absolute; top: 10px; left: 10px; background: transparent; color: #E30613; font-family: 'Russo One', sans-serif; font-size: 1rem; z-index: 10; font-style: italic; text-shadow: 1px 1px 0 #fff; }
         .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
         .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
-        .card-data-box { height: 35%; width: 100%; background: linear-gradient(135deg, #1a2737 0%, #0d1620 100%); padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
-        .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
+        .card-data-box { position: relative; height: 35%; width: 100%; background: linear-gradient(135deg, #1a2737 0%, #0d1620 100%); padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
+        .pro-stamp { position: absolute; top: 50%; left: 50%; width: 60px; height: auto; z-index: 50; transform: translate(-50%, -50%) rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; opacity: 0.8; }
         .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
         .card-front, .card-back { padding: 0 !important; }
     </style>
@@ -138,6 +138,7 @@ export async function viewPlayerCard(targetUsername) {
                         <div class="card-serial">NO. 1</div>
                         
                         <div class="card-image-box">
+                            <img src="subsoccer_logo.svg" alt="Subsoccer" style="position:absolute; top:0; left:12px; height:22px; z-index:20; opacity:0.9; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.7));">
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                             <div class="card-nameplate">
                                 ${p.team_data ? `<div style="font-family:'Open Sans', sans-serif; color:#FFD700; font-size:0.6rem; font-weight:bold; margin-bottom:2px; letter-spacing:1px; text-transform:uppercase;">${p.team_data.tag}</div>` : ''}
@@ -164,10 +165,10 @@ export async function viewPlayerCard(targetUsername) {
                                     <img src="https://flagcdn.com/w20/${(p.country || 'fi').toLowerCase()}.png" width="20" style="border:1px solid #555;">
                                 </div>
                             </div>
+                            ${p.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
                         </div>
                     </div>
                 </div>
-                ${p.elo >= 1600 ? `<img src="stamp.png" class="pro-stamp">` : ''}
                 <div style="position:absolute; bottom:-25px; width:100%; text-align:center; color:#666; font-size:0.6rem; font-family:'Open Sans', sans-serif; pointer-events:none;"><i class="fa-solid fa-rotate-right"></i> TAP TO FLIP</div>
             </div>
             

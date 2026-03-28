@@ -532,11 +532,7 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
         });
         clone.querySelectorAll('.card-safe-zone').forEach(el => el.style.inset = '20px'); // 10px bleed + 10px internal rim = 20px from edge.
 
-        // Also scale the stamp a bit more towards center
-        clone.querySelectorAll('.pro-stamp').forEach(el => {
-            el.style.top = '30px';
-            el.style.left = '30px';
-        });
+        // The pro-stamp is now dynamically centered in data-box so we don't need to manually move it here.
 
         // Strip holo-glow and flip hints to get pure printed ink look
         clone.querySelectorAll('.holo-glow, .flip-hint').forEach(el => el.remove());
