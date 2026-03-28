@@ -53,7 +53,7 @@ export async function fetchLB() {
 }
 
 async function renderPlayersLB(container) {
-    const { data } = await _supabase.from('players').select('*, team_data:teams!players_team_id_fkey(*)').or('wins.gt.0,losses.gt.0').order('elo', { ascending: false });
+    const { data } = await _supabase.from('players').select('id, username, wins, losses, elo, country, avatar_url, rank, team_data:teams!players_team_id_fkey(*)').or('wins.gt.0,losses.gt.0').order('elo', { ascending: false });
 
     if (!data || data.length === 0) {
         container.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">No players yet</div>';
