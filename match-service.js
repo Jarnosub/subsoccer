@@ -112,6 +112,7 @@ export const MatchService = {
                     winner: winnerName,
                     player1_score: p1Score,
                     player2_score: p2Score,
+                    game_id: actualGameId,
                     tournament_id: isUuid(tournamentId) ? tournamentId : null,
                     tournament_name: tournamentName,
                     is_verified_table: isVerifiedTable,
