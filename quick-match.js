@@ -86,17 +86,17 @@ export async function selectQuickPlayer(name, slot) {
                 if (data.avatar_url) {
                     imgEl.src = data.avatar_url;
                     imgEl.style.display = 'block';
-                    iconEl.style.display = 'none';
+                    if(iconEl) iconEl.style.display = 'none';
                 } else {
-                    imgEl.style.display = 'none';
-                    iconEl.className = 'fa-solid fa-user';
-                    iconEl.style.display = 'block';
+                    imgEl.src = slot === 'p1' ? 'avatar_p1_default.png' : 'avatar_p2_default.png';
+                    imgEl.style.display = 'block';
+                    if(iconEl) iconEl.style.display = 'none';
                 }
             } else {
                 eloEl.innerText = "GUEST";
-                imgEl.style.display = 'none';
-                iconEl.className = 'fa-solid fa-user';
-                iconEl.style.display = 'block';
+                imgEl.src = slot === 'p1' ? 'avatar_p1_default.png' : 'avatar_p2_default.png';
+                imgEl.style.display = 'block';
+                if(iconEl) iconEl.style.display = 'none';
             }
         } catch(e) { console.error("Face-off avatar error:", e); }
     }
@@ -264,10 +264,11 @@ export function clearQuickMatchPlayers() {
             slotEl.classList.add('empty');
             document.getElementById(`${slot}-faceoff-name`).innerText = slot === 'p1' ? 'HOME' : 'AWAY';
             document.getElementById(`${slot}-faceoff-elo`).innerText = '---';
-            document.getElementById(`${slot}-faceoff-img`).style.display = 'none';
-            document.getElementById(`${slot}-faceoff-img`).src = '';
-            document.getElementById(`${slot}-faceoff-icon`).className = 'fa-solid fa-user-plus';
-            document.getElementById(`${slot}-faceoff-icon`).style.display = 'block';
+            document.getElementById(`${slot}-faceoff-img`).style.display = 'block';
+            document.getElementById(`${slot}-faceoff-img`).src = slot === 'p1' ? 'avatar_p1_default.png' : 'avatar_p2_default.png';
+            if(document.getElementById(`${slot}-faceoff-icon`)) {
+                document.getElementById(`${slot}-faceoff-icon`).style.display = 'none';
+            }
         }
     });
 
