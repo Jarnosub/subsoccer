@@ -124,7 +124,7 @@ export async function viewPlayerCard(targetUsername) {
         .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
         .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
         .card-data-box { height: 35%; width: 100%; position: relative; background: linear-gradient(135deg, #1a2737 0%, #0d1620 100%); padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
-        .pro-stamp { position: absolute; top: 6px; right: 6px; left: auto; width: 62px; height: auto; z-index: 50; transform: rotate(12deg); filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6)); pointer-events: none; }
+        .pro-stamp { position: absolute; top: 6px; right: 6px; left: auto; width: 62px; height: auto; z-index: 50; transform: rotate(12deg); pointer-events: none; }
         .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
         .card-front, .card-back { padding: 0 !important; }
     </style>
