@@ -523,6 +523,12 @@ export async function exportPhysicalCardToPDF(shippingInfo) {
         clone.querySelectorAll('.card-bleed-edge').forEach(el => {
             el.style.border = 'none'; // pure bleed visual
             el.style.inset = '0px'; // FILL THE ENTIRE 340x465 WITH NEON!
+            
+            // Fix html2canvas radial-gradient issue by providing a reliable SVG
+            el.style.backgroundColor = '#00FFCC';
+            el.style.backgroundImage = `url("data:image/svg+xml,%3Csvg width='8' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='4' cy='4' r='1.5' fill='rgba(0,0,0,0.15)'/%3E%3C/svg%3E")`;
+            el.style.backgroundRepeat = 'repeat';
+            el.style.backgroundSize = '8px 8px';
         });
         clone.querySelectorAll('.card-safe-zone').forEach(el => el.style.inset = '20px'); // 10px bleed + 10px internal rim = 20px from edge.
 
