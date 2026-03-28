@@ -854,16 +854,26 @@
             <div id="tour-setup" class="container" style="text-align:center;">
 
                 <!-- Mode Selector Buttons -->
-                <div class="mode-selector-container">
-                    <button id="btn-quick-match-mode" class="mode-select-btn">
-                        <div class="mode-icon"><i class="fas fa-trophy"></i></div>
-                        <div class="mode-title">1v1 MATCH</div>
+                <div class="mode-selector-container" style="gap:8px;">
+                    <button id="btn-quick-match-mode" class="mode-select-btn" style="padding:15px 5px;">
+                        <div class="mode-icon" style="font-size:1.6rem;"><i class="fas fa-trophy"></i></div>
+                        <div class="mode-title" style="font-size:0.8rem;">1v1 MATCH</div>
                     </button>
-                    <button id="btn-tournament-mode" class="mode-select-btn">
-                        <div class="mode-icon">
+                    <button id="btn-tournament-mode" class="mode-select-btn" style="padding:15px 5px;">
+                        <div class="mode-icon" style="font-size:1.6rem;">
                             <i class="fa-solid fa-sitemap" id="tournament-icon-status"></i>
                         </div>
-                        <div class="mode-title">Tournament</div>
+                        <div class="mode-title" style="font-size:0.8rem;">TOURNAMENT</div>
+                    </button>
+                    <button id="btn-online-game-mode" class="mode-select-btn" disabled style="padding:15px 5px; opacity:0.6; cursor:not-allowed; border:1px solid #333; position:relative;">
+                        <div class="mode-icon" style="font-size:1.6rem; color:#666;"><i class="fa-solid fa-earth-americas"></i></div>
+                        <div class="mode-title" style="font-size:0.8rem; color:#888;">ONLINE</div>
+                        
+                        <!-- Lock overlay -->
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; opacity:0.8;">
+                            <i class="fa-solid fa-lock" style="font-size:1.5rem; color:#ccc; text-shadow:0 0 10px #000;"></i>
+                        </div>
+                        <div style="position:absolute; bottom:5px; width:100%; text-align:center; font-size:0.55rem; color:var(--sub-red); font-family:'Resolve'; letter-spacing:1px; font-weight:bold;">COMING SOON</div>
                     </button>
                 </div>
 
@@ -1082,7 +1092,7 @@
 
     </div>
 
-    <script type="module" src="main.js?v=39"></script>
+    <script type="module" src="main.js?v=42"></script>
     <div class="app-version">v.1.0.4</div>
 
     <!-- HARDWARE CLAIM MODAL -->
