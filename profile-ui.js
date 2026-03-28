@@ -454,7 +454,7 @@ window.updateProfileCard = updateProfileCard;
  * 300 DPI -luokan PDF Export-työkalu fyysiselle Vault Assetille.
  * Renderöi tallennetun korttimuistin Canvas-kirjastoilla painokelpoiseksi.
  */
-export async function exportPhysicalCardToPDF() {
+export async function exportPhysicalCardToPDF(shippingInfo) {
     const originalCard = document.querySelector('#profile-card-container .pro-card');
     if (!originalCard) return alert("Pro Card ei ole vielä latautunut!");
 
@@ -578,35 +578,50 @@ export async function exportPhysicalCardToPDF() {
         const username = state.user?.username || 'Player';
         const safeName = username.replace(/[^a-zA-Z0-9]/g, '_');
         
-        statusText.innerText = "UPLOADING SECURE ASSET TO CLOUD...";
+        statusText.innerText = "UPLOADING ASSET TO FACTORY...";
 
-        // Convert base64 JPEG to Blob to satisfy 'event-images' bucket MIME restrictions (image/jpeg)
-        const fetchRes = await fetch(frontImg);
-        const imgBlob = await fetchRes.blob();
-        
-        const fileName = `pro_cards/${safeName}_Card_${Date.now()}.jpg`;
+        // Convert PDF to Blob
+        const pdfBlob = pdf.output('blob');
+        const fileName = `pro_cards/${safeName}_Card_${Date.now()}.pdf`;
         
         const { error: uploadError } = await _supabase.storage
-            .from('event-images')
-            .upload(fileName, imgBlob, { contentType: 'image/jpeg', upsert: true });
+            .from('print_assets')
+            .upload(fileName, pdfBlob, { contentType: 'application/pdf', upsert: true });
 
         if (uploadError) {
             console.error("Upload error:", uploadError);
-            throw new Error("Failed to upload preview to cloud: " + uploadError.message);
+            throw new Error("Failed to secure PDF to cloud: " + uploadError.message);
         }
 
-        const { data } = _supabase.storage.from('event-images').getPublicUrl(fileName);
-        const imgUrl = data.publicUrl;
+        const { data } = _supabase.storage.from('print_assets').getPublicUrl(fileName);
+        const pdfUrl = data.publicUrl;
 
-        statusText.innerText = "OPENING EMAIL CLIENT...";
-        await new Promise(r => setTimeout(r, 800));
+        statusText.innerText = "SECURING PRINT ORDER...";
+        
+        if (shippingInfo) {
+            const { error: dbError } = await _supabase.from('card_orders').insert([{
+                user_id: state.user.id,
+                shipping_name: shippingInfo.name || safeName,
+                shipping_street: shippingInfo.street || 'N/A',
+                shipping_zip: shippingInfo.zip || 'N/A',
+                shipping_city: shippingInfo.city || 'N/A',
+                shipping_country: shippingInfo.country || 'N/A',
+                pdf_url: pdfUrl,
+                status: 'pending'
+            }]);
 
-        // Simuloi PDF:n siirtoa painotalolle lähettämällä tilaus sähköpostilla Public Linkin avulla
-        const emailBody = `Hei!\n\nHaluaisin tilata oheisen Subsoccer Pro Cardini fyysisenä keräilykorttina.\n\nKortin esikatselukuva: \n${imgUrl}\n\nHUOM: Olen liittänyt tähän sähköpostiin järjestelmän generoiman PDF-painoaineiston (68x93mm leikkuuvaroilla).\n\nYstävällisin terveisin,\n${username}`;
-        window.location.href = `mailto:print@subsoccer.com?subject=Pro Card Tilaus / Painoaineisto: ${username}&body=${encodeURIComponent(emailBody)}`;
+            if (dbError) {
+                console.error("DB Insert Error:", dbError);
+                throw new Error("Order tracking failed: " + dbError.message);
+            }
+        }
 
-        // Ladataan itse painoaineisto (PDF) lokaalisti, jotta käyttäjä voi liittää sen laitteeltaan!
-        pdf.save(`Subsoccer_ProCard_${safeName}.pdf`);
+        statusText.innerText = "REDIRECTING TO CHECKOUT...";
+        await new Promise(r => setTimeout(r, 1000));
+
+        // Simulate Shopify Cart Injection Redirect
+        console.log("Redirecting to Shopify cart with PDF Link:", pdfUrl);
+        alert(`Tilaustiedot ja PDF tallennettu onnistuneesti (Näkyvät nyt Moderator-työkalussa)!\n\nNormaalisti sinut ohjattaisiin nyt suoraan Shopify:n kassalle.\n(Cart Property: ${pdfUrl})`);
 
     } catch (e) {
         console.error("PDF Export failed:", e);

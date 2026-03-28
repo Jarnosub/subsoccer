@@ -609,10 +609,25 @@ export function setupUIListeners() {
         showPage('map');
         toggleSettingsMenu(e);
     });
-    document.getElementById('menu-item-export-pdf')?.addEventListener('click', async (e) => {
+    document.getElementById('menu-item-export-pdf')?.addEventListener('click', (e) => {
         toggleSettingsMenu(e); // Close menu
+        const modal = document.getElementById('order-card-modal');
+        if (modal) modal.style.display = 'flex';
+    });
+
+    document.getElementById('btn-submit-card-order')?.addEventListener('click', async (e) => {
+        const modal = document.getElementById('order-card-modal');
+        if (modal) modal.style.display = 'none';
         const { exportPhysicalCardToPDF } = await import('./profile-ui.js');
-        exportPhysicalCardToPDF();
+        // Retrieve shipping info and pass it to the generator
+        const shippingInfo = {
+            name: document.getElementById('order-shipping-name').value.trim(),
+            street: document.getElementById('order-shipping-street').value.trim(),
+            zip: document.getElementById('order-shipping-zip').value.trim(),
+            city: document.getElementById('order-shipping-city').value.trim(),
+            country: document.getElementById('order-shipping-country').value.trim()
+        };
+        exportPhysicalCardToPDF(shippingInfo);
     });
 
     document.getElementById('menu-item-edit-profile')?.addEventListener('click', (e) => {

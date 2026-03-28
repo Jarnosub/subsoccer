@@ -601,7 +601,73 @@ export async function exportTrackingCSV() {
     }
 }
 
+export async function viewCardOrders() {
+    if (!isAdmin()) {
+        showNotification("Access denied: Admin privileges required.", "error");
+        return;
+    }
+
+    showLoading('Fetching Print Orders...');
+    try {
+        const { data, error } = await _supabase
+            .from('card_orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            // Check if table doesn't exist yet gracefully
+            if (error.code === '42P01') {
+                showModal('CARD ORDERS', '<div style="padding:20px; color:#aaa; text-align:center;">The card_orders table does not exist yet. Please run orders_schema.sql first.</div>', { maxWidth: '500px' });
+                return;
+            }
+            throw error;
+        }
+
+        if (!data || data.length === 0) {
+            showModal('CARD ORDERS', '<div style="padding:20px; color:#aaa; text-align:center;">No card orders found.</div>', { maxWidth: '500px' });
+            return;
+        }
+
+        const html = `
+            <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                ${data.map(o => `
+                    <div style="background:#111; padding:12px; border-radius:4px; margin-bottom:8px; border-left:3px solid var(--sub-gold); display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-family:'Resolve'; color:#fff; font-size:0.9rem;">
+                                ${o.shipping_name}
+                            </div>
+                            <div style="font-size:0.7rem; color:#666;">
+                                ${new Date(o.created_at).toLocaleDateString()} • Status: <span style="color:${o.status === 'pending' ? 'var(--sub-red)' : '#4CAF50'}; font-weight:bold;">${o.status.toUpperCase()}</span>
+                            </div>
+                            <div style="font-size:0.6rem; color:#888;">
+                                ${o.shipping_street}, ${o.shipping_zip} ${o.shipping_city}, ${o.shipping_country}
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <a href="${o.pdf_url}" target="_blank" class="btn-red" style="padding:6px 12px; font-size:0.75rem; text-decoration:none; display:inline-block; background:var(--sub-gold); color:#000;">
+                                <i class="fa-solid fa-file-pdf"></i> PRINT PDF
+                            </a>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="text-align:center; padding-top:15px; border-top:1px solid #333; margin-top:10px;">
+                <p style="font-size:0.7rem; color:#888;">These orders will automatically sync with Shopify in the future.</p>
+            </div>
+        `;
+
+        showModal('300 DPI CARD ORDERS', html, { maxWidth: '500px' });
+    } catch (e) {
+        showNotification('Failed to fetch orders: ' + e.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
 export function setupModeratorListeners() {
+    document.getElementById('btn-mod-view-card-orders')?.addEventListener('click', () => {
+        viewCardOrders();
+    });
     document.getElementById('btn-mod-partner-gen')?.addEventListener('click', () => {
         showPartnerLinkGenerator();
     });
