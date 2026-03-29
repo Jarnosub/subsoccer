@@ -198,6 +198,13 @@ export async function showLevelUpCard(playerName, newElo) {
     const isPro = newElo >= 1600;
     const title = isPro ? "⭐ NEW PRO RANK REACHED!" : "📈 RANK UP!";
 
+    const isProd = window.location.hostname === 'subsoccer.pro' || window.location.hostname === 'www.subsoccer.pro';
+    const orderButtonStyle = isProd 
+        ? "flex:1; background:#111; border:1px dashed #444; color:#666; font-size:0.75rem; padding:12px; cursor:not-allowed;"
+        : "flex:1; background:#222; border:1px solid var(--sub-gold); color:var(--sub-gold); font-size:0.8rem; padding:12px;";
+    const orderButtonIcon = isProd ? "fa-lock" : "fa-gem";
+    const orderButtonText = isProd ? "ORDERING (SOON)" : "ORDER PREMIUM CARD";
+
     const content = `
         <div id="level-up-container" class="level-up-anim" style="text-align:center;">
             
@@ -216,8 +223,8 @@ export async function showLevelUpCard(playerName, newElo) {
                     <div style="font-family:'Resolve'; font-size:0.6rem; letter-spacing:1px; margin-top:5px; color:#444;">UNLOCK 'GOLD' BORDER</div>
                 </button>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-red" style="flex:1; background:#222; border:1px solid var(--sub-gold); color:var(--sub-gold); font-size:0.8rem; padding:12px;" data-action="order-physical-card">
-                        <i class="fa-solid fa-gem"></i> ORDER PREMIUM CARD
+                    <button class="btn-red" style="${orderButtonStyle}" data-action="order-physical-card">
+                        <i class="fa-solid ${orderButtonIcon}"></i> ${orderButtonText}
                     </button>
                     <button class="btn-red" style="flex:1; background:#111; color:#666; font-size:0.8rem; padding:12px; border:1px solid #333;" onclick="closeModal('level-up-modal')">
                         CLOSE

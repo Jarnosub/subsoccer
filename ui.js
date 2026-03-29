@@ -67,6 +67,7 @@ export function showPage(p) {
     }
     state.currentPage = p;
 }
+window.showPage = showPage;
 
 /**
  * Manages authentication page states and app content visibility.
@@ -872,8 +873,13 @@ export function setupUIListeners() {
         }
 
         // 15. Order Physical Card
-        const orderBtn = e.target.closest('[data-action="order-physical-card"]');
-        if (orderBtn) {
+        const orderCardBtn = e.target.closest('[data-action="order-physical-card"]');
+        if (orderCardBtn) {
+            const isProd = window.location.hostname === 'subsoccer.pro' || window.location.hostname === 'www.subsoccer.pro';
+            if (isProd) {
+                showNotification('Physical card ordering opens soon!', 'info');
+                return;
+            }
             showPhysicalOrderDialog();
             return;
         }

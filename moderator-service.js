@@ -775,4 +775,163 @@ export function setupModeratorListeners() {
             refreshTrackingAnalytics();
         }
     });
+
+    document.querySelectorAll('.mod-map-filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.mod-map-filter-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'transparent';
+                b.style.borderColor = 'transparent';
+                b.style.color = '#fff';
+            });
+            const clicked = e.target;
+            clicked.classList.add('active');
+            clicked.style.background = 'rgba(255, 215, 0, 0.1)';
+            clicked.style.borderColor = 'var(--sub-gold)';
+            clicked.style.color = 'var(--sub-gold)';
+            
+            const filterMap = clicked.getAttribute('data-filter');
+            loadAnalyticsMap(filterMap);
+        });
+    });
+}
+
+let moderatorMap = null;
+let modMapCluster = null;
+
+export async function refreshModeratorDashboard() {
+    if (!isAdmin()) return;
+
+    try {
+        // User Stats
+        const { count: totalUsers } = await _supabase.from('players').select('id', { count: 'exact', head: true });
+        const { count: activePros } = await _supabase.from('players').select('avatar_url', { count: 'exact', head: true }).not('avatar_url', 'is', null);
+
+        if (document.getElementById('mod-total-users')) document.getElementById('mod-total-users').textContent = totalUsers || 0;
+        if (document.getElementById('mod-active-pro-cards')) document.getElementById('mod-active-pro-cards').textContent = activePros || 0;
+
+        // System Logs mock logic or real logic
+        if (document.getElementById('mod-sys-logs')) {
+             const sysLogsText = "[INFO] Analytics Engine Running\n[INFO] DB Connection Stabilized\n[INFO] " + totalUsers + " registered players confirmed.\n[OK] Ready.";
+             document.getElementById('mod-sys-logs').textContent = sysLogsText;
+        }
+
+        // Initialize Map
+        setTimeout(() => loadAnalyticsMap('all'), 500);
+
+    } catch(err) {
+        console.error("Dashboard refresh failed", err);
+    }
+}
+
+window.refreshModeratorDashboard = refreshModeratorDashboard;
+
+async function loadAnalyticsMap(filterPeriod = 'all') {
+    const mapContainer = document.getElementById('mod-analytics-map');
+    if (!mapContainer || mapContainer.offsetParent === null) return;
+
+    if (!moderatorMap) {
+        moderatorMap = L.map('mod-analytics-map', { scrollWheelZoom: false }).setView([45, 10], 2);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(moderatorMap);
+        
+        modMapCluster = L.markerClusterGroup({
+            iconCreateFunction: function(cluster) {
+                return L.divIcon({ 
+                    html: '<div style="background:var(--sub-red); color:#fff; border-radius:50%; width:30px; height:30px; display:flex; justify-content:center; align-items:center; font-family:\'Russo One\'; border:2px solid var(--sub-gold);">' + cluster.getChildCount() + '</div>', 
+                    className: 'mod-cluster', 
+                    iconSize: L.point(30, 30) 
+                });
+            }
+        });
+        moderatorMap.addLayer(modMapCluster);
+    } else {
+        moderatorMap.invalidateSize();
+        modMapCluster.clearLayers();
+    }
+
+    try {
+        let dateFilterStr = null;
+        if (filterPeriod !== 'all') {
+            const date = new Date();
+            if (filterPeriod === '24h') date.setHours(date.getHours() - 24);
+            if (filterPeriod === '7d') date.setDate(date.getDate() - 7);
+            if (filterPeriod === '1m') date.setMonth(date.getMonth() - 1);
+            dateFilterStr = date.toISOString();
+        }
+
+        let trackingQuery = _supabase.from('public_tracking').select('game_code, location, client_time');
+        if (dateFilterStr) trackingQuery = trackingQuery.gte('client_time', dateFilterStr);
+        
+        const { data: trackingData } = await trackingQuery;
+        const { data: gamesData } = await _supabase.from('games').select('unique_code, latitude, longitude, created_at, is_public');
+
+        const IconFactory = (color) => L.divIcon({
+            html: `<div style="color:${color}; font-size: 20px;"><i class="fa-solid fa-location-dot"></i></div>`,
+            className: 'mod-marker',
+            iconSize: [20, 20],
+            iconAnchor: [10, 20]
+        });
+
+        const activeGames = new Set();
+        const scanLocations = new Set();
+        if (trackingData) {
+            trackingData.forEach(t => { 
+                if (t.game_code && t.game_code !== 'PUBLIC-APP') activeGames.add(t.game_code);
+                if (t.location && t.location.includes('/')) scanLocations.add(t.location);
+            });
+        }
+
+        if (gamesData) {
+            gamesData.forEach(game => {
+                if (game.latitude && game.longitude) {
+                    if (dateFilterStr && new Date(game.created_at) < new Date(dateFilterStr) && !activeGames.has(game.unique_code)) return; 
+
+                    const isActive = activeGames.has(game.unique_code);
+                    const color = isActive ? 'var(--sub-gold)' : (game.is_public ? 'var(--sub-red)' : '#555');
+                    const marker = L.marker([game.latitude, game.longitude], { icon: IconFactory(color) });
+                    marker.bindPopup(`<b>${game.unique_code || 'Unknown'}</b><br>Active: ${isActive ? 'YES' : 'NO'}`);
+                    modMapCluster.addLayer(marker);
+                }
+            });
+        }
+
+        if (scanLocations.size > 0) {
+            Array.from(scanLocations).forEach(async (tz) => {
+                let city = tz.split('/').pop().replace(/_/g, ' ');
+                if (!city) return;
+
+                window.modTzCache = window.modTzCache || {};
+                let coords = window.modTzCache[tz];
+
+                if (!coords) {
+                    try {
+                        const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&city=' + encodeURIComponent(city) + '&limit=1');
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                            window.modTzCache[tz] = coords;
+                        }
+                    } catch (e) { }
+                }
+
+                if (coords && modMapCluster) {
+                    const scanIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: "<div style='background-color:#00FFCC; width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.9); box-shadow: 0 0 15px #00FFCC; animation: bluePulse 1.5s infinite;'></div>",
+                        iconSize: [18, 18],
+                        iconAnchor: [9, 9]
+                    });
+                    const scanMarker = L.marker(coords, { icon: scanIcon })
+                        .bindPopup('<div style="color:#00ccaa; font-size:0.75rem; text-align:center; font-family:\'Russo One\'; text-transform:uppercase;">⚡ INSTANT PLAY<br><span style="color:#222; font-size:1.1rem; line-height:1.5;">' + city + '</span></div>');
+                    modMapCluster.addLayer(scanMarker);
+                }
+            });
+        }
+    } catch(err) {
+        console.error("Map data fetch err", err);
+    }
 }

@@ -125,6 +125,14 @@ export async function startQuickMatch() {
     document.querySelectorAll('input').forEach(input => input.blur());
     state.quickP1 = document.getElementById('p1-quick-search').value.trim().toUpperCase();
     state.quickP2 = document.getElementById('p2-quick-search').value.trim().toUpperCase();
+    
+    // Friction-free instant play fallback
+    if (!state.quickP1 && !state.quickP2) {
+        const uType = (state.user && state.user.id !== 'guest') ? 'registered' : 'guest';
+        window.location.href = `./instant-play.html?mode=casual&user_type=${uType}`;
+        return;
+    }
+
     if (!state.quickP1 || !state.quickP2) return showNotification("Select both players!", "error");
     if (state.quickP1 === state.quickP2) return showNotification("Select different players!", "error");
 

@@ -692,11 +692,7 @@
                         <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
                     </button>
                     
-                    <button id="btn-mod-view-users" style="width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid #1a1a1a; padding:16px 20px; color:#999; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#161616'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#999';">
-                        <i class="fa-solid fa-users" style="width:20px; text-align:center; color:var(--sub-gold); opacity:0.7;"></i>
-                        <span>User Directory Analysis</span>
-                        <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
-                    </button>
+
 
                     <button id="btn-mod-batch-qr" style="width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid #1a1a1a; padding:16px 20px; color:#999; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#161616'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#999';" onclick="window.open('qr-batch-exporter.html', '_blank')">
                         <i class="fa-solid fa-qrcode" style="width:20px; text-align:center; color:var(--sub-gold); opacity:0.7;"></i>
@@ -716,9 +712,9 @@
                         <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
                     </button>
 
-                    <button id="btn-mod-download-logs" style="width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid #1a1a1a; padding:16px 20px; color:#999; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#161616'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#999';">
-                        <i class="fa-solid fa-file-export" style="width:20px; text-align:center; color:var(--sub-gold); opacity:0.7;"></i>
-                        <span>System Performance Logs</span>
+                    <button id="btn-open-analytics-suite" style="width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid #1a1a1a; padding:16px 20px; color:#999; font-family:'Open Sans', sans-serif; font-size:0.85rem; font-weight: 500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:15px;" onmouseover="this.style.background='#161616'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#999';" onclick="window.showPage('analytics'); if(window.refreshModeratorDashboard) window.refreshModeratorDashboard();">
+                        <i class="fa-solid fa-chart-pie" style="width:20px; text-align:center; color:var(--sub-gold); opacity:0.7;"></i>
+                        <span>Analytics Engine</span>
                         <i class="fa-solid fa-chevron-right" style="margin-left:auto; font-size:0.7rem; color:#333;"></i>
                     </button>
 
@@ -729,7 +725,17 @@
                     </button>
                 </div>
 
-                <div style="margin-top: 30px; border-top: 1px solid #222; padding-top: 20px;">
+            </div>
+        </div>
+
+        <div id="section-analytics" class="section">
+            <div class="container">
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:25px;">
+                    <button class="btn-red" style="padding:8px 15px; background:transparent; border:1px solid #444; color:#fff; font-size:0.8rem;" onclick="window.showPage('moderator')"><i class="fa-solid fa-arrow-left"></i> BACK</button>
+                    <h3 style="font-family:'Resolve', sans-serif; text-transform:uppercase; color:#ffffff; letter-spacing:2px; margin:0;">ANALYTICS ENGINE</h3>
+                </div>
+
+                <div style="margin-top: 0; border-top: 1px solid #222; padding-top: 20px;">
                     <div onclick="var content = this.nextElementSibling; var icon = this.querySelector('.fa-chevron-down'); var isHidden = content.style.display === 'none'; content.style.display = isHidden ? 'block' : 'none'; icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';"
                         style="font-family: 'SubsoccerLogo', sans-serif; font-size: 0.85rem; color: #ffffff; margin-bottom: 15px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -801,6 +807,74 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <!-- USER DIRECTORY ANALYTICS PANEL -->
+                <div style="margin-top: 30px; border-top: 1px solid #222; padding-top: 20px;">
+                    <div onclick="var content = this.nextElementSibling; var icon = this.querySelector('.fa-chevron-down'); var isHidden = content.style.display === 'none'; content.style.display = isHidden ? 'block' : 'none'; icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';"
+                        style="font-family: 'SubsoccerLogo', sans-serif; font-size: 0.85rem; color: #ffffff; margin-bottom: 15px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-users" style="color: var(--sub-gold); font-size: 1rem;"></i>
+                            USER DIRECTORY ANALYTICS
+                        </div>
+                        <i class="fa-solid fa-chevron-down"
+                            style="color: #666; transition: transform 0.3s; transform: rotate(0deg);"></i>
+                    </div>
+                    <div style="display: none;">
+                        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+                            <div style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
+                                <div style="font-size:0.7rem; color:#888;">Total Registered Players</div>
+                                <div id="mod-total-users" style="font-family:'Jockey One', sans-serif; font-size:2rem; color:#fff;">-</div>
+                            </div>
+                            <div style="background: #111; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #222;">
+                                <div style="font-size:0.7rem; color:#888;">Active Pro Cards</div>
+                                <div id="mod-active-pro-cards" style="font-family:'Jockey One', sans-serif; font-size:2rem; color:var(--sub-gold);">-</div>
+                            </div>
+                        </div>
+                        <button id="btn-mod-view-users" class="btn-red" style="width:100%; padding:10px; font-size:0.8rem; border-radius:4px;"><i class="fa-solid fa-users"></i> MANAGE USER DIRECTORY</button>
+                    </div>
+                </div>
+
+                <!-- SYSTEM PERFORMANCE LOGS PANEL -->
+                <div style="margin-top: 30px; border-top: 1px solid #222; padding-top: 20px;">
+                    <div onclick="var content = this.nextElementSibling; var icon = this.querySelector('.fa-chevron-down'); var isHidden = content.style.display === 'none'; content.style.display = isHidden ? 'block' : 'none'; icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';"
+                        style="font-family: 'SubsoccerLogo', sans-serif; font-size: 0.85rem; color: #ffffff; margin-bottom: 15px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-server" style="color: var(--sub-gold); font-size: 1rem;"></i>
+                            SYSTEM PERFORMANCE LOGS
+                        </div>
+                        <i class="fa-solid fa-chevron-down"
+                            style="color: #666; transition: transform 0.3s; transform: rotate(0deg);"></i>
+                    </div>
+                    <div style="display: none;">
+                        <div style="background: #111; border: 1px solid #222; border-radius: 4px; padding: 15px; margin-bottom: 10px;">
+                            <pre id="mod-sys-logs" style="font-family: monospace; font-size: 0.75rem; color: #0f0; margin: 0; white-space: pre-wrap;">Awaiting log data...</pre>
+                            <button class="btn-red" style="padding: 6px 12px; font-size: 0.75rem; margin-top: 10px; border: 1px solid #444; background: transparent; color: #888;" onclick="if(window.refreshModeratorDashboard) window.refreshModeratorDashboard();">Refresh Terminal</button>
+                        </div>
+                        <button id="btn-mod-download-logs" class="btn-red" style="width:100%; padding:10px; font-size:0.8rem; border-radius:4px;"><i class="fa-solid fa-file-export"></i> EXPORT MATCH LOGS (CSV)</button>
+                    </div>
+                </div>
+
+                <!-- GLOBAL MAP ANALYTICS PANEL -->
+                <div style="margin-top: 30px; border-top: 1px solid #222; padding-top: 20px;">
+                    <div onclick="var content = this.nextElementSibling; var icon = this.querySelector('.fa-chevron-down'); var isHidden = content.style.display === 'none'; content.style.display = isHidden ? 'block' : 'none'; icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';"
+                        style="font-family: 'SubsoccerLogo', sans-serif; font-size: 0.85rem; color: #ffffff; margin-bottom: 15px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-earth-europe" style="color: var(--sub-gold); font-size: 1rem;"></i>
+                            GLOBAL MAP ANALYTICS
+                        </div>
+                        <i class="fa-solid fa-chevron-down"
+                            style="color: #666; transition: transform 0.3s; transform: rotate(0deg);"></i>
+                    </div>
+                    <div style="display: none;">
+                        <div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;" id="mod-map-filters-container">
+                            <button class="mod-map-filter-btn map-filter-btn" data-filter="24h" style="flex:1;">24H</button>
+                            <button class="mod-map-filter-btn map-filter-btn" data-filter="7d" style="flex:1;">7 DAYS</button>
+                            <button class="mod-map-filter-btn map-filter-btn" data-filter="1m" style="flex:1;">1 MONTH</button>
+                            <button class="mod-map-filter-btn map-filter-btn active" data-filter="all" style="flex:1; background:rgba(255, 215, 0, 0.1); border-color:var(--sub-gold); color:var(--sub-gold);">ALL</button>
+                        </div>
+                        <div id="mod-analytics-map" style="width: 100%; height: 350px; background: #222; border-radius: 8px; position: relative; z-index: 1;"></div>
                     </div>
                 </div>
             </div>
@@ -973,12 +1047,12 @@
 
                             <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:25px;">
                                 <div style="position:relative;">
-                                    <input type="text" id="p1-quick-search" placeholder="Select Home Player..."
+                                    <input type="text" id="p1-quick-search" placeholder="HOME PLAYER"
                                         style="text-align:center; padding-left:15px; margin-bottom:0px;">
                                     <div id="p1-results" class="quick-results"></div>
                                 </div>
                                 <div style="position:relative;">
-                                    <input type="text" id="p2-quick-search" placeholder="Select Away Player..."
+                                    <input type="text" id="p2-quick-search" placeholder="AWAY PLAYER"
                                         style="text-align:center; padding-left:15px; margin-bottom:0px;">
                                     <div id="p2-results" class="quick-results"></div>
                                 </div>
