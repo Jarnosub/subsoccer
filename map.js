@@ -101,11 +101,12 @@ export async function fetchPublicGamesMap() {
         const { data: qGames, error } = await _supabase
             .from('games')
             .select('*')
-            .or(`is_public.eq.true,owner_id.eq.${state.user.id}`);
+            .or(`is_public.eq.true,owner_id.eq.${state.user.id}`)
+            .limit(50000);
         fetchedGames = qGames || [];
     } else {
         // Guest only sees public games
-        const { data: qGames } = await _supabase.from('games').select('*').eq('is_public', true);
+        const { data: qGames } = await _supabase.from('games').select('*').eq('is_public', true).limit(50000);
         fetchedGames = qGames || [];
     }
 
@@ -129,9 +130,9 @@ export async function fetchPublicGamesMap() {
     try {
         const [matchesReq, trackingReq] = await Promise.all([
             // Changed from select('game_id') to select('id') to avoid 400 Bad Request since matches table lacks game_id
-            _supabase.from('matches').select('id, tournament_id').gte('created_at', todayIso),
+            _supabase.from('matches').select('id, tournament_id').gte('created_at', todayIso).limit(50000),
             // The public_tracking table actually uses client_time, not created_at
-            _supabase.from('public_tracking').select('game_code, event_type, location').gte('client_time', todayIso)
+            _supabase.from('public_tracking').select('game_code, event_type, location').gte('client_time', todayIso).limit(50000)
         ]);
 
         if (matchesReq.data) {
