@@ -583,9 +583,11 @@ export async function refreshTrackingAnalytics() {
         let codeCounts = {};
         let html = '';
 
+        // Hae oikeat kokonaismäärät kyselyillä (koska limit 500 leikkaa vanhat data-pisteet ja aiheuttaa määrien putoamista)
+        const { count: totalOpens } = await _supabase.from('public_tracking').select('id', { count: 'exact', head: true }).eq('event_type', 'app_opened');
+        const { count: totalFinished } = await _supabase.from('public_tracking').select('id', { count: 'exact', head: true }).eq('event_type', 'game_finished');
+
         events.forEach(ev => {
-            if (ev.event_type === 'app_opened') opens++;
-            if (ev.event_type === 'game_finished') finished++;
 
             const code = ev.game_code || 'Unknown';
             codeCounts[code] = (codeCounts[code] || 0) + 1;
@@ -610,8 +612,8 @@ export async function refreshTrackingAnalytics() {
         });
 
         tbody.innerHTML = html;
-        document.getElementById('mod-total-opens').textContent = opens;
-        document.getElementById('mod-total-finished').textContent = finished;
+        document.getElementById('mod-total-opens').textContent = totalOpens || 0;
+        document.getElementById('mod-total-finished').textContent = totalFinished || 0;
 
         let topCode = '-';
         let maxCount = 0;
