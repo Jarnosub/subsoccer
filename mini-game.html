@@ -394,186 +394,81 @@
         }
 
     
-        /* Scoreboard Overlay Styles (Imported from Instant-Play) */
+        /* Scoreboard Top Compact UI Styles */
         .scoreboard {
-            display: flex;
+            position: absolute;
+            top: 60px;
+            left: 0;
             width: 100%;
-            height: 100%;
-            justify-content: space-between;
-        }
-
-        .player-side {
-            width: 50%;
-            height: 100%;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            background: rgba(0,0,0,0.4);
-        }
-
-        .center-divider {
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
-            box-shadow: 0 0 20px var(--sub-gold);
-        }
-
-        .score {
-            font-size: 15rem;
-            font-family: 'SubsoccerLogo', sans-serif;
-            color: rgba(255, 255, 255, 0.4);
-            line-height: 1;
-            margin: 0;
-            text-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0 40px;
             pointer-events: none;
-        }
-
-        .goals-visual {
-            font-size: 3rem;
-            color: rgba(255, 255, 255, 0.4);
-            letter-spacing: 15px;
-            margin-top: 20px;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s;
-            line-height: 1;
-        }
-
-        .player-label {
-            position: absolute;
-            top: 30px;
-            font-family: 'Russo One', sans-serif;
-            font-size: 2rem;
-            color: rgba(255, 255, 255, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            pointer-events: none;
-        }
-
-        .goal-flash {
-            animation: goalFlash 0.5s ease-in-out;
-        }
-        @keyframes goalFlash {
-            0% { background: rgba(0,255,204,0.1); }
-            50% { background: rgba(0,255,204,0.6); }
-            100% { background: rgba(0,0,0,0.4); }
-        }
-
-        @media (orientation: portrait) {
-            .scoreboard { flex-direction: column; }
-            .player-side { width: 100%; height: 50%; }
-            .center-divider { width: 100%; height: 2px; background: linear-gradient(to right, transparent, var(--sub-gold), transparent); }
-            .score { font-size: 8rem; margin-top: 30px; }
-            .goals-visual { margin-top: 10px; font-size: 2rem; }
-            .player-label { top: 10px; font-size: 1.5rem; }
-            #flick-scoreboard-container { padding-top: 80px; }
-        }
-
-        #turn-announcement {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-            font-family: 'SubsoccerLogo', sans-serif;
-            font-size: 4rem;
-            color: var(--sub-gold);
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
-            text-align: center;
-            opacity: 0;
-            z-index: 400;
-            pointer-events: none;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-        }
-        #turn-announcement.show {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
-        #save-hitbox {
-            position: absolute;
-            top: 20%; left: 0;
-            width: 100%; height: 80%;
             z-index: 100;
-            pointer-events: none;
-        }
-
-    
-        /* Scoreboard Overlay Styles (Imported from Instant-Play) */
-        .scoreboard {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            justify-content: space-between;
         }
 
         .player-side {
-            width: 50%;
-            height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            position: relative;
-            background: rgba(0,0,0,0.4);
+            background: transparent !important;
+            width: auto;
         }
 
         .center-divider {
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
-            box-shadow: 0 0 20px var(--sub-gold);
+            display: none;
         }
 
         .score {
-            font-size: 15rem;
-            font-family: 'SubsoccerLogo', sans-serif;
-            color: rgba(255, 255, 255, 0.4);
+            font-size: 8rem;
+            font-family: 'Subsoccer', 'Russo One', sans-serif;
+            color: #fff;
             line-height: 1;
             margin: 0;
-            text-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255,215,0,0.3);
             pointer-events: none;
         }
 
         .goals-visual {
-            font-size: 3rem;
-            color: rgba(255, 255, 255, 0.4);
-            letter-spacing: 15px;
-            margin-top: 20px;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s;
-            line-height: 1;
+            font-size: 2rem;
+            color: #fff;
+            letter-spacing: 8px;
+            margin-top: 5px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
         }
 
         .player-label {
-            position: absolute;
-            top: 30px;
+            position: static;
             font-family: 'Russo One', sans-serif;
-            font-size: 2rem;
-            color: rgba(255, 255, 255, 0.5);
+            font-size: 1.5rem;
+            color: var(--sub-gold, #FFD700);
             text-transform: uppercase;
-            letter-spacing: 5px;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
             pointer-events: none;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.8);
+        }
+        
+        .player-right .player-label {
+            color: var(--sub-red, #E30613);
         }
 
         .goal-flash {
             animation: goalFlash 0.5s ease-in-out;
         }
+        
         @keyframes goalFlash {
-            0% { background: rgba(0,255,204,0.1); }
-            50% { background: rgba(0,255,204,0.6); }
-            100% { background: rgba(0,0,0,0.4); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
         }
 
         @media (orientation: portrait) {
-            .scoreboard { flex-direction: column; }
-            .player-side { width: 100%; height: 50%; }
-            .center-divider { width: 100%; height: 2px; background: linear-gradient(to right, transparent, var(--sub-gold), transparent); }
-            .score { font-size: 8rem; margin-top: 30px; }
-            .goals-visual { margin-top: 10px; font-size: 2rem; }
-            .player-label { top: 10px; font-size: 1.5rem; }
-            #flick-scoreboard-container { padding-top: 80px; }
+            .scoreboard { top: 70px; padding: 0 20px; flex-direction: row; }
+            .score { font-size: 4rem; margin-top: 5px; }
+            .player-label { font-size: 1rem; }
+            .goals-visual { font-size: 1.5rem; letter-spacing: 5px; }
         }
 
         #turn-announcement {
@@ -590,6 +485,7 @@
             pointer-events: none;
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
         }
+        
         #turn-announcement.show {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
