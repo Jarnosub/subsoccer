@@ -11,7 +11,7 @@
             margin: 0;
             padding: 0;
             height: 100vh;
-            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.95)), url('card-stadium.jpg') no-repeat center center;
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.95)), url('bg-arena.jpg') no-repeat center center;
             background-size: cover;
             display: flex;
             align-items: center;
@@ -99,6 +99,35 @@
         i {
             font-size: 1.2rem;
         }
+
+        /* Scrolling Cities Marquee */
+        .marquee-container {
+            position: absolute;
+            bottom: 25px;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            z-index: 5;
+            opacity: 0.8;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #C5A059;
+            text-transform: uppercase;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 30s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
     </style>
 </head>
 <body>
@@ -117,6 +146,12 @@
         <p class="footnote">
             * No physical Subsoccer required for the Mini-Game. Earn points for the Global Leaderboard anywhere!
         </p>
+    </div>
+
+    <div class="marquee-container">
+        <div class="marquee-content">
+            TESTED & PLAYED IN: BERLIN • BOGOTA • BRUSSELS • CAIRO • CHICAGO • COPENHAGEN • DENVER • DUBAI • HELSINKI • HONG KONG • JAKARTA • LONDON • LOS ANGELES • MADRID • MALTA • MANILA • MONTEVIDEO • NEW YORK • OSLO • PARIS • PRAGUE • SHANGHAI • SINGAPORE • SOFIA • WARSAW •
+        </div>
     </div>
 
     <!-- Analytics Tracking Script -->
