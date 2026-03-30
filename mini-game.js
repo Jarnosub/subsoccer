@@ -364,7 +364,7 @@ function endTurn(nextTurn) {
     let isFlicking = false;
 
     function handleFlickStart(x, y) {
-        if (!window.isPlaying || window.useTrackman || currentTurn !== 'player' || matchOver) return;
+        if (!window.isPlaying || currentTurn !== 'player' || matchOver) return;
         flickStartX = x;
         flickStartY = y;
         flickCurrentX = x;
@@ -1380,15 +1380,7 @@ function endTurn(nextTurn) {
         
         if(startMenu) startMenu.style.display = 'none';
 
-        if (useCamera && window.visionEngine) {
-            if (!window.visionEngine.isScanning) {
-                const success = await window.visionEngine.startCamera();
-                if (!success) {
-                    alert("Camera access is required");
-                    if(startMenu) startMenu.style.display = 'flex';
-                    return;
-                }
-            }
+        }
             window.visionEngine.onTargetHit = window.handleGoalDetected;
             window.visionEngine.measureBallSpeed = true;
             window.visionEngine.showTargets = false; 
