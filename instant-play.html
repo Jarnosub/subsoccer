@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Subsoccer - Instant Play</title>
+    <title>Subsoccer GO - Instant Play</title>
+    <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -75,38 +76,40 @@
         }
 
         .player-left {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
+            background: linear-gradient(135deg, #243647 0%, #121e2b 100%); /* Deep Petrol Blue */
         }
 
         .player-right {
-            background: linear-gradient(135deg, #0a0a0a 0%, #0a0a1a 100%);
+            background: linear-gradient(135deg, var(--sub-red) 0%, #900000 100%); /* Subsoccer Red */
         }
 
         /* Player label */
         .player-label {
             font-family: 'Subsoccer', sans-serif;
-            font-size: 1.2rem;
-            color: #666;
+            font-size: 2rem;
+            color: #ffffff;
             position: absolute;
             top: 30px;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
 
         /* Score display */
         .score {
             font-family: 'Subsoccer', sans-serif;
-            font-size: 10rem;
-            color: var(--sub-gold);
-            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            font-size: clamp(10rem, 30vh, 20rem);
+            color: #ffffff;
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
             line-height: 1;
+            margin-top: clamp(30px, 8vh, 80px); /* Push the whole block downwards */
         }
 
         /* Goal visualization (○○○) */
         .goals-visual {
-            font-size: 2rem;
-            margin-top: 20px;
-            letter-spacing: 10px;
+            font-size: clamp(2rem, 5vh, 4rem);
+            margin-top: clamp(8px, 1.5vh, 16px); /* Very tight gap to the score */
+            letter-spacing: clamp(10px, 2vw, 20px);
         }
 
         /* Goal flash animation */
@@ -117,7 +120,7 @@
             }
 
             50% {
-                background: var(--sub-gold);
+                background: #ffffff;
                 transform: scale(1.05);
             }
 
@@ -135,7 +138,7 @@
             }
 
             50% {
-                background: var(--sub-gold);
+                background: #ffffff;
                 transform: rotate(180deg) scale(1.05);
             }
 
@@ -149,12 +152,12 @@
             animation: goalFlash 0.5s ease-in-out;
         }
 
-        /* Center divider - Golden gradient */
+        /* Center divider - Subsoccer style */
         .center-divider {
             width: 2px;
             height: 100%;
-            background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
-            box-shadow: 0 0 20px var(--sub-gold);
+            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.5), transparent);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         }
 
         /* New Control Bar Styles */
@@ -199,7 +202,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
+            display: none !important;
             gap: 15px;
             z-index: 1000;
             padding: 10px 20px;
@@ -217,9 +220,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 17, 21, 0.8);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.9)), url('card-stadium.jpg') no-repeat center center;
+            background-size: cover;
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -386,29 +388,29 @@
 
         @media (orientation: portrait) {
             .scoreboard {
-                flex-direction: column;
+                flex-direction: row;
             }
 
             .center-divider {
-                width: 100%;
-                height: 2px;
-                background: linear-gradient(to right, transparent, var(--sub-gold), transparent);
+                width: 2px;
+                height: 100%;
+                background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.5), transparent);
             }
 
             .score {
-                font-size: 7rem;
-                margin-top: 70px;
-                /* Drop the score significantly */
+                font-size: clamp(10rem, 15vw, 20rem);
+                margin-top: clamp(30px, 8vh, 80px);
             }
 
             .goals-visual {
-                margin-top: 40px;
-                /* Drop the goal circles further down */
+                font-size: clamp(2rem, 5vh, 4rem);
+                margin-top: clamp(8px, 1.5vh, 16px);
+                letter-spacing: clamp(5px, 2vw, 10px);
             }
 
             .player-label {
-                top: 45px !important;
-                /* Move label slightly up to sit nicely above the dropped score */
+                top: 30px !important;
+                font-size: clamp(1.5rem, 4vw, 2rem) !important;
             }
 
             .game-logo {
@@ -416,7 +418,6 @@
                 height: 30px !important;
             }
 
-            /* Pystyasennossa EI käännetä pelaajaa, vaan pidetään numerot luettavissa (päällekkäin) */
             .player-left {
                 transform: none;
             }
@@ -428,9 +429,10 @@
             #table-id-display {
                 top: 50% !important;
                 left: 50% !important;
+                bottom: auto !important; /* This prevents the previous stretch bug */
                 transform: translate(-50%, -50%) !important;
-                background: #000 !important;
-                border: 1px solid #333 !important;
+                font-size: 0.7rem !important;
+                padding: 4px 10px !important;
                 z-index: 50 !important;
             }
         }
@@ -464,31 +466,27 @@
             }
         }
 
-        @media (orientation: landscape) {
 
-            .pro-controls-bar,
-            .pro-control-btn.top-right {
-                display: none !important;
-            }
-        }
 
         /* Table ID display */
         #table-id-display {
-            position: absolute;
-            top: 80px;
-            /* Moved down to avoid overlapping the logo */
+            display: none !important;
+            position: fixed;
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
-            font-family: 'Open Sans', sans-serif;
-            font-size: 0.8rem;
-            color: #444;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.75rem;
+            color: #fff;
             z-index: 10;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            background: rgba(0, 0, 0, 0.5);
+            letter-spacing: 2px;
+            background: #1a1a1a;
+            border: 1px solid #222;
             padding: 4px 10px;
-            border-radius: 10px;
+            border-radius: 4px;
             display: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             /* Hidden by default */
         }
 
@@ -577,20 +575,28 @@
             z-index: 300;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
             text-align: center;
+            overflow-y: auto;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            justify-content: flex-start;
+        }
+        @media (min-height: 700px) {
+            .rules-overlay {
+                justify-content: center;
+                padding: 20px;
+            }
         }
 
         .rules-header {
             font-family: 'Subsoccer', sans-serif;
             font-size: 2.5rem;
-            color: var(--sub-gold);
+            color: #ffffff;
             margin-bottom: 30px;
             text-transform: uppercase;
             letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
         }
 
         .rules-list {
@@ -614,7 +620,7 @@
         }
 
         .rule-number {
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'Resolve', sans-serif;
             font-size: 1.5rem;
             color: #666;
             min-width: 30px;
@@ -627,7 +633,7 @@
         }
 
         .rule-title {
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'Resolve', sans-serif;
             font-size: 1.1rem;
             color: var(--sub-gold);
             margin-bottom: 2px;
@@ -703,7 +709,7 @@
             </div>
         </div>
         <button onclick="enterFullscreenGame()"
-            style="background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; cursor: pointer; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4);">
+            style="background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%); color: white; border: none; padding: 15px 30px; border-radius: var(--sub-radius); font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; cursor: pointer; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4);">
             I UNDERSTAND - PLAY
         </button>
         <a href="./?page=tournament&tab=tournament"
@@ -712,8 +718,29 @@
         </a>
     </div>
 
+    <!-- Hook Screen Overlay (Shown if ?mini-game parameter is present) -->
+    <div id="hook-screen-overlay" class="rules-overlay" style="display: none; background: rgba(10,10,10,0.98); z-index: 1001; flex-direction: column; align-items: center; justify-content: center;" onclick="event.stopPropagation()">
+        <div style="text-align:center; max-width: 600px; padding: 20px;">
+            <img src="subsoccer_logo.svg" style="height: 60px; margin-bottom: 50px;">
+            
+            <div style="display:flex; flex-direction: column; gap: 15px; width: 100%;">
+                <button onclick="document.getElementById('hook-screen-overlay').style.display='none'; document.getElementById('actual-rules-overlay').style.display='flex';" style="width: 100%; border-radius: 8px; font-family:'Resolve', sans-serif; background: linear-gradient(135deg, var(--sub-red), #8a0000); color: #fff; font-size: 1.1rem; padding: 15px; box-shadow: 0 5px 15px rgba(227, 6, 19, 0.4); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s;">
+                    <i class="fa-solid fa-camera"></i> I HAVE A SUBSOCCER
+                </button>
+
+                <button onclick="window.location.href='mini-game.html'" style="width: 100%; border-radius: 8px; font-family:'Resolve', sans-serif; background: #333; color: #fff; font-size: 1.1rem; padding: 15px; border: none; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s;">
+                    <i class="fa-solid fa-gamepad"></i> PLAY MINIGAME & WIN ELO
+                </button>
+            </div>
+            
+            <p style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #888; margin-top: 30px;">
+                * No physical Subsoccer required for the Mini-Game. Earn points for the Global Leaderboard.
+            </p>
+        </div>
+    </div>
+
     <!-- Table ID Display -->
-    <div id="table-id-display" class="table-id">TABLE: <span id="table-id-value"></span></div>
+    <div id="table-id-display" class="table-id">GAME: <span id="table-id-value"></span></div>
 
     <!-- Main scoreboard -->
     <div class="scoreboard">
@@ -900,7 +927,7 @@
                 <i id="winner-card-icon" class="fa-solid fa-lock w-card-icon"></i>
                 <h3 id="winner-card-title" class="w-card-title">PRO CARD UNLOCKED</h3>
                 <p id="winner-card-desc" class="w-card-desc">You are currently playing as a Guest. Claim your official
-                    Subsoccer ELO ranking before you leave the table.</p>
+                    Subsoccer ELO ranking before you leave the game.</p>
             </div>
 
             <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
@@ -935,12 +962,26 @@
                 const partner = urlParams.get('partner') || 'social';
                 const gId = urlParams.get('sn') || urlParams.get('game_id') || 'PUBLIC-APP';
 
+                const userLoc = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+                const lang = navigator.language || navigator.userLanguage || 'Unknown';
+                const isReturning = !!localStorage.getItem('subsoccer-user');
+                
+                let duration = null;
+                if (!window.__trackingStartTime) window.__trackingStartTime = Date.now();
+                if (eventType === 'game_finished') {
+                    duration = Math.floor((Date.now() - window.__trackingStartTime) / 1000); // seconds
+                }
+
                 await _supabase.from('public_tracking').insert({
                     event_type: eventType,
                     game_code: gId.toUpperCase(),
                     match_score: matchScore,
                     source_partner: partner,
-                    user_agent: navigator.userAgent
+                    user_agent: navigator.userAgent,
+                    location: userLoc,
+                    is_returning: isReturning,
+                    browser_lang: lang,
+                    session_duration: duration
                 });
             } catch (err) {
                 console.warn("Tracking error:", err);
@@ -1127,32 +1168,12 @@
 
         // Enter Fullscreen and Start
         window.enterFullscreenGame = function () {
-            const elem = document.documentElement;
-
             // Hide overlay immediately to ensure game starts
             document.getElementById('actual-rules-overlay').style.display = 'none';
 
             // Scroll to hide address bar (iOS hack)
             window.scrollTo(0, 1);
 
-            // Check if we should skip fullscreen
-            const urlParams = new URLSearchParams(window.location.search);
-            const skipFullscreen = urlParams.get('nofullscreen') === 'true' || urlParams.get('partner') === 'costco';
-
-            // Try to request fullscreen
-            if (!skipFullscreen) {
-                try {
-                    if (elem.requestFullscreen) {
-                        elem.requestFullscreen().catch(err => console.log(err));
-                    } else if (elem.webkitRequestFullscreen) { /* Safari */
-                        elem.webkitRequestFullscreen();
-                    } else if (elem.msRequestFullscreen) { /* IE11 */
-                        elem.msRequestFullscreen();
-                    }
-                } catch (e) {
-                    console.log('Fullscreen not supported');
-                }
-            }
 
             // Skip auto-starting microphone to avoid immediate browser permission prompt
             // Let the user start it manually via the microphone button
@@ -1544,14 +1565,11 @@
         }
 
         function startLasers() {
-            lasersCanvas.style.display = 'block';
-            resizeCanvas();
-            updateLasers();
+            // Animating lasers removed as per new theme requirement (using stadium background instead)
         }
 
         function stopLasers() {
-            lasersCanvas.style.display = 'none';
-            if (animationId) cancelAnimationFrame(animationId);
+            // No operation needed
         }
 
         // Expose functions to window for HTML event handlers
@@ -1565,6 +1583,15 @@
         window.claimVictory = claimVictory;
         window.shareTvLink = shareTvLink;
         window.shareVipLink = shareVipLink;
+        
+        // Show hook screen if ?mini-game is in the URL
+        if (window.location.search.includes('mini-game')) {
+            const overlay = document.getElementById('actual-rules-overlay');
+            if (overlay) overlay.style.display = 'none';
+            
+            const hookOverlay = document.getElementById('hook-screen-overlay');
+            if (hookOverlay) hookOverlay.style.display = 'flex';
+        }
     </script>
 </body>
 
