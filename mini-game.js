@@ -84,6 +84,8 @@ function updateScoreboard() {
 
 function triggerVictory(playerWon) {
     window.isPlaying = false;
+    window.lastP1Score = playerGoals;
+    window.lastP2Score = oppGoals;
     if (window.soundEffects) window.soundEffects.fadeOutMusic(5);
 
     const vOverlay = document.getElementById('victory-overlay');
