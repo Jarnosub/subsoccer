@@ -1280,7 +1280,7 @@ function endTurn(nextTurn, isGoal = false) {
             turnDelayTimer--;
             if (turnDelayTimer <= 0) {
                 aiBallSpawned = true;
-                if (window.soundEffects) window.soundEffects.playHitSound();
+                if (window.soundEffects && window.soundEffects.playC64Sound) window.soundEffects.playC64Sound('hit');
                 
                 let tX = (Math.random() - 0.5) * canvas.width * 0.8; 
                 balls.push({
@@ -1326,14 +1326,14 @@ function endTurn(nextTurn, isGoal = false) {
             let count = 3;
             countdownValue.textContent = count;
             // Play a beep
-            if (window.soundEffects && window.soundEffects.playHitSound) window.soundEffects.playHitSound();
+            if (window.soundEffects && window.soundEffects.playC64Sound) window.soundEffects.playC64Sound('hit');
             
             if (countdownInterval) clearInterval(countdownInterval);
             countdownInterval = setInterval(() => {
                 count--;
                 if (count > 0) {
                     countdownValue.textContent = count;
-                    if (window.soundEffects && window.soundEffects.playHitSound) window.soundEffects.playHitSound();
+                    if (window.soundEffects && window.soundEffects.playC64Sound) window.soundEffects.playC64Sound('hit');
                 } else if (count === 0) {
                     countdownValue.textContent = "GO!";
                     // Play higher beep for GO!
