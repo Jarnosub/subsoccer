@@ -88,6 +88,20 @@ function triggerVictory(playerWon) {
     window.lastP2Score = oppGoals;
     if (window.soundEffects) window.soundEffects.fadeOutMusic(5);
 
+    // Track the finished game in public_tracking for the analytics dashboard
+    try {
+        if (window.parent && window.parent.supabaseClient) {
+            window.parent.supabaseClient.from('public_tracking').insert({
+                event_type: 'game_finished',
+                game_code: 'MINIGAME-QR',
+                match_score: `${playerGoals}-${oppGoals}`,
+                source_partner: 'promo-qr',
+                user_agent: navigator.userAgent,
+                browser_lang: navigator.language || 'Unknown'
+            }).then(() => console.log('Tracked minigame finish.'));
+        }
+    } catch(e) {}
+
     const vOverlay = document.getElementById('victory-overlay');
     const vName = document.getElementById('victory-player-name');
     
