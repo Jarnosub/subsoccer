@@ -353,7 +353,7 @@ function endTurn(nextTurn, isGoal = false) {
         shootVirtualBall(targetX, targetY, speedKmh);
     };
 
-    function shootVirtualBall(targetX, targetY, speedKmh, spin = 0) {
+    function shootVirtualBall(targetX, targetY, speedKmh, spin = 0, isAIBall = false) {
         // Shoot from bottom center of the screen
         let startX = 0;
         let startY = 300; 
@@ -381,10 +381,11 @@ function endTurn(nextTurn, isGoal = false) {
             radius: 70, // Increased base size so it's clearly visible in 3D distance
             active: true,
             spin: spin, // Add spin for curve effect
-            history: [] // for the ball trail
+            history: [], // for the ball trail
+            isAIBall: isAIBall
         });
 
-        document.body.style.background = 'rgba(0, 255, 204, 0.2)';
+        document.body.style.background = isAIBall ? 'rgba(255, 100, 100, 0.2)' : 'rgba(0, 255, 204, 0.2)';
         setTimeout(() => document.body.style.background = '', 100);
     }
 
@@ -1120,6 +1121,9 @@ function endTurn(nextTurn, isGoal = false) {
                     if (currentTurn === "player" && !b.isAIBall) {
                         showTurnAnnouncement("SAVED!");
                         endTurn('opponent', false);
+                    } else if (currentTurn === "opponent" && b.isAIBall) {
+                        showTurnAnnouncement("SAVED!");
+                        endTurn('player', false);
                     }
                 }
             }
@@ -1176,6 +1180,7 @@ function endTurn(nextTurn, isGoal = false) {
                            rightPlayer.classList.add('goal-flash');
                            setTimeout(() => rightPlayer.classList.remove('goal-flash'), 500);
                         }
+                        showTurnAnnouncement("OPPONENT SCORED!");
                         endTurn('player', true);
                     }
                 } else {
@@ -1194,18 +1199,8 @@ function endTurn(nextTurn, isGoal = false) {
             if (b.z > 1500) {
                 b.active = false;
             }
-            if (p.scale < 0 && !b.isAIBall) {
+            if (p.scale < 0 && b.active) {
                 b.active = false;
-            }
-            if (p.scale < 0 && b.isAIBall && b.active) {
-                b.active = false;
-                oppGoals++; updateScoreboard(); 
-                if(window.soundEffects) window.soundEffects.playGoalSound();
-                let rp = document.querySelector('.player-right');
-                if(rp) {
-                    rp.classList.add('goal-flash'); setTimeout(() => rp.classList.remove('goal-flash'), 500);
-                }
-                showTurnAnnouncement("OPPONENT SCORED!"); endTurn("player", true); 
             }
 
             // Draw Virtual Ball Graphic
@@ -1282,20 +1277,15 @@ function endTurn(nextTurn, isGoal = false) {
                 aiBallSpawned = true;
                 if (window.soundEffects && window.soundEffects.playC64Sound) window.soundEffects.playC64Sound('hit');
                 
-                let tX = (Math.random() - 0.5) * canvas.width * 0.8; 
-                balls.push({
-                    x: (Math.random() - 0.5) * goal.w * 0.5,
-                    y: goal.y,
-                    z: goal.z - 200,
-                    vx: tX / 40,
-                    vy: (300 - goal.y) / 40 - 0.5 * 0.8 * 40, 
-                    vz: -35, // Faster
-                    radius: 70,
-                    active: true,
-                    spin: (Math.random() - 0.5) * 3,
-                    history: [],
-                    isAIBall: true
-                });
+                // AI shoots towards the goal from our side!
+                let targetX = (Math.random() - 0.5) * goal.w * 0.9;
+                let targetY = goal.y + (Math.random() * goal.h * 0.9) - 50;
+                let speedKmh = 50 + Math.random() * 50;
+                let spin = (Math.random() - 0.5) * 1.5;
+                
+                goalie.direction = (targetX > 0) ? 1 : -1;
+                
+                shootVirtualBall(targetX, targetY, speedKmh, spin, true);
             }
         }
 
