@@ -805,90 +805,6 @@ function endTurn(nextTurn) {
                 }
             }
 
-                  // --- TURN MANAGER ---
-        if (currentTurn === "switch" && !matchOver) {
-            turnDelayTimer--;
-            if (turnDelayTimer <= 0) {
-                currentTurn = window.nextTurnTarget || "player";
-                aiBallSpawned = false;
-                if (currentTurn === "opponent") {
-                    showTurnAnnouncement("OPPONENT KICKS!");
-                    let sb = document.getElementById('save-hitbox');
-                    if(sb) sb.style.pointerEvents = "auto"; 
-                    turnDelayTimer = 80; 
-                } else {
-                    showTurnAnnouncement("YOUR TURN!");
-                    let sb = document.getElementById('save-hitbox');
-                    if(sb) sb.style.pointerEvents = "none";
-                }
-            }
-        }
-        
-        if (currentTurn === "opponent" && !matchOver && !aiBallSpawned) {
-            turnDelayTimer--;
-            if (turnDelayTimer <= 0) {
-                aiBallSpawned = true;
-                if (window.soundEffects) window.soundEffects.playHitSound();
-                
-                let tX = (Math.random() - 0.5) * canvas.width * 0.8; 
-                balls.push({
-                    x: (Math.random() - 0.5) * goal.w * 0.5,
-                    y: goal.y,
-                    z: goal.z - 200,
-                    vx: tX / 40,
-                    vy: (300 - goal.y) / 40 - 0.5 * 0.8 * 40, 
-                    vz: -35, // Faster
-                    radius: 70,
-                    active: true,
-                    spin: (Math.random() - 0.5) * 3,
-                    history: [],
-                    isAIBall: true
-                });
-            }
-        }
-
-              // --- TURN MANAGER ---
-        if (currentTurn === "switch" && !matchOver) {
-            turnDelayTimer--;
-            if (turnDelayTimer <= 0) {
-                currentTurn = window.nextTurnTarget || "player";
-                aiBallSpawned = false;
-                if (currentTurn === "opponent") {
-                    showTurnAnnouncement("OPPONENT KICKS!");
-                    let sb = document.getElementById('save-hitbox');
-                    if(sb) sb.style.pointerEvents = "auto"; 
-                    turnDelayTimer = 80; 
-                } else {
-                    showTurnAnnouncement("YOUR TURN!");
-                    let sb = document.getElementById('save-hitbox');
-                    if(sb) sb.style.pointerEvents = "none";
-                }
-            }
-        }
-        
-        if (currentTurn === "opponent" && !matchOver && !aiBallSpawned) {
-            turnDelayTimer--;
-            if (turnDelayTimer <= 0) {
-                aiBallSpawned = true;
-                if (window.soundEffects) window.soundEffects.playHitSound();
-                
-                let tX = (Math.random() - 0.5) * canvas.width * 0.8; 
-                balls.push({
-                    x: (Math.random() - 0.5) * goal.w * 0.5,
-                    y: goal.y,
-                    z: goal.z - 200,
-                    vx: tX / 40,
-                    vy: (300 - goal.y) / 40 - 0.5 * 0.8 * 40, 
-                    vz: -35, // Faster
-                    radius: 70,
-                    active: true,
-                    spin: (Math.random() - 0.5) * 3,
-                    history: [],
-                    isAIBall: true
-                });
-            }
-        }
-
         requestID = requestAnimationFrame(gameLoop);
             return;
         }
@@ -1309,6 +1225,48 @@ function endTurn(nextTurn) {
             speedDisplay.innerHTML = `${Math.round(window.visionEngine.currentBallSpeedKmh)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H</span>`;
         }
 
+        // --- TURN MANAGER ---
+        if (currentTurn === "switch" && !matchOver) {
+            turnDelayTimer--;
+            if (turnDelayTimer <= 0) {
+                currentTurn = window.nextTurnTarget || "player";
+                aiBallSpawned = false;
+                if (currentTurn === "opponent") {
+                    showTurnAnnouncement("OPPONENT KICKS!");
+                    let sb = document.getElementById('save-hitbox');
+                    if(sb) sb.style.pointerEvents = "auto"; 
+                    turnDelayTimer = 80; 
+                } else {
+                    showTurnAnnouncement("YOUR TURN!");
+                    let sb = document.getElementById('save-hitbox');
+                    if(sb) sb.style.pointerEvents = "none";
+                }
+            }
+        }
+        
+        if (currentTurn === "opponent" && !matchOver && !aiBallSpawned) {
+            turnDelayTimer--;
+            if (turnDelayTimer <= 0) {
+                aiBallSpawned = true;
+                if (window.soundEffects) window.soundEffects.playHitSound();
+                
+                let tX = (Math.random() - 0.5) * canvas.width * 0.8; 
+                balls.push({
+                    x: (Math.random() - 0.5) * goal.w * 0.5,
+                    y: goal.y,
+                    z: goal.z - 200,
+                    vx: tX / 40,
+                    vy: (300 - goal.y) / 40 - 0.5 * 0.8 * 40, 
+                    vz: -35, // Faster
+                    radius: 70,
+                    active: true,
+                    spin: (Math.random() - 0.5) * 3,
+                    history: [],
+                    isAIBall: true
+                });
+            }
+        }
+
         requestID = requestAnimationFrame(gameLoop);
         } catch(e) {
             ctx.fillStyle = 'red';
@@ -1380,35 +1338,20 @@ function endTurn(nextTurn) {
         
         if(startMenu) startMenu.style.display = 'none';
 
-        }
-            window.visionEngine.onTargetHit = window.handleGoalDetected;
-            window.visionEngine.measureBallSpeed = true;
-            window.visionEngine.showTargets = false; 
-        }
-
         window.isPlaying = true;
         
         if (window.soundEffects) window.soundEffects.playGameplayTheme();
         if (window.flickNetwork) window.flickNetwork.broadcastGameStart();
 
-               playerGoals = 0;
+        playerGoals = 0;
         oppGoals = 0;
         currentTurn = "player";
         turnDelayTimer = 0;
         aiBallSpawned = false;
         matchOver = false;
         isFlicking = false;
-        if(typeof updateScoreboard === 'function') updateScoreboard();
-        if(typeof showTurnAnnouncement === 'function') showTurnAnnouncement("YOUR TURN!");
-               playerGoals = 0;
-        oppGoals = 0;
-        currentTurn = "player";
-        turnDelayTimer = 0;
-        aiBallSpawned = false;
-        matchOver = false;
-        isFlicking = false;
-        if(typeof updateScoreboard === 'function') updateScoreboard();
-        if(typeof showTurnAnnouncement === 'function') showTurnAnnouncement("YOUR TURN!");
+        updateScoreboard();
+        showTurnAnnouncement("YOUR TURN!");
         balls = [];
         particles = [];
         spawnObstacles();
@@ -1423,30 +1366,6 @@ function endTurn(nextTurn) {
                 window.flickNetwork.requestGame(false);
             } else {
                 window.startCountdownAndGame(false);
-            }
-        });
-    }
-    if(btnStartTrackman) {
-        btnStartTrackman.addEventListener('click', async () => {
-            if(window.soundEffects) window.soundEffects.resume();
-            
-            // Request camera permissions immediately upon user gesture
-            if (window.visionEngine) {
-                startMenu.style.display = 'none'; // Temporary hide while waiting for permission
-                const success = await window.visionEngine.startCamera();
-                if (!success) {
-                    alert("Camera access is required to play Subsoccer AR.");
-                    startMenu.style.display = 'flex';
-                    return;
-                }
-                // Stop rendering target boxes in AR mode immediately
-                window.visionEngine.showTargets = false;
-            }
-
-            if (window.flickNetwork) {
-                window.flickNetwork.requestGame(true);
-            } else {
-                window.startCountdownAndGame(true);
             }
         });
     }
