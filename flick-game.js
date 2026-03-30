@@ -1,13 +1,1422 @@
 document.addEventListener('DOMContentLoaded', () => {
-    let       playerGoals = 0;
+    let score = 0;
+window.isPlaying = false;
+    let requestID = null;
+
+    let currentTurn = "player";
+let playerGoals = 0;
+let oppGoals = 0;
+let turnDelayTimer = 0;
+let aiBallSpawned = false;
+let matchOver = false;
+    let balls = [];
+    let particles = [];
+
+    const btnStartTouch = document.getElementById('btn-start-touch');
+    const btnStartTrackman = document.getElementById('btn-start-trackman');
+    const startMenu = document.getElementById('start-menu');
+    const scoreP1 = document.getElementById('score-p1');
+const scoreP2 = document.getElementById('score-p2');
+const goalsP1 = document.getElementById('goals-p1');
+const goalsP2 = document.getElementById('goals-p2');
+const turnAnnouncement = document.getElementById('turn-announcement');
+const saveHitbox = document.getElementById('save-hitbox');
+
+window.handlePlayerSave = function() {
+    if (currentTurn !== "opponent" || matchOver) return;
+    
+    let aiBall = balls.find(b => b.isAIBall && b.active);
+    if (aiBall) {
+        aiBall.active = false;
+        createParticles(canvas.width/2, canvas.height*0.8, 5); 
+        if (window.soundEffects) window.soundEffects.playC64Sound('hit');
+        
+        showTurnAnnouncement("SAVED!");
+        document.body.style.background = 'rgba(0, 255, 204, 0.3)';
+        setTimeout(() => document.body.style.background = '', 100);
+
+        endTurn('player');
+    }
+};
+
+function updateScoreboard() {
+    if(scoreP1) scoreP1.textContent = playerGoals;
+    if(scoreP2) scoreP2.textContent = oppGoals;
+    
+    const goalStr = (val) => {
+        let s = "";
+        for (let i = 0; i < 3; i++) s += (i < val) ? "●" : "○";
+        return s;
+    };
+    if(goalsP1) goalsP1.textContent = goalStr(playerGoals);
+    if(goalsP2) goalsP2.textContent = goalStr(oppGoals);
+    
+    if (playerGoals >= 3 || oppGoals >= 3) {
+        matchOver = true;
+        setTimeout(() => { triggerVictory(playerGoals >= 3); }, 1500);
+    }
+}
+
+function triggerVictory(playerWon) {
+    window.isPlaying = false;
+    if (window.soundEffects) window.soundEffects.fadeOutMusic(5);
+
+    const vOverlay = document.getElementById('victory-overlay');
+    const vName = document.getElementById('victory-player-name');
+    
+    if (vOverlay) {
+        vOverlay.style.display = 'flex';
+        if (vName) vName.textContent = playerWon ? "YOU WIN!" : "OPPONENT WINS!";
+        const vEloGain = document.getElementById('victory-elo-gain');
+        if (vEloGain) vEloGain.textContent = "+150 POINTS";
+        
+        const vCanvas = document.getElementById('lasers-canvas');
+        if (vCanvas) vCanvas.style.display = 'block';
+    }
+}
+
+function showTurnAnnouncement(text) {
+    if(turnAnnouncement) {
+        turnAnnouncement.textContent = text;
+        turnAnnouncement.classList.add('show');
+        setTimeout(() => { turnAnnouncement.classList.remove('show'); }, 1500);
+    }
+}
+
+function endTurn(nextTurn) {
+    currentTurn = "switch";
+    turnDelayTimer = 100;
+    window.nextTurnTarget = nextTurn;
+}
+    
+    // Setup Physics Canvas
+    const canvas = document.getElementById('physics-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const stadiumImg = new Image();
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const expectedSrc = isPortrait ? 'stadium1080_night.jpg' : 'stadium1920_night.jpg';
+        if (!stadiumImg.src.includes(expectedSrc)) {
+            stadiumImg.src = expectedSrc;
+        }
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // 3D Perspective settings
+    const focalLength = 300; // Defines perspective depth
+
+    let goalie = {
+        x: 0,
+        y: -100,
+        z: 1150, // Just in front of the goal
+        w: 1200,
+        h: 1200,
+        vx: 5, // Calm, smooth sliding speed
+        img: new Image(),
+        frame: 0,
+        tick: 0,
+        diveTimer: 0, // Keeps track of how long to hold the dive
+        totalFrames: 4,     // The sprite sheet has 4 frames
+        animCols: 2,        // It's a 2x2 grid
+        frameWidth: 320,    // Default, will be updated onload
+        frameHeight: 320,
+        direction: 1        // 1 = Right, -1 = Left (Mirror)
+    };
+
+    let movingTarget = {
+        x: 0,
+        y: -300,
+        z: 1180, // Behind goalie (1150) but in front of back wall (1200)
+        radius: 150, // Start size
+        vx: 8,
+        vy: 4,
+        active: true,
+        flipActive: false,
+        flipTimer: 0
+    };
+    
+    // Load and process image to remove magenta "green screen"
+    const rawImg = new Image();
+    rawImg.crossOrigin = "Anonymous";
+    rawImg.onload = () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = rawImg.width;
+        tempCanvas.height = rawImg.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(rawImg, 0, 0);
+        
+        // Remove purely magenta colored background 
+        const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            // Magenta filter (High Red, Low Green, High Blue)
+            if (data[i] > 180 && data[i+1] < 120 && data[i+2] > 180) {
+                data[i+3] = 0; // Make transparent
+            }
+            // Black filter removed - this was causing clothing gaps
+        }
+        tCtx.putImageData(imgData, 0, 0);
+        
+        goalie.img.src = tempCanvas.toDataURL('image/png');
+        goalie.frameWidth = rawImg.width / 2;
+        goalie.frameHeight = rawImg.height / 2;
+    };
+    rawImg.src = 'goalie_sprite_graphic.png';
+
+    goalie.idleImg = new Image();
+    const rawIdleImg = new Image();
+    rawIdleImg.crossOrigin = "Anonymous";
+    rawIdleImg.onload = () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = rawIdleImg.width;
+        tempCanvas.height = rawIdleImg.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(rawIdleImg, 0, 0);
+        
+        // Remove purely magenta colored background
+        const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            // Magenta filter (High Red, Low Green, High Blue)
+            if (data[i] > 180 && data[i+1] < 120 && data[i+2] > 180) {
+                data[i+3] = 0; // Make transparent
+            }
+            // Black filter removed
+        }
+        tCtx.putImageData(imgData, 0, 0);
+        
+        goalie.idleImg.src = tempCanvas.toDataURL('image/png');
+    };
+    rawIdleImg.src = 'goalie_idle.png?v=' + Date.now(); // Cache buster
+
+    goalie.powerMoveImg = new Image();
+    const rawPowerMoveImg = new Image();
+    rawPowerMoveImg.crossOrigin = "Anonymous";
+    rawPowerMoveImg.onload = () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = rawPowerMoveImg.width;
+        tempCanvas.height = rawPowerMoveImg.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(rawPowerMoveImg, 0, 0);
+        
+        // Remove purely magenta colored background
+        const imgData = tCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            // Magenta filter (High Red, Low Green, High Blue)
+            if (data[i] > 180 && data[i+1] < 120 && data[i+2] > 180) {
+                data[i+3] = 0; // Make transparent
+            }
+        }
+        tCtx.putImageData(imgData, 0, 0);
+        
+        goalie.powerMoveImg.src = tempCanvas.toDataURL('image/png');
+    };
+    rawPowerMoveImg.src = 'goalie_powermove.png?v=' + Date.now(); // Cache buster
+
+    // stadiumImg defined above to support resize handler
+
+    const ballImg = new Image();
+    const processedBall = document.createElement('canvas');
+    ballImg.onload = () => {
+        // The original ball.png has a large white padding. We crop into the actual ball texture.
+        const actualBallSize = ballImg.width * 0.72; 
+        
+        processedBall.width = actualBallSize;
+        processedBall.height = actualBallSize;
+        const bCtx = processedBall.getContext('2d');
+        
+        // Permanent circular mask for the ball
+        bCtx.beginPath();
+        bCtx.arc(actualBallSize/2, actualBallSize/2, actualBallSize/2 - 1, 0, Math.PI*2);
+        bCtx.clip();
+        
+        // Draw the source image shifted so the padding is outside the canvas
+        const offset = (ballImg.width - actualBallSize) / 2;
+        bCtx.drawImage(ballImg, -offset, -offset, ballImg.width, ballImg.height);
+        
+        ballImg.processed = true;
+    };
+    ballImg.src = 'ball.png';
+
+    const goal = {
+        x: 0,
+        y: -300, // Center of goal Y
+        z: 1200, // Far back wall
+        w: 2400,  // Width of goal
+        h: 1000   // Height of goal
+    };
+
+    function spawnObstacles() {
+        // We only use the goalie and goal now.
+    }
+
+    // Called when Vision Engine detects a real-life physical shot hitting the back wall
+    let lastShotTime = 0;
+    
+    window.handleGoalDetected = function(zoneId, index) {
+        if (!window.isPlaying) return;
+
+        // Anti-spam cooldown: prevent multiple rapid accidental shots
+        const now = Date.now();
+        if (now - lastShotTime < 1500) return;
+        lastShotTime = now;
+
+        // We map the physical camera hit to a target point on the 3D Goal far away
+        let targetX = goal.x;
+        let targetY = goal.y;
+        
+        // 1. Get horizontal position (X axis) based on the camera's actual ball position
+        if (window.visionEngine && window.visionEngine.lastBallPos) {
+            // Map camera width (assume innerWidth) slightly wider than goal width (goal.w) to allow missing wide
+            const cw = window.innerWidth;
+            const ballX = window.visionEngine.lastBallPos.x;
+            
+            // Multiply mapping by 1.4 so shooting at the very edges goes wide of the goal posts!
+            targetX = goal.x + ((ballX / cw) * (goal.w * 1.4) - (goal.w * 0.7));
+        } else {
+            // Fallback if we only have the hit zone
+            if (zoneId.includes('left')) targetX = goal.x - goal.w/3;
+            if (zoneId.includes('right')) targetX = goal.x + goal.w/3;
+        }
+
+        // 2. Get the actual physical speed
+        let speedKmh = 40; // default
+        if (window.visionEngine && window.visionEngine.currentBallSpeedKmh) {
+            speedKmh = window.visionEngine.currentBallSpeedKmh;
+            if (speedKmh < 20) speedKmh = 20;
+        }
+
+        // 3. Get vertical position (Y axis) based entirely on speed!
+        const bottomY = goal.y + goal.h/2 - 150;
+        const topY = goal.y - goal.h/2 + 200;
+        
+        // Let's cap logical flight speed calculation. Do NOT cap maximum mapping so it can soar over!
+        let flightPower = (speedKmh - 25) / (75 - 25);
+        if (flightPower < 0) flightPower = 0;
+        
+        // Apply curve so really hard shots fly high
+        flightPower = Math.pow(flightPower, 1.2); 
+        if (isNaN(flightPower)) flightPower = 0.5;
+        targetY = bottomY - (bottomY - topY) * flightPower;
+
+        // Add some nice random scatter (reduced slightly for more precision)
+        targetX += (Math.random() - 0.5) * 80;
+        targetY += (Math.random() - 0.5) * 80;
+
+        // Prevent ball from going deep underground, but allow it to fly freely over the top!
+        if (targetY > bottomY + 50) targetY = bottomY + 50;
+
+        // Tell AI Goalie which way to dive
+        goalie.direction = (targetX > 0) ? 1 : -1;
+        
+        shootVirtualBall(targetX, targetY, speedKmh);
+    };
+
+    function shootVirtualBall(targetX, targetY, speedKmh, spin = 0) {
+        // Shoot from bottom center of the screen
+        let startX = 0;
+        let startY = 300; 
+        
+        // Calculate velocities to hit the target. 
+        // In AR Mode, we want the virtual ball to zip to the goal much faster so it matches the physical ball that just passed the camera.
+        let speedMultiplier = window.useTrackman ? 3.5 : 1.5;
+        let baseVz = window.useTrackman ? 40 : 15;
+        
+        let vz = speedKmh * speedMultiplier + baseVz; 
+        let t = goal.z / vz; // time to reach goal plane
+        let gravity = 0.8;
+        
+        let vx = (targetX - startX) / t;
+        let vy = (targetY - startY) / t - 0.5 * gravity * t; // Calculate arc so it lands on target
+
+        // Virtual ball starts at the screen plane (Z = 0) and flies backwards into the 3D space
+        balls.push({
+            x: startX,
+            y: startY,
+            z: 0,
+            vx: vx,
+            vy: isNaN(vy) ? -5 : vy,
+            vz: isNaN(vz) ? 20 : vz,
+            radius: 70, // Increased base size so it's clearly visible in 3D distance
+            active: true,
+            spin: spin, // Add spin for curve effect
+            history: [] // for the ball trail
+        });
+
+        document.body.style.background = 'rgba(0, 255, 204, 0.2)';
+        setTimeout(() => document.body.style.background = '', 100);
+    }
+
+    // --- Touch / Mouse 'Flick' Controls for Mobile Demo ---
+    let flickStartX = 0;
+    let flickStartY = 0;
+    let flickCurrentX = 0;
+    let flickCurrentY = 0;
+    let flickStartTime = 0;
+    let flickPoints = [];
+    let isFlicking = false;
+
+    function handleFlickStart(x, y) {
+        if (!window.isPlaying || window.useTrackman || currentTurn !== 'player' || matchOver) return;
+        flickStartX = x;
+        flickStartY = y;
+        flickCurrentX = x;
+        flickCurrentY = y;
+        flickStartTime = Date.now();
+        flickPoints = [{x, y}];
+        isFlicking = true;
+    }
+
+    function handleFlickMove(x, y) {
+        if (!window.isPlaying || !isFlicking) return;
+        flickCurrentX = x;
+        flickCurrentY = y;
+        flickPoints.push({x, y});
+    }
+
+    function handleFlickEnd(x, y) {
+        if (!window.isPlaying || !isFlicking) return;
+        isFlicking = false;
+        const dx = x - flickStartX;
+        const dy = y - flickStartY;
+        const dt = Date.now() - flickStartTime;
+        flickPoints.push({x, y});
+
+        // Must be a quick swipe upwards
+        if (dt > 800 || dt < 10) return; 
+        if (dy > -20) return; 
+
+        // Simulate physical speed (resolution independent)
+        const distanceObj = Math.sqrt(dx*dx + dy*dy);
+        const screensPerSec = (distanceObj / window.innerHeight) / (dt / 1000);
+        
+        let simulatedSpeed = screensPerSec * 30; // 3 screens/sec = 90 km/h
+        if (simulatedSpeed > 150) simulatedSpeed = 150;
+        if (simulatedSpeed < 15) simulatedSpeed = 15;
+
+        // Calculate Curve (Spin) by checking deviation from straight line
+        let maxDeviation = 0;
+        const lineLen = Math.sqrt(dx*dx + dy*dy);
+        if (lineLen > 0) {
+            flickPoints.forEach(p => {
+                // Distance from point to line: cross product 
+                let dev = ((x - flickStartX)*(flickStartY - p.y) - (flickStartX - p.x)*(y - flickStartY)) / lineLen;
+                if (Math.abs(dev) > Math.abs(maxDeviation)) {
+                    maxDeviation = dev;
+                }
+            });
+        }
+        
+        // Convert screen pixel deviation to 3D spin force
+        let spin = (maxDeviation / window.innerWidth) * 20; 
+        // Cap maximum spin
+        if (spin > 2.5) spin = 2.5;
+        if (spin < -2.5) spin = -2.5;
+
+        // Inverse Projection: Map swipe X & Y end position directly onto the 3D goal plane
+        // This ensures the point your finger visually lands on screen matches the 3D target exactly!
+        const perspective = focalLength / (focalLength + goal.z);
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const refW = isPortrait ? 550 : 844;
+        const refH = isPortrait ? 1200 : 390;
+        const sx = canvas.width / refW;
+        const sy = canvas.height / refH;
+
+        const screenX = x - (canvas.width / 2);
+        const screenY = y - (canvas.height / 2);
+        
+        let targetX = screenX / (perspective * sx);
+        let pointedY = screenY / (perspective * sy);
+
+        // Let's deduct the effect of curve from the initial shot target so it actually curves INTO the target, 
+        // aiming slightly opposite to the curve direction.
+        targetX -= spin * 300; 
+
+        // Target height is basically where your finger stopped (pointedY).
+        const bottomY = goal.y + goal.h/2 - 150; 
+        
+        let targetY = pointedY;
+
+        // If flick is very slow, keep it closely grounded.
+        if (simulatedSpeed < 35) {
+            targetY = bottomY;
+        } else if (simulatedSpeed > 90) {
+            // Smash it: give it extra carry over what they aimed for
+            const smashLift = (simulatedSpeed - 90) * 2;
+            targetY -= smashLift; 
+        }
+
+        // Prevent it from diving weirdly into the floor
+        if (targetY > bottomY) targetY = bottomY;
+
+        // Scatter
+        targetX += (Math.random() - 0.5) * 50;
+        targetY += (Math.random() - 0.5) * 50;
+        if (targetY > bottomY + 50) targetY = bottomY + 50;
+
+        goalie.direction = (targetX > 0) ? 1 : -1;
+
+        if(speedDisplay) {
+            let curveText = "";
+            if (spin > 0.5) curveText = " ↷";
+            if (spin < -0.5) curveText = " ↶";
+            speedDisplay.innerHTML = `${Math.round(simulatedSpeed)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H${curveText}</span>`;
+        }
+        
+        shootVirtualBall(targetX, targetY, simulatedSpeed, spin);
+        flickPoints = []; // reset
+    }
+
+    // Attach event listeners to physics canvas
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleFlickStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive: false});
+
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        handleFlickMove(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive: false});
+
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleFlickEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    }, {passive: false});
+
+    let isMouseDown = false;
+    canvas.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        handleFlickStart(e.clientX, e.clientY);
+    });
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isMouseDown) return;
+        handleFlickMove(e.clientX, e.clientY);
+    });
+    canvas.addEventListener('mouseup', (e) => {
+        if (!isMouseDown) return;
+        isMouseDown = false;
+        handleFlickEnd(e.clientX, e.clientY);
+    });
+
+    function createParticles(x, y, scale) {
+        for(let i = 0; i < 20; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 15 * scale,
+                vy: (Math.random() - 0.5) * 15 * scale,
+                life: 1.0,
+                color: '#fff'
+            });
+        }
+    }
+
+    // Convert 3D coords to 2D screen coords
+    function project(x, y, z) {
+        const perspective = focalLength / (focalLength + z);
+        const isPortrait = window.innerHeight > window.innerWidth;
+        
+        // Calibration for responsive 3D projection against 100% stretched background images.
+        // Landscape (stadium1920.jpg) aligns well at 844x390.
+        // Portrait (stadium1080.jpg) aligns well around 550x1200 to prevent vertical goal stretching.
+        const refW = isPortrait ? 550 : 844;
+        const refH = isPortrait ? 1200 : 390;
+
+        let sx = canvas.width / refW;
+        let sy = canvas.height / refH;
+
+        return {
+            x: (x * perspective * sx) + (canvas.width / 2),
+            y: (y * perspective * sy) + (canvas.height / 2),
+            scale: perspective * Math.min(sx, sy) // uniform for round shapes (balls/sprites)
+        };
+    }
+
+    function gameLoop() {
+        try {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Add slight dark gradient at the bottom for contrast
+        const horizonY = canvas.height * 0.55;
+        
+        if (!window.useTrackman) {
+            if (stadiumImg.complete) {
+                // Application style background: blend the stadium with the dark body background only when idling in menus
+                ctx.save();
+                ctx.globalAlpha = window.isPlaying ? 1.0 : 0.35;
+                ctx.drawImage(stadiumImg, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            } else {
+                // Draw Solid Sky Background
+                let skyGradient = ctx.createLinearGradient(0, 0, 0, horizonY);
+                skyGradient.addColorStop(0, 'rgba(10, 15, 26, 0.4)'); // Dark top transparent
+                skyGradient.addColorStop(1, 'rgba(30, 60, 90, 0.4)'); // Lighter horizon transparent
+                ctx.fillStyle = skyGradient;
+                ctx.fillRect(0, 0, canvas.width, horizonY);
+                
+                // Draw Solid Grass Floor
+                let grassGradient = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
+                grassGradient.addColorStop(0, 'rgba(43, 138, 33, 0.4)'); // Deep green horizon transparent
+                grassGradient.addColorStop(1, 'rgba(76, 175, 80, 0.4)'); // Bright green bottom transparent
+                ctx.fillStyle = grassGradient;
+                ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+            }
+        }
+
+        // Hide static vision-engine targets to use our beautiful 3D moving targets and Goal instead
+        if(window.visionEngine) {
+            window.visionEngine.showTargets = false;
+        }
+        let trackPos = null;
+        if(window.visionEngine && window.visionEngine.lastBallPos) {
+            trackPos = window.visionEngine.lastBallPos;
+        }
+
+        // Draw High-Tech Live Ball Tracker (E-Sports Reticle)
+        if (trackPos) {
+            ctx.save();
+            ctx.translate(trackPos.x, trackPos.y);
+            
+            // Subtle pulse/spin effect based on time
+            const t = Date.now() / 1000;
+            
+            // Outer dashed spinning ring
+            ctx.beginPath();
+            ctx.setLineDash([10, 15]);
+            ctx.arc(0, 0, 35 + Math.sin(t*5)*3, 0, Math.PI*2);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(0, 255, 204, 0.4)';
+            ctx.rotate(t);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Corner brackets
+            ctx.rotate(-t); // Reset rotation for fixed brackets
+            ctx.strokeStyle = '#00FFCC';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#00FFCC';
+            ctx.shadowBlur = 10;
+            
+            const s = 25; // Size of bracket from center
+            const l = 8; // Length of bracket arm
+            
+            // Top Left
+            ctx.beginPath(); ctx.moveTo(-s, -s+l); ctx.lineTo(-s, -s); ctx.lineTo(-s+l, -s); ctx.stroke();
+            // Top Right
+            ctx.beginPath(); ctx.moveTo(s-l, -s); ctx.lineTo(s, -s); ctx.lineTo(s, -s+l); ctx.stroke();
+            // Bottom Right
+            ctx.beginPath(); ctx.moveTo(s, s-l); ctx.lineTo(s, s); ctx.lineTo(s-l, s); ctx.stroke();
+            // Bottom Left
+            ctx.beginPath(); ctx.moveTo(-s+l, s); ctx.lineTo(-s, s); ctx.lineTo(-s, s-l); ctx.stroke();
+            
+            // Solid Center Dot
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, Math.PI*2);
+            ctx.fillStyle = '#00FFCC';
+            ctx.fill();
+            
+            // High Tech Data Text
+            ctx.font = '10px "Russo One", monospace';
+            ctx.fillStyle = '#00FFCC';
+            ctx.fillText("TRK_LCK", 30, -10);
+            
+            ctx.font = '8px monospace';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fillText(`X:${Math.round(trackPos.x)} Y:${Math.round(trackPos.y)}`, 30, 0);
+            
+            ctx.restore();
+            
+            // SCREEN-SPACE AR COLLISION: If physical ball overlaps Moving Target instantly score
+            if (window.useTrackman && movingTarget.active && !movingTarget.flipActive) {
+                const tp = project(movingTarget.x, movingTarget.y, movingTarget.z);
+                if (tp.scale > 0) {
+                    const tr = movingTarget.radius * tp.scale; // Screen area of target
+                    const dx = trackPos.x - tp.x;
+                    const dy = trackPos.y - tp.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    // Allow generous hit area in AR. Must be moving to prevent false positives when holding ball
+                    const speed = (window.visionEngine && window.visionEngine.currentBallSpeedKmh) ? window.visionEngine.currentBallSpeedKmh : 0;
+                    // Super generous hitbox: 1.8x the target size + 100px padding, lower speed threshold
+                    if (dist < tr * 1.8 + 100 && speed > 5) {
+                        // INSTANT TARGET HIT!
+                        movingTarget.flipActive = true;
+                        movingTarget.flipTimer = 1.0;
+                        
+                        createParticles(tp.x, tp.y, tp.scale * 3);
+                        createParticles(tp.x, tp.y, tp.scale * 3); // Extra explosion
+                        
+                        if(window.soundEffects) window.soundEffects.playGoalSound();
+                        
+                        score += 1500;
+                        if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
+                        if (scoreDisplay) {
+                            scoreDisplay.textContent = score;
+                            scoreDisplay.style.transform = 'scale(2.5)';
+                            scoreDisplay.style.color = '#E30613'; 
+                            setTimeout(() => {
+                                scoreDisplay.style.transform = '';
+                                scoreDisplay.style.color = '';
+                            }, 400);
+                        }
+
+                        // Flash background
+                        document.body.style.background = 'rgba(227, 6, 19, 0.3)';
+                        setTimeout(() => document.body.style.background = '', 100);
+                    }
+                }
+            }
+        }
+
+        // --- Draw 3D Goal at distance ---
+        const f_tl = project(goal.x - goal.w/2, goal.y - goal.h/2, goal.z);
+        const f_tr = project(goal.x + goal.w/2, goal.y - goal.h/2, goal.z);
+        const f_bl = project(goal.x - goal.w/2, goal.y + goal.h/2, goal.z);
+        const f_br = project(goal.x + goal.w/2, goal.y + goal.h/2, goal.z);
+
+        const b_tl = project(goal.x - goal.w/2, goal.y - goal.h/2 + 50, goal.z + 200);
+        const b_tr = project(goal.x + goal.w/2, goal.y - goal.h/2 + 50, goal.z + 200);
+        const b_bl = project(goal.x - goal.w/2, goal.y + goal.h/2, goal.z + 200);
+        const b_br = project(goal.x + goal.w/2, goal.y + goal.h/2, goal.z + 200);
+
+        // Draw Net Fill (semi-transparent white)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        // Back Net
+        ctx.beginPath(); ctx.moveTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(b_bl.x, b_bl.y); ctx.fill();
+        // Left Net
+        ctx.beginPath(); ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_bl.x, b_bl.y); ctx.lineTo(f_bl.x, f_bl.y); ctx.fill();
+        // Right Net
+        ctx.beginPath(); ctx.moveTo(f_tr.x, f_tr.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(b_br.x, b_br.y); ctx.lineTo(f_br.x, f_br.y); ctx.fill();
+        // Top Net
+        ctx.beginPath(); ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(b_tl.x, b_tl.y); ctx.lineTo(b_tr.x, b_tr.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.fill();
+
+        // Draw Net Grid (Horizontal / Depth lines)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 1;
+        for (let i = 1; i <= 10; i++) {
+            let f_y = f_tl.y + (f_bl.y - f_tl.y) * (i/10);
+            let b_y = b_tl.y + (b_bl.y - b_tl.y) * (i/10);
+            ctx.beginPath();
+            ctx.moveTo(f_tl.x, f_y); ctx.lineTo(b_tl.x, b_y); ctx.lineTo(b_tr.x, b_y); ctx.lineTo(f_tr.x, f_y);
+            ctx.stroke();
+        }
+        
+        // Draw Net Grid (Vertical Back lines)
+        for (let i = 1; i <= 20; i++) {
+            let bx = b_tl.x + (b_tr.x - b_tl.x) * (i/20);
+            ctx.beginPath();
+            ctx.moveTo(bx, b_tl.y); ctx.lineTo(bx, b_bl.y);
+            ctx.stroke();
+        }
+
+        // Draw Net Grid (Vertical Side lines)
+        for (let i = 1; i <= 5; i++) {
+            let lx = f_tl.x + (b_tl.x - f_tl.x) * (i/5);
+            let ly = f_tl.y + (b_tl.y - f_tl.y) * (i/5);
+            let lb = f_bl.y + (b_bl.y - f_bl.y) * (i/5);
+            ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, lb); ctx.stroke();
+
+            let rx = f_tr.x + (b_tr.x - f_tr.x) * (i/5);
+            let r_y = f_tr.y + (b_tr.y - f_tr.y) * (i/5);
+            let rb = f_br.y + (b_br.y - f_br.y) * (i/5);
+            ctx.beginPath(); ctx.moveTo(rx, r_y); ctx.lineTo(rx, rb); ctx.stroke();
+        }
+
+        // Front Goal Posts (Glossy Subsoccer Red 3D frame)
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'butt';
+        
+        // 1. Thick dark outer edge (gives depth and shadow)
+        ctx.strokeStyle = '#1a0000';
+        ctx.lineWidth = 20; 
+        ctx.beginPath();
+        ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y);
+        ctx.stroke();
+
+        // 2. Left Post (Metallic Gradient)
+        const leftGrad = ctx.createLinearGradient(f_tl.x - 8, 0, f_tl.x + 8, 0);
+        leftGrad.addColorStop(0, '#550000');
+        leftGrad.addColorStop(0.3, '#E30613');
+        leftGrad.addColorStop(0.7, '#ff4d4d');
+        leftGrad.addColorStop(1, '#880000');
+        ctx.strokeStyle = leftGrad;
+        ctx.lineWidth = 14; 
+        ctx.beginPath(); ctx.moveTo(f_bl.x, f_bl.y); ctx.lineTo(f_tl.x, f_tl.y); ctx.stroke();
+
+        // 3. Right Post (Metallic Gradient)
+        const rightGrad = ctx.createLinearGradient(f_tr.x - 8, 0, f_tr.x + 8, 0);
+        rightGrad.addColorStop(0, '#880000');
+        rightGrad.addColorStop(0.3, '#ff4d4d');
+        rightGrad.addColorStop(0.7, '#E30613');
+        rightGrad.addColorStop(1, '#550000');
+        ctx.strokeStyle = rightGrad;
+        ctx.beginPath(); ctx.moveTo(f_tr.x, f_tr.y); ctx.lineTo(f_br.x, f_br.y); ctx.stroke();
+
+        // 4. Crossbar (Metallic Gradient)
+        const topGrad = ctx.createLinearGradient(0, f_tl.y - 8, 0, f_tl.y + 8);
+        topGrad.addColorStop(0, '#ff4d4d');
+        topGrad.addColorStop(0.5, '#E30613');
+        topGrad.addColorStop(1, '#550000');
+        ctx.strokeStyle = topGrad;
+        ctx.beginPath(); ctx.moveTo(f_tl.x, f_tl.y); ctx.lineTo(f_tr.x, f_tr.y); ctx.stroke();
+
+        // 5. Corner Joints (Smooths the connection between gradients)
+        ctx.fillStyle = '#ff4d4d'; // Brightest point
+        ctx.beginPath(); ctx.arc(f_tl.x, f_tl.y, 7, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(f_tr.x, f_tr.y, 7, 0, Math.PI*2); ctx.fill();
+
+        // 6. Specular Glare (The white reflection line that makes it look like polished metal)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Inner edge reflection
+        ctx.moveTo(f_bl.x + 3, f_bl.y); ctx.lineTo(f_tl.x + 3, f_tl.y + 3); ctx.lineTo(f_tr.x - 3, f_tr.y + 3); ctx.lineTo(f_br.x - 3, f_br.y);
+        ctx.stroke();
+
+        // Goal Line (White)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(0, f_bl.y); ctx.lineTo(canvas.width, f_br.y);
+        ctx.stroke();
+
+        if (!window.isPlaying) {
+            // Draw Idle Sitting Goalie
+            if (!window.useTrackman) {
+                const gop = project(0, goalie.y, goalie.z);
+                if (gop.scale > 0 && goalie.idleImg && goalie.idleImg.complete && goalie.idleImg.naturalWidth > 0) {
+                    const gow = goalie.w * 0.9 * gop.scale; // Width representation
+                    const goh = goalie.w * 0.9 * gop.scale * (goalie.idleImg.height / goalie.idleImg.width);
+                    ctx.save();
+                    // Offset Y slightly downwards to sit perfectly on the bench
+                    ctx.translate(gop.x, gop.y + goh * 0.12);
+                    ctx.drawImage(
+                        goalie.idleImg,
+                        -gow/2, -goh/2, gow, goh
+                    );
+                    ctx.restore();
+                }
+            }
+
+                  // --- TURN MANAGER ---
+        if (currentTurn === "switch" && !matchOver) {
+            turnDelayTimer--;
+            if (turnDelayTimer <= 0) {
+                currentTurn = window.nextTurnTarget || "player";
+                aiBallSpawned = false;
+                if (currentTurn === "opponent") {
+                    showTurnAnnouncement("OPPONENT KICKS!");
+                    let sb = document.getElementById('save-hitbox');
+                    if(sb) sb.style.pointerEvents = "auto"; 
+                    turnDelayTimer = 80; 
+                } else {
+                    showTurnAnnouncement("YOUR TURN!");
+                    let sb = document.getElementById('save-hitbox');
+                    if(sb) sb.style.pointerEvents = "none";
+                }
+            }
+        }
+        
+        if (currentTurn === "opponent" && !matchOver && !aiBallSpawned) {
+            turnDelayTimer--;
+            if (turnDelayTimer <= 0) {
+                aiBallSpawned = true;
+                if (window.soundEffects) window.soundEffects.playHitSound();
+                
+                let tX = (Math.random() - 0.5) * canvas.width * 0.8; 
+                balls.push({
+                    x: (Math.random() - 0.5) * goal.w * 0.5,
+                    y: goal.y,
+                    z: goal.z - 200,
+                    vx: tX / 40,
+                    vy: (300 - goal.y) / 40 - 0.5 * 0.8 * 40, 
+                    vz: -35, // Faster
+                    radius: 70,
+                    active: true,
+                    spin: (Math.random() - 0.5) * 3,
+                    history: [],
+                    isAIBall: true
+                });
+            }
+        }
+
+              // --- TURN MANAGER ---
+        if (currentTurn === "switch" && !matchOver) {
+            turnDelayTimer--;
+            if (turnDelayTimer <= 0) {
+                currentTurn = window.nextTurnTarget || "player";
+                aiBallSpawned = false;
+                if (currentTurn === "opponent") {
+                    showTurnAnnouncement("OPPONENT KICKS!");
+                    let sb = document.getElementById('save-hitbox');
+                    if(sb) sb.style.pointerEvents = "auto"; 
+                    turnDelayTimer = 80; 
+                } else {
+                    showTurnAnnouncement("YOUR TURN!");
+                    let sb = document.getElementById('save-hitbox');
+                    if(sb) sb.style.pointerEvents = "none";
+                }
+            }
+        }
+        
+        if (currentTurn === "opponent" && !matchOver && !aiBallSpawned) {
+            turnDelayTimer--;
+            if (turnDelayTimer <= 0) {
+                aiBallSpawned = true;
+                if (window.soundEffects) window.soundEffects.playHitSound();
+                
+                let tX = (Math.random() - 0.5) * canvas.width * 0.8; 
+                balls.push({
+                    x: (Math.random() - 0.5) * goal.w * 0.5,
+                    y: goal.y,
+                    z: goal.z - 200,
+                    vx: tX / 40,
+                    vy: (300 - goal.y) / 40 - 0.5 * 0.8 * 40, 
+                    vz: -35, // Faster
+                    radius: 70,
+                    active: true,
+                    spin: (Math.random() - 0.5) * 3,
+                    history: [],
+                    isAIBall: true
+                });
+            }
+        }
+
+        requestID = requestAnimationFrame(gameLoop);
+            return;
+        }
+
+        // Update and Draw Moving Target (Behind Goalie)
+        if (movingTarget.active) {
+            movingTarget.x += movingTarget.vx;
+            movingTarget.y += movingTarget.vy;
+            
+            // Bounce inside goal limits
+            const maxTx = goal.w/2 - movingTarget.radius;
+            const maxTy = goal.h/2 - movingTarget.radius;
+            
+            if (movingTarget.x > maxTx) { movingTarget.x = maxTx; movingTarget.vx *= -1; }
+            if (movingTarget.x < -maxTx) { movingTarget.x = -maxTx; movingTarget.vx *= -1; }
+            if (movingTarget.y > goal.y + maxTy) { movingTarget.y = goal.y + maxTy; movingTarget.vy *= -1; }
+            if (movingTarget.y < goal.y - maxTy) { movingTarget.y = goal.y - maxTy; movingTarget.vy *= -1; }
+
+            const tp = project(movingTarget.x, movingTarget.y, movingTarget.z);
+            if (tp.scale > 0) {
+                const tr = movingTarget.radius * tp.scale;
+                ctx.save();
+                ctx.translate(tp.x, tp.y);
+
+                // Handle hit flip animation
+                if (movingTarget.flipActive) {
+                    movingTarget.flipTimer -= 0.05;
+                    if (movingTarget.flipTimer <= 0) {
+                        movingTarget.flipActive = false;
+                        movingTarget.flipTimer = 0;
+                    }
+                    // Apply a 3D spin effect by scaling X axis based on cosine
+                    // PI * 4 = 2 full rotations during the 1.0 timer
+                    ctx.scale(Math.cos(movingTarget.flipTimer * Math.PI * 4), 1);
+                }
+
+                // Draw Classic Red/White Target
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                ctx.shadowBlur = 15; // Drop shadow for popping off the net
+                ctx.shadowOffsetY = 10;
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)'; // Faint shine ring
+                
+                // Outer White Rim
+                ctx.beginPath(); ctx.arc(0, 0, tr, 0, Math.PI*2);
+                ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
+                
+                // Outer Navy Blue
+                ctx.beginPath(); ctx.arc(0, 0, tr * 0.92, 0, Math.PI*2);
+                ctx.fillStyle = '#21314d'; ctx.fill(); ctx.stroke();
+                
+                // Reset shadow after outer circle
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetY = 0;
+
+                // Inner White
+                ctx.beginPath(); ctx.arc(0, 0, tr * 0.6, 0, Math.PI*2);
+                ctx.fillStyle = '#ebeced'; ctx.fill(); ctx.stroke();
+                
+                // Inner Red (Increased by 20%)
+                ctx.beginPath(); ctx.arc(0, 0, tr * 0.3, 0, Math.PI*2);
+                ctx.fillStyle = '#c92728'; ctx.fill(); ctx.stroke();
+                
+                ctx.restore();
+            }
+        }
+
+        // Update and Draw Goalie Sprite
+        const clampGoaliX = Math.abs(goal.w / 2 - goalie.w / 2); 
+        
+        // Find if there is an active ball approaching the goal
+        let incomingBall = balls.find(b => b.active && b.vz > 0 && b.z < goalie.z);
+        
+        if (incomingBall) { // Track virtual balls in both local flick and Trackman AR mode
+            // Predict where the ball will intersect the goalie's Z plane
+            let timeToReach = (goalie.z - incomingBall.z) / incomingBall.vz;
+            let predictedX = incomingBall.x + incomingBall.vx * timeToReach;
+            
+            // Include curve evaluation in prediction!
+            if(incomingBall.spin) {
+                 // Roughly estimate spin curve over time (0.5 * a * t^2 type displacement but simplified)
+                 predictedX += incomingBall.spin * timeToReach * 0.5;
+            }
+            
+            // Goalie attempts to move towards predictedX. Increased speed significantly for better responsiveness
+            let speed = 60; // Max dive speed
+            let dist = predictedX - goalie.x;
+            
+            if (Math.abs(dist) > speed) {
+                goalie.x += Math.sign(dist) * speed;
+            } else {
+                goalie.x += dist * 0.8; // Very aggressive approach
+            }
+            
+            // Set dive direction based on where the ball is heading relative to goalie
+            if (goalie.diveTimer <= 0) {
+                 goalie.direction = (dist > 0) ? 1 : -1;
+            }
+
+            // Trigger dive animation early enough to look like a desperate save
+            if (timeToReach < 25 && goalie.diveTimer <= 0) {
+                goalie.diveTimer = 45; 
+            }
+        } else {
+            // Idle State: Slowly return to center and gently sway back and forth
+            let targetIdleX = Math.sin(Date.now() / 800) * 150; 
+            let dist = targetIdleX - goalie.x;
+            if (Math.abs(dist) > 3) {
+                goalie.x += Math.sign(dist) * 3;
+            }
+        }
+
+        // Clamp goalie inside goal boundaries
+        if (goalie.x > clampGoaliX) goalie.x = clampGoaliX;
+        if (goalie.x < -clampGoaliX) goalie.x = -clampGoaliX;
+        
+        if (goalie.diveTimer > 0) {
+            goalie.diveTimer--;
+            goalie.tick++;
+            if (goalie.tick > 4) { // Fast, visible animation
+                goalie.tick = 0;
+                goalie.frame++;
+                if (goalie.frame >= goalie.totalFrames) {
+                    goalie.frame = goalie.totalFrames - 1; // Stay on the last dive frame
+                }
+            }
+        } else {
+            goalie.frame = 0; // Reset to ready stance
+            goalie.tick = 0;
+        }
+
+        const gop = project(goalie.x, goalie.y, goalie.z);
+        if (goalie.powerMoveTimer && goalie.powerMoveTimer > 0) {
+            goalie.powerMoveTimer--;
+            if (gop.scale > 0 && goalie.powerMoveImg && goalie.powerMoveImg.complete && goalie.powerMoveImg.naturalWidth > 0) {
+                const gow = goalie.w * 1.6 * gop.scale; // Extra large representation for power move
+                const goh = goalie.w * 1.6 * gop.scale * (goalie.powerMoveImg.height / goalie.powerMoveImg.width);
+                ctx.save();
+                
+                // Screen shake magnitude based on timer
+                const shakeX = (Math.random() - 0.5) * 8 * (goalie.powerMoveTimer / 70);
+                const shakeY = (Math.random() - 0.5) * 8 * (goalie.powerMoveTimer / 70);
+                
+                ctx.translate(gop.x + shakeX, gop.y - goh * 0.2 + shakeY);
+                // Flashy aura glow
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = 'rgba(255, 255, 0, 0.9)';
+                
+                // Face the direction of the dive
+                ctx.scale(goalie.direction, 1);
+                
+                ctx.drawImage(
+                    goalie.powerMoveImg,
+                    -gow/2, -goh/2, gow, goh
+                );
+                ctx.restore();
+                
+                // Epic Comic Text overlay
+                ctx.save();
+                ctx.translate(gop.x, gop.y - goh * 0.7 - (70 - goalie.powerMoveTimer) * 0.5);
+                ctx.font = 'italic 900 3.5rem "Russo One", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = goalie.powerMoveTimer / 70;
+                ctx.rotate(-0.1); // slanted dramatic text
+                
+                // Draw outline
+                ctx.lineWidth = 6;
+                ctx.strokeStyle = '#000';
+                ctx.strokeText("EPIC SAVE!", 0, 0);
+                // Draw inner text
+                ctx.fillStyle = '#FFD700'; // Gold
+                ctx.fillText("EPIC SAVE!", 0, 0);
+                ctx.restore();
+            }
+        } else if (gop.scale > 0 && goalie.img.complete && goalie.img.naturalWidth > 0) {
+            const gow = goalie.w * gop.scale;
+            const goh = goalie.h * gop.scale;
+            
+            // Calculate which sub-image (frame) to clip from the sprite sheet
+            const col = goalie.frame % goalie.animCols;
+            const row = Math.floor(goalie.frame / goalie.animCols);
+            
+            // Add a 2 pixel inset crop to remove any outline artifacts from the bounding box of the frames
+            const cropOffset = 4;
+            const srcX = col * goalie.frameWidth + cropOffset;
+            const srcY = row * goalie.frameHeight + cropOffset;
+            const drawW = goalie.frameWidth - (cropOffset * 2);
+            const drawH = goalie.frameHeight - (cropOffset * 2);
+
+            // Draw only that specific frame using the 9-argument drawImage format with Mirroring Support
+            ctx.save();
+            ctx.translate(gop.x, gop.y);
+            ctx.scale(goalie.direction, 1);
+            ctx.drawImage(
+                goalie.img, 
+                srcX, srcY, drawW, drawH, // Source clipping rect (cropped!)
+                -gow/2, -goh/2, gow, goh // Destination projection rect relative to center
+            );
+            ctx.restore();
+        }
+
+        // Update Balls (Physics in 3D)
+        balls = balls.filter(b => b.active);
+        balls.forEach(b => {
+             // Record history for trail drawing
+            b.history.push({ x: b.x, y: b.y, z: b.z });
+            if (b.history.length > 50) b.history.shift(); // Max trail length
+
+            b.x += b.vx;
+            b.y += b.vy;
+            b.z += b.vz;
+            
+            // Apply Magnus effect (Spin Curve) to horizontal velocity
+            if (b.spin) {
+                b.vx += b.spin; 
+            }
+
+            // Gravity in 3D (Y goes down)
+            b.vy += 0.8; // slightly heavier gravity
+
+            // Simple floor bounce
+            if(b.y > canvas.height * 0.55 - 50) { // relative down ground level
+                b.y = canvas.height * 0.55 - 50;
+                b.vy *= -0.6; 
+            }
+
+            // Project to screen
+            const p = project(b.x, b.y, b.z);
+
+            // Draw glowing cyan/white comet Trail
+            // Hide graphics in AR mode! Virtual ball is just logic here.
+            if (!window.useTrackman && b.history.length > 1) {
+                for (let i = 1; i < b.history.length; i++) {
+                    const prevP = project(b.history[i-1].x, b.history[i-1].y, b.history[i-1].z);
+                    const currP = project(b.history[i].x, b.history[i].y, b.history[i].z);
+                    
+                    if (prevP.scale > 0 && currP.scale > 0) {
+                        let alpha = i / b.history.length; // 0.0 at tail, 1.0 at head
+                        
+                        // Outer Cyan Glow
+                        ctx.beginPath();
+                        ctx.moveTo(prevP.x, prevP.y);
+                        ctx.lineTo(currP.x, currP.y);
+                        ctx.strokeStyle = `rgba(0, 255, 204, ${alpha * 0.6})`;
+                        ctx.lineWidth = (20 * currP.scale) * alpha; 
+                        ctx.stroke();
+
+                        // Inner Bright White Core
+                        ctx.beginPath();
+                        ctx.moveTo(prevP.x, prevP.y);
+                        ctx.lineTo(currP.x, currP.y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
+                        ctx.lineWidth = (8 * currP.scale) * Math.max(0.2, alpha); 
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Collisions with Goalie (Robust Z-depth cross check)
+            if (b.active && b.z >= goalie.z - 50 && b.z <= goalie.z + b.vz + 50) {
+                // Tighten the hitbox to match the actual visual body of the sprite (60% width, 80% height)
+                const hitW = goalie.w * 0.6;
+                const hitH = goalie.h * 0.8;
+                if (b.x > goalie.x - hitW/2 && b.x < goalie.x + hitW/2 &&
+                    b.y > goalie.y - hitH/2 && b.y < goalie.y + hitH/2) {
+                    
+                    // SAVED!
+                    b.active = false;
+                    const proj = project(goalie.x, goalie.y, goalie.z);
+                    createParticles(proj.x, proj.y, proj.scale * 2);
+                    // Trigger the dramatic martial arts block on a wider center area for easier demoing!
+                    if (Math.abs(b.x) < 180) {
+                        goalie.powerMoveTimer = 70; // 70 frames of epicness
+                        if (window.soundEffects && window.soundEffects.playGoalSound) window.soundEffects.playGoalSound(); // big sound
+                        // Massive explosion for epic save
+                        createParticles(proj.x, proj.y, proj.scale * 5);
+                        createParticles(proj.x, proj.y, proj.scale * 5);
+                    } else {
+                        if (window.soundEffects) window.soundEffects.playC64Sound('hit');
+                    }
+                    
+                    document.body.style.background = 'rgba(255, 0, 0, 0.3)';
+                    setTimeout(() => document.body.style.background = '', 100);
+                }
+            }
+
+            // Collisions with Moving Target
+            // In AR mode, collisions are handled instantly in screen-space, so skip virtual ball check
+            if (!window.useTrackman && b.active && movingTarget.active && b.z >= movingTarget.z - 50 && b.z <= movingTarget.z + b.vz + 50) {
+                if (b.x > movingTarget.x - movingTarget.radius && b.x < movingTarget.x + movingTarget.radius &&
+                    b.y > movingTarget.y - movingTarget.radius && b.y < movingTarget.y + movingTarget.radius) {
+                    
+                    // TARGET HIT!
+                    b.active = false;
+                    
+                    // Trigger the spin animation
+                    movingTarget.flipActive = true;
+                    movingTarget.flipTimer = 1.0;
+                    
+                    const proj = project(movingTarget.x, movingTarget.y, movingTarget.z);
+                    createParticles(proj.x, proj.y, proj.scale * 3);
+                    createParticles(proj.x, proj.y, proj.scale * 3); // Extra explosion
+                    
+                    if(window.soundEffects) window.soundEffects.playGoalSound();
+                    
+                    score += 1500;
+                    if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
+                    scoreDisplay.textContent = score;
+                    scoreDisplay.style.transform = 'scale(2.5)';
+                    scoreDisplay.style.color = '#E30613'; // Match target red color
+                    setTimeout(() => {
+                        scoreDisplay.style.transform = '';
+                        scoreDisplay.style.color = '';
+                    }, 400);
+
+                    // Flash background
+                    document.body.style.background = 'rgba(227, 6, 19, 0.3)';
+                    setTimeout(() => document.body.style.background = '', 100);
+                }
+            }
+
+            // Collisions with Goal / Back Wall
+            if (b.active && b.z > goal.z) {
+                b.active = false;
+                if (b.x > goal.x - goal.w/2 && b.x < goal.x + goal.w/2 &&
+                    b.y > goal.y - goal.h/2 && b.y < goal.y + goal.h/2) {
+                        
+                    // GOAL SCORED!
+                    if (currentTurn === "player" && !b.isAIBall) {
+                        playerGoals++;
+                        updateScoreboard();
+                        let leftPlayer = document.querySelector('.player-left');
+                        if(leftPlayer) {
+                            leftPlayer.classList.add('goal-flash');
+                            setTimeout(() => leftPlayer.classList.remove('goal-flash'), 500);
+                        }
+                        endTurn('opponent');
+                    } else if (currentTurn === "opponent" && b.isAIBall) {
+                        oppGoals++;
+                        updateScoreboard();
+                        let rightPlayer = document.querySelector('.player-right');
+                        if(rightPlayer) {
+                           rightPlayer.classList.add('goal-flash');
+                           setTimeout(() => rightPlayer.classList.remove('goal-flash'), 500);
+                        }
+                        endTurn('player');
+                    }
+                }
+            }
+
+            // Destroy when far away or behind camera
+            if (b.z > 1500) {
+                b.active = false;
+            }
+            if (p.scale < 0 && !b.isAIBall) {
+                b.active = false;
+            }
+            if (p.scale < 0 && b.isAIBall && b.active) {
+                b.active = false;
+                oppGoals++; updateScoreboard(); 
+                if(window.soundEffects) window.soundEffects.playGoalSound();
+                let rp = document.querySelector('.player-right');
+                if(rp) {
+                    rp.classList.add('goal-flash'); setTimeout(() => rp.classList.remove('goal-flash'), 500);
+                }
+                showTurnAnnouncement("OPPONENT SCORED!"); endTurn("player"); 
+            }
+
+            // Draw Virtual Ball Graphic
+            // Hide graphics in AR mode! Virtual ball is just logic here.
+            if (!window.useTrackman && p.scale > 0) {
+                if (ballImg && ballImg.processed) {
+                    const bw = b.radius * 2 * p.scale;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    // Add cool rotation effect matching ball speed
+                    ctx.rotate(b.z * 0.05); 
+                    ctx.drawImage(processedBall, -bw/2, -bw/2, bw, bw);
+                    ctx.restore();
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, b.radius * p.scale, 0, Math.PI*2);
+                    ctx.fillStyle = '#E30613';
+                    ctx.fill();
+                    
+                    // Ball highlight/specular
+                    ctx.beginPath();
+                    ctx.arc(p.x - (b.radius*0.3)*p.scale, p.y - (b.radius*0.3)*p.scale, b.radius*0.3*p.scale, 0, Math.PI*2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.fill();
+                }
+            }
+        });
+
+        // Draw the flicking ball currently held by the finger
+        if (isFlicking && ballImg && ballImg.processed) {
+            ctx.save();
+            ctx.translate(flickCurrentX, flickCurrentY);
+            // Size of the ball while held on screen (smaller so it doesn't block view)
+            const bw = 90; 
+            ctx.drawImage(processedBall, -bw/2, -bw/2, bw, bw);
+            ctx.restore();
+        }
+
+        // 2D screen particles
+        particles = particles.filter(p => p.life > 0);
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life -= 0.05;
+            
+            ctx.fillStyle = `rgba(255, 255, 255, ${p.life})`;
+            ctx.fillRect(p.x, p.y, 4, 4);
+        });
+
+        // Update speed HUD
+        if(window.useTrackman && window.visionEngine && window.visionEngine.measureBallSpeed) {
+            speedDisplay.innerHTML = `${Math.round(window.visionEngine.currentBallSpeedKmh)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H</span>`;
+        }
+
+        requestID = requestAnimationFrame(gameLoop);
+        } catch(e) {
+            ctx.fillStyle = 'red';
+            ctx.font = '20px sans-serif';
+            ctx.fillText(e.stack || e.message, 50, 50);
+            throw e; // Also log to console
+        }
+    }
+
+    let countdownInterval = null;
+
+    window.startCountdownAndGame = function(useCamera) {
+        if(startMenu) startMenu.style.display = 'none';
+        const waitingPopup = document.getElementById('waiting-popup');
+        if(waitingPopup) waitingPopup.style.display = 'none';
+        const challengePopup = document.getElementById('challenge-popup');
+        if(challengePopup) challengePopup.style.display = 'none';
+        
+        window.isCountingDown = true;
+
+        const countdownPopup = document.getElementById('countdown-popup');
+        const countdownValue = document.getElementById('countdown-value');
+        if (countdownPopup && countdownValue) {
+            countdownPopup.style.display = 'flex';
+            let count = 3;
+            countdownValue.textContent = count;
+            // Play a beep
+            if (window.soundEffects && window.soundEffects.playHitSound) window.soundEffects.playHitSound();
+            
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownValue.textContent = count;
+                    if (window.soundEffects && window.soundEffects.playHitSound) window.soundEffects.playHitSound();
+                } else if (count === 0) {
+                    countdownValue.textContent = "GO!";
+                    // Play higher beep for GO!
+                    if (window.soundEffects && window.soundEffects.playGoalSound) window.soundEffects.playGoalSound();
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownPopup.style.display = 'none';
+                    window.actualStartGame(useCamera);
+                }
+            }, 1000);
+        } else {
+            window.actualStartGame(useCamera);
+        }
+    }
+
+    window.actualStartGame = async function(useCamera) {
+        window.isCountingDown = false;
+        if (window.isPlaying) return;
+        window.useTrackman = useCamera;
+        window.isPlaying = true;
+        
+        // Hide overlay, start menus, everything
+        const vOverlay = document.getElementById('victory-overlay');
+        if (vOverlay) vOverlay.style.display = 'none';
+        
+        score = 0;
+        if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
+        scoreDisplay.textContent = score;
+        speedDisplay.innerHTML = `0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span>`;
+        
+        timeLeft = 45;
+        if(timeDisplay) timeDisplay.textContent = timeLeft;
+        if(timerInterval) clearInterval(timerInterval);
+        
+        if(startMenu) startMenu.style.display = 'none';
+
+        if (useCamera && window.visionEngine) {
+            if (!window.visionEngine.isScanning) {
+                const success = await window.visionEngine.startCamera();
+                if (!success) {
+                    alert("Camera access is required");
+                    if(startMenu) startMenu.style.display = 'flex';
+                    return;
+                }
+            }
+            window.visionEngine.onTargetHit = window.handleGoalDetected;
+            window.visionEngine.measureBallSpeed = true;
+            window.visionEngine.showTargets = false; 
+        }
+
+        window.isPlaying = true;
+        
+        if (window.soundEffects) window.soundEffects.playGameplayTheme();
+        if (window.flickNetwork) window.flickNetwork.broadcastGameStart();
+
+               playerGoals = 0;
         oppGoals = 0;
         currentTurn = "player";
         turnDelayTimer = 0;
         aiBallSpawned = false;
         matchOver = false;
         isFlicking = false;
-        updateScoreboard();
-        showTurnAnnouncement("YOUR TURN!");
+        if(typeof updateScoreboard === 'function') updateScoreboard();
+        if(typeof showTurnAnnouncement === 'function') showTurnAnnouncement("YOUR TURN!");
+               playerGoals = 0;
+        oppGoals = 0;
+        currentTurn = "player";
+        turnDelayTimer = 0;
+        aiBallSpawned = false;
+        matchOver = false;
+        isFlicking = false;
+        if(typeof updateScoreboard === 'function') updateScoreboard();
+        if(typeof showTurnAnnouncement === 'function') showTurnAnnouncement("YOUR TURN!");
         balls = [];
         particles = [];
         spawnObstacles();
