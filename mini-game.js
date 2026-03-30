@@ -497,12 +497,7 @@ function endTurn(nextTurn, isGoal = false) {
 
         goalie.direction = (targetX > 0) ? 1 : -1;
 
-        if(speedDisplay) {
-            let curveText = "";
-            if (spin > 0.5) curveText = " ↷";
-            if (spin < -0.5) curveText = " ↶";
-            speedDisplay.innerHTML = `${Math.round(simulatedSpeed)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H${curveText}</span>`;
-        }
+        // HUD removed
         
         shootVirtualBall(targetX, targetY, simulatedSpeed, spin);
         flickPoints = []; // reset
@@ -1150,13 +1145,6 @@ function endTurn(nextTurn, isGoal = false) {
                     
                     score += 1500;
                     if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
-                    scoreDisplay.textContent = score;
-                    scoreDisplay.style.transform = 'scale(2.5)';
-                    scoreDisplay.style.color = '#E30613'; // Match target red color
-                    setTimeout(() => {
-                        scoreDisplay.style.transform = '';
-                        scoreDisplay.style.color = '';
-                    }, 400);
 
                     // Flash background
                     document.body.style.background = 'rgba(227, 6, 19, 0.3)';
@@ -1267,10 +1255,7 @@ function endTurn(nextTurn, isGoal = false) {
             ctx.fillRect(p.x, p.y, 4, 4);
         });
 
-        // Update speed HUD
-        if(window.useTrackman && window.visionEngine && window.visionEngine.measureBallSpeed) {
-            speedDisplay.innerHTML = `${Math.round(window.visionEngine.currentBallSpeedKmh)}<span style="font-size:1rem; margin-left:4px; color:#fff; text-shadow: none;">KM/H</span>`;
-        }
+        // Update speed HUD removed
 
         // --- TURN MANAGER ---
         if (currentTurn === "switch" && !matchOver) {
@@ -1376,12 +1361,8 @@ function endTurn(nextTurn, isGoal = false) {
         
         score = 0;
         if (window.flickNetwork) window.flickNetwork.broadcastScore(score);
-        scoreDisplay.textContent = score;
-        speedDisplay.innerHTML = `0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span>`;
         
-        timeLeft = 45;
-        if(timeDisplay) timeDisplay.textContent = timeLeft;
-        if(timerInterval) clearInterval(timerInterval);
+        let timeLeft = 45;
         
         if(startMenu) startMenu.style.display = 'none';
 
@@ -1392,6 +1373,10 @@ function endTurn(nextTurn, isGoal = false) {
 
         playerGoals = 0;
         oppGoals = 0;
+        playerShots = 0;
+        oppShots = 0;
+        playerResults = [];
+        oppResults = [];
         currentTurn = "player";
         turnDelayTimer = 0;
         aiBallSpawned = false;
