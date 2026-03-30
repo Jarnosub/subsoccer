@@ -161,39 +161,40 @@
         async function startMiniGame() {
             // Track the play intent before redirecting
             try {
-                // If there's an active Supabase client from flick-network.js
-                if (window.supabaseClient) {
-                    await window.supabaseClient.from('analytics_events').insert({
-                        event_type: 'minigame_start',
-                        event_data: { 
-                            source: 'promo-qr',
-                            referrer: document.referrer || window.location.href
-                        }
-                    });
-                }
-            } catch (err) {
-                console.warn("Analytics tracking skipped or failed", err);
-            }
-            
-            // Redirect to the mini-game
-            window.location.href = 'mini-game.html';
+        // If there's an active Supabase client from flick-network.js
+        if (window.supabaseClient) {
+            await window.supabaseClient.from('public_tracking').insert({
+                event_type: 'game_start',
+                game_code: 'MINIGAME-QR',
+                source_partner: 'promo-qr',
+                user_agent: navigator.userAgent,
+                browser_lang: navigator.language || 'Unknown'
+            });
         }
+    } catch (err) {
+        console.warn("Analytics tracking skipped or failed", err);
+    }
+    
+    // Redirect to the mini-game
+    window.location.href = 'mini-game.html';
+}
 
-        // On page load, track the visit to the promo page
-        window.onload = async () => {
-            try {
-                if (window.supabaseClient) {
-                    await window.supabaseClient.from('analytics_events').insert({
-                        event_type: 'promo_visit',
-                        event_data: {
-                            source: new URLSearchParams(window.location.search).get('utm_source') || 'qr'
-                        }
-                    });
-                }
-            } catch (err) {
-                // Ignore if tracking fails, don't interrupt UX
-            }
-        };
-    </script>
+// On page load, track the visit to the promo page
+window.onload = async () => {
+    try {
+        if (window.supabaseClient) {
+            await window.supabaseClient.from('public_tracking').insert({
+                event_type: 'app_opened',
+                game_code: 'MINIGAME-QR',
+                source_partner: new URLSearchParams(window.location.search).get('utm_source') || 'qr',
+                user_agent: navigator.userAgent,
+                browser_lang: navigator.language || 'Unknown'
+            });
+        }
+    } catch (err) {
+        // Ignore if tracking fails, don't interrupt UX
+    }
+};
+</script>
 </body>
 </html>
