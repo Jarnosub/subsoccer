@@ -150,9 +150,10 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            flex-direction: row; /* Horizontal side-by-side */
+            flex-direction: column; /* Stack vertically for instructions */
             justify-content: center;
-            gap: 15px;
+            align-items: center;
+            gap: 20px;
             z-index: 200;
             width: 90%;
             max-width: 600px;
@@ -470,8 +471,8 @@
             transform: translate(-50%, -50%) scale(0.5);
             font-family: 'SubsoccerLogo', sans-serif;
             font-size: 4rem;
-            color: var(--sub-gold);
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            color: #fff;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
             text-align: center;
             opacity: 0;
             z-index: 400;
@@ -948,8 +949,15 @@
     <canvas id="physics-canvas"></canvas>
 
     <div id="start-menu">
-        <button id="btn-start-touch" class="start-btn start-menu-btn">PLAY NOW</button>
-        
+        <div style="background: rgba(10, 10, 10, 0.85); border: 1px solid #C5A059; border-left: 4px solid #C5A059; padding: 20px 25px; border-radius: 8px; width: 100%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); color: #fff; font-family: 'Open Sans', sans-serif;">
+            <h3 style="font-family: 'Russo One', sans-serif; color: #C5A059; margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase;">HOW TO PLAY</h3>
+            <ul style="margin: 0; padding-left: 0; list-style: none; font-size: 0.9rem; line-height: 1.6;">
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-hand-pointer" style="color: #C5A059; width: 20px;"></i> <b>Swipe</b> fast to kick the ball</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-arrows-rotate" style="color: #C5A059; width: 20px;"></i> <b>Take turns</b> against the AI</li>
+                <li><i class="fa-solid fa-trophy" style="color: #C5A059; width: 20px;"></i> <b>Top scorer</b> wins! (3 shots each)</li>
+            </ul>
+        </div>
+        <button id="btn-start-touch" class="start-btn start-menu-btn" style="max-width: 320px; padding: 18px; font-size: 1.1rem;">PLAY NOW</button>
     </div>
     
     
