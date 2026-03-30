@@ -6,6 +6,10 @@ window.isPlaying = false;
     let currentTurn = "player";
 let playerGoals = 0;
 let oppGoals = 0;
+let playerShots = 0;
+let oppShots = 0;
+let playerResults = [];
+let oppResults = [];
 let turnDelayTimer = 0;
 let aiBallSpawned = false;
 let matchOver = false;
@@ -35,7 +39,7 @@ window.handlePlayerSave = function() {
         document.body.style.background = 'rgba(0, 255, 204, 0.3)';
         setTimeout(() => document.body.style.background = '', 100);
 
-        endTurn('player');
+        endTurn('player', false);
     }
 };
 
@@ -43,17 +47,38 @@ function updateScoreboard() {
     if(scoreP1) scoreP1.textContent = playerGoals;
     if(scoreP2) scoreP2.textContent = oppGoals;
     
-    const goalStr = (val) => {
+    let totalShotsAllowed = Math.max(3, playerResults.length, oppResults.length);
+    if (playerResults.length >= 3 && oppResults.length >= 3 && playerGoals === oppGoals) {
+        totalShotsAllowed = Math.max(playerResults.length, oppResults.length) + 1;
+    }
+
+    const goalStr = (results) => {
         let s = "";
-        for (let i = 0; i < 3; i++) s += (i < val) ? "●" : "○";
+        for (let i = 0; i < totalShotsAllowed; i++) {
+             if (i < results.length) {
+                  s += (results[i] === 'goal') ? "●" : "×";
+             } else {
+                  s += "○";
+             }
+        }
         return s;
     };
-    if(goalsP1) goalsP1.textContent = goalStr(playerGoals);
-    if(goalsP2) goalsP2.textContent = goalStr(oppGoals);
+    if(goalsP1) goalsP1.textContent = goalStr(playerResults);
+    if(goalsP2) goalsP2.textContent = goalStr(oppResults);
     
-    if (playerGoals >= 3 || oppGoals >= 3) {
-        matchOver = true;
-        setTimeout(() => { triggerVictory(playerGoals >= 3); }, 1500);
+    if (playerResults.length >= 3 && oppResults.length >= 3 && playerResults.length === oppResults.length) {
+         if (playerGoals !== oppGoals) {
+             matchOver = true;
+             setTimeout(() => { triggerVictory(playerGoals > oppGoals); }, 1500);
+         }
+    } else if (playerResults.length === oppResults.length) {
+         let pShotsRemaining = totalShotsAllowed - playerResults.length;
+         let oShotsRemaining = totalShotsAllowed - oppResults.length;
+         if (playerGoals > oppGoals + oShotsRemaining) {
+             matchOver = true; setTimeout(() => { triggerVictory(true); }, 1500);
+         } else if (oppGoals > playerGoals + pShotsRemaining) {
+             matchOver = true; setTimeout(() => { triggerVictory(false); }, 1500);
+         }
     }
 }
 
@@ -83,10 +108,19 @@ function showTurnAnnouncement(text) {
     }
 }
 
-function endTurn(nextTurn) {
-    currentTurn = "switch";
-    turnDelayTimer = 100;
-    window.nextTurnTarget = nextTurn;
+function endTurn(nextTurn, isGoal = false) {
+    if (currentTurn === "player") {
+         playerResults.push(isGoal ? "goal" : "miss");
+    } else if (currentTurn === "opponent") {
+         oppResults.push(isGoal ? "goal" : "miss");
+    }
+    updateScoreboard();
+
+    if (!matchOver) {
+        currentTurn = "switch";
+        turnDelayTimer = 100;
+        window.nextTurnTarget = nextTurn;
+    }
 }
     
     // Setup Physics Canvas
@@ -1088,6 +1122,10 @@ function endTurn(nextTurn) {
                     
                     document.body.style.background = 'rgba(255, 0, 0, 0.3)';
                     setTimeout(() => document.body.style.background = '', 100);
+                    if (currentTurn === "player" && !b.isAIBall) {
+                        showTurnAnnouncement("SAVED!");
+                        endTurn('opponent', false);
+                    }
                 }
             }
 
@@ -1141,7 +1179,7 @@ function endTurn(nextTurn) {
                             leftPlayer.classList.add('goal-flash');
                             setTimeout(() => leftPlayer.classList.remove('goal-flash'), 500);
                         }
-                        endTurn('opponent');
+                        endTurn('opponent', true);
                     } else if (currentTurn === "opponent" && b.isAIBall) {
                         oppGoals++;
                         updateScoreboard();
@@ -1150,7 +1188,16 @@ function endTurn(nextTurn) {
                            rightPlayer.classList.add('goal-flash');
                            setTimeout(() => rightPlayer.classList.remove('goal-flash'), 500);
                         }
-                        endTurn('player');
+                        endTurn('player', true);
+                    }
+                } else {
+                    // MISS!
+                    if (currentTurn === "player" && !b.isAIBall) {
+                        showTurnAnnouncement("MISSED!");
+                        endTurn('opponent', false);
+                    } else if (currentTurn === "opponent" && b.isAIBall) {
+                        showTurnAnnouncement("MISSED!");
+                        endTurn('player', false);
                     }
                 }
             }
@@ -1170,7 +1217,7 @@ function endTurn(nextTurn) {
                 if(rp) {
                     rp.classList.add('goal-flash'); setTimeout(() => rp.classList.remove('goal-flash'), 500);
                 }
-                showTurnAnnouncement("OPPONENT SCORED!"); endTurn("player"); 
+                showTurnAnnouncement("OPPONENT SCORED!"); endTurn("player", true); 
             }
 
             // Draw Virtual Ball Graphic
