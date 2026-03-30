@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer Pro League - Play Mini-Game</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/fd11910bc4.js" crossorigin="anonymous"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.95)), url('bg-arena.jpg') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Open Sans', sans-serif;
+            color: #fff;
+        }
+
+        /* Fallback if bg-arena.jpg doesn't exist, we use card-stadium.jpg */
+        @media screen {
+            body {
+                background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.95)), url('card-stadium.jpg') no-repeat center center;
+                background-size: cover;
+            }
+        }
+
+        .promo-container {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            height: 60px;
+            margin-bottom: 50px;
+        }
+
+        .btn {
+            width: 100%;
+            border-radius: 8px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.1rem;
+            padding: 18px;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: #333;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary:hover {
+            background: #444;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--sub-red, #cc0000), #8a0000);
+            color: #fff;
+            box-shadow: 0 5px 15px rgba(204, 0, 0, 0.4);
+        }
+
+        .btn-secondary:hover {
+            filter: brightness(1.2);
+        }
+
+        .footnote {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 30px;
+            line-height: 1.5;
+        }
+
+        i {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="promo-container">
+        <img src="subsoccer_logo.svg" alt="Subsoccer" class="logo">
+        
+        <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+            <i class="fa-solid fa-camera"></i> I HAVE A SUBSOCCER
+        </button>
+
+        <button class="btn btn-primary" onclick="startMiniGame()">
+            <i class="fa-solid fa-gamepad"></i> PLAY MINIGAME & WIN ELO
+        </button>
+        
+        <p class="footnote">
+            * No physical Subsoccer required for the Mini-Game. Earn points for the Global Leaderboard anywhere!
+        </p>
+    </div>
+
+    <!-- Analytics Tracking Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="flick-network.js"></script>
+    <script>
+        async function startMiniGame() {
+            // Track the play intent before redirecting
+            try {
+                // If there's an active Supabase client from flick-network.js
+                if (window.supabaseClient) {
+                    await window.supabaseClient.from('analytics_events').insert({
+                        event_type: 'minigame_start',
+                        event_data: { 
+                            source: 'promo-qr',
+                            referrer: document.referrer || window.location.href
+                        }
+                    });
+                }
+            } catch (err) {
+                console.warn("Analytics tracking skipped or failed", err);
+            }
+            
+            // Redirect to the mini-game
+            window.location.href = 'mini-game.html';
+        }
+
+        // On page load, track the visit to the promo page
+        window.onload = async () => {
+            try {
+                if (window.supabaseClient) {
+                    await window.supabaseClient.from('analytics_events').insert({
+                        event_type: 'promo_visit',
+                        event_data: {
+                            source: new URLSearchParams(window.location.search).get('utm_source') || 'qr'
+                        }
+                    });
+                }
+            } catch (err) {
+                // Ignore if tracking fails, don't interrupt UX
+            }
+        };
+    </script>
+</body>
+</html>

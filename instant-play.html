@@ -718,26 +718,7 @@
         </a>
     </div>
 
-    <!-- Hook Screen Overlay (Shown if ?mini-game parameter is present) -->
-    <div id="hook-screen-overlay" class="rules-overlay" style="display: none; background: rgba(10,10,10,0.98); z-index: 1001; flex-direction: column; align-items: center; justify-content: center;" onclick="event.stopPropagation()">
-        <div style="text-align:center; max-width: 600px; padding: 20px;">
-            <img src="subsoccer_logo.svg" style="height: 60px; margin-bottom: 50px;">
-            
-            <div style="display:flex; flex-direction: column; gap: 15px; width: 100%;">
-                <button onclick="document.getElementById('hook-screen-overlay').style.display='none'; document.getElementById('actual-rules-overlay').style.display='flex';" style="width: 100%; border-radius: 8px; font-family:'Resolve', sans-serif; background: linear-gradient(135deg, var(--sub-red), #8a0000); color: #fff; font-size: 1.1rem; padding: 15px; box-shadow: 0 5px 15px rgba(227, 6, 19, 0.4); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s;">
-                    <i class="fa-solid fa-camera"></i> I HAVE A SUBSOCCER
-                </button>
 
-                <button onclick="window.location.href='mini-game.html'" style="width: 100%; border-radius: 8px; font-family:'Resolve', sans-serif; background: #333; color: #fff; font-size: 1.1rem; padding: 15px; border: none; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s;">
-                    <i class="fa-solid fa-gamepad"></i> PLAY MINIGAME & WIN ELO
-                </button>
-            </div>
-            
-            <p style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #888; margin-top: 30px;">
-                * No physical Subsoccer required for the Mini-Game. Earn points for the Global Leaderboard.
-            </p>
-        </div>
-    </div>
 
     <!-- Table ID Display -->
     <div id="table-id-display" class="table-id">GAME: <span id="table-id-value"></span></div>
@@ -934,7 +915,7 @@
 
                 <button class="claim-victory-btn w-btn-claim"
                     style="background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%); color: #fff; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4); border: none;"
-                    onclick="window.location.href='instant-play.html?mini-game'">
+                    onclick="playAgain()">
                     <i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NEW GAME GUESTS
                 </button>
 
@@ -1583,15 +1564,6 @@
         window.claimVictory = claimVictory;
         window.shareTvLink = shareTvLink;
         window.shareVipLink = shareVipLink;
-        
-        // Show hook screen if ?mini-game is in the URL
-        if (window.location.search.includes('mini-game')) {
-            const overlay = document.getElementById('actual-rules-overlay');
-            if (overlay) overlay.style.display = 'none';
-            
-            const hookOverlay = document.getElementById('hook-screen-overlay');
-            if (hookOverlay) hookOverlay.style.display = 'flex';
-        }
     </script>
 </body>
 
