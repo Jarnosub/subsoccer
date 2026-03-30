@@ -31,7 +31,11 @@
             --sub-gold: #FFD700;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             background-color: var(--sub-black);
@@ -74,7 +78,8 @@
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            border: 1px solid #C5A059; /* Subsoccer Gold */
+            border: 1px solid #C5A059;
+            /* Subsoccer Gold */
             border-left: 4px solid #C5A059;
             padding: 8px 15px;
             border-radius: 6px;
@@ -99,7 +104,7 @@
             font-size: 1rem;
             color: #fff;
             line-height: 1.1;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
 
         .mini-player-elo {
@@ -117,9 +122,12 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            pointer-events: auto; /* Allow touch and flick interactions */
-            touch-action: none; /* Prevent browser scrolling while swiping */
-            z-index: 50; /* Above camera, below UI */
+            pointer-events: auto;
+            /* Allow touch and flick interactions */
+            touch-action: none;
+            /* Prevent browser scrolling while swiping */
+            z-index: 50;
+            /* Above camera, below UI */
         }
 
         /* Start Button */
@@ -146,11 +154,13 @@
         #start-menu {
             position: absolute;
             top: auto;
-            bottom: 12%; /* Keep it under the goalie in both orientations */
+            bottom: 12%;
+            /* Keep it under the goalie in both orientations */
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            flex-direction: column; /* Stack vertically for instructions */
+            flex-direction: column;
+            /* Stack vertically for instructions */
             justify-content: center;
             align-items: center;
             gap: 20px;
@@ -165,7 +175,8 @@
             top: 0;
             transform: none;
             width: 100%;
-            flex: 1; /* Make buttons share equal space */
+            flex: 1;
+            /* Make buttons share equal space */
             font-family: 'Open Sans', sans-serif;
             letter-spacing: 2px;
             text-align: center;
@@ -182,7 +193,8 @@
             top: calc(env(safe-area-inset-top, 0px) + 20px);
             right: calc(env(safe-area-inset-right, 0px) + 20px);
             z-index: 100;
-            width: 140px; /* Fixed width prevents the ticker from stretching the entire panel horizontally */
+            width: 140px;
+            /* Fixed width prevents the ticker from stretching the entire panel horizontally */
         }
 
         .stat-label {
@@ -201,7 +213,7 @@
             color: #fff;
         }
 
-    #victory-overlay {
+        #victory-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -250,7 +262,7 @@
             margin-bottom: 30px;
             opacity: 0;
             animation: victorySlideUp 0.8s ease-out 0.3s forwards;
-            text-shadow: 0 0 20px rgba(0,255,204,0.5);
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
             position: relative;
             z-index: 20;
         }
@@ -280,7 +292,8 @@
             transform: rotateY(180deg) scale(1.05);
         }
 
-        .card-front, .card-back {
+        .card-front,
+        .card-back {
             position: absolute;
             width: 100%;
             height: 100%;
@@ -300,14 +313,93 @@
         }
 
         /* Premium Turqoise Bleed & Boundaries */
-        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC; background-size: 8px 8px; border: 1px solid #00ccaa; }
-        .card-safe-zone { position: absolute; inset: 16px; border: 1px solid #999; border-top: 2px solid #fff; border-bottom: 2px solid #555; background: #050505; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .card-serial { position: absolute; top: 10px; right: 10px; background: transparent; color: #444; font-family: 'Open Sans', sans-serif; font-size: 0.55rem; font-weight: bold; z-index: 10; letter-spacing: 1px; }
-        .card-rc-badge { position: absolute; top: 10px; left: 10px; background: transparent; color: #E30613; font-family: 'Russo One', sans-serif; font-size: 1rem; z-index: 10; font-style: italic; text-shadow: 1px 1px 0 #fff; }
-        .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
-        .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
-        .card-data-box { height: 35%; width: 100%; background: #1a1a1a; padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
-        .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
+        .card-bleed-edge {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC;
+            background-size: 8px 8px;
+            border: 1px solid #00ccaa;
+        }
+
+        .card-safe-zone {
+            position: absolute;
+            inset: 16px;
+            border: 1px solid #999;
+            border-top: 2px solid #fff;
+            border-bottom: 2px solid #555;
+            background: #050505;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-serial {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            color: #444;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.55rem;
+            font-weight: bold;
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+
+        .card-rc-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: transparent;
+            color: #E30613;
+            font-family: 'Russo One', sans-serif;
+            font-size: 1rem;
+            z-index: 10;
+            font-style: italic;
+            text-shadow: 1px 1px 0 #fff;
+        }
+
+        .card-image-box {
+            height: 65%;
+            width: 100%;
+            position: relative;
+            border-bottom: 2px solid #E30613;
+            background: #111;
+        }
+
+        .card-nameplate {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 30px 10px 10px 10px;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .card-data-box {
+            height: 35%;
+            width: 100%;
+            background: #1a1a1a;
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .pro-stamp {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 60px;
+            height: auto;
+            z-index: 50;
+            transform: rotate(-8deg);
+            filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+            pointer-events: none;
+        }
 
         .w-actions {
             display: flex;
@@ -332,6 +424,7 @@
                 transform: translateY(100px) rotateY(-180deg) scale(0.5);
                 opacity: 0;
             }
+
             100% {
                 transform: translateY(0) rotateY(0deg) scale(1);
                 opacity: 1;
@@ -388,12 +481,23 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 1; }
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
-    
+
         /* Scoreboard Top Compact UI Styles */
         .scoreboard {
             position: absolute;
@@ -441,9 +545,9 @@
             letter-spacing: 3px;
             margin-bottom: 5px;
             pointer-events: none;
-            text-shadow: 0 5px 15px rgba(0,0,0,0.8);
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
         }
-        
+
         .player-right .player-label {
             color: var(--sub-red, #E30613);
         }
@@ -451,23 +555,47 @@
         .goal-flash {
             animation: goalFlash 0.5s ease-in-out;
         }
-        
+
         @keyframes goalFlash {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.3);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         @media (orientation: portrait) {
-            .scoreboard { top: 140px; padding: 0 20px; flex-direction: row; }
-            .score { font-size: 4rem; margin-top: 5px; }
-            .player-label { font-size: 1rem; }
-            .goals-visual { font-size: 1.5rem; letter-spacing: 5px; }
+            .scoreboard {
+                top: 140px;
+                padding: 0 20px;
+                flex-direction: row;
+            }
+
+            .score {
+                font-size: 4rem;
+                margin-top: 5px;
+            }
+
+            .player-label {
+                font-size: 1rem;
+            }
+
+            .goals-visual {
+                font-size: 1.5rem;
+                letter-spacing: 5px;
+            }
         }
 
         #turn-announcement {
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%) scale(0.5);
             font-family: 'SubsoccerLogo', sans-serif;
             font-size: 4rem;
@@ -479,7 +607,7 @@
             pointer-events: none;
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
         }
-        
+
         #turn-announcement.show {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
@@ -487,12 +615,13 @@
 
         #save-hitbox {
             position: absolute;
-            top: 20%; left: 0;
-            width: 100%; height: 80%;
+            top: 20%;
+            left: 0;
+            width: 100%;
+            height: 80%;
             z-index: 100;
             pointer-events: none;
         }
-
     </style>
 </head>
 
@@ -501,12 +630,15 @@
     <div class="top-bar">
         <div style="display: flex; gap: 10px;">
             <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
-            <button id="btn-sound-toggle" class="back-btn" style="border: none; cursor: pointer; background: rgba(0,0,0,0.5); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0;" title="Toggle Sound"><i class="fa-solid fa-volume-xmark"></i></button>
+            <button id="btn-sound-toggle" class="back-btn"
+                style="border: none; cursor: pointer; background: rgba(0,0,0,0.5); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0;"
+                title="Toggle Sound"><i class="fa-solid fa-volume-xmark"></i></button>
         </div>
-        
+
         <!-- Mini Player Card for social media recordings -->
         <div class="mini-player-card" id="mini-player-card">
-            <img src="placeholder-silhouette-5-wide.png" class="mini-player-avatar" id="mini-player-avatar" alt="Avatar">
+            <img src="placeholder-silhouette-5-wide.png" class="mini-player-avatar" id="mini-player-avatar"
+                alt="Avatar">
             <div>
                 <div class="mini-player-name" id="mini-player-name">GUEST</div>
                 <div class="mini-player-elo" id="mini-player-elo">1300 ELO</div>
@@ -557,26 +689,33 @@
         /* Responsive Mobile Layout */
         @media (max-width: 768px) and (orientation: portrait) {
             #start-menu {
-                flex-direction: column; /* Stack vertically if space gets tight in portrait */
+                flex-direction: column;
+                /* Stack vertically if space gets tight in portrait */
                 max-width: 350px;
                 width: 90%;
-                top: 50%; /* Anchor to the middle of the screen instead of pushing it down */
-                bottom: auto; 
-                transform: translate(-50%, -50%); /* Center perfectly */
+                top: 44%;
+                /* A little higher than the middle */
+                bottom: auto;
+                transform: translate(-50%, -50%);
+                /* Center correctly but higher up */
                 gap: 15px;
             }
+
             .start-menu-btn {
                 padding: 12px 10px;
                 font-size: 0.8rem;
             }
+
             .display-panel {
                 top: auto;
-                bottom: calc(env(safe-area-inset-bottom, 0px) + 30px); /* Leave safe space */
+                bottom: calc(env(safe-area-inset-bottom, 0px) + 30px);
+                /* Leave safe space */
                 right: 50%;
                 transform: translateX(50%);
                 width: 90%;
                 max-width: 400px;
             }
+
             .hud-container {
                 flex-direction: row;
                 justify-content: space-around;
@@ -584,17 +723,20 @@
                 gap: 5px;
                 padding: 10px 5px;
             }
+
             .hud-item {
                 flex: 1;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
             }
+
             .border-bottom {
                 border-bottom: none;
                 border-right: 1px solid rgba(255, 255, 255, 0.2);
                 padding-bottom: 0;
             }
+
             .stat-value {
                 font-size: 1.4rem;
             }
@@ -605,6 +747,7 @@
                 top: calc(env(safe-area-inset-top, 0px) + 10px);
                 right: calc(env(safe-area-inset-right, 0px) + 10px);
             }
+
             .hud-container {
                 flex-direction: column;
                 justify-content: center;
@@ -615,6 +758,7 @@
                 transform: scale(0.85);
                 transform-origin: top right;
             }
+
             .hud-item {
                 display: flex;
                 flex-direction: column;
@@ -622,25 +766,30 @@
                 align-items: center;
                 width: 100%;
             }
+
             .border-bottom {
                 border-bottom: 1px solid rgba(255, 255, 255, 0.2);
                 border-right: none;
                 padding-bottom: 8px;
                 padding-right: 0;
             }
+
             .stat-value {
                 font-size: 1.3rem;
             }
+
             .stat-label {
                 font-size: 0.6rem;
                 margin-bottom: 0;
             }
+
             .top-bar {
                 top: calc(env(safe-area-inset-top, 0px) + 10px);
                 left: calc(env(safe-area-inset-left, 0px) + 10px);
                 transform: scale(0.85);
                 transform-origin: top left;
             }
+
             #start-menu {
                 flex-direction: row;
                 max-width: 600px;
@@ -650,7 +799,7 @@
                 transform: translateX(-50%) scale(0.85);
             }
         }
-        
+
         .ticker-wrapper {
             width: 100%;
             overflow: hidden;
@@ -667,15 +816,21 @@
             z-index: 100;
             pointer-events: none;
             align-items: center;
-            padding-left: 100%; /* Push initial content to the right edge of wrapper */
+            padding-left: 100%;
+            /* Push initial content to the right edge of wrapper */
             animation: tickerScroll 15s linear infinite;
         }
 
         @keyframes tickerScroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100%); }
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
         }
-        
+
         .online-player-badge {
             background: rgba(0, 255, 204, 0.1);
             border: 1px solid rgba(0, 255, 204, 0.4);
@@ -690,7 +845,8 @@
             box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
             white-space: nowrap;
         }
-    #victory-overlay {
+
+        #victory-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -766,7 +922,8 @@
             transform: rotateY(180deg);
         }
 
-        .pro-card-front, .pro-card-back {
+        .pro-card-front,
+        .pro-card-back {
             position: absolute;
             width: 100%;
             height: 100%;
@@ -774,13 +931,14 @@
             backface-visibility: hidden;
             border-radius: 2px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            border: 1px solid rgba(255,255,255,0.1);
-            transform: translateZ(1px); /* Safari 3D fix */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateZ(1px);
+            /* Safari 3D fix */
         }
 
         .pro-card-front {
-            background: linear-gradient(rgba(0,0,0,0.3), #111), url('card-stadium.jpg') center/cover;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), #111), url('card-stadium.jpg') center/cover;
             display: flex;
             flex-direction: column;
         }
@@ -833,6 +991,7 @@
                 transform: translateY(100px) rotateY(-180deg) scale(0.5);
                 opacity: 0;
             }
+
             100% {
                 transform: translateY(0) rotateY(0deg) scale(1);
                 opacity: 1;
@@ -889,41 +1048,122 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 1; }
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         /* Victory Screen Mobile Details */
         @media (max-width: 1000px) {
-            .w-title { font-size: 2.2rem; margin-bottom: 5px; }
-            .w-elo { font-size: 1.8rem; margin-bottom: 10px; }
-            .pro-card { transform: scale(0.75) !important; margin-bottom: 0px; margin-top: -20px; }
-            .w-actions button { padding: 12px 25px; font-size: 1.1rem; }
-            .winner-content-box { gap: 0; justify-content: center; }
+            .w-title {
+                font-size: 2.2rem;
+                margin-bottom: 5px;
+            }
+
+            .w-elo {
+                font-size: 1.8rem;
+                margin-bottom: 10px;
+            }
+
+            .pro-card {
+                transform: scale(0.75) !important;
+                margin-bottom: 0px;
+                margin-top: -20px;
+            }
+
+            .w-actions button {
+                padding: 12px 25px;
+                font-size: 1.1rem;
+            }
+
+            .winner-content-box {
+                gap: 0;
+                justify-content: center;
+            }
         }
 
         @media (orientation: portrait) {
-            .w-actions { flex-direction: column; width: 90%; max-width: 320px; gap: 10px; align-items: center; margin: 0 auto; margin-top: -15px; }
-            .w-actions button { padding: 15px 20px; font-size: 1.1rem; width: 100%; box-sizing: border-box; }
-            .w-elo { font-size: 1.5rem; margin-bottom: 0px; }
-            .pro-card { transform: scale(0.7) !important; margin-top: -40px; margin-bottom: -20px; }
-            .w-title { font-size: 2.2rem; margin-top: 0px; line-height: 1; }
+            .w-actions {
+                flex-direction: column;
+                width: 90%;
+                max-width: 320px;
+                gap: 10px;
+                align-items: center;
+                margin: 0 auto;
+                margin-top: -15px;
+            }
+
+            .w-actions button {
+                padding: 15px 20px;
+                font-size: 1.1rem;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .w-elo {
+                font-size: 1.5rem;
+                margin-bottom: 0px;
+            }
+
+            .pro-card {
+                transform: scale(0.7) !important;
+                margin-top: -40px;
+                margin-bottom: -20px;
+            }
+
+            .w-title {
+                font-size: 2.2rem;
+                margin-top: 0px;
+                line-height: 1;
+            }
         }
 
         @media (max-height: 500px) and (orientation: landscape) {
-            .winner-content-box { transform: scale(0.6); transform-origin: center center; margin-top: 0; }
-            .w-title { margin-bottom: 0; }
-            .w-elo { margin-bottom: 0px; }
-            .pro-card { margin-bottom: 5px; margin-top: -15px; }
-            .w-actions { margin-top: -10px; gap: 10px; }
-            .w-actions button { padding: 8px 16px; font-size: 1.0rem; }
-        }
+            .winner-content-box {
+                transform: scale(0.6);
+                transform-origin: center center;
+                margin-top: 0;
+            }
 
+            .w-title {
+                margin-bottom: 0;
+            }
+
+            .w-elo {
+                margin-bottom: 0px;
+            }
+
+            .pro-card {
+                margin-bottom: 5px;
+                margin-top: -15px;
+            }
+
+            .w-actions {
+                margin-top: -10px;
+                gap: 10px;
+            }
+
+            .w-actions button {
+                padding: 8px 16px;
+                font-size: 1.0rem;
+            }
+        }
     </style>
-    
+
     <!-- Main scoreboard from Instant Play -->
-    <div id="flick-scoreboard-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 80;">
+    <div id="flick-scoreboard-container"
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 80;">
         <div class="scoreboard">
             <!-- Player 1 (Left) -->
             <div class="player-side player-left">
@@ -931,7 +1171,7 @@
                 <div class="score" id="score-p1">0</div>
                 <div class="goals-visual" id="goals-p1">○○○</div>
             </div>
-            
+
             <div class="center-divider" style="opacity: 0.3;"></div>
 
             <!-- Player 2 (Right) -->
@@ -949,18 +1189,25 @@
     <canvas id="physics-canvas"></canvas>
 
     <div id="start-menu">
-        <div style="background: rgba(10, 10, 10, 0.85); border: 1px solid #C5A059; border-left: 4px solid #C5A059; padding: 20px 25px; border-radius: 8px; width: 100%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); color: #fff; font-family: 'Open Sans', sans-serif;">
-            <h3 style="font-family: 'Russo One', sans-serif; color: #C5A059; margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase;">HOW TO PLAY</h3>
+        <div
+            style="background: rgba(10, 10, 10, 0.85); border: 1px solid #C5A059; border-left: 4px solid #C5A059; padding: 20px 25px; border-radius: 8px; width: 100%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); color: #fff; font-family: 'Open Sans', sans-serif;">
+            <h3
+                style="font-family: 'Russo One', sans-serif; color: #C5A059; margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase;">
+                HOW TO PLAY</h3>
             <ul style="margin: 0; padding-left: 0; list-style: none; font-size: 0.9rem; line-height: 1.6;">
-                <li style="margin-bottom: 8px;"><i class="fa-solid fa-hand-pointer" style="color: #C5A059; width: 20px;"></i> <b>Swipe</b> fast to kick the ball</li>
-                <li style="margin-bottom: 8px;"><i class="fa-solid fa-arrows-rotate" style="color: #C5A059; width: 20px;"></i> <b>Take turns</b> against the AI</li>
-                <li><i class="fa-solid fa-trophy" style="color: #C5A059; width: 20px;"></i> <b>Top scorer</b> wins! (3 shots each)</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-hand-pointer"
+                        style="color: #C5A059; width: 20px;"></i> <b>Swipe</b> fast to kick the ball</li>
+                <li style="margin-bottom: 8px;"><i class="fa-solid fa-arrows-rotate"
+                        style="color: #C5A059; width: 20px;"></i> <b>Take turns</b> against the AI</li>
+                <li><i class="fa-solid fa-trophy" style="color: #C5A059; width: 20px;"></i> <b>Top scorer</b> wins! (3
+                    shots each)</li>
             </ul>
         </div>
-        <button id="btn-start-touch" class="start-btn start-menu-btn" style="max-width: 320px; padding: 18px; font-size: 1.1rem;">PLAY NOW</button>
+        <button id="btn-start-touch" class="start-btn start-menu-btn"
+            style="max-width: 320px; padding: 18px; font-size: 1.1rem;">PLAY NOW</button>
     </div>
-    
-    
+
+
     <!-- Victory Screen -->
     <div id="victory-overlay">
         <!-- Lasers Canvas (Renders behind UI) -->
@@ -981,6 +1228,7 @@
                 padding: max(env(safe-area-inset-top), 10px) 10px 10px 10px;
                 margin: auto;
             }
+
             .w-title {
                 font-family: 'SubsoccerLogo', 'Russo One', sans-serif;
                 font-size: 3.5rem;
@@ -989,12 +1237,14 @@
                 letter-spacing: 2px;
                 color: var(--sub-gold);
             }
+
             .w-elo {
                 font-family: 'Russo One', sans-serif;
                 color: var(--sub-gold);
                 font-size: 2.5rem;
                 margin-bottom: 20px;
             }
+
             .w-card {
                 background: rgba(20, 20, 20, 0.85);
                 border: 2px dashed #444;
@@ -1007,11 +1257,13 @@
                 overflow: hidden;
                 margin-bottom: 25px;
             }
+
             .w-card-icon {
                 color: #888;
                 font-size: 1.2rem;
                 margin-bottom: 5px;
             }
+
             .w-card-title {
                 font-family: 'Russo One', sans-serif;
                 color: #ccc;
@@ -1020,6 +1272,7 @@
                 margin-bottom: 15px;
                 text-transform: uppercase;
             }
+
             .w-card-txt-1 {
                 font-family: 'SubsoccerLogo', sans-serif;
                 color: #ccc;
@@ -1027,18 +1280,21 @@
                 line-height: 1.4;
                 margin-bottom: 15px;
             }
+
             .w-card-txt-2 {
                 font-family: 'SubsoccerLogo', sans-serif;
                 color: var(--sub-gold);
                 font-size: 0.95rem;
                 margin-bottom: 5px;
             }
+
             .w-card-txt-3 {
                 font-family: 'SubsoccerLogo', sans-serif;
                 color: #ccc;
                 font-size: 0.8rem;
                 margin-bottom: 0;
             }
+
             .w-btn-claim {
                 width: 100%;
                 max-width: 400px;
@@ -1051,6 +1307,7 @@
                 text-transform: uppercase;
                 border-radius: 8px;
             }
+
             .w-actions {
                 display: flex;
                 flex-direction: column;
@@ -1058,6 +1315,7 @@
                 width: 100%;
                 max-width: 400px;
             }
+
             @media (max-height: 500px) {
                 .winner-content-box {
                     flex-direction: row;
@@ -1065,10 +1323,31 @@
                     align-content: center;
                     gap: 15px;
                 }
-                .w-title { width: 100%; font-size: 2rem; margin-bottom: 0; }
-                .w-elo { width: 100%; font-size: 1.8rem; margin-bottom: 0; }
-                .w-card { max-width: 300px; padding: 10px; margin-bottom: 0; }
-                .w-btn-claim { padding: 10px; font-size: 1rem; margin-bottom: 0; max-width: 300px; }
+
+                .w-title {
+                    width: 100%;
+                    font-size: 2rem;
+                    margin-bottom: 0;
+                }
+
+                .w-elo {
+                    width: 100%;
+                    font-size: 1.8rem;
+                    margin-bottom: 0;
+                }
+
+                .w-card {
+                    max-width: 300px;
+                    padding: 10px;
+                    margin-bottom: 0;
+                }
+
+                .w-btn-claim {
+                    padding: 10px;
+                    font-size: 1rem;
+                    margin-bottom: 0;
+                    max-width: 300px;
+                }
             }
         </style>
 
@@ -1082,7 +1361,7 @@
             <div id="winner-card-container" class="w-card">
                 <i id="winner-card-icon" class="fa-solid fa-lock w-card-icon"></i>
                 <h3 id="winner-card-title" class="w-card-title">ROOKIE CARD</h3>
-                
+
                 <p class="w-card-txt-1">YOU ARE PLAYING AS AN ANONYMOUS GUEST.</p>
                 <p class="w-card-txt-2">UNLOCK YOUR PRO CARD</p>
                 <p class="w-card-txt-3">TO CLAIM THIS VICTORY AND ENTER THE GLOBAL TOP 100!</p>
@@ -1117,7 +1396,7 @@
                     const user = JSON.parse(lsData);
                     document.getElementById('mini-player-name').textContent = user.username ? user.username.toUpperCase() : 'PLAYER';
                     document.getElementById('mini-player-elo').textContent = (user.elo || 1300) + ' ELO';
-                    
+
                     if (user.avatar_url) {
                         document.getElementById('mini-player-avatar').src = user.avatar_url;
                     }
