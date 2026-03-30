@@ -320,6 +320,69 @@ export async function viewAllUsers() {
     }
 }
 
+export async function viewAvatarModerator() {
+    showLoading('Fetching avatars...');
+    try {
+        const { data: users, error } = await _supabase
+            .from('players')
+            .select('id, username, avatar_url, created_at')
+            .not('avatar_url', 'is', null)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        let html = `
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 5px;">
+        `;
+
+        if (!users || users.length === 0) {
+            html += `<div style="text-align:center; grid-column: 1 / -1; color: #888;">No avatars found to moderate.</div>`;
+        }
+
+        users.forEach(u => {
+            html += `
+                <div id="avatar-mod-${u.id}" style="background: #111; border: 1px solid #333; border-radius: 6px; padding: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid var(--sub-gold);">
+                        <img src="${u.avatar_url}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                    </div>
+                    <div style="font-family:'Russo One', sans-serif; font-size: 0.8rem; color: #fff; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${u.username}</div>
+                    <button class="btn-red" style="padding: 4px 8px; font-size: 0.65rem; width: 100%; background: #c62828;" onclick="removePlayerAvatar('${u.id}')">
+                        <i class="fa-solid fa-trash"></i> REMOVE
+                    </button>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        showModal('AVATAR MODERATION', html, { maxWidth: '700px' });
+    } catch(err) {
+        showNotification('Failed to fetch avatars: ' + err.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+window.removePlayerAvatar = async function(playerId) {
+    if (!confirm('Are you sure you want to remove this avatar? It will be permanently removed.')) return;
+    
+    try {
+        const { error } = await _supabase
+            .from('players')
+            .update({ avatar_url: null })
+            .eq('id', playerId);
+            
+        if (error) throw error;
+        
+        showNotification('Avatar removed successfully.', 'success');
+        
+        const el = document.getElementById('avatar-mod-' + playerId);
+        if (el) el.remove();
+        
+    } catch(err) {
+        showNotification('Failed to remove avatar: ' + err.message, 'error');
+    }
+};
+
 export async function openAdminPrintMode(username) {
     showLoading('Generating 300+ DPI Origials...');
     import('./player-card-ui.js').then(module => {
@@ -757,6 +820,9 @@ export function setupModeratorListeners() {
     document.getElementById('btn-mod-view-users')?.addEventListener('click', () => {
         viewAllUsers();
     });
+    document.getElementById('btn-mod-avatar-moderator')?.addEventListener('click', () => {
+        viewAvatarModerator();
+    });
     document.getElementById('btn-mod-download-logs')?.addEventListener('click', () => {
         downloadSystemLogs();
     });
@@ -865,9 +931,10 @@ async function loadAnalyticsMap(filterPeriod = 'all') {
 
         let trackingQuery = _supabase.from('public_tracking').select('game_code, location, client_time');
         if (dateFilterStr) trackingQuery = trackingQuery.gte('client_time', dateFilterStr);
+        trackingQuery = trackingQuery.limit(50000); // Prevent 1000 row limit drop-offs
         
         const { data: trackingData } = await trackingQuery;
-        const { data: gamesData } = await _supabase.from('games').select('unique_code, latitude, longitude, created_at, is_public');
+        const { data: gamesData } = await _supabase.from('games').select('unique_code, latitude, longitude, created_at, is_public').limit(50000);
 
         const IconFactory = (color) => L.divIcon({
             html: `<div style="color:${color}; font-size: 20px;"><i class="fa-solid fa-location-dot"></i></div>`,
@@ -900,22 +967,34 @@ async function loadAnalyticsMap(filterPeriod = 'all') {
         }
 
         if (scanLocations.size > 0) {
-            Array.from(scanLocations).forEach(async (tz) => {
-                let city = tz.split('/').pop().replace(/_/g, ' ');
-                if (!city) return;
+            window.modTzCache = window.modTzCache || {
+                'Europe/Helsinki': [60.1699, 24.9384],
+                'Europe/London': [51.5072, -0.1276],
+                'Europe/Paris': [48.8566, 2.3522],
+                'Europe/Berlin': [52.5200, 13.4050],
+                'Europe/Stockholm': [59.3293, 18.0686],
+                'Europe/Oslo': [59.9139, 10.7522],
+                'America/New_York': [40.7128, -74.0060]
+            };
 
-                window.modTzCache = window.modTzCache || {};
+            for (const tz of Array.from(scanLocations)) {
+                let city = tz.split('/').pop().replace(/_/g, ' ');
+                if (!city) continue;
+
                 let coords = window.modTzCache[tz];
 
                 if (!coords) {
                     try {
+                        await new Promise(r => setTimeout(r, 1100)); // Respect Nominatim 1 request per second limit
                         const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&city=' + encodeURIComponent(city) + '&limit=1');
                         const data = await res.json();
                         if (data && data.length > 0) {
                             coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
                             window.modTzCache[tz] = coords;
                         }
-                    } catch (e) { }
+                    } catch (e) {
+                        console.warn("Nominatim fetch failed for", tz, e);
+                    }
                 }
 
                 if (coords && modMapCluster) {
@@ -929,7 +1008,7 @@ async function loadAnalyticsMap(filterPeriod = 'all') {
                         .bindPopup('<div style="color:#00ccaa; font-size:0.75rem; text-align:center; font-family:\'Russo One\'; text-transform:uppercase;">⚡ INSTANT PLAY<br><span style="color:#222; font-size:1.1rem; line-height:1.5;">' + city + '</span></div>');
                     modMapCluster.addLayer(scanMarker);
                 }
-            });
+            }
         }
     } catch(err) {
         console.error("Map data fetch err", err);
