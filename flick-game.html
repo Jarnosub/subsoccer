@@ -393,6 +393,111 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
+    
+        /* Scoreboard Overlay Styles (Imported from Instant-Play) */
+        .scoreboard {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            justify-content: space-between;
+        }
+
+        .player-side {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: rgba(0,0,0,0.4);
+        }
+
+        .center-divider {
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--sub-gold), transparent);
+            box-shadow: 0 0 20px var(--sub-gold);
+        }
+
+        .score {
+            font-size: 15rem;
+            font-family: 'SubsoccerLogo', sans-serif;
+            color: rgba(255, 255, 255, 0.4);
+            line-height: 1;
+            margin: 0;
+            text-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        .goals-visual {
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 15px;
+            margin-top: 20px;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s;
+            line-height: 1;
+        }
+
+        .player-label {
+            position: absolute;
+            top: 30px;
+            font-family: 'Russo One', sans-serif;
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            pointer-events: none;
+        }
+
+        .goal-flash {
+            animation: goalFlash 0.5s ease-in-out;
+        }
+        @keyframes goalFlash {
+            0% { background: rgba(0,255,204,0.1); }
+            50% { background: rgba(0,255,204,0.6); }
+            100% { background: rgba(0,0,0,0.4); }
+        }
+
+        @media (orientation: portrait) {
+            .scoreboard { flex-direction: column; }
+            .player-side { width: 100%; height: 50%; }
+            .center-divider { width: 100%; height: 2px; background: linear-gradient(to right, transparent, var(--sub-gold), transparent); }
+            .score { font-size: 8rem; margin-top: 30px; }
+            .goals-visual { margin-top: 10px; font-size: 2rem; }
+            .player-label { top: 10px; font-size: 1.5rem; }
+            #flick-scoreboard-container { padding-top: 80px; }
+        }
+
+        #turn-announcement {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            font-family: 'SubsoccerLogo', sans-serif;
+            font-size: 4rem;
+            color: var(--sub-gold);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            text-align: center;
+            opacity: 0;
+            z-index: 400;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+        }
+        #turn-announcement.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        #save-hitbox {
+            position: absolute;
+            top: 20%; left: 0;
+            width: 100%; height: 80%;
+            z-index: 100;
+            pointer-events: none;
+        }
+
     </style>
 </head>
 
@@ -822,29 +927,29 @@
         }
 
     </style>
-    <div class="display-panel">
-        <div class="hud-container">
-            <div class="hud-item border-bottom">
-                <div class="stat-label">TIME</div>
-                <div class="stat-value" id="time-value">45</div>
+    
+    <!-- Main scoreboard from Instant Play -->
+    <div id="flick-scoreboard-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 80;">
+        <div class="scoreboard">
+            <!-- Player 1 (Left) -->
+            <div class="player-side player-left">
+                <div class="player-label">YOU</div>
+                <div class="score" id="score-p1">0</div>
+                <div class="goals-visual" id="goals-p1">○○○</div>
             </div>
-            <div class="hud-item border-bottom">
-                <div class="stat-label">SCORE</div>
-                <div class="stat-value" id="score-value">0</div>
+            
+            <div class="center-divider" style="opacity: 0.3;"></div>
+
+            <!-- Player 2 (Right) -->
+            <div class="player-side player-right">
+                <div class="player-label">OPPONENT</div>
+                <div class="score" id="score-p2">0</div>
+                <div class="goals-visual" id="goals-p2">○○○</div>
             </div>
-            <div id="opp-score-box" class="hud-item border-bottom" style="transition: background-color 0.3s;">
-                <div class="stat-label" style="color: #E30613;">OPPONENT</div>
-                <div class="stat-value" id="opp-score-value">0</div>
-            </div>
-            <div class="hud-item">
-                <div class="stat-label">SPEED</div>
-                <div class="stat-value" id="speed-value" style="color: #00FFCC; text-shadow: 0 0 10px rgba(0,255,204,0.5);">0<span style="font-size:1rem; margin-left:2px; color:#fff; text-shadow: none;">KM/H</span></div>
-            </div>
-        </div>
-        <div class="ticker-wrapper">
-            <div id="online-players-list"></div>
         </div>
     </div>
+    <div id="turn-announcement">YOUR TURN</div>
+    <div id="save-hitbox" onclick="handlePlayerSave()"></div>
 
     <!-- The actual flick physics canvas -->
     <canvas id="physics-canvas"></canvas>
