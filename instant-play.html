@@ -1279,6 +1279,9 @@
                     
                     // Add body class for display mode
                     document.body.classList.add('display-mode-active');
+                    
+                    // Force the table's hardware OFF when the TV boots up, waiting for a fresh mobile connection
+                    setTimeout(() => triggerShelly(false), 1500);
 
                     const qrHtml = `<div class="qr-display-box">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=ffffff&bgcolor=0a0a0a&data=${encodeURIComponent(qrUrl)}" style="width:190px; flex-shrink: 0;">
