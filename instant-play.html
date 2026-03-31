@@ -1177,6 +1177,7 @@
                         if (scoreP1 === 0 && scoreP2 === 0) {
                             document.getElementById('winner-overlay').classList.remove('show');
                             if (typeof stopLasers === 'function') stopLasers();
+                            triggerShelly(true); // FIRE IoT POWER: The Giant Display acts as the local brain.
                         }
                         
                         if(data.isGoal || (scoreP1 > 0 && scoreP1 > oldP1) || (scoreP2 > 0 && scoreP2 > oldP2)) {
