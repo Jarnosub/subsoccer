@@ -1249,11 +1249,11 @@
                 }
 
                 BroadcastService.startBroadcasting().then(() => {
-                    // Send initial 0-0 state to wake up any listening TVs immediately, but NOT if WE are the TV.
+                    // DEMO: Alkuping (0-0) on poistettu, jotta Jättinäytön sähköt EIVÄT syty heti kun QR skannataan.
+                    // Maksumuuri on nyt ainoa asia, joka voi liipaista sähköt myöhemmin päälle.
                     if (urlParams.get('mode') !== 'display') {
-                        setTimeout(() => {
-                            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
-                        }, 500);
+                        // Odottaa kiltisti maksua...
+                        console.log("Waiting for Arcade payment...");
                     } else {
                         // Käynnistä kellon valvonta Jättinäytöllä heti alusta asti
                         pingDisplayActivity();
