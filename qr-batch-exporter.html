@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer GO - Vector EPS Export</title>
+    <!-- JSZip for bundling multiple EPS files into one zip download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- QR Code Generator that exposes math/matrix for EPS building -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sub-red: #E30613;
+        }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: #111;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            font-family: 'Teko', sans-serif;
+            font-size: 3rem;
+            color: var(--sub-red);
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        .controls {
+            background: #222;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #aaa;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1.1rem;
+        }
+        button {
+            width: 100%;
+            padding: 18px;
+            background: var(--sub-red);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.5rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        button:hover { background: #c00000; }
+        
+        #status {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #4caf50;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">SUBSOCCER GO - VECTOR EPS BATCH EXPORT</div>
+    
+    <div class="controls">
+        <p style="text-align:center; font-size:1rem; color:#888; margin-top:0; margin-bottom: 30px;">
+            Generate pristine Vector (EPS format) QR codes for the print house. Perfect for vinyl wrapping and massive arcade table prints. Text is baked right into the vector!
+        </p>
+        
+        <div class="form-group">
+            <label>Base URL</label>
+            <input type="text" id="baseUrl" value="https://subsoccer.pro/instant-play.html">
+        </div>
+        
+        <div class="form-group">
+            <label>Batch Prefix (e.g. GER-SUB-)</label>
+            <input type="text" id="prefix" value="GER-SUB-">
+        </div>
+
+        <div class="form-group" style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <label>Start Number</label>
+                <input type="number" id="startNum" value="1">
+            </div>
+            <div style="flex: 1;">
+                <label>Quantity of EPS files</label>
+                <input type="number" id="qty" value="10" max="500">
+            </div>
+        </div>
+        
+        <button id="downloadBtn" onclick="generateBatchZip()">DOWNLOAD EPS EXPORT (ZIP)</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function generateEPS(url, serial) {
+            // Generate QR Matrix using High Error Correction
+            const qr = qrcode(0, 'H');
+            qr.addData(url);
+            qr.make();
+            
+            const count = qr.getModuleCount();
+            const margin = 4; // Quiet zone required by QR code standard
+            const scale = 10; // Points per square
+            const qrWidth = (count + 2 * margin) * scale;
+            
+            // Total width/height of the EPS artboard
+            const width = qrWidth;
+            const height = qrWidth + 50; // extra space at bottom for text
+            
+            // Construct raw Adobe EPS file string
+            let eps = `%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 ${width} ${height}
+%%Creator: Subsoccer GO
+%%Title: ${serial}
+0 0 0 setrgbcolor
+`;
+
+            // Draw QR Code rectangles
+            for (let r = 0; r < count; r++) {
+                for (let c = 0; c < count; c++) {
+                    if (qr.isDark(r, c)) {
+                        const x = (c + margin) * scale;
+                        const y = height - 50 - ((r + margin + 1) * scale);
+                        eps += `${x} ${y} ${scale} ${scale} rectfill\n`;
+                    }
+                }
+            }
+
+            // Draw Serial Number Text centered at the bottom
+            eps += `
+/Helvetica-Bold findfont 24 scalefont setfont
+${width / 2} 20 moveto
+(SN: ${serial}) dup stringwidth pop 2 div neg 0 rmoveto show
+showpage
+`;
+            return eps;
+        }
+
+        async function generateBatchZip() {
+            const btn = document.getElementById('downloadBtn');
+            const status = document.getElementById('status');
+            
+            btn.innerHTML = 'GENERATING VECTORS...';
+            btn.style.background = '#555';
+            status.innerHTML = '';
+            
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const prefix = document.getElementById('prefix').value.trim();
+            const startNum = parseInt(document.getElementById('startNum').value);
+            const qty = parseInt(document.getElementById('qty').value);
+            
+            const zip = new JSZip();
+            const folderName = `Subsoccer_QR_Vectors_${prefix.replace(/[^a-zA-Z0-9]/g, '')}`;
+            const folder = zip.folder(folderName);
+            
+            for(let i = 0; i < qty; i++) {
+                const currentNum = String(startNum + i).padStart(3, '0');
+                const serial = prefix + currentNum;
+                
+                // Add SN param, or &sn depending on base url (assuming ?sn=)
+                const finalUrl = baseUrl + (baseUrl.includes('?') ? '&' : '?') + "sn=" + encodeURIComponent(serial);
+                
+                // Generate Raw EPS content
+                const epsString = generateEPS(finalUrl, serial);
+                
+                // Add EPS file to Zip folder
+                folder.file(`${serial}.eps`, epsString);
+            }
+            
+            try {
+                const content = await zip.generateAsync({type:"blob"});
+                saveAs(content, `${folderName}.zip`);
+                status.innerHTML = `Successfully exported ${qty} EPS vector files!`;
+            } catch (err) {
+                console.error(err);
+                status.innerHTML = `<span style="color:red">Error generating ZIP. Check console.</span>`;
+            }
+            
+            btn.innerHTML = 'DOWNLOAD EPS EXPORT (ZIP)';
+            btn.style.background = 'var(--sub-red)';
+        }
+    </script>
+</body>
+</html>
