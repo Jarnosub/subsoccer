@@ -978,12 +978,33 @@
         let currentGameId = null;
         let WIN_SCORE = 3;
         let lastGoalTime = 0;
+        
+        // Shelly Smart Plug Integration for physical hardware FX
+        let shellyIP = localStorage.getItem('shelly_ip') || null;
+
+        function triggerShelly(turnOn) {
+            if (!shellyIP) return;
+            const state = turnOn ? 'on' : 'off';
+            console.log(`🔌 Sending Shelly API Command: TURN ${state.toUpperCase()} (${shellyIP})...`);
+            
+            // Note: no-cors mode allows blind GET requests over local network without CORS error blocks
+            fetch(`http://${shellyIP}/relay/0?turn=${state}`, { mode: 'no-cors' })
+                .catch(err => console.warn("Shelly command failed:", err));
+        }
 
         // Initialize
         window.addEventListener('load', () => {
             logTrackingEvent('app_opened');
             // Check for Game ID or Serial Number (sn) in URL
             const urlParams = new URLSearchParams(window.location.search);
+            
+            // Check if user provided a Shelly IP parameter directly in the URL to pair the hardware
+            if (urlParams.has('shelly')) {
+                shellyIP = urlParams.get('shelly');
+                localStorage.setItem('shelly_ip', shellyIP);
+                console.log("🔥 Shelly Webhook IP set to: " + shellyIP);
+            }
+
             // Use URL param 'sn' (serial number) primarily, or fallback to 'game_id', or default to 'QUICK-PLAY'
             const _gameId = urlParams.get('sn') || urlParams.get('game_id') || 'QUICK-PLAY';
             const gameId = _gameId.toUpperCase();
@@ -1299,6 +1320,8 @@
             // Scroll to hide address bar (iOS hack)
             window.scrollTo(0, 1);
 
+            // Fire Shelly Smart Plug (Turn ON Fans/Lights/Power)
+            triggerShelly(true);
 
             // Skip auto-starting microphone to avoid immediate browser permission prompt
             // Let the user start it manually via the microphone button
@@ -1483,6 +1506,11 @@
             if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
                 window.soundEffects.playCrowdCheer();
             }
+            
+            // Cut Shelly Smart Plug Power (Turn OFF Fans/Lights) after a short suspense delay
+            setTimeout(() => {
+                triggerShelly(false);
+            }, 3000);
 
             // Giant Display: Auto-return to QR code after 12 seconds
             if (urlParams.get('mode') === 'display') {
