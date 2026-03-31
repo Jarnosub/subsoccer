@@ -727,8 +727,14 @@
                     overlay.style.opacity = '0';
                     setTimeout(() => {
                         overlay.style.display = 'none';
-                        // Ohitetaan suoraan rules overlay ja aukaistaan peli (sytyttää sähköt!)
+                        // Ohitetaan suoraan rules overlay ja aukaistaan peli
                         if(typeof enterFullscreenGame === 'function') enterFullscreenGame();
+                        
+                        // LÄHETETÄÄN 0-0 SIGNNALI VASTA KUN MAKSU ON HYVÄKSYTTY!
+                        // Tämä herättää Jättinäytön ja napsauttaa valot päälle!
+                        if (typeof BroadcastService !== 'undefined') {
+                            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
+                        }
                     }, 500);
                 }, 1200);
             }, 2500);
@@ -1674,6 +1680,7 @@
         }
 
         // Reset game
+        // Reset game
         function resetGame() {
             scoreP1 = 0;
             scoreP2 = 0;
@@ -1683,6 +1690,23 @@
             updateGoalVisuals();
             document.getElementById('winner-overlay').classList.remove('show');
             stopLasers();
+
+            // ARCADE PAYWALL LOGIC:
+            // JOS PUHELIN PAINAA UUSI PELI, NÄYTETÄÄN MAKSUMUURI UUDELLEEN!
+            // Emme lähetä tässä 0-0 signaalia, ettei TV turhaan herää ennen maksua.
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') !== 'display') {
+                const po = document.getElementById('paywall-overlay');
+                if (po) {
+                    po.style.display = 'flex';
+                    po.style.opacity = '1';
+                    document.getElementById('apple-pay-btn').style.display = 'flex';
+                    document.getElementById('payment-spinner').style.display = 'none';
+                    // Nollataan spinnerin sisältö takaisin alkuperäiseksi
+                    document.getElementById('payment-spinner').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.8rem; color: var(--sub-gold);"></i><span style="font-family: \\\'Open Sans\\\', sans-serif; color: var(--sub-gold); margin-left: 15px; font-size: 1.1rem; font-weight: 600;">Processing with Bank...</span>';
+                    return; // Keskeytetään tähän! Ei lähetetä 0-0 vielä.
+                }
+            }
 
             BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
         }
