@@ -1152,12 +1152,42 @@
 
             // Start broadcasting ONLY if we have a specific serial number/game ID
             if (gameId !== 'QUICK-PLAY') {
+                
+                // GIANT DISPLAY: Global Inactivity Timer
+                let displayInactivityTimer = null;
+                const ACTIVITY_TIMEOUT_MS = 3 * 60 * 1000; // 3 minuuttia inaktiivisuudesta nollaus
+                
+                function pingDisplayActivity() {
+                    if (urlParams.get('mode') !== 'display') return;
+                    
+                    if (displayInactivityTimer) clearTimeout(displayInactivityTimer);
+                    
+                    displayInactivityTimer = setTimeout(() => {
+                        console.log("⏰ Inaktiivisuus-aikakatkaisu! Pöytä hylätty, palautetaan valmiustilaan.");
+                        
+                        // Palauta näyttö 0-0
+                        scoreP1 = 0; scoreP2 = 0;
+                        document.getElementById('score-p1').textContent = '0';
+                        document.getElementById('score-p2').textContent = '0';
+                        updateGoalVisuals();
+                        
+                        document.getElementById('winner-overlay').classList.remove('show');
+                        if (typeof stopLasers === 'function') stopLasers();
+                        
+                        // Sammuta pöydän valot ja tuulettimet
+                        triggerShelly(false);
+                    }, ACTIVITY_TIMEOUT_MS);
+                }
+
                 BroadcastService.startBroadcasting().then(() => {
                     // Send initial 0-0 state to wake up any listening TVs immediately, but NOT if WE are the TV.
                     if (urlParams.get('mode') !== 'display') {
                         setTimeout(() => {
                             BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
                         }, 500);
+                    } else {
+                        // Käynnistä kellon valvonta Jättinäytöllä heti alusta asti
+                        pingDisplayActivity();
                     }
 
                     // Add mirrored listener for Giant Display
@@ -1165,6 +1195,9 @@
                     ch.on('broadcast', { event: 'SCORE_UPDATE' }, (payload) => {
                         const data = payload.payload;
                         if (Date.now() - lastGoalTime < 500) return; // Prevent echo from our own clicks
+                        
+                        // Ping the inactivity timer every time data moves to keep table alive
+                        pingDisplayActivity();
                         
                         let oldP1 = scoreP1;
                         let oldP2 = scoreP2;
