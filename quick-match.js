@@ -84,10 +84,19 @@ export async function updateEloPreview() {
 
 export async function startQuickMatch() {
     document.querySelectorAll('input').forEach(input => input.blur());
-    state.quickP1 = document.getElementById('p1-quick-search').value.trim().toUpperCase();
-    state.quickP2 = document.getElementById('p2-quick-search').value.trim().toUpperCase();
-    if (!state.quickP1 || !state.quickP2) return showNotification("Select both players!", "error");
-    if (state.quickP1 === state.quickP2) return showNotification("Select different players!", "error");
+    
+    let p1 = document.getElementById('p1-quick-search').value.trim().toUpperCase();
+    let p2 = document.getElementById('p2-quick-search').value.trim().toUpperCase();
+    
+    if (!p1) p1 = "PLAYER 1";
+    if (!p2) p2 = "PLAYER 2";
+
+    state.quickP1 = p1;
+    state.quickP2 = p2;
+
+    if (state.quickP1 === state.quickP2 && state.quickP1 !== "PLAYER 1" && state.quickP2 !== "PLAYER 2") {
+        return showNotification("Select different players!", "error");
+    }
 
     startProMatch();
 }

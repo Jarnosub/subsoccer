@@ -180,7 +180,10 @@ export async function fetchMyGames() {
             <div style="font-family: 'Russo One'; font-size: 1rem; padding-right: 60px; ${game.verified ? 'margin-top:25px;' : ''}">${game.game_name}</div>
             <small style="color:#888;">${game.location}</small><br>
             <small style="color:var(--sub-gold); font-size:0.65rem;">SERIAL: ${game.serial_number}</small>
-            ${game.verified ? `<div style="margin-top:10px;"><button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#444;" onclick="releaseGameOwnership('${game.id}')">Release Ownership</button></div>` : ''}
+            ${game.verified ? `<div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:10px;">
+                <button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:var(--sub-gold); color:#000;" onclick="window.open('instant-play.html?mode=display&game_id=${game.id}', '_blank')"><i class="fa-solid fa-tv"></i> OPEN JÄTTINÄYTTÖ</button>
+                <button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#444;" onclick="releaseGameOwnership('${game.id}')">Release Ownership</button>
+            </div>` : ''}
         </div>
     `).join('') : '<p>You have not registered any games yet.</p>';
     const list = document.getElementById('my-games-list');
