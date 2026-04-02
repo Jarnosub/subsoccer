@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer DevOps Hub | Jarno's Control Center</title>
+    <!-- Subsoccer Official Fonts -->
+    <link href="style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --surface: #141416;
+            --surface-hover: #1a1a1f;
+            --text-main: #f4f4f5;
+            --text-muted: #888888;
+            --accent-gold: #FFD700;
+            --accent-red: #C1272D;
+            --accent-blue: #1a73e8;
+            --accent-green: #1e8e3e;
+            --border: #333333;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Resolve', sans-serif; /* Subsoccer body font fallback */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 60px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-family: 'SubsoccerLogo', 'Russo One', sans-serif;
+            font-size: 42px;
+            color: var(--accent-gold);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sys-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.05);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-gold);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(255, 215, 0, 0.1);
+            background: var(--surface-hover);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--accent-gold);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            transform-origin: left;
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-icon .badge {
+            font-size: 11px;
+            font-family: 'Russo One', sans-serif;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .card-title {
+            font-family: 'SubsoccerLogo', 'Russo One', sans-serif;
+            font-size: 24px;
+            margin: 0 0 15px 0;
+            color: white;
+            letter-spacing: 1px;
+        }
+
+        .card-desc {
+            font-family: 'Resolve', sans-serif;
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0 0 30px 0;
+            flex-grow: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+            font-family: 'Russo One', sans-serif;
+            font-size: 13px;
+        }
+
+        .port-info {
+            color: var(--accent-blue);
+        }
+
+        .launch-btn {
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: gap 0.2s;
+        }
+
+        .card:hover .launch-btn {
+            gap: 10px;
+        }
+
+        /* Distinct color variants for specific cards */
+        .card.customizer:hover { border-color: var(--accent-blue); }
+        .card.customizer::before { background: var(--accent-blue); }
+        .card.customizer .launch-btn { color: var(--accent-blue); }
+        
+        .card.analytics:hover { border-color: var(--accent-green); }
+        .card.analytics::before { background: var(--accent-green); }
+        .card.analytics .launch-btn { color: var(--accent-green); }
+        
+        .card.roadmap:hover { border-color: #f9ab00; }
+        .card.roadmap::before { background: #f9ab00; }
+        .card.roadmap .launch-btn { color: #f9ab00; }
+
+        .card.stadium:hover { border-color: var(--accent-red); }
+        .card.stadium::before { background: var(--accent-red); }
+        .card.stadium .launch-btn { color: var(--accent-red); }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="header">
+            <h1>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" class="lock-icon" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                DevOps Hub
+            </h1>
+            <div class="sys-status">
+                <div class="dot"></div>
+                Jarno's Local Environment Active
+            </div>
+        </div>
+
+        <div class="grid">
+
+            <!-- 1. The Forge (Main Dashboard) -->
+            <a href="http://localhost:8000/index.html" target="_blank" class="card">
+                <div class="card-icon">
+                    🕹️ <span class="badge" style="background: rgba(255, 215, 0, 0.1); color: var(--accent-gold);">PRODUCTION</span>
+                </div>
+                <h3 class="card-title">The Forge UI</h3>
+                <p class="card-desc">The primary host application for tournaments, pro cards, and matchmaking. Connects hardware to the Supabase backend via WebSockets.</p>
+                <div class="card-footer">
+                    <span class="port-info">PORT :8000</span>
+                    <span class="launch-btn">LAUNCH <span>→</span></span>
+                </div>
+            </a>
+
+            <!-- 2. Feature Roadmap -->
+            <a href="http://localhost:8000/feature-roadmap.html" target="_blank" class="card roadmap">
+                <div class="card-icon">
+                    👔 <span class="badge">EXECUTIVE</span>
+                </div>
+                <h3 class="card-title">Executive Roadmap</h3>
+                <p class="card-desc">C-Level dashboard utilizing live RLS infrastructure to present enterprise deployment phases and B2B SaaS architecture securely.</p>
+                <div class="card-footer">
+                    <span class="port-info">PORT :8000</span>
+                    <span class="launch-btn">LAUNCH <span>→</span></span>
+                </div>
+            </a>
+
+            <!-- 3. Stadium Sandbox -->
+            <a href="http://localhost:8000/stadium-sandbox.html" target="_blank" class="card stadium">
+                <div class="card-icon">
+                    🏟️ <span class="badge" style="background: rgba(193, 39, 45, 0.1); color: var(--accent-red);">PRODUCER</span>
+                </div>
+                <h3 class="card-title">Stadium Spectacle</h3>
+                <p class="card-desc">Pro producer orchestrator framework for 16-player 'Fastest Finger' live events. Handles automated QR generation and giant LED visuals.</p>
+                <div class="card-footer">
+                    <span class="port-info">PORT :8000</span>
+                    <span class="launch-btn">LAUNCH <span>→</span></span>
+                </div>
+            </a>
+
+            <!-- 4. Global Analytics -->
+            <a href="http://localhost:8000/dashboard-tracking.html" target="_blank" class="card analytics">
+                <div class="card-icon">
+                    🌍 <span class="badge" style="background: rgba(30, 142, 62, 0.1); color: var(--accent-green);">TELEMETRY</span>
+                </div>
+                <h3 class="card-title">God Mode Analytics</h3>
+                <p class="card-desc">Global administration tool tracking real-time arcade scans, IoT hardware logs, venue activity, and system-wide engagement maps.</p>
+                <div class="card-footer">
+                    <span class="port-info">PORT :8000</span>
+                    <span class="launch-btn">LAUNCH <span>→</span></span>
+                </div>
+            </a>
+
+            <!-- 5. Squad Customizer (React/Vite) -->
+            <a href="http://localhost:5173/" target="_blank" class="card customizer">
+                <div class="card-icon">
+                    👕 <span class="badge" style="background: rgba(26, 115, 232, 0.1); color: var(--accent-blue);">VITE + REACT</span>
+                </div>
+                <h3 class="card-title">Squad Customizer</h3>
+                <p class="card-desc">Interactive 3D/SVG configurator for B2B e-sports gear. Currently running locally on the isolated React Native / Vite ecosystem.</p>
+                <div class="card-footer">
+                    <span class="port-info">PORT :5173</span>
+                    <span class="launch-btn">LAUNCH <span>→</span></span>
+                </div>
+            </a>
+
+            <!-- 6. Developer Database (External Link / Utility) -->
+            <a href="https://supabase.com/dashboard/projects" target="_blank" class="card">
+                <div class="card-icon">
+                    🗄️ <span class="badge">EXTERNAL</span>
+                </div>
+                <h3 class="card-title">Supabase Cloud</h3>
+                <p class="card-desc">Direct access to the Subsoccer SQL database, Row Level Security policies, storage buckets, and user authentication logs.</p>
+                <div class="card-footer">
+                    <span class="port-info">SUPABASE.COM</span>
+                    <span class="launch-btn">LAUNCH <span>→</span></span>
+                </div>
+            </a>
+
+        </div>
+    </div>
+</body>
+</html>
