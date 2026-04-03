@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation API Test</title>
+    <!-- Use exactly the same basic styling constraints -->
+    <style>
+        :root {
+            --subsoccer-gold: #FFD700;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #111;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #2a2a4e 0%, #050510 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        .hidden { display: none !important; }
+
+        /* NOTICE: NO @keyframes CSS INSTRUCTIONS HERE */
+        /* All animation is pure DOM manipulation state */
+        .w-header {
+            font-size: 3rem; color: #fff; margin-bottom: 10px; letter-spacing: 5px;
+            opacity: 0; /* Hidden by default until JS animates it */
+        }
+        .w-title {
+            font-size: 8rem; color: var(--subsoccer-gold);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8); margin-bottom: 20px; text-transform: uppercase;
+            opacity: 0;
+        }
+        .w-score {
+            font-size: 6rem; color: #fff;
+            margin-bottom: 50px; text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            opacity: 0;
+        }
+        .pro-card-anim {
+            width: 250px; height: 350px;
+            transform-style: preserve-3d; margin-bottom: 30px;
+            opacity: 0;
+        }
+        .pro-card-front {
+            width: 100%; height: 100%; position: relative;
+            background: linear-gradient(rgba(0,0,0,0.3), #111), #222;
+            border-radius: 10px; border: 2px solid var(--subsoccer-gold);
+            box-shadow: 0 20px 50px rgba(255, 215, 0, 0.4); display: flex; flex-direction: column; overflow: hidden;
+        }
+        
+        button {
+            padding: 15px 30px; font-size: 1.5rem; background: var(--subsoccer-gold);
+            color: #000; border: none; border-radius: 8px; cursor: pointer;
+            z-index: 300; position: absolute; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <button onclick="triggerWAAPI()">AJAA ANIMAATIO TESTI</button>
+
+    <div id="victory-overlay" class="overlay hidden">
+        <h2 class="w-header">MATCH FINISHED</h2>
+        <h1 class="w-title" id="victory-winner">JARNO WINS</h1>
+        <div class="w-score" id="victory-score">3 - 1</div>
+        
+        <div class="pro-card-anim">
+            <div class="pro-card-front">
+                <div style="width: 100%; height: 160px; background: #1a1a1a; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <div style="width: 120px; height: 120px; border-radius: 60px; background: #fff; color: #000; display:flex; align-items:center; justify-content:center; font-size: 3rem; font-weight:bold;">J</div>
+                </div>
+                <div style="flex: 1; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 1.8rem; font-weight: 900; color: #fff; letter-spacing: 2px;">JARNO</div>
+                    <div style="font-size: 1rem; color: #aaa; margin-top: 5px;">ELO: <span style="color: var(--subsoccer-gold); font-weight:bold;">1204</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="resetTest()" style="bottom: 20px; top:auto;">NOLLAA (TAKAISIN ALKUUN)</button>
+    </div>
+
+    <script>
+        function triggerWAAPI() {
+            const overlay = document.getElementById('victory-overlay');
+            overlay.classList.remove('hidden');
+
+            const wHeader = document.querySelector('.w-header');
+            const wTitle = document.querySelector('.w-title');
+            const wScore = document.querySelector('.w-score');
+            const card = document.querySelector('.pro-card-anim');
+
+            // 1. MATCH FINISHED - slide up
+            wHeader.animate([
+                { transform: 'translateY(50px)', opacity: 0 },
+                { transform: 'translateY(0)', opacity: 1 }
+            ], { duration: 800, easing: 'ease-out', fill: 'forwards' });
+
+            // 2. JARNO WINS - slide up (viiveellä)
+            wTitle.animate([
+                { transform: 'translateY(50px)', opacity: 0 },
+                { transform: 'translateY(0)', opacity: 1 }
+            ], { duration: 800, delay: 100, easing: 'ease-out', fill: 'forwards' });
+
+            // 3. TULOS - slide up (pidemmällä viiveellä)
+            wScore.animate([
+                { transform: 'translateY(50px)', opacity: 0 },
+                { transform: 'translateY(0)', opacity: 1 }
+            ], { duration: 800, delay: 300, easing: 'ease-out', fill: 'forwards' });
+
+            // 4. KORTTI - lentää ruutuun pyörien, saapuu skaalattuna 1.3
+            card.animate([
+                { transform: 'translateY(100px) rotateY(-180deg) scale(0.5)', opacity: 0 },
+                { transform: 'translateY(0) rotateY(0deg) scale(1.3)', opacity: 1 }
+            ], { duration: 1000, delay: 600, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'forwards' });
+        }
+
+        function resetTest() {
+            document.getElementById('victory-overlay').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

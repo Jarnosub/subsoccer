@@ -1,432 +1,460 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Subsoccer LIVE</title>
-    <!-- Use the same Supabase client and styles -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer GO - PRO TV SCREEN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root {
-            --sub-red: #E30613;
-            --sub-gold: #FFD700;
-            --sub-black: #0a0a0a;
-            --sub-gray: #1a1a1a;
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'),
+                 url('fonts/Subsoccer-2-Regular.woff') format('woff');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-RegularNrw.otf') format('opentype');
+            font-weight: normal;
+        }
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+            font-weight: bold;
         }
 
-        body {
-            margin: 0;
-            padding: 0;
-            background: var(--sub-black);
-            color: #fff;
-            font-family: 'Subsoccer', 'Russo One', sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
+        body { margin: 0; background-color: #050510; color: white; overflow: hidden; width: 100vw; height: 100vh; font-family: 'Subsoccer', sans-serif; text-transform: uppercase; }
+        
+        /* The isolated layers architecture completely prevents CSS layout collisions */
+        .layer {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: none; /* Everything hidden natively */
+            flex-direction: column; justify-content: center; align-items: center;
         }
 
-        /* Ambient fallback background when no video */
-        .ambient-bg {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
-            z-index: -3;
-        }
+        /* Lobby Layer */
+        #layer-lobby { background: radial-gradient(circle at center, #111 0%, #000 100%); z-index: 10; }
+        
+        /* Game Layer */
+        #layer-game { z-index: 20; background: #050505; }
+        .score-box { font-family: 'Subsoccer', 'Inter', sans-serif; font-size: 35vh; font-weight: 900; line-height: 1; text-shadow: 0 10px 40px rgba(255,255,255,0.4); margin-bottom: 50px; }
+        .player-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 50vw; height: 100vh; position: relative; }
+        .p1-bg { background-color: #12222d; border-right: 2px solid #000; }
+        .p2-bg { background-color: #b70000; }
+        .player-name { font-size: 4rem; color: #fff; letter-spacing: 5px; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
 
-        /* Waiting Screen */
-        #waiting-screen {
+        /* Victory Layer */
+        #layer-victory { background: radial-gradient(circle at 50% 50%, #2a2a4e 0%, #050510 100%); z-index: 30; }
+        .v-anim { opacity: 0; } /* Baseline opacity for WAAPI */
+
+        /* Header UI (persists) */
+        #header-ui { position: absolute; top: 20px; left: 20px; right: 20px; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.8); border: 1px solid #333; border-radius: 12px; }
+
+        /* BRACKET SUBSOCCER PRO CSS */
+        #tv-bracket-area {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 2vw; /* responsive columns */
+            align-items: stretch;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 0 2vw;
+            box-sizing: border-box;
+        }
+        .bracket-round {
             display: flex;
             flex-direction: column;
+            gap: 1.5vh;
             align-items: center;
-            justify-content: center;
+            justify-content: space-around;
             height: 100%;
-            gap: 20px;
-        }
-
-        #waiting-screen img {
-            width: 250px;
-            max-width: 50vw;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #333;
-            border-top-color: var(--sub-red);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Background Video */
-        #arena-video {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -2;
-        }
-
-        #arena-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            /* subtle dim for readability */
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        /* Top Bar Scoreboard */
-        #scoreboard {
-            display: none;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
-
-        .top-bar {
-            position: absolute;
-            top: 3vh;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(10, 10, 10, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-bottom: 2px solid var(--sub-red);
-            border-radius: 8px;
-            padding: 10px 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            gap: 30px;
-            pointer-events: auto;
-            width: 80%;
-            max-width: 900px;
-        }
-
-        @media (orientation: portrait) {
-            .top-bar {
-                top: 2vh;
-                width: 90%;
-                flex-direction: column;
-                gap: 15px;
-                padding: 15px;
-            }
-        }
-
-        .brand-logo {
-            height: 35px;
-            object-fit: contain;
-        }
-
-        .score-section {
-            display: flex;
-            align-items: center;
-            justify-content: center;
             flex: 1;
-            gap: 15px;
+            min-width: 0;
+            position: relative;
+            padding-top: 60px;
+            padding-bottom: 20px;
         }
-
-        .player-name {
-            font-family: 'Resolve', sans-serif;
-            font-size: 1.5rem;
-            color: #ddd;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 180px;
-            text-align: center;
-        }
-
-        .score-box {
-            font-size: 2.5rem;
-            background: #151515;
-            color: white;
-            padding: 5px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            min-width: 30px;
-            text-align: center;
-            line-height: 1.2;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .vs-text {
-            color: #666;
-            font-family: Arial, sans-serif;
-            font-size: 1rem;
-            font-weight: bold;
-            margin: 0 10px;
-        }
-
-        /* Live Indicator inside Top Bar */
-        .live-tag {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: #fff;
-            font-family: 'Russo One', sans-serif;
-            letter-spacing: 1px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        @media (max-width: 768px) {
-            .player-name {
-                font-size: 1.2rem;
-                max-width: 100px;
-            }
-
-            .score-box {
-                font-size: 2rem;
-                padding: 5px 15px;
-            }
-
-            .brand-logo {
-                height: 25px;
-            }
-
-            .live-tag {
-                font-size: 0.7rem;
-                padding: 6px 12px;
-            }
-        }
-
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--sub-red);
-            border-radius: 50%;
-            animation: pulse 1s infinite alternate;
-            box-shadow: 0 0 8px var(--sub-red);
-        }
-
-        @keyframes pulse {
-            0% {
-                opacity: 0.5;
-            }
-
-            100% {
-                opacity: 1;
-            }
-        }
-
-        /* VIP Caster PIP Box */
-        #vip-box {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 20vw;
-            max-width: 250px;
-            min-width: 120px;
-            aspect-ratio: 3/4;
-            background: #000;
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-            pointer-events: auto;
-            display: none;
-            z-index: 100;
-            transition: opacity 0.5s ease;
-        }
-
-        @media (orientation: portrait) {
-            #vip-box {
-                bottom: auto;
-                top: 15vh;
-                right: 5vw;
-                width: 30vw;
-            }
-        }
-
-        .vip-label {
+        .round-title {
             position: absolute;
-            top: 8px;
-            left: 8px;
-            background: var(--sub-red);
-            color: white;
-            font-size: 0.7rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Russo One', sans-serif;
-            letter-spacing: 1px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        #vip-video {
+            top: 10px;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            color: #aaa;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: clamp(0.9rem, 1.5vh, 1.5rem);
+            letter-spacing: 2px;
+            margin-bottom: 0;
+            text-align: center;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.8);
         }
-
-        /* Goal Explosion */
-        #goal-overlay {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
+        .bracket-match {
+            background: #222;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            opacity: 0;
+            width: 100%;
+            max-width: 280px;
+            min-width: 150px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            font-size: clamp(0.75rem, 1.3vh, 1.2rem);
         }
-
-        #goal-overlay.active {
-            opacity: 1;
-            animation: flashOverlay 3s ease-out forwards;
-        }
-
-        @keyframes flashOverlay {
-            0% {
-                background: rgba(227, 6, 19, 0.4);
-            }
-
-            10% {
-                background: rgba(255, 215, 0, 0.2);
-            }
-
-            100% {
-                background: rgba(0, 0, 0, 0);
-            }
-        }
-
-        .goal-text {
-            font-size: 15vw;
-            color: #fff;
-            -webkit-text-stroke: 3px var(--sub-gold);
+        .match-player {
+            color: #ddd;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1em; /* scales with match container */
             text-transform: uppercase;
-            font-weight: 900;
-            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-            transform: scale(0.5);
-            font-style: italic;
+            padding: clamp(6px, 1.5vh, 15px) clamp(10px, 1.5vw, 25px);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            background: #252525;
+            border-left: clamp(3px, 0.5vw, 5px) solid #E30613;
         }
-
-        #goal-overlay.active .goal-text {
-            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        .match-player:first-child {
+            border-bottom: 1px solid #1a1a1a;
         }
-
-        @keyframes popIn {
-            to {
-                transform: scale(1);
-            }
+        .match-player:last-child {
+            border-top: 1px solid #333;
         }
-
-        .goal-scorer {
-            font-family: 'Resolve', sans-serif;
-            font-size: 3vw;
-            color: #000;
-            background: var(--sub-gold);
-            padding: 10px 40px;
-            border-radius: 50px;
-            margin-top: -2vw;
-            letter-spacing: 10px;
-            font-weight: bold;
-            opacity: 0;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        .match-player.winner {
+            color: #E30613;
         }
-
-        #goal-overlay.active .goal-scorer {
-            animation: popUp 0.5s ease-out 0.3s forwards;
-        }
-
-        @keyframes popUp {
-            from {
-                transform: translateY(30px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .match-vs {
+            display: none;
         }
     </style>
 </head>
-
 <body>
-    <div class="ambient-bg"></div>
 
-    <!-- Waiting Screen -->
-    <div id="waiting-screen">
-        <img src="subsoccer_logo.svg" alt="Subsoccer">
-        <div class="spinner"></div>
-        <div style="font-family:'Resolve'; color:#888; letter-spacing:2px; font-size:1.2rem;">CONNECTING TO ARENA...
+    <!-- PERSISTENT HEADER -->
+    <div id="header-ui">
+        <div class="flex items-center gap-4">
+            <div class="bg-white text-black px-4 py-1 rounded font-bold">TABLE 04</div>
+            <div class="text-gray-400 font-sans text-sm">SUBSOCCER GO LOUNGE</div>
         </div>
-        <div id="room-id-display" style="color:var(--sub-gold); font-size:1.5rem; font-weight:bold;"></div>
+        <div class="flex items-center gap-2" id="iot-status">
+            <div class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_red]" id="iot-dot"></div>
+            <div class="text-red-500 font-sans text-sm" id="iot-text">OFF LINE</div>
+        </div>
+        <div class="text-4xl" id="timer">00:00</div>
     </div>
 
-    <!-- Background Arena Video (Table Camera feed) -->
-    <video id="arena-video" playsinline autoplay muted></video>
-    <div id="arena-overlay"></div>
+    <!-- LAYER 1: LOBBY -->
+    <div id="layer-lobby" class="layer" style="display: flex;">
+        <img src="subsoccer_logo.svg" class="h-28 mb-12 mt-0">
+        <div class="text-white text-[36px] font-bold mb-12 tracking-[2px]" style="font-family: 'Resolve', sans-serif;">SCAN QR TO BOOK A 15-MIN SESSION</div>
+        <img id="dynamic-qr" src="" class="w-80 h-80 border-[6px] border-white rounded-2xl mb-10 shadow-[0_10px_40px_rgba(255,255,255,0.15)]">
+        <p class="text-gray-500 text-lg uppercase tracking-[4px] font-bold" style="font-family: 'Resolve', sans-serif;">Scan with your smartphone camera to connect</p>
+    </div>
 
-    <!-- Main Scoreboard -->
-    <div id="scoreboard">
-        <div class="top-bar">
-            <!-- Center piece logo on desktop, moves up on mobile -->
-            <img src="subsoccer_logo.svg" class="brand-logo" alt="Subsoccer">
-
-            <div class="score-section">
-                <div class="player-name" id="p1-name">PLAYER 1</div>
-                <div class="score-box" id="p1-score">0</div>
-
-                <div class="vs-text">VS</div>
-
-                <div class="score-box" id="p2-score">0</div>
-                <div class="player-name" id="p2-name">PLAYER 2</div>
+    <!-- LAYER 2: ACTIVE GAME -->
+    <div id="layer-game" class="layer" style="flex-direction: row-reverse; padding: 40px;">
+        <div class="absolute top-[30px] left-[50%] translate-x-[-50%] bg-[#E30613] text-white px-8 py-3 rounded-b-xl text-4xl tracking-widest shadow-[0_4px_15px_rgba(0,0,0,0.6)] z-10 border-t-0">SUBSOCCER</div>
+        
+        <div class="w-full h-full flex rounded-[20px] overflow-hidden border-2 border-[#555] shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative">
+            <div class="player-panel p1-bg">
+                <div class="player-name" id="game-p1-name">PLAYER 1</div>
+                <div class="score-box text-white" id="game-p1-score">0</div>
             </div>
-
-            <div class="live-tag">
-                <div class="live-dot"></div> LIVE
+            
+            <div class="player-panel p2-bg">
+                <div class="player-name" id="game-p2-name">PLAYER 2</div>
+                <div class="score-box text-white" id="game-p2-score">0</div>
             </div>
         </div>
     </div>
 
-    <!-- Goal Explosion -->
-    <div id="goal-overlay">
-        <div class="goal-text">GOAL!</div>
-        <div class="goal-scorer" id="goal-scorer-name">PLAYER SCORES!</div>
-    </div>
-
-    <!-- VIP Caster PIP Box -->
-    <div id="vip-box">
-        <div class="vip-label">
-            <div class="live-dot" style="background:white; box-shadow:none;"></div> CASTER
+    <!-- LAYER 3: VICTORY SCREEN -->
+    <div id="layer-victory" class="layer">
+        <h2 class="text-white text-5xl tracking-[10px] mb-4 v-anim" id="v-header" style="font-family: 'Subsoccer', sans-serif;">MATCH FINISHED</h2>
+        <h1 class="text-[#FFD700] text-9xl tracking-[8px] mb-8 drop-shadow-[0_0_30px_rgba(255,215,0,0.8)] v-anim" id="v-winner" style="font-family: 'Subsoccer', sans-serif;">JARNO WINS</h1>
+        <div class="text-white text-7xl font-sans font-black mb-16 drop-shadow-[0_0_20px_rgba(255,255,255,0.5)] v-anim" id="v-score">3 - 1</div>
+        
+        <!-- Gamified Card -->
+        <div class="w-[300px] h-[420px] rounded-2xl border-4 border-[#FFD700] bg-gradient-to-b from-[#222] to-[#000] flex flex-col overflow-hidden shadow-[0_20px_50px_rgba(255,215,0,0.4)] v-anim" id="v-card" style="transform-style: preserve-3d;">
+            <div class="w-full flex justify-between items-center px-4 py-2 bg-black/60 z-10">
+                <div class="text-[#FFD700] text-xs font-sans tracking-widest">PRO CARD // LOUNGE</div>
+            </div>
+            <div class="w-full h-[200px] bg-[#1a1a1a] flex justify-center items-center relative overflow-hidden border-b border-white/10">
+                 <i class="fas fa-user-astronaut text-8xl text-gray-600"></i>
+            </div>
+            <div class="flex-1 flex flex-col justify-center items-center p-4">
+                <div class="text-[#FFD700] flex items-center gap-2 text-sm tracking-wide mb-2"><i class="fa-solid fa-trophy"></i> VICTORY</div>
+                <div class="text-3xl font-bold font-sans">SUB_LOUNGE</div>
+            </div>
         </div>
-        <video id="vip-video" autoplay playsinline></video>
     </div>
 
-    <script type="module" src="tv-app.js"></script>
+    
+        </div>
+
+        <div class="absolute bottom-4 left-6 text-gray-500 text-xs font-sans tracking-wider">AWAITING REMOTE LAUNCH...</div>
+        
+        <!-- Reconnect QR Code for Session Recovery -->
+        <div class="absolute bottom-4 right-6 flex flex-col items-center">
+            <img id="reconnect-qr" src="" class="w-16 h-16 bg-white p-1 rounded-sm mb-1">
+            <div class="text-[9px] text-gray-400 tracking-widest font-sans uppercase">RECONNECT</div>
+        </div>
+    </div>
+
+    <!-- LAYER 5: TOURNAMENT BRACKET -->
+    <div id="layer-tournament" class="layer" style="background: #050505;">
+        <h1 class="text-white mt-8 mb-2 font-bold text-center tracking-[10px]" style="font-family: 'Subsoccer', sans-serif; font-size: 5vh; text-shadow: 0 10px 30px rgba(0,0,0,0.8);">SUBSOCCER TOURNAMENT</h1>
+        <div id="bracket-tree" class="flex-1 w-full flex items-center justify-center pt-2 pb-8 overflow-hidden box-border">
+            <!-- Tree rendered here via BracketEngine -->
+        </div>
+    </div>
+
+    <!-- LAYER 6: ELO RANKING (After Tournament) -->
+    <div id="layer-elo" class="layer" style="background-color: #111; padding: 2rem; box-sizing: border-box; align-items: center; justify-content: flex-start;">
+        <div class="w-full max-w-3xl flex flex-col gap-6 h-full pt-16">
+            <h2 class="text-white text-2xl tracking-widest text-center text-gray-400">EVENT ELO RANKING</h2>
+            <div class="bg-black border border-[#FFD700] rounded-xl p-6 flex flex-col overflow-hidden shadow-[0_0_15px_rgba(255,215,0,0.2)]">
+                <div class="text-[#FFD700] font-bold tracking-widest text-center text-xs mb-8 uppercase">Session Standings</div>
+                <div id="history-elo" class="flex flex-col gap-2 overflow-y-auto w-full px-4"></div>
+            </div>
+            
+            <div class="absolute bottom-4 left-6 text-gray-500 text-xs font-sans tracking-wider uppercase">Awaiting next tournament launch...</div>
+            
+            <div class="absolute bottom-4 right-6 flex flex-col items-center">
+                <img id="reconnect-qr-elo" src="" class="w-16 h-16 bg-white p-1 rounded-sm mb-1">
+                <div class="text-[9px] text-gray-400 tracking-widest font-sans uppercase">RECONNECT</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { _supabase } from './config.js';
+        import { BracketEngine } from './bracket-engine.js';
+
+        // --- STATE & UTILS ---
+        const tableId = 'table-04';
+        let timerInterval;
+        let remainingSeconds = 15 * 60;
+        
+        const L = {
+            lobby: document.getElementById('layer-lobby'),
+            game: document.getElementById('layer-game'),
+            victory: document.getElementById('layer-victory'),
+            tournament: document.getElementById('layer-tournament'),
+            elo: document.getElementById('layer-elo')
+        };
+        
+        // P1 & P2 Cache so we can populate the Session Lobby screen
+        let playerRatings = {};
+
+        function calculateElo(p1Name, p2Name, winnerName) {
+            if (!p1Name || !p2Name || p1Name === "BYE" || p2Name === "BYE") return;
+            if (!playerRatings[p1Name]) playerRatings[p1Name] = 1000;
+            if (!playerRatings[p2Name]) playerRatings[p2Name] = 1000;
+            
+            if(winnerName === "DRAW") return;
+
+            const r1 = Math.pow(10, playerRatings[p1Name] / 400);
+            const r2 = Math.pow(10, playerRatings[p2Name] / 400);
+            
+            const e1 = r1 / (r1 + r2);
+            const e2 = r2 / (r1 + r2);
+            
+            const K = 32;
+            const s1 = winnerName === p1Name ? 1 : 0;
+            const s2 = winnerName === p2Name ? 1 : 0;
+            
+            playerRatings[p1Name] = Math.round(playerRatings[p1Name] + K * (s1 - e1));
+            playerRatings[p2Name] = Math.round(playerRatings[p2Name] + K * (s2 - e2));
+        }
+
+        function renderEloBoard() {
+            const sorted = Object.keys(playerRatings).map(k => ({ name: k, elo: playerRatings[k] })).sort((a,b) => b.elo - a.elo);
+            const list = document.getElementById('history-elo');
+            if(!list) return;
+            list.innerHTML = sorted.map((p, index) => `
+                <div class="flex justify-between text-lg py-3 border-b border-gray-800 items-center">
+                    <span class="text-gray-500 w-8 font-sans font-bold">#${index + 1}</span>
+                    <span class="flex-1 text-white font-bold font-sans tracking-wide text-xl">${p.name}</span>
+                    <span class="font-black text-[#FFD700] text-2xl font-sans">${p.elo}</span>
+                </div>
+            `).join('');
+        }
+
+        let lastP1 = "PLAYER 1";
+        let lastP2 = "PLAYER 2";
+        
+        function switchLayer(targetId) {
+            // Hard reset displays to absolutely guarantee layout engine flush
+            Object.values(L).forEach(el => el.style.display = 'none');
+            const target = L[targetId];
+            if(target) {
+                target.style.display = targetId === 'game' ? 'flex' : 'flex';
+                if(targetId === 'game') target.style.flexDirection = 'row';
+                else target.style.flexDirection = 'column';
+            }
+        }
+
+        // --- IOT ---
+        let shellyIP = localStorage.getItem('shelly_ip') || null;
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('shelly')) {
+            shellyIP = urlParams.get('shelly');
+            localStorage.setItem('shelly_ip', shellyIP);
+        }
+
+        function triggerShelly(turnOn) {
+            const iotDot = document.getElementById('iot-dot');
+            const iotText = document.getElementById('iot-text');
+            
+            if (turnOn) {
+                iotDot.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]";
+                iotText.className = "text-green-500 font-sans text-sm";
+                iotText.innerText = "POWER SYNCED (ON)";
+            } else {
+                iotDot.className = "w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_red]";
+                iotText.className = "text-red-500 font-sans text-sm";
+                iotText.innerText = "OFF LINE";
+            }
+
+            if(shellyIP) {
+                fetch(`http://${shellyIP}/relay/0?turn=${turnOn ? 'on' : 'off'}`, { mode: 'no-cors' }).catch(()=>{});
+            }
+        }
+
+        // --- QR ---
+        const remoteAppUrl = `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ""}/lounge-remote.html`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(remoteAppUrl)}`;
+        document.getElementById('dynamic-qr').src = qrUrl;
+        document.getElementById('reconnect-qr').src = qrUrl;
+        document.getElementById('reconnect-qr-elo').src = qrUrl;
+
+        // --- TIMER ---
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    resetSystem();
+                    return;
+                }
+                remainingSeconds--;
+                const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+                const s = (remainingSeconds % 60).toString().padStart(2, '0');
+                const timerEl = document.getElementById('timer');
+                timerEl.innerText = `${m}:${s}`;
+                if(remainingSeconds <= 60) timerEl.style.color = "red";
+                else timerEl.style.color = "white";
+            }, 1000);
+        }
+
+        function resetSystem() {
+            clearInterval(timerInterval);
+            document.getElementById('timer').innerText = "00:00";
+            document.getElementById('timer').style.color = "white";
+            switchLayer('lobby');
+            triggerShelly(false);
+            
+            // Reset WAAPI opacities for next game
+            document.querySelectorAll('.v-anim').forEach(el => {
+                el.style.opacity = "";
+                el.style.transform = "";
+                el.getAnimations().forEach(anim => anim.cancel());
+            });
+        }
+
+        // --- WEBSOCKET ENGINE ---
+        _supabase.channel(`lounge_${tableId}`)
+            .on('broadcast', { event: 'start_1v1' }, (payload) => {
+                lastP1 = payload.payload.p1 || 'PLAYER 1';
+                lastP2 = payload.payload.p2 || 'PLAYER 2';
+                document.getElementById('game-p1-name').innerText = lastP1;
+                document.getElementById('game-p2-name').innerText = lastP2;
+                document.getElementById('game-p1-score').innerText = '0';
+                document.getElementById('game-p2-score').innerText = '0';
+                
+                switchLayer('game');
+                
+                if(remainingSeconds === 15 * 60 || remainingSeconds <= 0) {
+                    triggerShelly(true);
+                    remainingSeconds = 15 * 60;
+                    startTimer();
+                }
+            })
+            .on('broadcast', { event: 'state_update' }, (payload) => {
+                document.getElementById('game-p1-score').innerText = payload.payload.p1Score || 0;
+                document.getElementById('game-p2-score').innerText = payload.payload.p2Score || 0;
+            })
+            .on('broadcast', { event: 'end_game' }, (payload) => {
+                const winner = payload.payload.winnerName || payload.payload.winner;
+                
+                // Clear all previous WAAPI states BEFORE switching layout
+                document.querySelectorAll('.v-anim').forEach(el => {
+                    el.getAnimations().forEach(anim => anim.cancel());
+                    el.style.opacity = '0'; // reset explicitly
+                });
+
+                document.getElementById('v-winner').innerText = winner === "DRAW" ? "IT'S A DRAW!" : `${winner} WINS!`;
+                document.getElementById('v-score').innerText = `${payload.payload.p1Score || 0} - ${payload.payload.p2Score || 0}`;
+
+                const winnerFinal = winner === "DRAW" ? "DRAW" : payload.payload.winner;
+                calculateElo(lastP1, lastP2, winnerFinal);
+
+                // Absolute Layout Switch
+                switchLayer('victory');
+
+                // Wait exactly for the browser to draw the display: block elements
+                setTimeout(() => {
+                    const els = {
+                        h: document.getElementById('v-header'),
+                        t: document.getElementById('v-winner'),
+                        s: document.getElementById('v-score'),
+                        c: document.getElementById('v-card')
+                    };
+
+                    // Execute WAAPI guarantees. Using absolute ID references.
+                    if(els.h) els.h.animate([{ transform: 'translateY(30px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 600, easing: 'ease-out', fill: 'forwards' });
+                    if(els.t) els.t.animate([{ transform: 'translateY(50px) scale(0.9)', opacity: 0 }, { transform: 'translateY(0) scale(1)', opacity: 1 }], { duration: 700, delay: 200, easing: 'ease-out', fill: 'forwards' });
+                    if(els.s) els.s.animate([{ transform: 'translateY(50px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 700, delay: 400, easing: 'ease-out', fill: 'forwards' });
+                    if(els.c) els.c.animate([{ transform: 'translateY(80px) scale(0.6)', opacity: 0 }, { transform: 'translateY(0) scale(1.15)', opacity: 1 }], { duration: 900, delay: 700, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'forwards' });
+                }, 50);
+
+                // Wait 8 Seconds, then drop into Active Session Lobby OR Tournament Bracket
+                setTimeout(() => {
+                    if (payload.payload.isBracketComplete) {
+                        switchLayer('tournament');
+                        setTimeout(() => {
+                            renderEloBoard();
+                            switchLayer('elo');
+                        }, 5000); // 5s bracket showcase before elo
+                    } else {
+                        switchLayer('tournament');
+                    }
+                }, 8000);
+            })
+            .on('broadcast', { event: 'tourny_state' }, (payload) => {
+                const tourny = payload.payload;
+                
+                switchLayer('tournament');
+                triggerShelly(false); // Idle table between tournament matches
+
+                if (!window.tvEngine) {
+                    document.getElementById('bracket-tree').innerHTML = '<div id="tv-bracket-area" style="transform: scale(1.2); padding-top: 40px; padding-bottom: 40px;"></div>';
+                    window.tvEngine = new BracketEngine({ containerId: 'tv-bracket-area', enableSaveButton: false });
+                }
+
+                // Strictly render bracket matching current state
+                window.tvEngine.generateBracket(tourny.players, false);
+                window.tvEngine.restoreState(tourny.matches);
+            })
+            .on('broadcast', { event: 'force_reload' }, () => window.location.reload(true))
+            .on('broadcast', { event: 'reset_system' }, resetSystem)
+            .subscribe();
+
+    </script>
 </body>
-
 </html>

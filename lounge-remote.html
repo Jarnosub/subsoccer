@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer Remote</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'),
+                 url('fonts/Subsoccer-2-Regular.woff') format('woff');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-RegularNrw.otf') format('opentype');
+            font-weight: normal;
+        }
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+            font-weight: bold;
+        }
+
+        :root {
+            --subsoccer-red: #E30613;
+            --subsoccer-gold: #FFD700;
+        }
+
+        body {
+            background-color: #050505;
+            font-family: 'Resolve', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 400px;
+            min-height: 100vh;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            box-shadow: none;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 2px solid #222;
+            text-align: center;
+            background: #000;
+            color: #fff;
+        }
+        
+        .header img {
+            height: 25px;
+            margin: 0 auto 10px;
+        }
+
+        .screen {
+            padding: 20px;
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Buttons */
+        .primary-btn {
+            background: linear-gradient(135deg, var(--subsoccer-red), #990000);
+            color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ff3333;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            width: 100%;
+            margin-top: auto;
+            transition: transform 0.1s;
+            font-family: 'Subsoccer', sans-serif;
+            letter-spacing: 2px;
+        }
+        .primary-btn:active { transform: scale(0.98); }
+
+        .end-btn {
+            background: transparent;
+            color: #666;
+            border: 2px solid #333;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 15px;
+            font-family: 'Resolve', sans-serif;
+            text-transform: uppercase;
+        }
+
+        /* Mode Selection */
+        .mode-btn {
+            background: #111;
+            border: 2px solid #222;
+            color: #fff;
+            padding: 30px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.3rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+            font-family: 'Subsoccer', sans-serif;
+        }
+        .mode-btn:active { transform: scale(0.98); }
+        .mode-btn.highlight { border-color: var(--subsoccer-red); background: linear-gradient(135deg, #111, #1a0808); }
+
+        /* Setup Screen */
+        .input-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #444;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.2rem;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        /* Controller Screen */
+        .goal-btn {
+            flex: 1;
+            margin: 10px 0;
+            border-radius: 12px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            user-select: none;
+            border: 1px solid #333;
+        }
+
+        .goal-btn:active { transform: scale(0.95); }
+        .goal-btn.p1 { background-color: #12222d; color: #fff; border-color: #2a4d66; }
+        .goal-btn.p2 { background-color: #b70000; color: #fff; border-color: #ff3333; }
+        
+        .player-label {
+            font-size: 1rem;
+            font-family: 'Resolve', sans-serif;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        h2:empty { display: none; }
+
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <div class="header">
+            <img src="subsoccer_logo.svg" alt="Subsoccer" onerror="this.style.display='none'">
+            <div class="font-bold text-gray-400 text-sm">TABLE 04 CONNECTED</div>
+        </div>
+
+        <!-- SCREEN 1: MODE SELECTION -->
+        <div class="screen active" id="s-welcome">
+            <h2 id="modes-title" class="text-2xl font-bold mb-2 text-center mt-4" style="font-family: 'Subsoccer', sans-serif;"></h2>
+            <p id="modes-subtitle" class="text-gray-500 text-center text-sm mb-8">Your 15 minute free session is ready to begin.</p>
+            
+            <div class="mode-btn highlight" style="display:none;">
+                <i class="fas fa-user-friends mb-3 text-3xl block text-[var(--subsoccer-red)]"></i>
+                <span id="btn-dummy">PLAY 1VS1 MATCH</span>
+            </div>
+
+            <div class="mode-btn" onclick="switchScreen('s-tourny-setup')">
+                <i class="fas fa-trophy mb-3 text-3xl block text-gray-400"></i>
+                <span id="btn-tourn-text">HOST TOURNAMENT</span>
+                <div class="text-sm text-gray-400 mt-2 font-normal" style="font-family: 'Resolve', sans-serif;">4 Players</div>
+            </div>
+            
+            <div class="end-btn" style="border: 1px solid #333; color: #666; padding: 15px;" onclick="resetSystem()">
+                <i class="fas fa-power-off mr-2"></i> END SESSION NOW
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="forceTVReload()" class="text-xs text-gray-500 bg-transparent border border-gray-700 rounded px-3 py-1">Force Refresh TV App</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: 1V1 SETUP -->
+        <div class="screen" id="s-setup">
+            <h2 class="text-2xl font-bold mb-6 text-center mt-4">1VS1 MATCH</h2>
+            
+            <div class="bg-[#111] border border-[#222] p-4 rounded-xl mb-4">
+                <div class="text-[#E30613] font-bold text-sm mb-1" style="font-family: 'Subsoccer', sans-serif;">P1: RED SIDE</div>
+                <input type="text" id="p1Name" onfocus="this.select()" value="PLAYER 1" class="w-full text-xl font-bold text-white bg-transparent border-b-2 border-[#444] focus:outline-none pb-2 focus:border-red-500">
+            </div>
+
+            <div class="bg-[#111] border border-[#222] p-4 rounded-xl mb-8">
+                <div class="text-[#E30613] font-bold text-sm mb-1" style="font-family: 'Subsoccer', sans-serif;">P2: BLACK SIDE</div>
+                <input type="text" id="p2Name" onfocus="this.select()" value="PLAYER 2" class="w-full text-xl font-bold text-white bg-transparent border-b-2 border-[#444] focus:outline-none pb-2 focus:border-red-500">
+            </div>
+
+            <button class="primary-btn mt-auto" onclick="start1v1()">LAUNCH MATCH</button>
+        </div>
+
+        <!-- SCREEN TOURNAMENT SETUP -->
+        <div class="screen" id="s-tourny-setup">
+            <h2 class="text-2xl font-bold mb-2 text-center mt-4">SESSION SETUP</h2>
+            <p class="text-gray-400 text-center text-sm mb-4">Add up to 16 players.</p>
+            
+            <div id="tourny-players-list" class="space-y-3 mb-6">
+                <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333]">
+                    <span class="text-gray-500 font-bold px-2 w-8">#1</span>
+                    <input type="text" onfocus="this.select()" value="PLAYER 1" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none">
+                </div>
+                <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333]">
+                    <span class="text-gray-500 font-bold px-2 w-8">#2</span>
+                    <input type="text" onfocus="this.select()" value="PLAYER 2" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none">
+                </div>
+            </div>
+            
+            <button onclick="addPlayerInput()" class="w-full bg-[#111] text-gray-400 font-bold py-3 rounded-lg border border-[#333] mb-6 active:bg-[#1a1a1a]">
+                + ADD PLAYER
+            </button>
+
+            <button class="primary-btn mt-auto" onclick="generateTournament()">START SESSION</button>
+        </div>
+
+        <!-- SCREEN TOURNAMENT HUB -->
+        <div class="screen" id="s-tourny-hub">
+            <h2 class="text-2xl font-bold mb-2 text-center mt-4" style="color: var(--subsoccer-gold);">TOURNAMENT HUB</h2>
+            <p class="text-gray-400 text-center text-sm mb-6">Check the TV to view the bracket tree.</p>
+            
+            <div class="bg-[#111] border border-[#222] p-6 rounded-xl mb-6 text-center">
+                <p class="text-sm font-bold text-gray-500" id="tourny-round-name">SEMIFINAL 1</p>
+                <p class="text-2xl font-bold mt-2 text-white" id="tourny-matchup">PLAYER 1<br><span class="text-xs text-red-500">VS</span><br>PLAYER 2</p>
+            </div>
+
+            <button class="primary-btn mt-auto" style="background:#E30613;" id="btn-start-tourny-match" onclick="startTournyMatch()">START MATCH</button>
+        </div>
+
+        <!-- SCREEN 3: CONTROLLER -->
+        <div class="screen" id="s-controller">
+            <div class="flex justify-between items-center mb-4 px-2">
+                <div class="text-sm text-gray-500 font-bold">1VS1 MATCH</div>
+                <div class="text-red-500 font-bold" id="remote-timer"><i class="fas fa-clock mr-1"></i> 15:00</div>
+            </div>
+            
+            <div class="goal-btn p1" onclick="sendGoal(1)">
+                GOAL
+                <div class="player-label" id="lbl-p1">JARNO</div>
+            </div>
+            
+            <div class="goal-btn p2" onclick="sendGoal(2)">
+                GOAL
+                <div class="player-label" id="lbl-p2">MATTI</div>
+            </div>
+        </div>
+
+    </div>
+    
+    <script type="module">
+        import { _supabase } from './config.js';
+        import { BracketEngine } from './bracket-engine.js';
+        
+        const tableId = 'table-04';
+        const channel = _supabase.channel(`lounge_${tableId}`);
+        channel.subscribe();
+
+        // --- APPLICATION STATE ---
+        let gameState = {
+            p1Score: 0,
+            p2Score: 0,
+            p1Name: "PLAYER 1",
+            p2Name: "PLAYER 2",
+            isTournament: false
+        };
+
+        let localEngine = null;
+        let pMatchProcessing = false;
+
+        let remoteTimerInterval;
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        window.start1v1 = function() {
+            const p1 = document.getElementById('p1Name').value || 'PLAYER 1';
+            const p2 = document.getElementById('p2Name').value || 'PLAYER 2';
+
+            gameState.p1Score = 0;
+            gameState.p2Score = 0;
+            gameState.p1Name = p1;
+            gameState.p2Name = p2;
+            gameState.isTournament = false;
+
+            document.getElementById('lbl-p1').innerText = p1;
+            document.getElementById('lbl-p2').innerText = p2;
+
+            channel.send({
+                type: 'broadcast',
+                event: 'start_1v1',
+                payload: { p1: p1, p2: p2 }
+            });
+            
+            pushState();
+            switchScreen('s-controller');
+            startRemoteTimer();
+            if (navigator.vibrate) navigator.vibrate(100);
+        }
+
+        function pushState(lastScorer = null) {
+            channel.send({
+                type: 'broadcast',
+                event: 'state_update',
+                payload: { ...gameState, lastScorer }
+            });
+        }
+
+        let remaining = 15 * 60;
+        let isTimerStarted = false;
+        function startRemoteTimer() {
+            if (isTimerStarted) return;
+            isTimerStarted = true;
+            clearInterval(remoteTimerInterval);
+            document.getElementById('remote-timer').style.color = "";
+            remoteTimerInterval = setInterval(() => {
+                if(remaining <= 0) {
+                    resetSystem();
+                    return;
+                }
+                remaining--;
+                const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+                const s = (remaining % 60).toString().padStart(2, '0');
+                document.getElementById('remote-timer').innerHTML = `<i class="fas fa-clock mr-1"></i> ${m}:${s}`;
+                if(remaining <= 60) document.getElementById('remote-timer').style.color = "var(--subsoccer-red)";
+            }, 1000);
+        }
+
+        // --- TOURNAMENT LOGIC ---
+        
+        window.addPlayerInput = function() {
+            const container = document.getElementById('tourny-players-list');
+            const num = container.children.length + 1;
+            if (num > 16) return;
+            let div = document.createElement('div');
+            div.className = "flex items-center bg-[#111] p-2 rounded-lg border border-[#333] mb-3";
+            div.innerHTML = `<span class="text-gray-500 font-bold px-2 w-8">#${num}</span><input type="text" onfocus="this.select()" value="PLAYER ${num}" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none">`;
+            container.appendChild(div);
+        };
+
+        window.generateTournament = function() {
+            const players = [];
+            document.querySelectorAll('.player-input').forEach(inp => {
+                if (inp.value.trim()) players.push(inp.value.trim());
+            });
+            if (players.length < 2) {
+                alert("Need at least 2 players.");
+                return;
+            }
+            
+            let dummy = document.getElementById('dummy-bracket-area');
+            if(!dummy) {
+                dummy = document.createElement('div');
+                dummy.id = 'dummy-bracket-area';
+                dummy.style.display = 'none';
+                document.body.appendChild(dummy);
+            }
+
+            localEngine = new BracketEngine({ containerId: 'dummy-bracket-area', enableSaveButton: false });
+            localEngine.generateBracket(players, true);
+
+            syncTournyToTV();
+            nextTournyMatch();
+        };
+
+        function syncTournyToTV() {
+            channel.send({
+                type: 'broadcast', event: 'tourny_state',
+                payload: {
+                    players: localEngine.participants,
+                    matches: localEngine.getAllMatches(),
+                }
+            });
+        }
+
+        function getPendingMatch() {
+            const roundIdx = localEngine.getActiveRoundIndex();
+            if (roundIdx >= localEngine.rounds.length) return null;
+
+            const round = localEngine.rounds[roundIdx];
+            for (let i = 0; i < round.length; i++) {
+                const m = round[i];
+                if (m.p1 && m.p2 && !m.winner && m.p1 !== 'BYE' && m.p2 !== 'BYE') {
+                    return { rIndex: roundIdx, mIndex: i, p1: m.p1, p2: m.p2, roundName: localEngine.getRoundName(roundIdx, localEngine.rounds.length) };
+                }
+            }
+            return null;
+        }
+
+        function nextTournyMatch() {
+            const pending = getPendingMatch();
+            if (!pending) {
+                const res = localEngine.getTournamentResults();
+                document.getElementById("modes-title").innerText = `🏆 ${res.winner || 'PLAYER'} WINS TOURNAMENT!`;
+                document.getElementById("modes-title").style.color = "var(--subsoccer-gold)";
+                
+                switchScreen('s-welcome');
+                return;
+            }
+
+            window.currentPendingMatch = pending;
+            document.getElementById('tourny-round-name').innerText = pending.roundName;
+            document.getElementById('tourny-matchup').innerHTML = `${pending.p1}<br><span class="text-xs text-red-500">VS</span><br>${pending.p2}`;
+            switchScreen('s-tourny-hub');
+        }
+
+        window.startTournyMatch = function() {
+            if (!window.currentPendingMatch) return;
+            gameState.p1Score = 0;
+            gameState.p2Score = 0;
+            gameState.p1Name = window.currentPendingMatch.p1;
+            gameState.p2Name = window.currentPendingMatch.p2;
+            gameState.isTournament = true;
+            
+            // Update the controller visual labels
+            document.getElementById('lbl-p1').innerText = gameState.p1Name;
+            document.getElementById('lbl-p2').innerText = gameState.p2Name;
+
+            channel.send({
+                type: 'broadcast',
+                event: 'start_1v1',
+                payload: { p1: gameState.p1Name, p2: gameState.p2Name }
+            });
+            switchScreen('s-controller');
+            startRemoteTimer();
+        };
+
+        window.sendGoal = function(playerNumber) {
+            if (pMatchProcessing) return;
+
+            if (playerNumber === 1) gameState.p1Score++;
+            if (playerNumber === 2) gameState.p2Score++;
+
+            pushState();
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            if (gameState.p1Score >= 3 || gameState.p2Score >= 3) {
+                pMatchProcessing = true;
+                const winnerName = gameState.p1Score >= 3 ? gameState.p1Name : gameState.p2Name;
+                if (gameState.isTournament) {
+                    finishTournyMatch(winnerName);
+                } else {
+                    finishMatch(winnerName);
+                    setTimeout(() => { pMatchProcessing = false; }, 3000);
+                }
+            }
+        };
+
+        function finishTournyMatch(winnerName) {
+            localEngine.setMatchWinner(window.currentPendingMatch.rIndex, window.currentPendingMatch.mIndex, winnerName, true);
+            syncTournyToTV();
+            
+            const hasMoreMatches = getPendingMatch() !== null;
+
+            channel.send({
+                type: 'broadcast', event: 'end_game',
+                payload: { 
+                    winnerName: winnerName, 
+                    p1Score: gameState.p1Score, 
+                    p2Score: gameState.p2Score, 
+                    mode: 'tournament',
+                    isBracketComplete: !hasMoreMatches
+                }
+            });
+
+            setTimeout(() => {
+                pMatchProcessing = false;
+                nextTournyMatch();
+            }, 3000);
+        }
+
+        function finishMatch(winnerName = "DRAW") {
+            channel.send({
+                type: 'broadcast',
+                event: 'end_game',
+                payload: { 
+                    winnerName: winnerName,
+                    p1Score: gameState.p1Score,
+                    p2Score: gameState.p2Score,
+                    mode: 'freestyle',
+                    isBracketComplete: true
+                }
+            });
+            
+            // Build the dynamic return text
+            document.getElementById("modes-title").innerText = winnerName === "DRAW" ? "IT'S A DRAW!" : `${winnerName} WINS!`;
+            document.getElementById("modes-title").style.color = "var(--subsoccer-red)";
+            
+            const formatTime = `${Math.floor(remaining / 60)}:${(remaining % 60).toString().padStart(2, '0')}`;
+            document.getElementById("modes-subtitle").innerHTML = `Match Over! You have <strong class="text-red-500">${formatTime}</strong> remaining in your booking. What next?`;
+            document.getElementById('btn-1v1-text').innerText = "NEW 1VS1 MATCH";
+            
+            // Return to Mode Selection for continuous play
+            switchScreen('s-welcome');
+        }
+
+        function forceTVReload() {
+            if(!channel) return;
+            channel.send({
+                type: 'broadcast',
+                event: 'force_reload',
+                payload: {}
+            });
+        }
+
+        function resetSystem() {
+            isTimerStarted = false;
+            remaining = 15 * 60;
+            // Tell TV to reset to Attract Mode, IoT off
+            channel.send({
+                type: 'broadcast',
+                event: 'reset_system',
+                payload: {}
+            });
+
+            // Reset phone inputs if they exist
+            const p1 = document.getElementById('p1Name');
+            const p2 = document.getElementById('p2Name');
+            if(p1) p1.value = "PLAYER 1";
+            if(p2) p2.value = "PLAYER 2";
+            
+            document.getElementById("modes-title").innerText = "";
+            document.getElementById("modes-title").style.color = "#111";
+            document.getElementById("modes-subtitle").innerHTML = "Your 15 minute free session is ready to begin.";
+            
+            
+            switchScreen('s-welcome');
+        }
+
+        // Expose to global scope for HTML onclick attributes
+        window.switchScreen = switchScreen;
+        window.finishMatch = finishMatch;
+        window.resetSystem = resetSystem;
+    </script>
+</body>
+</html>

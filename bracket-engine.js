@@ -8,7 +8,6 @@ export class BracketEngine {
         this.participants = [];
         this.rounds = []; // Array of rounds, each containing matches
         this.currentRoundIndex = 0;
-        this.bronzeMatch = { id: 'bronze', p1: null, p2: null, winner: null };
         this.isActive = false;
         
         // Options
@@ -31,7 +30,6 @@ export class BracketEngine {
         this.participants = shuffle ? this.shuffleArray([...playerNames]) : [...playerNames];
         this.rounds = [];
         this.isActive = true;
-        this.bronzeMatch = { id: 'bronze', p1: null, p2: null, winner: null };
 
         // 1. Calculate bracket size (next power of 2)
         // e.g., 5 players -> size 8. 3 players get BYEs.
@@ -110,7 +108,6 @@ export class BracketEngine {
     restoreState(matches) {
         if (!matches || matches.length === 0) return;
 
-        // Helper to find match by players
         const findAndSetWinner = (p1, p2, winner) => {
             // Check regular rounds
             for (let r = 0; r < this.rounds.length; r++) {
@@ -122,15 +119,13 @@ export class BracketEngine {
                     }
                 }
             }
-            // Check bronze
-            if ((this.bronzeMatch.p1 === p1 && this.bronzeMatch.p2 === p2) || (this.bronzeMatch.p1 === p2 && this.bronzeMatch.p2 === p1)) {
-                this.setBronzeWinner(winner, true);
-            }
         };
 
         matches.forEach(m => {
-            if (m.winner && m.player1 && m.player2) {
-                findAndSetWinner(m.player1, m.player2, m.winner);
+            const p1 = m.player1 || m.p1;
+            const p2 = m.player2 || m.p2;
+            if (m.winner && p1 && p2) {
+                findAndSetWinner(p1, p2, m.winner);
             }
         });
     }
@@ -177,22 +172,6 @@ export class BracketEngine {
             if (!silent && navigator.vibrate) navigator.vibrate(50); // Haptic feedback
         }
 
-        // Handle Semi-Finals (Losers go to Bronze Match)
-        // Semi-finals are at index: rounds.length - 2
-        if (this.rounds.length >= 2 && roundIndex === this.rounds.length - 2) {
-            const loser = match.p1 === winnerName ? match.p2 : match.p1;
-            
-            // Assign loser to bronze match slots
-            // matchIndex 0 is top semi, matchIndex 1 is bottom semi
-            if (matchIndex === 0) this.bronzeMatch.p1 = loser;
-            if (matchIndex === 1) this.bronzeMatch.p2 = loser;
-
-            // Reset bronze winner if players changed
-            if (this.bronzeMatch.winner && (this.bronzeMatch.winner === match.p1 || this.bronzeMatch.winner === match.p2)) {
-                this.bronzeMatch.winner = null;
-            }
-        }
-
         // Recalculate the whole tree flow
         // (Resetting downstream matches if a winner is changed)
         this.resetDownstream(roundIndex, matchIndex);
@@ -202,18 +181,6 @@ export class BracketEngine {
         // Trigger callback if not silent (user action)
         if (!silent && this.onMatchUpdate && match.winner) {
             this.onMatchUpdate(match, match.winner);
-        }
-    }
-
-    setBronzeWinner(winnerName, silent = false) {
-        if (this.bronzeMatch.winner === winnerName) {
-            this.bronzeMatch.winner = null;
-        } else {
-            this.bronzeMatch.winner = winnerName;
-        }
-        this.render();
-        if (!silent && this.onMatchUpdate && this.bronzeMatch.winner) {
-            this.onMatchUpdate(this.bronzeMatch, this.bronzeMatch.winner);
         }
     }
 
@@ -292,31 +259,6 @@ export class BracketEngine {
         // 1. Render Final (Last Round)
         if (this.rounds.length > 0) {
             renderRoundToContainer(this.rounds[this.rounds.length - 1], this.rounds.length - 1);
-        }
-
-        // Render Bronze Match if applicable (at least semi-finals exist)
-        if (this.rounds.length >= 2 && (this.bronzeMatch.p1 || this.bronzeMatch.p2)) {
-            const bronzeDiv = document.createElement('div');
-            bronzeDiv.className = 'bracket-round';
-            
-            const title = document.createElement('div');
-            title.className = 'round-title';
-            title.style.color = '#CD7F32'; // Bronze color
-            title.innerText = "🥉 BRONZE MATCH";
-            bronzeDiv.appendChild(title);
-
-            const matchDiv = document.createElement('div');
-            matchDiv.className = 'bracket-match';
-            matchDiv.appendChild(this.createPlayerBtn(this.bronzeMatch.p1, this.bronzeMatch, -1, -1, true));
-            
-            const vsDiv = document.createElement('div');
-            vsDiv.className = 'match-vs';
-            vsDiv.innerText = 'vs';
-            matchDiv.appendChild(vsDiv);
-            
-            matchDiv.appendChild(this.createPlayerBtn(this.bronzeMatch.p2, this.bronzeMatch, -1, -1, true));
-            bronzeDiv.appendChild(matchDiv);
-            container.appendChild(bronzeDiv);
         }
 
         // 3. Render remaining rounds in reverse order (excluding Final)
@@ -401,7 +343,7 @@ export class BracketEngine {
         return this.rounds.length - 1; // Default to final
     }
 
-    createPlayerBtn(playerName, match, rIndex, mIndex, isBronze = false) {
+    createPlayerBtn(playerName, match, rIndex, mIndex) {
         const btn = document.createElement('div');
         btn.className = 'match-player';
         
@@ -414,8 +356,7 @@ export class BracketEngine {
         } else {
             btn.innerText = playerName;
             btn.onclick = () => {
-                if (isBronze) this.setBronzeWinner(playerName);
-                else this.setMatchWinner(rIndex, mIndex, playerName);
+                this.setMatchWinner(rIndex, mIndex, playerName);
             };
         }
 
@@ -432,9 +373,8 @@ export class BracketEngine {
         
         const winner = finalRound[0].winner;
         const second = finalRound[0].p1 === winner ? finalRound[0].p2 : finalRound[0].p1;
-        const third = this.bronzeMatch ? this.bronzeMatch.winner : null;
         
-        return { winner, second, third };
+        return { winner, second };
     }
 
     getAllMatches() {
@@ -446,9 +386,6 @@ export class BracketEngine {
                 }
             });
         });
-        if (this.bronzeMatch && this.bronzeMatch.winner && this.bronzeMatch.p1 && this.bronzeMatch.p2) {
-             matches.push({ p1: this.bronzeMatch.p1, p2: this.bronzeMatch.p2, winner: this.bronzeMatch.winner, isBronze: true });
-        }
         return matches;
     }
 
