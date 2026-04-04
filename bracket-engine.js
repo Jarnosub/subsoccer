@@ -240,12 +240,14 @@ export class BracketEngine {
 
                 // Player 1 Button
                 const btn1 = this.createPlayerBtn(match.p1, match, rIndex, mIndex);
+                btn1.classList.add('p1-bg');
                 // VS separator
                 const vs = document.createElement('div');
                 vs.className = 'match-vs';
                 vs.innerText = 'vs';
                 // Player 2 Button
                 const btn2 = this.createPlayerBtn(match.p2, match, rIndex, mIndex);
+                btn2.classList.add('p2-bg');
 
                 matchDiv.appendChild(btn1);
                 matchDiv.appendChild(vs);

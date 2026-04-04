@@ -3,7 +3,7 @@ import { FLAGS } from './config.js';
 import { checkLiveEventParam } from './live-view-service.js';
 import './bracket-engine.js';
 import './match-service.js';
-import { setupGlobalErrorHandling, setupUIListeners, showMatchMode } from './ui.js';
+import { setupGlobalErrorHandling, setupUIListeners, showMatchMode, showPage } from './ui.js';
 import { applyBranding } from './branding-service.js';
 import { checkQRJoinParam } from './qr-lobby.js';
 import './script.js';
@@ -36,9 +36,16 @@ const start = () => {
             showMatchMode('tournament');
         }
 
-        // Ensure the login form is shown if there is no user token
         if (typeof window.showAuthPage === 'function' && !localStorage.getItem('sb-ujxmmrsmdwrgcwatdhvx-auth-token')) {
             window.showAuthPage('login');
+        }
+    } else if (urlParams.get('page') === 'analytics') {
+        if (typeof window.showAuthPage === 'function' && !localStorage.getItem('sb-ujxmmrsmdwrgcwatdhvx-auth-token')) {
+            window.showAuthPage('login');
+        } else {
+            setTimeout(() => {
+                showPage('analytics');
+            }, 500); // Give auth time to init
         }
     }
 

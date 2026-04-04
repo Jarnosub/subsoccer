@@ -385,3 +385,72 @@ export function setupModeratorListeners() {
         resetGlobalLeaderboard();
     });
 }
+
+// ==========================================
+// GLOBAL ANALYTICS DASHBOARD
+// ==========================================
+export async function loadAnalytics() {
+    const arcadeList = document.getElementById('analytics-arcade-list');
+    const tourList = document.getElementById('analytics-tour-list');
+
+    if (!arcadeList || !tourList) return;
+
+    arcadeList.innerHTML = "Loading...";
+    tourList.innerHTML = "Loading...";
+
+    try {
+        const { data: tourData } = await _supabase.from('tournament_history').select('*, events(event_name)').order('created_at', { ascending: false }).limit(20);
+        const { data: matchData } = await _supabase.from('matches').select('*').order('created_at', { ascending: false }).limit(50);
+
+        // Group standalone matches (Arcade mode, Quick matches)
+        const standaloneMatches = matchData ? matchData.filter(m => !m.tournament_id) : [];
+        if (standaloneMatches.length > 0) {
+            arcadeList.innerHTML = standaloneMatches.map(m => {
+                const date = new Date(m.created_at);
+                const fDate = `${date.getDate()}.${date.getMonth() + 1}. ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+                const tName = m.tournament_name || 'Verified Session';
+                const scoreStr = (m.player1_score !== null && m.player2_score !== null) ? `${m.player1_score} - ${m.player2_score}` : 'WIN';
+                
+                return `
+                <div style="background:#111; padding:15px; border-radius:5px; margin-top:5px; font-size:0.9rem; border-left:3px solid var(--sub-red); position:relative;">
+                    <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold; letter-spacing: 1px;">[${tName}]</div>
+                    <span style="font-family:'Resolve'; color:#fff; text-transform:uppercase;">${m.winner}</span> 
+                    <span style="color:#888;">defeated</span> 
+                    <span style="font-family:'Resolve'; color:#fff; text-transform:uppercase;">${m.winner === m.player1 ? m.player2 : m.player1}</span> 
+                    <span style="color:var(--sub-gold); font-weight:bold;">(${scoreStr})</span>
+                    <div style="position: absolute; top: 15px; right: 15px; font-size: 0.7rem; color: #666;">${fDate}</div>
+                </div>`;
+            }).join('');
+        } else {
+            arcadeList.innerHTML = "<div style='color:#666;'>No recent free play or arcade sessions found.</div>";
+        }
+
+        // Output tournament history
+        if (tourData && tourData.length > 0) {
+            tourList.innerHTML = tourData.map(h => {
+                const eventName = h.events?.event_name || h.event_name || '';
+                const date = new Date(h.created_at);
+                const fDate = `${date.getDate()}.${date.getMonth() + 1}. ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+                
+                let html = `
+                <div style="background:#111; padding:15px; border-radius:5px; margin-top:10px; font-size:0.9rem; border-left:3px solid var(--sub-gold); position:relative;">
+                    <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold; letter-spacing: 1px;">[${h.tournament_name}] ${eventName ? ' - ' + eventName : ''}</div>
+                    <div style="position: absolute; top: 15px; right: 15px; font-size: 0.7rem; color: #666;">${fDate}</div>`;
+                
+                if (h.winner_name) html += `<div style="margin-top:5px; font-family:'Resolve';">🏆 ${h.winner_name}</div>`;
+                if (h.second_place_name) html += `<div style="color:#aaa; font-size:0.8rem; margin-top:2px;">🥈 ${h.second_place_name}</div>`;
+                if (h.third_place_name) html += `<div style="color:#aa7f32; font-size:0.8rem; margin-top:2px;">🥉 ${h.third_place_name}</div>`;
+                
+                html += `</div>`;
+                return html;
+            }).join('');
+        } else {
+            tourList.innerHTML = "<div style='color:#666;'>No official tournaments found.</div>";
+        }
+
+    } catch (e) {
+        console.error("Failed to load analytics:", e);
+        arcadeList.innerHTML = "Error loading analytics";
+        tourList.innerHTML = "Error loading analytics";
+    }
+}

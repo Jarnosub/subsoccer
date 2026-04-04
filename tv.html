@@ -9,130 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <style>
-        @font-face {
-            font-family: 'Subsoccer';
-            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'),
-                 url('fonts/Subsoccer-2-Regular.woff') format('woff');
-            font-display: swap;
-        }
-        @font-face {
-            font-family: 'Resolve';
-            src: url('fonts/Resolve-RegularNrw.otf') format('opentype');
-            font-weight: normal;
-        }
-        @font-face {
-            font-family: 'Resolve';
-            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
-            font-weight: bold;
-        }
-
-        body { margin: 0; background-color: #050510; color: white; overflow: hidden; width: 100vw; height: 100vh; font-family: 'Subsoccer', sans-serif; text-transform: uppercase; }
-        
-        /* The isolated layers architecture completely prevents CSS layout collisions */
-        .layer {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            display: none; /* Everything hidden natively */
-            flex-direction: column; justify-content: center; align-items: center;
-        }
-
-        /* Lobby Layer */
-        #layer-lobby { z-index: 10; background-color: transparent; }
-        
-        /* Game Layer */
-        #layer-game { z-index: 20; background: #050505; }
-        .score-box { font-family: 'Subsoccer', 'Inter', sans-serif; font-size: 35vh; font-weight: 900; line-height: 1; text-shadow: 0 10px 40px rgba(255,255,255,0.4); margin-bottom: 50px; }
-        .player-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 50vw; height: 100vh; position: relative; }
-        .p1-bg { background-color: #12222d; border-right: 2px solid #000; }
-        .p2-bg { background-color: #b70000; }
-        .player-name { font-size: 4rem; color: #fff; letter-spacing: 5px; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
-
-        /* Victory Layer */
-        #layer-victory { background: radial-gradient(circle at 50% 50%, #2a2a4e 0%, #050510 100%); z-index: 30; }
-        .v-anim { opacity: 0; } /* Baseline opacity for WAAPI */
-
-        /* Header UI (persists) */
-        #header-ui { position: absolute; top: 20px; left: 20px; right: 20px; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.8); border: 1px solid #333; border-radius: 12px; }
-
-        /* BRACKET SUBSOCCER PRO CSS */
-        #tv-bracket-area {
-            display: flex;
-            flex-direction: row-reverse;
-            gap: 2vw; /* responsive columns */
-            align-items: stretch;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            padding: 0 2vw;
-            box-sizing: border-box;
-        }
-        .bracket-round {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5vh;
-            align-items: center;
-            justify-content: space-around;
-            height: 100%;
-            flex: 1;
-            min-width: 0;
-            position: relative;
-            padding-top: 60px;
-            padding-bottom: 20px;
-        }
-        .round-title {
-            position: absolute;
-            top: 10px;
-            width: 100%;
-            color: #aaa;
-            font-family: 'Subsoccer', sans-serif;
-            font-size: clamp(0.9rem, 1.5vh, 1.5rem);
-            letter-spacing: 2px;
-            margin-bottom: 0;
-            text-align: center;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.8);
-        }
-        .bracket-match {
-            background: #222;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            max-width: 280px;
-            min-width: 150px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            position: relative;
-            overflow: hidden;
-            font-size: clamp(0.75rem, 1.3vh, 1.2rem);
-        }
-        .match-player {
-            color: #ddd;
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            font-size: 1em; /* scales with match container */
-            text-transform: uppercase;
-            padding: clamp(6px, 1.5vh, 15px) clamp(10px, 1.5vw, 25px);
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s ease;
-            background: #252525;
-            border-left: clamp(3px, 0.5vw, 5px) solid #E30613;
-        }
-        .match-player:first-child {
-            border-bottom: 1px solid #1a1a1a;
-        }
-        .match-player:last-child {
-            border-top: 1px solid #333;
-        }
-        .match-player.winner {
-            color: #E30613;
-        }
-        .match-vs {
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="the-forge.css">
 </head>
-<body>
+<body class="tv-mode">
     <!-- Fullscreen Background Video (Global Background) -->
     <video autoplay loop muted playsinline class="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-60">
         <source src="bg-video.mp4" type="video/mp4">
@@ -156,29 +35,22 @@
     <!-- LAYER 1: LOBBY -->
     <div id="layer-lobby" class="layer" style="display: flex;">
         <img src="subsoccer_logo.svg" class="h-28 mb-12 mt-0 relative z-20">
-        <div class="text-white text-[36px] font-bold mb-12 tracking-[2px] relative z-20" style="font-family: 'Resolve', sans-serif; text-shadow: 0 4px 15px rgba(0,0,0,1);">SCAN QR TO BOOK A 15-MIN SESSION</div>
+        <div class="text-white text-[36px] font-bold mb-12 tracking-[2px] relative z-20 uppercase" style="font-family: 'Resolve', sans-serif; text-shadow: 0 4px 15px rgba(0,0,0,1);">SCAN TO PLAY</div>
         <img id="dynamic-qr" src="" class="w-80 h-80 border-[6px] border-white rounded-2xl mb-10 shadow-[0_10px_40px_rgba(255,255,255,0.15)] relative z-20">
-        <p class="text-gray-300 text-lg uppercase tracking-[4px] font-bold text-shadow-md relative z-20" style="font-family: 'Resolve', sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,1);">Scan with your smartphone camera to connect</p>
     </div>
 
     <!-- LAYER 1.5: INTRO VIDEO (Post-payment) -->
     <div id="layer-intro" class="layer" style="display: none; background: #000; z-index: 50;">
-        <video id="intro-video" class="w-full h-full object-cover" src="lounge_intro.mp4" muted playsinline></video>
+        <video id="intro-video" class="w-full h-full object-cover" src="lounge_intro.mp4" playsinline></video>
     </div>
 
     <!-- LAYER 1.75: ARCADE SESSION LOBBY (Player Registration) -->
     <div id="layer-session-lobby" class="layer" style="display: none; background: radial-gradient(circle at center, #111 0%, #000 100%); align-items: center; justify-content: center; flex-direction: column;">
-        <img src="subsoccer_logo.svg" class="h-16 mb-6 opacity-90" alt="Subsoccer Logo">
-        <h1 class="text-white text-4xl mb-4 font-bold tracking-[6px]" style="font-family: 'Subsoccer', sans-serif;">TOURNAMENT WAITING ROOM</h1>
-        <p class="text-gray-400 mb-12 text-lg uppercase tracking-widest font-sans">Scan below to join with your Ranked Pro Card</p>
+        <img src="subsoccer_logo.svg" class="h-20 mb-8 opacity-90" alt="Subsoccer Logo">
+        <h1 class="text-white text-6xl mb-6 font-bold tracking-[8px]" style="font-family: 'Subsoccer', sans-serif;">TOURNAMENT WAITING ROOM</h1>
+        <p class="text-gray-400 mb-14 text-xl uppercase tracking-widest font-sans">Host is organizing the matches...</p>
         
-        <div class="flex items-center gap-16 w-full max-w-6xl px-12">
-            <!-- Left: QR Code -->
-            <div class="flex flex-col items-center bg-[#0a0a0a] p-8 border border-[#333] rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-                <img id="dynamic-qr-lobby" src="" class="w-64 h-64 border-[4px] border-[#D4AF37] rounded-xl mb-6 shadow-[0_0_30px_rgba(212,175,55,0.2)]">
-                <div class="text-[#D4AF37] font-bold tracking-widest text-sm uppercase">Join with smartphone</div>
-            </div>
-
+        <div class="flex items-center justify-center w-full max-w-4xl px-12">
             <!-- Right: The Roster Grid -->
             <div class="flex-1 bg-[#0a0a0a] border border-[#222] rounded-3xl p-8 min-h-[400px] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
                 <div class="text-white font-bold mb-6 tracking-widest border-b border-[#333] pb-4 flex justify-between">
@@ -211,8 +83,12 @@
     </div>
 
     <!-- LAYER 3: VICTORY SCREEN -->
-    <div id="layer-victory" class="layer" style="background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);">
-        <div class="flex-1 w-full flex items-center justify-center p-8 gap-16 relative">
+    <div id="layer-victory" class="layer" style="background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.95)), url('card-stadium.jpg') center/cover no-repeat; background-attachment: fixed;">
+        <video id="v-champion-bg" autoplay loop muted playsinline class="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-0 transition-opacity duration-1000" style="pointer-events: none;">
+            <source src="Trophy.mp4" type="video/mp4">
+        </video>
+        <div id="v-champion-overlay" class="absolute inset-0 bg-black/60 z-0 opacity-0 transition-opacity duration-1000 pointer-events-none"></div>
+        <div class="flex-1 w-full flex items-center justify-center p-8 gap-16 relative z-10">
             
             <!-- Gamified Pro Card Theme (Left) -->
             <div class="w-[280px] h-[400px] rounded-xl opacity-0 relative origin-bottom v-anim shadow-[0_30px_60px_rgba(0,0,0,0.9),inset_0_0_20px_rgba(212,175,55,0.15)]" id="v-card" style="transform-style: preserve-3d; background-color: #0a0a0a; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 4px 4px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(212, 175, 55, 0.5);">
@@ -229,8 +105,8 @@
                 </div>
 
                 <!-- Full-width image area -->
-                <div style="width: 100%; height: 215px; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 10; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <i class="fa-solid fa-user-astronaut" style="font-size: 4rem; color: #333;"></i>
+                <div id="v-card-photo" style="width: 100%; height: 215px; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 10; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <i id="v-card-icon" class="fa-solid fa-user-astronaut" style="font-size: 4rem; color: #333;"></i>
                 </div>
 
                 <!-- Bottom info area -->
@@ -261,14 +137,21 @@
                 <h2 class="text-[#E30613] text-lg tracking-[8px] mb-2 font-bold font-sans opacity-0 v-anim" id="v-header">MATCH CONCLUDED</h2>
                 <h1 class="text-white text-8xl tracking-[4px] mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] opacity-0 v-anim" id="v-winner" style="font-family: 'Subsoccer', sans-serif;">PLAYER</h1>
                 <div class="opacity-0 v-anim" id="v-score-box">
-                    <div class="bg-[#111] border border-white/10 rounded-xl px-12 py-5 text-white text-6xl font-sans font-black tracking-widest shadow-2xl relative overflow-hidden">
-                        <div class="absolute left-0 top-0 bottom-0 w-2 bg-[#E30613]"></div>
+                    <div class="border border-white/10 rounded-xl px-12 py-5 text-white text-6xl font-sans font-black tracking-widest shadow-2xl relative overflow-hidden" style="background: linear-gradient(to right, #12222d 50%, #b70000 50%); display: flex; justify-content: center; gap: 30px;">
                         <span id="v-score">0 - 0</span>
                     </div>
                 </div>
             </div>
 
         </div>
+        
+        <!-- CALL TO ACTION FOR NEXT GAME -->
+        <div class="absolute bottom-[8%] left-1/2 -translate-x-1/2 flex items-center justify-center gap-8 bg-black/90 px-12 py-6 rounded-3xl border-2 border-[#D4AF37] shadow-[0_20px_50px_rgba(0,0,0,0.9)] opacity-0 v-anim" id="v-cta" style="transform: translateY(30px); z-index: 50;">
+            <div class="text-white text-2xl font-bold tracking-[6px] uppercase text-right leading-relaxed" style="font-family: 'Subsoccer', sans-serif;">Want a<br><span class="text-[#E30613] text-4xl">Rematch?</span></div>
+            <img id="victory-qr" src="" class="w-32 h-32 bg-white p-2 rounded-xl border border-gray-300">
+            <div class="text-white text-2xl font-bold tracking-[6px] uppercase text-left leading-relaxed" style="font-family: 'Subsoccer', sans-serif;">Scan to<br><span class="text-[#D4AF37] text-4xl">Play</span></div>
+        </div>
+        
     </div>
 
         <div class="absolute bottom-4 left-6 text-gray-500 text-xs font-sans tracking-wider">AWAITING REMOTE LAUNCH...</div>
@@ -311,23 +194,52 @@
                 border-radius: 12px !important;
                 box-shadow: 0 15px 30px rgba(0,0,0,0.5) !important;
                 margin-bottom: 30px !important;
+                flex-shrink: 0 !important;
             }
             #layer-tournament .match-player {
-                background: #151515 !important;
                 font-size: 1.5rem !important;
                 padding: 18px 20px !important;
                 border-radius: 6px !important;
                 text-align: left !important;
                 text-transform: uppercase !important;
-                border-left: 4px solid var(--sub-red) !important;
+                border-left: none !important;
+                flex-shrink: 0 !important;
+            }
+            #layer-tournament .match-player.p1-bg {
+                background: #12222d !important;
+                border-left: none !important;
+            }
+            #layer-tournament .match-player.p2-bg {
+                background: #b70000 !important;
+                border-left: none !important;
             }
             #layer-tournament .match-player.winner {
-                border-left: 4px solid var(--sub-gold) !important;
-                background: linear-gradient(90deg, rgba(212,175,55,0.2) 0%, transparent 100%) !important;
-                color: #fff !important;
+                color: #D4AF37 !important;
+                font-weight: 900 !important;
+            }
+            #layer-tournament .match-player.p1-bg.winner {
+                background: #12222d !important;
+            }
+            #layer-tournament .match-player.p2-bg.winner {
+                background: #b70000 !important;
             }
             #layer-tournament .match-vs {
                 display: none !important; /* TV-näkymässä VS-teksti on turha väli, tiivistetään pakettia */
+            }
+            #tv-bracket-area {
+                transform: scale(1.4);
+            }
+            #layer-tournament.large-bracket #tv-bracket-area {
+                transform: scale(0.9);
+            }
+            #layer-tournament.large-bracket .bracket-match {
+                margin-bottom: 12px !important;
+            }
+            #layer-tournament.xl-bracket #tv-bracket-area {
+                transform: scale(0.65);
+            }
+            #layer-tournament.xl-bracket .bracket-match {
+                margin-bottom: 5px !important;
             }
         </style>
         <img src="subsoccer_logo.svg" class="h-12 mt-16 mb-2 opacity-90 mx-auto" alt="Subsoccer">
@@ -337,12 +249,18 @@
         </div>
     </div>
 
-    <!-- LAYER 6: ELO RANKING (After Tournament) -->
-    <div id="layer-elo" class="layer" style="background-color: rgba(0,0,0,0.5); padding: 2rem; box-sizing: border-box; align-items: center; justify-content: flex-start; z-index: 10;">
-        <div class="w-full max-w-3xl flex flex-col gap-6 h-full pt-16">
-            <h2 class="text-white text-2xl tracking-widest text-center text-gray-400">EVENT ELO RANKING</h2>
-            <div class="bg-black border border-[#FFD700] rounded-xl p-6 flex flex-col overflow-hidden shadow-[0_0_15px_rgba(255,215,0,0.2)]">
-                <div class="text-[#FFD700] font-bold tracking-widest text-center text-xs mb-8 uppercase">GLOBAL TOP 10 RANKING</div>
+    <!-- LAYER 6: EVENT LEADERBOARD (After Tournament) -->
+    <div id="layer-elo" class="layer" style="background-color: rgba(0,0,0,0.8); z-index: 10;">
+        <video autoplay loop muted playsinline class="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-70">
+            <source src="Trophy.mp4" type="video/mp4">
+        </video>
+        <div class="w-full max-w-4xl flex flex-col gap-8 justify-center relative z-10 mx-auto px-4 box-border h-full items-center pt-8">
+            <div class="text-center w-full flex flex-col items-center">
+                <img src="subsoccer_logo.svg" class="h-10 mb-4 opacity-80" alt="Subsoccer">
+                <h2 class="text-white text-5xl font-bold tracking-[8px] text-center" style="font-family: 'Subsoccer', sans-serif;">EVENT LEADERBOARD</h2>
+            </div>
+            <div class="bg-black border border-[#FFD700] rounded-xl p-6 flex flex-col overflow-hidden shadow-[0_0_15px_rgba(255,215,0,0.2)] w-full">
+                <div class="text-[#FFD700] font-bold tracking-widest text-center text-xs mb-8 uppercase">TOP PLAYERS BY WINS (THIS SESSION)</div>
                 <div id="history-elo" class="flex flex-col gap-2 overflow-y-auto w-full px-4"></div>
             </div>
             
@@ -355,399 +273,6 @@
         </div>
     </div>
 
-    <script type="module">
-        import { _supabase } from './config.js';
-        import { BracketEngine } from './bracket-engine.js';
-
-        // --- TIMEOUT TRACKING ---
-        let tvTimeouts = [];
-        function clearAllTvTimeouts() {
-            tvTimeouts.forEach(clearTimeout);
-            tvTimeouts = [];
-        }
-        function addTvTimeout(fn, ms) {
-            tvTimeouts.push(setTimeout(fn, ms));
-        }
-
-        // --- STATE & UTILS ---
-        const tableId = 'table-04';
-        let timerInterval;
-        let remainingSeconds = 15 * 60;
-        
-        const L = {
-            lobby: document.getElementById('layer-lobby'),
-            intro: document.getElementById('layer-intro'),
-            sessionLobby: document.getElementById('layer-session-lobby'),
-            game: document.getElementById('layer-game'),
-            victory: document.getElementById('layer-victory'),
-            tournament: document.getElementById('layer-tournament'),
-            elo: document.getElementById('layer-elo')
-        };
-        
-        // P1 & P2 Cache so we can populate the Session Lobby screen
-        let playerRatings = {};
-
-        async function calculateElo(p1Name, p2Name, winnerName) {
-            if (!p1Name || !p2Name || p1Name === "BYE" || p2Name === "BYE") return;
-            if (winnerName === "DRAW") return;
-
-            // Fetch actual profiles from Supabase to guarantee authenticity
-            const { data: p1Data } = await _supabase.from('players').select('id, elo').ilike('username', p1Name).maybeSingle();
-            const { data: p2Data } = await _supabase.from('players').select('id, elo').ilike('username', p2Name).maybeSingle();
-
-            if (!playerRatings[p1Name]) playerRatings[p1Name] = p1Data ? p1Data.elo : 1000;
-            if (!playerRatings[p2Name]) playerRatings[p2Name] = p2Data ? p2Data.elo : 1000;
-
-            const r1 = Math.pow(10, playerRatings[p1Name] / 400);
-            const r2 = Math.pow(10, playerRatings[p2Name] / 400);
-            
-            const e1 = r1 / (r1 + r2);
-            const e2 = r2 / (r1 + r2);
-            
-            const K = 32;
-            const s1 = winnerName === p1Name ? 1 : 0;
-            const s2 = winnerName === p2Name ? 1 : 0;
-            
-            const newP1Elo = Math.round(playerRatings[p1Name] + K * (s1 - e1));
-            const newP2Elo = Math.round(playerRatings[p2Name] + K * (s2 - e2));
-
-            playerRatings[p1Name] = newP1Elo;
-            playerRatings[p2Name] = newP2Elo;
-
-            // Save back to Supabase ONLY if they are verified users
-            if (p1Data) await _supabase.from('players').update({ elo: newP1Elo }).eq('id', p1Data.id);
-            if (p2Data) await _supabase.from('players').update({ elo: newP2Elo }).eq('id', p2Data.id);
-        }
-
-        async function fetchGlobalRanking() {
-            // Hae heti sivun latautuessa koko maailman/tietokannan TOP 10 rankkaus
-            const { data, error } = await _supabase.from('players')
-                .select('username, elo')
-                .order('elo', { ascending: false })
-                .limit(10);
-                
-            if (data && !error) {
-                data.forEach(p => {
-                    if(!playerRatings[p.username]) {
-                        playerRatings[p.username] = p.elo;
-                    }
-                });
-                renderEloBoard(); // Pakota piirto
-            }
-        }
-
-        function renderEloBoard() {
-            // Yhdistä sekä sessiossa juuri päivitetyt että globaalisti haetut tiedot yhtenäiseksi listaksi
-            const sorted = Object.keys(playerRatings).map(k => ({ name: k, elo: playerRatings[k] })).sort((a,b) => b.elo - a.elo);
-            const list = document.getElementById('history-elo');
-            if(!list) return;
-            list.innerHTML = sorted.slice(0, 10).map((p, index) => `
-                <div class="flex justify-between text-lg py-3 border-b border-gray-800 items-center">
-                    <span class="text-gray-500 w-8 font-sans font-bold">#${index + 1}</span>
-                    <span class="flex-1 text-white font-bold font-sans tracking-wide text-xl text-shadow-sm uppercase">${p.name}</span>
-                    <span class="font-black text-[#FFD700] text-3xl font-sans text-shadow-md tracking-wider">${p.elo}</span>
-                </div>
-            `).join('');
-        }
-
-        // Hae data heti käynnistyessä
-        fetchGlobalRanking();
-
-        let lastP1 = "PLAYER 1";
-        let lastP2 = "PLAYER 2";
-        
-        function switchLayer(targetId) {
-            // Hard reset displays to absolutely guarantee layout engine flush
-            Object.values(L).forEach(el => el.style.display = 'none');
-            const target = L[targetId];
-            if(target) {
-                if(targetId !== 'intro') {
-                    const vid = document.getElementById('intro-video');
-                    if(vid) vid.pause();
-                }
-                
-                target.style.display = targetId === 'game' ? 'flex' : 'flex';
-                if(targetId === 'game') target.style.flexDirection = 'row';
-                else target.style.flexDirection = 'column';
-            }
-        }
-
-        // --- IOT ---
-        let shellyIP = localStorage.getItem('shelly_ip') || null;
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('shelly')) {
-            shellyIP = urlParams.get('shelly');
-            localStorage.setItem('shelly_ip', shellyIP);
-        }
-
-        function triggerShelly(turnOn) {
-            const iotDot = document.getElementById('iot-dot');
-            const iotText = document.getElementById('iot-text');
-            
-            if (turnOn) {
-                iotDot.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]";
-                iotText.className = "text-green-500 font-sans text-sm";
-                iotText.innerText = "POWER SYNCED (ON)";
-            } else {
-                iotDot.className = "w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_red]";
-                iotText.className = "text-red-500 font-sans text-sm";
-                iotText.innerText = "OFF LINE";
-            }
-
-            if(shellyIP) {
-                // Gen 1 Shellys
-                fetch(`http://${shellyIP}/relay/0?turn=${turnOn ? 'on' : 'off'}`, { mode: 'no-cors' }).catch(()=>{});
-                // Gen 2 Shellys (Plus / Pro)
-                fetch(`http://${shellyIP}/rpc/Switch.Set?id=0&on=${turnOn ? 'true' : 'false'}`, { mode: 'no-cors' }).catch(()=>{});
-            }
-        }
-
-        // --- QR ---
-        // Koska laite pyörittää itseään (localhost), kerromme sille, että skannaavien puhelinten on otettava yhteys laitteen todelliseen WiFi IP-osoitteeseen! (theforge.local mDNS usein pätkii kännyköissä)
-        const hostName = window.location.hostname === 'localhost' ? '192.168.8.120' : window.location.hostname;
-        const remoteAppUrl = `${window.location.protocol}//${hostName}${window.location.port ? `:${window.location.port}` : ""}/lounge-remote.html`;
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(remoteAppUrl)}`;
-        document.getElementById('dynamic-qr').src = qrUrl;
-        document.getElementById('reconnect-qr').src = qrUrl;
-        document.getElementById('reconnect-qr-elo').src = qrUrl;
-
-        // Player Registration URL for the TV Lobby
-        const joinAppUrl = `${window.location.protocol}//${hostName}${window.location.port ? `:${window.location.port}` : ""}/join.html?event=lounge_${tableId}`;
-        const joinQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(joinAppUrl)}`;
-        document.getElementById('dynamic-qr-lobby').src = joinQrUrl;
-
-        // Video ended -> go to session lobby
-        const introVid = document.getElementById('intro-video');
-        if (introVid) {
-            introVid.addEventListener('ended', () => {
-                switchLayer('sessionLobby');
-            });
-        }
-
-        // --- TIMER ---
-        let isTimerTicking = false;
-
-        function updateTimerUI() {
-            const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
-            const s = (remainingSeconds % 60).toString().padStart(2, '0');
-            const timerEl = document.getElementById('timer');
-            timerEl.innerText = `${m}:${s}`;
-            if(remainingSeconds <= 60) timerEl.style.color = "red";
-            else timerEl.style.color = "white";
-        }
-
-        function startTimer() {
-            if (isTimerTicking) return; // Jatkaa taustalla pyörimistä otteluiden välissä!
-            
-            isTimerTicking = true;
-            clearInterval(timerInterval);
-            
-            // Päivitä ruutu heti 15:00 (eikä vasta sekunnin päästä)
-            updateTimerUI();
-
-            timerInterval = setInterval(() => {
-                if (remainingSeconds <= 0) {
-                    clearInterval(timerInterval);
-                    isTimerTicking = false;
-                    resetSystem();
-                    return;
-                }
-                remainingSeconds--;
-                updateTimerUI();
-            }, 1000);
-        }
-
-        function resetSystem() {
-            clearAllTvTimeouts();
-            clearInterval(timerInterval);
-            isTimerTicking = false;
-            document.getElementById('timer').innerText = "00:00";
-            document.getElementById('timer').style.color = "white";
-            switchLayer('lobby');
-            triggerShelly(false);
-            
-            // Reset WAAPI opacities for next game
-            document.querySelectorAll('.v-anim').forEach(el => {
-                el.style.opacity = "";
-                el.style.transform = "";
-                el.getAnimations().forEach(anim => anim.cancel());
-            });
-        }
-
-        // --- WEBSOCKET ENGINE ---
-        _supabase.channel(`lounge_${tableId}`)
-            .on('broadcast', { event: 'start_1v1' }, (payload) => {
-                clearAllTvTimeouts();
-                lastP1 = payload.payload.p1 || 'PLAYER 1';
-                lastP2 = payload.payload.p2 || 'PLAYER 2';
-                document.getElementById('game-p1-name').innerText = lastP1;
-                document.getElementById('game-p2-name').innerText = lastP2;
-                document.getElementById('game-p1-score').innerText = '0';
-                document.getElementById('game-p2-score').innerText = '0';
-                
-                switchLayer('game');
-
-                // Varmistetaan aina sähköt päälle kun uusi peli alkaa (paikkaa gen1/gen2 erot)
-                triggerShelly(true);
-                
-                if (remainingSeconds <= 0) {
-                    remainingSeconds = 15 * 60;
-                }
-                startTimer();
-            })
-            .on('broadcast', { event: 'payment_success' }, (payload) => {
-                // Taikamaisesti sytytä The Forgen jämäkät laite-sähköt maksusta (Demonstraatio)
-                console.log("PAYMENT DETECTED! Awakening The Forge mechanics...");
-                triggerShelly(true);
-
-                // Siirry välittömästi Introvideon pariin peittämään odotustila
-                switchLayer('intro');
-                const vid = document.getElementById('intro-video');
-                if(vid) {
-                    vid.currentTime = 0;
-                    vid.play().catch(e => console.log("Video autoplay blocked:", e));
-                }
-            })
-            .on('broadcast', { event: 'roster_update' }, (payload) => {
-                const players = payload.payload.players || [];
-                const grid = document.getElementById('session-players-grid');
-                const count = document.getElementById('registered-count');
-                if(!grid || !count) return;
-                
-                count.innerText = `${players.length} / 16`;
-                grid.innerHTML = '';
-                
-                players.forEach((pName, i) => {
-                    grid.innerHTML += `
-                        <div class="bg-[#111] border border-[#D4AF37] p-3 rounded-xl flex items-center gap-3">
-                            <span class="text-[#D4AF37] font-bold">#${i + 1}</span>
-                            <span class="text-white font-bold font-sans tracking-widest uppercase">${pName}</span>
-                        </div>
-                    `;
-                });
-            })
-            .on('broadcast', { event: 'state_update' }, (payload) => {
-                document.getElementById('game-p1-score').innerText = payload.payload.p1Score || 0;
-                document.getElementById('game-p2-score').innerText = payload.payload.p2Score || 0;
-            })
-            .on('broadcast', { event: 'end_game' }, (payload) => {
-                const winner = payload.payload.winnerName || payload.payload.winner;
-
-                // Sammuta valot/pöytälevy heti kun ottelu päättyy
-                triggerShelly(false);
-                
-                // Clear all previous WAAPI states BEFORE switching layout
-                document.querySelectorAll('.v-anim').forEach(el => {
-                    el.getAnimations().forEach(anim => anim.cancel());
-                    el.style.opacity = '0'; // reset explicitly
-                });
-
-                const winnerFinal = winner === "DRAW" ? "DRAW" : (payload.payload.winnerName || payload.payload.winner);
-                calculateElo(lastP1, lastP2, winnerFinal).then(() => {
-                    renderEloBoard();
-                });
-                document.getElementById('v-winner').innerText = winnerFinal === "DRAW" ? "DRAW" : winnerFinal;
-                const cardName = document.getElementById('v-card-name');
-                if (cardName) cardName.innerText = winnerFinal === "DRAW" ? "-" : winnerFinal;
-                document.getElementById('v-score').innerText = `${payload.payload.p1Score || 0} - ${payload.payload.p2Score || 0}`;
-
-                // Absolute Layout Switch
-                switchLayer('victory');
-
-                // Wait exactly for the browser to draw the display: block elements
-                addTvTimeout(() => {
-                    const els = {
-                        h: document.getElementById('v-header'),
-                        t: document.getElementById('v-winner'),
-                        s: document.getElementById('v-score-box'),
-                        c: document.getElementById('v-card')
-                    };
-
-                    const springFast = 'cubic-bezier(0.2, 0.9, 0.3, 1.2)';
-                    if(els.c) els.c.animate([{ transform: 'translateY(50px) scale(0.9) rotateX(10deg)', opacity: 0 }, { transform: 'translateY(0) scale(1) rotateX(0deg)', opacity: 1 }], { duration: 800, easing: springFast, fill: 'forwards' });
-                    if(els.h) els.h.animate([{ transform: 'translateX(-30px)', opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }], { duration: 600, delay: 100, easing: 'ease-out', fill: 'forwards' });
-                    if(els.t) els.t.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 500, delay: 250, easing: 'ease-out', fill: 'forwards' });
-                    if(els.s) els.s.animate([{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 400, delay: 400, easing: springFast, fill: 'forwards' });
-                }, 50);
-
-                // Wait 8 Seconds, then drop into Active Session Lobby OR Tournament Bracket
-                addTvTimeout(() => {
-                    if (payload.payload.isBracketComplete) {
-                        switchLayer('tournament');
-                        addTvTimeout(() => {
-                            renderEloBoard();
-                            switchLayer('elo');
-                        }, 5000); // 5s bracket showcase before elo
-                    } else {
-                        switchLayer('tournament');
-                    }
-                }, 8000);
-            })
-            .on('broadcast', { event: 'tourny_state' }, (payload) => {
-                clearAllTvTimeouts();
-                const tourny = payload.payload;
-                
-                switchLayer('tournament');
-                triggerShelly(false); // Idle table between tournament matches
-
-                if (!window.tvEngine) {
-                    document.getElementById('bracket-tree').innerHTML = '<div id="tv-bracket-area" style="transform: scale(1.2); padding-top: 40px; padding-bottom: 40px;"></div>';
-                    window.tvEngine = new BracketEngine({ containerId: 'tv-bracket-area', enableSaveButton: false });
-                }
-
-                // Strictly render bracket matching current state
-                window.tvEngine.generateBracket(tourny.players, false);
-                window.tvEngine.restoreState(tourny.matches);
-            })
-            .on('broadcast', { event: 'force_reload' }, () => window.location.reload(true))
-            .on('broadcast', { event: 'reset_system' }, resetSystem)
-            .subscribe();
-
-        // ----------------------------------------------------
-        // HARDWARE SENSOR INTEGRATION (Keyboard hooks)
-        // Laitteen fyysiset nappulat/tutkat lähettävät näppäimistön "1" ja "2" painalluksia
-        // ----------------------------------------------------
-        window.addEventListener('keydown', (e) => {
-            // Vain jos peli on käynnissä (Scoreboard on näkyvissä ja aika juoksee)
-            const isMatchActive = document.getElementById('layer-game').classList.contains('active');
-            if (!isMatchActive) return;
-
-            let targetPlayer = null;
-            if (e.key === '1') targetPlayer = 1;
-            if (e.key === '2') targetPlayer = 2;
-
-            if (targetPlayer) {
-                // Lähetetään maalipäivitys samoilla pelisäännöillä kuin kaukosäädin
-                let newP1Score = parseInt(document.getElementById('p1-score-layer2').innerText) || 0;
-                let newP2Score = parseInt(document.getElementById('p2-score-layer2').innerText) || 0;
-                const p1Name = document.getElementById('p1-name-layer2').innerText;
-                const p2Name = document.getElementById('p2-name-layer2').innerText;
-
-                if (targetPlayer === 1) newP1Score++;
-                if (targetPlayer === 2) newP2Score++;
-
-                // Maaliefektit lokaalisti ennen pilveä viiveen minimoimiseksi
-                showGoalAnimation(targetPlayer);
-                playGoalHorn();
-
-                const updatedState = {
-                    view: newP1Score >= 3 || newP2Score >= 3 ? 'winner' : 'game',
-                    p1Score: newP1Score,
-                    p2Score: newP2Score,
-                    p1Name: p1Name,
-                    p2Name: p2Name,
-                    lastScorer: targetPlayer,
-                    matchStarted: Date.now()
-                };
-
-                // Ammutaan pilveen jotta kännykän kaukosäädin päivittyy!
-                roomChannel.send({
-                    type: 'broadcast',
-                    event: 'state_update',
-                    payload: updatedState
-                });
-            }
-        });
-    </script>
+    <script type="module" src="tv-logic.js"></script>
 </body>
 </html>

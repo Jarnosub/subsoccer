@@ -625,6 +625,8 @@
                     onclick="window.open('https://subsoccer.pro/control-room.html', '_blank')">🎛️ CONTROL ROOM</button>
                 <button id="btn-mod-qr-exporter" class="btn-red mod-btn mod-btn-primary"
                     onclick="window.open('./qr-batch-exporter.html', '_blank')">🖨️ EPS VECTOR QR BATCH EXPORT</button>
+                <button id="btn-mod-analytics" class="btn-red mod-btn mod-btn-primary"
+                    onclick="window.location.search='?page=analytics'">📊 GLOBAL ANALYTICS</button>
                 <button id="btn-mod-partner-gen" class="btn-red mod-btn mod-btn-primary">🤝 PARTNER LINK
                     GENERATOR</button>
                 <button id="btn-mod-view-users" class="btn-red mod-btn mod-btn-secondary">VIEW ALL REGISTERED
@@ -633,6 +635,19 @@
                     LOGS</button>
                 <button id="btn-mod-reset-lb" class="btn-red mod-btn mod-btn-secondary">RESET GLOBAL
                     LEADERBOARD</button>
+            </div>
+        </div>
+
+        <div id="section-analytics" class="section">
+            <div class="container">
+                <h3 style="font-family:'Resolve'; text-transform:uppercase; color:var(--sub-gold); letter-spacing:2px; margin-bottom: 20px;">
+                    📊 Global Analytics</h3>
+                
+                <h4 style="color:#aaa; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:15px; font-family:'Resolve';">Live Arcade & Quick Matches</h4>
+                <div id="analytics-arcade-list" style="margin-bottom: 30px;">Loading arcade network data...</div>
+
+                <h4 style="color:#aaa; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:15px; font-family:'Resolve';">Official Tournament History</h4>
+                <div id="analytics-tour-list">Loading tournament network data...</div>
             </div>
         </div>
 

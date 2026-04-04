@@ -20,7 +20,7 @@ import { shareLiveEventLink } from './live-view-service.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
 import { hostWithQR, cancelQRHost, startQRBracket } from './qr-lobby.js';
 import { startTournament, advanceRound, saveTour, replayTournament, populateEventDropdown } from './tournament.js';
-import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard, setupModeratorListeners } from './moderator-service.js';
+import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard, setupModeratorListeners, loadAnalytics } from './moderator-service.js';
 
 // Swipe-toiminnallisuus muuttujat (siirretty alkuun ReferenceErrorin välttämiseksi)
 let touchStartX = null;
@@ -118,7 +118,8 @@ window.showAuthPage = showAuthPage;
 function updatePageUI(p) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('section-' + p).classList.add('active');
+    const targetSection = document.getElementById('section-' + p);
+    if (targetSection) targetSection.classList.add('active');
 
     // Aina kun sivu vaihtuu, nollataan scrollaus ylös
     window.scrollTo(0, 0);
@@ -167,6 +168,7 @@ function updatePageUI(p) {
     if (p !== 'profile') cancelEditProfile();
     if (p === 'map') fetchPublicGamesMap();
     if (p === 'events') loadEventsPage();
+    if (p === 'analytics') loadAnalytics();
 
     // Alustaa kartan 'games'-sivulla
     if (p === 'games') {

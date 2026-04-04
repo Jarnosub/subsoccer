@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subsoccer DB Executive Migration</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; background: #f4f4f5; color: #333;">
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto;">
+        <h2 style="margin-top: 0; color: #1a73e8;">Supabase Architecture Migration</h2>
+        <p style="color: #666; line-height: 1.5;">This tool will securely perform a hard reset on your `app_features` table, wiping out the old Finnish/development rows and replacing them with highly polished executive-grade roadmap items for the board presentation.</p>
+        
+        <button id="runBtn" onclick="runMigration()" style="background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 15px;">WIPE & DEPLOY EXECUTIVE DATA 🚀</button>
+        
+        <pre id="output" style="margin-top: 30px; background: #f8f9fa; padding: 15px; border: 1px solid #ddd; border-radius: 4px; border-left: 4px solid #1e8e3e; white-space: pre-wrap; display: none;"></pre>
+    </div>
+
+    <script type="module">
+        import { _supabase } from './config.js';
+
+        window.runMigration = async function() {
+            const out = document.getElementById('output');
+            out.style.display = 'block';
+            out.textContent = "Connecting to Supabase...\n";
+
+            try {
+                // Warn about auth, though often policies allow all if not set strictly
+                out.textContent += "1. Wiping old Finnish database rows...\n";
+                const { error: delError } = await _supabase
+                    .from('app_features')
+                    .delete()
+                    .not('id', 'eq', '00000000-0000-0000-0000-000000000000'); // Hack to delete all cleanly
+
+                if (delError) throw delError;
+
+                const executiveFeatures = [
+                    { title: "AI-Driven Computer Vision Pipeline", description: "Real-time match tracking, foul detection, and automated Hall of Fame player card synthesis using highly localized edge AI.", status: "LIVE", order_num: 1, is_enabled: true },
+                    { title: "Global Telemetry & Leaderboards", description: "Asynchronous synchronization of global match metadata and decentralized ELO ratings across all active arcade nodes.", status: "LIVE", order_num: 2, is_enabled: true },
+                    { title: "Enterprise Arcade Modules", description: "Time-limited solo challenges and targeted promotional campaigns built specifically for global B2B deployment.", status: "IN_DEV", order_num: 3, is_enabled: true },
+                    { title: "Pro Producer Stadium Event Framework", description: "Dedicated live-event orchestration infrastructure. Highly scalable waitlist dynamics up to 16 concurrent users with digital display synchronization.", status: "IN_DEV", order_num: 4, is_enabled: false },
+                    { title: "Decentralized P2P Tournament Hosting", description: "Enabling unmanaged venue partners to deploy secure, zero-setup physical tournaments via automated QR orchestration.", status: "BACKLOG", order_num: 5, is_enabled: false },
+                    { title: "Automated IoT Monetization API", description: "Smart-plug API hardware integrations for seamless, remote pay-to-play power activation and session authorization.", status: "BACKLOG", order_num: 6, is_enabled: false }
+                ];
+
+                out.textContent += "2. Injecting C-Level SaaS terminology...\n";
+                const { error: insError } = await _supabase.from('app_features').insert(executiveFeatures);
+                if (insError) throw insError;
+
+                out.textContent += "\n✅ SUCCESS! Database has been re-written for investors.\n";
+                out.textContent += "You can close this tab and refresh your feature-roadmap.html !";
+                document.getElementById('runBtn').style.background = '#1e8e3e';
+                document.getElementById('runBtn').textContent = 'DATABASE UPGRADED';
+                document.getElementById('runBtn').disabled = true;
+
+            } catch (err) {
+                out.textContent += "\n❌ ERROR: " + err.message + "\nAre your RLS policies allowing this local insert (Super Admin)?";
+            }
+        };
+    </script>
+</body>
+</html>

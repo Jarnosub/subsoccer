@@ -180,47 +180,83 @@ export async function fetchHist() {
         const { data: tourData } = await _supabase.from('tournament_history').select('*, events(event_name)').order('created_at', { ascending: false });
         const { data: matchData } = await _supabase.from('matches').select('*').order('created_at', { ascending: false });
 
-        if (!tourData || tourData.length === 0) {
-            const histList = document.getElementById('hist-list');
-            if (histList) histList.innerHTML = "No history.";
+        const histList = document.getElementById('hist-list');
+        if (!histList) return;
+
+        if ((!tourData || tourData.length === 0) && (!matchData || matchData.length === 0)) {
+            histList.innerHTML = "No history.";
             return;
         }
 
-        const events = tourData.reduce((acc, h) => {
-            const eventName = h.events?.event_name || h.event_name || 'Individual Tournaments';
-            if (!acc[eventName]) acc[eventName] = [];
-            acc[eventName].push(h);
-            return acc;
-        }, {});
+        const events = {};
+
+        // Group regular tournaments
+        if (tourData) {
+            tourData.forEach(h => {
+                const eventName = h.events?.event_name || h.event_name || 'Individual Tournaments';
+                if (!events[eventName]) events[eventName] = [];
+                events[eventName].push(h);
+            });
+        }
+
+        // Group standalone matches (Arcade mode, Quick matches)
+        const standaloneMatches = matchData ? matchData.filter(m => !m.tournament_id) : [];
+        if (standaloneMatches.length > 0) {
+            events['Free Play & Arcade'] = [{ is_standalone_group: true, name: 'Recent Matches', matches: standaloneMatches, created_at: standaloneMatches[0].created_at }];
+        }
 
         let html = "";
         for (const eventName in events) {
             html += `<div class="event-group"><h2 class="event-title">${eventName}</h2>`;
+            
             html += events[eventName].map((h) => {
-                const tourMatches = matchData ? matchData.filter(m => m.tournament_id === h.id) : [];
-                const tourPlayers = [...new Set(tourMatches.flatMap(m => [m.player1, m.player2]))];
-                const playersJsonString = JSON.stringify([...new Set(tourPlayers)]);
-                const matchesHtml = tourMatches.map(m => `<div style="background:#111; padding:10px; border-radius:5px; margin-top:5px; font-size:0.8rem;"><b>${m.winner}</b> defeated ${m.winner === m.player1 ? m.player2 : m.player1}</div>`).join('');
-                const date = new Date(h.created_at);
-                const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+                if (h.is_standalone_group) {
+                    // Render standalone arcade/quick matches
+                    const matchesHtml = h.matches.map(m => {
+                        const date = new Date(m.created_at);
+                        const fDate = `${date.getDate()}.${date.getMonth() + 1}. ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+                        const tName = m.tournament_name || 'Verified Session';
+                        const scoreStr = (m.player1_score !== null && m.player2_score !== null) ? `${m.player1_score} - ${m.player2_score}` : 'WIN';
+                        return `
+                        <div style="background:#111; padding:10px; border-radius:5px; margin-top:5px; font-size:0.8rem; border-left:2px solid var(--sub-red); position:relative;">
+                            <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold;">[${tName}]</div>
+                            <b>${m.winner}</b> defeated ${m.winner === m.player1 ? m.player2 : m.player1} <span style="color:#aaa;">(${scoreStr})</span>
+                            <div style="position: absolute; bottom: 10px; right: 10px; font-size: 0.6rem; color: #666;">${fDate}</div>
+                        </div>`;
+                    }).join('');
 
-                let podiumHtml = `<div style="font-family: var(--sub-body-font); font-size:0.85rem; color:#fff;">`;
-                if (h.winner_name) podiumHtml += `<div>🏆 ${h.winner_name}</div>`;
-                if (h.second_place_name) podiumHtml += `<div style="color:#ccc; font-size:0.8rem; margin-top:2px;">🥈 ${h.second_place_name}</div>`;
-                if (h.third_place_name) podiumHtml += `<div style="color:#cd7f32; font-size:0.8rem; margin-top:2px;">🥉 ${h.third_place_name}</div>`;
-                podiumHtml += `</div>`;
+                    return `
+                    <div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px;">
+                        <div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${h.name}</div>
+                        <div style="margin-top:10px;">${matchesHtml}</div>
+                    </div>`;
+                } else {
+                    // Render traditional tournament history
+                    const tourMatches = matchData ? matchData.filter(m => m.tournament_id === h.id) : [];
+                    const tourPlayers = [...new Set(tourMatches.flatMap(m => [m.player1, m.player2]))];
+                    const playersJsonString = JSON.stringify([...new Set(tourPlayers)]);
+                    const matchesHtml = tourMatches.map(m => `<div style="background:#111; padding:10px; border-radius:5px; margin-top:5px; font-size:0.8rem;"><b>${m.winner}</b> defeated ${m.winner === m.player1 ? m.player2 : m.player1}</div>`).join('');
+                    const date = new Date(h.created_at);
+                    const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
 
-                return `<div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px; position: relative; display:block; text-align:left;">
-                <div style="position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1rem; z-index: 5; opacity:0.6;" data-replay-players='${playersJsonString}' data-replay-name="${h.tournament_name}">🔄</div>
-                <div style="cursor:pointer;" data-toggle-tournament="${h.id}"><div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${h.tournament_name}</div>${podiumHtml}</div>
-                <div id="tour-matches-${h.id}" style="display:none; margin-top:10px;">${matchesHtml}</div>
-                <div style="position: absolute; bottom: 10px; right: 10px; font-size: 0.6rem; color: #666;">${formattedDate}</div>
-            </div>`;
+                    let podiumHtml = `<div style="font-family: var(--sub-body-font); font-size:0.85rem; color:#fff;">`;
+                    if (h.winner_name) podiumHtml += `<div>🏆 ${h.winner_name}</div>`;
+                    if (h.second_place_name) podiumHtml += `<div style="color:#ccc; font-size:0.8rem; margin-top:2px;">🥈 ${h.second_place_name}</div>`;
+                    if (h.third_place_name) podiumHtml += `<div style="color:#cd7f32; font-size:0.8rem; margin-top:2px;">🥉 ${h.third_place_name}</div>`;
+                    podiumHtml += `</div>`;
+
+                    return `<div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px; position: relative; display:block; text-align:left;">
+                    <div style="position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1rem; z-index: 5; opacity:0.6;" data-replay-players='${playersJsonString}' data-replay-name="${h.tournament_name}">🔄</div>
+                    <div style="cursor:pointer;" data-toggle-tournament="${h.id}"><div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${h.tournament_name}</div>${podiumHtml}</div>
+                    <div id="tour-matches-${h.id}" style="display:none; margin-top:10px;">${matchesHtml}</div>
+                    <div style="position: absolute; bottom: 10px; right: 10px; font-size: 0.6rem; color: #666;">${formattedDate}</div>
+                </div>`;
+                }
             }).join('');
+            
             html += `</div>`;
         }
-        const histList = document.getElementById('hist-list');
-        if (histList) histList.innerHTML = html;
+        histList.innerHTML = html;
     } finally {
         hideLoading();
     }
