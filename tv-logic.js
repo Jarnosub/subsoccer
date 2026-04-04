@@ -226,7 +226,6 @@ const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${e
 document.getElementById('dynamic-qr').src = qrUrl;
 document.getElementById('reconnect-qr').src = qrUrl;
 document.getElementById('reconnect-qr-elo').src = qrUrl;
-document.getElementById('victory-qr').src = qrUrl;
 
 
 
@@ -388,25 +387,25 @@ arcadeSocket.on('end_game', (payload) => {
 
     if (payload.mode === 'tournament') {
         if (payload.isBracketComplete) {
-            // 1. Show final bracket tree (11s)
-            switchLayer('tournament');
+            // 1. Show Tournament Champion card in all its glory (8s)
+            switchLayer('victory');
+            addTvTimeout(triggerVictoryAnimations, 50);
             
-            // 2. Show event leaderboard (6s)
+            // 2. Show event leaderboard / points (8s)
             addTvTimeout(() => {
                 renderEloBoard();
                 switchLayer('elo');
                 
-                // 3. Show Tournament Champion card in all its glory
+                // 3. Show final bracket tree (8s)
                 addTvTimeout(() => {
-                    switchLayer('victory');
-                    triggerVictoryAnimations();
+                    switchLayer('tournament');
                     
-                    // 4. Return to Start Screen after 15 seconds
+                    // 4. Return to Start Screen
                     addTvTimeout(() => {
                         resetSystem();
-                    }, 15000);
-                }, 6000);
-            }, 11000);
+                    }, 8000);
+                }, 8000);
+            }, 8000);
         } else {
             // Mid-tournament match: Victory card briefly, then back to Bracket tree
             switchLayer('victory');

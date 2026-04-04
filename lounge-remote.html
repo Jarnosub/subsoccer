@@ -23,31 +23,18 @@
             <h2 class="text-2xl font-bold mb-2 text-center mt-4" style="font-family: 'Subsoccer', sans-serif;">UNLOCK THE FORGE</h2>
             <p class="text-gray-400 text-center text-sm mb-6">Select your game mode.</p>
             
-            <!-- Option 1: Single Game -->
-            <div class="bg-[#111] border border-[#333] rounded-xl p-5 mb-4 shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
-                <div class="flex justify-between items-center mb-4">
-                    <div>
-                        <div class="text-white font-bold text-lg" style="font-family: 'Subsoccer', sans-serif;">SINGLE GAME</div>
-                        <div class="text-gray-500 text-xs mt-1 uppercase tracking-widest">1 vs 1 Match</div>
-                    </div>
-                    <span class="text-white font-bold text-2xl">2,00 €</span>
-                </div>
-                <button onclick="startStripeCheckout('single')" class="w-full bg-[#222] text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2 hover:bg-[#333] transition-all border border-[#444]">
-                    <i class="fab fa-apple text-lg"></i> Pay
-                </button>
-            </div>
-
-            <!-- Option 2: Tournament -->
+            <!-- Global Session Payment -->
             <div class="bg-[#111] border border-[#D4AF37]/50 rounded-xl p-5 mb-4 relative overflow-hidden shadow-[0_10px_30px_rgba(212,175,55,0.1)]">
-                <div class="absolute top-0 right-0 bg-[#D4AF37] text-black text-[10px] font-bold px-3 py-1 rounded-bl-lg tracking-widest">BEST VALUE</div>
+                <div class="absolute top-0 right-0 bg-[#D4AF37] text-black text-[10px] font-bold px-3 py-1 rounded-bl-lg tracking-widest">VIP LOUNGE</div>
                 <div class="flex justify-between items-center mb-4 mt-2">
                     <div>
-                        <div class="text-[#D4AF37] font-bold text-xl" style="font-family: 'Subsoccer', sans-serif; text-shadow: 0 0 10px rgba(212,175,55,0.4);">TOURNAMENT</div>
-                        <div class="text-[#D4AF37]/60 text-xs mt-1 uppercase tracking-widest">4-8 Players</div>
+                        <div class="text-[#D4AF37] font-bold text-xl" style="font-family: 'Subsoccer', sans-serif; text-shadow: 0 0 10px rgba(212,175,55,0.4);">TABLE SESSION</div>
+                        <div class="text-[#D4AF37]/60 text-xs mt-1 uppercase tracking-widest">15 Minutes Unlocked</div>
                     </div>
-                    <span class="text-[#D4AF37] font-bold text-2xl">5,00 €</span>
+                    <span class="text-[#D4AF37] font-bold text-2xl">10.00 €</span>
                 </div>
-                <button onclick="startStripeCheckout('tournament')" class="w-full bg-white text-black font-bold py-3 rounded-lg flex justify-center items-center gap-2 hover:bg-gray-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                <!-- Fake Apple Pay Button -->
+                <button onclick="startStripeCheckout('lounge')" class="w-full bg-white text-black font-bold py-3 rounded-lg flex justify-center items-center gap-2 hover:bg-gray-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                     <i class="fab fa-apple text-lg"></i> Pay
                 </button>
             </div>
@@ -63,23 +50,29 @@
             </div>
         </div>
 
-        <!-- SCREEN: GAME OVER -->
-        <div class="screen" id="s-game-over">
-            <h2 id="modes-title" class="text-3xl font-bold mb-2 text-center mt-6" style="font-family: 'Subsoccer', sans-serif;"></h2>
-            <p id="modes-subtitle" class="text-gray-400 text-center text-sm mb-6">Thanks for playing The Forge!</p>
+        <!-- SCREEN 1: MODE SELECTION -->
+        <div class="screen" id="s-welcome">
+            <h2 id="modes-title" class="text-2xl font-bold mb-2 text-center mt-4" style="font-family: 'Subsoccer', sans-serif;">SESSION ACTIVE</h2>
+            <p id="modes-subtitle" class="text-gray-500 text-center text-sm mb-8">Your 15 minute free session is ready to begin.</p>
             
-            <div class="bg-[#111] p-6 rounded-xl border border-[#333] mb-6 mx-4 text-center shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
-                <i class="fas fa-retweet text-4xl mb-4" style="color: var(--subsoccer-gold);"></i>
-                <div class="font-bold text-white text-lg mb-1" style="font-family: 'Resolve', sans-serif;">Want a rematch?</div>
-                <div class="text-gray-500 text-sm">Scan the TV and secure the table before anyone else takes it!</div>
+            <div onclick="switchScreen('s-tourny-setup'); window.paymentMode = 'singlematch'; setTimeout(initSetupScreen, 50);" class="bg-[#111] border border-[#222] text-white p-6 rounded-xl font-bold text-center cursor-pointer mb-5 hover:bg-[#1a1a1a] transition-all">
+                <i class="fas fa-user-friends mb-3 text-3xl block text-gray-400"></i>
+                <span id="btn-1v1-text" class="text-xl tracking-widest" style="font-family: 'Subsoccer', sans-serif;">SINGLE MATCH</span>
+                <div class="text-xs text-gray-500 mt-1 uppercase tracking-widest">2 Players</div>
             </div>
 
-            <button onclick="resetSystem()" class="w-[90%] mx-auto bg-[#E30613] text-white font-bold py-4 rounded-xl mb-3 flex justify-center items-center gap-2 hover:bg-red-700 transition shadow-[0_5px_15px_rgba(227,6,19,0.3)] border border-red-500">
-                <i class="fas fa-power-off"></i> RETURN TO MAIN MENU
+            <div onclick="switchScreen('s-tourny-setup'); window.paymentMode = 'tournament'; setTimeout(initSetupScreen, 50);" class="bg-[#111] border border-[#222] text-white p-6 rounded-xl font-bold text-center cursor-pointer mb-5 hover:bg-[#1a1a1a] transition-all">
+                <i class="fas fa-trophy mb-3 text-3xl block text-gray-400" style="color: var(--subsoccer-gold);"></i>
+                <span id="btn-tourn-text" class="text-xl tracking-widest" style="font-family: 'Subsoccer', sans-serif;">HOST TOURNAMENT</span>
+                <div class="text-xs text-gray-500 mt-1 uppercase tracking-widest">4-8 Players</div>
+            </div>
+            
+            <button onclick="resetSystem()" class="w-full bg-transparent border border-[#333] text-gray-600 font-bold py-4 rounded-xl mt-4 flex justify-center items-center gap-2 hover:bg-[#111] transition">
+                <i class="fas fa-power-off"></i> END SESSION NOW
             </button>
             
-            <div style="text-align: center; margin-top: 30px;">
-                <button onclick="forceTVReload()" class="text-xs text-gray-600 bg-transparent rounded px-3 py-1 hover:text-gray-400">Force Refresh TV App</button>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="forceTVReload()" class="text-xs text-gray-700 bg-transparent rounded px-3 py-1 hover:text-gray-500">Force Refresh TV App</button>
             </div>
         </div>
 
@@ -153,6 +146,6 @@
 
     </div>
     
-    <script type="module" src="lounge-logic.js"></script>
+    <script type="module" src="lounge-logic.js?v=5"></script>
 </body>
 </html>

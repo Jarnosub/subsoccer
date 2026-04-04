@@ -13,7 +13,7 @@ export class SocketService {
         if (this.channel) return;
         
         console.log(`[SocketService] Initializing connection to ${this.channelId}...`);
-        this.channel = _supabase.channel(this.channelId);
+        this.channel = _supabase.channel(this.channelId, { config: { broadcast: { self: true, ack: true } } });
 
         // Listen to all broadcast events for this channel
         this.channel.on('broadcast', { event: '*' }, (response) => {

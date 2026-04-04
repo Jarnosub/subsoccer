@@ -16,20 +16,7 @@ if (urlParams.get('payment') === 'success') {
     setTimeout(() => {
         arcadeSocket.send('payment_success', { mode: paymentMode });
         
-        if (paymentMode === 'single') {
-            document.getElementById('setup-title').innerText = "SINGLE MATCH SETUP";
-            document.getElementById('setup-subtitle').innerText = "Enter precisely 2 players.";
-            if(document.getElementById('btn-add-player')) document.getElementById('btn-add-player').style.display = 'none';
-            // Ensure only 2 rows exist
-            const list = document.getElementById('tourny-players-list');
-            while(list.children.length > 2) { list.lastElementChild.remove(); }
-            switchScreen('s-tourny-setup');
-        } else {
-            document.getElementById('setup-title').innerText = "TOURNAMENT SETUP";
-            document.getElementById('setup-subtitle').innerText = "Add 4 to 8 players.";
-            if(document.getElementById('btn-add-player')) document.getElementById('btn-add-player').style.display = 'block';
-            switchScreen('s-tourny-setup');
-        }
+        switchScreen('s-tourny-setup');
     }, 500);
 }
 
@@ -131,6 +118,20 @@ window.removePlayer = function(btn) {
     broadcastRoster();
 };
 
+window.initSetupScreen = function() {
+    const list = document.getElementById('tourny-players-list');
+    if (window.paymentMode === 'singlematch') {
+        document.getElementById('setup-title').innerText = "MATCH SETUP";
+        document.getElementById('setup-subtitle').innerText = "Enter precisely 2 players.";
+        if(document.getElementById('btn-add-player')) document.getElementById('btn-add-player').style.display = 'none';
+        while(list.children.length > 2) { list.lastElementChild.remove(); }
+    } else {
+        document.getElementById('setup-title').innerText = "TOURNAMENT SETUP";
+        document.getElementById('setup-subtitle').innerText = "Add 4 to 8 players.";
+        if(document.getElementById('btn-add-player')) document.getElementById('btn-add-player').style.display = 'block';
+    }
+};
+
 window.broadcastRoster = function() {
     const players = [];
     document.querySelectorAll('.player-input').forEach(inp => {
@@ -173,36 +174,27 @@ window.generateTournament = function() {
         if(i.value.trim()) players.push(i.value.trim());
     });
     
-    if (paymentMode === 'single') {
-        if(players.length !== 2) {
-            alert("This mode requires exactly 2 players.");
-            return;
-        }
-        gameState.isTournament = false;
-        gameState.p1Score = 0;
-        gameState.p2Score = 0;
-        gameState.p1Name = players[0];
-        gameState.p2Name = players[1];
-        
-        arcadeSocket.send('start_1v1', { p1: players[0], p2: players[1] });
-        startRemoteTimer();
-        switchScreen('s-controller');
-        setTimeout(() => pushState(), 1000);
-    } else {
-        if(players.length < 4 || players.length > 8) {
-            alert("Tournament requires 4 to 8 players.");
-            return;
-        }
-        gameState.isTournament = true;
-        
-        localEngine = new BracketEngine(players);
-        const structure = localEngine.getJsonStructure();
-        
-        arcadeSocket.send('tournament_init', { players, structure });
-        
-        switchScreen('s-tourny-hub');
-        renderNextTournamentMatchup();
+    if(players.length < 2 || players.length > 8) {
+        alert("Tournament requires 2 to 8 players.");
+        return;
     }
+    
+    gameState.isTournament = true;
+    
+    // BracketEngine needs a container
+    let dummy = document.getElementById('dummy-bracket-area');
+    if(!dummy) {
+        dummy = document.createElement('div');
+        dummy.id = 'dummy-bracket-area';
+        dummy.style.display = 'none';
+        document.body.appendChild(dummy);
+    }
+    
+    localEngine = new BracketEngine({ containerId: 'dummy-bracket-area', enableSaveButton: false });
+    localEngine.generateBracket(players, true);
+    
+    syncTournyToTV();
+    nextTournyMatch();
 };
 
 function syncTournyToTV() {
@@ -233,7 +225,7 @@ function nextTournyMatch() {
         document.getElementById("modes-title").innerText = `🏆 ${res.winner || 'PLAYER'} WINS TOURNAMENT!`;
         document.getElementById("modes-title").style.color = "var(--subsoccer-gold)";
         
-        switchScreen('s-game-over');
+        switchScreen('s-tourny-setup');
         return;
     }
 
@@ -339,7 +331,7 @@ function finishMatch(winnerName = "DRAW", winnerIndex = 0) {
     document.getElementById("modes-subtitle").innerHTML = `Match Over! You have <strong class="text-red-500">${formatTime}</strong> remaining in your booking. What next?`;
     document.getElementById('btn-1v1-text').innerText = "NEW 1VS1 MATCH";
     
-    switchScreen('s-game-over');
+    switchScreen('s-tourny-setup');
 }
 
 window.forceTVReload = function() {
@@ -362,7 +354,7 @@ function resetSystem() {
     document.getElementById("modes-subtitle").innerHTML = "Your 15 minute free session is ready to begin.";
     
     
-    switchScreen('s-welcome');
+    switchScreen('s-payment');
 }
 
 window.switchScreen = switchScreen;
