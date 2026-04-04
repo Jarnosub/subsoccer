@@ -180,15 +180,49 @@
             <div class="font-bold text-gray-400 text-sm">TABLE 04 CONNECTED</div>
         </div>
 
+        <!-- SCREEN 0: PAYMENT DEMO -->
+        <div class="screen active" id="s-payment">
+            <h2 class="text-2xl font-bold mb-2 text-center mt-4" style="font-family: 'Subsoccer', sans-serif;">UNLOCK THE FORGE</h2>
+            <p class="text-gray-400 text-center text-sm mb-8">Secure your 15-minute slot on Table 04.</p>
+            
+            <div class="bg-[#111] border border-[#333] rounded-xl p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-gray-400 font-bold">1x E-Sports Session</span>
+                    <span class="text-white font-bold text-xl">3,00 €</span>
+                </div>
+                <div class="border-t border-[#333] pt-4 flex justify-between items-center">
+                    <span class="text-gray-500 text-sm">Taxes included</span>
+                    <span class="text-sm font-bold text-gray-400" style="font-family: 'Space Grotesk', sans-serif;">SECURE CHECKOUT</span>
+                </div>
+            </div>
+
+            <!-- Fake Apple Pay Button -->
+            <button id="btn-apple-pay" onclick="simulatePayment()" class="w-full bg-white text-black font-bold py-4 rounded-xl mb-3 flex justify-center items-center gap-2 hover:bg-gray-200 transition-all shadow-[0_5px_15px_rgba(255,255,255,0.2)]">
+                <i class="fab fa-apple text-2xl"></i> Pay
+            </button>
+
+            <!-- Arcades Credit / Gamification Button -->
+            <button onclick="simulatePayment()" class="w-full bg-[#111] text-[#D4AF37] font-bold py-4 rounded-xl border border-[#D4AF37]/30 flex justify-center items-center gap-2 mb-4 hover:bg-[#D4AF37]/10 transition-all shadow-[0_5px_15px_rgba(212,175,55,0.05)]">
+                <i class="fas fa-ticket-alt"></i> Use Arcade Credit (7 Available)
+            </button>
+
+            <div class="text-center text-xs text-gray-600 mt-6 font-mono flex justify-center items-center gap-1">
+                <i class="fas fa-lock text-[10px]"></i> Powered by Stripe
+            </div>
+            
+            <!-- Loading Spinner container (hidden default) -->
+            <div id="payment-spinner" class="hidden flex-col items-center justify-center mt-6">
+                <div class="w-8 h-8 border-4 border-gray-600 border-t-[#3b82f6] rounded-full animate-spin mb-3"></div>
+                <div class="text-[#3b82f6] font-bold animate-pulse">Processing Payment...</div>
+            </div>
+        </div>
+
         <!-- SCREEN 1: MODE SELECTION -->
-        <div class="screen active" id="s-welcome">
+        <div class="screen" id="s-welcome">
             <h2 id="modes-title" class="text-2xl font-bold mb-2 text-center mt-4" style="font-family: 'Subsoccer', sans-serif;"></h2>
             <p id="modes-subtitle" class="text-gray-500 text-center text-sm mb-8">Your 15 minute free session is ready to begin.</p>
             
-            <div class="mode-btn highlight" style="display:none;">
-                <i class="fas fa-user-friends mb-3 text-3xl block text-[var(--subsoccer-red)]"></i>
-                <span id="btn-dummy">PLAY 1VS1 MATCH</span>
-            </div>
+
 
             <div class="mode-btn" onclick="switchScreen('s-tourny-setup')">
                 <i class="fas fa-trophy mb-3 text-3xl block text-gray-400"></i>
@@ -205,36 +239,21 @@
             </div>
         </div>
 
-        <!-- SCREEN 2: 1V1 SETUP -->
-        <div class="screen" id="s-setup">
-            <h2 class="text-2xl font-bold mb-6 text-center mt-4">1VS1 MATCH</h2>
-            
-            <div class="bg-[#111] border border-[#222] p-4 rounded-xl mb-4">
-                <div class="text-[#E30613] font-bold text-sm mb-1" style="font-family: 'Subsoccer', sans-serif;">P1: RED SIDE</div>
-                <input type="text" id="p1Name" onfocus="this.select()" value="PLAYER 1" class="w-full text-xl font-bold text-white bg-transparent border-b-2 border-[#444] focus:outline-none pb-2 focus:border-red-500">
-            </div>
 
-            <div class="bg-[#111] border border-[#222] p-4 rounded-xl mb-8">
-                <div class="text-[#E30613] font-bold text-sm mb-1" style="font-family: 'Subsoccer', sans-serif;">P2: BLACK SIDE</div>
-                <input type="text" id="p2Name" onfocus="this.select()" value="PLAYER 2" class="w-full text-xl font-bold text-white bg-transparent border-b-2 border-[#444] focus:outline-none pb-2 focus:border-red-500">
-            </div>
-
-            <button class="primary-btn mt-auto" onclick="start1v1()">LAUNCH MATCH</button>
-        </div>
 
         <!-- SCREEN TOURNAMENT SETUP -->
         <div class="screen" id="s-tourny-setup">
             <h2 class="text-2xl font-bold mb-2 text-center mt-4">SESSION SETUP</h2>
             <p class="text-gray-400 text-center text-sm mb-4">Add up to 16 players.</p>
             
-            <div id="tourny-players-list" class="space-y-3 mb-6">
-                <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333]">
+            <div id="tourny-players-list" class="space-y-3 mb-6 relative">
+                <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333] player-row relative">
                     <span class="text-gray-500 font-bold px-2 w-8">#1</span>
-                    <input type="text" onfocus="this.select()" value="PLAYER 1" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none">
+                    <input type="text" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER 1" autocomplete="off" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600">
                 </div>
-                <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333]">
+                <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333] player-row relative">
                     <span class="text-gray-500 font-bold px-2 w-8">#2</span>
-                    <input type="text" onfocus="this.select()" value="PLAYER 2" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none">
+                    <input type="text" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER 2" autocomplete="off" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600">
                 </div>
             </div>
             
@@ -274,6 +293,16 @@
                 GOAL
                 <div class="player-label" id="lbl-p2">MATTI</div>
             </div>
+
+            <!-- SKIP/WALKOVER BUTTONS -->
+            <div class="flex justify-between mt-2 gap-2" style="height: 40px;">
+                <button onclick="skipMatch(2)" class="flex-1 bg-transparent border border-[#333] text-gray-500 rounded-lg text-[10px] font-bold uppercase tracking-wide hover:bg-[#111]">
+                    WALKOUT: P2 WINS
+                </button>
+                <button onclick="skipMatch(1)" class="flex-1 bg-transparent border border-[#333] text-gray-500 rounded-lg text-[10px] font-bold uppercase tracking-wide hover:bg-[#111]">
+                    WALKOUT: P1 WINS
+                </button>
+            </div>
         </div>
 
     </div>
@@ -298,37 +327,49 @@
         let localEngine = null;
         let pMatchProcessing = false;
 
-        let remoteTimerInterval;
+        function simulatePayment() {
+            // Show fake spinner
+            document.getElementById('btn-apple-pay').style.display = 'none';
+            document.getElementById('payment-spinner').classList.remove('hidden');
+            document.getElementById('payment-spinner').classList.add('flex');
+            
+            // Wait 2 seconds, simulate network success
+            setTimeout(() => {
+                // Broadcast fake payment success to TV so it turns on
+                channel.send({
+                    type: 'broadcast',
+                    event: 'payment_success',
+                    payload: {}
+                });
+                
+                // Move to old welcome screen
+                switchScreen('s-welcome');
+                document.getElementById('payment-spinner').classList.add('hidden');
+                document.getElementById('payment-spinner').classList.remove('flex');
+                document.getElementById('btn-apple-pay').style.display = 'flex';
+            }, 2000);
+        }
+        window.simulatePayment = simulatePayment; // Expose to global scope for HTML onclick
 
+
+        // Toggles visibility of screens
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
+
+            // Manage Public Lobby state
+            if (screenId === 's-tourny-setup') {
+                channel.send({
+                    type: 'broadcast', event: 'lobby_opened', payload: { tableId }
+                });
+            } else if (screenId === 's-tourny-hub' || screenId === 's-controller') {
+                channel.send({
+                    type: 'broadcast', event: 'lobby_closed', payload: { tableId }
+                });
+            }
         }
 
-        window.start1v1 = function() {
-            const p1 = document.getElementById('p1Name').value || 'PLAYER 1';
-            const p2 = document.getElementById('p2Name').value || 'PLAYER 2';
 
-            gameState.p1Score = 0;
-            gameState.p2Score = 0;
-            gameState.p1Name = p1;
-            gameState.p2Name = p2;
-            gameState.isTournament = false;
-
-            document.getElementById('lbl-p1').innerText = p1;
-            document.getElementById('lbl-p2').innerText = p2;
-
-            channel.send({
-                type: 'broadcast',
-                event: 'start_1v1',
-                payload: { p1: p1, p2: p2 }
-            });
-            
-            pushState();
-            switchScreen('s-controller');
-            startRemoteTimer();
-            if (navigator.vibrate) navigator.vibrate(100);
-        }
 
         function pushState(lastScorer = null) {
             channel.send({
@@ -365,15 +406,62 @@
             const num = container.children.length + 1;
             if (num > 16) return;
             let div = document.createElement('div');
-            div.className = "flex items-center bg-[#111] p-2 rounded-lg border border-[#333] mb-3";
-            div.innerHTML = `<span class="text-gray-500 font-bold px-2 w-8">#${num}</span><input type="text" onfocus="this.select()" value="PLAYER ${num}" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none">`;
+            div.className = "flex items-center bg-[#111] p-2 rounded-lg border border-[#333] mb-3 player-row relative";
+            div.innerHTML = `<span class="text-gray-500 font-bold px-2 w-8">#${num}</span><input type="text" autocomplete="off" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER ${num}" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600">`;
             container.appendChild(div);
+            broadcastRoster();
         };
 
-        window.generateTournament = function() {
+        window.broadcastRoster = function() {
             const players = [];
             document.querySelectorAll('.player-input').forEach(inp => {
                 if (inp.value.trim()) players.push(inp.value.trim());
+            });
+            document.querySelectorAll('.verified-player-name').forEach(el => {
+                if (el.innerText.trim()) players.push(el.innerText.trim());
+            });
+            channel.send({
+                type: 'broadcast',
+                event: 'roster_update',
+                payload: { players }
+            });
+        };
+
+        // --- LOBBY JOIN LISTENER ---
+        channel.on('broadcast', { event: 'lobby_player_joined' }, (payload) => {
+            const player = payload.payload;
+            if(!player || !player.username) return;
+
+            // Optional: Prevent more than 16 players
+            const container = document.getElementById('tourny-players-list');
+            if (container.children.length >= 16) return;
+            
+            const li = document.createElement('div');
+            li.className = "flex items-center bg-[#1a1a1a] p-2 rounded-lg border border-[#D4AF37] mb-3 relative player-row";
+            li.innerHTML = `
+                <span class="text-[#D4AF37] font-bold px-2 w-8"><i class="fas fa-check-circle"></i></span>
+                <div class="verified-player-name text-white w-full p-2 font-bold font-sans tracking-widest uppercase">${player.username}</div>
+                <div class="text-[10px] bg-[#D4AF37] text-black px-2 py-1 rounded font-bold font-sans tracking-widest absolute right-2">${player.elo} ELO</div>
+            `;
+            container.appendChild(li);
+
+            // Pop animation to grab host's attention
+            li.style.transform = "scale(1.05)";
+            li.style.transition = "transform 0.2s";
+            setTimeout(() => { li.style.transform = "scale(1)"; }, 200);
+
+            broadcastRoster();
+        });
+
+        window.generateTournament = function() {
+            const players = [];
+            // Parse Manual Guests
+            document.querySelectorAll('.player-input').forEach(inp => {
+                if (inp.value.trim()) players.push(inp.value.trim());
+            });
+            // Parse Verified Phone Joins
+            document.querySelectorAll('.verified-player-name').forEach(el => {
+                if (el.innerText.trim()) players.push(el.innerText.trim());
             });
             if (players.length < 2) {
                 alert("Need at least 2 players.");
@@ -387,6 +475,8 @@
                 dummy.style.display = 'none';
                 document.body.appendChild(dummy);
             }
+
+            if (window.remoteTournyTimeout) clearTimeout(window.remoteTournyTimeout);
 
             localEngine = new BracketEngine({ containerId: 'dummy-bracket-area', enableSaveButton: false });
             localEngine.generateBracket(players, true);
@@ -478,6 +568,26 @@
             }
         };
 
+        window.skipMatch = function(winnerNumber) {
+            if (pMatchProcessing) return;
+            
+            // Auto-fill to 3 goals for the winner
+            if(winnerNumber === 1) gameState.p1Score = 3;
+            if(winnerNumber === 2) gameState.p2Score = 3;
+            
+            pushState();
+            
+            pMatchProcessing = true;
+            const winnerName = winnerNumber === 1 ? gameState.p1Name : gameState.p2Name;
+            
+            if (gameState.isTournament) {
+                finishTournyMatch(winnerName);
+            } else {
+                finishMatch(winnerName);
+                setTimeout(() => { pMatchProcessing = false; }, 3000);
+            }
+        };
+
         function finishTournyMatch(winnerName) {
             localEngine.setMatchWinner(window.currentPendingMatch.rIndex, window.currentPendingMatch.mIndex, winnerName, true);
             syncTournyToTV();
@@ -495,7 +605,8 @@
                 }
             });
 
-            setTimeout(() => {
+            if (window.remoteTournyTimeout) clearTimeout(window.remoteTournyTimeout);
+            window.remoteTournyTimeout = setTimeout(() => {
                 pMatchProcessing = false;
                 nextTournyMatch();
             }, 3000);

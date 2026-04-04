@@ -1,0 +1,6 @@
+#!/usr/bin/expect
+set timeout -1
+spawn scp /Users/jarnosaarinen/subsoccer/tv.html /Users/jarnosaarinen/subsoccer/lounge-remote.html forge@theforge.local:~/subsoccer/
+expect "password:"
+send "subsoccer\r"
+expect eof

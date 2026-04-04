@@ -67,14 +67,20 @@
             <span>📺 TV SCREEN (tv.html)</span>
             <button onclick="document.getElementById('tv-frame').contentWindow.location.reload()">RELOAD TV</button>
         </div>
-        <iframe id="tv-frame" src="tv.html"></iframe>
+        <iframe id="tv-frame" src=""></iframe>
     </div>
     <div id="right-pane">
         <div class="header">
             <span>📱 REMOTE (lounge-remote.html)</span>
             <button onclick="document.getElementById('remote-frame').contentWindow.location.reload()">RELOAD REMOTE</button>
         </div>
-        <iframe id="remote-frame" src="lounge-remote.html"></iframe>
+        <iframe id="remote-frame" src=""></iframe>
     </div>
+    
+    <script>
+        const query = window.location.search;
+        document.getElementById('tv-frame').src = `tv.html${query}`;
+        document.getElementById('remote-frame').src = `lounge-remote.html${query}`;
+    </script>
 </body>
 </html>

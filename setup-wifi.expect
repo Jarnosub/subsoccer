@@ -1,0 +1,5 @@
+#!/usr/bin/expect
+spawn ssh forge@theforge.local "sudo nmcli connection add type wifi con-name 'Toimisto' ssid 'subsoccer' && sudo nmcli connection modify 'Toimisto' wifi-sec.key-mgmt wpa-psk wifi-sec.psk '4feetunder'"
+expect "password:"
+send "subsoccer\r"
+expect eof

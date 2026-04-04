@@ -1,0 +1,5 @@
+#!/usr/bin/expect
+spawn ssh forge@theforge.local "cat /boot/firmware/config.txt || cat /boot/config.txt"
+expect "password:"
+send "subsoccer\r"
+expect eof

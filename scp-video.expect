@@ -1,0 +1,6 @@
+#!/usr/bin/expect
+set timeout -1
+spawn scp /Users/jarnosaarinen/subsoccer/bg-video.mp4 forge@theforge.local:~/subsoccer/
+expect "password:"
+send "subsoccer\r"
+expect eof
