@@ -121,7 +121,7 @@
                 <h4 class="font-bold text-lg">Push to Fleet</h4>
                 <p class="text-gray-400 text-sm">Deploy these configuration tweaks directly to TABLE 04 via Subsoccer Edge Network. Changes reflect live on the next game cycle instantly.</p>
             </div>
-            <button onclick="deploySettings()" class="bg-[#D4AF37] text-black font-bold uppercase tracking-wider px-8 py-4 rounded-xl hover:bg-yellow-400 transition-colors shadow-[0_0_20px_rgba(212,175,55,0.4)]">
+            <button onclick="deploySettings()" class="bg-[#E30613] text-white font-bold uppercase tracking-wider px-8 py-4 rounded-xl hover:bg-red-700 transition-colors shadow-[0_0_20px_rgba(227,6,19,0.4)]">
                 Save & Deploy
             </button>
         </div>
@@ -152,12 +152,12 @@
             setTimeout(() => {
                 btn.innerHTML = '<i class="fas fa-check"></i> DEPLOYED';
                 btn.classList.add('bg-green-500');
-                btn.classList.remove('bg-[#D4AF37]');
+                btn.classList.remove('bg-[#E30613]');
                 
                 setTimeout(() => {
                     btn.innerHTML = 'Save & Deploy';
                     btn.classList.remove('bg-green-500');
-                    btn.classList.add('bg-[#D4AF37]');
+                    btn.classList.add('bg-[#E30613]');
                     btn.style.pointerEvents = 'auto';
                 }, 2000);
             }, 600);
