@@ -11,7 +11,7 @@ const paymentMode = urlParams.get('mode') || 'tournament';
 if (urlParams.get('payment') === 'success') {
     // Siistitä URL, ettei refresh aktivoi maksua uudestaan
     window.history.replaceState({}, document.title, window.location.pathname);
-
+    
     setTimeout(() => {
         // Palauta pelaajat local storagesta
         const saved = localStorage.getItem('subsoccer_saved_roster');
@@ -19,7 +19,7 @@ if (urlParams.get('payment') === 'success') {
             try {
                 const players = JSON.parse(saved);
                 const container = document.getElementById('tourny-players-list');
-                if (container) {
+                if(container) {
                     container.innerHTML = '';
                     players.forEach((p, idx) => {
                         const num = idx + 1;
@@ -29,23 +29,23 @@ if (urlParams.get('payment') === 'success') {
                         container.appendChild(div);
                     });
                 }
-            } catch (e) { }
+            } catch(e) {}
         }
-
+        
         // Aktivoi Pöydän Releet ja pelitila livenä
         arcadeSocket.send('payment_success', { mode: paymentMode });
-
+        
         // Näytä setup sekunniksi ja siirry suoraan Hubiin (turnaus on maksettu!)
         switchScreen('s-tourny-setup');
         setTimeout(() => {
-            generateTournament();
+             generateTournament();
         }, 100);
     }, 100);
 } else {
     // Normal init
     setTimeout(() => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('s-onboarding').classList.add('active'); // Start with onboarding!
+        document.getElementById('s-tourny-setup').classList.add('active');
         window.updateDynamicPrice();
     }, 50);
 }
@@ -62,52 +62,33 @@ let gameState = {
 let localEngine = null;
 let pMatchProcessing = false;
 let remoteTimerInterval;
-let isOnboardingDone = false;
 
-window.updateDynamicPrice = function () {
+window.updateDynamicPrice = function() {
     const list = document.getElementById('tourny-players-list');
-    if (!list) return;
+    if(!list) return;
     const numPlayers = list.children.length;
-
     let price = 2.00; // 2 players
-    let title = "ARCADE TOURNAMENT";
-    let subtitle = "Buy the Bracket";
-
-    // Add logic to calculate Stripe mode based on players
-    if (numPlayers >= 7) {
-        price = 6.00; // 7-8 players
-    } else if (numPlayers >= 5) {
-        price = 5.00; // 5-6 players
-    } else if (numPlayers >= 3) {
-        price = 3.00; // 3-4 players
-    } else {
-        title = "ARCADE 1VS1 MATCH";
-        subtitle = "Winner takes all";
-    }
-
+    if (numPlayers >= 5) price = 5.00; // 5-8 players
+    else if (numPlayers >= 3) price = 3.00; // 3-4 players
+    
     document.getElementById('dynamic-price').innerText = price.toFixed(2) + " €";
-
-    const titleEl = document.getElementById('setup-title');
-    if (titleEl) titleEl.innerText = title;
-
-    const subEl = document.getElementById('setup-subtitle');
-    if (subEl) subEl.innerText = "Add players to calculate price. " + subtitle;
 };
 
-window.startDynamicCheckout = function () {
+window.startDynamicCheckout = function() {
     const inputs = document.querySelectorAll('.player-input');
     const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
     localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
-
+    
     const btn = document.getElementById('btn-checkout');
     btn.style.opacity = '0.5';
     btn.innerHTML = '<span><i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...</span>';
-
+    
     // Simulate Stripe passing control and firing redirect URL
     setTimeout(() => {
         window.location.href = window.location.pathname + "?payment=success&mode=tournament";
     }, 1500);
 };
+window.startStripeCheckout = startStripeCheckout;
 
 
 function switchScreen(screenId) {
@@ -133,12 +114,12 @@ function startRemoteTimer() {
     clearInterval(matchTimerInterval);
     matchRemaining = 90;
     document.getElementById('remote-timer').style.color = "";
-
+    
     // Announce match start so TV can sync its 90s timer
     arcadeSocket.send('timer_start', { duration: 90 });
-
+    
     matchTimerInterval = setInterval(() => {
-        if (matchRemaining <= 0) {
+        if(matchRemaining <= 0) {
             clearInterval(matchTimerInterval);
             handleMatchTimeUp();
             return;
@@ -146,17 +127,17 @@ function startRemoteTimer() {
         matchRemaining--;
         const s = matchRemaining.toString().padStart(2, '0');
         document.getElementById('remote-timer').innerHTML = `<i class="fas fa-clock mr-1"></i> ${s}`;
-        if (matchRemaining <= 10) document.getElementById('remote-timer').style.color = "var(--subsoccer-red)";
+        if(matchRemaining <= 10) document.getElementById('remote-timer').style.color = "var(--subsoccer-red)";
     }, 1000);
 }
 
 function handleMatchTimeUp() {
     if (pMatchProcessing) return;
     pMatchProcessing = true;
-
+    
     let wName = null;
     let wIndex = 0;
-
+    
     if (gameState.p1Score > gameState.p2Score) {
         wName = gameState.p1Name; wIndex = 1;
         finishTournyMatch(wName, wIndex);
@@ -178,24 +159,23 @@ function handleMatchTimeUp() {
 
 // --- TOURNAMENT LOGIC ---
 
-window.addPlayerInput = function () {
+window.addPlayerInput = function() {
     const container = document.getElementById('tourny-players-list');
     const num = container.children.length + 1;
     // Tournaments support 4 to 8 players, single supports 2
-    if (num > 8) return;
+    if (num > 8) return; 
     let div = document.createElement('div');
     div.className = "flex items-center bg-[#111] p-2 rounded-lg border border-[#333] mb-3 player-row relative";
     div.innerHTML = `<span class="player-num text-gray-500 font-bold px-2 w-8">#${num}</span><input type="text" autocomplete="off" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER ${num}" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600"><button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i class="fas fa-times"></i></button>`;
     container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
     broadcastRoster();
-    if (window.updateDynamicPrice) window.updateDynamicPrice();
+    if(window.updateDynamicPrice) window.updateDynamicPrice();
 };
 
-window.removePlayer = function (btn) {
+window.removePlayer = function(btn) {
     const row = btn.closest('.player-row');
     const container = document.getElementById('tourny-players-list');
-
+    
     // Check if less than or equal to 2 players, then don't remove or allow it
     if (container.querySelectorAll('.player-row').length <= 2) {
         // Just clear the input name if they try to delete the last 2
@@ -209,10 +189,24 @@ window.removePlayer = function (btn) {
         });
     }
     broadcastRoster();
-    if (window.updateDynamicPrice) window.updateDynamicPrice();
+    if(window.updateDynamicPrice) window.updateDynamicPrice();
 };
 
-window.broadcastRoster = function () {
+window.initSetupScreen = function() {
+    const list = document.getElementById('tourny-players-list');
+    if (window.paymentMode === 'singlematch') {
+        document.getElementById('setup-title').innerText = "MATCH SETUP";
+        document.getElementById('setup-subtitle').innerText = "Enter precisely 2 players.";
+        if(document.getElementById('btn-add-player')) document.getElementById('btn-add-player').style.display = 'none';
+        while(list.children.length > 2) { list.lastElementChild.remove(); }
+    } else {
+        document.getElementById('setup-title').innerText = "TOURNAMENT SETUP";
+        document.getElementById('setup-subtitle').innerText = "Add 4 to 8 players.";
+        if(document.getElementById('btn-add-player')) document.getElementById('btn-add-player').style.display = 'block';
+    }
+};
+
+window.broadcastRoster = function() {
     const players = [];
     document.querySelectorAll('.player-input').forEach(inp => {
         if (inp.value.trim()) players.push(inp.value.trim());
@@ -226,11 +220,11 @@ window.broadcastRoster = function () {
 // --- LOBBY JOIN LISTENER ---
 arcadeSocket.on('lobby_player_joined', (payload) => {
     const player = payload.payload;
-    if (!player || !player.username) return;
+    if(!player || !player.username) return;
 
     const container = document.getElementById('tourny-players-list');
     if (container.children.length >= 16) return;
-
+    
     const li = document.createElement('div');
     li.className = "flex items-center bg-[#1a1a1a] p-2 rounded-lg border border-[#D4AF37] mb-3 relative player-row";
     li.innerHTML = `
@@ -247,41 +241,41 @@ arcadeSocket.on('lobby_player_joined', (payload) => {
     broadcastRoster();
 });
 
-window.generateTournament = function () {
+window.generateTournament = function() {
     const inputs = document.querySelectorAll('.player-input');
     const players = [];
     inputs.forEach(i => {
-        if (i.value.trim()) players.push(i.value.trim());
+        if(i.value.trim()) players.push(i.value.trim());
     });
-
-    if (players.length < 2 || players.length > 8) {
+    
+    if(players.length < 2 || players.length > 8) {
         alert("Tournament requires 2 to 8 players.");
         return;
     }
-
+    
     gameState.isTournament = true;
-
+    
     // BracketEngine needs a container
     let dummy = document.getElementById('dummy-bracket-area');
-    if (!dummy) {
+    if(!dummy) {
         dummy = document.createElement('div');
         dummy.id = 'dummy-bracket-area';
         dummy.style.display = 'none';
         document.body.appendChild(dummy);
     }
-
+    
     localEngine = new BracketEngine({ containerId: 'dummy-bracket-area', enableSaveButton: false });
     localEngine.generateBracket(players, true);
-
+    
     syncTournyToTV();
     nextTournyMatch();
 };
 
 function syncTournyToTV() {
     arcadeSocket.send('tourny_state', {
-        players: localEngine.participants,
-        matches: localEngine.getAllMatches(),
-    });
+            players: localEngine.participants,
+            matches: localEngine.getAllMatches(),
+        });
 }
 
 function getPendingMatch() {
@@ -301,20 +295,11 @@ function getPendingMatch() {
 function nextTournyMatch() {
     const pending = getPendingMatch();
     if (!pending) {
-        // Tournament is over!
-        // Show winner briefly on the phone, then reload to start entirely fresh!
         const res = localEngine.getTournamentResults();
-        const winner = res.winner || 'PLAYER';
+        document.getElementById("modes-title").innerText = `🏆 ${res.winner || 'PLAYER'} WINS TOURNAMENT!`;
+        document.getElementById("modes-title").style.color = "var(--subsoccer-gold)";
         
-        const hubHtml = document.getElementById('tourny-matchup');
-        if(hubHtml) hubHtml.innerHTML = `<h2 class="text-3xl text-[#D4AF37] font-bold mb-4">🏆 ${winner}</h2><p class="text-white text-lg">WINS TOURNAMENT!</p><p class="text-gray-500 text-sm mt-4">Returning to start...</p>`;
-        
-        switchScreen('s-tourny-hub');
-        
-        // Reload after a very brief delay to wipe state and let them buy a new game
-        setTimeout(() => {
-            window.location.reload(true);
-        }, 5000);
+        switchScreen('s-tourny-setup');
         return;
     }
 
@@ -324,14 +309,14 @@ function nextTournyMatch() {
     switchScreen('s-tourny-hub');
 }
 
-window.startTournyMatch = function () {
+window.startTournyMatch = function() {
     if (!window.currentPendingMatch) return;
     gameState.p1Score = 0;
     gameState.p2Score = 0;
     gameState.p1Name = window.currentPendingMatch.p1;
     gameState.p2Name = window.currentPendingMatch.p2;
     gameState.isTournament = true;
-
+    
     document.getElementById('lbl-p1').innerText = gameState.p1Name;
     document.getElementById('lbl-p2').innerText = gameState.p2Name;
 
@@ -340,15 +325,7 @@ window.startTournyMatch = function () {
     startRemoteTimer();
 };
 
-window.startOnboardingSequence = function () {
-    // Animoitus (vilkutus valoille)
-    arcadeSocket.send('trigger_onboarding_flash', {});
-    
-    // Siirrytään Pelaajien lisäykseen välittömästi ilman viivettä
-    switchScreen('s-tourny-setup');
-};
-
-window.sendGoal = function (playerNumber) {
+window.sendGoal = function(playerNumber) {
     if (pMatchProcessing) return;
 
     if (playerNumber === 1) gameState.p1Score++;
@@ -358,36 +335,36 @@ window.sendGoal = function (playerNumber) {
     if (navigator.vibrate) navigator.vibrate(50);
 };
 
-window.skipMatch = function (winnerNumber) {
+window.skipMatch = function(winnerNumber) {
     if (pMatchProcessing) return;
-
+    
     // Antaa voittajalle heti maalin ja päättää pelin
-    if (winnerNumber === 1) gameState.p1Score++;
-    if (winnerNumber === 2) gameState.p2Score++;
-
+    if(winnerNumber === 1) gameState.p1Score++;
+    if(winnerNumber === 2) gameState.p2Score++;
+    
     pushState();
-
+    
     pMatchProcessing = true;
     clearInterval(matchTimerInterval);
     const winnerName = winnerNumber === 1 ? gameState.p1Name : gameState.p2Name;
-
+    
     finishTournyMatch(winnerName, winnerNumber);
 };
 
 function finishTournyMatch(winnerName, winnerIndex = 0) {
     localEngine.setMatchWinner(window.currentPendingMatch.rIndex, window.currentPendingMatch.mIndex, winnerName, true);
     syncTournyToTV();
-
+    
     const hasMoreMatches = getPendingMatch() !== null;
 
-    arcadeSocket.send('end_game', {
-        winnerName: winnerName,
-        winnerIndex: winnerIndex,
-        p1Score: gameState.p1Score,
-        p2Score: gameState.p2Score,
-        mode: 'tournament',
-        isBracketComplete: !hasMoreMatches
-    });
+    arcadeSocket.send('end_game', { 
+            winnerName: winnerName, 
+            winnerIndex: winnerIndex,
+            p1Score: gameState.p1Score, 
+            p2Score: gameState.p2Score, 
+            mode: 'tournament',
+            isBracketComplete: !hasMoreMatches
+        });
 
     if (window.remoteTournyTimeout) clearTimeout(window.remoteTournyTimeout);
     window.remoteTournyTimeout = setTimeout(() => {
@@ -397,27 +374,27 @@ function finishTournyMatch(winnerName, winnerIndex = 0) {
 }
 
 function finishMatch(winnerName = "DRAW", winnerIndex = 0) {
-    arcadeSocket.send('end_game', {
-        winnerName: winnerName,
-        winnerIndex: winnerIndex,
-        p1Score: gameState.p1Score,
-        p2Score: gameState.p2Score,
-        mode: 'freestyle',
-        isBracketComplete: true
-    });
-
+    arcadeSocket.send('end_game', { 
+            winnerName: winnerName,
+            winnerIndex: winnerIndex,
+            p1Score: gameState.p1Score,
+            p2Score: gameState.p2Score,
+            mode: 'freestyle',
+            isBracketComplete: true
+        });
+    
     document.getElementById("modes-title").innerText = winnerName === "DRAW" ? "IT'S A DRAW!" : `${winnerName} WINS!`;
     document.getElementById("modes-title").style.color = "var(--subsoccer-red)";
-
+    
     const formatTime = `${Math.floor(remaining / 60)}:${(remaining % 60).toString().padStart(2, '0')}`;
     document.getElementById("modes-subtitle").innerHTML = `Match Over! You have <strong class="text-red-500">${formatTime}</strong> remaining in your booking. What next?`;
     document.getElementById('btn-1v1-text').innerText = "NEW 1VS1 MATCH";
-
+    
     switchScreen('s-tourny-setup');
 }
 
-window.forceTVReload = function () {
-    if (!channel) return;
+window.forceTVReload = function() {
+    if(!channel) return;
     arcadeSocket.send('force_reload', {});
 }
 
@@ -427,14 +404,14 @@ function resetSystem() {
 
     const p1 = document.getElementById('p1Name');
     const p2 = document.getElementById('p2Name');
-    if (p1) p1.value = "PLAYER 1";
-    if (p2) p2.value = "PLAYER 2";
-
+    if(p1) p1.value = "PLAYER 1";
+    if(p2) p2.value = "PLAYER 2";
+    
     document.getElementById("modes-title").innerText = "";
     document.getElementById("modes-title").style.color = "#111";
     document.getElementById("modes-subtitle").innerHTML = "Your 15 minute free session is ready to begin.";
-
-
+    
+    
     switchScreen('s-payment');
 }
 

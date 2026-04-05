@@ -183,9 +183,22 @@
         }
 
         arcadeSocket.on('payment_success', () => {
-            setRelay(r1t, r1d, true, "ACTIVE (SHELLY)");
-            setRelay(r3t, r3d, true, "INTRO SEQ");
+            // No longer forcing shelly active on payment
+            setRelay(r3t, r3d, true, "POST PAYMENT");
             setTimeout(() => setRelay(r3t, r3d, false), 5000);
+        });
+        
+        arcadeSocket.on('trigger_onboarding_flash', () => {
+            let flashes = 0;
+            setRelay(r1t, r1d, true, "FLASHING");
+            const intv = setInterval(() => {
+                flashes++;
+                setRelay(r1t, r1d, flashes % 2 === 0, flashes % 2 === 0 ? "FLASH ON" : "FLASH OFF");
+                if(flashes >= 6) {
+                    clearInterval(intv);
+                    setRelay(r1t, r1d, false); // Final off
+                }
+            }, 700);
         });
 
         arcadeSocket.on('start_1v1', () => {

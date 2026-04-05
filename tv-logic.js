@@ -46,14 +46,14 @@ async function calculateElo(p1Name, p2Name, winnerName, p1Score = 0, p2Score = 0
 
     const r1 = Math.pow(10, playerRatings[p1Name] / 400);
     const r2 = Math.pow(10, playerRatings[p2Name] / 400);
-    
+
     const e1 = r1 / (r1 + r2);
     const e2 = r2 / (r1 + r2);
-    
+
     const K = 32;
     const s1 = winnerName === p1Name ? 1 : 0;
     const s2 = winnerName === p2Name ? 1 : 0;
-    
+
     const newP1Elo = Math.round(playerRatings[p1Name] + K * (s1 - e1));
     const newP2Elo = Math.round(playerRatings[p2Name] + K * (s2 - e2));
 
@@ -61,12 +61,12 @@ async function calculateElo(p1Name, p2Name, winnerName, p1Score = 0, p2Score = 0
     playerRatings[p2Name] = newP2Elo;
 
     // Track session wins for the Local Leaderboard
-    if(!playerSessionWins[p1Name]) playerSessionWins[p1Name] = 0;
-    if(!playerSessionWins[p2Name]) playerSessionWins[p2Name] = 0;
-    
-    if(winnerName === p1Name) {
+    if (!playerSessionWins[p1Name]) playerSessionWins[p1Name] = 0;
+    if (!playerSessionWins[p2Name]) playerSessionWins[p2Name] = 0;
+
+    if (winnerName === p1Name) {
         playerSessionWins[p1Name]++;
-    } else if(winnerName === p2Name) {
+    } else if (winnerName === p2Name) {
         playerSessionWins[p2Name]++;
     }
 
@@ -98,10 +98,10 @@ async function fetchGlobalRanking() {
         .select('username, elo')
         .order('elo', { ascending: false })
         .limit(10);
-        
+
     if (data && !error) {
         data.forEach(p => {
-            if(!playerRatings[p.username]) {
+            if (!playerRatings[p.username]) {
                 playerRatings[p.username] = p.elo;
             }
         });
@@ -110,15 +110,15 @@ async function fetchGlobalRanking() {
 }
 
 function renderEloBoard() {
-    const sorted = Object.keys(playerSessionWins).map(k => ({ name: k, wins: playerSessionWins[k] })).sort((a,b) => b.wins - a.wins);
+    const sorted = Object.keys(playerSessionWins).map(k => ({ name: k, wins: playerSessionWins[k] })).sort((a, b) => b.wins - a.wins);
     const list = document.getElementById('history-elo');
-    if(!list) return;
-    
-    if(sorted.length === 0) {
+    if (!list) return;
+
+    if (sorted.length === 0) {
         list.innerHTML = `<div class="text-gray-500 text-center py-4">NO MATCHES PLAYED YET</div>`;
         return;
     }
-    
+
     list.innerHTML = sorted.slice(0, 10).map((p, index) => `
         <div class="flex justify-between py-4 border-b border-gray-800 items-center">
             <span class="text-gray-500 w-12 text-2xl font-sans font-bold">#${index + 1}</span>
@@ -132,14 +132,14 @@ function renderEloBoard() {
 function switchLayer(targetId) {
     Object.values(L).forEach(el => el.style.display = 'none');
     const target = L[targetId];
-    if(target) {
-        if(targetId !== 'intro') {
+    if (target) {
+        if (targetId !== 'intro') {
             const vid = document.getElementById('intro-video');
-            if(vid) vid.pause();
+            if (vid) vid.pause();
         }
-        
+
         target.style.display = targetId === 'game' ? 'flex' : 'flex';
-        if(targetId === 'game') target.style.flexDirection = 'row';
+        if (targetId === 'game') target.style.flexDirection = 'row';
         else target.style.flexDirection = 'column';
     }
 }
@@ -155,7 +155,7 @@ if (urlParams.has('shelly')) {
 function triggerShelly(turnOn) {
     const iotDot = document.getElementById('iot-dot');
     const iotText = document.getElementById('iot-text');
-    
+
     if (turnOn) {
         iotDot.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]";
         iotText.className = "text-green-500 font-sans text-sm";
@@ -166,34 +166,31 @@ function triggerShelly(turnOn) {
         iotText.innerText = "OFF LINE";
     }
 
-    if(shellyIP) {
-        fetch(`http://${shellyIP}/relay/0?turn=${turnOn ? 'on' : 'off'}`, { mode: 'no-cors' }).catch(()=>{});
-        fetch(`http://${shellyIP}/rpc/Switch.Set?id=0&on=${turnOn ? 'true' : 'false'}`, { mode: 'no-cors' }).catch(()=>{});
+    if (shellyIP) {
+        fetch(`http://${shellyIP}/relay/0?turn=${turnOn ? 'on' : 'off'}`, { mode: 'no-cors' }).catch(() => { });
+        fetch(`http://${shellyIP}/rpc/Switch.Set?id=0&on=${turnOn ? 'true' : 'false'}`, { mode: 'no-cors' }).catch(() => { });
     }
 }
 
 // --- TIMER ---
 function updateTimerUI() {
-    const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
-    const s = (remainingSeconds % 60).toString().padStart(2, '0');
+    const s = remainingSeconds.toString().padStart(2, '0');
     const timerEl = document.getElementById('timer');
-    timerEl.innerText = `${m}:${s}`;
-    if(remainingSeconds <= 60) timerEl.style.color = "red";
+    timerEl.innerText = `${s}`;
+    if (remainingSeconds <= 10) timerEl.style.color = "red";
     else timerEl.style.color = "white";
 }
 
-function startTimer() {
-    if (isTimerTicking) return;
-    
-    isTimerTicking = true;
+function setTimer(seconds) {
     clearInterval(timerInterval);
+    isTimerTicking = true;
+    remainingSeconds = seconds;
     updateTimerUI();
 
     timerInterval = setInterval(() => {
         if (remainingSeconds <= 0) {
             clearInterval(timerInterval);
             isTimerTicking = false;
-            resetSystem();
             return;
         }
         remainingSeconds--;
@@ -209,7 +206,7 @@ function resetSystem() {
     document.getElementById('timer').style.color = "white";
     switchLayer('lobby');
     triggerShelly(false);
-    
+
     document.querySelectorAll('.v-anim').forEach(el => {
         el.style.opacity = "";
         el.style.transform = "";
@@ -247,7 +244,12 @@ updateVideoOrientation();
 
 if (introVid) {
     introVid.addEventListener('ended', () => {
-        switchLayer('sessionLobby');
+        // After intro, default to tournament bracket view if we have data
+        if (window.tvEngine && window.tvEngine.rounds.length > 0) {
+            switchLayer('tournament');
+        } else {
+            switchLayer('lobby');
+        }
     });
 }
 
@@ -262,14 +264,32 @@ arcadeSocket.on('start_1v1', (payload) => {
     document.getElementById('game-p2-name').innerText = lastP2;
     document.getElementById('game-p1-score').innerText = '0';
     document.getElementById('game-p2-score').innerText = '0';
-    
+
     switchLayer('game');
     triggerShelly(true);
-    
-    if (remainingSeconds <= 0) {
-        remainingSeconds = 15 * 60;
-    }
-    startTimer();
+});
+
+arcadeSocket.on('timer_start', (payload) => {
+    setTimer(payload.duration || 90);
+});
+
+arcadeSocket.on('trigger_tiebreaker', (payload) => {
+    // VISUAL LOTTERY EFFECT ON TV
+    document.getElementById('timer').innerText = "TIEBREAK";
+    document.getElementById('timer').style.color = "var(--subsoccer-gold)";
+
+    const p1ScoreEl = document.getElementById('game-p1-score');
+    const p2ScoreEl = document.getElementById('game-p2-score');
+
+    // Animate the scores glitching!
+    let flips = 0;
+    const tiebreakInterval = setInterval(() => {
+        flips++;
+        p1ScoreEl.innerText = flips % 2 === 0 ? "WIN" : "???";
+        p2ScoreEl.innerText = flips % 2 !== 0 ? "WIN" : "???";
+        if (navigator.vibrate) navigator.vibrate(20);
+        if (flips > 30) clearInterval(tiebreakInterval);
+    }, 100);
 });
 
 arcadeSocket.on('payment_success', (payload) => {
@@ -277,7 +297,7 @@ arcadeSocket.on('payment_success', (payload) => {
 
     switchLayer('intro');
     const vid = document.getElementById('intro-video');
-    if(vid) {
+    if (vid) {
         vid.currentTime = 0;
         vid.play().catch(e => console.log("Video autoplay blocked:", e));
     }
@@ -287,11 +307,11 @@ arcadeSocket.on('roster_update', (payload) => {
     const players = payload.players || [];
     const grid = document.getElementById('session-players-grid');
     const count = document.getElementById('registered-count');
-    if(!grid || !count) return;
-    
+    if (!grid || !count) return;
+
     count.innerText = `${players.length} / 16`;
     grid.innerHTML = '';
-    
+
     players.forEach((pName, i) => {
         grid.innerHTML += `
             <div class="bg-[#111] border border-[#D4AF37] p-3 rounded-xl flex items-center gap-3">
@@ -311,7 +331,7 @@ arcadeSocket.on('end_game', (payload) => {
     const winner = payload.winnerName || payload.winner;
 
     triggerShelly(false);
-    
+
     document.querySelectorAll('.v-anim').forEach(el => {
         el.getAnimations().forEach(anim => anim.cancel());
         el.style.opacity = '0';
@@ -324,7 +344,7 @@ arcadeSocket.on('end_game', (payload) => {
     document.getElementById('v-winner').innerText = winnerFinal === "DRAW" ? "DRAW" : winnerFinal;
     const cardName = document.getElementById('v-card-name');
     if (cardName) cardName.innerText = winnerFinal === "DRAW" ? "-" : winnerFinal;
-    
+
     // Set dynamic photo based on who won
     const cardPhoto = document.getElementById('v-card-photo');
     const cardIcon = document.getElementById('v-card-icon');
@@ -345,7 +365,7 @@ arcadeSocket.on('end_game', (payload) => {
     const vWinner = document.getElementById('v-winner');
     const vChampBg = document.getElementById('v-champion-bg');
     const vChampOverlay = document.getElementById('v-champion-overlay');
-    
+
     // Dynamic Hype for the Tournament Final!
     if (payload.isBracketComplete && winnerFinal !== "DRAW") {
         vHeader.innerText = "🏆 TOURNAMENT CHAMPION 🏆";
@@ -355,8 +375,8 @@ arcadeSocket.on('end_game', (payload) => {
         vWinner.style.color = "#FFD700";
         vWinner.style.textShadow = "0 0 40px rgba(255,215,0,0.6)";
         vWinner.style.transform = "scale(1.1)";
-        if(vChampBg) vChampBg.style.opacity = "0.7";
-        if(vChampOverlay) vChampOverlay.style.opacity = "1";
+        if (vChampBg) vChampBg.style.opacity = "0.7";
+        if (vChampOverlay) vChampOverlay.style.opacity = "1";
     } else {
         vHeader.innerText = "MATCH CONCLUDED";
         vHeader.classList.remove('text-[#FFD700]');
@@ -365,8 +385,8 @@ arcadeSocket.on('end_game', (payload) => {
         vWinner.style.color = "white";
         vWinner.style.textShadow = "0 0 15px rgba(255,255,255,0.1)";
         vWinner.style.transform = "scale(1)";
-        if(vChampBg) vChampBg.style.opacity = "0";
-        if(vChampOverlay) vChampOverlay.style.opacity = "0";
+        if (vChampBg) vChampBg.style.opacity = "0";
+        if (vChampOverlay) vChampOverlay.style.opacity = "0";
     }
 
     const triggerVictoryAnimations = () => {
@@ -378,11 +398,11 @@ arcadeSocket.on('end_game', (payload) => {
             cta: document.getElementById('v-cta')
         };
         const springFast = 'cubic-bezier(0.2, 0.9, 0.3, 1.2)';
-        if(els.c) els.c.animate([{ transform: 'translateY(50px) scale(0.9) rotateX(10deg)', opacity: 0 }, { transform: 'translateY(0) scale(1) rotateX(0deg)', opacity: 1 }], { duration: 800, easing: springFast, fill: 'forwards' });
-        if(els.h) els.h.animate([{ transform: 'translateX(-30px)', opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }], { duration: 600, delay: 100, easing: 'ease-out', fill: 'forwards' });
-        if(els.t) els.t.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 500, delay: 250, easing: 'ease-out', fill: 'forwards' });
-        if(els.s) els.s.animate([{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 400, delay: 400, easing: springFast, fill: 'forwards' });
-        if(els.cta) els.cta.animate([{ transform: 'translateY(30px) translateX(-50%)', opacity: 0 }, { transform: 'translateY(0) translateX(-50%)', opacity: 1 }], { duration: 800, delay: 1500, easing: springFast, fill: 'forwards' });
+        if (els.c) els.c.animate([{ transform: 'translateY(50px) scale(0.9) rotateX(10deg)', opacity: 0 }, { transform: 'translateY(0) scale(1) rotateX(0deg)', opacity: 1 }], { duration: 800, easing: springFast, fill: 'forwards' });
+        if (els.h) els.h.animate([{ transform: 'translateX(-30px)', opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }], { duration: 600, delay: 100, easing: 'ease-out', fill: 'forwards' });
+        if (els.t) els.t.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 500, delay: 250, easing: 'ease-out', fill: 'forwards' });
+        if (els.s) els.s.animate([{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 400, delay: 400, easing: springFast, fill: 'forwards' });
+        if (els.cta) els.cta.animate([{ transform: 'translateY(30px) translateX(-50%)', opacity: 0 }, { transform: 'translateY(0) translateX(-50%)', opacity: 1 }], { duration: 800, delay: 1500, easing: springFast, fill: 'forwards' });
     };
 
     if (payload.mode === 'tournament') {
@@ -390,16 +410,16 @@ arcadeSocket.on('end_game', (payload) => {
             // 1. Show Tournament Champion card in all its glory (8s)
             switchLayer('victory');
             addTvTimeout(triggerVictoryAnimations, 50);
-            
+
             // 2. Show event leaderboard / points (8s)
             addTvTimeout(() => {
                 renderEloBoard();
                 switchLayer('elo');
-                
+
                 // 3. Show final bracket tree (8s)
                 addTvTimeout(() => {
                     switchLayer('tournament');
-                    
+
                     // 4. Return to Start Screen
                     addTvTimeout(() => {
                         resetSystem();
@@ -410,7 +430,7 @@ arcadeSocket.on('end_game', (payload) => {
             // Mid-tournament match: Victory card briefly, then back to Bracket tree
             switchLayer('victory');
             addTvTimeout(triggerVictoryAnimations, 50);
-            
+
             addTvTimeout(() => {
                 switchLayer('tournament');
             }, 8000);
@@ -419,7 +439,7 @@ arcadeSocket.on('end_game', (payload) => {
         // Single Match: Show Victory card with CTA
         switchLayer('victory');
         addTvTimeout(triggerVictoryAnimations, 50);
-        
+
         // Return to Start Screen after 15 seconds
         addTvTimeout(() => {
             resetSystem();
@@ -427,11 +447,34 @@ arcadeSocket.on('end_game', (payload) => {
     }
 });
 
+arcadeSocket.on('trigger_onboarding_flash', () => {
+    // Vilkuta vain laitteen oikeita valoja (tai älylasia) - ei kosketa TV-ruudun käyttöliittymän opacityyn lainkaan!
+    let flashes = 0;
+    
+    // Switch on Shelly initially
+    triggerShelly(true);
+    
+    const interval = setInterval(() => {
+        flashes++;
+        const turnOn = flashes % 2 === 1 ? false : true;
+        triggerShelly(turnOn);
+        
+        if (flashes >= 6) {
+            clearInterval(interval);
+            triggerShelly(false); // Palautetaan PIMEÄKSI setup-näyttöä varten
+        }
+    }, 700);
+});
+
 arcadeSocket.on('tourny_state', (payload) => {
     clearAllTvTimeouts();
     const tourny = payload;
+
+    // Only switch layer if Intro is NOT actively playing
+    if (L.intro.style.display !== 'flex') {
+        switchLayer('tournament');
+    }
     
-    switchLayer('tournament');
     triggerShelly(false);
 
     const tvLayer = document.getElementById('layer-tournament');
@@ -458,7 +501,7 @@ arcadeSocket.on('reset_system', resetSystem);
 window.addEventListener('keydown', (e) => {
     const isMatchActive = document.getElementById('layer-game').classList.contains('active'); // wait, the layer-game is visible directly via flex
     // Let's use computed style instead of active class for robustness in JS module
-    if(L.game.style.display === 'none') return;
+    if (L.game.style.display === 'none') return;
 
     let targetPlayer = null;
     if (e.key === '1') targetPlayer = 1;
@@ -475,7 +518,7 @@ window.addEventListener('keydown', (e) => {
 
         const newP1ScoreEl = document.getElementById('game-p1-score');
         const newP2ScoreEl = document.getElementById('game-p2-score');
-        
+
         if (targetPlayer === 1 && newP1ScoreEl) {
             newP1ScoreEl.innerText = newP1Score;
         }
@@ -491,7 +534,7 @@ window.addEventListener('keydown', (e) => {
             const audioSwoosh = new Audio('/swoosh.mp3');
             audioHorn.play();
             setTimeout(() => audioSwoosh.play(), 1000);
-        } catch(e){}
+        } catch (e) { }
 
         // Trigger goal CSS
         const el = document.getElementById(targetPlayer === 1 ? 'game-p1-score' : 'game-p2-score');

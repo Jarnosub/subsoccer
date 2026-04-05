@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+            #layer-tournament .bracket-round {
+                width: 350px !important;
+                min-width: 350px !important;
+                margin-bottom: 0 !important;
+                display: grid !important;
+                grid-auto-rows: 1fr !important;
+                align-items: center !important;
+                justify-items: center !important;
+                gap: 0 !important;
+                height: 100vh !important;
+                padding-top: 50px !important; 
+                padding-bottom: 20px !important;
+                background: rgba(0,255,0,0.2);
+            }
+            #layer-tournament .bracket-match {
+                background: rgba(10, 10, 10, 0.9) !important;
+                border: 2px solid #333 !important;
+                padding: 15px !important;
+                height: 100px;
+                width: 250px;
+                border-radius: 12px !important;
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5) !important;
+                margin: auto 0 !important;
+                flex-shrink: 0 !important;
+            }
+            body { display: flex; }
+    </style>
+</head>
+<body id="layer-tournament">
+    <div class="bracket-round" id="c1">
+        <div class="bracket-match">1</div>
+        <div class="bracket-match">2</div>
+        <div class="bracket-match">3</div>
+        <div class="bracket-match">4</div>
+    </div>
+    <div class="bracket-round" id="c2">
+        <div class="bracket-match">1</div>
+        <div class="bracket-match">2</div>
+    </div>
+    <div class="bracket-round" id="c3">
+        <div class="bracket-match">1</div>
+    </div>
+</body>
+</html>
