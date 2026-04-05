@@ -155,9 +155,19 @@
                 return;
             }
 
+            // SIMULATING: In the future, this would be `.eq('is_arcade', true)` in the Supabase query.
+            // For now, we manually filter out non-arcade tables based on name.
+            const arcadeGames = games.filter(g => {
+                const nameStr = (g.game_name || '').toLowerCase();
+                const locStr = (g.location || '').toLowerCase();
+                return nameStr.includes('hq') || locStr.includes('hq') ||
+                       nameStr.includes('ideafix') || locStr.includes('ideafix') ||
+                       nameStr.includes('arcade') || locStr.includes('arcade');
+            });
+
             // Group by location (use a fallback if missing)
             const locations = {};
-            games.forEach(g => {
+            arcadeGames.forEach(g => {
                 let loc = g.location || 'Unassigned Spaces';
                 // Clean up string just for short demo display if it's too long
                 if (loc.length > 25) loc = loc.split(',')[0]; 
@@ -167,7 +177,7 @@
 
             let html = `
                 <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex justify-between items-center">
-                    <span>Locations & Tables (${games.length})</span>
+                    <span>Locations & Tables (${arcadeGames.length})</span>
                     <i class="fas fa-folder-plus cursor-pointer hover:text-white" title="Add New Location"></i>
                 </div>
             `;
