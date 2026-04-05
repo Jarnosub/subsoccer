@@ -73,6 +73,20 @@ let gameState = {
     isTournament: false
 };
 
+window.tableConfig = {
+    matchTime: 90,
+    tiebreaker: 'coin',
+    basePrice: 2.00,
+    freePlay: false
+};
+
+arcadeSocket.on('update_table_config', (payload) => {
+    window.tableConfig = { ...window.tableConfig, ...payload };
+    if (!gameState.isTournament && document.getElementById('s-tourny-setup').classList.contains('active')) {
+        window.updateDynamicPrice();
+    }
+});
+
 arcadeSocket.on('tourny_state_recovery', (payload) => {
     if (!payload.players || payload.players.length === 0) return;
     
@@ -103,23 +117,28 @@ window.updateDynamicPrice = function () {
     if (!list) return;
     const numPlayers = list.children.length;
 
-    let price = 2.00; // 2 players
+    let base = window.tableConfig?.basePrice ?? 2.00;
+    let price = base; 
     let title = "TOURNAMENT";
     let subtitle = "Buy the Bracket";
 
     // Add logic to calculate Stripe mode based on players
     if (numPlayers >= 7) {
-        price = 6.00; // 7-8 players
+        price = base + 4.0; // 7-8 players
     } else if (numPlayers >= 5) {
-        price = 5.00; // 5-6 players
+        price = base + 3.0; // 5-6 players
     } else if (numPlayers >= 3) {
-        price = 3.00; // 3-4 players
+        price = base + 1.0; // 3-4 players
     } else {
-        title = "ARCADE 1VS1 MATCH";
+        title = "1VS1 MATCH";
         subtitle = "Winner takes all";
     }
 
-    document.getElementById('dynamic-price').innerText = price.toFixed(2) + " €";
+    if (window.tableConfig?.freePlay) {
+        price = 0.0;
+    }
+
+    document.getElementById('dynamic-price').innerText = price === 0 ? "FREE" : price.toFixed(2) + " €";
 
     const titleEl = document.getElementById('setup-title');
     if (titleEl) titleEl.innerText = title;
@@ -165,11 +184,11 @@ let matchTimerInterval;
 
 function startRemoteTimer() {
     clearInterval(matchTimerInterval);
-    matchRemaining = 90;
+    matchRemaining = window.tableConfig?.matchTime || 90;
     document.getElementById('remote-timer').style.color = "";
 
-    // Announce match start so TV can sync its 90s timer
-    arcadeSocket.send('timer_start', { duration: 90 });
+    // Announce match start so TV can sync its timer
+    arcadeSocket.send('timer_start', { duration: matchRemaining });
 
     matchTimerInterval = setInterval(() => {
         if (matchRemaining <= 0) {

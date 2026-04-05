@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer Pro Hub - Owner Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0f1011; color: white; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+        }
+        input[type=range] {
+            accent-color: #D4AF37;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex">
+    
+    <!-- Sidebar -->
+    <aside class="w-64 glass-panel border-r flex flex-col p-6 h-screen sticky top-0" style="border-right-color: #222;">
+        <div class="mb-10">
+            <h1 class="text-[#D4AF37] font-bold tracking-widest text-xl uppercase">The Forge</h1>
+            <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">Venue Manager</p>
+        </div>
+
+        <nav class="flex-1 space-y-4">
+            <a href="#" class="flex items-center gap-3 text-white bg-[#D4AF37] bg-opacity-10 text-[#D4AF37] p-3 rounded-lg font-medium transition-all">
+                <i class="fas fa-server"></i> Arcade Tables
+            </a>
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white p-3 rounded-lg font-medium transition-all">
+                <i class="fas fa-chart-line"></i> Analytics & Revenue
+            </a>
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white p-3 rounded-lg font-medium transition-all">
+                <i class="fas fa-crown"></i> Pro Subscription
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-6 border-t border-[#333]">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#D4AF37] to-yellow-600 flex items-center justify-center text-black font-bold">O</div>
+                <div>
+                    <p class="text-sm font-bold">Owner Portal</p>
+                    <p class="text-xs text-gray-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Connected</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-10 overflow-y-auto">
+        <header class="flex justify-between items-end mb-10 border-b border-[#222] pb-6">
+            <div>
+                <h2 class="text-3xl font-bold">TABLE 04 Configuration</h2>
+                <p class="text-gray-400 mt-2">Manage physical hardware parameters and pricing for this table.</p>
+            </div>
+            <div class="flex items-center gap-3 bg-[#111] border border-[#222] rounded-lg px-4 py-2">
+                <i class="fas fa-microchip text-gray-500"></i>
+                <span class="text-sm font-bold text-gray-300">HW ID: MAC_A8:F4:G1</span>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Game Rules -->
+            <section class="glass-panel p-8 rounded-2xl">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-stopwatch text-[#D4AF37]"></i> Game Rules</h3>
+                
+                <div class="mb-8">
+                    <div class="flex justify-between mb-2">
+                        <label class="text-sm font-bold text-gray-300">Match Duration (Seconds)</label>
+                        <span id="dur-val" class="text-[#D4AF37] font-bold">90s</span>
+                    </div>
+                    <input type="range" id="setting-duration" min="30" max="300" step="10" value="90" class="w-full h-2 bg-[#222] rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('dur-val').innerText = this.value + 's'">
+                    <p class="text-xs text-gray-500 mt-2">Shorter times increase table turnover rate by 40%.</p>
+                </div>
+
+                <div class="mb-6 border-t border-[#222] pt-6">
+                    <label class="text-sm font-bold text-gray-300 block mb-3">Tiebreaker Mode</label>
+                    <select id="setting-tiebreaker" class="w-full bg-[#111] border border-[#333] text-white rounded-lg p-3 outline-none focus:border-[#D4AF37]">
+                        <option value="coin">Automated Coin Flip (Fastest)</option>
+                        <option value="sudden_death">Sudden Death / Golden Goal (Fair)</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Monetization -->
+            <section class="glass-panel p-8 rounded-2xl">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-credit-card text-[#D4AF37]"></i> Monetization</h3>
+                
+                <div class="mb-8">
+                    <div class="flex justify-between mb-2">
+                        <label class="text-sm font-bold text-gray-300">Base Price (1v1 Game)</label>
+                        <span id="price-val" class="text-[#D4AF37] font-bold">€2.00</span>
+                    </div>
+                    <input type="range" id="setting-price" min="0" max="10" step="0.5" value="2" class="w-full h-2 bg-[#222] rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('price-val').innerText = '€' + parseFloat(this.value).toFixed(2)">
+                    <p class="text-xs text-gray-500 mt-2">Dynamic scale automatically adjusts to +€1 per extra player in Tournament modes.</p>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-[#222] pt-6">
+                    <div>
+                        <div class="text-sm font-bold text-gray-300">Enable "Free Play" Hours</div>
+                        <div class="text-xs text-gray-500 mt-1">Bypass payment gate completely during active hours.</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="setting-freeplay" class="sr-only peer">
+                        <div class="w-11 h-6 bg-[#222] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div>
+                    </label>
+                </div>
+            </section>
+        </div>
+
+        <div class="mt-10 flex items-center gap-6 p-6 glass-panel rounded-2xl border border-dashed border-[#D4AF37]">
+            <div class="w-12 h-12 rounded-xl bg-[#D4AF37] bg-opacity-20 flex justify-center items-center">
+                <i class="fas fa-sync text-[#D4AF37] text-xl"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-bold text-lg">Push to Fleet</h4>
+                <p class="text-gray-400 text-sm">Deploy these configuration tweaks directly to TABLE 04 via Subsoccer Edge Network. Changes reflect live on the next game cycle instantly.</p>
+            </div>
+            <button onclick="deploySettings()" class="bg-[#D4AF37] text-black font-bold uppercase tracking-wider px-8 py-4 rounded-xl hover:bg-yellow-400 transition-colors shadow-[0_0_20px_rgba(212,175,55,0.4)]">
+                Save & Deploy
+            </button>
+        </div>
+    </main>
+
+    <!-- Load the shared Subsoccer socket logic -->
+    <script type="module">
+        import { arcadeSocket } from './socket-service.js';
+        
+        arcadeSocket.connect();
+
+        window.deploySettings = function() {
+            const btn = document.querySelector('button[onclick="deploySettings()"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SYNCING...';
+            btn.style.pointerEvents = 'none';
+
+            // Gather settings
+            const settings = {
+                matchTime: parseInt(document.getElementById('setting-duration').value),
+                tiebreaker: document.getElementById('setting-tiebreaker').value,
+                basePrice: parseFloat(document.getElementById('setting-price').value),
+                freePlay: document.getElementById('setting-freeplay').checked
+            };
+
+            // Broadcast globally logic via socket payload
+            arcadeSocket.send('update_table_config', settings);
+
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> DEPLOYED';
+                btn.classList.add('bg-green-500');
+                btn.classList.remove('bg-[#D4AF37]');
+                
+                setTimeout(() => {
+                    btn.innerHTML = 'Save & Deploy';
+                    btn.classList.remove('bg-green-500');
+                    btn.classList.add('bg-[#D4AF37]');
+                    btn.style.pointerEvents = 'auto';
+                }, 2000);
+            }, 600);
+        }
+    </script>
+</body>
+</html>
