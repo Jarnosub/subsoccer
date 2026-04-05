@@ -846,6 +846,9 @@ subscribe('user', () => {
             const modMenu = document.getElementById('menu-item-moderator');
             if (modMenu) modMenu.style.display = isUserAdmin ? 'flex' : 'none';
 
+            const venueMenu = document.getElementById('menu-item-venue-manager');
+            if (venueMenu) venueMenu.style.display = isUserAdmin ? 'flex' : 'none';
+
             const sensorMenu = document.getElementById('menu-item-sensors');
             if (sensorMenu) sensorMenu.style.display = 'flex'; // Allow anyone to calibrate audio
 
