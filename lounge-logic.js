@@ -368,6 +368,10 @@ window.startTournyMatch = function () {
 
     document.getElementById('lbl-p1').innerText = gameState.p1Name;
     document.getElementById('lbl-p2').innerText = gameState.p2Name;
+    
+    // Reset background scores
+    document.getElementById('lbl-score-p1').innerText = "0";
+    document.getElementById('lbl-score-p2').innerText = "0";
 
     arcadeSocket.send('start_1v1', { p1: gameState.p1Name, p2: gameState.p2Name });
     switchScreen('s-controller');
@@ -385,8 +389,14 @@ window.startOnboardingSequence = function () {
 window.sendGoal = function (playerNumber) {
     if (pMatchProcessing) return;
 
-    if (playerNumber === 1) gameState.p1Score++;
-    if (playerNumber === 2) gameState.p2Score++;
+    if (playerNumber === 1) {
+        gameState.p1Score++;
+        document.getElementById('lbl-score-p1').innerText = gameState.p1Score;
+    }
+    if (playerNumber === 2) {
+        gameState.p2Score++;
+        document.getElementById('lbl-score-p2').innerText = gameState.p2Score;
+    }
 
     pushState();
     if (navigator.vibrate) navigator.vibrate(50);
