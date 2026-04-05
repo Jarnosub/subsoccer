@@ -104,7 +104,7 @@ window.updateDynamicPrice = function () {
     const numPlayers = list.children.length;
 
     let price = 2.00; // 2 players
-    let title = "ARCADE TOURNAMENT";
+    let title = "TOURNAMENT";
     let subtitle = "Buy the Bracket";
 
     // Add logic to calculate Stripe mode based on players
