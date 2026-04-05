@@ -504,3 +504,50 @@ function resetSystem() {
 window.switchScreen = switchScreen;
 window.finishMatch = finishMatch;
 window.resetSystem = resetSystem;
+
+// Wallet Logic for Demo
+function checkWalletTickets() {
+    const useBtn = document.getElementById('btn-use-ticket');
+    const badge = document.getElementById('ticket-badge');
+    if (!useBtn) return;
+    
+    let tickets = parseInt(localStorage.getItem('freeplay_tickets')) || 0;
+    if (tickets > 0) {
+        useBtn.style.display = 'flex';
+        badge.innerText = `${tickets} LEFT`;
+    } else {
+        useBtn.style.display = 'none';
+    }
+}
+window.checkWalletTickets = checkWalletTickets;
+
+window.useFreeTicket = function() {
+    let tickets = parseInt(localStorage.getItem('freeplay_tickets')) || 0;
+    if (tickets <= 0) return;
+    
+    // Deduct one ticket
+    tickets--;
+    localStorage.setItem('freeplay_tickets', tickets.toString());
+    
+    // Simulate successful payment bypassing Shelly
+    const startBtn = document.getElementById('btn-checkout');
+    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REDEEMING TICKET...';
+    startBtn.style.backgroundColor = '#D4AF37';
+    startBtn.style.color = '#000';
+    
+    // Check wallet count to update UI
+    checkWalletTickets();
+    
+    setTimeout(() => {
+        // Send actual checkout success logic
+        arcadeSocket.send('checkout_success', { amount: 0, override: true });
+        switchScreen('s-onboarding');
+        
+        // Reset button
+        startBtn.style.backgroundColor = '#fff';
+        startBtn.innerHTML = '<div class="flex items-center gap-2"><i class="fab fa-apple text-xl"></i><span class="tracking-widest uppercase text-sm">Pay & Start</span></div><span id="dynamic-price" class="font-bold text-2xl tracking-wider" style="font-family: \'Subsoccer\', sans-serif;">2.00 €</span>';
+    }, 1500);
+}
+
+// Check wallet on load
+document.addEventListener('DOMContentLoaded', checkWalletTickets);

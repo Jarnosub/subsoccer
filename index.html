@@ -594,6 +594,31 @@
 
                     <!-- Teams Module -->
                     <div id="profile-team-ui"></div>
+
+                    <!-- Digital Wallet -->
+                    <div id="profile-wallet-ui" style="margin-bottom: 30px; text-align: left;">
+                        <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%); border: 1px solid #333; border-radius: 8px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative; overflow: hidden;">
+                            <div style="position: absolute; top:0; left:0; width:4px; height:100%; background:var(--sub-gold);"></div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <h3 style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1rem; color: #fff; margin: 0 0 5px 0; letter-spacing: 1px;">DIGITAL WALLET</h3>
+                                    <p style="font-family: 'Open Sans', sans-serif; font-size: 0.75rem; color: #888; margin: 0;">Redeem tickets at any Arcade Table</p>
+                                </div>
+                                <i class="fa-solid fa-wallet" style="color: #444; font-size: 1.5rem;"></i>
+                            </div>
+
+                            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                <div style="flex: 1; background: rgba(255, 215, 0, 0.05); border: 1px dashed var(--sub-gold); border-radius: 6px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 215, 0, 0.1)'" onmouseout="this.style.background='rgba(255, 215, 0, 0.05)'">
+                                    <div id="wallet-ticket-count" style="font-family: 'Russo One', sans-serif; font-size: 1.8rem; color: var(--sub-gold); line-height: 1; text-shadow: 0 0 10px rgba(255,215,0,0.3);">3</div>
+                                    <div style="font-size: 0.6rem; color: var(--sub-gold); font-weight: bold; text-transform: uppercase; margin-top: 5px; letter-spacing: 1px;">FREE TICKETS</div>
+                                </div>
+                                <div style="flex: 1; background: #111; border: 1px dashed #333; border-radius: 6px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s;" onclick="const code = prompt('Enter Gift Card or Promo Code:'); if(code && code.length > 3) { document.getElementById('wallet-ticket-count').innerText = parseInt(document.getElementById('wallet-ticket-count').innerText) + 1; localStorage.setItem('freeplay_tickets', document.getElementById('wallet-ticket-count').innerText); alert('Code Redeemed! 1 Free Ticket added.'); }" onmouseover="this.style.background='#1a1a1a'" onmouseout="this.style.background='#111'">
+                                    <i class="fa-solid fa-qrcode" style="color: #666; font-size: 1.4rem; display: block; margin-bottom: 5px;"></i>
+                                    <div style="font-size: 0.6rem; color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">REDEEM CODE</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- My Games Section -->
