@@ -62,14 +62,24 @@
 
     <!-- Main Content -->
     <main class="flex-1 p-10 overflow-y-auto">
-        <header class="flex justify-between items-end mb-10 border-b border-[#222] pb-6">
+        <header class="flex justify-between items-start mb-10 border-b border-[#222] pb-6">
             <div>
                 <h2 class="text-3xl font-bold">Subsoccer HQ Arcade 1 Configuration</h2>
-                <p class="text-gray-400 mt-2">Manage physical hardware parameters and pricing for this table.</p>
+                <p class="text-gray-400 mt-2 mb-4">Manage physical hardware parameters and pricing for this table.</p>
+                <div class="flex gap-3">
+                    <div class="flex items-center gap-2 bg-[#111] border border-[#222] rounded-lg px-3 py-1.5">
+                        <i class="fas fa-microchip text-gray-500"></i>
+                        <span class="text-xs font-bold text-gray-300">HW ID: MAC_A8:F4:G1</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-[#111] border border-[#222] rounded-lg px-3 py-1.5">
+                        <i class="fas fa-map-marker-alt text-gray-500"></i>
+                        <span class="text-xs font-bold text-gray-300">Location: Subsoccer HQ, Helsinki</span>
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center gap-3 bg-[#111] border border-[#222] rounded-lg px-4 py-2">
-                <i class="fas fa-microchip text-gray-500"></i>
-                <span class="text-sm font-bold text-gray-300">HW ID: MAC_A8:F4:G1</span>
+            <div class="flex items-center gap-2 bg-green-900 border border-green-500 border-opacity-50 text-green-400 rounded-lg px-4 py-2 mt-1">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                <span class="text-sm font-bold">ONLINE</span>
             </div>
         </header>
 
