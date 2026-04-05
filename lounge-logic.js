@@ -559,13 +559,18 @@ window.useFreeTicketCode = function(code) {
     startBtn.style.color = '#000';
     
     setTimeout(() => {
-        // Send actual checkout success logic
-        arcadeSocket.send('checkout_success', { amount: 0, override: true });
         switchScreen('s-onboarding');
         
         // Reset button
         startBtn.style.backgroundColor = '#fff';
         startBtn.innerHTML = '<div class="flex items-center gap-2"><i class="fab fa-apple text-xl"></i><span class="tracking-widest uppercase text-sm">Pay & Start</span></div><span id="dynamic-price" class="font-bold text-2xl tracking-wider" style="font-family: \'Subsoccer\', sans-serif;">2.00 €</span>';
+
+        try {
+            // Send actual checkout success logic
+            arcadeSocket.send('checkout_success', { amount: 0, override: true });
+        } catch(e) {
+            console.error('Code bypass socket failed', e);
+        }
     }, 1500);
 }
 
