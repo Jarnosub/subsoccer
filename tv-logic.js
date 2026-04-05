@@ -222,9 +222,10 @@ fetchGlobalRanking();
 const hostName = window.location.hostname === 'localhost' ? '192.168.8.120' : window.location.hostname;
 const remoteAppUrl = `${window.location.protocol}//${hostName}${window.location.port ? `:${window.location.port}` : ""}/lounge-remote.html`;
 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(remoteAppUrl)}`;
+const reconnectQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(remoteAppUrl + '?reconnect=true')}`;
 document.getElementById('dynamic-qr').src = qrUrl;
-document.getElementById('reconnect-qr').src = qrUrl;
-document.getElementById('reconnect-qr-elo').src = qrUrl;
+document.getElementById('reconnect-qr').src = reconnectQrUrl;
+document.getElementById('reconnect-qr-elo').src = reconnectQrUrl;
 
 
 
@@ -496,6 +497,18 @@ arcadeSocket.on('tourny_state', (payload) => {
 
     window.tvEngine.generateBracket(tourny.players, false);
     window.tvEngine.restoreState(tourny.matches);
+    
+    // Track participants specifically so TV can act as master on reconnect
+    window.tvEngine.participants = tourny.players;
+});
+
+arcadeSocket.on('ping_reconnect', () => {
+    if (window.tvEngine && window.tvEngine.isActive) {
+        arcadeSocket.send('tourny_state_recovery', {
+            players: window.tvEngine.participants,
+            matches: window.tvEngine.rounds.flat()
+        });
+    }
 });
 
 arcadeSocket.on('force_reload', () => window.location.reload(true));

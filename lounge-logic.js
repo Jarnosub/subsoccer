@@ -41,6 +41,20 @@ if (urlParams.get('payment') === 'success') {
             generateTournament();
         }, 100);
     }, 100);
+} else if (urlParams.get('reconnect') === 'true') {
+    // RECONNECT FLOW
+    setTimeout(() => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        arcadeSocket.send('ping_reconnect', {});
+        
+        // Timeout if TV didn't answer in time, default to onboarding
+        setTimeout(() => {
+            if (!gameState.isTournament) {
+                document.getElementById('s-onboarding').classList.add('active');
+                window.updateDynamicPrice();
+            }
+        }, 3000);
+    }, 500);
 } else {
     // Normal init
     setTimeout(() => {
@@ -58,6 +72,26 @@ let gameState = {
     p2Name: "PLAYER 2",
     isTournament: false
 };
+
+arcadeSocket.on('tourny_state_recovery', (payload) => {
+    if (!payload.players || payload.players.length === 0) return;
+    
+    // We rebuild the local engine from the TV Master State
+    gameState.isTournament = true;
+    let dummy = document.getElementById('dummy-bracket-area');
+    if (!dummy) {
+        dummy = document.createElement('div');
+        dummy.id = 'dummy-bracket-area';
+        dummy.style.display = 'none';
+        document.body.appendChild(dummy);
+    }
+    localEngine = new BracketEngine({ containerId: 'dummy-bracket-area', enableSaveButton: false });
+    localEngine.generateBracket(payload.players, false); // false = DON'T SHUFFLE, PRESERVE TV ORDER
+    if (payload.matches) {
+       localEngine.restoreState(payload.matches);
+    }
+    nextTournyMatch();
+});
 
 let localEngine = null;
 let pMatchProcessing = false;
