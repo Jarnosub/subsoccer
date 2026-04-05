@@ -73,7 +73,7 @@ let gameState = {
     isTournament: false
 };
 
-window.tableConfig = {
+window.tableConfig = JSON.parse(localStorage.getItem('subsoccer_table_config')) || {
     matchTime: 90,
     tiebreaker: 'coin',
     basePrice: 2.00,
@@ -82,6 +82,7 @@ window.tableConfig = {
 
 arcadeSocket.on('update_table_config', (payload) => {
     window.tableConfig = { ...window.tableConfig, ...payload };
+    localStorage.setItem('subsoccer_table_config', JSON.stringify(window.tableConfig));
     if (!gameState.isTournament && document.getElementById('s-tourny-setup').classList.contains('active')) {
         window.updateDynamicPrice();
     }
