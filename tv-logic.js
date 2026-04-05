@@ -210,7 +210,9 @@ function resetSystem() {
     document.querySelectorAll('.v-anim').forEach(el => {
         el.style.opacity = "";
         el.style.transform = "";
-        el.getAnimations().forEach(anim => anim.cancel());
+        if (el.getAnimations) {
+            el.getAnimations().forEach(anim => anim.cancel());
+        }
     });
 }
 
@@ -333,7 +335,9 @@ arcadeSocket.on('end_game', (payload) => {
     triggerShelly(false);
 
     document.querySelectorAll('.v-anim').forEach(el => {
-        el.getAnimations().forEach(anim => anim.cancel());
+        if (el.getAnimations) {
+            el.getAnimations().forEach(anim => anim.cancel());
+        }
         el.style.opacity = '0';
     });
 
@@ -422,7 +426,7 @@ arcadeSocket.on('end_game', (payload) => {
 
                     // 4. Return to Start Screen
                     addTvTimeout(() => {
-                        resetSystem();
+                        window.location.reload(true);
                     }, 8000);
                 }, 8000);
             }, 8000);
@@ -442,7 +446,7 @@ arcadeSocket.on('end_game', (payload) => {
 
         // Return to Start Screen after 15 seconds
         addTvTimeout(() => {
-            resetSystem();
+            window.location.reload(true);
         }, 15000);
     }
 });

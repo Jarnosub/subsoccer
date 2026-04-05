@@ -1,0 +1,12 @@
+#!/usr/bin/expect
+# Increase timeout so the process doesn't end prematurely
+set timeout -1
+
+spawn scp tv-logic.js tv.html lounge-logic.js lounge-remote.html the-forge.css bracket-engine.js forge@theforge.local:~/subsoccer/
+expect {
+    "password:" {
+        send "subsoccer\r"
+        exp_continue
+    }
+    eof
+}

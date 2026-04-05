@@ -1,0 +1,10 @@
+#!/usr/bin/expect
+set timeout 10
+spawn ssh forge@theforge.local
+expect "password:"
+send "subsoccer\r"
+expect "$ "
+send "sudo reboot\r"
+expect "password"
+send "subsoccer\r"
+expect eof
