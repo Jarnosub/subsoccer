@@ -242,6 +242,9 @@
                 freePlay: document.getElementById('setting-freeplay').checked
             };
 
+            // Save directly to localStorage for the demo to bypass missing DB
+            localStorage.setItem('subsoccer_table_config', JSON.stringify(settings));
+
             // Broadcast globally logic via socket payload
             arcadeSocket.send('update_table_config', settings);
 
