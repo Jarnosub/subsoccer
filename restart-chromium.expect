@@ -1,0 +1,6 @@
+#!/usr/bin/expect
+set timeout 15
+spawn ssh forge@theforge.local "pkill -9 chromium; sleep 2; DISPLAY=:0 chromium --kiosk --incognito --disable-infobars --autoplay-policy=no-user-gesture-required --password-store=basic --noerrdialogs \"http://localhost:8000/tv.html?shelly=192.168.8.118&v=7\" > /dev/null 2>&1 &"
+expect "password:"
+send "subsoccer\r"
+expect eof

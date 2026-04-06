@@ -223,6 +223,9 @@ function resetSystem() {
 }
 
 // --- BOOTSTRAP ---
+window.tableConfig = JSON.parse(localStorage.getItem('subsoccer_table_config')) || {};
+applyTvFreePlayLogic();
+
 fetchGlobalRanking();
 updateTimerUI();
 
@@ -289,14 +292,37 @@ arcadeSocket.on('timer_start', (payload) => {
 
 arcadeSocket.on('update_table_config', (payload) => {
     remainingSeconds = payload.matchTime || 90;
-    // Persist the synced config locally so TV survives a page reload without losing settings!
-    localStorage.setItem('subsoccer_table_config', JSON.stringify(payload));
     
+    // Save to window variable to use globally in tv-logic
+    window.tableConfig = { ...window.tableConfig, ...payload };
+    
+    // Persist the synced config locally so TV survives a page reload without losing settings!
+    localStorage.setItem('subsoccer_table_config', JSON.stringify(window.tableConfig));
+    
+    applyTvFreePlayLogic();
+
     // Update display if we are not currently ticking
     if (!isTimerTicking) {
         updateTimerUI();
     }
 });
+
+function applyTvFreePlayLogic() {
+    const config = window.tableConfig || {};
+    const priceEl = document.getElementById('tv-price-tag');
+    const paymentMethodsEl = document.getElementById('tv-payment-methods');
+    
+    if (priceEl && paymentMethodsEl) {
+        if (config.freePlay) {
+            priceEl.innerText = "FREE TO PLAY";
+            paymentMethodsEl.style.display = "none";
+        } else {
+            const base = (config.basePrice ?? 2.00).toFixed(2);
+            priceEl.innerText = `GAMES FROM ${base} €`;
+            paymentMethodsEl.style.display = "flex";
+        }
+    }
+}
 
 arcadeSocket.on('trigger_tiebreaker', (payload) => {
     // VISUAL LOTTERY EFFECT ON TV

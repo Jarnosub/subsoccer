@@ -146,6 +146,28 @@ window.updateDynamicPrice = function () {
 
     const subEl = document.getElementById('setup-subtitle');
     if (subEl) subEl.innerText = "Add players to calculate price. " + subtitle;
+
+    // Apply Free Play visual overrides
+    const btnIcon = document.getElementById('btn-checkout-icon');
+    const btnText = document.getElementById('btn-checkout-text');
+    const poweredByStripe = document.getElementById('powered-by-stripe');
+    const promoCode = document.getElementById('promo-code-container');
+    const step1 = document.getElementById('onboarding-step-1');
+
+    if (window.tableConfig?.freePlay) {
+        if (subEl) subEl.innerText = "Add players to begin. " + subtitle;
+        if (btnIcon) btnIcon.className = "fas fa-play text-xl";
+        if (btnText) btnText.innerText = "START MATCH";
+        if (poweredByStripe) poweredByStripe.style.display = 'none';
+        if (promoCode) promoCode.style.display = 'none';
+        if (step1) step1.innerText = "1. SELECT PLAYERS";
+    } else {
+        if (btnIcon) btnIcon.className = "fab fa-apple text-xl";
+        if (btnText) btnText.innerText = "PAY & START";
+        if (poweredByStripe) poweredByStripe.style.display = 'flex';
+        if (promoCode) promoCode.style.display = 'block';
+        if (step1) step1.innerText = "1. SELECT PLAYERS & PAY";
+    }
 };
 
 window.startDynamicCheckout = function () {
@@ -157,10 +179,11 @@ window.startDynamicCheckout = function () {
     btn.style.opacity = '0.5';
     btn.innerHTML = '<span><i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...</span>';
 
-    // Simulate Stripe passing control and firing redirect URL
+    // In Free Play mode, we bypass the payment delay entirely!
+    const delay = window.tableConfig?.freePlay ? 100 : 1500;
     setTimeout(() => {
         window.location.href = window.location.pathname + "?payment=success&mode=tournament";
-    }, 1500);
+    }, delay);
 };
 
 
@@ -558,3 +581,4 @@ window.useFreeTicketCode = function(code) {
     }, 1500);
 }
 
+window.updateDynamicPrice();

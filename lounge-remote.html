@@ -67,17 +67,17 @@
                     class="w-full bg-white text-black font-bold py-4 rounded-xl flex justify-between items-center px-6 hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]"
                     onclick="startDynamicCheckout()">
                     <div class="flex items-center gap-2">
-                        <i class="fab fa-apple text-xl"></i>
-                        <span class="tracking-widest uppercase text-sm">Pay & Start</span>
+                        <i id="btn-checkout-icon" class="fab fa-apple text-xl"></i>
+                        <span id="btn-checkout-text" class="tracking-widest uppercase text-sm">Pay & Start</span>
                     </div>
                     <span id="dynamic-price" class="font-bold text-2xl tracking-wider"
                         style="font-family: 'Subsoccer', sans-serif;">2.00 €</span>
                 </button>
-                <div class="text-center text-[10px] text-gray-600 mt-3 font-mono flex justify-center items-center gap-1 uppercase tracking-wider mb-2">
+                <div id="powered-by-stripe" class="text-center text-[10px] text-gray-600 mt-3 font-mono flex justify-center items-center gap-1 uppercase tracking-wider mb-2">
                     <i class="fas fa-lock text-[8px]"></i> Powered by Stripe
                 </div>
 
-                <div class="text-center mt-2">
+                <div id="promo-code-container" class="text-center mt-2">
                     <button onclick="const c=prompt('Enter Promo or Voucher Code:'); if(c) window.useFreeTicketCode(c);" class="text-sm text-gray-400 underline decoration-gray-600 hover:text-white transition-colors tracking-wide" style="font-family: 'Resolve', sans-serif;">
                         Have a Promo Code?
                     </button>
@@ -113,7 +113,7 @@
             <div class="bg-[#111] border border-[#333] p-4 rounded-xl mb-4 text-center space-y-4">
                 <div>
                     <i class="fas fa-users text-3xl mb-1 text-white"></i>
-                    <p class="text-white font-bold text-base">1. SELECT PLAYERS & PAY</p>
+                    <p id="onboarding-step-1" class="text-white font-bold text-base">1. SELECT PLAYERS & PAY</p>
                 </div>
                 
                 <div class="h-px bg-[#333] w-full"></div>
