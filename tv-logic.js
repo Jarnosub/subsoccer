@@ -324,6 +324,11 @@ function applyTvFreePlayLogic() {
     }
 }
 
+arcadeSocket.on('request_table_config', () => {
+    // A remote control just connected and needs our latest settings (e.g. Free Play mode)!
+    arcadeSocket.send('update_table_config', window.tableConfig);
+});
+
 arcadeSocket.on('trigger_tiebreaker', (payload) => {
     // VISUAL LOTTERY EFFECT ON TV
     document.getElementById('timer').innerText = "TIEBREAK";
