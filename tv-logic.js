@@ -181,10 +181,10 @@ function updateTimerUI() {
     if (!timerEl) return;
     
     if (window.tableConfig?.basicMode) {
-        timerEl.innerText = "FIRST TO 3";
-        timerEl.style.color = "#FFD700"; // Gold
-        timerEl.style.fontSize = "5vw";
-        timerEl.style.letterSpacing = "2px";
+        timerEl.innerText = "FIRST TO 3 WINS";
+        timerEl.style.color = "white"; 
+        timerEl.style.fontSize = "3vw";
+        timerEl.style.letterSpacing = "4px";
         return;
     }
 
