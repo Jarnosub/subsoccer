@@ -280,6 +280,9 @@ arcadeSocket.on('timer_start', (payload) => {
 
 arcadeSocket.on('update_table_config', (payload) => {
     remainingSeconds = payload.matchTime || 90;
+    // Persist the synced config locally so TV survives a page reload without losing settings!
+    localStorage.setItem('subsoccer_table_config', JSON.stringify(payload));
+    
     // Update display if we are not currently ticking
     if (!isTimerTicking) {
         updateTimerUI();
