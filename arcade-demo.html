@@ -101,6 +101,34 @@
             border: none;
             background: white;
         }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+            .tv-container {
+                height: 50vh;
+                min-height: 350px;
+                padding: 1rem;
+            }
+            .phone-container {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #444;
+                height: auto;
+                padding-bottom: 3rem;
+            }
+            .hardware-panel {
+                width: 100%;
+                max-width: 360px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -128,7 +156,7 @@
         </div>
 
         <!-- HARDWARE RELAY SIMULATION -->
-        <div class="w-full mt-6 bg-[#111] border border-[#222] rounded-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex-shrink-0">
+        <div class="hardware-panel w-full mt-6 bg-[#111] border border-[#222] rounded-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex-shrink-0">
             <div class="text-[#D4AF37] text-[10px] font-bold tracking-widest mb-4 uppercase">Device Interfaces</div>
             
             <div class="flex items-center justify-between mb-3 border-b border-[#222] pb-2">
