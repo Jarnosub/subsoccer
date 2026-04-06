@@ -102,31 +102,34 @@
             background: white;
         }
 
-        /* Mobile Responsiveness */
         @media (max-width: 900px) {
             body {
                 flex-direction: column;
                 overflow-y: auto;
-                height: auto;
-                min-height: 100vh;
+                height: 100dvh;
+                scroll-snap-type: y mandatory;
+                scroll-behavior: smooth;
             }
             .tv-container {
-                height: 50vh;
-                min-height: 350px;
+                height: 100dvh;
+                min-height: 100dvh;
                 padding: 1rem;
+                scroll-snap-align: start;
             }
             .phone-container {
                 width: 100%;
                 border-left: none;
                 border-top: 1px solid #444;
-                height: auto;
-                padding-bottom: 3rem;
+                height: 100dvh;
+                min-height: 100dvh;
+                padding-bottom: 0rem;
+                scroll-snap-align: start;
             }
             .hardware-panel {
                 width: 100%;
                 max-width: 360px;
-                margin-left: auto;
-                margin-right: auto;
+                margin: 2rem auto 8rem auto;
+                scroll-snap-align: start;
             }
         }
     </style>
@@ -135,7 +138,7 @@
 
     <!-- LEFT: The 55" TV Kiosk Mockup -->
     <div class="tv-container" style="flex-direction: column;">
-        <div class="flex items-center justify-center gap-6 mb-6">
+        <div class="flex items-center justify-center gap-6 mb-2">
             <div class="text-gray-500 font-bold tracking-[6px] text-sm uppercase opacity-80" style="font-family: 'Inter', sans-serif;">GAME SCREEN</div>
             <button onclick="togglePortrait()" class="bg-[#222] text-[#D4AF37] font-bold text-xs px-4 py-2 rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.5)] hover:bg-[#333] transition-all border border-[#333] flex items-center gap-2">
                 <i class="fas fa-mobile-alt"></i> Toggle Vertical
@@ -150,8 +153,8 @@
 
     <!-- RIGHT: The Mobile Phone Remote Mockup -->
     <div class="phone-container">
-        <div class="text-gray-500 font-bold tracking-[6px] text-sm mb-6 uppercase opacity-80" style="font-family: 'Inter', sans-serif;">CUSTOMER PHONE</div>
-        <div class="phone-frame">
+        <div class="text-gray-500 font-bold tracking-[6px] text-sm mb-4 uppercase opacity-80" style="font-family: 'Inter', sans-serif;">CUSTOMER PHONE</div>
+        <div class="phone-frame" id="phone-frame">
             <iframe src="lounge-remote.html?v=1" title="Subsoccer Mobile Remote"></iframe>
         </div>
 
@@ -273,6 +276,7 @@
         };
 
         function resizeTv() {
+            // -- 1. SCALE THE TV ENGINE --
             const wrapper = document.getElementById('tv-wrapper');
             const scaleBox = document.getElementById('tv-scale-box');
             
@@ -292,8 +296,29 @@
             const scaleX = W / targetW;
             const scaleY = H / targetH;
             const scale = Math.min(scaleX, scaleY);
-            
             scaleBox.style.transform = `scale(${scale})`;
+
+            // -- 2. SCALE THE VIRTUAL PHONE ON MOBILE --
+            const phoneFrame = document.getElementById('phone-frame');
+            if (phoneFrame && window.innerWidth <= 900) {
+                const phoneContainer = document.querySelector('.phone-container');
+                const pW = phoneContainer.clientWidth;
+                const pH = phoneContainer.clientHeight - 80; // Minus header text & padding
+                
+                // Fixed iPhone frame dimensions inside simulator
+                const ptW = 310 + 28;
+                const ptH = 680 + 28;
+                
+                const pScaleX = pW / ptW;
+                const pScaleY = pH / ptH;
+                const pScale = Math.min(pScaleX, pScaleY) * 0.95; // 5% extra margin to breathe
+                
+                phoneFrame.style.transform = `scale(${pScale})`;
+                phoneFrame.style.transformOrigin = `center top`;
+            } else if (phoneFrame) {
+                // Reset scale on Desktop
+                phoneFrame.style.transform = `scale(1)`;
+            }
         }
 
         window.addEventListener('resize', resizeTv);
