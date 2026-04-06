@@ -256,10 +256,6 @@ const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${e
 const reconnectQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(remoteAppUrl + '?reconnect=true')}`;
 document.getElementById('dynamic-qr').src = qrUrl;
 document.getElementById('reconnect-qr').src = reconnectQrUrl;
-document.getElementById('reconnect-qr-elo').src = reconnectQrUrl;
-
-
-
 const introVid = document.getElementById('intro-video');
 
 function updateVideoOrientation() {
@@ -351,20 +347,25 @@ arcadeSocket.on('request_table_config', () => {
 });
 
 arcadeSocket.on('trigger_preparation_mode', () => {
+    console.log("[TV] Received trigger_preparation_mode! isComplete:", isComplete, "isTimerTicking:", isTimerTicking);
     // A remote control just accepted the instructions and is setting up the match!
     // We transition the TV from the idle video lobby to the "Get Ready" screen.
     // If a match is already ongoing or complete, we ignore this.
     if (!isComplete && !isTimerTicking) {
+        console.log("[TV] Executing layer transition to layer-preparing...");
         document.querySelectorAll('.layer').forEach(l => l.style.display = 'none');
         document.getElementById('layer-preparing').style.display = 'flex';
         
         // Auto-revert back to lobby if they never complete the setup (e.g. they abandoned their phone)
         setTimeout(() => {
             if (document.getElementById('layer-preparing').style.display !== 'none') {
+                console.log("[TV] Preparation mode timed out, reverting to lobby.");
                 document.querySelectorAll('.layer').forEach(l => l.style.display = 'none');
                 document.getElementById('layer-lobby').style.display = 'flex';
             }
         }, 120000); // 2 minutes timeout
+    } else {
+        console.log("[TV] Ignored preparation mode because match is in progress or complete!");
     }
 });
 
