@@ -457,6 +457,7 @@ window.sendGoal = function (playerNumber) {
     // Auto-end match in Basic Mode if someone reaches 3 goals
     if (window.tableConfig?.basicMode) {
         if (gameState.p1Score >= 3 || gameState.p2Score >= 3) {
+            pMatchProcessing = true; // Prevent further button clicking!
             setTimeout(() => {
                 handleMatchTimeUp();
             }, 1000);
