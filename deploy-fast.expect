@@ -1,7 +1,7 @@
 #!/usr/bin/expect
 set timeout -1
 
-spawn scp tv-logic.js tv.html lounge-logic.js lounge-remote.html the-forge.css bracket-engine.js forge@theforge.local:~/subsoccer/
+spawn scp tv-logic.js tv.html lounge-logic.js lounge-remote.html the-forge.css bracket-engine.js Subsoccer_tournament_2.jpg forge@theforge.local:~/subsoccer/
 expect {
     "password:" {
         send "subsoccer\r"
