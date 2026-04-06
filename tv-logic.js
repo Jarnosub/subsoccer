@@ -454,20 +454,15 @@ arcadeSocket.on('end_game', (payload) => {
             switchLayer('victory');
             addTvTimeout(triggerVictoryAnimations, 50);
 
-            // 2. Show event leaderboard / points (8s)
+            // 2. Show event leaderboard / points (12s) -> Then Reload
             addTvTimeout(() => {
                 renderEloBoard();
                 switchLayer('elo');
 
-                // 3. Show final bracket tree (8s)
+                // 3. Return to Start Screen
                 addTvTimeout(() => {
-                    switchLayer('tournament');
-
-                    // 4. Return to Start Screen
-                    addTvTimeout(() => {
-                        window.location.reload(true);
-                    }, 8000);
-                }, 8000);
+                    window.location.reload(true);
+                }, 12000);
             }, 8000);
         } else {
             // Mid-tournament match: Victory card briefly, then back to Bracket tree
