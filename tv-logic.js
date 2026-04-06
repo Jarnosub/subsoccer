@@ -557,11 +557,15 @@ arcadeSocket.on('trigger_onboarding_flash', () => {
 });
 
 arcadeSocket.on('tourny_state', (payload) => {
-    clearAllTvTimeouts();
+    // If the tournament is complete (final match just ended), we ONLY quietly sync the bracket data
+    // so we do NOT clear the victory animations or switch layers!
+    if (!payload.isComplete) {
+        clearAllTvTimeouts();
+    }
     const tourny = payload;
 
-    // Only switch layer if Intro is NOT actively playing
-    if (L.intro.style.display !== 'flex') {
+    // Only switch layer if Intro is NOT actively playing and it's not the final match
+    if (L.intro.style.display !== 'flex' && !payload.isComplete) {
         switchLayer('tournament');
     }
     

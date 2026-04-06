@@ -369,12 +369,14 @@ window.generateTournament = function () {
     nextTournyMatch();
 };
 
-function syncTournyToTV() {
+window.syncTournyToTV = function (isComplete = false) {
     arcadeSocket.send('tourny_state', {
-        players: localEngine.participants,
-        matches: localEngine.getAllMatches(),
+        players: localEngine.players,
+        matches: localEngine.getState(),
+        state: 'hub',
+        isComplete: isComplete
     });
-}
+};
 
 function getPendingMatch() {
     const roundIdx = localEngine.getActiveRoundIndex();
@@ -487,9 +489,8 @@ window.skipMatch = function (winnerNumber) {
 
 function finishTournyMatch(winnerName, winnerIndex = 0) {
     localEngine.setMatchWinner(window.currentPendingMatch.rIndex, window.currentPendingMatch.mIndex, winnerName, true);
-    syncTournyToTV();
-
     const hasMoreMatches = getPendingMatch() !== null;
+    syncTournyToTV(!hasMoreMatches);
 
     arcadeSocket.send('end_game', {
         winnerName: winnerName,
