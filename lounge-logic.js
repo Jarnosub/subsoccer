@@ -212,11 +212,18 @@ let matchTimerInterval;
 function startRemoteTimer() {
     clearInterval(matchTimerInterval);
     matchRemaining = window.tableConfig?.matchTime || 90;
-    document.getElementById('remote-timer').style.color = "";
-
+    
     // Announce match start so TV can sync its timer
     arcadeSocket.send('timer_start', { duration: matchRemaining });
 
+    const remoteTimerEl = document.getElementById('remote-timer');
+    if (window.tableConfig?.basicMode) {
+        remoteTimerEl.innerHTML = `<i class="fas fa-trophy mr-1"></i> FIRST TO 3`;
+        remoteTimerEl.style.color = "var(--subsoccer-gold)";
+        return; // No countdown!
+    }
+
+    remoteTimerEl.style.color = "";
     matchTimerInterval = setInterval(() => {
         if (matchRemaining <= 0) {
             clearInterval(matchTimerInterval);
@@ -225,8 +232,8 @@ function startRemoteTimer() {
         }
         matchRemaining--;
         const s = matchRemaining.toString().padStart(2, '0');
-        document.getElementById('remote-timer').innerHTML = `<i class="fas fa-clock mr-1"></i> ${s}`;
-        if (matchRemaining <= 10) document.getElementById('remote-timer').style.color = "var(--subsoccer-red)";
+        remoteTimerEl.innerHTML = `<i class="fas fa-clock mr-1"></i> ${s}`;
+        if (matchRemaining <= 10) remoteTimerEl.style.color = "var(--subsoccer-red)";
     }, 1000);
 }
 
@@ -446,6 +453,15 @@ window.sendGoal = function (playerNumber) {
 
     pushState();
     if (navigator.vibrate) navigator.vibrate(50);
+    
+    // Auto-end match in Basic Mode if someone reaches 3 goals
+    if (window.tableConfig?.basicMode) {
+        if (gameState.p1Score >= 3 || gameState.p2Score >= 3) {
+            setTimeout(() => {
+                handleMatchTimeUp();
+            }, 1000);
+        }
+    }
 };
 
 window.skipMatch = function (winnerNumber) {

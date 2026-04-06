@@ -154,6 +154,8 @@ if (urlParams.has('shelly')) {
 }
 
 function triggerShelly(turnOn) {
+    if (window.tableConfig?.basicMode) return; // Completely disabled in Basic Mode
+
     const iotDot = document.getElementById('iot-dot');
     const iotText = document.getElementById('iot-text');
 
@@ -175,8 +177,20 @@ function triggerShelly(turnOn) {
 
 // --- TIMER ---
 function updateTimerUI() {
-    const s = remainingSeconds.toString();
     const timerEl = document.getElementById('timer');
+    if (!timerEl) return;
+    
+    if (window.tableConfig?.basicMode) {
+        timerEl.innerText = "FIRST TO 3";
+        timerEl.style.color = "#FFD700"; // Gold
+        timerEl.style.fontSize = "5vw";
+        timerEl.style.letterSpacing = "2px";
+        return;
+    }
+
+    timerEl.style.fontSize = ""; // Reset
+    timerEl.style.letterSpacing = ""; // Reset
+    const s = remainingSeconds.toString();
     timerEl.innerText = s;
     if (remainingSeconds <= 10) timerEl.style.color = "red";
     else timerEl.style.color = "white";
@@ -184,6 +198,13 @@ function updateTimerUI() {
 
 function setTimer(seconds) {
     clearInterval(timerInterval);
+    
+    if (window.tableConfig?.basicMode) {
+        isTimerTicking = false;
+        updateTimerUI();
+        return; // Basic mode has no countdown!
+    }
+
     isTimerTicking = true;
     remainingSeconds = seconds;
     updateTimerUI();
