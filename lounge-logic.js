@@ -157,16 +157,10 @@ window.startDynamicCheckout = function () {
     btn.style.opacity = '0.5';
     btn.innerHTML = '<span><i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...</span>';
 
-    // Check if running inside an iframe (like in our arcade-demo.html simulator)
-    if (window.self !== window.top) {
-        console.log("Running in iframe, simulating Stripe checkout...");
-        setTimeout(() => {
-            window.location.href = window.location.pathname + "?payment=success&mode=tournament";
-        }, 1500);
-    } else {
-        // Running on a real device directly, redirect to real Stripe Test Checkout!
-        window.location.href = "https://buy.stripe.com/test_eVqdRa6Hj1Wn3qBfv27N601";
-    }
+    // Simulate Stripe passing control and firing redirect URL
+    setTimeout(() => {
+        window.location.href = window.location.pathname + "?payment=success&mode=tournament";
+    }, 1500);
 };
 
 
