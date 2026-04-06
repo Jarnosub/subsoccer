@@ -237,8 +237,8 @@ function startRemoteTimer() {
     }, 1000);
 }
 
-function handleMatchTimeUp() {
-    if (pMatchProcessing) return;
+function handleMatchTimeUp(bypassLock = false) {
+    if (pMatchProcessing && !bypassLock) return;
     pMatchProcessing = true;
 
     let wName = null;
@@ -454,12 +454,11 @@ window.sendGoal = function (playerNumber) {
     pushState();
     if (navigator.vibrate) navigator.vibrate(50);
     
-    // Auto-end match in Basic Mode if someone reaches 3 goals
     if (window.tableConfig?.basicMode) {
         if (gameState.p1Score >= 3 || gameState.p2Score >= 3) {
             pMatchProcessing = true; // Prevent further button clicking!
             setTimeout(() => {
-                handleMatchTimeUp();
+                handleMatchTimeUp(true);
             }, 1000);
         }
     }
