@@ -201,11 +201,6 @@ window.startDynamicCheckout = function () {
 };
 
 
-window.acceptInstructions = function() {
-    // Send message to TV to show the "A challenger approaches" screen
-    arcadeSocket.send('trigger_preparation_mode', {});
-    switchScreen('s-tourny-setup');
-};
 
 function switchScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -452,6 +447,9 @@ window.startTournyMatch = function () {
 window.startOnboardingSequence = function () {
     // Animoitus (vilkutus valoille)
     arcadeSocket.send('trigger_onboarding_flash', {});
+    
+    // Trigger preparation mode holding screen on TV
+    arcadeSocket.send('trigger_preparation_mode', {});
     
     // Siirrytään Pelaajien lisäykseen välittömästi ilman viivettä
     switchScreen('s-tourny-setup');
