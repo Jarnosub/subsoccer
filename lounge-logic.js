@@ -83,7 +83,10 @@ window.tableConfig = JSON.parse(localStorage.getItem('subsoccer_table_config')) 
 arcadeSocket.on('update_table_config', (payload) => {
     window.tableConfig = { ...window.tableConfig, ...payload };
     localStorage.setItem('subsoccer_table_config', JSON.stringify(window.tableConfig));
-    if (!gameState.isTournament && document.getElementById('s-tourny-setup').classList.contains('active')) {
+    
+    // Always update dynamic pricing and UI visibility no matter what screen we are on,
+    // so if a user just opened the QR code they see Free Play immediately!
+    if (window.updateDynamicPrice) {
         window.updateDynamicPrice();
     }
 });
