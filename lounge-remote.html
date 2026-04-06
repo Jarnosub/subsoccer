@@ -26,31 +26,28 @@
                 style="font-family: 'Subsoccer', sans-serif;">TOURNAMENT</h2>
             <p id="setup-subtitle" class="text-gray-400 text-center text-sm mb-4">Add players to calculate price.</p>
 
-            <div id="tourny-players-list" class="space-y-3 mb-4 relative overflow-y-auto pr-2" style="flex: 1; min-height: 0;">
-                <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333] player-row relative">
-                    <span class="player-num text-gray-500 font-bold px-2 w-8">#1</span>
-                    <input type="text" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER 1"
-                        autocomplete="off"
-                        class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600">
-                    <button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i
-                            class="fas fa-times"></i></button>
+            <div class="flex flex-col flex-1 min-h-0 w-full">
+                <div id="tourny-players-list" class="space-y-3 relative overflow-y-auto pr-2 shrink pb-1">
+                    <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333] player-row relative">
+                        <span class="player-num text-gray-500 font-bold px-2 w-8">#1</span>
+                        <input type="text" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER 1" autocomplete="off" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600">
+                        <button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333] player-row relative">
+                        <span class="player-num text-gray-500 font-bold px-2 w-8">#2</span>
+                        <input type="text" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER 2" autocomplete="off" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600">
+                        <button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i class="fas fa-times"></i></button>
+                    </div>
                 </div>
-                <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333] player-row relative">
-                    <span class="player-num text-gray-500 font-bold px-2 w-8">#2</span>
-                    <input type="text" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER 2"
-                        autocomplete="off"
-                        class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600">
-                    <button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i
-                            class="fas fa-times"></i></button>
-                </div>
+
+                <button id="btn-add-player" onclick="addPlayerInput()"
+                    class="w-full bg-[#111] text-gray-400 font-bold py-3 rounded-lg border border-[#333] mt-2 shrink-0 active:bg-[#1a1a1a]">
+                    + ADD PLAYER
+                </button>
             </div>
 
             <!-- Pinned Bottom Buttons -->
-            <div class="mt-auto pt-2">
-                <button id="btn-add-player" onclick="addPlayerInput()"
-                    class="w-full bg-[#111] text-gray-400 font-bold py-3 rounded-lg border border-[#333] mb-4 active:bg-[#1a1a1a]">
-                    + ADD PLAYER
-                </button>
+            <div class="mt-4 shrink-0">
 
                 <!-- Dynamic Payment Button -->
                 <button id="btn-use-ticket" style="display: none;"
