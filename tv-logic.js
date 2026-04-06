@@ -350,6 +350,24 @@ arcadeSocket.on('request_table_config', () => {
     arcadeSocket.send('update_table_config', window.tableConfig);
 });
 
+arcadeSocket.on('trigger_preparation_mode', () => {
+    // A remote control just accepted the instructions and is setting up the match!
+    // We transition the TV from the idle video lobby to the "Get Ready" screen.
+    // If a match is already ongoing or complete, we ignore this.
+    if (!isComplete && !isTimerTicking) {
+        document.querySelectorAll('.layer').forEach(l => l.style.display = 'none');
+        document.getElementById('layer-preparing').style.display = 'flex';
+        
+        // Auto-revert back to lobby if they never complete the setup (e.g. they abandoned their phone)
+        setTimeout(() => {
+            if (document.getElementById('layer-preparing').style.display !== 'none') {
+                document.querySelectorAll('.layer').forEach(l => l.style.display = 'none');
+                document.getElementById('layer-lobby').style.display = 'flex';
+            }
+        }, 120000); // 2 minutes timeout
+    }
+});
+
 arcadeSocket.on('trigger_tiebreaker', (payload) => {
     // VISUAL LOTTERY EFFECT ON TV
     document.getElementById('timer').innerText = "TIEBREAK";

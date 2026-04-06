@@ -109,3 +109,13 @@ body.remote-mode { background-color: #050505; font-family: 'Resolve', sans-serif
 .goal-btn.p2 { background-color: #b70000; color: #fff; border-color: #ff3333; }
 
 .player-label { font-size: 1rem; font-family: 'Resolve', sans-serif; opacity: 0.8; margin-top: 5px; }
+
+/* Cinematic Ken Burns Animation */
+@keyframes kenBurns {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.15) translate(-1%, -1%); }
+}
+
+.ken-burns {
+    animation: kenBurns 24s linear infinite alternate;
+}

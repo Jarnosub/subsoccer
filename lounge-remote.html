@@ -20,6 +20,47 @@
             <img src="subsoccer_logo.svg" alt="Subsoccer" onerror="this.style.display='none'">
         </div>
 
+        <!-- SCREEN INSTRUCTIONS (Starting point) -->
+        <div class="screen active flex-col h-full w-full overflow-y-auto" id="s-instructions">
+            <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                <i class="fas fa-gamepad text-5xl text-[--subsoccer-red] mb-6"></i>
+                <h2 class="text-3xl font-bold mb-4 font-['Subsoccer'] tracking-wider text-white">HOW TO PLAY</h2>
+                
+                <div class="text-gray-300 text-sm space-y-6 text-left w-full mt-4 flex-1">
+                    <div class="flex items-start gap-4 bg-[#111] p-4 rounded-xl border border-[#222]">
+                        <div class="bg-[#222] text-[#fff] w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">1</div>
+                        <div>
+                            <p class="font-bold text-white mb-1">Take a Seat</p>
+                            <p class="text-xs text-gray-400 leading-relaxed">Sit on the bench facing your opponent. Each player defends their own goal.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4 bg-[#111] p-4 rounded-xl border border-[#222]">
+                        <div class="bg-[#222] text-[#fff] w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">2</div>
+                        <div>
+                            <p class="font-bold text-white mb-1">Use Your Feet</p>
+                            <p class="text-xs text-gray-400 leading-relaxed">Keep your hands on the bench. Pass and shoot using only your feet under the transparent net.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 bg-[#111] p-4 rounded-xl border border-[#222]">
+                        <div class="bg-[#222] text-[#fff] w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">3</div>
+                        <div>
+                            <p class="font-bold text-white mb-1">Score to Win!</p>
+                            <p class="text-xs text-gray-400 leading-relaxed">The player with the most goals when the timer runs out wins the match!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 mt-auto">
+                <button onclick="window.acceptInstructions()" 
+                    class="w-full bg-gradient-to-r from-[--subsoccer-red] to-[#990000] text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(227,6,19,0.4)] text-lg tracking-widest uppercase font-['Subsoccer'] active:scale-95 transition-transform">
+                    I UNDERSTAND
+                </button>
+            </div>
+        </div>
+
         <!-- SCREEN SETUP -->
         <div class="screen flex-col h-full w-full overflow-y-auto pb-12" id="s-tourny-setup">
             <h2 id="setup-title" class="text-2xl font-bold mb-2 text-center mt-4 text-white"

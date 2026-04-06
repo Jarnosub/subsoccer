@@ -201,6 +201,12 @@ window.startDynamicCheckout = function () {
 };
 
 
+window.acceptInstructions = function() {
+    // Send message to TV to show the "A challenger approaches" screen
+    arcadeSocket.send('trigger_preparation_mode', {});
+    switchScreen('s-tourny-setup');
+};
+
 function switchScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
