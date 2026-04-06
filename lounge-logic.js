@@ -4,10 +4,12 @@ import { BracketEngine } from './bracket-engine.js';
 const tableId = 'table-04';
 arcadeSocket.connect();
 
-// Kysy TV:ltä tuoreimmat konfiguraatiot (esim. Free Play tila) heti kun yhteys aukeaa
-setTimeout(() => {
-    arcadeSocket.send('request_table_config', {});
-}, 1000);
+// Kysy TV:ltä tuoreimmat konfiguraatiot (esim. Free Play tila) kunnes onnistuu
+let cfgInterval = setInterval(() => {
+    if (arcadeSocket.isConnected) {
+        arcadeSocket.send('request_table_config', {});
+    }
+}, 500);
 
 // STRIPE PAYMENT REDIRECT LISTENER
 const urlParams = new URLSearchParams(window.location.search);
@@ -86,6 +88,10 @@ window.tableConfig = JSON.parse(localStorage.getItem('subsoccer_table_config')) 
 };
 
 arcadeSocket.on('update_table_config', (payload) => {
+    if (cfgInterval) {
+        clearInterval(cfgInterval);
+        cfgInterval = null;
+    }
     window.tableConfig = { ...window.tableConfig, ...payload };
     localStorage.setItem('subsoccer_table_config', JSON.stringify(window.tableConfig));
     
@@ -371,9 +377,8 @@ window.generateTournament = function () {
 
 window.syncTournyToTV = function (isComplete = false) {
     arcadeSocket.send('tourny_state', {
-        players: localEngine.players,
-        matches: localEngine.getState(),
-        state: 'hub',
+        players: localEngine.participants,
+        matches: localEngine.getAllMatches(),
         isComplete: isComplete
     });
 };
