@@ -238,6 +238,16 @@
 
         // On load
         loadFleet();
+        
+        // Restore dashboard values from local memory if available
+        const savedDemoSettings = JSON.parse(localStorage.getItem('subsoccer_table_config') || 'null');
+        if (savedDemoSettings) {
+            if (savedDemoSettings.matchTime) document.getElementById('setting-duration').value = savedDemoSettings.matchTime;
+            if (savedDemoSettings.tiebreaker) document.getElementById('setting-tiebreaker').value = savedDemoSettings.tiebreaker;
+            if (savedDemoSettings.basePrice) document.getElementById('setting-price').value = savedDemoSettings.basePrice;
+            if (savedDemoSettings.freePlay !== undefined) document.getElementById('setting-freeplay').checked = savedDemoSettings.freePlay;
+            if (savedDemoSettings.basicMode !== undefined) document.getElementById('setting-basic-mode').checked = savedDemoSettings.basicMode;
+        }
 
         window.deploySettings = function() {
             const btn = document.querySelector('button[onclick="deploySettings()"]');
