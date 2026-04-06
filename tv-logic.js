@@ -15,7 +15,8 @@ function addTvTimeout(fn, ms) {
 // --- STATE & UTILS ---
 const tableId = 'table-04';
 let timerInterval;
-let remainingSeconds = 15 * 60;
+const cfg = JSON.parse(localStorage.getItem('subsoccer_table_config')) || {};
+let remainingSeconds = cfg.matchTime || 90;
 let isTimerTicking = false;
 let lastP1 = "PLAYER 1";
 let lastP2 = "PLAYER 2";
@@ -174,9 +175,10 @@ function triggerShelly(turnOn) {
 
 // --- TIMER ---
 function updateTimerUI() {
-    const s = remainingSeconds.toString().padStart(2, '0');
+    const mins = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+    const secs = (remainingSeconds % 60).toString().padStart(2, '0');
     const timerEl = document.getElementById('timer');
-    timerEl.innerText = `${s}`;
+    timerEl.innerText = `${mins}:${secs}`;
     if (remainingSeconds <= 10) timerEl.style.color = "red";
     else timerEl.style.color = "white";
 }
@@ -218,6 +220,7 @@ function resetSystem() {
 
 // --- BOOTSTRAP ---
 fetchGlobalRanking();
+updateTimerUI();
 
 const hostName = window.location.hostname === 'localhost' ? '192.168.8.120' : window.location.hostname;
 const remoteAppUrl = `${window.location.protocol}//${hostName}${window.location.port ? `:${window.location.port}` : ""}/lounge-remote.html`;
@@ -273,7 +276,15 @@ arcadeSocket.on('start_1v1', (payload) => {
 });
 
 arcadeSocket.on('timer_start', (payload) => {
-    setTimer(payload.duration || 90);
+    setTimer(payload.duration || remainingSeconds);
+});
+
+arcadeSocket.on('update_table_config', (payload) => {
+    remainingSeconds = payload.matchTime || 90;
+    // Update display if we are not currently ticking
+    if (!isTimerTicking) {
+        updateTimerUI();
+    }
 });
 
 arcadeSocket.on('trigger_tiebreaker', (payload) => {
