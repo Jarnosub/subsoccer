@@ -205,6 +205,11 @@ function resetSystem() {
     isTimerTicking = false;
     document.getElementById('timer').innerText = "00:00";
     document.getElementById('timer').style.color = "white";
+    
+    // Restore tiebreak font sizes if they were altered
+    document.getElementById('game-p1-score').style.fontSize = "";
+    document.getElementById('game-p2-score').style.fontSize = "";
+    
     switchLayer('lobby');
     triggerShelly(false);
 
@@ -269,6 +274,10 @@ arcadeSocket.on('start_1v1', (payload) => {
     document.getElementById('game-p2-name').innerText = lastP2;
     document.getElementById('game-p1-score').innerText = '0';
     document.getElementById('game-p2-score').innerText = '0';
+    
+    // Reset font sizes in case tiebreak shrunk them in a previous match
+    document.getElementById('game-p1-score').style.fontSize = "";
+    document.getElementById('game-p2-score').style.fontSize = "";
 
     switchLayer('game');
     triggerShelly(true);
@@ -296,6 +305,10 @@ arcadeSocket.on('trigger_tiebreaker', (payload) => {
 
     const p1ScoreEl = document.getElementById('game-p1-score');
     const p2ScoreEl = document.getElementById('game-p2-score');
+
+    // Scale font size down temporarily to prevent 3-letter words from overlapping in narrow portrait displays
+    p1ScoreEl.style.fontSize = "min(20vh, 18vw)";
+    p2ScoreEl.style.fontSize = "min(20vh, 18vw)";
 
     // Animate the scores glitching!
     let flips = 0;
