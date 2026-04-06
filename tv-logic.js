@@ -253,7 +253,7 @@ if (introVid) {
         if (window.tvEngine && window.tvEngine.rounds.length > 0) {
             switchLayer('tournament');
         } else {
-            switchLayer('lobby');
+            switchLayer('sessionLobby');
         }
     });
 }
@@ -342,7 +342,7 @@ arcadeSocket.on('lobby_opened', () => {
     // Sync remote device with the TV's state as the source of truth for the demo
     arcadeSocket.send('update_table_config', { matchTime: remainingSeconds });
     document.getElementById('dynamic-qr').classList.add('scale-[0.8]', 'opacity-20');
-    setTimeout(() => { switchLayer('sessionLobby'); }, 300);
+    // Let the intro video play entirely. It will naturally switch to sessionLobby via the 'ended' event listener.
 });
 
 arcadeSocket.on('state_update', (payload) => {
