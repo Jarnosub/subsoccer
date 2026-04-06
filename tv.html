@@ -57,21 +57,7 @@
         </div>
     </div>
 
-    <!-- LAYER 1.2: PREPARING (A Challenger Approaches) -->
-    <div id="layer-preparing" class="layer" style="display: none; background: #000; z-index: 25; overflow: hidden;">
-        <img src="Subsoccer_tournament_2.jpg" class="w-full h-full object-cover opacity-50 ken-burns absolute inset-0">
-        <div class="absolute inset-0 bg-[#000] opacity-40 z-10"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,_#000_100%)] z-10 pointer-events-none"></div>
-        
-        <div class="relative z-20 flex flex-col items-center justify-center text-center">
-            <h1 class="text-white text-5xl mb-4 font-bold tracking-[6px]" style="font-family: 'Subsoccer', sans-serif;">
-                A CHALLENGER APPROACHES
-            </h1>
-            <p class="text-gray-300 text-2xl uppercase tracking-widest font-sans animate-pulse">
-                Preparing match details...
-            </p>
-        </div>
-    </div>
+
 
     <!-- LAYER 1.5: INTRO VIDEO (Post-payment) -->
     <div id="layer-intro" class="layer" style="display: none; background: #000; z-index: 50;">
@@ -80,7 +66,14 @@
 
     <!-- LAYER 1.75: ARCADE SESSION LOBBY (Player Registration) -->
     <div id="layer-session-lobby" class="layer"
-        style="display: none; background: radial-gradient(circle at center, #111 0%, #000 100%); align-items: center; justify-content: center; flex-direction: column;">
+        style="display: none; background: #000; align-items: center; justify-content: center; flex-direction: column; overflow: hidden;">
+        
+        <!-- Cinematic Background -->
+        <img src="Subsoccer_tournament_2.jpg" class="absolute inset-0 w-full h-full object-cover opacity-60 ken-burns z-0">
+        <div class="absolute inset-0 bg-[#000] opacity-40 z-0"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,_#000_100%)] z-0 pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col items-center justify-center w-full">
         <img src="subsoccer_logo.svg" class="h-20 mb-8 opacity-90" alt="Subsoccer Logo">
         <h1 class="text-white text-6xl mb-6 font-bold tracking-[8px]" style="font-family: 'Subsoccer', sans-serif;">
             TOURNAMENT WAITING ROOM</h1>
@@ -99,6 +92,8 @@
                     <div class="text-gray-600 italic font-sans animate-pulse">Waiting for host to add players...</div>
                 </div>
             </div>
+            </div>
+        </div>
         </div>
     </div>
 
@@ -377,7 +372,7 @@
         </div>
     </div>
 
-    <script type="module" src="tv-logic.js?v=6"></script>
+    <script type="module" src="tv-logic.js?v=7"></script>
 </body>
 
 </html>
