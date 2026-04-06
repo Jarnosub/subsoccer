@@ -342,7 +342,12 @@ arcadeSocket.on('lobby_opened', () => {
     // Sync remote device with the TV's state as the source of truth for the demo
     arcadeSocket.send('update_table_config', { matchTime: remainingSeconds });
     document.getElementById('dynamic-qr').classList.add('scale-[0.8]', 'opacity-20');
-    // Let the intro video play entirely. It will naturally switch to sessionLobby via the 'ended' event listener.
+    
+    // Only switch to sessionLobby if we are still on the main QR screen. 
+    // If the intro video is already playing (post-payment), do not interrupt it!
+    if (document.getElementById('layer-lobby').style.display !== 'none') {
+        setTimeout(() => { switchLayer('sessionLobby'); }, 300);
+    }
 });
 
 arcadeSocket.on('state_update', (payload) => {
