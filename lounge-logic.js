@@ -54,10 +54,10 @@ if (urlParams.get('payment') === 'success') {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         arcadeSocket.send('ping_reconnect', {});
         
-        // Timeout if TV didn't answer in time, default to onboarding
+        // Timeout if TV didn't answer in time, default to instructions
         setTimeout(() => {
             if (!gameState.isTournament) {
-                document.getElementById('s-onboarding').classList.add('active');
+                document.getElementById('s-instructions').classList.add('active');
                 window.updateDynamicPrice();
             }
         }, 3000);
@@ -66,7 +66,7 @@ if (urlParams.get('payment') === 'success') {
     // Normal init
     setTimeout(() => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('s-onboarding').classList.add('active'); // Start with onboarding!
+        document.getElementById('s-instructions').classList.add('active'); // Start with instructions!
         window.updateDynamicPrice();
     }, 50);
 }
