@@ -4,6 +4,11 @@ import { BracketEngine } from './bracket-engine.js';
 const tableId = 'table-04';
 arcadeSocket.connect();
 
+// Kysy TV:ltä tuoreimmat konfiguraatiot (esim. Free Play tila) heti kun yhteys aukeaa
+setTimeout(() => {
+    arcadeSocket.send('request_table_config', {});
+}, 1000);
+
 // STRIPE PAYMENT REDIRECT LISTENER
 const urlParams = new URLSearchParams(window.location.search);
 const paymentMode = urlParams.get('mode') || 'tournament';
