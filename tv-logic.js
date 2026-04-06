@@ -175,10 +175,9 @@ function triggerShelly(turnOn) {
 
 // --- TIMER ---
 function updateTimerUI() {
-    const mins = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
-    const secs = (remainingSeconds % 60).toString().padStart(2, '0');
+    const s = remainingSeconds.toString();
     const timerEl = document.getElementById('timer');
-    timerEl.innerText = `${mins}:${secs}`;
+    timerEl.innerText = s;
     if (remainingSeconds <= 10) timerEl.style.color = "red";
     else timerEl.style.color = "white";
 }
