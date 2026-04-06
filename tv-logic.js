@@ -335,6 +335,13 @@ arcadeSocket.on('roster_update', (payload) => {
     });
 });
 
+arcadeSocket.on('lobby_opened', () => {
+    // Sync remote device with the TV's state as the source of truth for the demo
+    arcadeSocket.send('update_table_config', { matchTime: remainingSeconds });
+    document.getElementById('dynamic-qr').classList.add('scale-[0.8]', 'opacity-20');
+    setTimeout(() => { switchLayer('session-lobby'); }, 300);
+});
+
 arcadeSocket.on('state_update', (payload) => {
     document.getElementById('game-p1-score').innerText = payload.p1Score || 0;
     document.getElementById('game-p2-score').innerText = payload.p2Score || 0;
