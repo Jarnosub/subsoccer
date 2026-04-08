@@ -9,10 +9,13 @@ app.use(express.static('.'));
 
 app.post('/create-payment-intent', async (req, res) => {
     try {
-        const { items } = req.body;
-        // Create a PaymentIntent with the final amount completely defined here on the backend
+        const { items, customAmount } = req.body;
+        
+        // Create a PaymentIntent with dynamic amount
+        const amountCents = customAmount ? parseInt(customAmount) : 200;
+
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: 200, // 2.00 € represented as cents
+            amount: amountCents,
             currency: 'eur',
             payment_method_types: ['card'],
         });

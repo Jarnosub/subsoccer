@@ -158,6 +158,9 @@ window.updateDynamicPrice = function () {
 
     document.getElementById('dynamic-price').innerText = price === 0 ? "FREE" : price.toFixed(2) + " €";
 
+    // Save for Stripe Deferred Intents
+    window.currentPriceCents = Math.round(price * 100);
+
     const titleEl = document.getElementById('setup-title');
     if (titleEl) titleEl.innerText = title;
 
@@ -185,8 +188,12 @@ window.updateDynamicPrice = function () {
         if (promoCode) promoCode.style.display = 'block';
         if (step1) step1.innerText = "1. SELECT PLAYERS & PAY";
         
-        // Initialize Stripe Embedded Elements when price is active
-        initStripeElements();
+        // Initialize or update Stripe Elements
+        if (!stripeElements) {
+            initStripeElements();
+        } else if (typeof stripeElements.update === 'function') {
+            stripeElements.update({ amount: window.currentPriceCents });
+        }
     }
 };
 
@@ -195,16 +202,11 @@ async function initStripeElements() {
     if (!container || stripeElements) return;
 
     try {
-        // Use relative URL so it works reliably locally and through LocalTunnel (HTTPS)
-        const response = await fetch(`/create-payment-intent`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items: [{ id: "subsoccer-arcade" }] }),
-        });
-        const { clientSecret } = await response.json();
-
+        // We use Stripe Deferred Intents so the amount can update dynamically without reloading!
         stripeElements = stripe.elements({ 
-            clientSecret, 
+            mode: 'payment',
+            amount: window.currentPriceCents || 200,
+            currency: 'eur',
             appearance: {
                 theme: 'night',
                 variables: {
@@ -235,7 +237,21 @@ async function initStripeElements() {
 
         expressCheckoutElement.on('confirm', async (event) => {
             const { error: submitError } = await stripeElements.submit();
-            if (submitError) return;
+            if (submitError) {
+                console.error("Submit Error:", submitError);
+                return;
+            }
+
+            // Now we fetch the backend to lock in the server-side PaymentIntent with dynamic amount
+            const response = await fetch(`/create-payment-intent`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    items: [{ id: "subsoccer-arcade" }],
+                    customAmount: window.currentPriceCents || 200 
+                }),
+            });
+            const { clientSecret } = await response.json();
 
             const returnUrlParams = new URLSearchParams({ payment: 'success', mode: 'tournament' });
             const { error } = await stripe.confirmPayment({

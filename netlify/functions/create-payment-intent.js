@@ -7,11 +7,13 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const { items } = JSON.parse(event.body || '{}');
+        const { items, customAmount } = JSON.parse(event.body || '{}');
 
-        // Create a PaymentIntent with the final amount completely defined here on the backend
+        // Create a PaymentIntent with the dynamic amount requested by the arcade client
+        const amountCents = customAmount ? parseInt(customAmount) : 200;
+
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: 200, // 2.00 € represented as cents
+            amount: amountCents,
             currency: 'eur',
             payment_method_types: ['card'],
         });
