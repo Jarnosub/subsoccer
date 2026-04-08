@@ -7,6 +7,7 @@
     <title>Subsoccer Remote</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,7 +15,18 @@
 </head>
 
 <body class="remote-mode bg-[#050505] min-h-screen text-white m-0 flex justify-center overflow-x-hidden">
-
+    <!-- ERROR DISPLAY LAYER -->
+    <div id="debug-error" style="display:none; position:fixed; z-index:9999; top:10px; left:10px; background:red; color:white; padding:10px; font-size:12px; pointer-events:none;"></div>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            const el = document.getElementById('debug-error');
+            if(el) { el.style.display = 'block'; el.innerText = "JS Error: " + msg + " at " + line + ":" + col; }
+        };
+        window.addEventListener('unhandledrejection', function(event) {
+            const el = document.getElementById('debug-error');
+            if(el) { el.style.display = 'block'; el.innerText = "Async Error: " + (event.reason ? event.reason.message : "Promise rejected"); }
+        });
+    </script>
     <div class="phone-container w-full max-w-[400px] bg-[#0a0a0a] flex flex-col mx-auto relative" style="height: 100dvh; max-height: 100dvh; overflow: hidden;">
         <div class="header">
             <img src="subsoccer_logo.svg" alt="Subsoccer" onerror="this.style.display='none'">
@@ -26,8 +38,8 @@
                 style="font-family: 'Subsoccer', sans-serif;">TOURNAMENT</h2>
             <p id="setup-subtitle" class="text-gray-400 text-center text-sm mb-4">Add players to calculate price.</p>
 
-            <div class="flex flex-col flex-1 min-h-0 w-full">
-                <div id="tourny-players-list" class="space-y-3 relative overflow-y-auto pr-2 shrink pb-1">
+            <div class="w-full mb-4">
+                <div id="tourny-players-list" class="space-y-3 relative pr-2 pb-1">
                     <div class="flex items-center bg-[#111] p-2 rounded-lg border border-[#333] player-row relative">
                         <span class="player-num text-gray-500 font-bold px-2 w-8">#1</span>
                         <input type="text" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER 1" autocomplete="off" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600">
@@ -46,8 +58,8 @@
                 </button>
             </div>
 
-            <!-- Pinned Bottom Buttons -->
-            <div class="mt-4 shrink-0">
+            <!-- Bottom Buttons -->
+            <div class="mt-4">
 
                 <!-- Dynamic Payment Button -->
                 <button id="btn-use-ticket" style="display: none;"
@@ -60,16 +72,27 @@
                     <span id="ticket-badge" class="font-bold text-xs bg-black text-[#D4AF37] px-2 py-1 rounded" style="font-family: 'Subsoccer', sans-serif;"></span>
                 </button>
 
-                <button id="btn-checkout"
-                    class="w-full bg-white text-black font-bold py-4 rounded-xl flex justify-between items-center px-6 hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-                    onclick="startDynamicCheckout()">
-                    <div class="flex items-center gap-2">
-                        <i id="btn-checkout-icon" class="fab fa-apple text-xl"></i>
-                        <span id="btn-checkout-text" class="tracking-widest uppercase text-sm">Pay & Start</span>
+                <!-- STRIPE SECURE PAYMENT UI -->
+                <div class="bg-[#111] p-3 rounded-lg border border-[#333] mb-4">
+                    <button id="demo-apple-pay-btn" style="display: none;" class="w-full bg-black text-white hover:bg-gray-900 border border-gray-800 rounded-lg h-12 justify-center items-center mb-2 transition transform active:scale-95" onclick="demoFakeApplePay()">
+                        <i class="fab fa-apple text-2xl mr-1"></i> <span class="font-bold text-lg" style="font-family: -apple-system, sans-serif;">Pay</span>
+                    </button>
+                    <div id="stripe-express-checkout-element"></div>
+                    
+                    <button id="btn-toggle-card" onclick="document.getElementById('card-element-container').classList.toggle('hidden');" class="w-full text-center text-xs text-gray-500 py-3 mt-2 hover:text-white transition-colors">
+                        <i class="fas fa-credit-card mr-1"></i> Pay <span id="dynamic-price" class="font-bold">2.00 €</span> with physical card
+                    </button>
+
+                    <div id="card-element-container" class="hidden mt-2 pt-3 border-t border-[#333]">
+                        <div id="stripe-payment-element"></div>
+                        <button id="btn-checkout"
+                            class="w-full bg-white text-black font-bold py-3 mt-4 rounded-lg flex justify-center items-center px-6 hover:bg-gray-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                            onclick="startDynamicCheckout()">
+                            <i id="btn-checkout-icon" class="fas fa-lock mr-2 text-gray-500"></i>
+                            <span id="btn-checkout-text" class="tracking-widest uppercase text-sm">Submit Payment</span>
+                        </button>
                     </div>
-                    <span id="dynamic-price" class="font-bold text-2xl tracking-wider"
-                        style="font-family: 'Subsoccer', sans-serif;">2.00 €</span>
-                </button>
+                </div>
                 <div id="powered-by-stripe" class="text-center text-[10px] text-gray-600 mt-3 font-mono flex justify-center items-center gap-1 uppercase tracking-wider mb-2">
                     <i class="fas fa-lock text-[8px]"></i> Powered by Stripe
                 </div>

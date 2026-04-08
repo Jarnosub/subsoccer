@@ -1,6 +1,9 @@
 import { arcadeSocket } from './socket-service.js';
 import { BracketEngine } from './bracket-engine.js';
 
+const stripe = Stripe('pk_test_51TJa0WKDl6NoIsIlxgo7hCrNuLG2HoMT7R7ICsYBvQgbsNZFV6un3q9pA7UvnnsZsbgmj4kiIL22iZoybnedfvIY00FDkVxh9X');
+let stripeElements = null;
+
 const tableId = 'table-04';
 arcadeSocket.connect();
 
@@ -181,10 +184,88 @@ window.updateDynamicPrice = function () {
         if (poweredByStripe) poweredByStripe.style.display = 'flex';
         if (promoCode) promoCode.style.display = 'block';
         if (step1) step1.innerText = "1. SELECT PLAYERS & PAY";
+        
+        // Initialize Stripe Embedded Elements when price is active
+        initStripeElements();
     }
 };
 
-window.startDynamicCheckout = function () {
+async function initStripeElements() {
+    const container = document.getElementById('stripe-payment-element');
+    if (!container || stripeElements) return;
+
+    try {
+        // Use relative URL so it works reliably locally and through LocalTunnel (HTTPS)
+        const response = await fetch(`/create-payment-intent`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items: [{ id: "subsoccer-arcade" }] }),
+        });
+        const { clientSecret } = await response.json();
+
+        stripeElements = stripe.elements({ 
+            clientSecret, 
+            appearance: {
+                theme: 'night',
+                variables: {
+                    fontFamily: 'Inter, sans-serif',
+                    colorPrimary: '#D4AF37',
+                    colorBackground: '#111111',
+                    colorText: '#ffffff',
+                    colorDanger: '#E30613',
+                }
+            } 
+        });
+
+        const paymentElement = stripeElements.create("payment", { layout: "tabs" });
+        paymentElement.mount("#stripe-payment-element");
+
+        // Add Express Checkout element (Apple Pay / Google Pay directly)
+        const expressCheckoutElement = stripeElements.create('expressCheckout', {
+            paymentMethods: {
+                link: 'never' // Disable bright green Link explicitly
+            }
+        });
+        expressCheckoutElement.mount('#stripe-express-checkout-element');
+        
+        // Show DEMO APPLE PAY if we are on local network HTTP without SSL (since real won't load)
+        if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+            document.getElementById('demo-apple-pay-btn').style.display = 'flex';
+        }
+
+        expressCheckoutElement.on('confirm', async (event) => {
+            const { error: submitError } = await stripeElements.submit();
+            if (submitError) return;
+
+            const returnUrlParams = new URLSearchParams({ payment: 'success', mode: 'tournament' });
+            const { error } = await stripe.confirmPayment({
+                elements: stripeElements,
+                clientSecret,
+                confirmParams: {
+                    return_url: `${window.location.protocol}//${window.location.host}/lounge-remote.html?${returnUrlParams.toString()}`,
+                },
+            });
+            if (error) console.error(error);
+        });
+    } catch(e) {
+        console.error("Failed to load Stripe Elements", e);
+    }
+}
+
+window.demoFakeApplePay = function() {
+    const inputs = document.querySelectorAll('.player-input');
+    const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
+    localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
+
+    const btn = document.getElementById('demo-apple-pay-btn');
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-2xl"></i>';
+    setTimeout(() => {
+        const returnUrlParams = new URLSearchParams({ payment: 'success', mode: 'tournament' });
+        window.location.href = `lounge-remote.html?${returnUrlParams.toString()}`;
+    }, 1200);
+};
+
+window.startDynamicCheckout = async function () {
     const inputs = document.querySelectorAll('.player-input');
     const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
     localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
@@ -193,11 +274,45 @@ window.startDynamicCheckout = function () {
     btn.style.opacity = '0.5';
     btn.innerHTML = '<span><i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...</span>';
 
-    // In Free Play mode, we bypass the payment delay entirely!
-    const delay = window.tableConfig?.freePlay ? 100 : 1500;
-    setTimeout(() => {
-        window.location.href = window.location.pathname + "?payment=success&mode=tournament";
-    }, delay);
+    // In Free Play mode, bypass payment entirely.
+    if (window.tableConfig?.freePlay) {
+        setTimeout(() => {
+            window.location.href = window.location.pathname + "?payment=success&mode=tournament";
+        }, 100);
+    } else {
+        if (!stripeElements) {
+            btn.innerHTML = '<span><i class="fas fa-exclamation-triangle mr-2"></i> NETWORK ERROR</span>';
+            btn.style.backgroundColor = '#E30613';
+            btn.style.color = 'white';
+            return;
+        }
+
+        const returnUrlParams = new URLSearchParams({ payment: 'success', mode: 'tournament' });
+        const { error } = await stripe.confirmPayment({
+            elements: stripeElements,
+            confirmParams: {
+                return_url: `${window.location.protocol}//${window.location.host}/lounge-remote.html?${returnUrlParams.toString()}`,
+            },
+        });
+
+        if (error) {
+            btn.style.opacity = '1';
+            btn.innerHTML = `<span><i class="fas fa-exclamation-triangle mr-2"></i> ${error.message}</span>`;
+            btn.style.backgroundColor = '#E30613';
+            btn.style.color = 'white';
+            
+            setTimeout(() => {
+                btn.style.backgroundColor = 'white';
+                btn.style.color = 'black';
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i id="btn-checkout-icon" class="fab fa-apple text-xl"></i>
+                        <span id="btn-checkout-text" class="tracking-widest uppercase text-sm">Pay & Start</span>
+                    </div>
+                `;
+            }, 3000);
+        }
+    }
 };
 
 
