@@ -125,6 +125,26 @@ arcadeSocket.on('tourny_state_recovery', (payload) => {
     nextTournyMatch();
 });
 
+arcadeSocket.on('active_match_recovery', (payload) => {
+    // If the TV is currently in the middle of a match when we reconnect, jump straight to the controller!
+    gameState.isTournament = payload.isTournament;
+    gameState.p1Name = payload.p1Name;
+    gameState.p2Name = payload.p2Name;
+    gameState.p1Score = payload.p1Score;
+    gameState.p2Score = payload.p2Score;
+
+    document.getElementById('lbl-p1').innerText = gameState.p1Name;
+    document.getElementById('lbl-p2').innerText = gameState.p2Name;
+    document.getElementById('lbl-score-p1').innerText = gameState.p1Score;
+    document.getElementById('lbl-score-p2').innerText = gameState.p2Score;
+
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('s-controller').classList.add('active');
+    
+    // Resume a local timer instance just in case
+    startRemoteTimer();
+});
+
 let localEngine = null;
 let pMatchProcessing = false;
 let remoteTimerInterval;

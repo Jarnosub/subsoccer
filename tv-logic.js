@@ -619,11 +619,26 @@ arcadeSocket.on('tourny_state', (payload) => {
 });
 
 arcadeSocket.on('ping_reconnect', () => {
-    if (window.tvEngine && window.tvEngine.isActive) {
+    // If we are currently IN THE MIDDLE of a match, recover the controller!
+    if (L.game.style.display !== 'none' || L.victory.style.display !== 'none') {
+        const p1Score = parseInt(document.getElementById('game-p1-score').innerText) || 0;
+        const p2Score = parseInt(document.getElementById('game-p2-score').innerText) || 0;
+        const p1Name = document.getElementById('game-p1-name').innerText || "PLAYER 1";
+        const p2Name = document.getElementById('game-p2-name').innerText || "PLAYER 2";
+
+        arcadeSocket.send('active_match_recovery', {
+            p1Score, p2Score, p1Name, p2Name,
+            isTournament: !!window.tvEngine
+        });
+    } else if (window.tvEngine && window.tvEngine.isActive) {
+        // If we are just viewing the tournament bracket, recover the bracket!
         arcadeSocket.send('tourny_state_recovery', {
             players: window.tvEngine.participants,
             matches: window.tvEngine.rounds.flat()
         });
+    } else if (L.sessionLobby.style.display !== 'none') {
+        // If we are scanning for players... tell the remote to just reload?
+        // It's technically covered by ?mode=tournament
     }
 });
 
