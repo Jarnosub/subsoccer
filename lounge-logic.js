@@ -567,8 +567,13 @@ function nextTournyMatch() {
         
         // Reload after a very brief delay to wipe state and let them buy a new game
         setTimeout(() => {
-            window.location.reload(true);
-        }, 5000);
+            // Signal the Hardware Daemon to turn off the table power
+            arcadeSocket.send('arcade_idle', { reason: 'tournament_over' });
+            
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 1000);
+        }, 8000);
         return;
     }
 
