@@ -741,6 +741,11 @@ window.useFreeTicket = function() {
     tickets--;
     localStorage.setItem('freeplay_tickets', tickets.toString());
     
+    // Save current players
+    const inputs = document.querySelectorAll('.player-input');
+    const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
+    localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
+    
     // Simulate successful payment bypassing Shelly
     const startBtn = document.getElementById('btn-checkout');
     startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REDEEMING TICKET...';
@@ -757,6 +762,11 @@ window.useFreeTicket = function() {
 
 window.useFreeTicketCode = function(code) {
     if (!code) return;
+    
+    // Save current players
+    const inputs = document.querySelectorAll('.player-input');
+    const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
+    localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
     
     // Simulate successful payment bypassing Shelly using a direct code
     const startBtn = document.getElementById('btn-checkout');
