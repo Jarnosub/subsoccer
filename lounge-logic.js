@@ -305,9 +305,30 @@ window.startDynamicCheckout = async function () {
             return;
         }
 
+        const { error: submitError } = await stripeElements.submit();
+        if (submitError) {
+            btn.style.opacity = '1';
+            btn.innerHTML = `<span><i class="fas fa-exclamation-triangle mr-2"></i> ${submitError.message}</span>`;
+            btn.style.backgroundColor = '#E30613';
+            btn.style.color = 'white';
+            return;
+        }
+
+        // Fetch the backend to lock in the server-side PaymentIntent with dynamic amount
+        const response = await fetch(`/create-payment-intent`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                items: [{ id: "subsoccer-arcade" }],
+                customAmount: window.currentPriceCents || 200 
+            }),
+        });
+        const { clientSecret } = await response.json();
+
         const returnUrlParams = new URLSearchParams({ payment: 'success', mode: 'tournament' });
         const { error } = await stripe.confirmPayment({
             elements: stripeElements,
+            clientSecret,
             confirmParams: {
                 return_url: `${window.location.protocol}//${window.location.host}/lounge-remote.html?${returnUrlParams.toString()}`,
             },
