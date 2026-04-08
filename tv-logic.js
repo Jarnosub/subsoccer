@@ -241,6 +241,9 @@ function resetSystem() {
             el.getAnimations().forEach(anim => anim.cancel());
         }
     });
+    
+    const reconContainer = document.getElementById('reconnect-qr-container');
+    if (reconContainer) reconContainer.style.display = 'none';
 }
 
 // --- BOOTSTRAP ---
@@ -427,6 +430,10 @@ arcadeSocket.on('lobby_opened', () => {
     // Sync remote device with the TV's state as the source of truth for the demo
     arcadeSocket.send('update_table_config', { matchTime: remainingSeconds });
     document.getElementById('dynamic-qr').classList.add('scale-[0.8]', 'opacity-20');
+    
+    // Show reconnect QR when lobby connects
+    const reconContainer = document.getElementById('reconnect-qr-container');
+    if (reconContainer) reconContainer.style.display = 'flex';
     
     // Only switch to sessionLobby if we are still on the main QR screen. 
     // If the intro video is already playing (post-payment), do not interrupt it!
