@@ -179,8 +179,8 @@ window.updateDynamicPrice = function () {
         if (promoCode) promoCode.style.display = 'none';
         if (step1) step1.innerText = "1. SELECT PLAYERS";
     } else {
-        if (btnIcon) btnIcon.className = "fab fa-apple text-xl";
-        if (btnText) btnText.innerText = "PAY & START";
+        if (btnIcon) btnIcon.className = "fas fa-lock text-xl";
+        if (btnText) btnText.innerText = "SUBMIT PAYMENT";
         if (poweredByStripe) poweredByStripe.style.display = 'flex';
         if (promoCode) promoCode.style.display = 'block';
         if (step1) step1.innerText = "1. SELECT PLAYERS & PAY";
