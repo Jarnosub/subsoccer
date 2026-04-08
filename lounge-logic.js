@@ -156,7 +156,9 @@ window.updateDynamicPrice = function () {
         price = 0.0;
     }
 
-    document.getElementById('dynamic-price').innerText = price === 0 ? "FREE" : price.toFixed(2) + " €";
+    const priceString = price === 0 ? "FREE" : price.toFixed(2) + " €";
+    document.querySelectorAll('.dynamic-price-display').forEach(el => el.innerText = priceString);
+
 
     // Save for Stripe Deferred Intents
     window.currentPriceCents = Math.round(price * 100);

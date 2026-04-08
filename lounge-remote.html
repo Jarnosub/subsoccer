@@ -73,14 +73,18 @@
                 </button>
 
                 <!-- STRIPE SECURE PAYMENT UI -->
-                <div class="bg-[#111] p-3 rounded-lg border border-[#333] mb-4">
+                <div class="flex justify-between items-center bg-[#1a1a1a] p-3 rounded-lg border border-[#333] border-b-0 rounded-b-none">
+                    <span class="text-gray-400 text-xs font-bold uppercase tracking-widest">Total to Pay</span>
+                    <span id="dynamic-price-large" class="text-white text-xl font-black dynamic-price-display">2.00 €</span>
+                </div>
+                <div class="bg-[#111] p-3 rounded-lg border border-[#333] rounded-t-none mb-4">
                     <button id="demo-apple-pay-btn" style="display: none;" class="w-full bg-black text-white hover:bg-gray-900 border border-gray-800 rounded-lg h-12 justify-center items-center mb-2 transition transform active:scale-95" onclick="demoFakeApplePay()">
                         <i class="fab fa-apple text-2xl mr-1"></i> <span class="font-bold text-lg" style="font-family: -apple-system, sans-serif;">Pay</span>
                     </button>
                     <div id="stripe-express-checkout-element"></div>
                     
                     <button id="btn-toggle-card" onclick="document.getElementById('card-element-container').classList.toggle('hidden');" class="w-full text-center text-xs text-gray-500 py-3 mt-2 hover:text-white transition-colors">
-                        <i class="fas fa-credit-card mr-1"></i> Pay <span id="dynamic-price" class="font-bold">2.00 €</span> with physical card
+                        <i class="fas fa-credit-card mr-1"></i> Use physical card instead (<span class="dynamic-price-display">2.00 €</span>)
                     </button>
 
                     <div id="card-element-container" class="hidden mt-2 pt-3 border-t border-[#333]">
