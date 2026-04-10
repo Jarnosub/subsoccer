@@ -35,11 +35,71 @@ body.remote-mode { background-color: #050505; font-family: 'Resolve', sans-serif
 
 #layer-lobby { z-index: 10; background-color: transparent; }
 #layer-game { z-index: 20; background: #050505; }
-.score-box { font-family: 'Subsoccer', 'Inter', sans-serif; font-size: 35vh; font-weight: 900; line-height: 1; text-shadow: 0 10px 40px rgba(255,255,255,0.4); margin-bottom: 50px; }
-.player-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 50vw; height: 100vh; position: relative; }
-.p1-bg { background-color: #12222d; border-right: 2px solid #000; }
-.p2-bg { background-color: #b70000; }
-.player-name { font-size: 4rem; color: #fff; letter-spacing: 5px; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+/* Scoreboard - Split screen (Copied from Instant Play) */
+.scoreboard {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+.player-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.player-left {
+    background: linear-gradient(135deg, #243647 0%, #121e2b 100%); /* Deep Petrol Blue */
+    border-right: 2px solid #111;
+}
+.player-right {
+    background: linear-gradient(135deg, var(--subsoccer-red) 0%, #900000 100%); /* Subsoccer Red */
+}
+.player-label {
+    font-family: 'Subsoccer', sans-serif;
+    font-size: 3.5rem;
+    color: #ffffff;
+    position: absolute;
+    top: 130px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+.score {
+    font-family: 'Subsoccer', sans-serif;
+    font-size: clamp(10rem, 40vh, 25rem);
+    color: #ffffff;
+    text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+    line-height: 1;
+    margin-top: clamp(80px, 15vh, 150px);
+}
+.goals-visual {
+    font-size: clamp(2rem, 5vh, 4rem);
+    margin-top: clamp(8px, 1.5vh, 16px);
+    letter-spacing: clamp(10px, 2vw, 20px);
+    color: white;
+}
+.center-divider {
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.5), transparent);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.goal-flash {
+    animation: goalFlash 0.5s ease-in-out;
+}
+@keyframes goalFlash {
+    0% { background: var(--subsoccer-red); transform: scale(1); }
+    50% { background: #ffffff; transform: scale(1.02); }
+    100% { background: var(--subsoccer-red); transform: scale(1); }
+}
 
 #layer-victory { background: radial-gradient(circle at 50% 50%, #2a2a4e 0%, #050510 100%); z-index: 30; }
 .v-anim { opacity: 0; } /* Baseline opacity for WAAPI */

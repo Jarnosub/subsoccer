@@ -198,18 +198,56 @@ window.updateDynamicPrice = function () {
 
     if (window.tableConfig?.freePlay) {
         if (subEl) subEl.innerText = "Add players to begin. " + subtitle;
-        if (btnIcon) btnIcon.className = "fas fa-play text-xl";
+        if (btnIcon) btnIcon.className = "fas fa-play text-xl text-white mr-2";
         if (btnText) btnText.innerText = "START MATCH";
         if (poweredByStripe) poweredByStripe.style.display = 'none';
         if (promoCode) promoCode.style.display = 'none';
         if (step1) step1.innerText = "1. SELECT PLAYERS";
+
+        document.getElementById('stripe-express-checkout-element').style.display = 'none';
+        document.getElementById('btn-toggle-card').style.display = 'none';
+        
+        const cardContainer = document.getElementById('card-element-container');
+        if (cardContainer) {
+            cardContainer.classList.remove('hidden');
+            cardContainer.classList.remove('border-t');
+        }
+        const stripePaymentEl = document.getElementById('stripe-payment-element');
+        if (stripePaymentEl) stripePaymentEl.style.display = 'none';
+
+        const checkoutBtn = document.getElementById('btn-checkout');
+        if (checkoutBtn) {
+            checkoutBtn.className = "w-full bg-black text-white font-bold py-3 mt-2 rounded-lg flex justify-center items-center px-6 hover:bg-gray-900 border border-gray-800 transition-all";
+        }
+        
+        const demoBtn = document.getElementById('demo-apple-pay-btn');
+        if (demoBtn) demoBtn.style.display = 'none';
     } else {
-        if (btnIcon) btnIcon.className = "fas fa-lock text-xl";
+        if (btnIcon) btnIcon.className = "fas fa-lock mr-2 text-gray-500";
         if (btnText) btnText.innerText = "SUBMIT PAYMENT";
         if (poweredByStripe) poweredByStripe.style.display = 'flex';
         if (promoCode) promoCode.style.display = 'block';
         if (step1) step1.innerText = "1. SELECT PLAYERS & PAY";
+
+        document.getElementById('stripe-express-checkout-element').style.display = 'block';
+        document.getElementById('btn-toggle-card').style.display = 'block';
+        const cardContainer = document.getElementById('card-element-container');
+        if (cardContainer) {
+            cardContainer.classList.add('border-t');
+        }
+        const stripePaymentEl = document.getElementById('stripe-payment-element');
+        if (stripePaymentEl) stripePaymentEl.style.display = 'block';
+
+        const checkoutBtn = document.getElementById('btn-checkout');
+        if (checkoutBtn) {
+            checkoutBtn.className = "w-full bg-white text-black font-bold py-3 mt-4 rounded-lg flex justify-center items-center px-6 hover:bg-gray-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]";
+        }
         
+        if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+            const demoBtn = document.getElementById('demo-apple-pay-btn');
+            if (demoBtn) demoBtn.style.display = 'flex';
+        }
+
         // Initialize or update Stripe Elements
         if (!stripeElements) {
             initStripeElements();

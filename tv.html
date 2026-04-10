@@ -32,6 +32,20 @@
     <video autoplay loop muted playsinline class="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-60">
         <source src="bg-video.mp4" type="video/mp4">
     </video>
+    
+    <!-- ERROR DISPLAY LAYER -->
+    <div id="debug-error" style="display:none; position:fixed; z-index:9999; top:10px; left:10px; background:red; color:white; padding:20px; font-size:24px; pointer-events:none;"></div>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            const el = document.getElementById('debug-error');
+            if(el) { el.style.display = 'block'; el.innerText = "JS Error: " + msg + " at " + line + ":" + col; }
+        };
+        window.addEventListener('unhandledrejection', function(event) {
+            const el = document.getElementById('debug-error');
+            if(el) { el.style.display = 'block'; el.innerText = "Async Error: " + (event.reason ? event.reason.message : "Promise rejected"); }
+        });
+    </script>
+
     <!-- Dark Vignette Overlay for text readability -->
     <div
         class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,_#000_100%)] z-0 pointer-events-none">
@@ -53,16 +67,17 @@
     <!-- LAYER 1: LOBBY -->
     <div id="layer-lobby" class="layer" style="display: flex;">
         <img src="subsoccer_logo.svg" class="h-28 mb-12 mt-0 relative z-20">
-        <div class="text-white text-[36px] font-bold mb-12 tracking-[2px] relative z-20 uppercase"
-            style="font-family: 'Resolve', sans-serif; text-shadow: 0 4px 15px rgba(0,0,0,1);">SCAN TO PLAY</div>
+        <div class="text-white text-[48px] mb-8 tracking-[6px] relative z-20 uppercase font-sans drop-shadow-2xl"
+            style="font-family: 'Subsoccer', sans-serif; text-shadow: 0 4px 25px rgba(0,0,0,1);">SCAN TO PLAY</div>
         <img id="dynamic-qr" src=""
-            class="w-80 h-80 border-[6px] border-white rounded-2xl mb-4 shadow-[0_10px_40px_rgba(255,255,255,0.15)] relative z-20">
+            class="w-80 h-80 border-[6px] border-[#111] rounded-2xl mb-6 shadow-[0_10px_40px_rgba(255,255,255,0.15)] relative z-20">
         
-        <div class="flex flex-col items-center justify-center relative z-20 w-80 gap-1.5 mt-2">
-            <div id="tv-price-tag" class="text-white text-[25px] font-bold tracking-wide font-sans drop-shadow-lg flex items-center justify-center w-full gap-2 uppercase">
+        <div class="flex flex-col items-center justify-center relative z-20 w-80 mt-2">
+            <div id="tv-price-tag" class="text-white text-[32px] tracking-[4px] relative z-20 uppercase font-sans drop-shadow-2xl mb-1"
+                style="font-family: 'Subsoccer', sans-serif; text-shadow: 0 4px 15px rgba(0,0,0,0.8);">
                 GAMES FROM 2.00 €
             </div>
-            <div id="tv-payment-methods" class="flex items-center justify-center w-full gap-2 text-gray-300 text-[11px] tracking-[0.15em] uppercase font-bold font-sans drop-shadow-lg">
+            <div id="tv-payment-methods" class="flex items-center justify-center w-full gap-2 text-gray-400 text-[12px] tracking-[0.2em] uppercase font-bold font-sans drop-shadow-lg">
                 <i class="fab fa-apple text-xl"></i> Pay
                 <span class="w-1 h-1 bg-gray-500 rounded-full mx-1"></span>
                 PROMO CODES
@@ -92,10 +107,21 @@
             TOURNAMENT WAITING ROOM</h1>
         <p class="text-gray-400 mb-14 text-xl uppercase tracking-widest font-sans">Host is organizing the matches...</p>
 
-        <div class="flex items-center justify-center w-full max-w-4xl px-12">
-            <!-- Right: The Roster Grid -->
-            <div
-                class="flex-1 rounded-3xl p-8 min-h-[400px]">
+        <div class="flex items-start justify-center w-full max-w-6xl px-12 gap-16 mt-8">
+            
+            <!-- LEFT: JOIN QR CODE -->
+            <div class="flex flex-col items-center justify-center text-center p-8 bg-[#0a0a0ae6] rounded-3xl border border-[#222] shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md">
+                <div class="text-white text-3xl mb-2 tracking-[4px] uppercase" style="font-family: 'Subsoccer', sans-serif;">
+                    SCAN TO JOIN
+                </div>
+                <p class="text-gray-400 text-[11px] mb-6 max-w-[200px] uppercase tracking-widest font-sans leading-relaxed">
+                    Scan to jump in with your Pro Card
+                </p>
+                <img id="join-qr" src="" class="w-48 h-48 border-[4px] border-[#151515] rounded-xl shadow-[0_10px_30px_rgba(255,255,255,0.05)] bg-[#111]">
+            </div>
+
+            <!-- RIGHT: ROSTER GRID -->
+            <div class="flex-1 rounded-3xl bg-[#0a0a0a99] border border-[#ffffff11] p-8 min-h-[400px] backdrop-blur-md">
                 <div class="text-white font-bold mb-6 tracking-widest border-b border-[#ffffff33] pb-4 flex justify-between">
                     <span>REGISTERED PLAYERS</span>
                     <span id="registered-count" class="text-[#E30613]">0 / 16</span>
@@ -111,20 +137,19 @@
     </div>
 
     <!-- LAYER 2: ACTIVE GAME -->
-    <div id="layer-game" class="layer" style="flex-direction: row-reverse; padding: 40px; display: none;">
-        <div class="absolute bottom-[60px] left-[50%] translate-x-[-50%] bg-[#E30613] text-white px-8 py-3 text-4xl tracking-widest shadow-[0_4px_15px_rgba(0,0,0,0.6)] z-10 hidden"
-            id="subsoccer-logo">SUBSOCCER</div>
+    <div id="layer-game" class="layer" style="display: none;">
 
-        <div
-            class="w-full h-full flex rounded-[20px] overflow-hidden border-2 border-[#555] shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative">
-            <div class="player-panel p1-bg">
-                <div class="player-name" id="game-p1-name">PLAYER 1</div>
-                <div class="score-box text-white" id="game-p1-score">0</div>
+        <div class="scoreboard w-full h-full relative">
+            <div class="player-side player-left">
+                <div class="player-label" id="game-p1-name">PLAYER 1</div>
+                <div class="score" id="game-p1-score">0</div>
             </div>
+            
+            <div class="center-divider"></div>
 
-            <div class="player-panel p2-bg">
-                <div class="player-name" id="game-p2-name">PLAYER 2</div>
-                <div class="score-box text-white" id="game-p2-score">0</div>
+            <div class="player-side player-right">
+                <div class="player-label" id="game-p2-name">PLAYER 2</div>
+                <div class="score" id="game-p2-score">0</div>
             </div>
 
             <!-- THE BIG ARCADE CLOCK IN THE TOP CENTER -->
@@ -253,7 +278,9 @@
     </div>
 
     <!-- LAYER 5: TOURNAMENT BRACKET -->
-    <div id="layer-tournament" class="layer" style="background-color: rgba(0,0,0,0.6); z-index: 10;">
+    <div id="layer-tournament" class="layer" style="background-color: #050510; z-index: 10;">
+        <img src="subsoccer-teams.jpg" class="absolute top-0 left-0 w-full h-full object-cover opacity-40 ken-burns z-0 pointer-events-none" alt="Teams Background">
+        <div class="relative z-10 w-full flex flex-col items-center h-full">
         <style>
             /* JÄTTIMÄINEN TV-KOKO TURNASPUULLE */
             #bracket-tree {
@@ -354,6 +381,7 @@
             class="flex-1 w-full flex items-center justify-center pt-2 pb-8 overflow-hidden box-border">
             <!-- Tree rendered here via BracketEngine -->
         </div>
+        </div>
     </div>
 
     <!-- LAYER 6: EVENT LEADERBOARD (After Tournament) -->
@@ -381,7 +409,7 @@
         </div>
     </div>
 
-    <script type="module" src="tv-logic.js?v=10"></script>
+    <script type="module" src="tv-logic.js?v=14"></script>
 </body>
 
 </html>

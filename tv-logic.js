@@ -256,10 +256,13 @@ updateTimerUI();
 const hostName = window.location.hostname === 'localhost' ? '192.168.8.105' : window.location.hostname;
 const portStr = window.location.port ? `:${window.location.port}` : '';
 const remoteAppUrl = `${window.location.protocol}//${hostName}${portStr}/lounge-remote.html?v=19`;
-const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(remoteAppUrl)}`;
-const reconnectQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(remoteAppUrl + '?reconnect=true')}`;
+const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&color=ffffff&bgcolor=000000&margin=10&data=${encodeURIComponent(remoteAppUrl)}`;
+const reconnectQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=ffffff&bgcolor=000000&margin=8&data=${encodeURIComponent(remoteAppUrl + '&reconnect=true')}`;
+const joinQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=ffffff&bgcolor=0a0a0a&margin=10&data=${encodeURIComponent('https://subsoccer.pro/?page=arcade_join&tableId=' + tableId)}`;
+
 document.getElementById('dynamic-qr').src = qrUrl;
 document.getElementById('reconnect-qr').src = reconnectQrUrl;
+document.getElementById('join-qr').src = joinQrUrl;
 const introVid = document.getElementById('intro-video');
 
 function updateVideoOrientation() {
@@ -351,21 +354,20 @@ arcadeSocket.on('request_table_config', () => {
 });
 
 arcadeSocket.on('trigger_preparation_mode', () => {
-    console.log("[TV] Received trigger_preparation_mode! isComplete:", isComplete, "isTimerTicking:", isTimerTicking);
+    const isGameActive = L.game.style.display !== 'none';
+    console.log("[TV] Received trigger_preparation_mode! isGameActive:", isGameActive, "isTimerTicking:", isTimerTicking);
     // A remote control just accepted the instructions and is setting up the match!
     // We transition the TV from the idle video lobby to the "Get Ready" screen.
     // If a match is already ongoing or complete, we ignore this.
-    if (!isComplete && !isTimerTicking) {
-        console.log("[TV] Executing layer transition to layer-preparing...");
-        document.querySelectorAll('.layer').forEach(l => l.style.display = 'none');
-        document.getElementById('layer-preparing').style.display = 'flex';
+    if (!isGameActive && !isTimerTicking) {
+        console.log("[TV] Executing layer transition to sessionLobby...");
+        switchLayer('sessionLobby');
         
         // Auto-revert back to lobby if they never complete the setup (e.g. they abandoned their phone)
         setTimeout(() => {
-            if (document.getElementById('layer-preparing').style.display !== 'none') {
+            if (L.sessionLobby.style.display !== 'none') {
                 console.log("[TV] Preparation mode timed out, reverting to lobby.");
-                document.querySelectorAll('.layer').forEach(l => l.style.display = 'none');
-                document.getElementById('layer-lobby').style.display = 'flex';
+                switchLayer('lobby');
             }
         }, 120000); // 2 minutes timeout
     } else {
@@ -443,8 +445,45 @@ arcadeSocket.on('lobby_opened', () => {
 });
 
 arcadeSocket.on('state_update', (payload) => {
+    const oldP1 = parseInt(document.getElementById('game-p1-score').innerText) || 0;
+    const oldP2 = parseInt(document.getElementById('game-p2-score').innerText) || 0;
+
     document.getElementById('game-p1-score').innerText = payload.p1Score || 0;
     document.getElementById('game-p2-score').innerText = payload.p2Score || 0;
+
+    const newP1 = parseInt(payload.p1Score) || 0;
+    const newP2 = parseInt(payload.p2Score) || 0;
+
+    let scorer = payload.lastScorer || 0;
+    if (!scorer) {
+        if (newP1 > oldP1) scorer = 1;
+        if (newP2 > oldP2) scorer = 2;
+    }
+
+    if (scorer === 1 || scorer === 2) {
+        const sideEl = document.querySelector(scorer === 1 ? '.player-left' : '.player-right');
+        if (sideEl) {
+            sideEl.classList.remove('goal-flash');
+            void sideEl.offsetWidth; // trigger reflow
+            sideEl.classList.add('goal-flash');
+        }
+
+        const textEl = document.getElementById(scorer === 1 ? 'game-p1-score' : 'game-p2-score');
+        if (textEl) {
+            textEl.animate([
+                { transform: 'scale(1) translateY(0)', color: 'white', textShadow: '0 0 40px rgba(255, 255, 255, 0.2)' },
+                { transform: 'scale(1.5) translateY(-20px)', color: '#FFD700', textShadow: '0 0 60px rgba(255,215,0,0.8)' },
+                { transform: 'scale(1) translateY(0)', color: 'white', textShadow: '0 0 40px rgba(255, 255, 255, 0.2)' }
+            ], { duration: 1500, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1.2)' });
+        }
+        
+        try {
+            const audioHorn = new Audio('/goal_horn.mp3');
+            const audioSwoosh = new Audio('/swoosh.mp3');
+            audioHorn.play().catch(()=>{});
+            setTimeout(() => { audioSwoosh.play().catch(()=>{}); }, 1000);
+        } catch (e) {}
+    }
 });
 
 arcadeSocket.on('end_game', (payload) => {
