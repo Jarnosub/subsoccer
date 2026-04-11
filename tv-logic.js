@@ -258,11 +258,9 @@ const portStr = window.location.port ? `:${window.location.port}` : '';
 const remoteAppUrl = `${window.location.protocol}//${hostName}${portStr}/lounge-remote.html?v=19`;
 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&color=ffffff&bgcolor=000000&margin=10&data=${encodeURIComponent(remoteAppUrl)}`;
 const reconnectQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=ffffff&bgcolor=000000&margin=8&data=${encodeURIComponent(remoteAppUrl + '&reconnect=true')}`;
-const joinQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=ffffff&bgcolor=0a0a0a&margin=10&data=${encodeURIComponent('https://subsoccer.pro/?page=arcade_join&tableId=' + tableId)}`;
 
 document.getElementById('dynamic-qr').src = qrUrl;
 document.getElementById('reconnect-qr').src = reconnectQrUrl;
-document.getElementById('join-qr').src = joinQrUrl;
 const introVid = document.getElementById('intro-video');
 
 function updateVideoOrientation() {

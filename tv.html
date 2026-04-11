@@ -70,7 +70,7 @@
         <div class="text-white text-[48px] mb-8 tracking-[6px] relative z-20 uppercase font-sans drop-shadow-2xl"
             style="font-family: 'Subsoccer', sans-serif; text-shadow: 0 4px 25px rgba(0,0,0,1);">SCAN TO PLAY</div>
         <img id="dynamic-qr" src=""
-            class="w-80 h-80 border-[6px] border-[#111] rounded-2xl mb-6 shadow-[0_10px_40px_rgba(255,255,255,0.15)] relative z-20">
+            class="w-80 h-80 border-[6px] border-[#111] rounded-2xl mb-6 shadow-[0_10px_40px_rgba(255,255,255,0.15)] relative z-20 pointer-events-none select-none">
         
         <div class="flex flex-col items-center justify-center relative z-20 w-80 mt-2">
             <div id="tv-price-tag" class="text-white text-[32px] tracking-[4px] relative z-20 uppercase font-sans drop-shadow-2xl mb-1"
@@ -107,20 +107,8 @@
             TOURNAMENT WAITING ROOM</h1>
         <p class="text-gray-400 mb-14 text-xl uppercase tracking-widest font-sans">Host is organizing the matches...</p>
 
-        <div class="flex items-start justify-center w-full max-w-6xl px-12 gap-16 mt-8">
-            
-            <!-- LEFT: JOIN QR CODE -->
-            <div class="flex flex-col items-center justify-center text-center p-8 bg-[#0a0a0ae6] rounded-3xl border border-[#222] shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md">
-                <div class="text-white text-3xl mb-2 tracking-[4px] uppercase" style="font-family: 'Subsoccer', sans-serif;">
-                    SCAN TO JOIN
-                </div>
-                <p class="text-gray-400 text-[11px] mb-6 max-w-[200px] uppercase tracking-widest font-sans leading-relaxed">
-                    Scan to jump in with your Pro Card
-                </p>
-                <img id="join-qr" src="" class="w-48 h-48 border-[4px] border-[#151515] rounded-xl shadow-[0_10px_30px_rgba(255,255,255,0.05)] bg-[#111]">
-            </div>
-
-            <!-- RIGHT: ROSTER GRID -->
+        <div class="flex items-center justify-center w-full max-w-4xl px-12">
+            <!-- Right / Center: The Roster Grid -->
             <div class="flex-1 rounded-3xl bg-[#0a0a0a99] border border-[#ffffff11] p-8 min-h-[400px] backdrop-blur-md">
                 <div class="text-white font-bold mb-6 tracking-widest border-b border-[#ffffff33] pb-4 flex justify-between">
                     <span>REGISTERED PLAYERS</span>
@@ -409,7 +397,7 @@
         </div>
     </div>
 
-    <script type="module" src="tv-logic.js?v=14"></script>
+    <script type="module" src="tv-logic.js?v=16"></script>
 </body>
 
 </html>
