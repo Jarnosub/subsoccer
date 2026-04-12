@@ -179,13 +179,15 @@ window.updateDynamicPrice = function () {
         subtitle = "Winner takes all";
     }
 
-    if (window.tableConfig?.freePlay) {
+    const savedPromo = localStorage.getItem('subsoccer_saved_promo');
+    const isFree = window.tableConfig?.freePlay || savedPromo;
+
+    if (isFree) {
         price = 0.0;
     }
 
     const priceString = price === 0 ? "FREE" : price.toFixed(2) + " €";
     document.querySelectorAll('.dynamic-price-display').forEach(el => el.innerText = priceString);
-
 
     // Save for Stripe Deferred Intents
     window.currentPriceCents = Math.round(price * 100);
@@ -203,10 +205,10 @@ window.updateDynamicPrice = function () {
     const promoCode = document.getElementById('promo-code-container');
     const step1 = document.getElementById('onboarding-step-1');
 
-    if (window.tableConfig?.freePlay) {
-        if (subEl) subEl.innerText = "Add players to begin. " + subtitle;
-        if (btnIcon) btnIcon.className = "fas fa-play text-xl text-white mr-2";
-        if (btnText) btnText.innerText = "START MATCH";
+    if (isFree) {
+        if (subEl) subEl.innerText = savedPromo ? "Gift Card Applied! Add players to begin." : "Add players to begin. " + subtitle;
+        if (btnIcon) btnIcon.className = "fas fa-ticket-alt text-xl text-black mr-2";
+        if (btnText) btnText.innerText = savedPromo ? "USE GIFT CARD" : "START MATCH";
         if (poweredByStripe) poweredByStripe.style.display = 'none';
         if (promoCode) promoCode.style.display = 'none';
         if (step1) step1.innerText = "1. SELECT PLAYERS";
@@ -356,6 +358,12 @@ window.startDynamicCheckout = async function () {
     const btn = document.getElementById('btn-checkout');
     btn.style.opacity = '0.5';
     btn.innerHTML = '<span><i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...</span>';
+
+    const savedPromo = localStorage.getItem('subsoccer_saved_promo');
+    if (savedPromo) {
+        window.useFreeTicketCode(savedPromo);
+        return;
+    }
 
     // In Free Play mode, bypass payment entirely.
     if (window.tableConfig?.freePlay) {
@@ -896,6 +904,9 @@ window.useFreeTicketCode = async function(code) {
                 })
                 .eq('id', voucherId);
         }
+
+        // Clear the saved promo from mobile wallet so it isn't used infinitely
+        localStorage.removeItem('subsoccer_saved_promo');
 
         // Save current players as we are starting the match
         const inputs = document.querySelectorAll('.player-input');
