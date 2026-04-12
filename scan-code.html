@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
 
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         @font-face {
             font-family: 'Subsoccer';
@@ -371,27 +372,25 @@
         // ============================================
         // BARCODE DETECTION (native API or fallback)
         // ============================================
+        let canvasElement = document.createElement("canvas");
+        let canvasContext = canvasElement.getContext("2d", { willReadFrequently: true });
+
         function initBarcodeDetection(video) {
             if ('BarcodeDetector' in window) {
                 barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-                detectLoop(video);
+                detectLoopNative(video);
             } else {
-                // Fallback: show status message
-                document.getElementById('scan-status').innerHTML = 
-                    '<i class="fas fa-exclamation-triangle" style="color: #D4AF37; margin-right: 4px;"></i> ' +
-                    'MANUAL SCAN — TAP SCREEN TO ENTER CODE';
-                document.querySelector('.scan-overlay').style.pointerEvents = 'auto';
-                document.querySelector('.scan-overlay').style.cursor = 'pointer';
-                document.querySelector('.scan-overlay').addEventListener('click', () => {
-                    const url = prompt('Paste the QR code URL:');
-                    if (url) handleQRResult(url);
-                });
+                // Fallback to jsQR for iOS Safari etc.
+                if (typeof jsQR !== 'undefined') {
+                    detectLoopFallback(video);
+                } else {
+                    document.getElementById('scan-status').innerHTML = 'SCANNER OFFLINE (Missing Library)';
+                }
             }
         }
 
-        async function detectLoop(video) {
+        async function detectLoopNative(video) {
             if (!scanning) return;
-
             try {
                 const barcodes = await barcodeDetector.detect(video);
                 if (barcodes.length > 0) {
@@ -403,11 +402,28 @@
                         return;
                     }
                 }
-            } catch(e) {
-                // Detection failed this frame, continue
-            }
+            } catch(e) {}
+            requestAnimationFrame(() => detectLoopNative(video));
+        }
 
-            requestAnimationFrame(() => detectLoop(video));
+        function detectLoopFallback(video) {
+            if (!scanning) return;
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                if (code) {
+                    scanning = false;
+                    if (navigator.vibrate) navigator.vibrate(100);
+                    handleQRResult(code.data);
+                    return;
+                }
+            }
+            requestAnimationFrame(() => detectLoopFallback(video));
         }
 
         // ============================================
@@ -464,7 +480,11 @@
             document.getElementById('scan-result').classList.remove('active');
             scanning = true;
             const video = document.getElementById('camera-video');
-            if (barcodeDetector) detectLoop(video);
+            if ('BarcodeDetector' in window) {
+                detectLoopNative(video);
+            } else {
+                detectLoopFallback(video);
+            }
         }
 
         // ============================================
