@@ -13,8 +13,8 @@ function addTvTimeout(fn, ms) {
 }
 
 // --- STATE & UTILS ---
-const urlParams = new URLSearchParams(window.location.search);
-const tableId = urlParams.get('game_id') || 'table-04';
+const globalUrlParams = new URLSearchParams(window.location.search);
+const tableId = globalUrlParams.get('game_id') || 'table-04';
 window.tableId = tableId; // Attach to window so it can be picked up globally
 
 let timerInterval;
