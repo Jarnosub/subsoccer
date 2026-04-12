@@ -18,6 +18,12 @@ export class SocketService {
         // Listen to all broadcast events for this channel
         this.channel.on('broadcast', { event: '*' }, (response) => {
             const eventName = response.event;
+            
+            // Dispatch a global event so the TV can reset its inactivity timers
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new Event('arcade_activity'));
+            }
+            
             if (this.listeners.has(eventName)) {
                 this.listeners.get(eventName)(response.payload);
             }

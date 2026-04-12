@@ -242,13 +242,33 @@ function resetSystem() {
         }
     });
     
-    const reconContainer = document.getElementById('reconnect-qr-container');
     if (reconContainer) reconContainer.style.display = 'none';
+}
+
+// --- GLOBAL INACTIVITY TIMEOUT ---
+let inactivityTimer = null;
+const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 minuuttia
+
+function resetInactivityTimeout() {
+    clearTimeout(inactivityTimer);
+    
+    // Only engage inactivity timer if we are NOT in the attract mode lobby
+    if (document.getElementById('layer-lobby').style.display === 'none') {
+        inactivityTimer = setTimeout(() => {
+            console.log("[TV] Inactivity timeout reached! Resetting system to prevent stuck UI.");
+            resetSystem();
+        }, INACTIVITY_LIMIT_MS);
+    }
 }
 
 // --- BOOTSTRAP ---
 window.tableConfig = JSON.parse(localStorage.getItem('subsoccer_table_config')) || {};
 applyTvFreePlayLogic();
+
+// Inactivity Listeners to prevent ghosting
+window.addEventListener('arcade_activity', resetInactivityTimeout);
+window.addEventListener('pointerdown', resetInactivityTimeout);
+window.addEventListener('keydown', resetInactivityTimeout);
 
 fetchGlobalRanking();
 updateTimerUI();

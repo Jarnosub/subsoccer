@@ -449,7 +449,8 @@ function startRemoteTimer() {
     matchRemaining = window.tableConfig?.matchTime || 90;
     
     // Announce match start so TV can sync its timer
-    arcadeSocket.send('timer_start', { duration: matchRemaining });
+    const duration = window.tableConfig?.matchTime || 90;
+    arcadeSocket.send('timer_start', { duration: duration });
 
     const remoteTimerEl = document.getElementById('remote-timer');
     if (window.tableConfig?.basicMode) {
@@ -459,17 +460,22 @@ function startRemoteTimer() {
     }
 
     remoteTimerEl.style.color = "";
+    const endTime = Date.now() + (duration * 1000);
+
     matchTimerInterval = setInterval(() => {
-        if (matchRemaining <= 0) {
+        const remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+        
+        if (remaining <= 0) {
             clearInterval(matchTimerInterval);
             handleMatchTimeUp();
             return;
         }
-        matchRemaining--;
-        const s = matchRemaining.toString().padStart(2, '0');
+        
+        const s = remaining.toString().padStart(2, '0');
         remoteTimerEl.innerHTML = `<i class="fas fa-clock mr-1"></i> ${s}`;
-        if (matchRemaining <= 10) remoteTimerEl.style.color = "var(--subsoccer-red)";
-    }, 1000);
+        if (remaining <= 10) remoteTimerEl.style.color = "var(--subsoccer-red)";
+        else remoteTimerEl.style.color = "";
+    }, 500); // Check faster to reduce 1 sec stutters returning from sleep
 }
 
 function handleMatchTimeUp(bypassLock = false) {
