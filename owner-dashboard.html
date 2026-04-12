@@ -316,6 +316,9 @@
             }
         }
 
+        window.fleetGames = [];
+        window.currentSelectedGameId = null;
+
         async function loadFleet() {
             const user = await requireAuth();
             
@@ -335,11 +338,11 @@
             }
 
             // In production this will filter by `owner_id`. For now, just show active tables.
-            const arcadeGames = games || [];
+            window.fleetGames = games || [];
 
             // Group by location (use a fallback if missing)
             const locations = {};
-            arcadeGames.forEach(g => {
+            window.fleetGames.forEach(g => {
                 let loc = g.location || 'Unassigned Spaces';
                 // Clean up string just for short demo display if it's too long
                 if (loc.length > 25) loc = loc.split(',')[0]; 
@@ -438,6 +441,28 @@
             document.getElementById('table-hw').innerText = 'HW ID: ' + (hardwareId === 'N/A' ? 'MAC_A8:F4:G1' : hardwareId);
             document.getElementById('table-loc').innerText = 'Location: ' + loc;
 
+            window.currentSelectedGameId = hardwareId;
+
+            // Load table config into the sliders
+            const gameObj = window.fleetGames.find(g => g.id === hardwareId);
+            if (gameObj && gameObj.metadata) {
+                const md = gameObj.metadata;
+                if (md.matchTime) {
+                    document.getElementById('setting-duration').value = md.matchTime;
+                    document.getElementById('dur-val').innerText = md.matchTime + 's';
+                }
+                if (md.basePrice) {
+                    document.getElementById('setting-price').value = md.basePrice;
+                    document.getElementById('price-val').innerText = '€' + parseFloat(md.basePrice).toFixed(2);
+                }
+                if (typeof md.freePlay !== 'undefined') {
+                    // Requires toggle update if we used a checkbox, assuming we do
+                }
+            }
+
+            // Fetch stats exclusively for this specific table
+            loadDashboardStats();
+
             // Update Direct Node Links dynamically based on selected table
             const refParam = encodeURIComponent(hardwareId !== 'N/A' && hardwareId ? hardwareId : name);
             document.getElementById('link-hub').href = `mobile-game.html?game_id=${refParam}`;
@@ -454,28 +479,30 @@
                 const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
                 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-                // Filter: only THIS table's games (is_verified_table = true = physical arcade table)
-                const tableFilter = { column: 'is_verified_table', value: true };
+                // Filter: specific table by exact UUID
+                let queryToday = _supabase.from('matches').select('id', { count: 'exact', head: true }).gte('created_at', todayStart);
+                let queryMonth = _supabase.from('matches').select('id', { count: 'exact', head: true }).gte('created_at', monthStart);
+                let queryTotal = _supabase.from('matches').select('id', { count: 'exact', head: true });
 
-                // 1. Today's games on THIS table
-                const { count: todayCount } = await _supabase
-                    .from('matches')
-                    .select('id', { count: 'exact', head: true })
-                    .eq(tableFilter.column, tableFilter.value)
-                    .gte('created_at', todayStart);
+                if (window.currentSelectedGameId && window.currentSelectedGameId !== 'N/A') {
+                    queryToday = queryToday.eq('game_id', window.currentSelectedGameId);
+                    queryMonth = queryMonth.eq('game_id', window.currentSelectedGameId);
+                    queryTotal = queryTotal.eq('game_id', window.currentSelectedGameId);
+                } else {
+                    // Fallback to all verified
+                    queryToday = queryToday.eq('is_verified_table', true);
+                    queryMonth = queryMonth.eq('is_verified_table', true);
+                    queryTotal = queryTotal.eq('is_verified_table', true);
+                }
 
-                // 2. This month's games on THIS table
-                const { count: monthCount } = await _supabase
-                    .from('matches')
-                    .select('id', { count: 'exact', head: true })
-                    .eq(tableFilter.column, tableFilter.value)
-                    .gte('created_at', monthStart);
+                // 1. Today's games
+                const { count: todayCount } = await queryToday;
+
+                // 2. This month's games
+                const { count: monthCount } = await queryMonth;
 
                 // 3. All-time games on THIS table
-                const { count: totalCount } = await _supabase
-                    .from('matches')
-                    .select('id', { count: 'exact', head: true })
-                    .eq(tableFilter.column, tableFilter.value);
+                const { count: totalCount } = await queryTotal;
 
                 // Revenue = €0 until Stripe is actually connected and processing payments
                 // When Stripe is live, this should query a payments/transactions table
@@ -486,9 +513,9 @@
                 const freeGamesToday = todayCount || 0;
 
                 // 4. Gift Cards (Vouchers) stats
-                const { data: giftCards } = await _supabase
-                    .from('gift_cards')
-                    .select('id, is_redeemed');
+                let queryGC = _supabase.from('gift_cards').select('id, is_redeemed');
+                // Could filter GC by redeemed_game_id if we have currentSelectedGameId, but for now we look at owner's total
+                const { data: giftCards } = await queryGC;
                 
                 let redeemedCardsCount = 0;
                 let totalCardsCount = 0;
@@ -594,13 +621,23 @@
                 tiebreaker: settings.tiebreaker,
                 updatedAt: new Date().toISOString()
             };
-            _supabase.from('games')
-                .update({ metadata: dbMetadata })
-                .eq('game_name', document.getElementById('table-title').innerText.replace(' Configuration', ''))
-                .then(({ error }) => {
-                    if (error) console.log('DB config save error:', error.message);
-                    else console.log('Config saved to DB');
-                });
+            
+            // Default to name match if no ID, otherwise use specific ID
+            let updateQuery = _supabase.from('games').update({ metadata: dbMetadata });
+            if (window.currentSelectedGameId && window.currentSelectedGameId !== 'N/A') {
+                updateQuery = updateQuery.eq('id', window.currentSelectedGameId);
+            } else {
+                updateQuery = updateQuery.eq('game_name', document.getElementById('table-title').innerText.replace(' Configuration', ''));
+            }
+            
+            updateQuery.then(({ error }) => {
+                if (error) console.log('DB config save error:', error.message);
+                else {
+                    console.log('Config saved to DB');
+                    // refresh games state array
+                    loadFleet(); 
+                }
+            });
 
             setTimeout(() => {
                 btn.innerHTML = '<i class="fas fa-check"></i> DEPLOYED';
