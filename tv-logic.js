@@ -253,9 +253,13 @@ applyTvFreePlayLogic();
 fetchGlobalRanking();
 updateTimerUI();
 
-const hostName = window.location.hostname === 'localhost' ? '192.168.8.105' : window.location.hostname;
-const portStr = window.location.port ? `:${window.location.port}` : '';
-const remoteAppUrl = `${window.location.protocol}//${hostName}${portStr}/lounge-remote.html?v=19`;
+// Determine QR target: if TV runs locally (Raspberry Pi), point QR to the public Netlify URL
+// so phones can always reach the remote controller over the internet.
+const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname) || /^192\.168\./.test(window.location.hostname) || /^10\./.test(window.location.hostname);
+const qrBaseUrl = isLocalHost 
+    ? 'https://subsoccer-sandbox.netlify.app' 
+    : `${window.location.protocol}//${window.location.host}`;
+const remoteAppUrl = `${qrBaseUrl}/lounge-remote.html?v=19`;
 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&color=ffffff&bgcolor=000000&margin=10&data=${encodeURIComponent(remoteAppUrl)}`;
 const reconnectQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=ffffff&bgcolor=000000&margin=8&data=${encodeURIComponent(remoteAppUrl + '&reconnect=true')}`;
 
