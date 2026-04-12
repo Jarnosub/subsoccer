@@ -7,7 +7,7 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const { items, customAmount } = JSON.parse(event.body || '{}');
+        const { items, customAmount, gameId } = JSON.parse(event.body || '{}');
 
         // Create a PaymentIntent with the dynamic amount requested by the arcade client
         const amountCents = customAmount ? parseInt(customAmount) : 200;
@@ -16,6 +16,9 @@ exports.handler = async (event, context) => {
             amount: amountCents,
             currency: 'eur',
             payment_method_types: ['card'],
+            metadata: {
+                game_id: gameId || 'unknown_table'
+            }
         });
 
         return {

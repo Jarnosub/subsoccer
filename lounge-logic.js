@@ -380,12 +380,16 @@ window.startDynamicCheckout = async function () {
         }
 
         // Fetch the backend to lock in the server-side PaymentIntent with dynamic amount
-        const response = await fetch(`/create-payment-intent`, {
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameIdParam = urlParams.get('game_id');
+        
+        const response = await fetch(`/.netlify/functions/create-payment-intent`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
                 items: [{ id: "subsoccer-arcade" }],
-                customAmount: window.currentPriceCents || 200 
+                customAmount: window.currentPriceCents || 200,
+                gameId: gameIdParam
             }),
         });
         const { clientSecret } = await response.json();
