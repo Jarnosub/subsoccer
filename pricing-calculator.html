@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer - B2B Revenue share Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0f1011; color: white; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+        }
+        input[type=range] { accent-color: #D4AF37; }
+        .currency::before { content: "€"; margin-right: 2px; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-10 flex flex-col items-center">
+    
+    <div class="w-full max-w-6xl flex justify-between items-end mb-8 relative">
+        <div>
+            <h1 class="text-3xl font-black text-white tracking-wide">B2B PRICING SCHEMATIC</h1>
+            <p class="text-gray-400 mt-1">Simulate revenue splits for a single Subsoccer Arcade node.</p>
+        </div>
+        <img src="subsoccer_logo.svg" alt="Subsoccer" class="w-24 md:w-32 absolute top-0 right-0 opacity-50">
+    </div>
+
+    <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Controls -->
+        <div class="lg:col-span-5 space-y-4">
+            
+            <div class="glass-panel p-6 rounded-2xl">
+                <h3 class="font-bold text-[#D4AF37] mb-4 border-b border-[#333] pb-2 uppercase tracking-tight text-sm"><i class="fas fa-sliders-h mr-2"></i> Player Volume</h3>
+                
+                <div class="mb-5">
+                    <div class="flex justify-between text-sm mb-2 font-bold"><label>Games Played <span class="text-gray-500 font-normal">/ day</span></label><span id="val-games">15</span></div>
+                    <input type="range" id="in-games" min="1" max="100" value="15" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div class="mb-5">
+                    <div class="flex justify-between text-sm mb-2 font-bold"><label>Base Game Price</label><span class="currency" id="val-price">2.00</span></div>
+                    <input type="range" id="in-price" min="0.5" max="5" step="0.5" value="2.0" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between text-sm mb-2 font-bold"><label>Direct Gift Cards Sold <span class="text-gray-500 font-normal">/ month (Cash to venue)</span></label><span id="val-gift">20</span></div>
+                    <input type="range" id="in-gift" min="0" max="100" value="20" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl border border-[#4a9eff] border-opacity-30">
+                <h3 class="font-bold text-[#4a9eff] mb-4 border-b border-[#333] pb-2 uppercase tracking-tight text-sm"><i class="fas fa-handshake mr-2"></i> Contract & Cut</h3>
+                
+                <div class="mb-5">
+                    <div class="flex justify-between text-sm mb-2 font-bold"><label>Monthly Base Fee (MRR)</label><span class="currency text-[#4a9eff]" id="val-mrr">49.00</span></div>
+                    <input type="range" id="in-mrr" min="0" max="299" step="10" value="49" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div class="mb-5">
+                    <div class="flex justify-between text-sm mb-2 font-bold"><label>Revenue Split Threshold <span class="text-xs text-gray-500 font-normal">(Free zone)</span></label><span class="currency" id="val-thres">100</span></div>
+                    <input type="range" id="in-thres" min="0" max="500" step="50" value="100" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between text-sm mb-2 font-bold"><label>Subsoccer Cut <span class="text-xs text-gray-500 font-normal">(Above threshold)</span></label><span id="val-cut">15%</span></div>
+                    <input type="range" id="in-cut" min="5" max="60" step="5" value="15" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl opacity-80">
+                <div class="flex justify-between text-sm mb-2 font-bold"><label><i class="fab fa-stripe mr-2 text-indigo-400"></i> Stripe Processor Fee</label><span id="val-stripe">1.5% + 0.25€</span></div>
+            </div>
+
+        </div>
+
+        <!-- Dashboard Outputs -->
+        <div class="lg:col-span-7 flex flex-col gap-4">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-[#111] border border-green-500/30 p-6 rounded-2xl flex flex-col justify-center items-center text-center">
+                    <div class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-1">Venue Monthly Profit</div>
+                    <div class="text-4xl lg:text-5xl font-black text-green-400 currency" id="out-venue-total">0.00</div>
+                    <div class="text-[10px] text-gray-500 mt-2">After all fees & subscriptions</div>
+                </div>
+
+                <div class="bg-[#111] border border-[#D4AF37]/30 p-6 rounded-2xl flex flex-col justify-center items-center text-center shadow-[0_0_30px_rgba(212,175,55,0.05)]">
+                    <div class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-1">Subsoccer Revenue</div>
+                    <div class="text-4xl lg:text-5xl font-black text-[#D4AF37] currency" id="out-sub-total">0.00</div>
+                    <div class="text-[10px] text-gray-500 mt-2">MRR + Profit Share combined</div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl flex-1 flex flex-col">
+                <h3 class="font-bold text-gray-400 mb-4 uppercase tracking-tight text-sm">Monthly Revenue Distribution</h3>
+                <div class="relative flex-1 min-h-[250px]">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Breakdown -->
+            <div class="glass-panel p-6 rounded-2xl grid grid-cols-3 gap-2 text-center text-sm border-t-4 border-t-[#222]">
+                <div>
+                    <div class="text-gray-500 text-[10px] uppercase font-bold">Gross Arcade Cash</div>
+                    <div class="font-bold text-white mt-1 currency" id="out-gross">0</div>
+                </div>
+                <div class="border-x border-[#333]">
+                    <div class="text-gray-500 text-[10px] uppercase font-bold">Stripe Fees Burned</div>
+                    <div class="font-bold text-indigo-400 mt-1 currency" id="out-stripe">0</div>
+                </div>
+                <div>
+                    <div class="text-gray-500 text-[10px] uppercase font-bold">Gift Card Direct Cash</div>
+                    <div class="font-bold text-green-500 mt-1 currency" id="out-gift-cash">0</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const inputs = ['games', 'price', 'gift', 'mrr', 'thres', 'cut'];
+        let chart = null;
+
+        function updateValues() {
+            // Read UI
+            const gamesPerDay = parseInt(document.getElementById('in-games').value);
+            const price = parseFloat(document.getElementById('in-price').value);
+            const giftCards = parseInt(document.getElementById('in-gift').value);
+            const mrr = parseFloat(document.getElementById('in-mrr').value);
+            const threshold = parseFloat(document.getElementById('in-thres').value);
+            const cutPercent = parseFloat(document.getElementById('in-cut').value) / 100;
+
+            // Update Labels
+            document.getElementById('val-games').innerText = gamesPerDay;
+            document.getElementById('val-price').innerText = price.toFixed(2);
+            document.getElementById('val-gift').innerText = giftCards;
+            document.getElementById('val-mrr').innerText = mrr.toFixed(2);
+            document.getElementById('val-thres').innerText = threshold.toFixed(0);
+            document.getElementById('val-cut').innerText = (cutPercent * 100) + '%';
+
+            // Constants
+            const daysInMonth = 30.4;
+            const stripePercent = 0.015;
+            const stripeFixed = 0.25;
+
+            // Calculations
+            const gamesPerMonth = Math.round(gamesPerDay * daysInMonth);
+            const grossArcade = gamesPerMonth * price;
+            const stripeFees = (grossArcade * stripePercent) + (gamesPerMonth * stripeFixed);
+            const netArcade = grossArcade - stripeFees;
+            const directGiftCash = giftCards * price; // Kept 100% by venue usually (Bypasses Stripe)
+
+            // Split logic for Subsoccer Share (only applies to arcade flow, not gift cards)
+            let subShareArcade = 0;
+            if (netArcade > threshold) {
+                subShareArcade = (netArcade - threshold) * cutPercent;
+            }
+
+            // Subsoccer Total (MRR software fee + Profit Share)
+            const subsoccerTotal = mrr + subShareArcade;
+
+            // Venue Arcared Money (Net from Stripe - Subsoccer Share - Subsoccer MRR)
+            const venueArcadeCash = netArcade - subShareArcade - mrr;
+            
+            // Venue Total (Arcade profit + 100% of physical Gift cards sold)
+            const venueTotal = venueArcadeCash + directGiftCash;
+
+            // Update Outputs
+            document.getElementById('out-venue-total').innerText = venueTotal.toFixed(2);
+            document.getElementById('out-sub-total').innerText = subsoccerTotal.toFixed(2);
+            
+            document.getElementById('out-gross').innerText = grossArcade.toFixed(2);
+            document.getElementById('out-stripe').innerText = stripeFees.toFixed(2);
+            document.getElementById('out-gift-cash').innerText = directGiftCash.toFixed(2);
+
+            updateChart(venueTotal, subsoccerTotal, stripeFees);
+        }
+
+        function updateChart(venue, sub, stripe) {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const data = [Math.max(0, venue), sub, stripe];
+            
+            if (chart) {
+                chart.data.datasets[0].data = data;
+                chart.update();
+                return;
+            }
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Venue Net', 'Subsoccer', 'Stripe'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(74, 222, 128, 0.8)', // Green
+                            'rgba(212, 175, 55, 0.8)', // Gold
+                            'rgba(99, 102, 241, 0.5)'  // Indigo
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+                        x: { grid: { display: false }, ticks: { color: '#ccc', font: { weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        // Listen to all inputs
+        inputs.forEach(id => {
+            document.getElementById('in-' + id).addEventListener('input', updateValues);
+        });
+
+        // Init
+        updateValues();
+    </script>
+</body>
+</html>
