@@ -24,32 +24,26 @@ const MAX_PLAYERS_LOGGED = 8;
             updateAddPlayerButton();
         }
 
-        // 2. Fetch Pricing from game_configs based on game_id
+        // 2. Fetch Pricing: Try to get config from the games table metadata
         const urlParams = new URLSearchParams(window.location.search);
         const gameId = urlParams.get('game_id');
         if (gameId) {
-            let fetchedData = null;
-            
-            // Allow querying by both ID or name
-            if (gameId.includes('-') || gameId.length > 20) {
-                const { data, error } = await sb.from('game_configs').select('config_json').eq('game_id', gameId).maybeSingle();
-                if (!error) fetchedData = data;
+            // Try by UUID first, then by name
+            let gameRow = null;
+            if (gameId.includes('-') && gameId.length > 20) {
+                const { data } = await sb.from('games').select('id, game_name, metadata').eq('id', gameId).maybeSingle();
+                gameRow = data;
             }
-            if (!fetchedData) {
-                // Try searching by name via games table
-                const { data: gameData, error: gameErr } = await sb.from('games').select('id').eq('game_name', gameId).maybeSingle();
-                if (!gameErr && gameData && gameData.id) {
-                    const { data, error: cfgErr } = await sb.from('game_configs').select('config_json').eq('game_id', gameData.id).maybeSingle();
-                    if (!cfgErr) fetchedData = data;
-                }
+            if (!gameRow) {
+                const { data } = await sb.from('games').select('id, game_name, metadata').eq('game_name', gameId).maybeSingle();
+                gameRow = data;
             }
 
-            if (fetchedData && fetchedData.config_json) {
-                const cfg = fetchedData.config_json;
+            if (gameRow && gameRow.metadata) {
+                const cfg = typeof gameRow.metadata === 'string' ? JSON.parse(gameRow.metadata) : gameRow.metadata;
                 const priceEl = document.getElementById('mobile-price-tag');
-                if (priceEl && !cfg.freePlayEnabled) {
-                    const basePrice = cfg.basePrice ?? 2.00;
-                    priceEl.innerText = basePrice > 0 ? `€${basePrice.toFixed(2)}` : 'FREE';
+                if (priceEl && cfg.basePrice !== undefined && !cfg.freePlayEnabled) {
+                    priceEl.innerText = cfg.basePrice > 0 ? `€${cfg.basePrice.toFixed(2)}` : 'FREE';
                 }
             }
         }

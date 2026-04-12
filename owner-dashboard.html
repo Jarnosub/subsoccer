@@ -173,7 +173,7 @@
         <!-- Direct Node Links -->
         <div class="mb-4 text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-[#222] pb-2 mt-10">Direct Node Links</div>
         <div class="flex flex-col md:flex-row gap-4">
-            <a id="link-hub" href="mobile-game.html?game_id=Subsoccer%20HQ" target="_blank" class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#D4AF37] hover:bg-white/5 transition-all group">
+            <a id="link-hub" href="mobile-game.html?game_id=dbe5db28-7859-4ce7-9697-2dc5453d6f47" target="_blank" class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#D4AF37] hover:bg-white/5 transition-all group">
                 <div class="flex items-center gap-3">
                     <i class="fas fa-mobile-alt text-[#D4AF37] text-xl"></i>
                     <div>
@@ -370,7 +370,9 @@
                 el.style.display = 'none';
                 icon.classList.replace('fa-chevron-down', 'fa-chevron-right');
             }
-            window.selectDashboardTable = function(btnElement, name, loc, hardwareId) {
+        };
+
+        window.selectDashboardTable = function(btnElement, name, loc, hardwareId) {
             // Updated active class
             document.querySelectorAll('.arcade-table-link').forEach(el => {
                 el.classList.remove('text-[#D4AF37]', 'bg-[#D4AF37]', 'bg-opacity-10', 'font-bold');
@@ -382,13 +384,15 @@
             btnElement.innerHTML = btnElement.innerHTML.replace('bg-[#555]', 'bg-green-500 shadow-[0_0_8px_#22c55e]');
 
             // Update title
-            document.getElementById('table-title').innerText = name;
+            document.getElementById('table-title').innerText = name + ' Configuration';
+            document.getElementById('table-desc').innerText = 'Manage physical hardware parameters and pricing for this table.';
             document.getElementById('table-hw').innerText = 'HW ID: ' + (hardwareId === 'N/A' ? 'MAC_A8:F4:G1' : hardwareId);
             document.getElementById('table-loc').innerText = 'Location: ' + loc;
             
             // Randomize stats for demo
             document.getElementById('stat-revenue').innerText = '€' + (Math.random() * 500 + 50).toFixed(2);
             document.getElementById('stat-scans').innerText = Math.floor(Math.random() * 1000 + 100);
+            document.getElementById('stat-leagues').innerText = Math.floor(Math.random() * 5);
 
             // Update Direct Node Links dynamically based on selected table
             const refParam = encodeURIComponent(hardwareId !== 'N/A' && hardwareId ? hardwareId : name);
