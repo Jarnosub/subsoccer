@@ -96,7 +96,12 @@
         }
 
         function saveSuccess(code) {
-            localStorage.setItem('subsoccer_saved_promo', code);
+            try {
+                localStorage.setItem('subsoccer_saved_promo', code);
+            } catch(e) {
+                showError("Your browser's privacy settings blocked saving the card. Please open in normal Safari window.");
+                return;
+            }
             document.getElementById('loading').style.display = 'none';
             document.getElementById('success').style.display = 'flex';
             document.getElementById('claimed-code').innerText = code;

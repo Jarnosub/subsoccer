@@ -179,7 +179,12 @@ window.updateDynamicPrice = function () {
         subtitle = "Winner takes all";
     }
 
-    const savedPromo = localStorage.getItem('subsoccer_saved_promo');
+    let savedPromo = null;
+    try {
+        savedPromo = localStorage.getItem('subsoccer_saved_promo');
+    } catch (e) {
+        console.warn("localStorage restricted by browser", e);
+    }
     const isFree = window.tableConfig?.freePlay || savedPromo;
 
     if (isFree) {
@@ -359,7 +364,11 @@ window.startDynamicCheckout = async function () {
     btn.style.opacity = '0.5';
     btn.innerHTML = '<span><i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...</span>';
 
-    const savedPromo = localStorage.getItem('subsoccer_saved_promo');
+    let savedPromo = null;
+    try {
+        savedPromo = localStorage.getItem('subsoccer_saved_promo');
+    } catch(e) {}
+    
     if (savedPromo) {
         window.useFreeTicketCode(savedPromo);
         return;
