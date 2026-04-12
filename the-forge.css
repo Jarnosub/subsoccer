@@ -168,7 +168,7 @@ body.remote-mode { background-color: #050505; font-family: 'Resolve', sans-serif
 .goal-btn.p1 { background-color: #12222d; color: #fff; border-color: #2a4d66; }
 .goal-btn.p2 { background-color: #b70000; color: #fff; border-color: #ff3333; }
 
-.player-label { font-size: 1rem; font-family: 'Resolve', sans-serif; opacity: 0.8; margin-top: 5px; }
+.remote-player-label { font-size: 1rem; font-family: 'Resolve', sans-serif; opacity: 0.8; margin-top: 5px; }
 
 /* Cinematic Ken Burns Animation */
 @keyframes kenBurns {
