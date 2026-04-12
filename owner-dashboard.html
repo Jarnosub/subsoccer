@@ -170,7 +170,44 @@
             </section>
         </div>
 
-        <div class="mt-10 flex items-center gap-6 p-6 glass-panel rounded-2xl border border-dashed border-[#D4AF37]">
+        <!-- Direct Node Links -->
+        <div class="mb-4 text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-[#222] pb-2 mt-10">Direct Node Links</div>
+        <div class="flex flex-col md:flex-row gap-4">
+            <a id="link-hub" href="mobile-game.html" target="_blank" class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#D4AF37] hover:bg-white/5 transition-all group">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-mobile-alt text-[#D4AF37] text-xl"></i>
+                    <div>
+                        <div class="font-bold text-sm text-gray-300 group-hover:text-white transition-colors">Arcade Mobile Remote</div>
+                        <div class="text-[10px] text-gray-500">Player Interface Hub</div>
+                    </div>
+                </div>
+                <i class="fas fa-external-link-alt text-gray-600 group-hover:text-white transition-colors"></i>
+            </a>
+            
+            <a id="link-tv" href="tv.html" target="_blank" class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#4a9eff] hover:bg-white/5 transition-all group">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-tv text-[#4a9eff] text-xl"></i>
+                    <div>
+                        <div class="font-bold text-sm text-gray-300 group-hover:text-white transition-colors">Smart TV Screen</div>
+                        <div class="text-[10px] text-gray-500">Live Arcade Display</div>
+                    </div>
+                </div>
+                <i class="fas fa-external-link-alt text-gray-600 group-hover:text-white transition-colors"></i>
+            </a>
+
+            <a id="link-test" href="instant-play.html" target="_blank" class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#E30613] hover:bg-white/5 transition-all group">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-gamepad text-[#E30613] text-xl"></i>
+                    <div>
+                        <div class="font-bold text-sm text-gray-300 group-hover:text-white transition-colors">Test Game Instance</div>
+                        <div class="text-[10px] text-gray-500">Flick Game (Self-Host)</div>
+                    </div>
+                </div>
+                <i class="fas fa-external-link-alt text-gray-600 group-hover:text-white transition-colors"></i>
+            </a>
+        </div>
+
+        <div class="mt-10 flex flex-col md:flex-row items-start md:items-center gap-6 p-6 glass-panel rounded-2xl border border-dashed border-[#D4AF37]">
             <div class="w-12 h-12 rounded-xl bg-[#D4AF37] bg-opacity-20 flex justify-center items-center">
                 <i class="fas fa-sync text-[#D4AF37] text-xl"></i>
             </div>
@@ -354,9 +391,15 @@
             document.getElementById('table-hw').innerText = 'HW ID: ' + (id === 'N/A' ? 'MAC_A8:F4:G1' : id);
             document.getElementById('table-loc').innerText = 'Location: ' + loc;
             
-            // Randomize demo numbers
-            document.getElementById('stat-revenue').innerText = '€' + (Math.random() * 500).toFixed(2);
-            document.getElementById('stat-scans').innerText = Math.floor(Math.random() * 1000);
+            // Randomize stats for demo
+            document.getElementById('stat-revenue').innerText = '€' + (Math.random() * 500 + 50).toFixed(2);
+            document.getElementById('stat-scans').innerText = Math.floor(Math.random() * 1000 + 100);
+
+            // Update Direct Node Links dynamically based on selected table
+            const encodedName = encodeURIComponent(name);
+            document.getElementById('link-hub').href = `mobile-game.html?game_id=${encodedName}`;
+            document.getElementById('link-tv').href = `tv.html?game_id=${encodedName}`;
+            document.getElementById('link-test').href = `flick-game.html?game_id=${encodedName}&mode=casual&user_type=admin`;
             document.getElementById('stat-leagues').innerText = Math.floor(Math.random() * 5);
         };
 
