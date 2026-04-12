@@ -18,15 +18,15 @@
         .currency::before { content: "€"; margin-right: 2px; }
     </style>
     <script>
-        let pass = prompt("Enter Password:");
-        if (pass === "Hinta") {
-            document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", () => {
+            let pass = prompt("Enter Password:");
+            if (pass && pass.toLowerCase() === "hinta") {
                 document.body.style.display = "flex";
-            });
-        } else {
-            alert("Väärä salasana.");
-            window.location.href = "index.html"; // Redirect to frontpage
-        }
+            } else {
+                alert("Väärä salasana.");
+                window.location.href = "index.html"; 
+            }
+        });
     </script>
 </head>
 <body class="min-h-screen p-4 md:p-10 flex-col items-center">
