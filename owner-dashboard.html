@@ -87,26 +87,43 @@
         </header>
 
         <!-- Live Analytics Snapshot (Top Row) -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-[#D4AF37]">
-                <div class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Arcade Revenue (Today)</div>
-                <div class="text-3xl font-black text-white" id="stat-revenue">€0.00</div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-[#D4AF37]">
+                <div class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Daily Revenue</div>
+                <div class="text-2xl md:text-3xl font-black text-white" id="stat-daily-revenue">
+                    <i class="fas fa-spinner fa-spin text-sm text-gray-500"></i>
+                </div>
+                <div class="text-[10px] text-gray-500 mt-1">Today's paid games</div>
             </div>
             
-            <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-[#E30613]">
-                <div class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Total Scans (All Tables)</div>
-                <div class="text-3xl font-black text-white" id="stat-scans">0</div>
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-green-500">
+                <div class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Monthly Revenue</div>
+                <div class="text-2xl md:text-3xl font-black text-white" id="stat-monthly-revenue">
+                    <i class="fas fa-spinner fa-spin text-sm text-gray-500"></i>
+                </div>
+                <div class="text-[10px] text-gray-500 mt-1">This month</div>
             </div>
 
-            <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-blue-500">
-                <div class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Pro Leagues Active</div>
-                <div class="text-3xl font-black text-white" id="stat-leagues">0</div>
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-blue-500">
+                <div class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Free Games</div>
+                <div class="text-2xl md:text-3xl font-black text-white" id="stat-free-games">
+                    <i class="fas fa-spinner fa-spin text-sm text-gray-500"></i>
+                </div>
+                <div class="text-[10px] text-gray-500 mt-1">Today (Free Play)</div>
             </div>
 
-            <div class="glass-panel p-6 rounded-2xl flex flex-col justify-center items-center cursor-pointer hover:bg-white/5 transition-all text-center">
-                <i class="fas fa-chart-pie text-[#D4AF37] text-2xl mb-2"></i>
-                <div class="text-white text-sm font-bold">View Full Analytics</div>
-                <div class="text-xs text-gray-500 mt-1">Global Data Lake</div>
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-[#E30613]">
+                <div class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Games Total</div>
+                <div class="text-2xl md:text-3xl font-black text-white" id="stat-games-total">
+                    <i class="fas fa-spinner fa-spin text-sm text-gray-500"></i>
+                </div>
+                <div class="text-[10px] text-gray-500 mt-1">All time (all tables)</div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-purple-500 opacity-50">
+                <div class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Gift Cards</div>
+                <div class="text-2xl md:text-3xl font-black text-white" id="stat-gift-cards">—</div>
+                <div class="text-[10px] text-gray-500 mt-1">Coming soon</div>
             </div>
         </div>
 
@@ -388,11 +405,6 @@
             document.getElementById('table-desc').innerText = 'Manage physical hardware parameters and pricing for this table.';
             document.getElementById('table-hw').innerText = 'HW ID: ' + (hardwareId === 'N/A' ? 'MAC_A8:F4:G1' : hardwareId);
             document.getElementById('table-loc').innerText = 'Location: ' + loc;
-            
-            // Randomize stats for demo
-            document.getElementById('stat-revenue').innerText = '€' + (Math.random() * 500 + 50).toFixed(2);
-            document.getElementById('stat-scans').innerText = Math.floor(Math.random() * 1000 + 100);
-            document.getElementById('stat-leagues').innerText = Math.floor(Math.random() * 5);
 
             // Update Direct Node Links dynamically based on selected table
             const refParam = encodeURIComponent(hardwareId !== 'N/A' && hardwareId ? hardwareId : name);
@@ -401,8 +413,67 @@
             document.getElementById('link-test').href = `flick-game.html?game_id=${refParam}&mode=casual&user_type=admin`;
         };
 
+        // ============================================================
+        // REAL ANALYTICS: Fetch from Supabase matches table
+        // ============================================================
+        async function loadDashboardStats() {
+            try {
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+                // Get base price from current config
+                const cfg = JSON.parse(localStorage.getItem('subsoccer_table_config') || '{}');
+                const basePrice = cfg.basePrice ?? 2.00;
+                const isFreePlay = cfg.freePlay || false;
+
+                // 1. Today's matches (for daily revenue + free games count)
+                const { data: todayMatches, count: todayCount } = await _supabase
+                    .from('matches')
+                    .select('id, is_verified_table', { count: 'exact' })
+                    .gte('created_at', todayStart);
+
+                // 2. This month's matches (for monthly revenue)
+                const { count: monthCount } = await _supabase
+                    .from('matches')
+                    .select('id', { count: 'exact', head: true })
+                    .gte('created_at', monthStart);
+
+                // 3. All-time total
+                const { count: totalCount } = await _supabase
+                    .from('matches')
+                    .select('id', { count: 'exact', head: true });
+
+                // Calculate revenues
+                // Each verified-table match = 1 paid game (at basePrice)
+                // For now: all matches on verified tables count as paid sessions
+                const todayPaid = todayMatches ? todayMatches.filter(m => m.is_verified_table).length : 0;
+                const dailyRevenue = isFreePlay ? 0 : (todayPaid * basePrice);
+                
+                // Monthly: estimate from total month matches × basePrice (simplified)
+                const monthlyRevenue = isFreePlay ? 0 : ((monthCount || 0) * basePrice);
+
+                // Free games = today's non-verified or if freeplay is enabled, all of them
+                const freeGamesToday = isFreePlay ? (todayCount || 0) : ((todayCount || 0) - todayPaid);
+
+                // Render
+                document.getElementById('stat-daily-revenue').innerText = `€${dailyRevenue.toFixed(2)}`;
+                document.getElementById('stat-monthly-revenue').innerText = `€${monthlyRevenue.toFixed(2)}`;
+                document.getElementById('stat-free-games').innerText = freeGamesToday;
+                document.getElementById('stat-games-total').innerText = (totalCount || 0).toLocaleString();
+
+            } catch (e) {
+                console.error('Stats load error:', e);
+                document.getElementById('stat-daily-revenue').innerText = '—';
+                document.getElementById('stat-monthly-revenue').innerText = '—';
+                document.getElementById('stat-free-games').innerText = '—';
+                document.getElementById('stat-games-total').innerText = '—';
+            }
+        }
+
         // On load
         loadFleet();
+        loadDashboardStats();
         
         // Restore dashboard values from local memory if available
         const savedDemoSettings = JSON.parse(localStorage.getItem('subsoccer_table_config') || 'null');
