@@ -89,39 +89,41 @@
 
         .setup-btn-add {
             width: 100%;
-            background: #111;
-            color: #666;
+            background: rgba(255,255,255,0.05);
+            color: #ccc;
             font-weight: 700;
             padding: 14px;
             border-radius: 8px;
-            border: 1px solid #333;
+            border: 1px dashed rgba(255,255,255,0.3);
             margin-top: 8px;
             cursor: pointer;
             font-family: 'Resolve', sans-serif;
             font-size: 0.9rem;
             letter-spacing: 1px;
+            transition: all 0.2s;
         }
+        .setup-btn-add:active { background: rgba(255,255,255,0.1); }
 
         .setup-price-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #1a1a1a;
+            background: rgba(0,0,0,0.8);
             padding: 12px 16px;
             border-radius: 8px 8px 0 0;
-            border: 1px solid #333;
+            border: 1px solid rgba(255,255,255,0.1);
             border-bottom: none;
             margin-top: 20px;
         }
 
         .setup-start-btn {
             width: 100%;
-            background: #111;
+            background: #E30613;
             color: white;
             font-weight: 700;
             padding: 16px;
             border-radius: 0 0 8px 8px;
-            border: 1px solid #333;
+            border: none;
             cursor: pointer;
             font-family: 'Subsoccer', sans-serif;
             font-size: 1.1rem;
@@ -130,9 +132,10 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: background 0.2s;
+            transition: transform 0.2s;
+            box-shadow: 0 8px 25px rgba(227, 6, 19, 0.4);
         }
-        .setup-start-btn:active { background: #222; }
+        .setup-start-btn:active { transform: scale(0.98); }
 
         /* ========================================
            LAYER 2: NEXT MATCH PREVIEW
@@ -522,8 +525,8 @@
             <p class="setup-subtitle">Add players to begin. Winner takes all.</p>
 
             <div id="m-players-list">
-                <div class="player-row" style="display: flex; align-items: center; background: #111; padding: 8px; border-radius: 8px; border: 1px solid #333; margin-bottom: 8px;">
-                    <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px;">#1</span>
+                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
+                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#1</span>
                     <input type="text" autocomplete="off" onfocus="this.select()" value="PLAYER 1" 
                            class="player-input" 
                            style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
@@ -531,8 +534,8 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="player-row" style="display: flex; align-items: center; background: #111; padding: 8px; border-radius: 8px; border: 1px solid #333; margin-bottom: 8px;">
-                    <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px;">#2</span>
+                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
+                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#2</span>
                     <input type="text" autocomplete="off" onfocus="this.select()" value="PLAYER 2" 
                            class="player-input" 
                            style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">

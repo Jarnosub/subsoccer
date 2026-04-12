@@ -403,9 +403,9 @@ window.mobileAddPlayer = function() {
 
     const div = document.createElement('div');
     div.className = 'player-row';
-    div.style.cssText = 'display: flex; align-items: center; background: #111; padding: 8px; border-radius: 8px; border: 1px solid #333; margin-bottom: 8px;';
+    div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);';
     div.innerHTML = `
-        <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px;">#${num}</span>
+        <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#${num}</span>
         <input type="text" autocomplete="off" onfocus="this.select()" value="PLAYER ${num}" 
                class="player-input" 
                style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
