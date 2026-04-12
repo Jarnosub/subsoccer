@@ -13,7 +13,10 @@ function addTvTimeout(fn, ms) {
 }
 
 // --- STATE & UTILS ---
-const tableId = 'table-04';
+const urlParams = new URLSearchParams(window.location.search);
+const tableId = urlParams.get('game_id') || 'table-04';
+window.tableId = tableId; // Attach to window so it can be picked up globally
+
 let timerInterval;
 const cfg = JSON.parse(localStorage.getItem('subsoccer_table_config')) || {};
 let remainingSeconds = cfg.matchTime || 90;
