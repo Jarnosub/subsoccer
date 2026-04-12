@@ -86,6 +86,7 @@ async function calculateElo(p1Name, p2Name, winnerName, p1Score = 0, p2Score = 0
             player2_score: p2Score,
             tournament_name: 'Subsoccer Go Arcade',
             is_verified_table: true, // Arcade sessions are official Subsoccer tables
+            game_id: window.tableId || null,
             elo_capped: false
         }
     });
