@@ -32,6 +32,27 @@
 
         <nav class="flex-1 mt-2 md:mt-4 pr-2 space-y-4 md:space-y-6">
             
+            <!-- Promo Code Modal -->
+    <div id="promo-modal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center backdrop-blur-sm shadow-2xl transition-all" style="display: none;">
+        <div class="bg-[#111] border border-[#333] rounded-2xl w-[400px] p-8 relative">
+            <i onclick="document.getElementById('promo-modal').style.display='none'" class="fas fa-times absolute top-4 right-4 text-gray-500 hover:text-white cursor-pointer text-lg p-2"></i>
+            <h3 class="font-bold text-xl mb-2 text-white">Gift Card Generated</h3>
+            <p class="text-xs text-gray-400 mb-6 tracking-wide">Share this token with a player. Standard codes bypass the payment gateway exactly once (100% discount).</p>
+            
+            <div class="bg-[#050505] border border-[#D4AF37] p-6 text-center rounded-lg mb-6 relative group cursor-pointer overflow-hidden" onclick="copyPromoCode()">
+                <span id="promo-code-display" class="font-bold text-2xl tracking-widest text-[#D4AF37] font-mono">SUB-XXXXX</span>
+                <div class="absolute inset-0 bg-[#D4AF37] bg-opacity-90 opacity-0 group-hover:opacity-100 transition-opacity flex justify-center items-center backdrop-blur-sm">
+                    <span id="promo-copy-feedback" class="font-bold text-black tracking-widest uppercase text-sm"><i class="fas fa-copy"></i> Click to Copy</span>
+                </div>
+            </div>
+            
+            <button onclick="document.getElementById('promo-modal').style.display='none'" class="w-full py-4 bg-white text-black font-bold uppercase tracking-widest rounded hover:bg-gray-200 transition-colors text-sm shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                Done
+            </button>
+        </div>
+    </div>
+
+    <!-- Hardware Setup Dialog Container -->
             <!-- Fleet Hierarchy Container -->
             <div id="fleet-container">
                 <div class="text-[10px] text-center text-gray-500 mt-4 md:mt-10"><i class="fas fa-spinner fa-spin"></i> Loading Fleet...</div>
@@ -556,13 +577,26 @@
                     
                 if (error) throw error;
                 
-                alert(`SUCCESS! New Promo Code generated:\n\n${randomCode}\n\nThis code can be used once bypassing Stripe payment.`);
+                document.getElementById('promo-code-display').innerText = randomCode;
+                document.getElementById('promo-modal').style.display = 'flex';
+                document.getElementById('promo-copy-feedback').innerHTML = '<i class="fas fa-copy"></i> Click to Copy';
+                window.generatedPromoCode = randomCode; 
+                
                 loadDashboardStats(); // refresh counts
             } catch (err) {
                 console.error('Error generating promo code', err);
                 alert('Database Error generating promo code. Ensure RLS allows insert.');
             }
         }
+        
+        window.copyPromoCode = function() {
+            navigator.clipboard.writeText(window.generatedPromoCode).then(() => {
+                document.getElementById('promo-copy-feedback').innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                     document.getElementById('promo-copy-feedback').innerHTML = '<i class="fas fa-copy"></i> Click to Copy';
+                }, 2000);
+            });
+        };
         // Expose to window
         window.generatePromoCode = generatePromoCode;
 
