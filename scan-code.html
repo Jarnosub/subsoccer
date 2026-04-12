@@ -414,7 +414,7 @@
                 canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
                 const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
+                    inversionAttempts: "attemptBoth",
                 });
                 if (code) {
                     scanning = false;
