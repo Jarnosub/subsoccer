@@ -571,7 +571,9 @@
          LAYER 2b: BRACKET VIEW (scrollable)
          ========================================== -->
     <div class="m-layer" id="m-layer-bracket" style="background: #050510;">
-        <div class="bracket-container">
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('subsoccer-teams%203.jpg') no-repeat center center / cover; filter: brightness(0.3) contrast(1.2); z-index: 0; pointer-events: none;"></div>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 0%, #000 100%); z-index: 1; pointer-events: none; opacity: 0.8;"></div>
+        <div class="bracket-container" style="position: relative; z-index: 2;">
             <img src="subsoccer_logo.svg" style="height: 24px; margin-bottom: 8px; opacity: 0.6;" alt="Subsoccer">
             <div style="color: #666; font-family: 'Resolve', sans-serif; font-size: 0.6rem; letter-spacing: 3px; text-align: center; margin-bottom: 12px;">TOURNAMENT BRACKET</div>
             <div id="mobile-bracket-area"></div>
