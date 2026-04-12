@@ -352,14 +352,6 @@
                         </div>
                     `, { className: 'dark-popup' });
                 });
-
-                // Fit bounds if tables exist
-                if (tables.length > 0) {
-                    const bounds = tables
-                        .filter(t => t.latitude && t.longitude)
-                        .map(t => [t.latitude, t.longitude]);
-                    if (bounds.length > 0) hubMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
-                }
             })
             .catch(e => console.error('Map data error:', e));
 
