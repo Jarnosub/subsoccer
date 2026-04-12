@@ -1652,8 +1652,8 @@
             params.append('p2_score', scoreP2);
             params.append('game_id', currentGameId || 'QUICK-PLAY');
 
-            // Redirect to main app with data
-            window.location.href = `./?${params.toString()}`;
+            // Redirect to main app login window with data
+            window.location.href = `login.html?${params.toString()}#signup`;
         }
 
         // Share links

@@ -146,6 +146,11 @@
         }
         .shop-link:hover { color: #fff; text-decoration-color: var(--sub-gold); }
 
+    /* Leaflet overrides */
+    .leaflet-popup-tip { background: #111; border-top: 1px solid #D4AF37; border-left: 1px solid #D4AF37; }
+    .leaflet-top { top: 70px !important; }
+    .leaflet-left { left: 10px !important; }
+
     </style>
 </head>
 <body>
@@ -326,7 +331,7 @@
             const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
             const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
 
-            fetch(`${SUPABASE_URL}/rest/v1/games?select=id,name,lat,lng,address,game_type,is_public&is_public=eq.true&lat=not.is.null`, {
+            fetch(`${SUPABASE_URL}/rest/v1/games?select=id,game_name,latitude,longitude,location,is_public&is_public=eq.true&latitude=not.is.null`, {
                 headers: {
                     'apikey': SUPABASE_ANON,
                     'Authorization': `Bearer ${SUPABASE_ANON}`
@@ -337,13 +342,13 @@
                 if (!tables || !Array.isArray(tables)) return;
                 
                 tables.forEach(t => {
-                    if (!t.lat || !t.lng) return;
-                    const marker = L.marker([t.lat, t.lng], { icon: goldIcon }).addTo(hubMap);
+                    if (!t.latitude || !t.longitude) return;
+                    const marker = L.marker([t.latitude, t.longitude], { icon: goldIcon }).addTo(hubMap);
                     marker.bindPopup(`
                         <div style="font-family: sans-serif; color: #fff; background: #111; padding: 12px; border-radius: 8px; border: 1px solid #D4AF37; min-width: 160px;">
-                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">${t.name || 'Subsoccer Table'}</div>
-                            <div style="color: #888; font-size: 0.75rem;">${t.address || ''}</div>
-                            <div style="color: #D4AF37; font-size: 0.7rem; margin-top: 6px; text-transform: uppercase;">${t.game_type || 'TABLE'}</div>
+                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">${t.game_name || 'Subsoccer Table'}</div>
+                            <div style="color: #888; font-size: 0.75rem;">${t.location || ''}</div>
+                            <div style="color: #D4AF37; font-size: 0.7rem; margin-top: 6px; text-transform: uppercase;">TABLE</div>
                         </div>
                     `, { className: 'dark-popup' });
                 });
@@ -351,8 +356,8 @@
                 // Fit bounds if tables exist
                 if (tables.length > 0) {
                     const bounds = tables
-                        .filter(t => t.lat && t.lng)
-                        .map(t => [t.lat, t.lng]);
+                        .filter(t => t.latitude && t.longitude)
+                        .map(t => [t.latitude, t.longitude]);
                     if (bounds.length > 0) hubMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
                 }
             })
