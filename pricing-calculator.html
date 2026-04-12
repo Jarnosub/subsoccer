@@ -8,7 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f1011; color: white; }
+        body { font-family: 'Inter', sans-serif; background: #0f1011; color: white; display: none; }
         .glass-panel {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -17,8 +17,19 @@
         input[type=range] { accent-color: #D4AF37; }
         .currency::before { content: "€"; margin-right: 2px; }
     </style>
+    <script>
+        let pass = prompt("Enter Password:");
+        if (pass === "Hinta") {
+            document.addEventListener("DOMContentLoaded", () => {
+                document.body.style.display = "flex";
+            });
+        } else {
+            alert("Väärä salasana.");
+            window.location.href = "index.html"; // Redirect to frontpage
+        }
+    </script>
 </head>
-<body class="min-h-screen p-4 md:p-10 flex flex-col items-center">
+<body class="min-h-screen p-4 md:p-10 flex-col items-center">
     
     <div class="w-full max-w-6xl flex justify-between items-end mb-8 relative">
         <div>
