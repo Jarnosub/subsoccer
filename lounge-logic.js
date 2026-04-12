@@ -834,23 +834,73 @@ window.useFreeTicket = function() {
     }, 1500);
 }
 
-window.useFreeTicketCode = function(code) {
+window.useFreeTicketCode = async function(code) {
     if (!code) return;
     
-    // Save current players
-    const inputs = document.querySelectorAll('.player-input');
-    const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
-    localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
-    
-    // Simulate successful payment bypassing Shelly using a direct code
+    // UI Feedback
     const startBtn = document.getElementById('btn-checkout');
-    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CODE ACCEPTED...';
-    startBtn.style.backgroundColor = '#D4AF37';
-    startBtn.style.color = '#000';
+    const originalText = startBtn.innerHTML;
+    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> VERIFYING...';
+    startBtn.style.pointerEvents = 'none';
     
-    setTimeout(() => {
-        window.location.href = window.location.pathname + "?payment=success&mode=tournament";
-    }, 1500);
+    try {
+        const { _supabase } = await import('./config.js');
+        
+        // 1. Verify code exists and is not redeemed
+        const { data: voucher, error } = await _supabase
+            .from('gift_cards')
+            .select('*')
+            .eq('code', code.trim().toUpperCase())
+            .single();
+            
+        if (error || !voucher) {
+            alert("Invalid promo code.");
+            startBtn.innerHTML = originalText;
+            startBtn.style.pointerEvents = 'auto';
+            return;
+        }
+        
+        if (voucher.is_redeemed) {
+            alert("This promo code has already been used!");
+            startBtn.innerHTML = originalText;
+            startBtn.style.pointerEvents = 'auto';
+            return;
+        }
+        
+        // 2. Mark code as redeemed 
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameIdParam = urlParams.get('game_id');
+        
+        await _supabase
+            .from('gift_cards')
+            .update({ 
+                is_redeemed: true, 
+                redeemed_at: new Date().toISOString(),
+                redeemed_game_id: gameIdParam || null
+            })
+            .eq('id', voucher.id);
+
+        // Save current players as we are starting the match
+        const inputs = document.querySelectorAll('.player-input');
+        const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
+        localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
+        
+        // Success Feedback
+        startBtn.innerHTML = '<i class="fas fa-check"></i> VIP CODE ACCEPTED';
+        startBtn.style.backgroundColor = '#22c55e'; // green
+        startBtn.style.color = '#fff';
+        
+        // Force redirect to start match bypassing Stripe
+        setTimeout(() => {
+            window.location.href = window.location.pathname + "?payment=success&mode=tournament";
+        }, 1500);
+        
+    } catch (err) {
+        console.error("Voucher error:", err);
+        alert("Verification failed. Check network.");
+        startBtn.innerHTML = originalText;
+        startBtn.style.pointerEvents = 'auto';
+    }
 }
 
 window.updateDynamicPrice();
