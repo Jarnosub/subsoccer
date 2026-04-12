@@ -16,12 +16,44 @@ const MAX_PLAYERS_LOGGED = 8;
         const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
         const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
         const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+        
+        // 1. Fetch Auth State
         const { data: { session } } = await sb.auth.getSession();
         if (session && session.user) {
             isLoggedIn = true;
             updateAddPlayerButton();
         }
-    } catch(e) { console.log('Auth check:', e.message); }
+
+        // 2. Fetch Pricing from game_configs based on game_id
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('game_id');
+        if (gameId) {
+            let fetchedData = null;
+            
+            // Allow querying by both ID or name
+            if (gameId.includes('-')) {
+                const { data } = await sb.from('game_configs').select('config_json').eq('game_id', gameId).single();
+                fetchedData = data;
+            }
+            if (!fetchedData) {
+                // Try searching by name via games table
+                const { data: gameData } = await sb.from('games').select('id').eq('game_name', gameId).single();
+                if (gameData && gameData.id) {
+                    const { data } = await sb.from('game_configs').select('config_json').eq('game_id', gameData.id).single();
+                    fetchedData = data;
+                }
+            }
+
+            if (fetchedData && fetchedData.config_json) {
+                const cfg = fetchedData.config_json;
+                const priceEl = document.getElementById('mobile-price-tag');
+                if (priceEl && !cfg.freePlayEnabled) {
+                    const basePrice = cfg.basePrice ?? 2.00;
+                    priceEl.innerText = basePrice > 0 ? `€${basePrice.toFixed(2)}` : 'FREE';
+                }
+            }
+        }
+    } catch(e) { console.log('Init check:', e.message); }
 })();
 
 function getMaxPlayers() {
