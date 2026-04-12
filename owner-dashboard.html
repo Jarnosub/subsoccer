@@ -422,39 +422,36 @@
                 const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
                 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-                // Get base price from current config
-                const cfg = JSON.parse(localStorage.getItem('subsoccer_table_config') || '{}');
-                const basePrice = cfg.basePrice ?? 2.00;
-                const isFreePlay = cfg.freePlay || false;
+                // Filter: only THIS table's games (is_verified_table = true = physical arcade table)
+                const tableFilter = { column: 'is_verified_table', value: true };
 
-                // 1. Today's matches (for daily revenue + free games count)
-                const { data: todayMatches, count: todayCount } = await _supabase
+                // 1. Today's games on THIS table
+                const { count: todayCount } = await _supabase
                     .from('matches')
-                    .select('id, is_verified_table', { count: 'exact' })
+                    .select('id', { count: 'exact', head: true })
+                    .eq(tableFilter.column, tableFilter.value)
                     .gte('created_at', todayStart);
 
-                // 2. This month's matches (for monthly revenue)
+                // 2. This month's games on THIS table
                 const { count: monthCount } = await _supabase
                     .from('matches')
                     .select('id', { count: 'exact', head: true })
+                    .eq(tableFilter.column, tableFilter.value)
                     .gte('created_at', monthStart);
 
-                // 3. All-time total
+                // 3. All-time games on THIS table
                 const { count: totalCount } = await _supabase
                     .from('matches')
-                    .select('id', { count: 'exact', head: true });
+                    .select('id', { count: 'exact', head: true })
+                    .eq(tableFilter.column, tableFilter.value);
 
-                // Calculate revenues
-                // Each verified-table match = 1 paid game (at basePrice)
-                // For now: all matches on verified tables count as paid sessions
-                const todayPaid = todayMatches ? todayMatches.filter(m => m.is_verified_table).length : 0;
-                const dailyRevenue = isFreePlay ? 0 : (todayPaid * basePrice);
-                
-                // Monthly: estimate from total month matches × basePrice (simplified)
-                const monthlyRevenue = isFreePlay ? 0 : ((monthCount || 0) * basePrice);
+                // Revenue = €0 until Stripe is actually connected and processing payments
+                // When Stripe is live, this should query a payments/transactions table
+                const dailyRevenue = 0;
+                const monthlyRevenue = 0;
 
-                // Free games = today's non-verified or if freeplay is enabled, all of them
-                const freeGamesToday = isFreePlay ? (todayCount || 0) : ((todayCount || 0) - todayPaid);
+                // All games are FREE until Stripe is connected
+                const freeGamesToday = todayCount || 0;
 
                 // Render
                 document.getElementById('stat-daily-revenue').innerText = `€${dailyRevenue.toFixed(2)}`;
