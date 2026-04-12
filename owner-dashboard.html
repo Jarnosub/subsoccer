@@ -370,33 +370,20 @@
                 el.style.display = 'none';
                 icon.classList.replace('fa-chevron-down', 'fa-chevron-right');
             }
-        };
-
-        window.selectDashboardTable = function(element, name, loc, id) {
-            // Unselect all
+            window.selectDashboardTable = function(btnElement, name, loc, hardwareId) {
+            // Updated active class
             document.querySelectorAll('.arcade-table-link').forEach(el => {
                 el.classList.remove('text-[#D4AF37]', 'bg-[#D4AF37]', 'bg-opacity-10', 'font-bold');
-                el.classList.add('text-gray-400', 'hover:text-white');
-                const dot = el.querySelector('span');
-                if (dot) {
-                    dot.classList.remove('bg-green-500', 'shadow-[0_0_8px_#22c55e]');
-                    dot.classList.add('bg-[#555]');
-                }
+                el.classList.add('text-gray-400');
+                el.innerHTML = el.innerHTML.replace('bg-green-500 shadow-[0_0_8px_#22c55e]', 'bg-[#555]');
             });
+            btnElement.classList.remove('text-gray-400');
+            btnElement.classList.add('text-[#D4AF37]', 'bg-[#D4AF37]', 'bg-opacity-10', 'font-bold');
+            btnElement.innerHTML = btnElement.innerHTML.replace('bg-[#555]', 'bg-green-500 shadow-[0_0_8px_#22c55e]');
 
-            // Select this one
-            element.classList.add('text-[#D4AF37]', 'bg-[#D4AF37]', 'bg-opacity-10', 'font-bold');
-            element.classList.remove('text-gray-400', 'hover:text-white');
-            const dot = element.querySelector('span');
-            if (dot) {
-                dot.classList.add('bg-green-500', 'shadow-[0_0_8px_#22c55e]');
-                dot.classList.remove('bg-[#555]');
-            }
-
-            // Update UI
-            document.getElementById('table-title').innerText = name + ' Configuration';
-            document.getElementById('table-desc').innerText = 'Manage physical hardware parameters and pricing for this table.';
-            document.getElementById('table-hw').innerText = 'HW ID: ' + (id === 'N/A' ? 'MAC_A8:F4:G1' : id);
+            // Update title
+            document.getElementById('table-title').innerText = name;
+            document.getElementById('table-hw').innerText = 'HW ID: ' + (hardwareId === 'N/A' ? 'MAC_A8:F4:G1' : hardwareId);
             document.getElementById('table-loc').innerText = 'Location: ' + loc;
             
             // Randomize stats for demo
@@ -404,11 +391,10 @@
             document.getElementById('stat-scans').innerText = Math.floor(Math.random() * 1000 + 100);
 
             // Update Direct Node Links dynamically based on selected table
-            const encodedName = encodeURIComponent(name);
-            document.getElementById('link-hub').href = `mobile-game.html?game_id=${encodedName}`;
-            document.getElementById('link-tv').href = `tv.html?game_id=${encodedName}`;
-            document.getElementById('link-test').href = `flick-game.html?game_id=${encodedName}&mode=casual&user_type=admin`;
-            document.getElementById('stat-leagues').innerText = Math.floor(Math.random() * 5);
+            const refParam = encodeURIComponent(hardwareId !== 'N/A' && hardwareId ? hardwareId : name);
+            document.getElementById('link-hub').href = `mobile-game.html?game_id=${refParam}`;
+            document.getElementById('link-tv').href = `tv.html?game_id=${refParam}`;
+            document.getElementById('link-test').href = `flick-game.html?game_id=${refParam}&mode=casual&user_type=admin`;
         };
 
         // On load

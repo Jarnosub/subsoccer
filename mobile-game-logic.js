@@ -31,16 +31,16 @@ const MAX_PLAYERS_LOGGED = 8;
             let fetchedData = null;
             
             // Allow querying by both ID or name
-            if (gameId.includes('-')) {
-                const { data } = await sb.from('game_configs').select('config_json').eq('game_id', gameId).single();
-                fetchedData = data;
+            if (gameId.includes('-') || gameId.length > 20) {
+                const { data, error } = await sb.from('game_configs').select('config_json').eq('game_id', gameId).maybeSingle();
+                if (!error) fetchedData = data;
             }
             if (!fetchedData) {
                 // Try searching by name via games table
-                const { data: gameData } = await sb.from('games').select('id').eq('game_name', gameId).single();
-                if (gameData && gameData.id) {
-                    const { data } = await sb.from('game_configs').select('config_json').eq('game_id', gameData.id).single();
-                    fetchedData = data;
+                const { data: gameData, error: gameErr } = await sb.from('games').select('id').eq('game_name', gameId).maybeSingle();
+                if (!gameErr && gameData && gameData.id) {
+                    const { data, error: cfgErr } = await sb.from('game_configs').select('config_json').eq('game_id', gameData.id).maybeSingle();
+                    if (!cfgErr) fetchedData = data;
                 }
             }
 
