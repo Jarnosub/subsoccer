@@ -852,39 +852,50 @@ window.useFreeTicketCode = async function(code) {
     try {
         const { _supabase } = await import('./config.js');
         
-        // 1. Verify code exists and is not redeemed
-        const { data: voucher, error } = await _supabase
-            .from('gift_cards')
-            .select('*')
-            .eq('code', code.trim().toUpperCase())
-            .single();
+        let voucherId = null;
+        
+        // 0. HARDCODED MASTER ADMIN CODE
+        if (code.trim().toUpperCase() === "ADMIN-100-USES") {
+             console.warn("MASTER CODE ACCEPTED. BYPASSING DB VERIFICATION.");
+        } else {
+            // 1. Verify code exists and is not redeemed
+            const { data: voucher, error } = await _supabase
+                .from('gift_cards')
+                .select('*')
+                .eq('code', code.trim().toUpperCase())
+                .single();
+                
+            if (error || !voucher) {
+                alert("Invalid promo code.");
+                startBtn.innerHTML = originalText;
+                startBtn.style.pointerEvents = 'auto';
+                return;
+            }
             
-        if (error || !voucher) {
-            alert("Invalid promo code.");
-            startBtn.innerHTML = originalText;
-            startBtn.style.pointerEvents = 'auto';
-            return;
+            if (voucher.is_redeemed) {
+                alert("This promo code has already been used!");
+                startBtn.innerHTML = originalText;
+                startBtn.style.pointerEvents = 'auto';
+                return;
+            }
+            
+            voucherId = voucher.id;
         }
         
-        if (voucher.is_redeemed) {
-            alert("This promo code has already been used!");
-            startBtn.innerHTML = originalText;
-            startBtn.style.pointerEvents = 'auto';
-            return;
+        if (voucherId) {
+            // 2. Mark code as redeemed for normal DB codes
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameIdParam = urlParams.get('game_id');
+            
+            await _supabase
+                .from('gift_cards')
+                .update({ 
+                    is_redeemed: true, 
+                    redeemed_at: new Date().toISOString(),
+                    redeemed_game_id: gameIdParam || null
+                })
+                .eq('id', voucherId);
         }
-        
-        // 2. Mark code as redeemed 
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameIdParam = urlParams.get('game_id');
-        
-        await _supabase
-            .from('gift_cards')
-            .update({ 
-                is_redeemed: true, 
-                redeemed_at: new Date().toISOString(),
-                redeemed_game_id: gameIdParam || null
-            })
-            .eq('id', voucher.id);
 
         // Save current players as we are starting the match
         const inputs = document.querySelectorAll('.player-input');
