@@ -446,6 +446,23 @@
                 }
             });
 
+            // 3. Persist to DB (games.metadata) so it survives page reloads
+            const dbMetadata = {
+                basePrice: settings.basePrice,
+                matchTime: settings.matchTime,
+                freePlayEnabled: settings.freePlay,
+                basicMode: settings.basicMode,
+                tiebreaker: settings.tiebreaker,
+                updatedAt: new Date().toISOString()
+            };
+            _supabase.from('games')
+                .update({ metadata: dbMetadata })
+                .eq('game_name', document.getElementById('table-title').innerText.replace(' Configuration', ''))
+                .then(({ error }) => {
+                    if (error) console.log('DB config save error:', error.message);
+                    else console.log('Config saved to DB');
+                });
+
             setTimeout(() => {
                 btn.innerHTML = '<i class="fas fa-check"></i> DEPLOYED';
                 btn.classList.add('bg-green-500');
