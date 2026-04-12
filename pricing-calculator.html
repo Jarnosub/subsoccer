@@ -48,7 +48,7 @@
                 
                 <div>
                     <div class="flex justify-between text-sm mb-2 font-bold"><label>Direct Gift Cards Sold <span class="text-gray-500 font-normal">/ month (Cash to venue)</span></label><span id="val-gift">20</span></div>
-                    <input type="range" id="in-gift" min="0" max="100" value="20" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                    <input type="range" id="in-gift" min="0" max="200" value="20" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
                 </div>
             </div>
 
@@ -64,10 +64,15 @@
                     <div class="flex justify-between text-sm mb-2 font-bold"><label>Revenue Split Threshold <span class="text-xs text-gray-500 font-normal">(Free zone)</span></label><span class="currency" id="val-thres">100</span></div>
                     <input type="range" id="in-thres" min="0" max="500" step="50" value="100" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
                 </div>
-                
-                <div>
+
+                <div class="mb-5">
                     <div class="flex justify-between text-sm mb-2 font-bold"><label>Subsoccer Cut <span class="text-xs text-gray-500 font-normal">(Above threshold)</span></label><span id="val-cut">15%</span></div>
                     <input type="range" id="in-cut" min="5" max="60" step="5" value="15" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-sm mb-2 font-bold"><label>Subsoccer Gift Card Fee <span class="text-xs text-gray-500 font-normal">per card</span></label><span class="currency text-red-400" id="val-gc-fee">1.00</span></div>
+                    <input type="range" id="in-gc-fee" min="0.5" max="5.0" step="0.5" value="1.0" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
                 </div>
             </div>
 
@@ -121,7 +126,7 @@
     </div>
 
     <script>
-        const inputs = ['games', 'price', 'gift', 'mrr', 'thres', 'cut'];
+        const inputs = ['games', 'price', 'gift', 'mrr', 'thres', 'cut', 'gc-fee'];
         let chart = null;
 
         function updateValues() {
@@ -132,6 +137,7 @@
             const mrr = parseFloat(document.getElementById('in-mrr').value);
             const threshold = parseFloat(document.getElementById('in-thres').value);
             const cutPercent = parseFloat(document.getElementById('in-cut').value) / 100;
+            const giftCardFee = parseFloat(document.getElementById('in-gc-fee').value);
 
             // Update Labels
             document.getElementById('val-games').innerText = gamesPerDay;
@@ -140,6 +146,7 @@
             document.getElementById('val-mrr').innerText = mrr.toFixed(2);
             document.getElementById('val-thres').innerText = threshold.toFixed(0);
             document.getElementById('val-cut').innerText = (cutPercent * 100) + '%';
+            document.getElementById('val-gc-fee').innerText = giftCardFee.toFixed(2);
 
             // Constants
             const daysInMonth = 30.4;
@@ -151,7 +158,11 @@
             const grossArcade = gamesPerMonth * price;
             const stripeFees = (grossArcade * stripePercent) + (gamesPerMonth * stripeFixed);
             const netArcade = grossArcade - stripeFees;
-            const directGiftCash = giftCards * price; // Kept 100% by venue usually (Bypasses Stripe)
+            
+            // Gift Card split math (Assuming Venue sells GC for full price, but owes Subsoccer a fixed fee per generation)
+            const venueGrossGiftCash = giftCards * price;
+            const subsoccerGiftCash = giftCards * giftCardFee;
+            const venueNetGiftCash = venueGrossGiftCash - subsoccerGiftCash;
 
             // Split logic for Subsoccer Share (only applies to arcade flow, not gift cards)
             let subShareArcade = 0;
@@ -159,14 +170,14 @@
                 subShareArcade = (netArcade - threshold) * cutPercent;
             }
 
-            // Subsoccer Total (MRR software fee + Profit Share)
-            const subsoccerTotal = mrr + subShareArcade;
+            // Subsoccer Total (MRR + Profit Share + Fixed GC Generation Fees)
+            const subsoccerTotal = mrr + subShareArcade + subsoccerGiftCash;
 
-            // Venue Arcared Money (Net from Stripe - Subsoccer Share - Subsoccer MRR)
-            const venueArcadeCash = netArcade - subShareArcade - mrr;
+            // Venue Arcade Profit (Net from Stripe - Subsoccer Share - Subsoccer MRR)
+            const venueArcadeProfit = netArcade - subShareArcade - mrr;
             
-            // Venue Total (Arcade profit + 100% of physical Gift cards sold)
-            const venueTotal = venueArcadeCash + directGiftCash;
+            // Venue Total (Arcade profit + Net of physical Gift cards sold)
+            const venueTotal = venueArcadeProfit + venueNetGiftCash;
 
             // Update Outputs
             document.getElementById('out-venue-total').innerText = venueTotal.toFixed(2);
@@ -174,7 +185,12 @@
             
             document.getElementById('out-gross').innerText = grossArcade.toFixed(2);
             document.getElementById('out-stripe').innerText = stripeFees.toFixed(2);
-            document.getElementById('out-gift-cash').innerText = directGiftCash.toFixed(2);
+            // Show new gift cash metric (combining who got what)
+            document.getElementById('out-gift-cash').innerHTML = `
+                <span class="text-green-500">${venueNetGiftCash.toFixed(2)}€</span>
+                <span class="text-[#333] mx-1">|</span>
+                <span class="text-[#D4AF37]"> ${subsoccerGiftCash.toFixed(2)}€</span>
+            `;
 
             updateChart(venueTotal, subsoccerTotal, stripeFees);
         }
