@@ -1,0 +1,2 @@
+Node backend running on port 8000.
+(Serving static files from project root and handling Stripe intents)
