@@ -24,29 +24,29 @@ const MAX_PLAYERS_LOGGED = 8;
             updateAddPlayerButton();
         }
 
-        // 2. Fetch Pricing: Try to get config from the games table metadata
+        // 2. Subscribe to real-time pricing broadcasts from Owner Dashboard
         const urlParams = new URLSearchParams(window.location.search);
         const gameId = urlParams.get('game_id');
-        if (gameId) {
-            // Try by UUID first, then by name
-            let gameRow = null;
-            if (gameId.includes('-') && gameId.length > 20) {
-                const { data } = await sb.from('games').select('id, game_name, metadata').eq('id', gameId).maybeSingle();
-                gameRow = data;
-            }
-            if (!gameRow) {
-                const { data } = await sb.from('games').select('id, game_name, metadata').eq('game_name', gameId).maybeSingle();
-                gameRow = data;
-            }
-
-            if (gameRow && gameRow.metadata) {
-                const cfg = typeof gameRow.metadata === 'string' ? JSON.parse(gameRow.metadata) : gameRow.metadata;
-                const priceEl = document.getElementById('mobile-price-tag');
-                if (priceEl && cfg.basePrice !== undefined && !cfg.freePlayEnabled) {
-                    priceEl.innerText = cfg.basePrice > 0 ? `€${cfg.basePrice.toFixed(2)}` : 'FREE';
+        
+        // Listen for config broadcasts on the shared arcade channel
+        const channel = sb.channel('arcade-config');
+        channel.on('broadcast', { event: 'table_config' }, (payload) => {
+            const cfg = payload.payload;
+            const priceEl = document.getElementById('mobile-price-tag');
+            if (priceEl && cfg) {
+                if (cfg.freePlay) {
+                    priceEl.innerText = 'FREE';
+                } else {
+                    const basePrice = cfg.basePrice ?? 2.00;
+                    priceEl.innerText = basePrice > 0 ? `€${basePrice.toFixed(2)}` : 'FREE';
                 }
             }
-        }
+        });
+        channel.subscribe();
+
+        // 3. Also request current config from WebSocket if arcade is running
+        // (The TV will respond with the latest config)
+        
     } catch(e) { console.log('Init check:', e.message); }
 })();
 

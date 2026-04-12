@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn rsync -avzr --exclude=".git" --exclude="node_modules" /Users/jarnosaarinen/subsoccer/ forge@192.168.8.120:/home/forge/subsoccer/
+expect {
+    "password:" {
+        send "subsoccer\r"
+        exp_continue
+    }
+    eof
+}

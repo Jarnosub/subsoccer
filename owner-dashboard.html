@@ -431,8 +431,20 @@
             // Save directly to localStorage for the demo to bypass missing DB
             localStorage.setItem('subsoccer_table_config', JSON.stringify(settings));
 
-            // Broadcast globally logic via socket payload
+            // 1. Broadcast via WebSocket (reaches TV on local network)
             arcadeSocket.send('update_table_config', settings);
+
+            // 2. Broadcast via Supabase Realtime (reaches mobile hub on any network)
+            const configChannel = _supabase.channel('arcade-config');
+            configChannel.subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    configChannel.send({
+                        type: 'broadcast',
+                        event: 'table_config',
+                        payload: settings
+                    });
+                }
+            });
 
             setTimeout(() => {
                 btn.innerHTML = '<i class="fas fa-check"></i> DEPLOYED';
