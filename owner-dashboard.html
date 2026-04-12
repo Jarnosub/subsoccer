@@ -19,39 +19,39 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex">
+<body class="min-h-screen flex flex-col md:flex-row bg-[#0f1011]">
     
     <!-- Sidebar -->
-    <aside class="w-64 glass-panel border-r flex flex-col p-6 h-screen sticky top-0" style="border-right-color: #222;">
-        <div class="mb-10 flex flex-col items-start">
-            <img src="subsoccer_logo.svg" alt="Subsoccer Logo" class="w-40 mb-1">
-            <div class="w-40 flex justify-between text-white text-[10px] font-bold mt-0.5 opacity-60">
+    <aside class="w-full md:w-64 glass-panel md:border-r border-b md:border-b-0 flex flex-col p-6 md:h-screen sticky top-0 z-50 overflow-y-auto max-h-screen" style="border-color: #222;">
+        <div class="mb-4 md:mb-10 flex flex-col items-start">
+            <img src="subsoccer_logo.svg" alt="Subsoccer Logo" class="w-32 md:w-40 mb-1">
+            <div class="w-32 md:w-40 flex justify-between text-white text-[10px] font-bold mt-0.5 opacity-60">
                 <span>V</span><span>E</span><span>N</span><span>U</span><span>E</span><span></span><span>M</span><span>A</span><span>N</span><span>A</span><span>G</span><span>E</span><span>R</span>
             </div>
         </div>
 
-        <nav class="flex-1 overflow-y-auto mt-4 pr-2 space-y-6">
+        <nav class="flex-1 mt-2 md:mt-4 pr-2 space-y-4 md:space-y-6">
             
             <!-- Fleet Hierarchy Container -->
             <div id="fleet-container">
-                <div class="text-[10px] text-center text-gray-500 mt-10"><i class="fas fa-spinner fa-spin"></i> Loading Fleet...</div>
+                <div class="text-[10px] text-center text-gray-500 mt-4 md:mt-10"><i class="fas fa-spinner fa-spin"></i> Loading Fleet...</div>
             </div>
 
             <!-- Global Analytics & Subscription -->
             <div class="border-t border-[#222] pt-4 space-y-1">
-                <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white p-2 text-sm rounded-lg transition-all">
+                <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white p-2 text-sm rounded-lg transition-all hidden md:flex">
                     <i class="fas fa-chart-line w-4"></i> Network Revenue
                 </a>
-                <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white p-2 text-sm rounded-lg transition-all">
+                <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white p-2 text-sm rounded-lg transition-all hidden md:flex">
                     <i class="fas fa-crown w-4 text-[#D4AF37]"></i> Pro Subscription
                 </a>
             </div>
             
         </nav>
 
-        <div class="mt-auto pt-6 border-t border-[#333] flex items-center justify-between">
+        <div class="mt-4 md:mt-auto pt-4 md:pt-6 border-t border-[#333] flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#D4AF37] to-yellow-600 flex items-center justify-center text-black font-bold">O</div>
+                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-[#D4AF37] to-yellow-600 flex items-center justify-center text-black font-bold">O</div>
                 <div>
                     <p class="text-sm font-bold">Owner Portal</p>
                     <p class="text-xs text-gray-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Connected</p>
@@ -64,8 +64,8 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 p-10 overflow-y-auto">
-        <header class="flex justify-between items-start mb-10 border-b border-[#222] pb-6">
+    <main class="flex-1 p-4 md:p-10 overflow-y-auto">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 border-b border-[#222] pb-6 gap-4">
             <div>
                 <h2 class="text-3xl font-bold" id="table-title">Select a Table</h2>
                 <p class="text-gray-400 mt-2 mb-4" id="table-desc">Choose a table from your fleet to manage hardware configuration and physical parameters.</p>
