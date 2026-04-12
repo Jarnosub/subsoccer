@@ -76,6 +76,21 @@
                 </div>
             </div>
 
+            <!-- HARDWARE PARAMETERS -->
+            <div class="glass-panel p-6 rounded-2xl border border-green-500 border-opacity-30">
+                <h3 class="font-bold text-green-500 mb-4 border-b border-[#333] pb-2 uppercase tracking-tight text-sm"><i class="fas fa-boxes mr-2"></i> Hardware & CAPEX</h3>
+                
+                <div class="mb-5">
+                    <div class="flex justify-between text-sm mb-2 font-bold"><label>Retail Price (To Venue)</label><span class="currency" id="val-retail">4900</span></div>
+                    <input type="range" id="in-retail" min="1000" max="10000" step="100" value="4900" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between text-sm mb-2 font-bold"><label>COGS (Manufacturing Cost)</label><span class="currency" id="val-cogs">1800</span></div>
+                    <input type="range" id="in-cogs" min="500" max="5000" step="50" value="1800" class="w-full h-1.5 bg-[#222] rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
             <div class="glass-panel p-6 rounded-2xl opacity-80">
                 <div class="flex justify-between text-sm mb-2 font-bold"><label><i class="fab fa-stripe mr-2 text-indigo-400"></i> Stripe Processor Fee</label><span id="val-stripe">1.5% + 0.25€</span></div>
             </div>
@@ -86,16 +101,29 @@
         <div class="lg:col-span-7 flex flex-col gap-4">
             
             <div class="grid grid-cols-2 gap-4">
-                <div class="bg-[#111] border border-green-500/30 p-6 rounded-2xl flex flex-col justify-center items-center text-center">
+                <div class="bg-[#111] border border-green-500/30 p-5 rounded-2xl flex flex-col justify-center items-center text-center">
                     <div class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-1">Venue Monthly Profit</div>
                     <div class="text-4xl lg:text-5xl font-black text-green-400 currency" id="out-venue-total">0.00</div>
-                    <div class="text-[10px] text-gray-500 mt-2">After all fees & subscriptions</div>
                 </div>
 
-                <div class="bg-[#111] border border-[#D4AF37]/30 p-6 rounded-2xl flex flex-col justify-center items-center text-center shadow-[0_0_30px_rgba(212,175,55,0.05)]">
-                    <div class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-1">Subsoccer Revenue</div>
+                <div class="bg-[#111] border border-[#D4AF37]/30 p-5 rounded-2xl flex flex-col justify-center items-center text-center shadow-[0_0_30px_rgba(212,175,55,0.05)]">
+                    <div class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-1">Subsoccer Monthly Flow</div>
                     <div class="text-4xl lg:text-5xl font-black text-[#D4AF37] currency" id="out-sub-total">0.00</div>
-                    <div class="text-[10px] text-gray-500 mt-2">MRR + Profit Share combined</div>
+                </div>
+            </div>
+
+            <!-- ANNUAL ROI ROW -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-panel p-4 rounded-xl flex flex-col justify-center items-center text-center border-t-2 border-t-green-500">
+                    <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">Venue Year 1 Net Profit</div>
+                    <div class="text-2xl font-black text-white currency" id="out-venue-annual">0</div>
+                    <div class="text-[10px] text-green-400 font-bold uppercase mt-1" id="out-venue-roi">Break-even: X months</div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-xl flex flex-col justify-center items-center text-center border-t-2 border-t-[#D4AF37]">
+                    <div class="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">Subsoccer Year 1 Total</div>
+                    <div class="text-2xl font-black text-white currency" id="out-sub-annual">0</div>
+                    <div class="text-[10px] text-[#D4AF37] mt-1" id="out-sub-margin">Hardware Margin: X€</div>
                 </div>
             </div>
 
@@ -126,7 +154,7 @@
     </div>
 
     <script>
-        const inputs = ['games', 'price', 'gift', 'mrr', 'thres', 'cut', 'gc-fee'];
+        const inputs = ['games', 'price', 'gift', 'mrr', 'thres', 'cut', 'gc-fee', 'retail', 'cogs'];
         let chart = null;
 
         function updateValues() {
@@ -138,6 +166,8 @@
             const threshold = parseFloat(document.getElementById('in-thres').value);
             const cutPercent = parseFloat(document.getElementById('in-cut').value) / 100;
             const giftCardFee = parseFloat(document.getElementById('in-gc-fee').value);
+            const retail = parseFloat(document.getElementById('in-retail').value);
+            const cogs = parseFloat(document.getElementById('in-cogs').value);
 
             // Update Labels
             document.getElementById('val-games').innerText = gamesPerDay;
@@ -147,6 +177,8 @@
             document.getElementById('val-thres').innerText = threshold.toFixed(0);
             document.getElementById('val-cut').innerText = (cutPercent * 100) + '%';
             document.getElementById('val-gc-fee').innerText = giftCardFee.toFixed(2);
+            document.getElementById('val-retail').innerText = retail.toFixed(0);
+            document.getElementById('val-cogs').innerText = cogs.toFixed(0);
 
             // Constants
             const daysInMonth = 30.4;
@@ -179,13 +211,25 @@
             // Venue Total (Arcade profit + Net of physical Gift cards sold)
             const venueTotal = venueArcadeProfit + venueNetGiftCash;
 
-            // Update Outputs
+            // Update Monthly Outputs
             document.getElementById('out-venue-total').innerText = venueTotal.toFixed(2);
             document.getElementById('out-sub-total').innerText = subsoccerTotal.toFixed(2);
             
+            // Annual Logic
+            const venueAnnualNet = (venueTotal * 12) - retail;
+            const subsoccerYear1 = (retail - cogs) + (subsoccerTotal * 12);
+            const venueRoiMonths = venueTotal > 0 ? (retail / venueTotal).toFixed(1) : '∞';
+
+            // Update Annual Outputs
+            document.getElementById('out-venue-annual').innerText = venueAnnualNet.toFixed(0);
+            document.getElementById('out-venue-roi').innerText = `ROI Break-even: ${venueRoiMonths} months`;
+            
+            document.getElementById('out-sub-annual').innerText = subsoccerYear1.toFixed(0);
+            document.getElementById('out-sub-margin').innerText = `HW Margin: ${(retail - cogs).toFixed(0)}€ + MRR`;
+
+            // Breakdown
             document.getElementById('out-gross').innerText = grossArcade.toFixed(2);
             document.getElementById('out-stripe').innerText = stripeFees.toFixed(2);
-            // Show new gift cash metric (combining who got what)
             document.getElementById('out-gift-cash').innerHTML = `
                 <span class="text-green-500">${venueNetGiftCash.toFixed(2)}€</span>
                 <span class="text-[#333] mx-1">|</span>
