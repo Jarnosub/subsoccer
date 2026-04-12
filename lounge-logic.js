@@ -1,9 +1,16 @@
 import { arcadeSocket } from './socket-service.js';
 import { BracketEngine } from './bracket-engine.js';
 
-const stripe = Stripe('pk_test_51TJa0WKDl6NoIsIlxgo7hCrNuLG2HoMT7R7ICsYBvQgbsNZFV6un3q9pA7UvnnsZsbgmj4kiIL22iZoybnedfvIY00FDkVxh9X');
-let stripeElements = null;
+// In production, this should ideally be injected via build process or loaded from config endpoint.
+// For smooth testing to live transition, we define both here and toggle based on logic.
+const STRIPE_PK_TEST = 'pk_test_51TJa0WKDl6NoIsIlxgo7hCrNuLG2HoMT7R7ICsYBvQgbsNZFV6un3q9pA7UvnnsZsbgmj4kiIL22iZoybnedfvIY00FDkVxh9X';
+const STRIPE_PK_LIVE = 'pk_live_your_actual_live_key_here';
 
+// Auto-switch to live if on production domain, otherwise use test key
+const isProductionDomain = window.location.hostname === 'subsoccer.app' || window.location.hostname === 'subsoccer.com';
+const stripe = Stripe(isProductionDomain ? STRIPE_PK_LIVE : STRIPE_PK_TEST);
+
+let stripeElements = null;
 const tableId = 'table-04';
 arcadeSocket.connect();
 
