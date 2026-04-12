@@ -291,10 +291,37 @@
         
         arcadeSocket.connect();
 
+        async function requireAuth() {
+            try {
+                const { data: { session } } = await _supabase.auth.getSession();
+                if (!session || !session.user) {
+                    console.log("No auth session, redirecting to login");
+                    // In a production environment, uncomment this to enforce login
+                    // window.location.href = 'frontpage-test.html?redirect=owner-dashboard.html';
+                    
+                    // For current development/demo purposes, we show an alert but allow viewing
+                    console.warn("DEV MODE: Auth bypassed. In production, this would redirect.");
+                } else {
+                    console.log("Owner logged in:", session.user.email);
+                }
+                return session ? session.user : null;
+            } catch (e) {
+                console.error("Auth check failed", e);
+                return null;
+            }
+        }
+
         async function loadFleet() {
-            // For the demo without login, we fetch some verified games to simulate an owner's fleet.
-            // In production: .eq('owner_id', currentUser.id)
-            const { data: games, error } = await _supabase.from('games').select('*').limit(20);
+            const user = await requireAuth();
+            
+            // For the demo we fetch some verified games to simulate an owner's fleet.
+            // In production: .eq('owner_id', user.id)
+            const query = _supabase.from('games').select('*').limit(20);
+            
+            // If we have auth, we could filter by owner:
+            // if (user) query.eq('owner_id', user.id);
+            
+            const { data: games, error } = await query;
             
             const container = document.getElementById('fleet-container');
             if (error || !games) {
