@@ -120,10 +120,15 @@
                 <div class="text-[10px] text-gray-500 mt-1">All time (all tables)</div>
             </div>
 
-            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-purple-500 opacity-50">
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-purple-500 relative group">
                 <div class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Gift Cards</div>
-                <div class="text-2xl md:text-3xl font-black text-white" id="stat-gift-cards">—</div>
-                <div class="text-[10px] text-gray-500 mt-1">Coming soon</div>
+                <div class="text-2xl md:text-3xl font-black text-white" id="stat-gift-cards">
+                    <i class="fas fa-spinner fa-spin text-sm text-gray-500"></i>
+                </div>
+                <div class="text-[10px] text-gray-500 mt-1" id="stat-gift-cards-subtitle">Redeemed / Total</div>
+                <button onclick="generatePromoCode()" class="absolute top-4 right-4 bg-purple-500 hover:bg-purple-400 text-white text-[10px] uppercase font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                    + Generate
+                </button>
             </div>
         </div>
 
@@ -480,11 +485,24 @@
                 // All games are FREE until Stripe is connected
                 const freeGamesToday = todayCount || 0;
 
+                // 4. Gift Cards (Vouchers) stats
+                const { data: giftCards } = await _supabase
+                    .from('gift_cards')
+                    .select('id, is_redeemed');
+                
+                let redeemedCardsCount = 0;
+                let totalCardsCount = 0;
+                if (giftCards) {
+                    totalCardsCount = giftCards.length;
+                    redeemedCardsCount = giftCards.filter(gc => gc.is_redeemed).length;
+                }
+
                 // Render
                 document.getElementById('stat-daily-revenue').innerText = `€${dailyRevenue.toFixed(2)}`;
                 document.getElementById('stat-monthly-revenue').innerText = `€${monthlyRevenue.toFixed(2)}`;
                 document.getElementById('stat-free-games').innerText = freeGamesToday;
                 document.getElementById('stat-games-total').innerText = (totalCount || 0).toLocaleString();
+                document.getElementById('stat-gift-cards').innerText = `${redeemedCardsCount} / ${totalCardsCount}`;
 
             } catch (e) {
                 console.error('Stats load error:', e);
@@ -492,8 +510,34 @@
                 document.getElementById('stat-monthly-revenue').innerText = '—';
                 document.getElementById('stat-free-games').innerText = '—';
                 document.getElementById('stat-games-total').innerText = '—';
+                document.getElementById('stat-gift-cards').innerText = '—';
             }
         }
+
+        async function generatePromoCode() {
+            if (!confirm('Generate a new single-use 100% discount promo code?')) return;
+            
+            const randomCode = 'SUB-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            try {
+                const { error } = await _supabase
+                    .from('gift_cards')
+                    .insert([{ 
+                        code: randomCode,
+                        amount_cents: 200 // default full 2e discount
+                    }]);
+                    
+                if (error) throw error;
+                
+                alert(`SUCCESS! New Promo Code generated:\n\n${randomCode}\n\nThis code can be used once bypassing Stripe payment.`);
+                loadDashboardStats(); // refresh counts
+            } catch (err) {
+                console.error('Error generating promo code', err);
+                alert('Database Error generating promo code. Ensure RLS allows insert.');
+            }
+        }
+        // Expose to window
+        window.generatePromoCode = generatePromoCode;
 
         // On load
         loadFleet();
