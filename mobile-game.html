@@ -219,6 +219,36 @@
             transform-origin: top left;
         }
 
+        /* TV Mirroring Optimization: Horizontal Bracket on Landscape */
+        @media (orientation: landscape) {
+            #mobile-bracket-area {
+                display: flex;
+                flex-direction: row-reverse;
+                align-items: stretch;
+                justify-content: center;
+                gap: 40px;
+                transform: scale(0.65);
+                transform-origin: center;
+                margin: 0 auto;
+            }
+            .bracket-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            /* Override internal BracketTree CSS inline */
+            #mobile-bracket-area .bracket-round {
+                min-width: 280px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-evenly;
+            }
+            #mobile-bracket-area .round-title {
+                position: static !important;
+                margin-bottom: 20px !important;
+            }
+        }
+
         .bracket-back-btn {
             position: fixed;
             bottom: calc(20px + env(safe-area-inset-bottom, 10px));
