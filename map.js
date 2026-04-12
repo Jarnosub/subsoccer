@@ -40,7 +40,8 @@ export async function fetchPublicGamesMap() {
     const mapContainer = document.getElementById('section-map');
 
     if (!state.publicMap) {
-        state.publicMap = L.map('public-game-map').setView([60.1699, 24.9384], 11);
+        state.publicMap = L.map('public-game-map', { zoomControl: false }).setView([60.1699, 24.9384], 11);
+        L.control.zoom({ position: 'bottomright' }).addTo(state.publicMap);
         state.publicMap.attributionControl.setPrefix(false); // Remove Leaflet prefix
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
 

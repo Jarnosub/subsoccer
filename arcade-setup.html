@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer Node Provisioning</title>
+    <!-- Use the existing CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="the-forge.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Open Sans', sans-serif;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .code-display {
+            font-size: 8rem;
+            font-weight: 900;
+            letter-spacing: 0.5rem;
+            margin: 40px 0;
+            color: #D4AF37; /* Subsoccer Gold */
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            background: rgba(20, 20, 20, 0.8);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .instructions {
+            font-size: 1.5rem;
+            color: #ccc;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+
+        .url-highlight {
+            color: #fff;
+            font-weight: bold;
+            font-size: 2rem;
+            display: inline-block;
+            margin: 10px 0;
+            padding: 10px 20px;
+            background: #E30613; /* Subsoccer Red */
+            border-radius: 10px;
+        }
+
+        .spinner {
+            margin-top: 50px;
+            font-size: 2rem;
+            color: #555;
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <img src="https://subsoccer.com/wp-content/uploads/2022/10/subsoccer-logo.png" style="width:300px; margin-bottom:20px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));">
+    
+    <div class="instructions">
+        <p>This Subsoccer Arcade Node is ready for initialization.</p>
+        <p>To assign this table to your venue, log in to 
+        <br><span class="url-highlight">hub.subsoccer.com</span><br>
+        and enter the pairing code below in your Owner Dashboard.</p>
+    </div>
+
+    <div class="code-display" id="pairing-code">
+        A4X-9L2
+    </div>
+
+    <div class="spinner">
+        <i class="fas fa-satellite-dish"></i> Waiting for cloud assignment...
+    </div>
+
+    <script>
+        // Simulate polling the cloud for ownership assignment
+        setInterval(() => {
+            // Once we have a backend:
+            // fetch('/api/check-claim-status?hwid=' + hwid)
+            // if claimed -> window.location.href = 'index.html';
+        }, 5000);
+    </script>
+</body>
+</html>

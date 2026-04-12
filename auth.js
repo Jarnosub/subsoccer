@@ -46,6 +46,12 @@ export async function initApp() {
                     if (!state.user || state.user.id !== session.user.id) {
                         await refreshUserProfile(session.user.id);
                     }
+                    // Hub redirect: if ?redirect= param exists, navigate there after login
+                    const redirectTo = new URLSearchParams(window.location.search).get('redirect') || 'index.html';
+                    if (redirectTo) {
+                        window.location.href = redirectTo;
+                        return;
+                    }
                 } else if (event === 'SIGNED_OUT') {
                     state.user = null;
                     localStorage.removeItem('subsoccer-user');

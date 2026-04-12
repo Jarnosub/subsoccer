@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer - Player Card</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+            font-display: swap;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: #0a0a0a;
+            color: white;
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+
+        /* ========================================
+           HEADER
+           ======================================== */
+        .pc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+            padding: 16px 0;
+            padding-top: calc(16px + env(safe-area-inset-top, 20px));
+        }
+
+        .pc-back-btn {
+            background: none;
+            border: 1px solid #333;
+            color: #888;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .pc-header-title {
+            flex: 1;
+            text-align: center;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .pc-settings-btn {
+            background: none;
+            border: 1px solid #333;
+            color: #888;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        /* ========================================
+           CARD SHOWCASE (stadion-tausta)
+           ======================================== */
+        .pc-showcase {
+            width: 100%;
+            min-height: 420px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+            position: relative;
+            padding: 30px 0;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.9)), url('card-stadium.jpg') no-repeat center center;
+            background-size: cover;
+        }
+
+        .pc-spotlight {
+            position: absolute;
+            width: 300px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(227,6,19,0.3) 0%, transparent 60%);
+            filter: blur(40px);
+            z-index: 0;
+            animation: pulse 4s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.5; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1.05); }
+        }
+
+        /* ========================================
+           STATS DASHBOARD (alla kortin)
+           ======================================== */
+        .pc-stats {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .pc-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .pc-stat-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .pc-stat-value {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.8rem;
+            color: white;
+            line-height: 1;
+        }
+
+        .pc-stat-label {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            color: #666;
+            letter-spacing: 2px;
+            margin-top: 6px;
+            text-transform: uppercase;
+        }
+
+        /* ========================================
+           ACTION BUTTONS
+           ======================================== */
+        .pc-actions {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 0 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pc-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 14px 16px;
+            color: white;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pc-action-btn:hover { background: #1a1a1a; }
+        
+        .pc-action-btn i {
+            width: 20px;
+            text-align: center;
+            color: #D4AF37;
+        }
+
+        .pc-action-btn .pc-action-arrow {
+            margin-left: auto;
+            color: #444;
+        }
+
+        /* Owner-only button */
+        .pc-action-btn.owner-only {
+            border-color: rgba(212,175,55,0.3);
+        }
+
+        /* ========================================
+           NOT LOGGED IN STATE
+           ======================================== */
+        .pc-login-prompt {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .pc-login-title {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .pc-login-subtitle {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .pc-login-btn {
+            width: 100%;
+            background: #E30613;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .pc-register-btn {
+            width: 100%;
+            background: transparent;
+            color: #D4AF37;
+            border: 1px solid rgba(212,175,55,0.4);
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
+
+        .pc-guest-link {
+            display: block;
+            margin-top: 15px;
+            color: #444;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            cursor: pointer;
+        }
+
+        /* ========================================
+           EDIT PROFILE PANEL
+           ======================================== */
+        .pc-edit-panel {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.4s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        .pc-edit-panel.open {
+            max-height: 600px;
+            opacity: 1;
+        }
+
+        .pc-edit-card {
+            background: #111;
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .pc-edit-label {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            color: #D4AF37;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .pc-edit-input {
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: white;
+            padding: 12px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            outline: none;
+            margin-bottom: 12px;
+        }
+        .pc-edit-input:focus { border-color: #D4AF37; }
+
+        .pc-edit-select {
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: white;
+            padding: 12px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+            margin-bottom: 12px;
+            -webkit-appearance: none;
+        }
+
+        .pc-edit-file-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #0a0a0a;
+            border: 1px dashed #333;
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            color: #888;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+        .pc-edit-file-label:hover { border-color: #D4AF37; color: #D4AF37; }
+
+        .pc-save-btn {
+            width: 100%;
+            background: #D4AF37;
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: opacity 0.2s;
+        }
+        .pc-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .pc-logout-btn {
+            width: 100%;
+            background: transparent;
+            color: #E30613;
+            border: 1px solid rgba(227,6,19,0.3);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .pc-edit-msg {
+            text-align: center;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            min-height: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="pc-header">
+        <button class="pc-back-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="pc-header-title">PLAYER PROFILE</div>
+        <button class="pc-settings-btn" onclick="toggleEditPanel()">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+
+    <!-- CARD SHOWCASE -->
+    <div class="pc-showcase">
+        <div class="pc-spotlight"></div>
+        
+        <!-- Pro Card (uses existing CSS from style.css) -->
+        <div class="pro-card" onclick="this.classList.toggle('flipped')" style="z-index: 10;">
+            <div class="pro-card-flipper">
+                <!-- FRONT SIDE -->
+                <div class="pro-card-front">
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2;">
+                        <div style="font-size: 0.65rem; color: #D4AF37; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                            PRO CARD // 2026</div>
+                        <div style="display: flex; gap: 5px;">
+                            <div style="background: #111; color: #D4AF37; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Photo area -->
+                    <div style="width: 100%; height: 225px; flex-shrink: 0; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <i class="fa-solid fa-user-astronaut" id="pc-card-icon" style="font-size: 3rem; color: #333;"></i>
+                        <img src="" id="pc-card-photo" style="width: 100%; height: 100%; object-fit: cover; object-position: top center; display: none;">
+                    </div>
+
+                    <!-- Bottom info -->
+                    <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
+                        <div style="display: flex; align-items: center; gap: 6px; color: #D4AF37; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; width:100%;">
+                            <i class="fa-solid fa-location-dot"></i> <span id="pc-card-location">LOCAL ARENA</span>
+                        </div>
+
+                        <div id="pc-card-name" style="font-family: 'Subsoccer', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                            PLAYER</div>
+
+                        <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
+                            <div id="pc-card-elo" style="background: #D4AF37; color: #000; padding: 4px 10px; font-family: 'Subsoccer', sans-serif; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
+                                1500</div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
+                                    WIN RATIO</div>
+                                <div id="pc-card-winratio" style="font-family: 'Subsoccer', sans-serif; font-size: 1.4rem; color: #fff; line-height: 1;">
+                                    0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tap to flip -->
+                    <div style="position: absolute; bottom: 8px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
+                        <i class="fa-solid fa-rotate" style="margin-right: 3px;"></i> TAP TO FLIP
+                    </div>
+                </div>
+
+                <!-- BACK SIDE -->
+                <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+                    <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px; padding:20px 20px 0 20px;">
+                        <h4 style="color:#D4AF37; font-family:'Subsoccer', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">
+                            PLAYER DOSSIER</h4>
+                        <div id="pc-card-tier" style="color:#fff; font-size:0.75rem; font-family:'Open Sans', sans-serif; margin-top:5px; text-transform:uppercase;">
+                            NEW RECRUIT</div>
+                    </div>
+                    <div style="padding: 0 20px;">
+                        <div style="border-top: 1px solid #333; padding-top: 15px; text-align:center; margin-bottom: 15px;">
+                            <div style="font-family:'Resolve', sans-serif; color:#D4AF37; font-size:0.6rem; letter-spacing:2px; margin-bottom:8px;">MATCH HISTORY</div>
+                            <div id="pc-back-matches" style="color:#888; font-size: 0.8rem;">0 MATCHES PLAYED</div>
+                        </div>
+                        <div style="border-top: 1px solid #333; padding-top: 15px; text-align:center;">
+                            <div style="font-family:'Resolve', sans-serif; color:#D4AF37; font-size:0.6rem; letter-spacing:2px; margin-bottom:8px;">TOURNAMENTS</div>
+                            <div id="pc-back-tourneys" style="color:#888; font-size: 0.8rem;">0 TOURNAMENTS WON</div>
+                        </div>
+                    </div>
+                    <div style="position:absolute; bottom:8px; width:100%; left:0; text-align:center; color:rgba(255,255,255,0.3); font-size:0.6rem; font-weight:bold; letter-spacing:1.5px; z-index:2;">
+                        <i class="fa-solid fa-rotate-left" style="margin-right: 3px;"></i> TAP TO FLIP
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS GRID -->
+    <div class="pc-stats">
+        <div class="pc-stats-grid">
+            <div class="pc-stat-card">
+                <div class="pc-stat-value" id="pc-stat-elo">1500</div>
+                <div class="pc-stat-label">GLOBAL ELO</div>
+            </div>
+            <div class="pc-stat-card">
+                <div class="pc-stat-value" id="pc-stat-matches">0</div>
+                <div class="pc-stat-label">MATCHES</div>
+            </div>
+            <div class="pc-stat-card">
+                <div class="pc-stat-value" id="pc-stat-wins">0</div>
+                <div class="pc-stat-label">WINS</div>
+            </div>
+            <div class="pc-stat-card">
+                <div class="pc-stat-value" id="pc-stat-ratio">0%</div>
+                <div class="pc-stat-label">WIN RATIO</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="pc-actions">
+
+        <!-- OWNER-ONLY: Dashboard link -->
+        <div class="pc-action-btn owner-only" id="pc-owner-btn" style="display: none;" onclick="window.location.href='owner-dashboard.html'">
+            <i class="fas fa-tools"></i>
+            MY TABLES / DASHBOARD
+            <i class="fas fa-chevron-right pc-action-arrow"></i>
+        </div>
+    </div>
+
+    <!-- EDIT PROFILE PANEL -->
+    <div class="pc-edit-panel" id="pc-edit-panel">
+        <div class="pc-edit-card">
+            <div class="pc-edit-label">USERNAME</div>
+            <input type="text" class="pc-edit-input" id="pc-edit-name" placeholder="YOUR NAME" maxlength="20" autocomplete="off">
+
+            <div class="pc-edit-label">PROFILE PHOTO</div>
+            <label class="pc-edit-file-label" id="pc-file-label">
+                <i class="fas fa-camera" style="font-size: 1rem;"></i>
+                <span id="pc-file-name">CHOOSE PHOTO...</span>
+                <input type="file" accept="image/*" id="pc-edit-avatar" style="display: none;" onchange="handleAvatarSelect(this)">
+            </label>
+
+            <div class="pc-edit-label">COUNTRY</div>
+            <select class="pc-edit-select" id="pc-edit-country">
+                <option value="" disabled selected>SELECT COUNTRY</option>
+            </select>
+
+            <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()">SAVE CHANGES</button>
+            <div class="pc-edit-msg" id="pc-edit-msg"></div>
+        </div>
+
+        <button class="pc-logout-btn" onclick="logoutPlayer()">
+            <i class="fas fa-sign-out-alt" style="margin-right: 6px;"></i> LOG OUT
+        </button>
+    </div>
+
+    <!-- BOTTOM PADDING -->
+    <div style="height: calc(40px + env(safe-area-inset-bottom, 20px));"></div>
+
+    <script>
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+
+        let _sb = null;
+        let _currentPlayer = null;
+        let _selectedAvatarFile = null;
+
+        function getSb() {
+            if (!_sb) _sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+            return _sb;
+        }
+
+        function applyPlayerData(player) {
+            if (!player) return;
+            _currentPlayer = player;
+            const name = player.username || 'PLAYER';
+            const elo = player.elo || 1500;
+            const wins = player.wins || 0;
+            const losses = player.losses || 0;
+            const matches = wins + losses;
+            const ratio = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+
+            document.getElementById('pc-card-name').innerText = name;
+            document.getElementById('pc-card-elo').innerText = elo;
+            document.getElementById('pc-card-winratio').innerText = ratio + '%';
+
+            if (player.avatar_url) {
+                const photo = document.getElementById('pc-card-photo');
+                photo.src = player.avatar_url;
+                photo.style.display = 'block';
+                document.getElementById('pc-card-icon').style.display = 'none';
+            }
+
+            if (player.team_data && player.team_data.name) {
+                document.getElementById('pc-card-location').innerText = player.team_data.name;
+            } else if (player.country) {
+                document.getElementById('pc-card-location').innerText = player.country.toUpperCase();
+            }
+
+            document.getElementById('pc-back-matches').innerText = matches + ' MATCHES PLAYED';
+            document.getElementById('pc-back-tourneys').innerText = (player.tournaments_won || 0) + ' TOURNAMENTS WON';
+
+            const tier = elo >= 1800 ? 'LEGEND' : elo >= 1500 ? 'PRO PLAYER' : elo >= 1300 ? 'CHALLENGER' : 'ROOKIE';
+            document.getElementById('pc-card-tier').innerText = tier;
+
+            document.getElementById('pc-stat-elo').innerText = elo;
+            document.getElementById('pc-stat-matches').innerText = matches;
+            document.getElementById('pc-stat-wins').innerText = wins;
+            document.getElementById('pc-stat-ratio').innerText = ratio + '%';
+
+            if (player.is_owner || player.is_admin) {
+                document.getElementById('pc-owner-btn').style.display = 'flex';
+            }
+
+            // Pre-fill edit form
+            document.getElementById('pc-edit-name').value = name;
+            if (player.country) {
+                setTimeout(() => {
+                    const sel = document.getElementById('pc-edit-country');
+                    sel.value = player.country;
+                }, 500);
+            }
+        }
+
+        // Toggle edit panel
+        function toggleEditPanel() {
+            const panel = document.getElementById('pc-edit-panel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // Load countries
+        async function loadCountries() {
+            try {
+                const sb = getSb();
+                const { data } = await sb.from('countries').select('name, code').order('name');
+                const sel = document.getElementById('pc-edit-country');
+                if (data) {
+                    data.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.code.toLowerCase();
+                        opt.innerText = c.name;
+                        sel.appendChild(opt);
+                    });
+                }
+            } catch(e) { console.log('Countries:', e.message); }
+        }
+
+        // Avatar file select
+        function handleAvatarSelect(input) {
+            if (input.files && input.files[0]) {
+                _selectedAvatarFile = input.files[0];
+                document.getElementById('pc-file-name').innerText = input.files[0].name;
+                document.getElementById('pc-file-label').style.borderColor = '#D4AF37';
+                document.getElementById('pc-file-label').style.color = '#D4AF37';
+            }
+        }
+
+        // Save profile
+        async function saveProfile() {
+            const btn = document.getElementById('pc-save-btn');
+            const msg = document.getElementById('pc-edit-msg');
+            btn.disabled = true;
+            btn.innerText = 'SAVING...';
+            msg.innerText = '';
+
+            try {
+                const sb = getSb();
+                const { data: { session } } = await sb.auth.getSession();
+                if (!session) throw new Error('Not logged in');
+
+                const updates = {};
+                const newName = document.getElementById('pc-edit-name').value.trim().toUpperCase();
+                if (newName && newName !== _currentPlayer?.username) {
+                    updates.username = newName;
+                }
+
+                const country = document.getElementById('pc-edit-country').value;
+                if (country) updates.country = country;
+
+                // Upload avatar
+                if (_selectedAvatarFile) {
+                    const ext = _selectedAvatarFile.name.split('.').pop();
+                    const path = `avatars/${session.user.id}.${ext}`;
+                    const { error: upErr } = await sb.storage.from('avatars').upload(path, _selectedAvatarFile, { upsert: true });
+                    if (!upErr) {
+                        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+                        updates.avatar_url = urlData.publicUrl + '?v=' + Date.now();
+                    }
+                }
+
+                if (Object.keys(updates).length === 0) {
+                    msg.style.color = '#888';
+                    msg.innerText = 'NO CHANGES';
+                    btn.disabled = false;
+                    btn.innerText = 'SAVE CHANGES';
+                    return;
+                }
+
+                const { error } = await sb.from('players').update(updates).eq('id', session.user.id);
+                if (error) throw error;
+
+                // Update localStorage
+                const cached = localStorage.getItem('subsoccer-user');
+                if (cached) {
+                    const user = JSON.parse(cached);
+                    Object.assign(user, updates);
+                    localStorage.setItem('subsoccer-user', JSON.stringify(user));
+                }
+
+                msg.style.color = '#4CAF50';
+                msg.innerText = '✓ SAVED SUCCESSFULLY';
+
+                // Refresh card
+                setTimeout(() => location.reload(), 800);
+            } catch(e) {
+                msg.style.color = '#E30613';
+                msg.innerText = e.message || 'SAVE FAILED';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'SAVE CHANGES';
+            }
+        }
+
+        // Logout
+        async function logoutPlayer() {
+            if (!confirm('Log out?')) return;
+            try {
+                const sb = getSb();
+                await sb.auth.signOut();
+            } catch(e) {}
+            localStorage.removeItem('subsoccer-user');
+            window.location.href = 'index.html';
+        }
+
+        // Load profile
+        (async function loadProfile() {
+            try {
+                const sb = getSb();
+                const { data: { session } } = await sb.auth.getSession();
+                
+                if (session && session.user) {
+                    const { data: player } = await sb
+                        .from('players')
+                        .select('*, team_data:teams!players_team_id_fkey(*)')
+                        .eq('id', session.user.id)
+                        .single();
+                    
+                    if (player) {
+                        applyPlayerData(player);
+                        loadCountries();
+                        return;
+                    }
+                }
+            } catch(e) {
+                console.log('Supabase fetch:', e.message);
+            }
+
+            const cached = localStorage.getItem('subsoccer-user');
+            if (cached) {
+                try {
+                    applyPlayerData(JSON.parse(cached));
+                    loadCountries();
+                } catch(e) {}
+            }
+        })();
+    </script>
+
+</body>
+</html>
