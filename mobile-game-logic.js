@@ -24,50 +24,7 @@ const MAX_PLAYERS_LOGGED = 8;
             updateAddPlayerButton();
         }
 
-        // 2. Fetch initial pricing from DB + subscribe to real-time updates
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameId = urlParams.get('game_id');
-        
-        // 2a. Fetch initial price from games.metadata on page load
-        if (gameId) {
-            try {
-                let gameRow = null;
-                if (gameId.includes('-') && gameId.length > 20) {
-                    const { data } = await sb.from('games').select('metadata').eq('id', gameId).maybeSingle();
-                    gameRow = data;
-                }
-                if (!gameRow) {
-                    const { data } = await sb.from('games').select('metadata').eq('game_name', gameId).maybeSingle();
-                    gameRow = data;
-                }
-                if (gameRow && gameRow.metadata) {
-                    const cfg = typeof gameRow.metadata === 'string' ? JSON.parse(gameRow.metadata) : gameRow.metadata;
-                    const priceEl = document.getElementById('mobile-price-tag');
-                    if (priceEl && !cfg.freePlayEnabled) {
-                        const basePrice = cfg.basePrice ?? 2.00;
-                        priceEl.innerText = basePrice > 0 ? `€${basePrice.toFixed(2)}` : 'FREE';
-                    } else if (priceEl && cfg.freePlayEnabled) {
-                        priceEl.innerText = 'FREE';
-                    }
-                }
-            } catch(dbErr) { console.log('DB price fetch:', dbErr.message); }
-        }
-
-        // 2b. Listen for live config broadcasts from Owner Dashboard (overrides DB value)
-        const channel = sb.channel('arcade-config');
-        channel.on('broadcast', { event: 'table_config' }, (payload) => {
-            const cfg = payload.payload;
-            const priceEl = document.getElementById('mobile-price-tag');
-            if (priceEl && cfg) {
-                if (cfg.freePlay) {
-                    priceEl.innerText = 'FREE';
-                } else {
-                    const basePrice = cfg.basePrice ?? 2.00;
-                    priceEl.innerText = basePrice > 0 ? `€${basePrice.toFixed(2)}` : 'FREE';
-                }
-            }
-        });
-        channel.subscribe();
+        // Note: Pricing logic removed from here since mobile standalone flow is always free.
     } catch(e) { console.log('Init check:', e.message); }
 })();
 
