@@ -597,6 +597,16 @@ arcadeSocket.on('end_game', (payload) => {
         if (els.t) els.t.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 500, delay: 250, easing: 'ease-out', fill: 'forwards' });
         if (els.s) els.s.animate([{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 400, delay: 400, easing: springFast, fill: 'forwards' });
         if (els.cta) els.cta.animate([{ transform: 'translateY(30px) translateX(-50%)', opacity: 0 }, { transform: 'translateY(0) translateX(-50%)', opacity: 1 }], { duration: 800, delay: 1500, easing: springFast, fill: 'forwards' });
+
+        try {
+            const enabled = window.tableConfig && window.tableConfig.audioEnabled !== undefined ? window.tableConfig.audioEnabled : true;
+            const vol = window.tableConfig && window.tableConfig.audioVolume !== undefined ? (window.tableConfig.audioVolume / 100) : 1.0;
+            if (enabled && vol > 0) {
+                const victoryAudio = new Audio('sounds/victory_theme.m4a');
+                victoryAudio.volume = vol;
+                victoryAudio.play().catch(e => console.log('Victory Audio blocked:', e));
+            }
+        } catch (e) { }
     };
 
     if (payload.mode === 'tournament') {
