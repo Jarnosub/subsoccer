@@ -89,23 +89,14 @@
 
     <div id="auth-page" class="fade-in">
 
-        <!-- Media Background Container (Image or Video) -->
+        <!-- Media Background Container (Matches Hub / index.html to prevent disconnected feeling) -->
         <div id="hero-bg-container"
             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; background: #000;">
-            <!-- Kuva (vaihda oma kuva tai kommentoi pois jos käytät videota) -->
-            <!-- <img src="hero-bg.jpg" alt="Subsoccer Background" style="width: 100%; height: 100%; object-fit: cover;"
-                onerror="this.style.display='none'"> -->
+            
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('Subsoccer_tournament_2.jpg'); background-size: cover; background-position: center top; filter: brightness(0.65) contrast(1.1);"></div>
 
-            <!-- Video (poista kommentit jos sinulla on hero-video.mp4 tiedosto kansiossa) -->
-            <video autoplay loop muted playsinline
-                style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover;">
-                <source src="hero-video.mp4" type="video/mp4">
-            </video>
-
-            <!-- Tumma overlay joka takaa tekstien luettavuuden (peittävyys 0.7 = 70%) -->
-            <div
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1; pointer-events: none;">
-            </div>
+            <!-- Gradientti joka yhdenmukaistaa ulkoasun luettavuuden -->
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 20%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.9) 100%); pointer-events: none;"></div>
         </div>
 
         <!-- NEW FRONT PAGE (Landing Hero) -->
@@ -188,7 +179,7 @@
                 </button>
             </div>
             <div style="text-align: left; margin-bottom: 10px;">
-                <span onclick="showAuthPage('landing')" class="link-back"
+                <span onclick="if(new URLSearchParams(window.location.search).get('source') === 'go' && (window.location.hash.includes('login') || new URLSearchParams(window.location.search).get('redirect'))) { window.history.back(); } else { showAuthPage('landing'); }" class="link-back"
                     style="cursor: pointer; color: #888; font-size: 0.9rem;">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </span>
