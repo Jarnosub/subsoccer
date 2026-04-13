@@ -504,12 +504,14 @@ arcadeSocket.on('state_update', (payload) => {
         }
         
         try {
+            const enabled = window.tableConfig && window.tableConfig.audioEnabled !== undefined ? window.tableConfig.audioEnabled : true;
             const vol = window.tableConfig && window.tableConfig.audioVolume !== undefined ? (window.tableConfig.audioVolume / 100) : 1.0;
+            const finalVol = enabled ? vol : 0;
             const audioHorn = new Audio('/goal_horn.mp3');
             const audioSwoosh = new Audio('/swoosh.mp3');
-            audioHorn.volume = vol;
-            audioSwoosh.volume = vol;
-            if (vol > 0) {
+            audioHorn.volume = finalVol;
+            audioSwoosh.volume = finalVol;
+            if (finalVol > 0) {
                 audioHorn.play().catch(()=>{});
                 setTimeout(() => { audioSwoosh.play().catch(()=>{}); }, 1000);
             }
@@ -748,12 +750,14 @@ window.addEventListener('keydown', (e) => {
         // Note: We need a slight refactoring if playGoalHorn is heavily coupled, but it looks missing from this new JS context
         // Actually, playGoalHorn was not moved. Let's add it.
         try {
+            const enabled = window.tableConfig && window.tableConfig.audioEnabled !== undefined ? window.tableConfig.audioEnabled : true;
             const vol = window.tableConfig && window.tableConfig.audioVolume !== undefined ? (window.tableConfig.audioVolume / 100) : 1.0;
+            const finalVol = enabled ? vol : 0;
             const audioHorn = new Audio('/goal_horn.mp3');
             const audioSwoosh = new Audio('/swoosh.mp3');
-            audioHorn.volume = vol;
-            audioSwoosh.volume = vol;
-            if (vol > 0) {
+            audioHorn.volume = finalVol;
+            audioSwoosh.volume = finalVol;
+            if (finalVol > 0) {
                 audioHorn.play().catch(()=>{});
                 setTimeout(() => { audioSwoosh.play().catch(()=>{}); }, 1000);
             }

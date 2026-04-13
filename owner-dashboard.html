@@ -213,14 +213,23 @@
                 </div>
 
                 <div class="mb-2 border-t border-[#222] pt-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <div class="text-sm font-bold text-gray-300">Arcade Audio</div>
+                            <div class="text-xs text-gray-500 mt-1">Enable TV screen sounds</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="setting-audio-enabled" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-[#222] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div>
+                        </label>
+                    </div>
                     <div class="flex justify-between mb-2">
-                        <label class="text-sm font-bold text-gray-300">Arcade Audio Volume</label>
-                        <span id="audio-val" class="text-[#D4AF37] font-bold">100%</span>
+                        <label class="text-xs font-bold text-gray-500">Volume Level</label>
+                        <span id="audio-val" class="text-[#D4AF37] text-xs font-bold">100%</span>
                     </div>
                     <input type="range" id="setting-audio" min="0" max="100" step="5" value="100"
                         class="w-full h-2 bg-[#222] rounded-lg appearance-none cursor-pointer"
                         oninput="document.getElementById('audio-val').innerText = this.value + '%'">
-                    <p class="text-xs text-gray-500 mt-2">Adjusts the volume of the TV screen goal horn and swoosh effects.</p>
                 </div>
             </section>
 
@@ -548,6 +557,9 @@
                     document.getElementById('setting-price').value = md.basePrice;
                     document.getElementById('price-val').innerText = '€' + parseFloat(md.basePrice).toFixed(2);
                 }
+                if (md.audioEnabled !== undefined) {
+                    document.getElementById('setting-audio-enabled').checked = md.audioEnabled;
+                }
                 if (md.audioVolume !== undefined) {
                     document.getElementById('setting-audio').value = md.audioVolume;
                     document.getElementById('audio-val').innerText = md.audioVolume + '%';
@@ -685,6 +697,7 @@
             if (savedDemoSettings.matchTime) document.getElementById('setting-duration').value = savedDemoSettings.matchTime;
             if (savedDemoSettings.tiebreaker) document.getElementById('setting-tiebreaker').value = savedDemoSettings.tiebreaker;
             if (savedDemoSettings.basePrice) document.getElementById('setting-price').value = savedDemoSettings.basePrice;
+            if (savedDemoSettings.audioEnabled !== undefined) document.getElementById('setting-audio-enabled').checked = savedDemoSettings.audioEnabled;
             if (savedDemoSettings.audioVolume !== undefined) document.getElementById('setting-audio').value = savedDemoSettings.audioVolume;
             if (savedDemoSettings.freePlay !== undefined) document.getElementById('setting-freeplay').checked = savedDemoSettings.freePlay;
             if (savedDemoSettings.basicMode !== undefined) document.getElementById('setting-basic-mode').checked = savedDemoSettings.basicMode;
@@ -700,6 +713,7 @@
                 matchTime: parseInt(document.getElementById('setting-duration').value),
                 tiebreaker: document.getElementById('setting-tiebreaker').value,
                 basePrice: parseFloat(document.getElementById('setting-price').value),
+                audioEnabled: document.getElementById('setting-audio-enabled').checked,
                 audioVolume: parseInt(document.getElementById('setting-audio').value),
                 freePlay: document.getElementById('setting-freeplay').checked,
                 basicMode: document.getElementById('setting-basic-mode').checked
@@ -730,6 +744,7 @@
                 freePlayEnabled: settings.freePlay,
                 basicMode: settings.basicMode,
                 tiebreaker: settings.tiebreaker,
+                audioEnabled: settings.audioEnabled,
                 audioVolume: settings.audioVolume,
                 updatedAt: new Date().toISOString()
             };
