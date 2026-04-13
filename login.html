@@ -157,7 +157,14 @@
                     // Skip the redundant landing page completely if user specifically clicked a "LOG IN" button
                     if (window.location.hash.includes('login') || urlParams.get('redirect')) {
                         document.getElementById('landing-hero').style.display = 'none';
-                        document.getElementById('login-form').style.display = 'block';
+                        document.addEventListener('DOMContentLoaded', () => {
+                            if(typeof window.showAuthPage === 'function') {
+                                window.showAuthPage('login');
+                            } else {
+                                const lf = document.getElementById('login-form');
+                                if(lf) lf.style.display = 'block';
+                            }
+                        });
                     }
                 }
             </script>
