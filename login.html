@@ -153,6 +153,12 @@
                     document.getElementById('casual-play-block').style.display = 'none';
                     // Apply a slightly different vibe
                     document.querySelector('#landing-hero img.main-logo').style.filter = 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.4))';
+                    
+                    // Skip the redundant landing page completely if user specifically clicked a "LOG IN" button
+                    if (window.location.hash.includes('login') || urlParams.get('redirect')) {
+                        document.getElementById('landing-hero').style.display = 'none';
+                        document.getElementById('login-form').style.display = 'block';
+                    }
                 }
             </script>
         </div>
