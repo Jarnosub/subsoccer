@@ -210,20 +210,20 @@
         }
 
         #mobile-bracket-area {
-            min-width: 100%;
-            transform: scale(0.75);
-            transform-origin: top left;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         /* TV Mirroring Optimization: Horizontal Bracket on Landscape */
         @media (orientation: landscape) {
             #mobile-bracket-area {
-                display: flex;
                 flex-direction: row-reverse;
                 align-items: stretch;
                 justify-content: center;
-                gap: 40px;
-                transform: scale(0.65);
+                gap: 30px;
+                transform: scale(0.85);
                 transform-origin: center;
                 margin: 0 auto;
             }
@@ -235,10 +235,11 @@
             }
             /* Override internal BracketTree CSS inline */
             #mobile-bracket-area .bracket-round {
-                min-width: 280px;
+                min-width: 250px;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-evenly;
+                padding: 0;
             }
             #mobile-bracket-area .round-title {
                 position: static !important;
