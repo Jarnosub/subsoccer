@@ -211,6 +211,17 @@
                         <option value="sudden_death">Sudden Death / Golden Goal (Fair)</option>
                     </select>
                 </div>
+
+                <div class="mb-2 border-t border-[#222] pt-6">
+                    <div class="flex justify-between mb-2">
+                        <label class="text-sm font-bold text-gray-300">Arcade Audio Volume</label>
+                        <span id="audio-val" class="text-[#D4AF37] font-bold">100%</span>
+                    </div>
+                    <input type="range" id="setting-audio" min="0" max="100" step="5" value="100"
+                        class="w-full h-2 bg-[#222] rounded-lg appearance-none cursor-pointer"
+                        oninput="document.getElementById('audio-val').innerText = this.value + '%'">
+                    <p class="text-xs text-gray-500 mt-2">Adjusts the volume of the TV screen goal horn and swoosh effects.</p>
+                </div>
             </section>
 
             <!-- Monetization -->
@@ -537,6 +548,10 @@
                     document.getElementById('setting-price').value = md.basePrice;
                     document.getElementById('price-val').innerText = '€' + parseFloat(md.basePrice).toFixed(2);
                 }
+                if (md.audioVolume !== undefined) {
+                    document.getElementById('setting-audio').value = md.audioVolume;
+                    document.getElementById('audio-val').innerText = md.audioVolume + '%';
+                }
                 if (typeof md.freePlay !== 'undefined') {
                     // Requires toggle update if we used a checkbox, assuming we do
                 }
@@ -670,6 +685,7 @@
             if (savedDemoSettings.matchTime) document.getElementById('setting-duration').value = savedDemoSettings.matchTime;
             if (savedDemoSettings.tiebreaker) document.getElementById('setting-tiebreaker').value = savedDemoSettings.tiebreaker;
             if (savedDemoSettings.basePrice) document.getElementById('setting-price').value = savedDemoSettings.basePrice;
+            if (savedDemoSettings.audioVolume !== undefined) document.getElementById('setting-audio').value = savedDemoSettings.audioVolume;
             if (savedDemoSettings.freePlay !== undefined) document.getElementById('setting-freeplay').checked = savedDemoSettings.freePlay;
             if (savedDemoSettings.basicMode !== undefined) document.getElementById('setting-basic-mode').checked = savedDemoSettings.basicMode;
         }
@@ -684,6 +700,7 @@
                 matchTime: parseInt(document.getElementById('setting-duration').value),
                 tiebreaker: document.getElementById('setting-tiebreaker').value,
                 basePrice: parseFloat(document.getElementById('setting-price').value),
+                audioVolume: parseInt(document.getElementById('setting-audio').value),
                 freePlay: document.getElementById('setting-freeplay').checked,
                 basicMode: document.getElementById('setting-basic-mode').checked
             };
@@ -713,6 +730,7 @@
                 freePlayEnabled: settings.freePlay,
                 basicMode: settings.basicMode,
                 tiebreaker: settings.tiebreaker,
+                audioVolume: settings.audioVolume,
                 updatedAt: new Date().toISOString()
             };
 
