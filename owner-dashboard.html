@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,21 +9,30 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f1011; color: white; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f1011;
+            color: white;
+        }
+
         .glass-panel {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(20px);
         }
+
         input[type=range] {
             accent-color: #D4AF37;
         }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col md:flex-row bg-[#0f1011]">
-    
+
     <!-- Sidebar -->
-    <aside class="w-full md:w-64 glass-panel md:border-r border-b md:border-b-0 flex flex-col p-6 md:h-screen sticky top-0 z-50 overflow-y-auto max-h-screen" style="border-color: #222;">
+    <aside
+        class="w-full md:w-64 glass-panel md:border-r border-b md:border-b-0 flex flex-col p-6 md:h-screen sticky top-0 z-50 overflow-y-auto max-h-screen"
+        style="border-color: #222;">
         <div class="mb-4 md:mb-10 flex flex-col items-start">
             <img src="subsoccer_logo.svg" alt="Subsoccer Logo" class="w-32 md:w-40 mb-1">
             <div class="w-32 md:w-40 flex justify-between text-white text-[10px] font-bold mt-0.5 opacity-60">
@@ -31,54 +41,72 @@
         </div>
 
         <nav class="flex-1 mt-2 md:mt-4 pr-2 space-y-4 md:space-y-6">
-            
+
             <!-- Promo Code Modal -->
-    <div id="promo-modal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center backdrop-blur-sm shadow-2xl transition-all" style="display: none;">
-        <div class="bg-[#111] border border-[#333] rounded-2xl w-[400px] p-8 relative">
-            <i onclick="document.getElementById('promo-modal').style.display='none'" class="fas fa-times absolute top-4 right-4 text-gray-500 hover:text-white cursor-pointer text-lg p-2"></i>
-            <h3 class="font-bold text-xl mb-2 text-white">Gift Card Generated</h3>
-            <p class="text-xs text-gray-400 mb-6 tracking-wide">Share this token with a player. Standard codes bypass the payment gateway exactly once (100% discount).</p>
-            
-            <div class="bg-[#050505] border border-[#D4AF37] p-6 text-center rounded-lg mb-6 relative group cursor-pointer overflow-hidden" onclick="copyPromoCode()">
-                <span id="promo-code-display" class="font-bold text-2xl tracking-widest text-[#D4AF37] font-mono">SUB-XXXXX</span>
-                <div class="absolute inset-0 bg-[#D4AF37] bg-opacity-90 opacity-0 group-hover:opacity-100 transition-opacity flex justify-center items-center backdrop-blur-sm">
-                    <span id="promo-copy-feedback" class="font-bold text-black tracking-widest uppercase text-sm"><i class="fas fa-copy"></i> Click to Copy</span>
+            <div id="promo-modal"
+                class="fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center backdrop-blur-sm shadow-2xl transition-all"
+                style="display: none;">
+                <div class="bg-[#111] border border-[#333] rounded-2xl w-[400px] p-8 relative">
+                    <i onclick="document.getElementById('promo-modal').style.display='none'"
+                        class="fas fa-times absolute top-4 right-4 text-gray-500 hover:text-white cursor-pointer text-lg p-2"></i>
+                    <h3 class="font-bold text-xl mb-2 text-white">Gift Card Generated</h3>
+                    <p class="text-xs text-gray-400 mb-6 tracking-wide">Share this token with a player. Standard codes
+                        bypass the payment gateway exactly once (100% discount).</p>
+
+                    <div class="bg-[#050505] border border-[#D4AF37] p-6 text-center rounded-lg mb-6 relative group cursor-pointer overflow-hidden"
+                        onclick="copyPromoCode()">
+                        <span id="promo-code-display"
+                            class="font-bold text-2xl tracking-widest text-[#D4AF37] font-mono">SUB-XXXXX</span>
+                        <div
+                            class="absolute inset-0 bg-[#D4AF37] bg-opacity-90 opacity-0 group-hover:opacity-100 transition-opacity flex justify-center items-center backdrop-blur-sm">
+                            <span id="promo-copy-feedback"
+                                class="font-bold text-black tracking-widest uppercase text-sm"><i
+                                    class="fas fa-copy"></i> Click to Copy</span>
+                        </div>
+                    </div>
+
+                    <button onclick="document.getElementById('promo-modal').style.display='none'"
+                        class="w-full py-4 bg-white text-black font-bold uppercase tracking-widest rounded hover:bg-gray-200 transition-colors text-sm shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                        Done
+                    </button>
                 </div>
             </div>
-            
-            <button onclick="document.getElementById('promo-modal').style.display='none'" class="w-full py-4 bg-white text-black font-bold uppercase tracking-widest rounded hover:bg-gray-200 transition-colors text-sm shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                Done
-            </button>
-        </div>
-    </div>
 
-    <!-- Hardware Setup Dialog Container -->
+            <!-- Hardware Setup Dialog Container -->
             <!-- Fleet Hierarchy Container -->
             <div id="fleet-container">
-                <div class="text-[10px] text-center text-gray-500 mt-4 md:mt-10"><i class="fas fa-spinner fa-spin"></i> Loading Fleet...</div>
+                <div class="text-[10px] text-center text-gray-500 mt-4 md:mt-10"><i class="fas fa-spinner fa-spin"></i>
+                    Loading Fleet...</div>
             </div>
 
             <!-- Global Analytics & Subscription -->
             <div class="border-t border-[#222] pt-4 space-y-1">
-                <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white p-2 text-sm rounded-lg transition-all hidden md:flex">
+                <a href="#"
+                    class="flex items-center gap-3 text-gray-400 hover:text-white p-2 text-sm rounded-lg transition-all hidden md:flex">
                     <i class="fas fa-chart-line w-4"></i> Network Revenue
                 </a>
-                <a href="#" class="flex items-center gap-3 text-gray-400 hover:text-white p-2 text-sm rounded-lg transition-all hidden md:flex">
+                <a href="#"
+                    class="flex items-center gap-3 text-gray-400 hover:text-white p-2 text-sm rounded-lg transition-all hidden md:flex">
                     <i class="fas fa-crown w-4 text-[#D4AF37]"></i> Pro Subscription
                 </a>
             </div>
-            
+
         </nav>
 
         <div class="mt-4 md:mt-auto pt-4 md:pt-6 border-t border-[#333] flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-[#D4AF37] to-yellow-600 flex items-center justify-center text-black font-bold">O</div>
+                <div
+                    class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-[#D4AF37] to-yellow-600 flex items-center justify-center text-black font-bold">
+                    O</div>
                 <div>
                     <p class="text-sm font-bold">Owner Portal</p>
-                    <p class="text-xs text-gray-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Connected</p>
+                    <p class="text-xs text-gray-500 flex items-center gap-1"><span
+                            class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Connected</p>
                 </div>
             </div>
-            <button onclick="window.location.href='index.html'" class="text-gray-500 hover:text-[#E30613] transition-colors p-2 rounded-lg hover:bg-white/5" title="Exit to Hub">
+            <button onclick="window.location.href='index.html'"
+                class="text-gray-500 hover:text-[#E30613] transition-colors p-2 rounded-lg hover:bg-white/5"
+                title="Exit to Hub">
                 <i class="fas fa-sign-out-alt text-lg"></i>
             </button>
         </div>
@@ -86,10 +114,12 @@
 
     <!-- Main Content -->
     <main class="flex-1 p-4 md:p-10 overflow-y-auto">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 border-b border-[#222] pb-6 gap-4">
+        <header
+            class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 border-b border-[#222] pb-6 gap-4">
             <div>
                 <h2 class="text-3xl font-bold" id="table-title">Select a Table</h2>
-                <p class="text-gray-400 mt-2 mb-4" id="table-desc">Choose a table from your fleet to manage hardware configuration and physical parameters.</p>
+                <p class="text-gray-400 mt-2 mb-4" id="table-desc">Choose a table from your fleet to manage hardware
+                    configuration and physical parameters.</p>
                 <div class="flex gap-3">
                     <div class="flex items-center gap-2 bg-[#111] border border-[#222] rounded-lg px-3 py-1.5">
                         <i class="fas fa-microchip text-gray-500"></i>
@@ -101,7 +131,8 @@
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-2 bg-gray-900 border border-gray-500 border-opacity-50 text-gray-400 rounded-lg px-4 py-2 mt-1">
+            <div
+                class="flex items-center gap-2 bg-gray-900 border border-gray-500 border-opacity-50 text-gray-400 rounded-lg px-4 py-2 mt-1">
                 <span class="w-2 h-2 rounded-full bg-gray-400"></span>
                 <span class="text-sm font-bold">STATUS</span>
             </div>
@@ -116,7 +147,7 @@
                 </div>
                 <div class="text-[10px] text-gray-500 mt-1">Today's paid games</div>
             </div>
-            
+
             <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-green-500">
                 <div class="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-2">Monthly Revenue</div>
                 <div class="text-2xl md:text-3xl font-black text-white" id="stat-monthly-revenue">
@@ -147,30 +178,35 @@
                     <i class="fas fa-spinner fa-spin text-sm text-gray-500"></i>
                 </div>
                 <div class="text-[10px] text-gray-500 mt-1" id="stat-gift-cards-subtitle">Redeemed / Total</div>
-                <button onclick="generatePromoCode()" class="absolute top-4 right-4 bg-purple-500 hover:bg-purple-400 text-white text-[10px] uppercase font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onclick="generatePromoCode()"
+                    class="absolute top-4 right-4 bg-purple-500 hover:bg-purple-400 text-white text-[10px] uppercase font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                     + Generate
                 </button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
+
             <!-- Game Rules -->
             <section class="glass-panel p-8 rounded-2xl">
-                <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-stopwatch text-[#D4AF37]"></i> Game Rules</h3>
-                
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i
+                        class="fas fa-stopwatch text-[#D4AF37]"></i> Game Rules</h3>
+
                 <div class="mb-8">
                     <div class="flex justify-between mb-2">
                         <label class="text-sm font-bold text-gray-300">Match Duration (Seconds)</label>
                         <span id="dur-val" class="text-[#D4AF37] font-bold">90s</span>
                     </div>
-                    <input type="range" id="setting-duration" min="10" max="300" step="10" value="90" class="w-full h-2 bg-[#222] rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('dur-val').innerText = this.value + 's'">
+                    <input type="range" id="setting-duration" min="10" max="300" step="10" value="90"
+                        class="w-full h-2 bg-[#222] rounded-lg appearance-none cursor-pointer"
+                        oninput="document.getElementById('dur-val').innerText = this.value + 's'">
                     <p class="text-xs text-gray-500 mt-2">Shorter times increase table turnover rate by 40%.</p>
                 </div>
 
                 <div class="mb-6 border-t border-[#222] pt-6">
                     <label class="text-sm font-bold text-gray-300 block mb-3">Tiebreaker Mode</label>
-                    <select id="setting-tiebreaker" class="w-full bg-[#111] border border-[#333] text-white rounded-lg p-3 outline-none focus:border-[#D4AF37]">
+                    <select id="setting-tiebreaker"
+                        class="w-full bg-[#111] border border-[#333] text-white rounded-lg p-3 outline-none focus:border-[#D4AF37]">
                         <option value="coin">Automated Coin Flip (Fastest)</option>
                         <option value="sudden_death">Sudden Death / Golden Goal (Fair)</option>
                     </select>
@@ -179,108 +215,133 @@
 
             <!-- Monetization -->
             <section class="glass-panel p-8 rounded-2xl">
-                <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-credit-card text-[#D4AF37]"></i> Monetization</h3>
-                
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i
+                        class="fas fa-credit-card text-[#D4AF37]"></i> Monetization</h3>
+
                 <div class="mb-8">
                     <div class="flex justify-between mb-2">
                         <label class="text-sm font-bold text-gray-300">Base Price (1v1 Game)</label>
                         <span id="price-val" class="text-[#D4AF37] font-bold">€2.00</span>
                     </div>
-                    <input type="range" id="setting-price" min="0" max="10" step="0.5" value="2" class="w-full h-2 bg-[#222] rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('price-val').innerText = '€' + parseFloat(this.value).toFixed(2)">
-                    <p class="text-xs text-gray-500 mt-2">Dynamic scale automatically adjusts to +€1 per extra player in Tournament modes.</p>
+                    <input type="range" id="setting-price" min="0" max="10" step="0.5" value="2"
+                        class="w-full h-2 bg-[#222] rounded-lg appearance-none cursor-pointer"
+                        oninput="document.getElementById('price-val').innerText = '€' + parseFloat(this.value).toFixed(2)">
+                    <p class="text-xs text-gray-500 mt-2">Dynamic scale automatically adjusts to +€1 per extra player in
+                        Tournament modes.</p>
                 </div>
 
                 <div class="flex items-center justify-between border-t border-[#222] pt-6">
                     <div>
                         <div class="text-sm font-bold text-gray-300">Enable "Free Play" Hours</div>
-                        <div class="text-xs text-gray-500 mt-1">Bypass payment gate completely during active hours.</div>
+                        <div class="text-xs text-gray-500 mt-1">Bypass payment gate completely during active hours.
+                        </div>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="setting-freeplay" class="sr-only peer">
-                        <div class="w-11 h-6 bg-[#222] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div>
+                        <div
+                            class="w-11 h-6 bg-[#222] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]">
+                        </div>
                     </label>
                 </div>
                 <div class="flex items-center justify-between border-t border-[#222] pt-6 mt-6">
                     <div>
                         <div class="text-sm font-bold text-gray-300">Basic Table Mode (First to 3)</div>
-                        <div class="text-xs text-gray-500 mt-1">Disables 90s timer and smart film. First player to 3 goals wins.</div>
+                        <div class="text-xs text-gray-500 mt-1">Disables 90s timer and smart film. First player to 3
+                            goals wins.</div>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="setting-basic-mode" class="sr-only peer">
-                        <div class="w-11 h-6 bg-[#222] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]"></div>
+                        <div
+                            class="w-11 h-6 bg-[#222] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D4AF37]">
+                        </div>
                     </label>
                 </div>
             </section>
         </div>
 
         <!-- Direct Node Links -->
-        <div class="mb-4 text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-[#222] pb-2 mt-10">Direct Node Links</div>
+        <div class="mb-4 text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-[#222] pb-2 mt-10">
+            Direct Node Links</div>
         <div class="flex flex-col md:flex-row gap-4">
-            <a id="link-hub" href="lounge-remote.html?game_id=dbe5db28-7859-4ce7-9697-2dc5453d6f47" target="_blank" class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#D4AF37] hover:bg-white/5 transition-all group">
+            <a id="link-hub" href="lounge-remote.html?game_id=dbe5db28-7859-4ce7-9697-2dc5453d6f47" target="_blank"
+                class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#D4AF37] hover:bg-white/5 transition-all group">
                 <div class="flex items-center gap-3">
                     <i class="fas fa-mobile-alt text-[#D4AF37] text-xl"></i>
                     <div>
-                        <div class="font-bold text-sm text-gray-300 group-hover:text-white transition-colors">Arcade Mobile Remote</div>
+                        <div class="font-bold text-sm text-gray-300 group-hover:text-white transition-colors">Arcade
+                            Mobile Remote</div>
                         <div class="text-[10px] text-gray-500">Player Interface Hub</div>
                     </div>
                 </div>
                 <i class="fas fa-external-link-alt text-gray-600 group-hover:text-white transition-colors"></i>
             </a>
-            
-            <a id="link-tv" href="tv.html" target="_blank" class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#4a9eff] hover:bg-white/5 transition-all group">
+
+            <a id="link-tv" href="tv.html" target="_blank"
+                class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#4a9eff] hover:bg-white/5 transition-all group">
                 <div class="flex items-center gap-3">
                     <i class="fas fa-tv text-[#4a9eff] text-xl"></i>
                     <div>
-                        <div class="font-bold text-sm text-gray-300 group-hover:text-white transition-colors">Smart TV Screen</div>
+                        <div class="font-bold text-sm text-gray-300 group-hover:text-white transition-colors">Smart TV
+                            Screen</div>
                         <div class="text-[10px] text-gray-500">Live Arcade Display</div>
                     </div>
                 </div>
                 <i class="fas fa-external-link-alt text-gray-600 group-hover:text-white transition-colors"></i>
             </a>
 
-            <a id="link-test" href="instant-play.html" target="_blank" class="flex-1 glass-panel p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-[#E30613] hover:bg-white/5 transition-all group">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-gamepad text-[#E30613] text-xl"></i>
-                    <div>
-                        <div class="font-bold text-sm text-gray-300 group-hover:text-white transition-colors">Test Game Instance</div>
-                        <div class="text-[10px] text-gray-500">Flick Game (Self-Host)</div>
-                    </div>
-                </div>
-                <i class="fas fa-external-link-alt text-gray-600 group-hover:text-white transition-colors"></i>
-            </a>
+            <!-- Removed link-test button to simplify UI -->
         </div>
 
-        <div class="mt-10 flex flex-col md:flex-row items-start md:items-center gap-6 p-6 glass-panel rounded-2xl border border-dashed border-[#D4AF37]">
+        <div
+            class="mt-10 flex flex-col md:flex-row items-start md:items-center gap-6 p-6 glass-panel rounded-2xl border border-dashed border-[#D4AF37]">
             <div class="w-12 h-12 rounded-xl bg-[#D4AF37] bg-opacity-20 flex justify-center items-center">
                 <i class="fas fa-sync text-[#D4AF37] text-xl"></i>
             </div>
             <div class="flex-1">
                 <h4 class="font-bold text-lg">Push to Fleet</h4>
-                <p class="text-gray-400 text-sm">Deploy these configuration tweaks directly to Subsoccer HQ Arcade 1 via Subsoccer Edge Network. Changes reflect live on the next game cycle instantly.</p>
+                <p class="text-gray-400 text-sm">Deploy these configuration tweaks directly to Subsoccer HQ Arcade 1 via
+                    Subsoccer Edge Network. Changes reflect live on the next game cycle instantly.</p>
             </div>
-            <button onclick="deploySettings()" class="bg-[#E30613] text-white font-bold uppercase tracking-wider px-8 py-4 rounded-xl hover:bg-red-700 transition-colors shadow-[0_0_20px_rgba(227,6,19,0.4)]">
+            <button onclick="deploySettings()"
+                class="bg-[#E30613] text-white font-bold uppercase tracking-wider px-8 py-4 rounded-xl hover:bg-red-700 transition-colors shadow-[0_0_20px_rgba(227,6,19,0.4)]">
                 Save & Deploy
             </button>
         </div>
         <!-- CLAIM NODE MODAL -->
-        <div id="claim-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50; flex-direction: column; align-items: center; justify-content: center;">
+        <div id="claim-modal"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50; flex-direction: column; align-items: center; justify-content: center;">
             <div class="glass-panel p-8 rounded-2xl w-full max-w-md relative text-center border border-[#333]">
-                <button onclick="document.getElementById('claim-modal').style.display='none'" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
+                <button onclick="document.getElementById('claim-modal').style.display='none'"
+                    class="absolute top-4 right-4 text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
                 <i class="fas fa-microchip text-4xl text-[#D4AF37] mb-4"></i>
                 <h3 class="text-2xl font-bold mb-2 text-white">Claim Arcade Node</h3>
-                <p class="text-gray-400 text-sm mb-6">Power on your new Subsoccer Arcade table. A 6-digit pairing code will appear on the display.</p>
-                
+                <p class="text-gray-400 text-sm mb-6">Power on your new Subsoccer Arcade table. A 6-digit pairing code
+                    will appear on the display.</p>
+
                 <div class="flex gap-2 justify-center mb-6">
-                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input" onkeyup="if(this.value.length===1) this.nextElementSibling.focus()">
-                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input" onkeyup="if(this.value.length===1) this.nextElementSibling.focus()">
-                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input" onkeyup="if(this.value.length===1) this.nextElementSibling.nextElementSibling.focus()">
+                    <input type="text" maxlength="1"
+                        class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input"
+                        onkeyup="if(this.value.length===1) this.nextElementSibling.focus()">
+                    <input type="text" maxlength="1"
+                        class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input"
+                        onkeyup="if(this.value.length===1) this.nextElementSibling.focus()">
+                    <input type="text" maxlength="1"
+                        class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input"
+                        onkeyup="if(this.value.length===1) this.nextElementSibling.nextElementSibling.focus()">
                     <div class="w-4 flex items-center justify-center text-gray-500 font-bold">-</div>
-                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input" onkeyup="if(this.value.length===1) this.nextElementSibling.focus()">
-                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input" onkeyup="if(this.value.length===1) this.nextElementSibling.focus()">
-                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input">
+                    <input type="text" maxlength="1"
+                        class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input"
+                        onkeyup="if(this.value.length===1) this.nextElementSibling.focus()">
+                    <input type="text" maxlength="1"
+                        class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input"
+                        onkeyup="if(this.value.length===1) this.nextElementSibling.focus()">
+                    <input type="text" maxlength="1"
+                        class="w-12 h-14 text-center text-2xl font-bold bg-[#111] border border-[#333] rounded focus:border-[#D4AF37] outline-none text-white uppercase claim-input">
                 </div>
 
-                <button onclick="submitClaim()" id="btn-submit-claim" class="w-full bg-[#E30613] text-white font-bold py-3 rounded-lg hover:bg-red-700 transition">PAIR HARDWARE</button>
+                <button onclick="submitClaim()" id="btn-submit-claim"
+                    class="w-full bg-[#E30613] text-white font-bold py-3 rounded-lg hover:bg-red-700 transition">PAIR
+                    HARDWARE</button>
             </div>
         </div>
         <script>
@@ -288,20 +349,20 @@
                 const btn = document.getElementById('btn-submit-claim');
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PAIRING VIA CLOUD...';
                 btn.style.pointerEvents = 'none';
-                
+
                 // Simulate pairing delay
                 setTimeout(() => {
                     btn.innerHTML = '<i class="fas fa-check"></i> SUCCESSFULLY PAIRED';
                     btn.classList.add('bg-green-500');
                     btn.classList.remove('bg-[#E30613]');
-                    
+
                     setTimeout(() => {
-                        document.getElementById('claim-modal').style.display='none';
+                        document.getElementById('claim-modal').style.display = 'none';
                         btn.innerHTML = 'PAIR HARDWARE';
                         btn.classList.remove('bg-green-500');
                         btn.classList.add('bg-[#E30613]');
                         btn.style.pointerEvents = 'auto';
-                        
+
                         // Fake refresh fleet
                         alert("Node provisioned! Hardware ID 'SUB-X99' linked to your account. In production, this refreshes the fleet list.");
                     }, 2000);
@@ -314,7 +375,7 @@
     <script type="module">
         import { arcadeSocket } from './socket-service.js';
         import { _supabase } from './config.js';
-        
+
         arcadeSocket.connect();
 
         async function requireAuth() {
@@ -324,7 +385,7 @@
                     console.log("No auth session, redirecting to login");
                     // In a production environment, uncomment this to enforce login
                     // window.location.href = 'frontpage-test.html?redirect=owner-dashboard.html';
-                    
+
                     // For current development/demo purposes, we show an alert but allow viewing
                     console.warn("DEV MODE: Auth bypassed. In production, this would redirect.");
                 } else {
@@ -342,16 +403,16 @@
 
         async function loadFleet() {
             const user = await requireAuth();
-            
+
             // For the demo we fetch some verified games to simulate an owner's fleet.
             // In production: .eq('owner_id', user.id)
             const query = _supabase.from('games').select('*').limit(20);
-            
+
             // If we have auth, we could filter by owner:
             // if (user) query.eq('owner_id', user.id);
-            
+
             const { data: games, error } = await query;
-            
+
             const container = document.getElementById('fleet-container');
             if (error || !games) {
                 container.innerHTML = '<div class="text-xs text-red-500 p-2">Error loading fleet.</div>';
@@ -366,7 +427,7 @@
             window.fleetGames.forEach(g => {
                 let loc = g.location || 'Unassigned Spaces';
                 // Clean up string just for short demo display if it's too long
-                if (loc.length > 25) loc = loc.split(',')[0]; 
+                if (loc.length > 25) loc = loc.split(',')[0];
                 if (!locations[loc]) locations[loc] = [];
                 locations[loc].push(g);
             });
@@ -389,7 +450,7 @@
                 const isArcadeLoc = loc.toLowerCase().includes('melkonkatu');
                 const displayStyle = isArcadeLoc ? 'block' : 'none';
                 const chevron = isArcadeLoc ? 'fa-chevron-down' : 'fa-chevron-right';
-                
+
                 let tablesHtml = '';
                 if (isArcadeLoc) {
                     tablesHtml = tables.map((t, idx) => {
@@ -433,10 +494,10 @@
             }, 100);
         }
 
-        window.toggleFolder = function(id) {
+        window.toggleFolder = function (id) {
             const el = document.getElementById(id);
             const icon = document.getElementById(id + '-icon');
-            if(el.style.display === 'none') {
+            if (el.style.display === 'none') {
                 el.style.display = 'block';
                 icon.classList.replace('fa-chevron-right', 'fa-chevron-down');
             } else {
@@ -445,7 +506,7 @@
             }
         };
 
-        window.selectDashboardTable = function(btnElement, name, loc, hardwareId) {
+        window.selectDashboardTable = function (btnElement, name, loc, hardwareId) {
             // Updated active class
             document.querySelectorAll('.arcade-table-link').forEach(el => {
                 el.classList.remove('text-[#D4AF37]', 'bg-[#D4AF37]', 'bg-opacity-10', 'font-bold');
@@ -488,7 +549,6 @@
             const refParam = encodeURIComponent(hardwareId !== 'N/A' && hardwareId ? hardwareId : name);
             document.getElementById('link-hub').href = `lounge-remote.html?game_id=${refParam}`;
             document.getElementById('link-tv').href = `tv.html?game_id=${refParam}`;
-            document.getElementById('link-test').href = `flick-game.html?game_id=${refParam}&mode=casual&user_type=admin`;
         };
 
         // ============================================================
@@ -537,7 +597,7 @@
                 let queryGC = _supabase.from('gift_cards').select('id, is_redeemed');
                 // Could filter GC by redeemed_game_id if we have currentSelectedGameId, but for now we look at owner's total
                 const { data: giftCards } = await queryGC;
-                
+
                 let redeemedCardsCount = 0;
                 let totalCardsCount = 0;
                 if (giftCards) {
@@ -564,36 +624,36 @@
 
         async function generatePromoCode() {
             if (!confirm('Generate a new single-use 100% discount promo code?')) return;
-            
+
             const randomCode = 'SUB-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-            
+
             try {
                 const { error } = await _supabase
                     .from('gift_cards')
-                    .insert([{ 
+                    .insert([{
                         code: randomCode,
                         amount_cents: 200 // default full 2e discount
                     }]);
-                    
+
                 if (error) throw error;
-                
+
                 document.getElementById('promo-code-display').innerText = randomCode;
                 document.getElementById('promo-modal').style.display = 'flex';
                 document.getElementById('promo-copy-feedback').innerHTML = '<i class="fas fa-copy"></i> Click to Copy';
-                window.generatedPromoCode = randomCode; 
-                
+                window.generatedPromoCode = randomCode;
+
                 loadDashboardStats(); // refresh counts
             } catch (err) {
                 console.error('Error generating promo code', err);
                 alert('Database Error generating promo code. Ensure RLS allows insert.');
             }
         }
-        
-        window.copyPromoCode = function() {
+
+        window.copyPromoCode = function () {
             navigator.clipboard.writeText(window.generatedPromoCode).then(() => {
                 document.getElementById('promo-copy-feedback').innerHTML = '<i class="fas fa-check"></i> Copied!';
                 setTimeout(() => {
-                     document.getElementById('promo-copy-feedback').innerHTML = '<i class="fas fa-copy"></i> Click to Copy';
+                    document.getElementById('promo-copy-feedback').innerHTML = '<i class="fas fa-copy"></i> Click to Copy';
                 }, 2000);
             });
         };
@@ -603,7 +663,7 @@
         // On load
         loadFleet();
         loadDashboardStats();
-        
+
         // Restore dashboard values from local memory if available
         const savedDemoSettings = JSON.parse(localStorage.getItem('subsoccer_table_config') || 'null');
         if (savedDemoSettings) {
@@ -614,7 +674,7 @@
             if (savedDemoSettings.basicMode !== undefined) document.getElementById('setting-basic-mode').checked = savedDemoSettings.basicMode;
         }
 
-        window.deploySettings = function() {
+        window.deploySettings = function () {
             const btn = document.querySelector('button[onclick="deploySettings()"]');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SYNCING...';
             btn.style.pointerEvents = 'none';
@@ -655,7 +715,7 @@
                 tiebreaker: settings.tiebreaker,
                 updatedAt: new Date().toISOString()
             };
-            
+
             // Default to name match if no ID, otherwise use specific ID
             let updateQuery = _supabase.from('games').update({ metadata: dbMetadata });
             if (window.currentSelectedGameId && window.currentSelectedGameId !== 'N/A') {
@@ -663,13 +723,13 @@
             } else {
                 updateQuery = updateQuery.eq('game_name', document.getElementById('table-title').innerText.replace(' Configuration', ''));
             }
-            
+
             updateQuery.then(({ error }) => {
                 if (error) console.log('DB config save error:', error.message);
                 else {
                     console.log('Config saved to DB');
                     // refresh games state array
-                    loadFleet(); 
+                    loadFleet();
                 }
             });
 
@@ -677,7 +737,7 @@
                 btn.innerHTML = '<i class="fas fa-check"></i> DEPLOYED';
                 btn.classList.add('bg-green-500');
                 btn.classList.remove('bg-[#E30613]');
-                
+
                 setTimeout(() => {
                     btn.innerHTML = 'Save & Deploy';
                     btn.classList.remove('bg-green-500');
@@ -688,4 +748,5 @@
         }
     </script>
 </body>
+
 </html>
