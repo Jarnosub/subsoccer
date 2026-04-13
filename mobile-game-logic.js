@@ -8,8 +8,8 @@ import { BracketEngine } from './bracket-engine.js';
 
 // --- AUTH STATE ---
 let isLoggedIn = false;
-const MAX_PLAYERS_GUEST = 2;
-const MAX_PLAYERS_LOGGED = 8;
+const MAX_PLAYERS_GUEST = 32; // Changed from 2 to 32 to remove forced logins for casual players
+const MAX_PLAYERS_LOGGED = 32;
 
 (async function checkMobileAuth() {
     try {

@@ -89,23 +89,14 @@
 
     <div id="auth-page" class="fade-in">
 
-        <!-- Media Background Container (Image or Video) -->
+        <!-- Media Background Container (Matches Hub / index.html to prevent disconnected feeling) -->
         <div id="hero-bg-container"
             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; background: #000;">
-            <!-- Kuva (vaihda oma kuva tai kommentoi pois jos käytät videota) -->
-            <!-- <img src="hero-bg.jpg" alt="Subsoccer Background" style="width: 100%; height: 100%; object-fit: cover;"
-                onerror="this.style.display='none'"> -->
+            
+            <div style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('Subsoccer_tournament_2.jpg'); background-size: cover; background-position: center top; filter: brightness(0.65) contrast(1.1);"></div>
 
-            <!-- Video (poista kommentit jos sinulla on hero-video.mp4 tiedosto kansiossa) -->
-            <video autoplay loop muted playsinline
-                style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover;">
-                <source src="hero-video.mp4" type="video/mp4">
-            </video>
-
-            <!-- Tumma overlay joka takaa tekstien luettavuuden (peittävyys 0.7 = 70%) -->
-            <div
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1; pointer-events: none;">
-            </div>
+            <!-- Gradientti joka yhdenmukaistaa ulkoasun -->
+            <div style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 20%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.9) 100%); pointer-events: none;"></div>
         </div>
 
         <!-- NEW FRONT PAGE (Landing Hero) -->
@@ -153,6 +144,12 @@
                     document.getElementById('casual-play-block').style.display = 'none';
                     // Apply a slightly different vibe
                     document.querySelector('#landing-hero img.main-logo').style.filter = 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.4))';
+                    
+                    // Skip the landing completely if the user already clicked "LOG IN" from the hub or game
+                    if (window.location.hash.includes('login') || urlParams.get('redirect')) {
+                        document.getElementById('landing-hero').style.display = 'none';
+                        document.getElementById('login-form').style.display = 'block';
+                    }
                 }
             </script>
         </div>
