@@ -43,14 +43,18 @@ export async function initApp() {
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
                 if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+                    // Hub redirect: if ?redirect= param exists, navigate IMMEDIATELY
+                    // to prevent the old app UI from flashing before the redirect fires.
+                    // The profile will be fetched normally on the destination page.
+                    const redirectTo = new URLSearchParams(window.location.search).get('redirect');
+                    if (redirectTo) {
+                        window.location.replace(redirectTo);
+                        return;
+                    }
+
+                    // No redirect param — normal in-app login flow
                     if (!state.user || state.user.id !== session.user.id) {
                         await refreshUserProfile(session.user.id);
-                    }
-                    // Hub redirect: if ?redirect= param exists, navigate there after login
-                    const redirectTo = new URLSearchParams(window.location.search).get('redirect') || 'index.html';
-                    if (redirectTo) {
-                        window.location.href = redirectTo;
-                        return;
                     }
                 } else if (event === 'SIGNED_OUT') {
                     state.user = null;
