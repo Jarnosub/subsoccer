@@ -8,7 +8,7 @@ import { BracketEngine } from './bracket-engine.js';
 
 // --- AUTH STATE ---
 let isLoggedIn = false;
-const MAX_PLAYERS_GUEST = 2;
+const MAX_PLAYERS_GUEST = 4;
 const MAX_PLAYERS_LOGGED = 8;
 
 (async function checkMobileAuth() {
