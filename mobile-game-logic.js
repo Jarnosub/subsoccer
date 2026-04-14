@@ -26,6 +26,12 @@ const MAX_PLAYERS_LOGGED = 8;
 
         // Note: Pricing logic removed from here since mobile standalone flow is always free.
     } catch(e) { console.log('Init check:', e.message); }
+    
+    // Always restore player names from sessionStorage (if any) before updating UI
+    if (window.restoreMobilePlayers) {
+        window.restoreMobilePlayers();
+    }
+    updateAddPlayerButton();
 })();
 
 function getMaxPlayers() {

@@ -547,7 +547,7 @@
                     <i class="fas fa-lock" style="margin-right: 4px;"></i> LOG IN TO CREATE UP TO 8 PLAYER TOURNAMENTS
                 </span>
                 <br>
-                <a href="login.html?source=go&redirect=mobile-game.html#login" style="color: #fff; font-family: Arial, Helvetica, sans-serif !important; font-weight: bold; font-size: 0.75rem; letter-spacing: 1px; text-decoration: underline; text-underline-offset: 3px; margin-top: 4px; display: inline-block;">LOG IN →</a>
+                <a href="#" onclick="saveAndLogin(); return false;" style="color: #fff; font-family: Arial, Helvetica, sans-serif !important; font-weight: bold; font-size: 0.75rem; letter-spacing: 1px; text-decoration: underline; text-underline-offset: 3px; margin-top: 4px; display: inline-block;">LOG IN →</a>
             </div>
 
             <button class="setup-start-btn" onclick="mobileStartTournament()">
@@ -703,10 +703,46 @@
                 window.location.href = 'index.html';
             }
         }
+        function saveAndLogin() {
+            const inputs = document.querySelectorAll('.player-input');
+            const players = [];
+            inputs.forEach(i => { if (i.value.trim()) players.push(i.value.trim()); });
+            sessionStorage.setItem('tempMobilePlayers', JSON.stringify(players));
+            window.location.href = "login.html?source=go&redirect=mobile-game.html#login";
+        }
+        function restoreMobilePlayers() {
+            const saved = sessionStorage.getItem('tempMobilePlayers');
+            if (saved) {
+                try {
+                    const players = JSON.parse(saved);
+                    if (players.length > 0) {
+                        const container = document.getElementById('m-players-list');
+                        container.innerHTML = '';
+                        players.forEach((p, idx) => {
+                            const num = idx + 1;
+                            const div = document.createElement('div');
+                            div.className = 'player-row';
+                            div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);';
+                            div.innerHTML = `
+                                <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#${num}</span>
+                                <input type="text" autocomplete="off" onfocus="this.select()" value="${p}" 
+                                       class="player-input" 
+                                       style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+                                <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            `;
+                            container.appendChild(div);
+                        });
+                    }
+                    sessionStorage.removeItem('tempMobilePlayers');
+                } catch(e) { console.warn("Failed to restore players", e); }
+            }
+        }
     </script>
 
     <!-- GAME LOGIC -->
-    <script type="module" src="mobile-game-logic.js?v=1"></script>
+    <script type="module" src="mobile-game-logic.js?v=2"></script>
 
 </body>
 </html>
