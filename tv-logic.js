@@ -24,6 +24,20 @@ let isTimerTicking = false;
 let lastP1 = "PLAYER 1";
 let lastP2 = "PLAYER 2";
 
+// --- CACHED AUDIO (prevent memory leak from new Audio() per goal) ---
+const cachedGoalHorn = new Audio('/goal_horn.mp3');
+const cachedSwoosh = new Audio('/swoosh.mp3');
+const cachedVictoryTheme = new Audio('sounds/victory_theme.m4a');
+
+function playCachedAudio(audioObj) {
+    const enabled = window.tableConfig && window.tableConfig.audioEnabled !== undefined ? window.tableConfig.audioEnabled : true;
+    const vol = window.tableConfig && window.tableConfig.audioVolume !== undefined ? (window.tableConfig.audioVolume / 100) : 1.0;
+    if (!enabled || vol <= 0) return;
+    audioObj.volume = vol;
+    audioObj.currentTime = 0;
+    audioObj.play().catch(() => {});
+}
+
 const L = {
     lobby: document.getElementById('layer-lobby'),
     intro: document.getElementById('layer-intro'),
@@ -142,6 +156,25 @@ function switchLayer(targetId) {
             const vid = document.getElementById('intro-video');
             if (vid) vid.pause();
         }
+
+        // RPi Performance: pause/resume background video based on layer visibility
+        const bgVideo = document.querySelector('body > video');
+        if (bgVideo) {
+            if (targetId === 'lobby') {
+                bgVideo.play().catch(() => {});
+            } else {
+                bgVideo.pause();
+            }
+        }
+
+        // Pause Trophy.mp4 videos when not on victory/elo layers
+        document.querySelectorAll('#layer-victory video, #layer-elo video').forEach(v => {
+            if (targetId === 'victory' || targetId === 'elo') {
+                v.play().catch(() => {});
+            } else {
+                v.pause();
+            }
+        });
 
         target.style.display = targetId === 'game' ? 'flex' : 'flex';
         if (targetId === 'game') target.style.flexDirection = 'row';
@@ -436,13 +469,7 @@ arcadeSocket.on('payment_success', (payload) => {
     }
 
     try {
-        const enabled = window.tableConfig && window.tableConfig.audioEnabled !== undefined ? window.tableConfig.audioEnabled : true;
-        const vol = window.tableConfig && window.tableConfig.audioVolume !== undefined ? (window.tableConfig.audioVolume / 100) : 1.0;
-        if (enabled && vol > 0) {
-            const introAudio = new Audio('sounds/victory_theme.m4a');
-            introAudio.volume = vol;
-            introAudio.play().catch(e => console.log('Intro Audio blocked:', e));
-        }
+        playCachedAudio(cachedVictoryTheme);
     } catch (e) { }
 });
 
@@ -515,17 +542,8 @@ arcadeSocket.on('state_update', (payload) => {
         }
         
         try {
-            const enabled = window.tableConfig && window.tableConfig.audioEnabled !== undefined ? window.tableConfig.audioEnabled : true;
-            const vol = window.tableConfig && window.tableConfig.audioVolume !== undefined ? (window.tableConfig.audioVolume / 100) : 1.0;
-            const finalVol = enabled ? vol : 0;
-            const audioHorn = new Audio('/goal_horn.mp3');
-            const audioSwoosh = new Audio('/swoosh.mp3');
-            audioHorn.volume = finalVol;
-            audioSwoosh.volume = finalVol;
-            if (finalVol > 0) {
-                audioHorn.play().catch(()=>{});
-                setTimeout(() => { audioSwoosh.play().catch(()=>{}); }, 1000);
-            }
+            playCachedAudio(cachedGoalHorn);
+            setTimeout(() => { playCachedAudio(cachedSwoosh); }, 1000);
         } catch (e) {}
     }
 });
@@ -761,17 +779,8 @@ window.addEventListener('keydown', (e) => {
         // Note: We need a slight refactoring if playGoalHorn is heavily coupled, but it looks missing from this new JS context
         // Actually, playGoalHorn was not moved. Let's add it.
         try {
-            const enabled = window.tableConfig && window.tableConfig.audioEnabled !== undefined ? window.tableConfig.audioEnabled : true;
-            const vol = window.tableConfig && window.tableConfig.audioVolume !== undefined ? (window.tableConfig.audioVolume / 100) : 1.0;
-            const finalVol = enabled ? vol : 0;
-            const audioHorn = new Audio('/goal_horn.mp3');
-            const audioSwoosh = new Audio('/swoosh.mp3');
-            audioHorn.volume = finalVol;
-            audioSwoosh.volume = finalVol;
-            if (finalVol > 0) {
-                audioHorn.play().catch(()=>{});
-                setTimeout(() => { audioSwoosh.play().catch(()=>{}); }, 1000);
-            }
+            playCachedAudio(cachedGoalHorn);
+            setTimeout(() => { playCachedAudio(cachedSwoosh); }, 1000);
         } catch (e) { }
 
         // Trigger goal CSS
