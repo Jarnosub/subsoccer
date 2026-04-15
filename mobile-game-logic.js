@@ -314,6 +314,23 @@ function finishMatch(winnerName, winnerIndex) {
 // TOURNAMENT COMPLETE
 // ============================================================
 
+async function trackTournamentAnonymously(results) {
+    // Zero-friction tracking: fires for ALL tournaments (guest + logged-in)
+    // Uses public_tracking table which allows anonymous inserts (no auth needed)
+    if (!_sb) return;
+    try {
+        const participants = localEngine.participants.filter(p => p !== 'BYE');
+        await _sb.from('public_tracking').insert({
+            event_type: 'tournament_finished',
+            game_code: 'MOBILE-TOURNAMENT',
+            match_score: `${participants.length}p`,
+            source_partner: isLoggedIn ? 'registered' : 'guest',
+            user_agent: navigator.userAgent,
+            browser_lang: navigator.language || 'Unknown'
+        });
+    } catch (_) { /* silent */ }
+}
+
 async function saveTournamentToDatabase(results) {
     // Only save if user is logged in and we have a Supabase client
     if (!isLoggedIn || !_sb || !currentUserId) return;
@@ -365,7 +382,9 @@ function showTournamentComplete() {
     const results = localEngine.getTournamentResults();
     const winner = results.winner || 'UNKNOWN';
 
-    // Save to database (async, non-blocking)
+    // 1. Always track anonymously (zero friction, all users)
+    trackTournamentAnonymously(results);
+    // 2. Save full details only if logged in
     saveTournamentToDatabase(results);
 
     // Show champion name
