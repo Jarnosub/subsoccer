@@ -44,9 +44,6 @@ function captureGeolocation() {
         // Note: Pricing logic removed from here since mobile standalone flow is always free.
     } catch(e) { console.log('Init check:', e.message); }
     
-    // Capture geolocation early (browser will prompt once)
-    captureGeolocation();
-
     // Always restore player names from sessionStorage (if any) before updating UI
     if (window.restoreMobilePlayers) {
         window.restoreMobilePlayers();
@@ -325,6 +322,21 @@ async function saveTournamentToDatabase(results) {
         const participants = localEngine.participants.filter(p => p !== 'BYE');
         const now = new Date().toISOString();
 
+        // Capture geolocation NOW (only logged-in users see the prompt,
+        // and only when their tournament actually finishes)
+        let lat = userLat;
+        let lng = userLng;
+        if (!lat && navigator.geolocation) {
+            try {
+                const pos = await new Promise((resolve, reject) =>
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 4000 })
+                );
+                lat = pos.coords.latitude;
+                lng = pos.coords.longitude;
+                userLat = lat; userLng = lng;
+            } catch (_) { /* user denied or timeout — save without coords */ }
+        }
+
         const { error } = await _sb.from('tournament_history').insert({
             tournament_name: `Mobile Tournament ${new Date().toLocaleDateString()}`,
             organizer_id: currentUserId,
@@ -335,14 +347,14 @@ async function saveTournamentToDatabase(results) {
             end_datetime: now,
             max_participants: participants.length,
             tournament_type: 'elimination',
-            latitude: userLat,
-            longitude: userLng
+            latitude: lat,
+            longitude: lng
         });
 
         if (error) {
             console.warn('Failed to save tournament:', error.message);
         } else {
-            console.log('Tournament saved to database with geolocation:', userLat, userLng);
+            console.log('Tournament saved to database with geolocation:', lat, lng);
         }
     } catch (e) {
         console.warn('Tournament save error:', e.message);
