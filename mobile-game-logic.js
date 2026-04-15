@@ -8,25 +8,45 @@ import { BracketEngine } from './bracket-engine.js';
 
 // --- AUTH STATE ---
 let isLoggedIn = false;
+let currentUserId = null;
+let _sb = null;
 const MAX_PLAYERS_GUEST = 4;
 const MAX_PLAYERS_LOGGED = 8;
+
+// --- GEOLOCATION ---
+let userLat = null;
+let userLng = null;
+
+function captureGeolocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            pos => { userLat = pos.coords.latitude; userLng = pos.coords.longitude; },
+            () => { /* silently ignore denial */ },
+            { enableHighAccuracy: false, timeout: 5000 }
+        );
+    }
+}
 
 (async function checkMobileAuth() {
     try {
         const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
         const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
-        const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+        _sb = supabase.createClient(SUPA_URL, SUPA_KEY);
         
         // 1. Fetch Auth State
-        const { data: { session } } = await sb.auth.getSession();
+        const { data: { session } } = await _sb.auth.getSession();
         if (session && session.user) {
             isLoggedIn = true;
+            currentUserId = session.user.id;
             updateAddPlayerButton();
         }
 
         // Note: Pricing logic removed from here since mobile standalone flow is always free.
     } catch(e) { console.log('Init check:', e.message); }
     
+    // Capture geolocation early (browser will prompt once)
+    captureGeolocation();
+
     // Always restore player names from sessionStorage (if any) before updating UI
     if (window.restoreMobilePlayers) {
         window.restoreMobilePlayers();
@@ -297,9 +317,44 @@ function finishMatch(winnerName, winnerIndex) {
 // TOURNAMENT COMPLETE
 // ============================================================
 
+async function saveTournamentToDatabase(results) {
+    // Only save if user is logged in and we have a Supabase client
+    if (!isLoggedIn || !_sb || !currentUserId) return;
+
+    try {
+        const participants = localEngine.participants.filter(p => p !== 'BYE');
+        const now = new Date().toISOString();
+
+        const { error } = await _sb.from('tournament_history').insert({
+            tournament_name: `Mobile Tournament ${new Date().toLocaleDateString()}`,
+            organizer_id: currentUserId,
+            status: 'completed',
+            winner_name: results.winner,
+            second_place_name: results.second || null,
+            start_datetime: now,
+            end_datetime: now,
+            max_participants: participants.length,
+            tournament_type: 'elimination',
+            latitude: userLat,
+            longitude: userLng
+        });
+
+        if (error) {
+            console.warn('Failed to save tournament:', error.message);
+        } else {
+            console.log('Tournament saved to database with geolocation:', userLat, userLng);
+        }
+    } catch (e) {
+        console.warn('Tournament save error:', e.message);
+    }
+}
+
 function showTournamentComplete() {
     const results = localEngine.getTournamentResults();
     const winner = results.winner || 'UNKNOWN';
+
+    // Save to database (async, non-blocking)
+    saveTournamentToDatabase(results);
 
     // Show champion name
     document.getElementById('m-champion-name').innerText = winner;
