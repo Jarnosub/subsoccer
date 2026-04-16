@@ -284,7 +284,11 @@ function resetSystem() {
         }
     });
     
-    if (reconContainer) reconContainer.style.display = 'none';
+    const reconBox = document.getElementById('reconnect-qr-container');
+    if (reconBox) reconBox.style.display = 'none'; // Though we actually want it ALWAYS visible for host recovery?
+    // Wait, since it's hardcoded fixed visible in HTML, hiding it permanently breaks it.
+    // Let's NOT hide it on reset, let's keep it visible at all times!
+    if (reconBox) reconBox.style.display = 'flex';
 }
 
 // --- GLOBAL INACTIVITY TIMEOUT ---
@@ -773,10 +777,10 @@ window.addEventListener('keydown', (e) => {
     if (e.key === '2') targetPlayer = 2;
 
     if (targetPlayer) {
-        let newP1Score = parseInt(document.getElementById('p1-score-layer2').innerText) || 0;
-        let newP2Score = parseInt(document.getElementById('p2-score-layer2').innerText) || 0;
-        const p1Name = document.getElementById('p1-name-layer2').innerText;
-        const p2Name = document.getElementById('p2-name-layer2').innerText;
+        let newP1Score = parseInt(document.getElementById('game-p1-score').innerText) || 0;
+        let newP2Score = parseInt(document.getElementById('game-p2-score').innerText) || 0;
+        const p1Name = document.getElementById('game-p1-name').innerText;
+        const p2Name = document.getElementById('game-p2-name').innerText;
 
         if (targetPlayer === 1) newP1Score++;
         if (targetPlayer === 2) newP2Score++;
