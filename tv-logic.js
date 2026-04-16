@@ -324,8 +324,8 @@ const qrBaseUrl = isLocalHost
 const remoteAppUrl = `${qrBaseUrl}/lounge-remote.html?v=19`;
 new QRCode(document.getElementById("dynamic-qr"), {
     text: remoteAppUrl,
-    width: 350,
-    height: 350,
+    width: 290, // Match exactly inner container size to avoid clipping
+    height: 290,
     colorDark: "#000000",
     colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.M
@@ -333,8 +333,8 @@ new QRCode(document.getElementById("dynamic-qr"), {
 
 new QRCode(document.getElementById("reconnect-qr"), {
     text: remoteAppUrl + '&reconnect=true',
-    width: 150,
-    height: 150,
+    width: 70, // Match exactly inner w-20 container size (approx 80px - padding)
+    height: 70,
     colorDark: "#000000",
     colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.M
