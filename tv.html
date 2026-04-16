@@ -153,15 +153,15 @@
             </div>
 
             <!-- THE BIG ARCADE CLOCK IN THE TOP CENTER -->
-            <div class="absolute left-[50%] top-[80px] -translate-x-1/2 bg-[#0a0a0a] border-y-4 border-[#333] px-8 py-4 shadow-[0_20px_50px_rgba(0,0,0,1)] flex items-center justify-center z-20 min-w-[280px] text-center"
-                style="border-radius: 30px; box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.8);">
+            <div class="flex items-center justify-center text-center"
+                style="border-radius: 30px; box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.8); position: absolute; left: 50%; top: 80px; transform: translateX(-50%); background-color: #0a0a0a; min-width: 280px; border-top: 4px solid #333; border-bottom: 4px solid #333; padding: 1rem 2rem; z-index: 20;">
                 <div id="timer"
                     class="text-white text-[60px] font-mono font-black tracking-widest drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]"
                     style="line-height:1;">00</div>
             </div>
 
-            <div class="absolute bottom-[60px] left-[50%] translate-x-[-50%] bg-[#E30613] text-white px-8 py-3 text-4xl tracking-widest shadow-[0_4px_15px_rgba(0,0,0,0.6)] z-10"
-                style="font-family:'Subsoccer', sans-serif;">SUBSOCCER</div>
+            <div class="text-white text-4xl tracking-widest"
+                style="font-family:'Subsoccer', sans-serif; position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); background-color: #E30613; padding: 0.75rem 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 10;">SUBSOCCER</div>
         </div>
     </div>
 
@@ -409,7 +409,7 @@
     </div>
 
     <script src="qrcode.min.js"></script>
-    <script type="module" src="tv-logic.js?v=26"></script>
+    <script type="module" src="tv-logic.js?v=27"></script>
 </body>
 
 </html>
