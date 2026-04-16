@@ -12,6 +12,10 @@ function addTvTimeout(fn, ms) {
     tvTimeouts.push(setTimeout(fn, ms));
 }
 
+// --- SESSION GATE ---
+// TV ignores stale gameplay events from other clients' previous sessions
+let sessionActive = false;
+
 // --- STATE & UTILS ---
 const globalUrlParams = new URLSearchParams(window.location.search);
 const tableId = globalUrlParams.get('game_id') || 'table-04';
@@ -345,7 +349,8 @@ if (introVid) {
         if (window.tvEngine && window.tvEngine.rounds.length > 0) {
             switchLayer('tournament');
         } else {
-            switchLayer('sessionLobby');
+            // Wait, default back to Lobby. The SessionLobby is only showed IF host requests it explicitly!
+            switchLayer('lobby');
         }
     });
 }
@@ -354,6 +359,7 @@ if (introVid) {
 arcadeSocket.connect();
 
 arcadeSocket.on('start_1v1', (payload) => {
+    if (!sessionActive) return;
     clearAllTvTimeouts();
     lastP1 = payload.p1 || 'PLAYER 1';
     lastP2 = payload.p2 || 'PLAYER 2';
@@ -371,6 +377,7 @@ arcadeSocket.on('start_1v1', (payload) => {
 });
 
 arcadeSocket.on('timer_start', (payload) => {
+    if (!sessionActive) return;
     setTimer(payload.duration || remainingSeconds);
 });
 
@@ -420,8 +427,9 @@ arcadeSocket.on('trigger_preparation_mode', () => {
     // We transition the TV from the idle video lobby to the "Get Ready" screen.
     // If a match is already ongoing or complete, we ignore this.
     if (!isGameActive && !isTimerTicking) {
+        if (!sessionActive) return;
         console.log("[TV] Executing layer transition to sessionLobby...");
-        switchLayer('sessionLobby');
+        // switchLayer('sessionLobby'); // Disabled - don't force waiting room. Just show game!
         
         // Auto-revert back to lobby if they never complete the setup (e.g. they abandoned their phone)
         setTimeout(() => {
@@ -458,8 +466,11 @@ arcadeSocket.on('trigger_tiebreaker', (payload) => {
     }, 100);
 });
 
+// Added state_update guard too!
+
 arcadeSocket.on('payment_success', (payload) => {
     console.log("PAYMENT DETECTED! Awakening The Forge mechanics...");
+    sessionActive = true;
 
     switchLayer('intro');
     const vid = document.getElementById('intro-video');
@@ -474,6 +485,7 @@ arcadeSocket.on('payment_success', (payload) => {
 });
 
 arcadeSocket.on('roster_update', (payload) => {
+    if (!sessionActive) return;
     const players = payload.players || [];
     const grid = document.getElementById('session-players-grid');
     const count = document.getElementById('registered-count');
@@ -493,22 +505,14 @@ arcadeSocket.on('roster_update', (payload) => {
 });
 
 arcadeSocket.on('lobby_opened', () => {
+    if (!sessionActive) return;
     // Sync remote device with the TV's state as the source of truth for the demo
     arcadeSocket.send('update_table_config', { matchTime: remainingSeconds });
     document.getElementById('dynamic-qr').classList.add('scale-[0.8]', 'opacity-20');
-    
-    // Show reconnect QR when lobby connects
-    const reconContainer = document.getElementById('reconnect-qr-container');
-    if (reconContainer) reconContainer.style.display = 'flex';
-    
-    // Only switch to sessionLobby if we are still on the main QR screen. 
-    // If the intro video is already playing (post-payment), do not interrupt it!
-    if (document.getElementById('layer-lobby').style.display !== 'none') {
-        setTimeout(() => { switchLayer('sessionLobby'); }, 300);
-    }
 });
 
 arcadeSocket.on('state_update', (payload) => {
+    if (!sessionActive) return;
     const oldP1 = parseInt(document.getElementById('game-p1-score').innerText) || 0;
     const oldP2 = parseInt(document.getElementById('game-p2-score').innerText) || 0;
 

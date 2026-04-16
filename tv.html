@@ -121,7 +121,7 @@
 
         <div class="flex items-center justify-center w-full max-w-4xl px-12">
             <!-- Right / Center: The Roster Grid -->
-            <div class="flex-1 rounded-3xl bg-[#0a0a0a99] border border-[#ffffff11] p-8 min-h-[400px] backdrop-blur-md">
+            <div class="flex-1 min-h-[400px]">
                 <div class="text-white font-bold mb-6 tracking-widest border-b border-[#ffffff33] pb-4 flex justify-between">
                     <span>REGISTERED PLAYERS</span>
                     <span id="registered-count" class="text-[#E30613]">0 / 16</span>
@@ -268,10 +268,10 @@
 
     </div>
 
-    <div class="absolute bottom-4 left-6 text-gray-500 text-xs font-sans tracking-wider">AWAITING REMOTE LAUNCH...</div>
+    <div class="absolute bottom-4 left-6 text-gray-500 text-xs font-sans tracking-wider" id="awaiting-remote-text" style="display: none;">AWAITING REMOTE LAUNCH...</div>
 
-    <!-- Reconnect QR Code for Session Recovery -->
-    <div class="absolute bottom-6 right-8 flex flex-col items-center drop-shadow-xl z-[100]" id="reconnect-qr-container" style="display: none;">
+    <!-- Reconnect QR Code - Always visible, fixed position -->
+    <div class="fixed bottom-6 right-8 flex flex-col items-center drop-shadow-xl z-[100]" id="reconnect-qr-container">
         <img id="reconnect-qr" src="" class="w-20 h-20 bg-white p-1.5 rounded-md mb-2 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
         <div class="text-[10px] text-white/90 tracking-widest font-sans uppercase font-bold drop-shadow-md">HOST DEVICE</div>
         <div class="text-[8px] text-[#D4AF37] tracking-[0.2em] font-sans uppercase mt-0.5 font-bold">RECONNECT</div>
@@ -408,7 +408,7 @@
         </div>
     </div>
 
-    <script type="module" src="tv-logic.js?v=16"></script>
+    <script type="module" src="tv-logic.js?v=22"></script>
 </body>
 
 </html>
