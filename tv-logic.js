@@ -322,11 +322,23 @@ const qrBaseUrl = isLocalHost
     ? 'https://subsoccer-sandbox.netlify.app' 
     : `${window.location.protocol}//${window.location.host}`;
 const remoteAppUrl = `${qrBaseUrl}/lounge-remote.html?v=19`;
-const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&color=ffffff&bgcolor=000000&margin=10&data=${encodeURIComponent(remoteAppUrl)}`;
-const reconnectQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=ffffff&bgcolor=000000&margin=8&data=${encodeURIComponent(remoteAppUrl + '&reconnect=true')}`;
+new QRCode(document.getElementById("dynamic-qr"), {
+    text: remoteAppUrl,
+    width: 350,
+    height: 350,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+});
 
-document.getElementById('dynamic-qr').src = qrUrl;
-document.getElementById('reconnect-qr').src = reconnectQrUrl;
+new QRCode(document.getElementById("reconnect-qr"), {
+    text: remoteAppUrl + '&reconnect=true',
+    width: 150,
+    height: 150,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+});
 const introVid = document.getElementById('intro-video');
 
 function updateVideoOrientation() {
