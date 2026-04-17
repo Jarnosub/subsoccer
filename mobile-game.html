@@ -694,10 +694,12 @@
         function showBracketView() {
             document.getElementById('m-layer-nextmatch').style.display = 'none';
             document.getElementById('m-layer-bracket').style.display = 'flex';
+            if (window.broadcastTvState) window.broadcastTvState();
         }
         function hideBracketView() {
             document.getElementById('m-layer-bracket').style.display = 'none';
             document.getElementById('m-layer-nextmatch').style.display = 'flex';
+            if (window.broadcastTvState) window.broadcastTvState();
         }
         function quitTournament() {
             if (confirm('Quit this tournament? All progress will be lost.')) {
