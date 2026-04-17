@@ -7,6 +7,7 @@ export class SocketService {
         this.channel = null;
         this.listeners = new Map();
         this.isConnected = false;
+        this.sendQueue = [];
     }
 
     connect() {
@@ -33,6 +34,10 @@ export class SocketService {
             if (status === 'SUBSCRIBED') {
                 this.isConnected = true;
                 console.log(`[SocketService] Successfully connected to ${this.channelId}`);
+                while (this.sendQueue.length > 0) {
+                    const msg = this.sendQueue.shift();
+                    this.send(msg.eventName, msg.payload);
+                }
             }
         });
     }
@@ -42,8 +47,9 @@ export class SocketService {
     }
 
     send(eventName, payload = {}) {
-        if (!this.channel) {
-            console.warn(`[SocketService] Cannot send event ${eventName}. Channel not connected.`);
+        if (!this.isConnected || !this.channel) {
+            console.warn(`[SocketService] Queuing event ${eventName}. Channel not connected.`);
+            this.sendQueue.push({ eventName, payload });
             return;
         }
         this.channel.send({

@@ -9,7 +9,7 @@ import { fetchLB, fetchHist } from './stats-service.js';
 import { fetchMyGames, cancelEdit, registerGame, updateGame, viewOwnershipRequests } from './game-service.js';
 import { fetchPublicGamesMap, initGameMap, searchPublicMap, filterMap, flyToLocation, searchLocation } from './map.js';
 import {
-    loadEventsPage, viewTournamentBracket,
+    loadEventsPage, viewEventDetails, viewTournamentBracket,
     finishEventTournament, closeBracketModal, viewTournamentParticipants,
     setupEventUIListeners
 } from './events-v3-final.js';

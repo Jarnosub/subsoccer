@@ -42,7 +42,7 @@ if (urlParams.get('payment') === 'success') {
                         const num = idx + 1;
                         let div = document.createElement('div');
                         div.className = "flex items-center bg-[#111] p-2 rounded-lg border border-[#333] mb-3 player-row relative";
-                        div.innerHTML = `<span class="player-num text-gray-500 font-bold px-2 w-8">#${num}</span><input type="text" autocomplete="off" onfocus="this.select()" oninput="broadcastRoster()" value="${p}" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600"><button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i class="fas fa-times"></i></button>`;
+                        div.innerHTML = `<span class="player-num text-gray-500 font-bold px-2 w-8">#${num}</span><input type="text" autocomplete="off" onfocus="this.select()" oninput="broadcastRoster()" value="${p}" class="player-input text-white w-full p-2 text-lg uppercase font-bold bg-transparent focus:outline-none placeholder-gray-600"><button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i class="fas fa-times"></i></button>`;
                         container.appendChild(div);
                     });
                 }
@@ -94,8 +94,12 @@ window.tableConfig = JSON.parse(localStorage.getItem('subsoccer_table_config')) 
     matchTime: 90,
     tiebreaker: 'coin',
     basePrice: 2.00,
-    freePlay: false
+    freePlay: true
 };
+
+if (window.tableConfig.freePlay === undefined) {
+    window.tableConfig.freePlay = true; // Fallback for arcade demo
+}
 
 arcadeSocket.on('update_table_config', (payload) => {
     if (cfgInterval) {
@@ -530,7 +534,7 @@ window.addPlayerInput = function () {
     if (num > 8) return;
     let div = document.createElement('div');
     div.className = "flex items-center bg-[#111] p-2 rounded-lg border border-[#333] mb-3 player-row relative";
-    div.innerHTML = `<span class="player-num text-gray-500 font-bold px-2 w-8">#${num}</span><input type="text" autocomplete="off" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER ${num}" class="player-input text-white w-full p-2 font-bold bg-transparent focus:outline-none placeholder-gray-600"><button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i class="fas fa-times"></i></button>`;
+    div.innerHTML = `<span class="player-num text-gray-500 font-bold px-2 w-8">#${num}</span><input type="text" autocomplete="off" onfocus="this.select()" oninput="broadcastRoster()" value="PLAYER ${num}" class="player-input text-white w-full p-2 text-lg uppercase font-bold bg-transparent focus:outline-none placeholder-gray-600"><button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i class="fas fa-times"></i></button>`;
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
     broadcastRoster();
@@ -781,7 +785,7 @@ function finishMatch(winnerName = "DRAW", winnerIndex = 0) {
     document.getElementById("modes-title").innerText = winnerName === "DRAW" ? "IT'S A DRAW!" : `${winnerName} WINS!`;
     document.getElementById("modes-title").style.color = "var(--subsoccer-red)";
 
-    const formatTime = `${Math.floor(remaining / 60)}:${(remaining % 60).toString().padStart(2, '0')}`;
+    const formatTime = `${Math.floor(matchRemaining / 60)}:${(matchRemaining % 60).toString().padStart(2, '0')}`;
     document.getElementById("modes-subtitle").innerHTML = `Match Over! You have <strong class="text-red-500">${formatTime}</strong> remaining in your booking. What next?`;
     document.getElementById('btn-1v1-text').innerText = "NEW 1VS1 MATCH";
 
@@ -789,7 +793,7 @@ function finishMatch(winnerName = "DRAW", winnerIndex = 0) {
 }
 
 window.forceTVReload = function () {
-    if (!channel) return;
+    if (!arcadeSocket.isConnected) return;
     arcadeSocket.send('force_reload', {});
 }
 

@@ -22,7 +22,7 @@ const tableId = globalUrlParams.get('game_id') || 'table-04';
 window.tableId = tableId; // Attach to window so it can be picked up globally
 
 let timerInterval;
-const cfg = JSON.parse(localStorage.getItem('subsoccer_table_config')) || {};
+const cfg = JSON.parse(localStorage.getItem('subsoccer_table_config')) || { freePlay: true };
 let remainingSeconds = cfg.matchTime || 90;
 let isTimerTicking = false;
 let lastP1 = "PLAYER 1";
@@ -308,7 +308,10 @@ function resetInactivityTimeout() {
 }
 
 // --- BOOTSTRAP ---
-window.tableConfig = JSON.parse(localStorage.getItem('subsoccer_table_config')) || {};
+window.tableConfig = JSON.parse(localStorage.getItem('subsoccer_table_config')) || { freePlay: true };
+if (window.tableConfig.freePlay === undefined) {
+    window.tableConfig.freePlay = true; // Force default to free for arcade testing
+}
 applyTvFreePlayLogic();
 
 // Inactivity Listeners to prevent ghosting
@@ -325,7 +328,7 @@ const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname
 const qrBaseUrl = isLocalHost 
     ? 'https://subsoccer-sandbox.netlify.app' 
     : `${window.location.protocol}//${window.location.host}`;
-const remoteAppUrl = `${qrBaseUrl}/lounge-remote.html?v=19`;
+const remoteAppUrl = `${qrBaseUrl}/lounge-remote.html?v=21`;
 new QRCode(document.getElementById("dynamic-qr"), {
     text: remoteAppUrl,
     width: 290, // Match exactly inner container size to avoid clipping

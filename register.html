@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer - Register Your Table</title>
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <style>
+        @font-face { font-family: 'Resolve'; src: url('fonts/Resolve-BoldNrw.otf') format('opentype'); font-display: swap; }
+        :root { --sub-red: #E30613; --sub-gold: #FFD700; --sub-black: #0a0a0a; --sub-radius: 8px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: var(--sub-black);
+            color: white;
+            min-height: 100vh; min-height: 100dvh;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 0 20px env(safe-area-inset-bottom, 40px) 20px;
+        }
+
+        .reg-header { text-align: center; padding: 40px 0 25px; width: 100%; max-width: 420px; }
+        .reg-header img { width: 120px; margin-bottom: 15px; filter: drop-shadow(0 0 15px rgba(227, 6, 19, 0.3)); }
+        .reg-header h1 { font-family: 'Russo One', sans-serif; font-size: 1.3rem; letter-spacing: 2px; color: #fff; margin-bottom: 8px; }
+        .reg-header p { color: #888; font-size: 0.8rem; line-height: 1.5; }
+
+        .product-badge {
+            background: linear-gradient(135deg, #1a1500, #2a1f00);
+            border: 1px solid rgba(255, 215, 0, 0.4); border-radius: var(--sub-radius);
+            padding: 15px 20px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;
+            width: 100%; max-width: 420px;
+        }
+        .product-badge .badge-icon { font-size: 2rem; color: var(--sub-gold); }
+        .product-badge .badge-info h3 { font-family: 'Russo One', sans-serif; font-size: 1rem; color: #fff; letter-spacing: 1px; }
+        .product-badge .badge-info p { color: var(--sub-gold); font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+
+        .step-indicator { display: flex; gap: 0; width: 100%; max-width: 420px; margin-bottom: 25px; }
+        .step { flex: 1; text-align: center; padding: 10px 5px; font-size: 0.65rem; font-weight: 700; color: #555; letter-spacing: 1px; text-transform: uppercase; border-bottom: 3px solid #222; }
+        .step.active { color: var(--sub-gold); border-bottom-color: var(--sub-gold); }
+        .step.done { color: #4caf50; border-bottom-color: #4caf50; }
+
+        .reg-form { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-family: 'Resolve', 'Russo One', sans-serif; font-size: 0.65rem; letter-spacing: 2px; color: #888; text-transform: uppercase; }
+        .form-group input, .form-group select {
+            background: #111; border: 1px solid #333; color: #fff; padding: 14px 16px;
+            border-radius: var(--sub-radius); font-size: 1rem; font-family: 'Open Sans', sans-serif;
+            transition: border-color 0.3s; width: 100%;
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--sub-gold); box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1); }
+        .form-group input::placeholder { color: #444; }
+
+        .serial-input-wrapper { position: relative; display: flex; align-items: stretch; }
+        .serial-input-wrapper input {
+            flex: 1; font-family: 'Russo One', sans-serif; letter-spacing: 3px;
+            text-transform: uppercase; font-size: 1.1rem; text-align: center;
+        }
+        .form-hint { font-size: 0.68rem; color: #555; margin-top: 3px; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%); color: white; border: none;
+            padding: 18px; border-radius: var(--sub-radius); font-family: 'Russo One', sans-serif;
+            font-size: 1.05rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(227, 6, 19, 0.3); text-transform: uppercase; margin-top: 5px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(227, 6, 19, 0.5); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--sub-gold) 0%, #d4a017 100%); color: #000; border: none;
+            padding: 18px; border-radius: var(--sub-radius); font-family: 'Russo One', sans-serif;
+            font-size: 1.05rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2); text-transform: uppercase; margin-top: 5px;
+        }
+
+        .btn-secondary {
+            background: none; border: 1px solid #333; color: #888; padding: 14px 30px;
+            border-radius: var(--sub-radius); font-size: 0.8rem; cursor: pointer;
+            font-family: 'Open Sans', sans-serif; width: 100%; margin-top: 5px;
+        }
+
+        .status-msg {
+            display: none; width: 100%; padding: 12px 16px; border-radius: var(--sub-radius);
+            font-size: 0.85rem; text-align: center; margin-top: 10px;
+        }
+        .status-msg.success { display: block; background: rgba(76, 175, 80, 0.15); border: 1px solid rgba(76, 175, 80, 0.3); color: #4caf50; }
+        .status-msg.error { display: block; background: rgba(227, 6, 19, 0.15); border: 1px solid rgba(227, 6, 19, 0.3); color: var(--sub-red); }
+
+        .view { display: none; width: 100%; max-width: 420px; }
+        .view.active { display: flex; flex-direction: column; align-items: center; }
+
+        .auth-divider { display: flex; align-items: center; gap: 15px; width: 100%; margin: 5px 0; }
+        .auth-divider span { color: #444; font-size: 0.75rem; white-space: nowrap; }
+        .auth-divider hr { flex: 1; border: none; border-top: 1px solid #222; }
+
+        .success-card {
+            background: linear-gradient(135deg, #0a1a0a, #0a0a0a); border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 12px; padding: 30px; text-align: center; width: 100%; max-width: 420px;
+        }
+        .success-card .icon { font-size: 3rem; color: #4caf50; margin-bottom: 15px; }
+        .success-card h2 { font-family: 'Russo One'; font-size: 1.2rem; color: var(--sub-gold); letter-spacing: 2px; margin-bottom: 10px; }
+        .success-card p { color: #aaa; font-size: 0.85rem; line-height: 1.6; }
+        .success-card strong { color: #fff; }
+
+        .reg-footer { margin-top: 40px; text-align: center; color: #333; font-size: 0.65rem; letter-spacing: 1px; padding-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="reg-header">
+        <img src="subsoccer_logo.svg" alt="Subsoccer">
+        <h1>REGISTER YOUR TABLE</h1>
+        <p>Enter the serial number from your table sticker to activate your warranty and digital features.</p>
+    </div>
+
+    <!-- Product Badge (shown after serial validated) -->
+    <div class="product-badge" id="product-badge" style="display: none;">
+        <i class="fa-solid fa-trophy badge-icon" id="badge-icon"></i>
+        <div class="badge-info">
+            <h3 id="badge-model-name">Subsoccer</h3>
+            <p id="badge-model-type">Detected</p>
+        </div>
+    </div>
+
+    <!-- VIEW 1: ENTER SERIAL NUMBER -->
+    <div class="view active" id="view-serial">
+        <div class="step-indicator">
+            <div class="step active">1. Enter code</div>
+            <div class="step">2. Your details</div>
+            <div class="step">3. Done!</div>
+        </div>
+
+        <div class="reg-form">
+            <div class="form-group">
+                <label>Serial Number</label>
+                <div class="serial-input-wrapper">
+                    <input type="text" id="reg-serial" placeholder="SS3-V02-25PO111-XXXX" maxlength="30"
+                           inputmode="text" autocapitalize="characters" autocomplete="off" autofocus>
+                </div>
+                <div class="form-hint">
+                    <i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>
+                    Found on the sticker underneath your table
+                </div>
+            </div>
+
+            <button class="btn-primary" id="btn-validate" onclick="validateSerial()">
+                <i class="fa-solid fa-arrow-right" style="margin-right: 8px;"></i>CONTINUE
+            </button>
+
+            <div class="status-msg" id="serial-status"></div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: ACCOUNT / DETAILS -->
+    <div class="view" id="view-account">
+        <div class="step-indicator">
+            <div class="step done">1. Enter code ✓</div>
+            <div class="step active">2. Your details</div>
+            <div class="step">3. Done!</div>
+        </div>
+
+        <div class="reg-form" id="auth-form">
+            <!-- Logged-in state -->
+            <div id="logged-in-section" style="display:none;">
+                <div style="background:#111; border:1px solid #333; border-radius:var(--sub-radius); padding:15px; text-align:center; margin-bottom:15px;">
+                    <div style="font-size:0.7rem; color:#888; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px;">Logged in as</div>
+                    <div style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);" id="logged-in-name">PLAYER</div>
+                </div>
+                <div class="form-group">
+                    <label>Give Your Table a Name</label>
+                    <input type="text" id="reg-name-li" placeholder="e.g. Office Arena, Home Table">
+                </div>
+                <div class="form-group">
+                    <label>City / Location</label>
+                    <input type="text" id="reg-location-li" placeholder="e.g. Helsinki, Finland">
+                </div>
+                <button class="btn-gold" onclick="completeRegistration()">
+                    <i class="fa-solid fa-check-circle" style="margin-right: 8px;"></i>REGISTER TABLE
+                </button>
+            </div>
+
+            <!-- Sign up -->
+            <div id="signup-section">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="reg-username" placeholder="Your player name" autocapitalize="characters">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="reg-email" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg-password" placeholder="Min 6 characters" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Table Name</label>
+                    <input type="text" id="reg-name" placeholder="e.g. Office Arena, Home Table">
+                </div>
+                <div class="form-group">
+                    <label>City / Location</label>
+                    <input type="text" id="reg-location" placeholder="e.g. Helsinki, Finland">
+                </div>
+                <button class="btn-gold" onclick="signupAndRegister()">
+                    <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i>CREATE ACCOUNT & REGISTER
+                </button>
+                <div class="auth-divider"><hr><span>already have an account?</span><hr></div>
+                <button class="btn-secondary" onclick="showLoginForm()">
+                    <i class="fa-solid fa-right-to-bracket" style="margin-right: 6px;"></i>LOG IN INSTEAD
+                </button>
+            </div>
+
+            <!-- Login -->
+            <div id="login-section" style="display:none;">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" id="login-user" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-pass" placeholder="Password">
+                </div>
+                <div class="form-group">
+                    <label>Table Name</label>
+                    <input type="text" id="reg-name-login" placeholder="e.g. Office Arena">
+                </div>
+                <div class="form-group">
+                    <label>City / Location</label>
+                    <input type="text" id="reg-location-login" placeholder="e.g. Helsinki, Finland">
+                </div>
+                <button class="btn-gold" onclick="loginAndRegister()">
+                    <i class="fa-solid fa-right-to-bracket" style="margin-right: 8px;"></i>LOG IN & REGISTER
+                </button>
+                <button class="btn-secondary" onclick="showSignupForm()">← Back to sign up</button>
+            </div>
+
+            <div class="status-msg" id="account-status"></div>
+        </div>
+    </div>
+
+    <!-- VIEW 3: SUCCESS -->
+    <div class="view" id="view-success">
+        <div class="step-indicator">
+            <div class="step done">1. Enter code ✓</div>
+            <div class="step done">2. Your details ✓</div>
+            <div class="step active">3. Done!</div>
+        </div>
+        <div class="success-card">
+            <div class="icon"><i class="fa-solid fa-circle-check"></i></div>
+            <h2>TABLE REGISTERED!</h2>
+            <p id="success-desc">Your table is now part of the Subsoccer network.</p>
+        </div>
+        <button class="btn-gold" style="width:100%; max-width:420px; margin-top: 20px;" onclick="window.location.href='login.html'">
+            <i class="fa-solid fa-gamepad" style="margin-right: 8px;"></i>OPEN THE APP
+        </button>
+        <button class="btn-secondary" style="max-width:420px;" id="btn-play-now">
+            <i class="fa-solid fa-bolt" style="margin-right: 6px;"></i>Start playing now
+        </button>
+    </div>
+
+    <div class="reg-footer">© Subsoccer – The Pro League</div>
+
+    <script>
+        // ============================================
+        // SUPABASE
+        // ============================================
+        const SUPA_URL  = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY  = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const _supabase = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+        // ============================================
+        // STATE
+        // ============================================
+        let hardwareRecord = null;  // The matched row from hardware_registry
+        let fullSerial = '';
+        let currentUser = null;
+
+        // Human-friendly model names
+        const MODEL_DISPLAY = {
+            'S7':       { name: 'Subsoccer 7',       icon: 'fa-solid fa-trophy' },
+            'S7-WHITE': { name: 'Subsoccer 7 White',  icon: 'fa-solid fa-trophy' },
+            'S7-BLACK': { name: 'Subsoccer 7 Black',  icon: 'fa-solid fa-trophy' },
+            'S3':       { name: 'Subsoccer 3 Edge',   icon: 'fa-solid fa-medal' },
+            'S3-EDGE':  { name: 'Subsoccer 3 Edge',   icon: 'fa-solid fa-medal' },
+            'DOCK':     { name: 'Subsoccer Dock',     icon: 'fa-solid fa-ship' },
+            'ARCADE':   { name: 'Subsoccer Arcade',   icon: 'fa-solid fa-crown' },
+        };
+
+        // ============================================
+        // INIT
+        // ============================================
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+        });
+
+        async function checkAuth() {
+            try {
+                const { data: { session } } = await _supabase.auth.getSession();
+                if (session?.user) {
+                    const { data: player } = await _supabase.from('players').select('*').eq('id', session.user.id).maybeSingle();
+                    if (player) currentUser = player;
+                }
+            } catch (e) { console.warn('Auth check:', e); }
+        }
+
+        // ============================================
+        // VIEW SWITCHING
+        // ============================================
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ============================================
+        // STEP 1: VALIDATE SERIAL against hardware_registry
+        // ============================================
+        async function validateSerial() {
+            fullSerial = document.getElementById('reg-serial').value.trim().toUpperCase();
+            const statusEl = document.getElementById('serial-status');
+            statusEl.className = 'status-msg'; statusEl.style.display = 'none';
+
+            if (!fullSerial || fullSerial.length < 4) {
+                showSerialStatus('Please enter the full serial number from your table sticker.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-validate');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i>CHECKING...';
+
+            try {
+                // Look up serial in hardware_registry
+                const { data: hw, error } = await _supabase
+                    .from('hardware_registry')
+                    .select('*')
+                    .ilike('serial_number', fullSerial)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (!hw) {
+                    showSerialStatus(`Serial number "${fullSerial}" not found. Please check the code and try again.`, 'error');
+                    return;
+                }
+
+                if (hw.is_claimed) {
+                    showSerialStatus(`This serial number is already registered. If you just bought this table, contact support@subsoccer.com`, 'error');
+                    return;
+                }
+
+                // Valid & unclaimed!
+                hardwareRecord = hw;
+
+                // Show product badge
+                const modelKey = hw.product_model?.toUpperCase() || hw.product_category?.toUpperCase() || '';
+                const display = MODEL_DISPLAY[modelKey] || { name: hw.product_model || 'Subsoccer Table', icon: 'fa-solid fa-trophy' };
+
+                document.getElementById('product-badge').style.display = 'flex';
+                document.getElementById('badge-model-name').textContent = display.name;
+                document.getElementById('badge-model-type').textContent = `SN: ${fullSerial}`;
+                document.getElementById('badge-icon').className = display.icon + ' badge-icon';
+
+                // Go to step 2
+                showView('view-account');
+
+                if (currentUser) {
+                    document.getElementById('logged-in-section').style.display = 'block';
+                    document.getElementById('signup-section').style.display = 'none';
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('logged-in-name').textContent = currentUser.username;
+                }
+
+            } catch (err) {
+                showSerialStatus('Error checking serial: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-arrow-right" style="margin-right: 8px;"></i>CONTINUE';
+            }
+        }
+
+        // ============================================
+        // STEP 2: AUTH + REGISTER
+        // ============================================
+        async function signupAndRegister() {
+            const username = document.getElementById('reg-username').value.trim().toUpperCase();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const tableName = document.getElementById('reg-name').value.trim();
+            const location = document.getElementById('reg-location').value.trim();
+
+            if (!username || !email || !password) { showAccountStatus('Please fill all account fields.', 'error'); return; }
+            if (password.length < 6) { showAccountStatus('Password must be at least 6 characters.', 'error'); return; }
+            if (!tableName) { showAccountStatus('Give your table a name.', 'error'); return; }
+
+            try {
+                showAccountStatus('Creating account...', 'success');
+                const { data, error } = await _supabase.auth.signUp({
+                    email, password,
+                    options: { data: { username, display_name: username } }
+                });
+                if (error) {
+                    if (error.message.includes('already') || error.status === 422) {
+                        showAccountStatus('Email already registered. Try logging in instead.', 'error'); return;
+                    }
+                    throw error;
+                }
+                if (data.user) {
+                    await _supabase.from('players').upsert({ id: data.user.id, username, email, elo: 1300, wins: 0, losses: 0 }, { onConflict: 'id' });
+                    currentUser = { id: data.user.id, username };
+                    await claimHardware(tableName, location);
+                }
+            } catch (err) { showAccountStatus('Error: ' + err.message, 'error'); }
+        }
+
+        async function loginAndRegister() {
+            const userInput = document.getElementById('login-user').value.trim();
+            const password = document.getElementById('login-pass').value;
+            const tableName = document.getElementById('reg-name-login').value.trim();
+            const location = document.getElementById('reg-location-login').value.trim();
+
+            if (!userInput || !password) { showAccountStatus('Please fill login fields.', 'error'); return; }
+            if (!tableName) { showAccountStatus('Give your table a name.', 'error'); return; }
+
+            try {
+                showAccountStatus('Logging in...', 'success');
+                let email = userInput;
+                if (!userInput.includes('@')) {
+                    const { data: player } = await _supabase.from('players').select('email').ilike('username', userInput).maybeSingle();
+                    if (player?.email) email = player.email;
+                }
+                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                const { data: profile } = await _supabase.from('players').select('*').eq('id', data.user.id).maybeSingle();
+                currentUser = profile || { id: data.user.id, username: userInput };
+                await claimHardware(tableName, location);
+            } catch (err) { showAccountStatus('Login failed: ' + err.message, 'error'); }
+        }
+
+        async function completeRegistration() {
+            const tableName = document.getElementById('reg-name-li').value.trim();
+            const location = document.getElementById('reg-location-li').value.trim();
+            if (!tableName) { showAccountStatus('Give your table a name.', 'error'); return; }
+            await claimHardware(tableName, location);
+        }
+
+        // ============================================
+        // CLAIM: Update hardware_registry + create game
+        // ============================================
+        async function claimHardware(tableName, location) {
+            try {
+                showAccountStatus('Registering table...', 'success');
+
+                // 1. Claim in hardware_registry
+                const { error: hwErr } = await _supabase
+                    .from('hardware_registry')
+                    .update({
+                        is_claimed: true,
+                        owner_id: currentUser.id,
+                        claimed_at: new Date().toISOString(),
+                        location_type: location ? 'specified' : null
+                    })
+                    .eq('id', hardwareRecord.id)
+                    .eq('is_claimed', false);  // Safety: only claim if still unclaimed
+
+                if (hwErr) throw hwErr;
+
+                // 2. Also create a game entry (for map, stats, instant-play linking)
+                const realSerial = hardwareRecord.serial_number;
+                const uniqueCode = realSerial.replace(/[^a-zA-Z0-9]/g, '');
+                await _supabase.from('games').insert([{
+                    unique_code: uniqueCode,
+                    game_name: tableName,
+                    location: location || 'Unknown',
+                    owner_id: currentUser.id,
+                    is_public: false,
+                    serial_number: realSerial,
+                    verified: true,
+                    model: hardwareRecord.product_model,
+                    registered_at: new Date().toISOString()
+                }]).then(({ error }) => {
+                    if (error) console.warn('Game entry warning (may already exist):', error.message);
+                });
+
+                // 3. Show success
+                document.getElementById('success-desc').innerHTML = `
+                    <strong>${tableName}</strong><br>
+                    <span style="color:var(--sub-gold)">${realSerial}</span><br><br>
+                    Registered to <strong>${currentUser.username}</strong>.<br>
+                    Your table is now part of the Subsoccer network!
+                `;
+                document.getElementById('btn-play-now').onclick = () => {
+                    window.location.href = 'instant-play.html?sn=' + encodeURIComponent(realSerial);
+                };
+                showView('view-success');
+
+            } catch (err) { showAccountStatus('Registration failed: ' + err.message, 'error'); }
+        }
+
+        // ============================================
+        // HELPERS
+        // ============================================
+        function showLoginForm() { document.getElementById('signup-section').style.display = 'none'; document.getElementById('login-section').style.display = 'block'; }
+        function showSignupForm() { document.getElementById('signup-section').style.display = 'block'; document.getElementById('login-section').style.display = 'none'; }
+        function showSerialStatus(msg, type) { const el = document.getElementById('serial-status'); el.textContent = msg; el.className = 'status-msg ' + type; }
+        function showAccountStatus(msg, type) { const el = document.getElementById('account-status'); el.textContent = msg; el.className = 'status-msg ' + type; }
+    </script>
+</body>
+</html>

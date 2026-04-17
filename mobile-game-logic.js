@@ -13,6 +13,12 @@ let _sb = null;
 const MAX_PLAYERS_GUEST = 4;
 const MAX_PLAYERS_LOGGED = 8;
 
+// --- SMART MIRROR (TV CAST) ---
+let tvRoomCode = null;
+let tvChannel = null;
+window.isTvMode = false;
+
+
 // --- GEOLOCATION ---
 let userLat = null;
 let userLng = null;
@@ -44,6 +50,15 @@ function captureGeolocation() {
         // Note: Pricing logic removed from here since mobile standalone flow is always free.
     } catch(e) { console.log('Init check:', e.message); }
     
+    // Check if we are a TV Receiver
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tv')) {
+        window.isTvMode = true;
+        tvRoomCode = urlParams.get('tv');
+        document.body.classList.add('is-tv-mode');
+        initTvReceiver();
+    }
+
     // Always restore player names from sessionStorage (if any) before updating UI
     if (window.restoreMobilePlayers) {
         window.restoreMobilePlayers();
@@ -104,6 +119,7 @@ function showLayer(layerId) {
     if (target) {
         target.style.display = 'flex';
     }
+    broadcastTvState();
 }
 
 // ============================================================
@@ -149,6 +165,7 @@ function renderMobileBracket() {
     // BracketEngine render() method builds the DOM into the container
     localEngine.containerId = 'mobile-bracket-area';
     localEngine.render();
+    broadcastTvState();
 }
 
 // ============================================================
@@ -248,6 +265,8 @@ window.mobileGoal = function(playerNumber) {
         pMatchProcessing = true;
         setTimeout(() => finishMatch(gameState.p2Name, 2), 800);
     }
+    
+    broadcastTvState();
 };
 
 function updateGoalVisual(elementId, score) {
@@ -302,6 +321,7 @@ function finishMatch(winnerName, winnerIndex) {
         currentPendingMatch ? currentPendingMatch.roundName : 'MATCH CONCLUDED';
     
     showLayer('m-layer-victory');
+    broadcastTvState();
 
     // Auto-advance after 4 seconds
     setTimeout(() => {
@@ -425,6 +445,7 @@ function showTournamentComplete() {
     });
 
     showLayer('m-layer-leaderboard');
+    broadcastTvState();
 }
 
 // ============================================================
@@ -498,10 +519,101 @@ window.mobileRestart = function() {
     clearInterval(matchTimerInterval);
     
     showLayer('m-layer-setup');
+    broadcastTvState();
 };
 
 // ============================================================
-// INIT
+// TV SPECTATOR BROADCAST (SMART MIRROR)
 // ============================================================
 
-showLayer('m-layer-setup');
+window.startTvCast = function() {
+    if (tvRoomCode) return; // already casting
+    tvRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const castUrl = `${window.location.origin}${window.location.pathname}?tv=${tvRoomCode}`;
+    alert(`📺 SPECTATOR MODE STARTED\n\nOpen a browser on your TV or big screen to:\n\n${castUrl}\n\nAll your actions will now be synced in real-time.`);
+    
+    tvChannel = _sb.channel('tv-' + tvRoomCode);
+    tvChannel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+            console.log("Broadcasting to TV...");
+            broadcastTvState();
+            const castBtn = document.getElementById('cast-btn');
+            if (castBtn) { castBtn.style.color = '#4CAF50'; castBtn.innerHTML = `<i class="fas fa-tv mr-2"></i> CASTING: ${tvRoomCode}`; }
+        }
+    });
+};
+
+function broadcastTvState() {
+    if (!tvChannel || window.isTvMode) return; // TV mode doesn't broadcast!
+    
+    let activeLayer = null;
+    document.querySelectorAll('.m-layer').forEach(l => {
+        if(l.style.display && l.style.display !== 'none') activeLayer = l.id;
+    });
+
+    const state = {
+        layer: activeLayer,
+        bracketHtml: document.getElementById('mobile-bracket-area') ? document.getElementById('mobile-bracket-area').innerHTML : '',
+        titleText: document.getElementById('m-tourny-title') ? document.getElementById('m-tourny-title').innerHTML : '',
+        standingsHtml: document.getElementById('m-standings-table') ? document.getElementById('m-standings-table').innerHTML : '',
+        p1Score: document.getElementById('m-score-p1') ? document.getElementById('m-score-p1').innerText : '',
+        p2Score: document.getElementById('m-score-p2') ? document.getElementById('m-score-p2').innerText : '',
+        p1Goals: document.getElementById('m-goals-p1') ? document.getElementById('m-goals-p1').innerText : '',
+        p2Goals: document.getElementById('m-goals-p2') ? document.getElementById('m-goals-p2').innerText : '',
+        p1NameGame: document.getElementById('m-p1-name') ? document.getElementById('m-p1-name').innerText : '',
+        p2NameGame: document.getElementById('m-p2-name') ? document.getElementById('m-p2-name').innerText : '',
+        nxtRound: document.getElementById('m-round-name') ? document.getElementById('m-round-name').innerText : '',
+        nxtP1: document.getElementById('m-matchup-p1') ? document.getElementById('m-matchup-p1').innerText : '',
+        nxtP2: document.getElementById('m-matchup-p2') ? document.getElementById('m-matchup-p2').innerText : '',
+        vicName: document.getElementById('m-winner-name') ? document.getElementById('m-winner-name').innerText : '',
+        vicScore: document.getElementById('m-victory-score') ? document.getElementById('m-victory-score').innerText : '',
+        champName: document.getElementById('m-champion-name') ? document.getElementById('m-champion-name').innerHTML : ''
+    };
+    
+    tvChannel.send({ type: 'broadcast', event: 'tv-update', payload: state });
+}
+
+function initTvReceiver() {
+    tvChannel = _sb.channel('tv-' + tvRoomCode);
+    tvChannel.on('broadcast', { event: 'tv-update' }, ({ payload }) => {
+        console.log("Received TV Sync:", payload);
+        
+        // 1. Sync innerTexts and HTMLs safely
+        const e = (id, html) => { if(document.getElementById(id) && html !== undefined) document.getElementById(id).innerHTML = html; };
+        const t = (id, text) => { if(document.getElementById(id) && text !== undefined) document.getElementById(id).innerText = text; };
+
+        e('mobile-bracket-area', payload.bracketHtml);
+        e('m-tourny-title', payload.titleText);
+        e('m-standings-table', payload.standingsHtml);
+        e('m-champion-name', payload.champName);
+        
+        t('m-score-p1', payload.p1Score);
+        t('m-score-p2', payload.p2Score);
+        t('m-goals-p1', payload.p1Goals);
+        t('m-goals-p2', payload.p2Goals);
+        t('m-p1-name', payload.p1NameGame);
+        t('m-p2-name', payload.p2NameGame);
+        
+        t('m-round-name', payload.nxtRound);
+        t('m-matchup-p1', payload.nxtP1);
+        t('m-matchup-p2', payload.nxtP2);
+        
+        t('m-winner-name', payload.vicName);
+        t('m-victory-score', payload.vicScore);
+        
+        // 2. Switch layer
+        if (payload.layer) {
+            document.querySelectorAll('.m-layer').forEach(l => {
+                l.style.display = (l.id === payload.layer) ? 'flex' : 'none';
+            });
+        }
+    }).subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+            console.log("TV Spectator Connected!");
+        }
+    });
+}
+
+if (!window.isTvMode) {
+    showLayer('m-layer-setup');
+}
