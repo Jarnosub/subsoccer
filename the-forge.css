@@ -454,11 +454,10 @@ body.is-tv-mode::after {
 }
 body.is-tv-mode .game-walkovers, 
 body.is-tv-mode #cast-btn,
-body.is-tv-mode .setup-form,
 body.is-tv-mode #m-add-player-btn,
-body.is-tv-mode .player-input,
 body.is-tv-mode .fa-times,
 body.is-tv-mode .bottom-controls,
+body.is-tv-mode .btn-start,
 body.is-tv-mode button {
     display: none !important;
 }

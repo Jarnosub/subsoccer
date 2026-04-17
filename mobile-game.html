@@ -511,7 +511,7 @@
          ========================================== -->
     <div class="m-layer" id="m-layer-setup" style="display: flex; background: #0a0a0a; position: relative;">
         <!-- Taustakuva + vignette kuten etusivulla -->
-        <button id="cast-btn" onclick="startTvCast()" style="position: absolute; top: 15px; right: 20px; z-index: 100; background: rgba(0,0,0,0.6); border: 1px solid #333; color: #aaa; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s;"><i class="fas fa-tv mr-2"></i> CAST</button>
+        <button id="cast-btn" onclick="startTvCast()" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; background: transparent; border: none; color: rgba(255,255,255,0.2); font-size: 0.8rem; cursor: pointer; transition: 0.2s;"><i class="fas fa-tv mr-2"></i> CAST TV</button>
         <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('subsoccer-teams.jpg') no-repeat 54% top / cover; filter: brightness(0.65) contrast(1.1); z-index: 0;"></div>
         <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 20%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.75) 100%); z-index: 1;"></div>
         <div class="setup-container">
@@ -522,7 +522,7 @@
             <div id="m-players-list">
                 <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
                     <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#1</span>
-                    <input type="text" autocomplete="off" onfocus="this.select()" value="PLAYER 1" 
+                    <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) broadcastTvState();" value="PLAYER 1" 
                            class="player-input" 
                            style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
                     <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
@@ -531,7 +531,7 @@
                 </div>
                 <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
                     <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#2</span>
-                    <input type="text" autocomplete="off" onfocus="this.select()" value="PLAYER 2" 
+                    <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) broadcastTvState();" value="PLAYER 2" 
                            class="player-input" 
                            style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
                     <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
