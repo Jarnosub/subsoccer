@@ -509,8 +509,8 @@ window.openQrJoin = function() {
                 if (listEl.innerHTML.includes('Waiting for players')) listEl.innerHTML = '';
                 const num = listEl.children.length + 1;
                 const row = document.createElement('div');
-                row.style.cssText = "padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;";
-                row.innerHTML = `<span style="color:#888; margin-right: 8px;">#${num}</span> ${payload.name.toUpperCase()}`;
+                row.style.cssText = "display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;";
+                row.innerHTML = `<span style="color:#888; margin-right: 4px;">#${num}</span> ${payload.name.toUpperCase()}`;
                 listEl.appendChild(row);
                 listEl.scrollTop = listEl.scrollHeight;
             }
@@ -542,8 +542,8 @@ window.openQrJoin = function() {
                 <img src="${qrImageUrl}" alt="Join QR Code" style="width: 200px; height: 200px; display:block;">
             </div>
             
-            <div id="qr-joined-list" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; min-height: 50px; max-height: 150px; overflow-y: auto; text-align: left; margin-bottom: 20px; display: flex; flex-direction: column;">
-                <div style="color: #666; text-align: center; padding: 15px; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem;">Waiting for players...</div>
+            <div id="qr-joined-list" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; min-height: 50px; max-height: 120px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; justify-content: center; align-content: flex-start;">
+                <div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>
             </div>
             
             <button onclick="document.getElementById('qr-join-overlay').remove(); if(qrJoinChannel) { _sb.removeChannel(qrJoinChannel); qrJoinChannel = null; }" style="background:transparent; color:#888; border:1px solid rgba(255,255,255,0.2); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
@@ -562,11 +562,11 @@ window.openQrJoin = function() {
         const name = input.value.trim();
         if (name && !name.startsWith("PLAYER ")) {
             existingCount++;
-            existingPlayersHtml += `<div style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 8px;">#${existingCount}</span> ${name.toUpperCase()}</div>`;
+            existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${existingCount}</span> ${name.toUpperCase()}</div>`;
         }
     });
 
-    const emptyHtml = `<div style="color: #666; text-align: center; padding: 15px; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem;">Waiting for players...</div>`;
+    const emptyHtml = `<div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>`;
     
     // Injektoidaan olemassa olevat pelaajat tai tyhjä tila
     const listEl = document.getElementById('qr-joined-list');
