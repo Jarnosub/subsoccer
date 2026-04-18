@@ -89,12 +89,12 @@
 
         .setup-btn-add {
             width: 100%;
-            background: rgba(255,255,255,0.05);
-            color: #ccc;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
             font-weight: 700;
             padding: 14px;
             border-radius: 8px;
-            border: 1px dashed rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.15);
             margin-top: 8px;
             cursor: pointer;
             font-family: 'Resolve', sans-serif;
@@ -115,7 +115,7 @@
             font-weight: 700;
             padding: 16px;
             border-radius: 8px;
-            margin-top: 20px;
+            margin-top: 40px;
             border: none;
             cursor: pointer;
             font-family: 'Subsoccer', sans-serif;
@@ -540,9 +540,9 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 24px;">
-                <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()" style="flex: 1; margin-bottom: 0;">+ ADD PLAYER</button>
-                <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()" style="flex: 1; margin-bottom: 0; background: rgba(255,255,255,0.05); color: #fff;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR JOIN</button>
+            <div style="display: flex; gap: 8px; width: 100%; margin-top: 16px; margin-bottom: 24px;">
+                <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()" style="flex: 1; margin-top: 0;">+ ADD PLAYER</button>
+                <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()" style="flex: 1; margin-top: 0;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR JOIN</button>
             </div>
 
             <!-- Login upsell (näkyy vain vierailijoille kun 2 paikka täynnä) -->
