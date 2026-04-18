@@ -289,7 +289,7 @@
 
                     // Background listener for future sign out / parallel sign in
                     sb.auth.onAuthStateChange(async (event, currentSession) => {
-                        if (event === 'SIGNED_IN' && currentSession && currentSession.user) {
+                        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && currentSession && currentSession.user) {
                             const { data: p } = await sb.from('players').select('username, elo, is_admin, is_owner').eq('id', currentSession.user.id).single();
                             if (p) {
                                 showPlayerCard(p);
@@ -309,7 +309,16 @@
             } catch(e) {
                 console.log('Auth check error:', e);
             }
-        })();
+        }
+        
+        initAuth(); // Run immediately on load
+
+        // Handle Safari/Mobile BFCache restores
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                initAuth();
+            }
+        });
 
         function showPlayerCard(player) {
             document.getElementById('hub-player-name').innerText = player.username || 'PLAYER';
