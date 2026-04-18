@@ -178,12 +178,10 @@
                     <i class="fa-solid fa-arrow-left" style="margin-right: 5px;"></i> BACK TO INSTANT PLAY
                 </button>
             </div>
-            <div style="text-align: left; margin-bottom: 10px;">
-                <span onclick="if(new URLSearchParams(window.location.search).get('source') === 'go' && (window.location.hash.includes('login') || new URLSearchParams(window.location.search).get('redirect'))) { window.history.back(); } else { showAuthPage('landing'); }" class="link-back"
-                    style="cursor: pointer; color: #888; font-size: 0.9rem;">
-                    <i class="fa-solid fa-arrow-left"></i> Back
-                </span>
-            </div>
+            <button onclick="if(new URLSearchParams(window.location.search).get('source') === 'go' && (window.location.hash.includes('login') || new URLSearchParams(window.location.search).get('redirect'))) { window.history.back(); } else { showAuthPage('landing'); }" 
+                style="position: fixed; top: 25px; left: 25px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 1.2rem; cursor: pointer; z-index: 1000; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
             <h2 class="auth-title">PLAYER LOGIN</h2>
             <form id="auth-form-wrapper">
                 <input type="text" id="auth-user" placeholder="Username" autocomplete="username">
