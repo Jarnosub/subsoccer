@@ -1,0 +1,467 @@
+@font-face {
+    font-family: 'Subsoccer';
+    src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'),
+        url('fonts/Subsoccer-2-Regular.woff') format('woff');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Resolve';
+    src: url('fonts/Resolve-RegularNrw.otf') format('opentype');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'Resolve';
+    src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+    font-weight: bold;
+}
+
+:root {
+    --subsoccer-red: #E30613;
+    --subsoccer-gold: #FFD700;
+}
+
+/* Base Body Resets based on mode */
+body.tv-mode {
+    margin: 0;
+    background-color: #050510;
+    color: white;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Subsoccer', sans-serif;
+    text-transform: uppercase;
+}
+
+body.remote-mode {
+    background-color: #050505;
+    font-family: 'Resolve', sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    color: #fff;
+}
+
+/* -----------------------------
+   TV KIOSK ARCHITECTURE
+--------------------------------*/
+.layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    /* Everything hidden natively */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#layer-lobby {
+    z-index: 10;
+    background-color: transparent;
+}
+
+#layer-game {
+    z-index: 20;
+    background: #050505;
+}
+
+/* Scoreboard - Split screen (Copied from Instant Play) */
+.scoreboard {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.player-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.player-left {
+    background: linear-gradient(135deg, #243647 0%, #121e2b 100%);
+    /* Deep Petrol Blue */
+    border-right: 2px solid #111;
+}
+
+.player-right {
+    background: linear-gradient(135deg, var(--subsoccer-red) 0%, #900000 100%);
+    /* Subsoccer Red */
+}
+
+.player-label {
+    font-family: 'Subsoccer', sans-serif;
+    font-size: 3.5rem;
+    color: #ffffff;
+    position: absolute;
+    top: 130px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.score {
+    font-family: 'Subsoccer', sans-serif;
+    font-size: clamp(10rem, 40vh, 25rem);
+    color: #ffffff;
+    text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+    line-height: 1;
+    margin-top: clamp(80px, 15vh, 150px);
+}
+
+.goals-visual {
+    font-size: clamp(2rem, 5vh, 4rem);
+    margin-top: clamp(8px, 1.5vh, 16px);
+    letter-spacing: clamp(10px, 2vw, 20px);
+    color: white;
+}
+
+.center-divider {
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.5), transparent);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.goal-flash {
+    animation: goalFlash 0.5s ease-in-out;
+}
+
+@keyframes goalFlash {
+    0% {
+        background: var(--subsoccer-red);
+        transform: scale(1);
+    }
+
+    50% {
+        background: #ffffff;
+        transform: scale(1.02);
+    }
+
+    100% {
+        background: var(--subsoccer-red);
+        transform: scale(1);
+    }
+}
+
+#layer-victory {
+    background: radial-gradient(circle at 50% 50%, #2a2a4e 0%, #050510 100%);
+    z-index: 30;
+}
+
+.v-anim {
+    opacity: 0;
+}
+
+/* Baseline opacity for WAAPI */
+
+#header-ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #333;
+    border-radius: 12px;
+}
+
+/* -----------------------------
+   TV BRACKET SYSTEM
+--------------------------------*/
+#tv-bracket-area {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 2vw;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 0 2vw;
+    box-sizing: border-box;
+}
+
+.bracket-round {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5vh;
+    align-items: center;
+    justify-content: space-around;
+    height: 100%;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    padding-top: 60px;
+    padding-bottom: 20px;
+}
+
+.round-title {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    color: #aaa;
+    font-family: 'Subsoccer', sans-serif;
+    font-size: clamp(0.9rem, 1.5vh, 1.5rem);
+    letter-spacing: 2px;
+    margin-bottom: 0;
+    text-align: center;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+}
+
+.bracket-match {
+    background: #222;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 280px;
+    min-width: 150px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+    font-size: clamp(0.75rem, 1.3vh, 1.2rem);
+}
+
+.match-player {
+    color: #ddd;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1em;
+    text-transform: uppercase;
+    padding: clamp(6px, 1.5vh, 15px) clamp(10px, 1.5vw, 25px);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    background: #252525;
+    border-left: clamp(3px, 0.5vw, 5px) solid var(--subsoccer-red);
+}
+
+.match-player:first-child {
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.match-player:last-child {
+    border-top: 1px solid #333;
+}
+
+.match-player.winner {
+    color: var(--subsoccer-red);
+}
+
+.match-vs {
+    display: none;
+}
+
+/* -----------------------------
+   REMOTE CONTROLLER UI
+--------------------------------*/
+.phone-container {
+    width: 100%;
+    max-width: 400px;
+    min-height: 100vh;
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+    margin: 0 auto;
+    overflow-x: hidden;
+}
+
+.header {
+    padding: 20px;
+    border-bottom: 2px solid #222;
+    text-align: center;
+    background: #000;
+    color: #fff;
+}
+
+.header img {
+    height: 25px;
+    margin: 0 auto;
+}
+
+.screen {
+    padding: 20px;
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Buttons */
+.primary-btn {
+    background: linear-gradient(135deg, var(--subsoccer-red), #990000);
+    color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ff3333;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+    margin-top: auto;
+    transition: transform 0.1s;
+    font-family: 'Subsoccer', sans-serif;
+    letter-spacing: 2px;
+}
+
+.primary-btn:active {
+    transform: scale(0.98);
+}
+
+.end-btn {
+    background: transparent;
+    color: #666;
+    border: 2px solid #333;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    margin-top: 15px;
+    font-family: 'Resolve', sans-serif;
+    text-transform: uppercase;
+}
+
+/* Mode Selection */
+.mode-btn {
+    background: #111;
+    border: 2px solid #222;
+    color: #fff;
+    padding: 30px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.3rem;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+    font-family: 'Subsoccer', sans-serif;
+}
+
+.mode-btn:active {
+    transform: scale(0.98);
+}
+
+.mode-btn.highlight {
+    border-color: var(--subsoccer-red);
+    background: linear-gradient(135deg, #111, #1a0808);
+}
+
+/* Setup Screen */
+.input-box {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #444;
+    background: #111;
+    color: #fff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: 'Subsoccer', sans-serif;
+    font-size: 1.2rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+/* Controller Elements */
+.goal-btn {
+    flex: 1;
+    margin: 10px 0;
+    border-radius: 12px;
+    font-family: 'Subsoccer', sans-serif;
+    font-size: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    user-select: none;
+    border: 1px solid #333;
+}
+
+.goal-btn:active {
+    transform: scale(0.95);
+}
+
+.goal-btn.p1 {
+    background-color: #12222d;
+    color: #fff;
+    border-color: #2a4d66;
+}
+
+.goal-btn.p2 {
+    background-color: #b70000;
+    color: #fff;
+    border-color: #ff3333;
+}
+
+.remote-player-label {
+    font-size: 1rem;
+    font-family: 'Resolve', sans-serif;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+/* Cinematic Ken Burns Animation */
+@keyframes kenBurns {
+    0% {
+        transform: scale(1) translate(0, 0);
+    }
+
+    100% {
+        transform: scale(1.15) translate(-1%, -1%);
+    }
+}
+
+.ken-burns {
+    animation: kenBurns 24s linear infinite alternate;
+}
+
+/* =========================================
+   TV SPECTATOR MODE (SMART MIRROR)
+   ========================================= */
+body.is-tv-mode {
+    pointer-events: none !important;
+}
+body.is-tv-mode::after {
+    display: none !important; /* Never show rotation warning on TV */
+}
+body.is-tv-mode .game-walkovers, 
+body.is-tv-mode #cast-btn,
+body.is-tv-mode #m-add-player-btn,
+body.is-tv-mode .fa-times,
+body.is-tv-mode .bottom-controls,
+body.is-tv-mode .btn-start,
+body.is-tv-mode button {
+    display: none !important;
+}
+body.is-tv-mode .game-board {
+    height: 100vh !important;
+    padding-bottom: 0 !important;
+}

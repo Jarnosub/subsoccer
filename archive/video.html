@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer - How to Play</title>
+    <!-- Add favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
+            /* Optimal width for mobile/vertical videos */
+            background: #000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+            /* Let clicks pass through to YouTube */
+        }
+
+        .header img {
+            height: 35px;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
+            opacity: 0.9;
+        }
+
+        .iframe-wrapper {
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Go to game button */
+        .play-btn-wrapper {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 20;
+        }
+
+        .btn-instant-play {
+            background: linear-gradient(135deg, #E30613 0%, #a00 100%);
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-instant-play:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(227, 6, 19, 0.6);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="video-container">
+        <!-- Logo overlays -->
+        <div class="header">
+            <img src="subsoccer_logo.svg" alt="Subsoccer">
+        </div>
+
+        <!-- Embedded YouTube Reel (Vertical Short) -->
+        <div class="iframe-wrapper">
+            <iframe
+                src="https://www.youtube.com/embed/Xbfkm2Ftejg?autoplay=1&controls=1&rel=0&modestbranding=1&loop=1&playlist=Xbfkm2Ftejg&playsinline=1"
+                title="Subsoccer - How to Play"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+            </iframe>
+        </div>
+
+    </div>
+</body>
+
+</html>

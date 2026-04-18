@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer GO - TV Screen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('fonts/subsoccer-bold.woff2') format('woff2'),
+                 url('fonts/subsoccer-bold.woff') format('woff');
+            font-display: swap;
+        }
+        
+        :root {
+            --subsoccer-red: #E30613;
+            --subsoccer-gold: #FFD700;
+            --pitch-black: #050505;
+        }
+
+        body {
+            background-color: var(--pitch-black);
+            color: white;
+            font-family: 'Subsoccer', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        .main-arena {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #111;
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            z-index: 100;
+        }
+
+        .table-id {
+            background: #fff;
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ff3333;
+        }
+
+        .system-status.active {
+            color: var(--subsoccer-red);
+        }
+
+        .pulse-dot {
+            width: 10px; height: 10px;
+            background: currentColor;
+            border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .score-board {
+            position: fixed;
+            top: 130px;
+            left: 40px;
+            right: 40px;
+            bottom: 40px;
+            z-index: 50 !important;
+            border-radius: 20px;
+            display: flex !important;
+            border: 2px solid #555;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
+
+        .vs-badge {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, 0);
+            background: var(--subsoccer-red);
+            padding: 8px 16px;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            z-index: 10;
+        }
+
+        .player-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .p1-side { background-color: #12222d; border-right: 2px solid #000; }
+        .p2-side { background-color: #b70000; }
+
+        .player-name {
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .score-container {
+            width: 100%;
+            text-align: center;
+            display: block;
+        }
+        .score-digit {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 35vh; 
+            font-weight: 900;
+            line-height: 1;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: block;
+            text-shadow: 0 10px 40px rgba(255, 255, 255, 0.3);
+            transition: transform 0.1s ease-out;
+        }
+
+        /* OVERLAYS */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        .hidden { display: none !important; }
+
+        .w-title {
+            font-size: 8rem; color: var(--subsoccer-gold);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8); margin-bottom: 20px; text-transform: uppercase;
+            opacity: 0; /* Wait for JS animation */
+        }
+        .w-score {
+            font-size: 6rem; color: #fff;
+            margin-bottom: 50px; text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            opacity: 0;
+        }
+        .pro-card-anim {
+            width: 250px; height: 350px;
+            transform-style: preserve-3d; margin-bottom: 30px;
+            opacity: 0;
+        }
+        .pro-card-front {
+            width: 100%; height: 100%; position: relative;
+            background: linear-gradient(rgba(0,0,0,0.3), #111), url('card-stadium.jpg') center/cover;
+            border-radius: 10px; border: 2px solid var(--subsoccer-gold);
+            box-shadow: 0 20px 50px rgba(255, 215, 0, 0.4); display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        .qr-placeholder {
+            width: 320px; height: 320px;
+            background: #fff;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #000;
+            font-family: 'Inter', sans-serif;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(255,255,255,0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-arena">
+        
+        <div class="top-nav">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="table-id">TABLE 04</div>
+                <div style="color: #888; font-size: 0.9rem; font-family: 'Inter';">SUBSOCCER GO LOUNGE (FREE PLAY)</div>
+            </div>
+            
+            <div class="system-status" id="tv-status-indicator">
+                <div class="text-xs text-gray-500 mr-2" style="font-family: 'Inter';">IoT HUB |</div>
+                <div class="pulse-dot"></div>
+                <div style="font-size: 0.9rem;" id="iot-status-text">OFF LINE</div>
+            </div>
+            
+            <div style="font-size: 3rem; color: #fff; line-height: 1;" id="session-timer">00:00</div>
+        </div>
+
+    </div>
+
+    <!-- SCORE BOARD (direct child of body, not inside main-arena) -->
+    <div class="score-board hidden" id="score-board">
+        <div class="vs-badge">SUBSOCCER</div>
+        <div class="player-side p1-side">
+            <div class="player-name" id="tv-p1-name">PLAYER 1</div>
+            <div class="score-container">
+                <div class="score-digit" id="tv-p1-score">0</div>
+            </div>
+        </div>
+        <div class="player-side p2-side">
+            <div class="player-name" id="tv-p2-name">PLAYER 2</div>
+            <div class="score-container">
+                <div class="score-digit" id="tv-p2-score">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. ATTRACT MODE -->
+    <div id="attract-overlay" class="overlay">
+        <h1 style="font-size: 6rem; margin-bottom: 10px;">SUBSOCCER GO</h1>
+        <div style="color: var(--subsoccer-red); font-size: 3rem; margin-bottom: 50px;">LUE KOODI JA OHJAA PELIÄ</div>
+        
+        <img id="dynamic-qr" src="" alt="QR Code" class="w-64 h-64 border-8 border-white mb-6" style="border-radius: 20px;">
+        
+        <p style="color: #666; font-size: 1.5rem; font-family: 'Inter';">Scan with your smartphone camera to connect</p>
+    </div>
+
+    <!-- 2. TOURNAMENT BRACKET OVERLAY -->
+    <div id="tourny-bracket-overlay" class="overlay hidden" style="background:var(--pitch-black);">
+        <h1 style="font-size: 5rem; margin-top: 50px; margin-bottom: 30px; color: var(--subsoccer-gold);"><i class="fas fa-trophy mb-4 text-6xl"></i><br>LOUNGE TOURNAMENT</h1>
+        <div id="bracket-tree" style="flex:1; width: 100%; display: flex; align-items:center; justify-content:center;">
+            <!-- Tree rendered here via BracketEngine -->
+        </div>
+    </div>
+
+    <!-- 3. VICTORY SCREEN OVERLAY -->
+    <div id="victory-overlay" class="overlay hidden" style="background: radial-gradient(circle at 50% 50%, #2a2a4e 0%, #050510 100%); perspective: 1000px;">
+        <h2 style="font-size: 3rem; color: #fff; margin-bottom: 10px; letter-spacing: 5px; opacity: 0;" class="w-header">MATCH FINISHED</h2>
+        <h1 class="w-title" id="victory-winner">JARNO WINS</h1>
+        <div class="w-score" id="victory-score">3 - 1</div>
+        
+        <!-- Gamified Card -->
+        <div class="pro-card-anim">
+            <div class="pro-card-front">
+                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2; background: rgba(0,0,0,0.6);">
+                    <div style="font-size: 0.8rem; color: var(--subsoccer-gold); letter-spacing: 2px;">PRO CARD // LOUNGE</div>
+                </div>
+                <div style="width: 100%; height: 160px; background: #1a1a1a; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <!-- Default avatar silhouette for lounge -->
+                    <i class="fas fa-user-astronaut text-8xl" style="color: #444;"></i>
+                </div>
+                <div style="padding: 10px 15px; flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center;">
+                    <div style="color: var(--subsoccer-gold); font-size: 0.8rem; letter-spacing: 1px;"><i class="fa-solid fa-trophy"></i> VICTORY CLAIMED</div>
+                    <div style="font-size: 1.5rem; color: #fff; margin-top: 10px;">SUB_LOUNGE</div>
+                </div>
+            </div>
+        </div>
+
+        <p style="color: #888; font-size: 1.5rem; margin-top: 40px; animation: victorySlideUp 0.8s ease-out 1.2s backwards;">Awaiting instructions from The Remote...</p>
+    </div>
+
+    <script type="module">
+        import { _supabase } from './config.js';
+        import { BracketEngine } from './bracket-engine.js';
+
+        const tableId = 'table-04';
+
+        let p1Score = 0;
+        let p2Score = 0;
+        let p1Name = "PLAYER 1";
+        let p2Name = "PLAYER 2";
+        let timerInterval;
+        let remainingSeconds = 15 * 60; 
+
+        // --- SHELLY SMART PLUG INTEGRATION ---
+        let shellyIP = localStorage.getItem('shelly_ip') || null;
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('shelly')) {
+            shellyIP = urlParams.get('shelly');
+            localStorage.setItem('shelly_ip', shellyIP);
+            console.log("🔥 Shelly IoT Endpoint registered: " + shellyIP);
+        }
+
+        // --- DYNAMIC QR CODE GENERATOR ---
+        // Dynamically creates a QR code pointing to the remote controller on the exact same local IP network
+        const localHostIP = window.location.hostname;
+        const localPort = window.location.port ? `:${window.location.port}` : "";
+        const remoteAppUrl = `${window.location.protocol}//${localHostIP}${localPort}/lounge-remote.html`;
+        document.getElementById('dynamic-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(remoteAppUrl)}`;
+        
+        console.log(`📱 Connect Remote via: ${remoteAppUrl}`);
+
+        function triggerShelly(turnOn) {
+            if (!shellyIP) {
+                console.log(`🔌 [Simulated] Shelly Command: Power ${turnOn ? 'ON' : 'OFF'} (No IP registered)`);
+                return;
+            }
+            const state = turnOn ? 'on' : 'off';
+            console.log(`🔌 Sending Actual Shelly Command: TURN ${state.toUpperCase()} to ${shellyIP}...`);
+            fetch(`http://${shellyIP}/relay/0?turn=${state}`, { mode: 'no-cors' })
+                .catch(err => console.warn("Shelly IoT request failed:", err));
+        }
+
+        function updateUI(s) {
+            document.getElementById('tv-p1-score').innerText = s.p1Score;
+            document.getElementById('tv-p2-score').innerText = s.p2Score;
+        }
+
+        function resetSystem() {
+            clearInterval(timerInterval);
+            remainingSeconds = 15 * 60;
+            document.getElementById('session-timer').innerText = "00:00";
+            document.getElementById('attract-overlay').classList.remove('hidden');
+            document.getElementById('score-board').classList.add('hidden');
+            document.getElementById('victory-overlay').classList.add('hidden');
+            document.getElementById('tourny-bracket-overlay').classList.add('hidden');
+            
+            triggerShelly(false);
+            
+            // IoT Sync OFF
+            const indicator = document.getElementById('tv-status-indicator');
+            indicator.classList.remove('active');
+            indicator.style.color = "#ff3333";
+            document.getElementById('iot-status-text').innerText = "OFF LINE";
+            
+            updateUI({p1Score: 0, p2Score: 0});
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    resetSystem();
+                    return;
+                }
+                remainingSeconds--;
+                const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+                const s = (remainingSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('session-timer').innerText = `${m}:${s}`;
+                
+                if(remainingSeconds <= 60) document.getElementById('session-timer').style.color = "var(--subsoccer-red)";
+            }, 1000);
+        }
+
+        // --- SUPABASE REALTIME SUBSCRIPTION ---
+        console.log(`Subscribing to channel: lounge_${tableId}`);
+        const channel = _supabase.channel(`lounge_${tableId}`)
+            .on('broadcast', { event: 'start_1v1' }, (payload) => {
+                p1Name = payload.payload.p1 || 'PLAYER 1';
+                p2Name = payload.payload.p2 || 'PLAYER 2';
+                document.getElementById('attract-overlay').classList.add('hidden');
+                document.getElementById('victory-overlay').classList.add('hidden');
+                document.getElementById('tourny-bracket-overlay').classList.add('hidden');
+                
+                const sb = document.getElementById('score-board');
+                sb.classList.remove('hidden');
+                
+                triggerShelly(true);
+                
+                document.getElementById('tv-p1-name').innerText = p1Name;
+                document.getElementById('tv-p2-name').innerText = p2Name;
+                
+                const indicator = document.getElementById('tv-status-indicator');
+                indicator.classList.add('active');
+                indicator.style.color = ""; // resets inline color to use active class
+                document.getElementById('iot-status-text').innerText = "POWER SYNCED (ON)";
+                
+                remainingSeconds = 15 * 60;
+                startTimer();
+            })
+            .on('broadcast', { event: 'state_update' }, (payload) => {
+                const s = payload.payload;
+                updateUI(s);
+                
+                // Flash animation on the scoring player's side
+                if(s.lastScorer) {
+                    const digit = document.getElementById(`tv-p${s.lastScorer}-score`);
+                    digit.style.transform = 'scale(1.3)';
+                    setTimeout(() => { digit.style.transform = 'scale(1)'; }, 200);
+                }
+            })
+            .on('broadcast', { event: 'end_game' }, (payload) => {
+                clearInterval(timerInterval);
+                const winner = payload.payload.winnerName;
+                document.getElementById('score-board').classList.add('hidden');
+                
+                const overlay = document.getElementById('victory-overlay');
+                overlay.classList.remove('hidden');
+                
+                // --- Javascript Web Animations API (WAAPI) ---
+                // CRITICAL: Double requestAnimationFrame ensures that the browser has fully calculated the
+                // layout (removed 'display: none') BEFORE we fire imperative animations. Otherwise Chrome drops them.
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        const wHeader = overlay.querySelector('.w-header');
+                        const wTitle = overlay.querySelector('.w-title');
+                        const wScore = overlay.querySelector('.w-score');
+                        const card = overlay.querySelector('.pro-card-anim');
+
+                        if(wHeader) {
+                            wHeader.animate([
+                                { transform: 'translateY(30px)', opacity: 0 },
+                                { transform: 'translateY(0)', opacity: 1 }
+                            ], { duration: 600, easing: 'ease-out', fill: 'forwards' });
+                        }
+
+                        if(wTitle) {
+                            wTitle.animate([
+                                { transform: 'translateY(50px) scale(0.9)', opacity: 0 },
+                                { transform: 'translateY(0) scale(1)', opacity: 1 }
+                            ], { duration: 700, delay: 200, easing: 'ease-out', fill: 'forwards' });
+                        }
+
+                        if(wScore) {
+                            wScore.animate([
+                                { transform: 'translateY(50px)', opacity: 0 },
+                                { transform: 'translateY(0)', opacity: 1 }
+                            ], { duration: 700, delay: 400, easing: 'ease-out', fill: 'forwards' });
+                        }
+
+                        if(card) {
+                            card.animate([
+                                { transform: 'translateY(80px) scale(0.6)', opacity: 0 },
+                                { transform: 'translateY(0) scale(1.15)', opacity: 1 }
+                            ], { duration: 900, delay: 700, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'forwards' });
+                        }
+                    });
+                });
+                // ---------------------------------------------
+
+                // Update text values safely using querySelector
+                overlay.querySelector('#victory-winner').innerText = winner === "DRAW" ? "IT'S A DRAW!" : `${winner} WINS!`;
+                overlay.querySelector('#victory-score').innerText = `${payload.payload.p1Score || 0} - ${payload.payload.p2Score || 0}`;
+                
+                // Force CSS animations to play by simply toggling display
+                // (no need to detach from DOM)
+
+                // Auto-hide victory overlay after 8 seconds and return to lobby
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    // Show attract overlay (lobby) again
+                    document.getElementById('attract-overlay').classList.remove('hidden');
+                    // Reset timer display
+                    document.getElementById('session-timer').innerText = '00:00';
+                }, 8000);
+            })
+            .on('broadcast', { event: 'force_reload' }, (payload) => {
+                window.location.reload(true);
+            })
+            .on('broadcast', { event: 'tourny_state' }, (payload) => {
+                const tourny = payload.payload; // { players: [], matches: [] }
+                
+                document.getElementById('attract-overlay').classList.add('hidden');
+                document.getElementById('score-board').classList.add('hidden');
+                document.getElementById('victory-overlay').classList.add('hidden');
+                document.getElementById('tourny-bracket-overlay').classList.remove('hidden');
+                
+                triggerShelly(false); // Idle table between tournament matches
+
+                if (!window.tvEngine) {
+                    document.getElementById('bracket-tree').innerHTML = '<div id="tv-bracket-area" style="transform: scale(1.2); padding-top: 40px; padding-bottom: 40px;"></div>';
+                    window.tvEngine = new BracketEngine({ containerId: 'tv-bracket-area', enableSaveButton: false });
+                }
+
+                window.tvEngine.generateBracket(tourny.players, false); // Important: don't shuffle again!
+                window.tvEngine.restoreState(tourny.matches);
+            })
+            .on('broadcast', { event: 'reset_system' }, (payload) => {
+                resetSystem();
+            })
+            .subscribe();
+
+    </script>
+</body>
+</html>

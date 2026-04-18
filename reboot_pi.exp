@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 10
+spawn ssh -o StrictHostKeyChecking=no forge@192.168.8.120 "echo subsoccer | sudo -S reboot"
+expect {
+    "password:" {
+        send "subsoccer\r"
+        exp_continue
+    }
+    eof
+}

@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout 10
+set hostname "forge@theforge.local"
+set password "subsoccer"
+
+spawn ssh -o StrictHostKeyChecking=no $hostname "whoami; python3 --version; node -v"
+
+expect {
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

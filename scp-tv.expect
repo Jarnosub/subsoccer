@@ -1,0 +1,5 @@
+#!/usr/bin/expect
+spawn scp /Users/jarnosaarinen/subsoccer/tv.html forge@theforge.local:~/subsoccer/
+expect "password:"
+send "subsoccer\r"
+expect eof

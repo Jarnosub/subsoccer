@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer - Platform Capabilities & Roadmap</title>
+    <!-- Include Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts for Material Look -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --google-blue: #1a73e8;
+            --google-green: #1e8e3e;
+            --google-yellow: #f9ab00;
+            --google-red: #d93025;
+            --surface-color: #ffffff;
+            --background-color: #f8f9fa;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --border-color: #dadce0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', 'Google Sans', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+
+        .header {
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 24px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.05);
+        }
+
+        .header h1 {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 22px;
+            font-weight: 500;
+            margin: 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1 .badge {
+            font-size: 11px;
+            background: #e8f0fe;
+            color: var(--google-blue);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 48px;
+        }
+
+        .board-description {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+
+        .columns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .column {
+            background: transparent;
+        }
+
+        .column-header {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .column-live .column-header { border-bottom-color: var(--google-green); }
+        .column-dev .column-header { border-bottom-color: var(--google-blue); }
+        .column-backlog .column-header { border-bottom-color: var(--google-yellow); }
+
+        .feature-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1);
+            transition: box-shadow 0.2s ease, transform 0.1s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 1px 3px 1px rgba(60,64,67,0.15), 0 1px 2px 0 rgba(60,64,67,0.3);
+            transform: translateY(-1px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .feature-title {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .feature-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        /* Material Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .toggle-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #dadce0;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .2s;
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        input:checked + .slider {
+            background-color: var(--google-blue);
+        }
+        input:checked + .slider:before {
+            transform: translateX(16px);
+        }
+        input:disabled + .slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chip {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        .chip-live { background-color: #e6f4ea; color: #137333; }
+        .chip-dev { background-color: #e8f0fe; color: #1967d2; }
+        .chip-backlog { background-color: #fef7e0; color: #b06000; }
+
+        .loader {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-secondary);
+            font-family: 'Google Sans', sans-serif;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="lock-icon" stroke="#1a73e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Subsoccer OS <span class="badge">EXECUTIVE ROADMAP</span>
+        </h1>
+        <div style="font-size: 13px; color: var(--text-secondary); display:flex; align-items:center; gap: 8px;">
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--google-green);"></div>
+            System Status: Connected & Live
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="board-description">
+            This executive dashboard provides real-time visibility into the architectural deployment phases of the Subsoccer platform. 
+            It reflects live system capabilities, upcoming infrastructure integrations, and B2B enterprise modules across all active client instances globally.
+        </div>
+
+        <div id="loading" class="loader">Synchronizing platform telemetry...</div>
+
+        <div class="columns" id="board-columns" style="display: none;">
+            
+            <div class="column column-live">
+                <div class="column-header">
+                    <span style="color: var(--google-green);">●</span> Live Infrastructure
+                </div>
+                <div id="col-live"></div>
+            </div>
+
+            <div class="column column-dev">
+                <div class="column-header">
+                    <span style="color: var(--google-blue);">●</span> In Development / QA
+                </div>
+                <div id="col-dev"></div>
+            </div>
+
+            <div class="column column-backlog">
+                <div class="column-header">
+                    <span style="color: var(--google-yellow);">●</span> Architecture Backlog
+                </div>
+                <div id="col-backlog"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { _supabase } from './config.js';
+
+        async function loadFeatures() {
+            if (!_supabase) {
+                document.getElementById('loading').textContent = "Error: Database connection failed.";
+                return;
+            }
+
+            try {
+                // 1. Check permissions first
+                const { data: sessionData } = await _supabase.auth.getSession();
+                const session = sessionData?.session;
+                const isAdmin = session?.user?.id === '054f6378-95c5-4f5b-a678-745e585a01fc';
+
+                const { data, error } = await _supabase
+                    .from('app_features')
+                    .select('*')
+                    .order('order_num', { ascending: true });
+
+                if (error) throw error;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('board-columns').style.display = 'grid';
+
+                // Provide a friendly notice if viewed in presentation mode
+                if (!isAdmin) {
+                    const notice = document.createElement('div');
+                    notice.style.cssText = "background: #e8eaed; color:#5f6368; padding: 10px 20px; text-align:center; font-size:13px; font-weight:500; border-radius: 6px; margin-bottom: 20px;";
+                    notice.innerHTML = "🔒 <b>Subsoccer Executive Overview:</b> Viewing live infrastructure status. Administrative access restricted.";
+                    document.querySelector('.board-description').after(notice);
+                }
+
+                const colLive = document.getElementById('col-live');
+                const colDev = document.getElementById('col-dev');
+                const colBacklog = document.getElementById('col-backlog');
+
+                data.forEach(feature => {
+                    const card = document.createElement('div');
+                    card.className = 'feature-card';
+
+                    let chipClass = '';
+                    let chipText = '';
+                    let targetCol = null;
+
+                    if (feature.status === 'LIVE') {
+                        chipClass = 'chip-live'; chipText = 'Active UI'; targetCol = colLive;
+                    } else if (feature.status === 'IN_DEV') {
+                        chipClass = 'chip-dev'; chipText = 'Beta / Hidden'; targetCol = colDev;
+                    } else {
+                        chipClass = 'chip-backlog'; chipText = 'Planned'; targetCol = colBacklog;
+                    }
+
+                    const isChecked = feature.is_enabled ? 'checked' : '';
+                    const isDisabled = isAdmin ? '' : 'disabled';
+                    const statusLabel = isAdmin 
+                        ? (feature.is_enabled ? 'Globally Enabled' : 'Disabled / Hidden')
+                        : (feature.is_enabled ? 'Live Feature' : 'Not Active');
+                    
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <h3 class="feature-title">${feature.title}</h3>
+                            <span class="chip ${chipClass}">${chipText}</span>
+                        </div>
+                        <p class="feature-desc">${feature.description}</p>
+                        <div class="toggle-container" style="${isAdmin ? '' : 'opacity: 0.6;'}">
+                            <label class="switch">
+                                <input type="checkbox" data-id="${feature.id}" class="toggle-switch" ${isChecked} ${isDisabled}>
+                                <span class="slider"></span>
+                            </label>
+                            <span class="toggle-label">${isAdmin ? '' : '🔒 '} ${statusLabel}</span>
+                        </div>
+                    `;
+
+                    targetCol.appendChild(card);
+                });
+
+                // Add event listeners to toggles
+                document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                    toggle.addEventListener('change', async (e) => {
+                        const id = e.target.getAttribute('data-id');
+                        const isEnabled = e.target.checked;
+                        const label = e.target.parentElement.nextElementSibling;
+                        
+                        label.textContent = "Saving...";
+                        label.style.color = "var(--google-blue)";
+
+                        try {
+                            const { error: updateError } = await _supabase
+                                .from('app_features')
+                                .update({ is_enabled: isEnabled })
+                                .eq('id', id);
+
+                            if (updateError) throw updateError;
+                            
+                            label.textContent = isEnabled ? 'Globally Enabled' : 'Disabled / Hidden';
+                            label.style.color = "var(--text-secondary)";
+                        } catch (err) {
+                            console.error("Failed to toggle:", err);
+                            e.target.checked = !isEnabled; // revert
+                            label.textContent = "Save Failed (Admin only)";
+                            label.style.color = "var(--google-red)";
+                        }
+                    });
+                });
+
+            } catch (err) {
+                console.error(err);
+                if(err.message.includes("relation") && err.message.includes("does not exist")) {
+                    document.getElementById('loading').innerHTML = `
+                        <div style="color: var(--google-red); margin-bottom: 20px;">SQL Table missing.</div>
+                        <div style="font-size: 14px;">Please run the SQL creation script provided in the support chat in your Supabase SQL Editor.</div>
+                    `;
+                } else {
+                    document.getElementById('loading').textContent = "Error loading roadmap: " + err.message;
+                }
+            }
+        }
+
+        loadFeatures();
+    </script>
+</body>
+</html>

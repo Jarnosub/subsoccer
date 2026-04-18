@@ -6,7 +6,7 @@ import { initTiltEffect } from './ui.js';
 export async function viewPlayerCard(targetUsername) {
     showModal('Player Card', '<p style="font-family:\'Resolve\'">LOADING CARD...</p>', { id: 'card-modal', maxWidth: '400px' });
 
-    let { data: p } = await _supabase.from('players').select('id, username, elo, wins, losses, country, avatar_url, team_data:teams!players_team_id_fkey(*)').eq('username', targetUsername).maybeSingle();
+    let { data: p } = await _supabase.from('players').select('*, team_data:teams!players_team_id_fkey(*)').eq('username', targetUsername).maybeSingle();
 
     if (!p) {
         // Fallback for unregistered / guest players
@@ -117,18 +117,18 @@ export async function viewPlayerCard(targetUsername) {
     const html = `
     <style>
         .pro-card-force-sharp { border-radius: 0 !important; }
-        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFFF; background-size: 8px 8px; border: 1px solid #00FFFF; }
+        .card-bleed-edge { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC; background-size: 8px 8px; border: 1px solid #00ccaa; }
         .card-safe-zone { position: absolute; inset: 16px; border: 1px solid #999; border-top: 2px solid #fff; border-bottom: 2px solid #555; background: #050505; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .card-serial { position: absolute; top: 10px; right: 10px; background: transparent; color: #444; font-family: 'Open Sans', sans-serif; font-size: 0.55rem; font-weight: bold; z-index: 10; letter-spacing: 1px; }
         .card-rc-badge { position: absolute; top: 10px; left: 10px; background: transparent; color: #E30613; font-family: 'Russo One', sans-serif; font-size: 1rem; z-index: 10; font-style: italic; text-shadow: 1px 1px 0 #fff; }
         .card-image-box { height: 65%; width: 100%; position: relative; border-bottom: 2px solid #E30613; background: #111; }
         .card-nameplate { position: absolute; bottom: 0; width: 100%; padding: 30px 10px 10px 10px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; justify-content: flex-end; }
-        .card-data-box { height: 35%; width: 100%; position: relative; background-color: #111111; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath fill='%231e1e1e' d='M0 0h2v2H0zM2 2h2v2H2z'/%3E%3C/svg%3E"); padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
-        .pro-stamp { position: absolute; top: 6px; right: 6px; left: auto; width: 62px; height: auto; z-index: 50; transform: rotate(12deg); pointer-events: none; }
+        .card-data-box { height: 35%; width: 100%; background: #1a1a1a; padding: 10px 15px; display: flex; flex-direction: column; justify-content: space-between; }
+        .pro-stamp { position: absolute; top: 12px; left: 12px; width: 60px; height: auto; z-index: 50; transform: rotate(-8deg); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); pointer-events: none; }
         .pro-card.flipped .card-flipper { transform: rotateY(180deg) scale(1.05); }
         .card-front, .card-back { padding: 0 !important; }
     </style>
-    <div class="pro-card pro-card-force-sharp ${rookieClass}" style="margin:0 auto; width:100% !important; max-width:320px; aspect-ratio: 2.5/3.5; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
+    <div class="pro-card pro-card-force-sharp ${rookieClass}" style="margin:0; width:100% !important; background:transparent; box-shadow:none; cursor:pointer;" onclick="this.classList.toggle('flipped')">
         <div class="card-flipper" style="width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border-radius: 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);">
             <!-- FRONT SIDE -->
             <div class="card-front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 0; background: transparent;">
@@ -138,7 +138,6 @@ export async function viewPlayerCard(targetUsername) {
                         <div class="card-serial">NO. 1</div>
                         
                         <div class="card-image-box">
-                            <img src="subsoccer_logo.svg" alt="Subsoccer" width="69" height="24" style="position:absolute; top:0; left:12px; z-index:20;">
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                             <div class="card-nameplate">
                                 ${p.team_data ? `<div style="font-family:'Open Sans', sans-serif; color:#FFD700; font-size:0.6rem; font-weight:bold; margin-bottom:2px; letter-spacing:1px; text-transform:uppercase;">${p.team_data.tag}</div>` : ''}
@@ -154,7 +153,7 @@ export async function viewPlayerCard(targetUsername) {
                                 </div>
                                 <div style="text-align: right;">
                                     <div style="font-family:'Open Sans', sans-serif; color:#888; font-size:0.5rem; font-weight:800; letter-spacing:1px;">WIN RATIO</div>
-                                    <div style="font-family:'Russo One', sans-serif; color:#00FFFF; font-size:1.2rem;">${ratio}</div>
+                                    <div style="font-family:'Russo One', sans-serif; color:#00FFCC; font-size:1.2rem;">${ratio}</div>
                                 </div>
                             </div>
                             
@@ -173,7 +172,7 @@ export async function viewPlayerCard(targetUsername) {
             </div>
             
             <!-- BACK SIDE -->
-            <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 0; background-color: #0d0d0d; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath fill='%23161616' d='M0 0h2v2H0zM2 2h2v2H2z'/%3E%3C/svg%3E&quot;); border: 1px solid #333; overflow-y: auto; overflow-x: hidden;">
+            <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 0; background-color: #0a0a0a; background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%); border: 1px solid #333; overflow-y: auto; overflow-x: hidden;">
                 <div class="card-inner-frame" style="padding:15px; display:block; text-align:left; overflow-y:auto; overflow-x:hidden;">
                     <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:5px;">
                         <h4 style="color:var(--sub-gold); font-family:'Russo One'; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
@@ -198,22 +197,15 @@ export async function showLevelUpCard(playerName, newElo) {
     const isPro = newElo >= 1600;
     const title = isPro ? "⭐ NEW PRO RANK REACHED!" : "📈 RANK UP!";
 
-    const isProd = window.location.hostname === 'subsoccer.pro' || window.location.hostname === 'www.subsoccer.pro';
-    const orderButtonStyle = isProd 
-        ? "flex:1; background:#111; border:1px dashed #444; color:#666; font-size:0.75rem; padding:12px; cursor:not-allowed;"
-        : "flex:1; background:#222; border:1px solid var(--sub-gold); color:var(--sub-gold); font-size:0.8rem; padding:12px;";
-    const orderButtonIcon = isProd ? "fa-lock" : "fa-gem";
-    const orderButtonText = isProd ? "ORDERING (SOON)" : "ORDER PREMIUM CARD";
-
     const content = `
         <div id="level-up-container" class="level-up-anim" style="text-align:center;">
             
             <div style="font-family:'Russo One'; color:var(--sub-gold); font-size:1.5rem; letter-spacing:2px; margin-bottom:10px; text-transform:uppercase; animation: pulse 1.5s infinite;">
                 RANK CAP CROSSED
             </div>
-            <p style="color:#aaa; font-size:0.85rem; margin-bottom:20px;">Your Official GO Card has been updated.</p>
+            <p style="color:#aaa; font-size:0.85rem; margin-bottom:20px;">Your Official Pro Card has been updated.</p>
 
-            <div id="level-up-card-preview" style="display:flex; justify-content:center; align-items:center; width:100%; height:340px; margin: 10px 0;">
+            <div id="level-up-card-preview" style="transform:scale(0.8); margin:-40px 0;">
                 <p style="text-align:center; color:#888;">Updating Identity...</p>
             </div>
             
@@ -223,8 +215,8 @@ export async function showLevelUpCard(playerName, newElo) {
                     <div style="font-family:'Resolve'; font-size:0.6rem; letter-spacing:1px; margin-top:5px; color:#444;">UNLOCK 'GOLD' BORDER</div>
                 </button>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-red" style="${orderButtonStyle}" data-action="order-physical-card">
-                        <i class="fa-solid ${orderButtonIcon}"></i> ${orderButtonText}
+                    <button class="btn-red" style="flex:1; background:#222; border:1px solid var(--sub-gold); color:var(--sub-gold); font-size:0.8rem; padding:12px;" data-action="order-physical-card">
+                        <i class="fa-solid fa-gem"></i> ORDER PREMIUM CARD
                     </button>
                     <button class="btn-red" style="flex:1; background:#111; color:#666; font-size:0.8rem; padding:12px; border:1px solid #333;" onclick="closeModal('level-up-modal')">
                         CLOSE
@@ -243,19 +235,7 @@ export async function showLevelUpCard(playerName, newElo) {
     closeModal('card-modal');
 
     const previewCard = document.getElementById('level-up-card-preview').querySelector('.pro-card');
-    if (previewCard) {
-        previewCard.style.transform = 'scale(0.7)';
-        previewCard.style.transformOrigin = 'center center';
-        previewCard.style.margin = '0 auto';
-
-        // Hide the messy TAP TO FLIP hint in this small preview mode to avoid visual clutter
-        const hints = document.getElementById('level-up-card-preview').querySelectorAll('.fa-rotate-right, .fa-rotate-left');
-        hints.forEach(icon => {
-            if (icon.parentElement) icon.parentElement.style.display = 'none';
-        });
-
-        initTiltEffect(previewCard);
-    }
+    if (previewCard) initTiltEffect(previewCard);
 }
 
 export function showPhysicalOrderDialog() {
@@ -264,7 +244,7 @@ export function showPhysicalOrderDialog() {
         <i class="fa-solid fa-truck-fast" style="font-size:3rem; color:var(--sub-gold); margin-bottom:20px;"></i>
         <h3 style="font-family:'Russo One'; margin-bottom:10px;">PREMIUM COLLECTIBLE</h3>
         <p style="color:#888; font-size:0.85rem; line-height:1.5; margin-bottom:20px;">
-            Order your official high-quality PVC printed **GO Card** delivered to your door. Includes NFC chip for instant login at Verified Tables.
+            Order your official high-quality PVC printed **Pro Card** delivered to your door. Includes NFC chip for instant login at Verified Arenas.
         </p>
         <div style="background:#111; padding:15px; border-radius:12px; border:1px solid #333; margin-bottom:20px;">
             <div style="display:flex; justify-content:space-between; color:#fff;">
@@ -316,8 +296,8 @@ export function showCardShop() {
 export function showAppConcept() {
     const html = `
     <div style="color: #fff; font-family: 'Resolve'; max-height: 75vh; overflow-y: auto; padding-right: 15px; scrollbar-width: thin;">
-        <h2 style="color: #ffffff; font-size: 1.1rem; margin-bottom: 25px; line-height: 1.4; font-family: 'Russo One'; text-transform: uppercase;">
-            From Living Room to Subsoccer World
+        <h2 style="color: var(--sub-gold); font-size: 1.1rem; margin-bottom: 25px; line-height: 1.4; font-family: 'Russo One'; text-transform: uppercase;">
+            From Living Room to Virtual Arena
         </h2>
 
         <div style="margin-bottom: 25px; display: grid; gap: 20px;">
@@ -335,7 +315,7 @@ export function showAppConcept() {
                     <i class="fa-solid fa-id-card"></i> 2. IDENTITY: THE PRO CARD
                 </div>
                 <div style="font-size: 0.8rem; color: #aaa; line-height: 1.5; padding-left: 20px;">
-                    Your Subsoccer Digital PRO Card is a collectible identity storing your ELO, titles, and match legacy.
+                    Your Subsoccer Pro Card is a collectible identity storing your ELO, titles, and match legacy.
                 </div>
             </div>
 
@@ -344,7 +324,7 @@ export function showAppConcept() {
                     <i class="fa-solid fa-earth-europe"></i> 3. THE BALANCED ECOSYSTEM
                 </div>
                 <div style="font-size: 0.8rem; color: #aaa; line-height: 1.5; padding-left: 20px;">
-                    Practice at home (B2C), but rank up to "Legend" (1600+ ELO) by playing at official Verified Tables (B2B).
+                    Practice at home (B2C), but rank up to "Legend" (1600+ ELO) by playing at official Verified Arenas (B2B).
                 </div>
             </div>
 
@@ -370,7 +350,7 @@ export function showAppConcept() {
         <button onclick="closeModal()" class="btn-red" style="width: 100%; font-family: 'Russo One'; padding: 15px; margin-top: 10px; border-radius: 8px;">UNDERSTOOD</button>
     </div>
     `;
-    showModal('DIGITAL CONCEPT', html, { maxWidth: '450px', borderColor: '#ffffff' });
+    showModal('DIGITAL CONCEPT', html, { maxWidth: '450px', borderColor: 'var(--sub-gold)' });
 }
 
 export async function purchaseEdition(editionId) {

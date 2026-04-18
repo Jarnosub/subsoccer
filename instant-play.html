@@ -681,6 +681,75 @@
 
 
 
+    <!-- Arcade Paywall Demo Overlay (Demo) -->
+    <div id="paywall-overlay"
+        style="display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(10,10,10,0.98); z-index: 2000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.5s;">
+        
+        <img src="subsoccer_logo.svg" style="width: 180px; margin-bottom: 30px;">
+        
+        <div style="font-family: 'Oswald', sans-serif; font-size: 2.2rem; font-weight: 700; color: #fff; text-transform: uppercase; margin-bottom: 10px;">
+            Unlock Arcade
+        </div>
+        
+        <div style="font-family: 'Open Sans', sans-serif; font-size: 1.1rem; color: #aaa; text-align: center; max-width: 80%; margin-bottom: 40px; line-height: 1.5;">
+            Pay to start the physical table. The match begins immediately and lights will turn on.
+        </div>
+        
+        <div style="font-size: 3.5rem; font-weight: 700; font-family: 'Oswald', sans-serif; color: var(--sub-red); margin-bottom: 50px; text-shadow: 0 0 30px rgba(227,6,19,0.4);">
+            2.00 €
+        </div>
+
+        <button id="apple-pay-btn" onclick="processFakePayment()"
+            style="background: #111; color: white; border: 1px solid #333; padding: 20px 40px; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 85%; max-width: 320px; transition: all 0.2s; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <i class="fa-brands fa-apple" style="font-size: 1.6rem; margin-right: 12px;"></i> Pay
+        </button>
+        
+        <!-- Fake loading spinner -->
+        <div id="payment-spinner" style="display: none; align-items: center; justify-content: center; margin-top: 10px; height: 60px;">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.8rem; color: var(--sub-gold);"></i>
+            <span style="font-family: 'Open Sans', sans-serif; color: var(--sub-gold); margin-left: 15px; font-size: 1.1rem; font-weight: 600;">Processing with Bank...</span>
+        </div>
+    </div>
+
+    <!-- Script to handle the fake Apple Pay terminal flow -->
+    <script>
+        function processFakePayment() {
+            document.getElementById('apple-pay-btn').style.display = 'none';
+            document.getElementById('payment-spinner').style.display = 'flex';
+            
+            // Similated 2-second bank processing delay for cinematic effect
+            setTimeout(() => {
+                document.getElementById('payment-spinner').innerHTML = '<i class="fa-solid fa-check-circle" style="color: #4caf50; font-size: 2rem;"></i><span style="font-family: \\\'Open Sans\\\', sans-serif; color: #4caf50; margin-left: 15px; font-size: 1.2rem; font-weight: 600;">Payment Successful!</span>';
+                
+                // Ignite the table
+                setTimeout(() => {
+                    const overlay = document.getElementById('paywall-overlay');
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        // Ohitetaan suoraan rules overlay ja aukaistaan peli
+                        if(typeof enterFullscreenGame === 'function') enterFullscreenGame();
+                        
+                        // LÄHETETÄÄN 0-0 SIGNNALI VASTA KUN MAKSU ON HYVÄKSYTTY!
+                        // Tämä herättää Jättinäytön ja napsauttaa valot päälle!
+                        if (typeof BroadcastService !== 'undefined') {
+                            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
+                        }
+                    }, 500);
+                }, 1200);
+            }, 2500);
+        }
+        
+        // Piilotetaan maksumuuri välittömästi Jättinäytöltä
+        window.addEventListener('load', () => {
+            const up = new URLSearchParams(window.location.search);
+            if (up.get('mode') === 'display') {
+                const po = document.getElementById('paywall-overlay');
+                if (po) po.style.display = 'none';
+            }
+        });
+    </script>
+
     <!-- Actual Rules Overlay shown before playing -->
     <div id="actual-rules-overlay" class="rules-overlay"
         style="display: flex; background: rgba(10,10,10,0.98); z-index: 1000;" onclick="event.stopPropagation()">
@@ -717,6 +786,8 @@
             <i class="fa-solid fa-qrcode" style="margin-right:4px;"></i> Host a tournament (Requires login)
         </a>
     </div>
+
+
 
     <!-- Table ID Display -->
     <div id="table-id-display" class="table-id">GAME: <span id="table-id-value"></span></div>
@@ -976,12 +1047,33 @@
         let currentGameId = null;
         let WIN_SCORE = 3;
         let lastGoalTime = 0;
+        
+        // Shelly Smart Plug Integration for physical hardware FX
+        let shellyIP = localStorage.getItem('shelly_ip') || null;
+
+        function triggerShelly(turnOn) {
+            if (!shellyIP) return;
+            const state = turnOn ? 'on' : 'off';
+            console.log(`🔌 Sending Shelly API Command: TURN ${state.toUpperCase()} (${shellyIP})...`);
+            
+            // Note: no-cors mode allows blind GET requests over local network without CORS error blocks
+            fetch(`http://${shellyIP}/relay/0?turn=${state}`, { mode: 'no-cors' })
+                .catch(err => console.warn("Shelly command failed:", err));
+        }
 
         // Initialize
         window.addEventListener('load', () => {
             logTrackingEvent('app_opened');
             // Check for Game ID or Serial Number (sn) in URL
             const urlParams = new URLSearchParams(window.location.search);
+            
+            // Check if user provided a Shelly IP parameter directly in the URL to pair the hardware
+            if (urlParams.has('shelly')) {
+                shellyIP = urlParams.get('shelly');
+                localStorage.setItem('shelly_ip', shellyIP);
+                console.log("🔥 Shelly Webhook IP set to: " + shellyIP);
+            }
+
             // Use URL param 'sn' (serial number) primarily, or fallback to 'game_id', or default to 'QUICK-PLAY'
             const _gameId = urlParams.get('sn') || urlParams.get('game_id') || 'QUICK-PLAY';
             const gameId = _gameId.toUpperCase();
@@ -1129,12 +1221,195 @@
 
             // Start broadcasting ONLY if we have a specific serial number/game ID
             if (gameId !== 'QUICK-PLAY') {
+                
+                // GIANT DISPLAY: Global Inactivity Timer
+                let displayInactivityTimer = null;
+                const ACTIVITY_TIMEOUT_MS = 3 * 60 * 1000; // 3 minuuttia inaktiivisuudesta nollaus
+                
+                function pingDisplayActivity() {
+                    if (urlParams.get('mode') !== 'display') return;
+                    
+                    if (displayInactivityTimer) clearTimeout(displayInactivityTimer);
+                    
+                    displayInactivityTimer = setTimeout(() => {
+                        console.log("⏰ Inaktiivisuus-aikakatkaisu! Pöytä hylätty, palautetaan valmiustilaan.");
+                        
+                        // Palauta näyttö 0-0
+                        scoreP1 = 0; scoreP2 = 0;
+                        document.getElementById('score-p1').textContent = '0';
+                        document.getElementById('score-p2').textContent = '0';
+                        updateGoalVisuals();
+                        
+                        document.getElementById('winner-overlay').classList.remove('show');
+                        if (typeof stopLasers === 'function') stopLasers();
+                        
+                        // Sammuta pöydän valot ja tuulettimet
+                        triggerShelly(false);
+                    }, ACTIVITY_TIMEOUT_MS);
+                }
+
                 BroadcastService.startBroadcasting().then(() => {
-                    // Send initial 0-0 state to wake up any listening TVs immediately
-                    setTimeout(() => {
-                        BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
-                    }, 500);
+                    // DEMO: Alkuping (0-0) on poistettu, jotta Jättinäytön sähköt EIVÄT syty heti kun QR skannataan.
+                    // Maksumuuri on nyt ainoa asia, joka voi liipaista sähköt myöhemmin päälle.
+                    if (urlParams.get('mode') !== 'display') {
+                        // Odottaa kiltisti maksua...
+                        console.log("Waiting for Arcade payment...");
+                    } else {
+                        // Käynnistä kellon valvonta Jättinäytöllä heti alusta asti
+                        pingDisplayActivity();
+                    }
+
+                    // Add mirrored listener for Giant Display
+                    const ch = _supabase.channel(`room:${gameId}`);
+                    ch.on('broadcast', { event: 'SCORE_UPDATE' }, (payload) => {
+                        const data = payload.payload;
+                        if (Date.now() - lastGoalTime < 500) return; // Prevent echo from our own clicks
+                        
+                        // Ping the inactivity timer every time data moves to keep table alive
+                        pingDisplayActivity();
+                        
+                        let oldP1 = scoreP1;
+                        let oldP2 = scoreP2;
+                        scoreP1 = data.p1Score || 0;
+                        scoreP2 = data.p2Score || 0;
+                        
+                        document.getElementById('score-p1').textContent = scoreP1;
+                        document.getElementById('score-p2').textContent = scoreP2;
+                        updateGoalVisuals();
+                        
+                        // Clear winner screen automatically if mobile hits New Game (0-0 score is sent)
+                        if (scoreP1 === 0 && scoreP2 === 0) {
+                            document.getElementById('winner-overlay').classList.remove('show');
+                            if (typeof stopLasers === 'function') stopLasers();
+                            triggerShelly(true); // FIRE IoT POWER: The Giant Display acts as the local brain.
+                        }
+                        
+                        if(data.isGoal || (scoreP1 > 0 && scoreP1 > oldP1) || (scoreP2 > 0 && scoreP2 > oldP2)) {
+                            if (scoreP1 > oldP1) flashGoal(1);
+                            else if (scoreP2 > oldP2) flashGoal(2);
+                            if (window.soundEffects) window.soundEffects.playGoalSound();
+                        }
+                        
+                        if (scoreP1 >= WIN_SCORE) setTimeout(() => showWinner(1), 800);
+                        else if (scoreP2 >= WIN_SCORE) setTimeout(() => showWinner(2), 800);
+                    });
+                    
+                    ch.on('broadcast', { event: 'MATCH_ENDED' }, () => {
+                        resetGame();
+                    });
+
+                    ch.subscribe();
                 });
+
+                if (urlParams.get('mode') === 'display') {
+                    // Hide default start view for giant display
+                    const ro = document.getElementById('actual-rules-overlay');
+                    if (ro) ro.style.display = 'none';
+
+                    const qrUrl = window.location.origin + window.location.pathname + '?game_id=' + gameId;
+                    
+                    const displayStyle = document.createElement('style');
+                    displayStyle.innerHTML = `
+                        .qr-display-box {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 15px;
+                            background: rgba(10,10,10,0.85);
+                            backdrop-filter: blur(15px);
+                            -webkit-backdrop-filter: blur(15px);
+                            width: 260px;
+                            padding: 30px 20px;
+                            border-radius: 12px;
+                            border: 1px solid rgba(255,215,0,0.3);
+                            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
+                            z-index: 50;
+                            pointer-events: none;
+                            text-align: center;
+                        }
+                        
+                        .qr-text-container {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            width: 100%;
+                        }
+
+                        @media (orientation: portrait) {
+                            .qr-display-box {
+                                top: auto !important;
+                                bottom: 6vh !important;
+                                transform: translateX(-50%) !important;
+                                flex-direction: row !important;
+                                width: 85vw !important;
+                                max-width: 500px !important;
+                                padding: 25px 35px !important;
+                                gap: 35px !important;
+                                border-radius: 20px !important;
+                            }
+                            
+                            .qr-text-container {
+                                align-items: flex-start !important;
+                                text-align: left !important;
+                            }
+                            
+                            .qr-title, .qr-subtitle {
+                                text-align: left !important;
+                            }
+                            
+                            .qr-rules {
+                                max-width: 250px !important;
+                            }
+                            
+                            /* Push the numbers up away from center */
+                            body.display-mode-active .player-side {
+                                justify-content: flex-start !important;
+                                padding-top: 15vh !important;
+                            }
+                            body.display-mode-active .score {
+                                margin-top: 0 !important;
+                                font-size: clamp(8rem, 20vw, 15rem) !important;
+                            }
+                        }
+                    `;
+                    document.head.appendChild(displayStyle);
+                    
+                    // Add body class for display mode
+                    document.body.classList.add('display-mode-active');
+                    
+                    // Force the table's hardware OFF when the TV boots up, waiting for a fresh mobile connection
+                    setTimeout(() => triggerShelly(false), 1500);
+
+                    const qrHtml = `<div class="qr-display-box">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=ffffff&bgcolor=0a0a0a&data=${encodeURIComponent(qrUrl)}" style="width:190px; flex-shrink: 0;">
+                        <div class="qr-text-container">
+                            <div class="qr-title" style="color:#ffffff; font-family:'Subsoccer', sans-serif; font-size:2.8rem; letter-spacing:0px; line-height:1; white-space:nowrap; width:100%;">SCAN & PLAY</div>
+                            <div class="qr-subtitle" style="color:#ddd; font-family:'Open Sans', sans-serif; font-size:0.85rem; line-height:1.3; margin-top:5px;">Control the scoreboard<br>with your phone</div>
+                            
+                            <!-- 3 Line Rules -->
+                            <div class="qr-rules" style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); width:100%; padding-top:12px; display:flex; flex-direction:column; gap:8px;">
+                                <div style="color:#aaa; font-family:'Open Sans', sans-serif; font-size:0.85rem; letter-spacing:-0.2px; white-space:nowrap; display:flex; gap:8px; align-items:flex-start; text-align:left; padding:0;">
+                                    <span style="color:var(--sub-gold); font-family:'Subsoccer', sans-serif;">1.</span>
+                                    <span>Winner of RPS starts</span>
+                                </div>
+                                <div style="color:#aaa; font-family:'Open Sans', sans-serif; font-size:0.85rem; letter-spacing:-0.2px; white-space:nowrap; display:flex; gap:8px; align-items:flex-start; text-align:left; padding:0;">
+                                    <span style="color:var(--sub-gold); font-family:'Subsoccer', sans-serif;">2.</span>
+                                    <span>Kick-off inside goal area</span>
+                                </div>
+                                <div style="color:#aaa; font-family:'Open Sans', sans-serif; font-size:0.85rem; letter-spacing:-0.2px; white-space:nowrap; display:flex; gap:8px; align-items:flex-start; text-align:left; padding:0;">
+                                    <span style="color:var(--sub-gold); font-family:'Subsoccer', sans-serif;">3.</span>
+                                    <span>First to 3 goals wins</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                    document.body.insertAdjacentHTML('beforeend', qrHtml);
+                }
             }
 
             // Re-try scroll on orientation change (helps hide address bar when placing in holder)
@@ -1153,6 +1428,8 @@
             // Scroll to hide address bar (iOS hack)
             window.scrollTo(0, 1);
 
+            // Fire Shelly Smart Plug (Turn ON Fans/Lights/Power)
+            triggerShelly(true);
 
             // Skip auto-starting microphone to avoid immediate browser permission prompt
             // Let the user start it manually via the microphone button
@@ -1337,6 +1614,18 @@
             if (window.soundEffects && typeof window.soundEffects.playCrowdCheer === 'function') {
                 window.soundEffects.playCrowdCheer();
             }
+            
+            // Cut Shelly Smart Plug Power (Turn OFF Fans/Lights) after a short suspense delay
+            setTimeout(() => {
+                triggerShelly(false);
+            }, 3000);
+
+            // Giant Display: Auto-return to QR code after 12 seconds
+            if (urlParams.get('mode') === 'display') {
+                setTimeout(() => {
+                    resetGame();
+                }, 12000);
+            }
         }
 
         // Play again
@@ -1363,8 +1652,8 @@
             params.append('p2_score', scoreP2);
             params.append('game_id', currentGameId || 'QUICK-PLAY');
 
-            // Redirect to main app with data
-            window.location.href = `./?${params.toString()}`;
+            // Redirect to main app login window with data
+            window.location.href = `login.html?${params.toString()}#signup`;
         }
 
         // Share links
@@ -1391,6 +1680,7 @@
         }
 
         // Reset game
+        // Reset game
         function resetGame() {
             scoreP1 = 0;
             scoreP2 = 0;
@@ -1400,6 +1690,23 @@
             updateGoalVisuals();
             document.getElementById('winner-overlay').classList.remove('show');
             stopLasers();
+
+            // ARCADE PAYWALL LOGIC:
+            // JOS PUHELIN PAINAA UUSI PELI, NÄYTETÄÄN MAKSUMUURI UUDELLEEN!
+            // Emme lähetä tässä 0-0 signaalia, ettei TV turhaan herää ennen maksua.
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') !== 'display') {
+                const po = document.getElementById('paywall-overlay');
+                if (po) {
+                    po.style.display = 'flex';
+                    po.style.opacity = '1';
+                    document.getElementById('apple-pay-btn').style.display = 'flex';
+                    document.getElementById('payment-spinner').style.display = 'none';
+                    // Nollataan spinnerin sisältö takaisin alkuperäiseksi
+                    document.getElementById('payment-spinner').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.8rem; color: var(--sub-gold);"></i><span style="font-family: \\\'Open Sans\\\', sans-serif; color: var(--sub-gold); margin-left: 15px; font-size: 1.1rem; font-weight: 600;">Processing with Bank...</span>';
+                    return; // Keskeytetään tähän! Ei lähetetä 0-0 vielä.
+                }
+            }
 
             BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
         }

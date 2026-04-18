@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <!-- PWA / Fullscreen App Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <title>Subsoccer - Single Player Arcade</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Russo+One&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('fonts/subsoccer-bold.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        :root {
+            --sub-red: #E30613;
+            --sub-black: #0A0A0A;
+            --sub-gold: #FFD700;
+            --sub-neon: #00FFCC;
+            --sega-blue: #0088CC; /* Pudgy Blue */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--sub-black);
+            color: #fff;
+            font-family: 'Russo One', sans-serif;
+            overflow-y: hidden; /* Prevent scrolling on giant screens */
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100vw;
+            /* Event specific background styling */
+            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Partner Branding - Giant Screen Event */
+        .partner-branding {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .partner-text {
+            display: none;
+        }
+
+        .sega-logo {
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 900;
+            font-size: 2rem;
+            color: #000;
+            letter-spacing: 2px;
+            background: #fff;
+            padding: 5px 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Arcade UI optimized for big screens */
+        .arcade-container {
+            text-align: center;
+            position: relative;
+            margin: auto;
+            padding: 40px 20px;
+            z-index: 10;
+            width: 100%;
+            max-width: 800px; /* Wider for big screens */
+            pointer-events: none;
+        }
+
+        .arcade-container>* {
+            pointer-events: auto;
+        }
+
+        .logo {
+            height: 60px;
+            margin-bottom: 20px;
+        }
+
+        .header-title {
+            color: var(--sub-red);
+            font-size: 2.5rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px rgba(227, 6, 19, 0.8);
+        }
+
+        /* Displays (HUD Style mapped to sides) */
+        .display-panel {
+            display: flex;
+            justify-content: space-between;
+            position: fixed;
+            top: 50%;
+            left: 0;
+            width: 100vw;
+            transform: translateY(-50%);
+            padding: 0 4vw;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            pointer-events: auto;
+        }
+
+        .stat-label {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 6rem;
+            line-height: 1;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        #timer-value {
+            color: var(--sub-gold);
+        }
+
+        #score-value {
+            color: #fff;
+        }
+
+        /* Goalie Character */
+        #game-character {
+            position: fixed;
+            top: 52%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 25vw;
+            max-width: 360px;
+            z-index: 5;
+            pointer-events: none;
+            filter: drop-shadow(0 0 30px rgba(0, 136, 204, 0.3));
+        }
+
+        #character-shadow {
+            position: fixed;
+            top: 82.5%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22vw;
+            max-width: 320px;
+            height: 30px;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 70%);
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        #sonic-goal {
+            display: none;
+        }
+
+        /* Combo indicator */
+        .combo-container {
+            height: 80px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .combo-text {
+            font-size: 3rem;
+            color: var(--sub-neon);
+            text-shadow: 0 0 30px var(--sub-neon);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .combo-text.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Start Button */
+        .start-btn {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 2rem;
+            font-family: 'Subsoccer', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 8px 30px rgba(227, 6, 19, 0.6);
+            transition: transform 0.1s;
+        }
+
+        .start-btn:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        #victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .winner-content-box {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .w-title {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 6rem;
+            color: var(--sub-gold);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 0.1s forwards;
+            text-align: center;
+            line-height: 1.1;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        }
+
+        .w-elo {
+            font-family: 'Subsoccer', sans-serif;
+            color: var(--sega-blue);
+            font-size: 3.5rem;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 0.3s forwards;
+            text-shadow: 0 0 20px var(--sega-blue);
+            position: relative;
+            z-index: 20;
+        }
+
+        /* Player Card formatting for Victory */
+        .pro-card {
+            width: 250px;
+            height: 350px;
+            perspective: 1000px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: victorySpinIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.6s forwards;
+            cursor: pointer;
+        }
+
+        .pro-card-flipper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .pro-card.flipped .pro-card-flipper {
+            transform: rotateY(180deg);
+        }
+
+        .pro-card-front, .pro-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 2px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: translateZ(1px); /* Safari 3D fix */
+        }
+
+        .pro-card-front {
+            background: linear-gradient(rgba(0,0,0,0.3), #111), url('card-stadium.jpg') center/cover;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pro-card-back {
+            background: #111;
+            transform: rotateY(180deg);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .w-card-title {
+            font-family: 'Subsoccer', sans-serif;
+            color: var(--sub-gold);
+            font-size: 2rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .w-card-desc {
+            color: #ccc;
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 0;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .w-actions {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            opacity: 0;
+            animation: victorySlideUp 0.8s ease-out 1s forwards;
+        }
+
+        .w-actions button {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            font-family: 'Subsoccer', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        @keyframes victorySpinIn {
+            0% {
+                transform: translateY(100px) rotateY(-180deg) scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) rotateY(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes victorySlideUp {
+            0% {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        /* Mic indicator */
+        #camera-status {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .mic-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #444;
+        }
+
+        .mic-dot.active {
+            background: var(--sub-red);
+            box-shadow: 0 0 15px var(--sub-red);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes hitFlashSega {
+            0% { background-color: rgba(0, 92, 230, 0.3); }
+            100% { background-color: transparent; }
+        }
+
+        .hit-flash {
+            animation: hitFlashSega 0.3s ease-out;
+        }
+
+        /* Mobile UI Scaling */
+        @media (max-width: 1000px) {
+            .stat-box {
+                padding: 8px 15px;
+            }
+            .stat-value {
+                font-size: 2.5rem;
+            }
+            .stat-label {
+                font-size: 0.7rem;
+            }
+            .start-btn {
+                font-size: 1rem;
+                padding: 12px 25px;
+                bottom: 20px;
+            }
+            .top-bar {
+                top: 10px;
+                left: 0;
+                width: 100vw;
+            }
+            .back-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            .subsoccer-center-logo {
+                height: 28px !important;
+            }
+            #camera-status {
+                bottom: 10px;
+                left: 10px;
+                font-size: 0.8rem;
+            }
+            .w-title {
+                bottom: 10px;
+                left: 10px;
+                font-size: 0.8rem;
+            }
+            .w-title {
+                font-size: 2.5rem;
+            }
+            .pro-card {
+                transform: scale(0.85) !important;
+                margin-top: -15px;
+            }
+        }
+
+        /* Portrait Mobile Adjustments */
+        @media (orientation: portrait) {
+            .display-panel {
+                top: 25%;
+                padding: 0 5vw;
+            }
+            #game-character {
+                top: 60%;
+                width: 50vw;
+            }
+            #character-shadow {
+                top: 86.5%;
+                width: 45vw;
+                height: 25px;
+            }
+            .w-actions {
+                flex-direction: column;
+                width: 85%;
+            }
+            .w-actions button {
+                padding: 15px 30px;
+                font-size: 1.2rem;
+            }
+            .w-elo {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
+            .pro-card {
+                transform: scale(0.8) !important;
+                margin-top: -30px;
+            }
+        }
+
+        /* Extremely short screens (landscape mobile) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .winner-content-box {
+                transform: scale(0.65);
+                transform-origin: center center;
+                margin-top: -50px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; width: 100%; padding: 0 20px;">
+        <div style="display: flex; justify-content: flex-start;">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> LOBBY</a>
+        </div>
+        
+        <!-- Centered Subsoccer Logo -->
+        <div style="display: flex; justify-content: center;">
+            <img src="subsoccer_logo.svg" alt="Subsoccer" class="subsoccer-center-logo" style="height: 50px; filter: drop-shadow(0 4px 15px rgba(227, 6, 19, 0.5));" onerror="this.src=''; this.style.display='none';">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <!-- Empty column to force true center -->
+        </div>
+    </div>
+
+    <!-- Camera Status -->
+    <div id="camera-status">
+        <div id="cam-indicator" class="mic-dot"></div>
+        <span id="cam-text">Camera standby</span>
+    </div>
+
+    <div class="arcade-container" style="padding-top: 100px;">
+        <div class="header-title" style="display: none;">EVENT CHALLENGE</div>
+
+        <div class="display-panel" id="main-panel">
+            <div class="stat-box" style="border-color: var(--sega-blue);">
+                <div class="stat-label">SCORE</div>
+                <div class="stat-value" id="score-value">0</div>
+            </div>
+            
+            <div class="stat-box">
+                <div class="stat-label" style="color: var(--sub-gold);">TIME LEFT</div>
+                <div class="stat-value" id="timer-value" style="color: var(--sub-gold);">45</div>
+            </div>
+        </div>
+
+        <div class="combo-container" style="position: fixed; top: 100px; left: 50%; transform: translateX(-50%); z-index: 60;">
+            <div id="combo-display" class="combo-text">2X COMBO!</div>
+        </div>
+    </div>
+
+    <button id="btn-start" class="start-btn">START CHALLENGE</button>
+
+    <!-- Character standing in the center -->
+    <div id="character-shadow"></div>
+    <img id="game-character" src="goalie.png" alt="Goalie">
+
+    <!-- Victory Screen -->
+    <div id="victory-overlay">
+        <!-- Lasers Canvas (Renders behind UI) -->
+        <canvas id="lasers-canvas"
+            style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; display:none;"></canvas>
+
+        <div class="winner-content-box">
+            <div class="w-title" id="victory-player-name">TIME IS UP!</div>
+
+            <!-- We can use this to show final score or ELO gain in Single Player -->
+            <div id="victory-elo-gain" class="w-elo">+0 POINTS</div>
+
+            <!-- Gamified "Locked Card" Graphic -->
+            <div id="winner-card-container" class="pro-card" onclick="this.classList.toggle('flipped')">
+                <div class="pro-card-flipper">
+                    <div class="pro-card-front">
+                        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 15px; z-index: 2; background: rgba(0,0,0,0.6);">
+                            <div style="font-size: 0.65rem; color: var(--sub-gold); font-weight: 800; letter-spacing: 1px;">PRO CARD // 2026</div>
+                        </div>
+                        <div style="width: 100%; height: 160px; background: #1a1a1a; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <img src="goalie.png" id="victory-card-avatar" style="width: 100%; height: 100%; object-fit: cover; object-position: top center;">
+                        </div>
+                        <div style="padding: 10px 15px; flex: 1; display: flex; flex-direction: column;">
+                            <div style="color: var(--sub-gold); font-size: 0.6rem; font-weight: 800; letter-spacing: 1px;"><i class="fa-solid fa-location-dot"></i> LOCAL ARENA</div>
+                            <div id="victory-card-name" style="font-family: 'Subsoccer', sans-serif; font-size: 2rem; color: #fff; line-height: 1; margin-top: 2px;">PLAYER</div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto;">
+                                <div id="victory-elo-count" style="background: var(--sub-gold); color: #000; padding: 2px 8px; font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; border-radius: 3px;">0 ELO</div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 0.5rem; color: #888; font-weight: bold;">WIN RATIO</div>
+                                    <div style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pro-card-back">
+                        <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px;">
+                            <h4 style="color:var(--sub-gold); font-family:'Russo One', sans-serif; margin:0;">PLAYER DOSSIER</h4>
+                        </div>
+                        <div style="color:#aaa; font-family:'Open Sans'; font-size:0.8rem;">
+                            Excellent run! Your arcade score has been recorded for the Single Player Challenge.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-actions">
+                <button id="btn-victory-new-game" onclick="window.location.reload();"
+                    style="background: linear-gradient(135deg, var(--sega-blue) 0%, #003d99 100%); color: #fff; box-shadow: 0 5px 20px rgba(0, 92, 230, 0.4); border: none;">
+                    NEW CHALLENGER
+                </button>
+                <button id="btn-victory-end-game" onclick="window.location.href='index.html'"
+                    style="background: transparent; border: 2px solid rgba(255,255,255,0.2); color: #fff;">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game dependencies -->
+    <script src="sound-effects.js"></script>
+    <script src="vision-engine.js"></script>
+    <script src="single-game.js"></script>
+
+</body>
+
+</html>

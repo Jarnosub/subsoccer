@@ -10,7 +10,7 @@ import { BracketEngine } from './bracket-engine.js';
 let isLoggedIn = false;
 let currentUserId = null;
 let _sb = null;
-const MAX_PLAYERS_GUEST = 4;
+const MAX_PLAYERS_GUEST = 8;
 const MAX_PLAYERS_LOGGED = 8;
 
 // --- SMART MIRROR (TV CAST) ---
@@ -355,7 +355,8 @@ async function trackTournamentAnonymously(results) {
             match_score: `${participants.length}p`,
             source_partner: isLoggedIn ? 'registered' : 'guest',
             user_agent: navigator.userAgent,
-            browser_lang: navigator.language || 'Unknown'
+            browser_lang: navigator.language || 'Unknown',
+            location: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown'
         });
     } catch (_) { /* silent */ }
 }
@@ -487,7 +488,7 @@ window.mobileAddPlayer = function(defaultName) {
         <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#${num}</span>
         <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
                class="player-input" 
-               style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+               style="color: white; width: 100%; padding: 6px 8px; font-size: 1.15rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
 
         <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
             <i class="fas fa-times"></i>

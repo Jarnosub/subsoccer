@@ -2,7 +2,6 @@ import { _supabase, state, isAdmin } from './config.js';
 import { showNotification, safeHTML } from './ui-utils.js';
 import { MatchService } from './match-service.js';
 import { BroadcastService } from './broadcast-service.js';
-import { requestConsentSequence } from './anti-cheat.js';
 
 /**
  * ============================================================
@@ -63,44 +62,6 @@ export async function selectQuickPlayer(name, slot) {
         return;
     }
     if (slot === 'p1') state.quickP1 = name; else state.quickP2 = name;
-    
-    // NEW: Populate Face-Off Arena Visuals
-    const slotEl = document.getElementById(`${slot}-faceoff-slot`);
-    if (slotEl) {
-        slotEl.classList.remove('empty');
-        slotEl.classList.add('filled');
-        document.getElementById(`${slot}-faceoff-name`).innerText = name;
-        
-        // Hide input field wrapper to clean UI
-        if(input && input.parentElement) input.parentElement.style.display = 'none';
-        
-        // Try to fetch Avatar & ELO dynamically
-        try {
-            const { data } = await _supabase.from('players').select('avatar_url, elo').ilike('username', name).maybeSingle();
-            const imgEl = document.getElementById(`${slot}-faceoff-img`);
-            const iconEl = document.getElementById(`${slot}-faceoff-icon`);
-            const eloEl = document.getElementById(`${slot}-faceoff-elo`);
-            
-            if (data) {
-                eloEl.innerText = `${data.elo} RANK`;
-                if (data.avatar_url) {
-                    imgEl.src = data.avatar_url;
-                    imgEl.style.display = 'block';
-                    if(iconEl) iconEl.style.display = 'none';
-                } else {
-                    imgEl.src = slot === 'p1' ? 'avatar_p1_default.png' : 'avatar_p2_default.png';
-                    imgEl.style.display = 'block';
-                    if(iconEl) iconEl.style.display = 'none';
-                }
-            } else {
-                eloEl.innerText = "GUEST";
-                imgEl.src = slot === 'p1' ? 'avatar_p1_default.png' : 'avatar_p2_default.png';
-                imgEl.style.display = 'block';
-                if(iconEl) iconEl.style.display = 'none';
-            }
-        } catch(e) { console.error("Face-off avatar error:", e); }
-    }
-
     if (state.quickP1 && state.quickP2) {
         updateEloPreview();
         if (state.proModeEnabled) {
@@ -123,20 +84,21 @@ export async function updateEloPreview() {
 
 export async function startQuickMatch() {
     document.querySelectorAll('input').forEach(input => input.blur());
-    state.quickP1 = document.getElementById('p1-quick-search').value.trim().toUpperCase();
-    state.quickP2 = document.getElementById('p2-quick-search').value.trim().toUpperCase();
     
-    // Friction-free instant play fallback
-    if (!state.quickP1 && !state.quickP2) {
-        const uType = (state.user && state.user.id !== 'guest') ? 'registered' : 'guest';
-        window.location.href = `./instant-play.html?mode=casual&user_type=${uType}`;
-        return;
+    let p1 = document.getElementById('p1-quick-search').value.trim().toUpperCase();
+    let p2 = document.getElementById('p2-quick-search').value.trim().toUpperCase();
+    
+    if (!p1) p1 = "PLAYER 1";
+    if (!p2) p2 = "PLAYER 2";
+
+    state.quickP1 = p1;
+    state.quickP2 = p2;
+
+    if (state.quickP1 === state.quickP2 && state.quickP1 !== "PLAYER 1" && state.quickP2 !== "PLAYER 2") {
+        return showNotification("Select different players!", "error");
     }
 
-    if (!state.quickP1 || !state.quickP2) return showNotification("Select both players!", "error");
-    if (state.quickP1 === state.quickP2) return showNotification("Select different players!", "error");
-
-    requestConsentSequence(state.quickP1, state.quickP2, startProMatch);
+    startProMatch();
 }
 
 export async function finalizeQuickMatch(winnerName, context = null) {
@@ -255,35 +217,12 @@ export function handleQuickWinner(winnerName, btn) {
 }
 
 export function clearQuickMatchPlayers() {
-    const p1Input = document.getElementById('p1-quick-search');
-    const p2Input = document.getElementById('p2-quick-search');
-    p1Input.value = '';
-    p2Input.value = '';
-    
-    // Unhide inputs
-    if(p1Input && p1Input.parentElement) p1Input.parentElement.style.display = 'block';
-    if(p2Input && p2Input.parentElement) p2Input.parentElement.style.display = 'block';
-
-    // Clear Face-Off Slots
-    ['p1', 'p2'].forEach(slot => {
-        const slotEl = document.getElementById(`${slot}-faceoff-slot`);
-        if (slotEl) {
-            slotEl.classList.remove('filled');
-            slotEl.classList.add('empty');
-            document.getElementById(`${slot}-faceoff-name`).innerText = slot === 'p1' ? 'HOME' : 'AWAY';
-            document.getElementById(`${slot}-faceoff-elo`).innerText = '---';
-            document.getElementById(`${slot}-faceoff-img`).style.display = 'block';
-            document.getElementById(`${slot}-faceoff-img`).src = slot === 'p1' ? 'avatar_p1_default.png' : 'avatar_p2_default.png';
-            if(document.getElementById(`${slot}-faceoff-icon`)) {
-                document.getElementById(`${slot}-faceoff-icon`).style.display = 'none';
-            }
-        }
-    });
-
+    document.getElementById('p1-quick-search').value = '';
+    document.getElementById('p2-quick-search').value = '';
     state.quickP1 = null; state.quickP2 = null;
     document.getElementById('elo-preview').style.display = 'none';
     document.getElementById('audio-status-panel').style.display = 'none';
-    p1Input.focus();
+    document.getElementById('p1-quick-search').focus();
 }
 
 /**
@@ -324,10 +263,7 @@ export function toggleProMode() {
     }
 }
 
-export let activeProMatchContext = null;
-
-export async function startProMatch(context = null) {
-    activeProMatchContext = context;
+export async function startProMatch() {
     state.proScoreP1 = 0; state.proScoreP2 = 0; state.proGoalHistory = [];
     isMatchEnding = false; state.proModeActive = true;
 
@@ -352,7 +288,7 @@ export async function startProMatch(context = null) {
     document.getElementById('pro-mode-view').style.display = 'flex';
 
     const rulesOverlay = document.getElementById('pro-rules-overlay');
-    if (rulesOverlay && !(context && context.skipRules)) {
+    if (rulesOverlay) {
         rulesOverlay.style.display = 'flex';
         state.proModeActive = false;
         const playBtn = rulesOverlay.querySelector('button');
@@ -448,14 +384,7 @@ async function finishProMatch(winnerName) {
     BroadcastService.stopBroadcasting();
     document.getElementById('pro-mode-view').style.display = 'none';
     document.getElementById('pro-audio-meter').style.display = 'none';
-    
-    if (activeProMatchContext && activeProMatchContext.onComplete) {
-        document.getElementById('app-content').style.display = 'flex';
-        activeProMatchContext.onComplete(winnerName);
-        activeProMatchContext = null;
-    } else {
-        await finalizeQuickMatch(winnerName);
-    }
+    await finalizeQuickMatch(winnerName);
 }
 
 export function exitProMode() {
@@ -466,11 +395,6 @@ export function exitProMode() {
     document.getElementById('pro-mode-view').style.display = 'none';
     document.getElementById('pro-audio-meter').style.display = 'none';
     document.getElementById('app-content').style.display = 'flex';
-    
-    if (activeProMatchContext && activeProMatchContext.onCancel) {
-        activeProMatchContext.onCancel();
-        activeProMatchContext = null;
-    }
 }
 
 export function handleGoalDetected(playerNumber) {
@@ -741,7 +665,6 @@ export function copyVipLink() {
 // NOTE: Functions imported as ES modules in ui.js do NOT need window.* here.
 // These are kept because they are called from audio-engine.js, inline onclick HTML,
 // or other places that cannot use ES module imports directly.
-window.startProMatch = startProMatch;
 window.handleGoalDetected = handleGoalDetected;   // audio-engine.js calls this
 window.toggleProMode = toggleProMode;             // called from pro mode UI buttons
 window.cancelQuickMatch = cancelQuickMatch;       // called from non-module contexts

@@ -1,0 +1,13 @@
+{
+  "name": "subsoccer-arcade-daemon",
+  "version": "1.0.0",
+  "description": "Subsoccer Hardware Daemon for IoT Relay control",
+  "main": "daemon.js",
+  "scripts": {
+    "start": "node daemon.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3",
+    "dotenv": "^16.4.5"
+  }
+}

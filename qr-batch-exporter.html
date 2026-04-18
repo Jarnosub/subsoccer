@@ -3,206 +3,411 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subsoccer GO - Batch QR Generator for Export</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <title>Subsoccer GO - QR Code Factory</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --sub-red: #E30613;
-        }
-        body {
-            font-family: 'Open Sans', sans-serif;
-            background: #111;
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-        }
-        .header {
-            font-family: 'Teko', sans-serif;
-            font-size: 3rem;
-            color: var(--sub-red);
-            text-align: center;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-        }
-        .controls {
-            background: #222;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 600px;
-            margin: 0 auto 30px auto;
-            border: 1px solid #333;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #aaa;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            background: #000;
-            border: 1px solid #444;
-            color: #fff;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            background: var(--sub-red);
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            font-family: 'Teko', sans-serif;
-            font-size: 1.5rem;
-            cursor: pointer;
-            letter-spacing: 1px;
-        }
-        button:hover { background: #c00000; }
-        
-        #print-area {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            background: #fff; /* White background for printing */
-            border-radius: 8px;
-            min-height: 400px;
-        }
-        
-        .qr-sticker {
-            border: 2px dashed #000;
-            padding: 15px;
-            text-align: center;
-            background: #fff;
-            color: #000;
-            page-break-inside: avoid;
-        }
-        
-        .qr-sticker h3 {
-            font-family: 'Teko', sans-serif;
-            font-size: 1.8rem;
-            margin: 0 0 10px 0;
-            color: #000;
-        }
-        
-        .qr-placeholder {
-            width: 150px;
-            height: 150px;
-            margin: 0 auto 10px auto;
-        }
-        
-        .serial-text {
-            font-family: monospace;
-            font-size: 0.9rem;
-            font-weight: bold;
-            margin-top: 10px;
-        }
+        :root { --sub-red: #E30613; --sub-gold: #FFD700; }
+        body { font-family: 'Open Sans', sans-serif; background: #111; color: #fff; margin: 0; padding: 20px; }
+        .header { font-family: 'Russo One', sans-serif; font-size: 2rem; color: var(--sub-red); text-align: center; margin-bottom: 5px; letter-spacing: 2px; }
+        .sub-header { text-align: center; color: #666; font-size: 0.8rem; margin-bottom: 30px; letter-spacing: 1px; }
 
-        .cta-text {
-            font-size: 0.7rem;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+        .tabs { display: flex; justify-content: center; gap: 0; margin-bottom: 30px; max-width: 700px; margin-left: auto; margin-right: auto; }
+        .tab-btn { flex: 1; padding: 15px; font-family: 'Russo One', sans-serif; font-size: 0.85rem; border: 1px solid #333; cursor: pointer; background: #1a1a1a; color: #888; transition: all 0.3s; text-align: center; letter-spacing: 1px; }
+        .tab-btn:first-child { border-radius: 8px 0 0 8px; }
+        .tab-btn:last-child { border-radius: 0 8px 8px 0; }
+        .tab-btn.active { background: var(--sub-red); color: #fff; border-color: var(--sub-red); }
+        .tab-content { display: none; } .tab-content.active { display: block; }
 
-        @media print {
-            body { background: #fff; padding: 0; }
-            .controls, .header { display: none; }
-            #print-area { padding: 0; display: block; border: none; }
-            .qr-sticker {
-                display: inline-block;
-                width: 45%;
-                margin: 2%;
-                box-sizing: border-box;
-            }
-        }
+        .controls { background: #1a1a1a; padding: 30px; border-radius: 8px; max-width: 700px; margin: 0 auto 30px auto; border: 1px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .controls-title { font-family: 'Russo One', sans-serif; font-size: 1rem; color: var(--sub-gold); letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #333; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #aaa; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        input, select { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        input:focus, select:focus { outline: none; border-color: var(--sub-gold); }
+        .form-row { display: flex; gap: 15px; } .form-row > div { flex: 1; }
+
+        .btn-generate { width: 100%; padding: 18px; background: var(--sub-red); color: #fff; border: none; border-radius: 4px; font-weight: bold; font-family: 'Russo One', sans-serif; font-size: 1.2rem; cursor: pointer; letter-spacing: 1px; transition: all 0.2s; }
+        .btn-generate:hover { background: #c00000; transform: translateY(-1px); }
+        .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .status { text-align: center; margin-top: 20px; font-weight: bold; font-size: 1rem; }
+        .status.success { color: #4caf50; } .status.error { color: var(--sub-red); }
+
+        .info-box { background: rgba(255, 215, 0, 0.05); border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 4px; padding: 12px 15px; font-size: 0.8rem; color: #ccc; line-height: 1.5; margin-bottom: 20px; }
+        .info-box i { color: var(--sub-gold); margin-right: 6px; }
+
+        .tab-btn-sm { padding: 8px 15px; font-family: 'Russo One', sans-serif; font-size: 0.7rem; border: 1px solid #333; cursor: pointer; background: #1a1a1a; color: #888; transition: all 0.3s; border-radius: 4px; letter-spacing: 0.5px; }
+        .tab-btn-sm.active { background: var(--sub-red); color: #fff; border-color: var(--sub-red); }
+
+        /* Inventory */
+        .inventory { max-width: 700px; margin: 0 auto 30px auto; }
+        .inv-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .inv-table th { background: #1a1a1a; color: #888; font-weight: bold; padding: 10px; text-align: left; border-bottom: 1px solid #333; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
+        .inv-table td { padding: 10px; border-bottom: 1px solid #1a1a1a; }
+        .inv-table tr:hover { background: rgba(255, 215, 0, 0.03); }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-unclaimed { background: rgba(255, 215, 0, 0.15); color: var(--sub-gold); }
+        .badge-claimed { background: rgba(76, 175, 80, 0.15); color: #4caf50; }
+
+        .preview-section { max-width: 700px; margin: 20px auto; background: #1a1a1a; border: 1px solid #222; padding: 20px; border-radius: 8px; }
+        .preview-title { font-family: 'Russo One', sans-serif; font-size: 0.85rem; color: var(--sub-gold); letter-spacing: 1px; margin-bottom: 15px; }
+        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .preview-item { background: #0a0a0a; border: 1px solid #333; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 0.7rem; color: #888; word-break: break-all; }
+        .preview-item .serial { color: var(--sub-gold); font-family: 'Russo One', sans-serif; font-size: 0.85rem; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
 
-    <div class="header">SUBSOCCER GO - BATCH QR EXPORT</div>
-    
-    <div class="controls">
-        <p style="text-align:center; font-size:0.9rem; color:#888; margin-top:0;">Generate sticker-ready Instant Play QR codes for an entire container.</p>
-        
-        <div class="form-group">
-            <label>Base URL</label>
-            <input type="text" id="baseUrl" value="https://subsoccer.pro/instant-play.html">
-        </div>
-        
-        <div class="form-group">
-            <label>Batch Prefix (e.g. GERMANY-2026-)</label>
-            <input type="text" id="prefix" value="GER-SUB-">
-        </div>
+    <div class="header">SUBSOCCER QR FACTORY</div>
+    <div class="sub-header">Generate EPS vectors from hardware_registry & track inventory</div>
 
-        <div class="form-group">
-            <label>Start Number</label>
-            <input type="number" id="startNum" value="1">
-        </div>
-
-        <div class="form-group">
-            <label>Quantity of Tables (Container Size)</label>
-            <input type="number" id="qty" value="20" max="500">
-        </div>
-        
-        <button onclick="generateBatch()">GENERATE BATCH FOR PRINTING</button>
-        <button onclick="window.print()" style="background:#555; margin-top:10px; border:1px solid #777;">PRINT STICKERS</button>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('generate')"><i class="fa-solid fa-bolt" style="margin-right:6px;"></i>GENERATE EPS</button>
+        <button class="tab-btn" onclick="switchTab('inventory')"><i class="fa-solid fa-warehouse" style="margin-right:6px;"></i>INVENTORY</button>
     </div>
 
-    <!-- This is where all the generated QR stickers will go -->
-    <div id="print-area">
-        <div style="text-align:center; width:100%; color:#000; opacity:0.5; padding:50px;">
-            Click "Generate Batch" to create the printable stickers.
+    <!-- TAB 1: GENERATE -->
+    <div class="tab-content active" id="tab-generate">
+        <div class="controls">
+            <div class="controls-title"><i class="fa-solid fa-bolt" style="margin-right: 8px;"></i>GENERATE EPS FROM HARDWARE REGISTRY</div>
+            <div class="info-box">
+                <i class="fa-solid fa-circle-info"></i>
+                Fetches serial numbers from the <strong>hardware_registry</strong> table and generates print-ready EPS vector QR codes for each one.
+            </div>
+
+            <!-- QR Type -->
+            <div class="form-group">
+                <label>QR Code Target</label>
+                <div style="display: flex; gap: 10px;">
+                    <button class="tab-btn-sm active" id="btn-type-ip" onclick="setQRType('instant-play')">
+                        <i class="fa-solid fa-gamepad" style="margin-right:4px;"></i>Instant Play (pöytätarra)
+                    </button>
+                    <button class="tab-btn-sm" id="btn-type-reg" onclick="setQRType('registration')">
+                        <i class="fa-solid fa-id-card" style="margin-right:4px;"></i>Rekisteröinti (pakkaus)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter by model -->
+            <div class="form-group">
+                <label>Filter by Product Model</label>
+                <select id="filterModel">
+                    <option value="">All models</option>
+                </select>
+            </div>
+
+            <!-- Filter by batch -->
+            <div class="form-group">
+                <label>Filter by Batch ID</label>
+                <select id="filterBatch">
+                    <option value="">All batches</option>
+                </select>
+            </div>
+
+            <!-- Only unclaimed -->
+            <div class="form-group" style="display:flex; align-items:center; gap: 10px;">
+                <input type="checkbox" id="onlyUnclaimed" checked style="width:auto;">
+                <label style="margin:0; cursor:pointer;" for="onlyUnclaimed">Only unclaimed serials</label>
+            </div>
+
+            <div class="form-group">
+                <label>Max serials to export</label>
+                <input type="number" id="maxExport" value="50" max="1000" min="1">
+            </div>
+
+            <div class="form-group">
+                <label>Base URL</label>
+                <input type="text" id="baseUrl" value="https://subsoccer.pro/instant-play.html">
+            </div>
+
+            <button class="btn-generate" id="btn-download" onclick="fetchAndGenerate()">
+                <i class="fa-solid fa-download" style="margin-right: 8px;"></i>FETCH SERIALS & GENERATE EPS
+            </button>
+            <div class="status" id="status"></div>
+        </div>
+
+        <div class="preview-section" id="preview-section" style="display:none;">
+            <div class="preview-title" id="preview-title">SERIALS TO EXPORT</div>
+            <div class="preview-grid" id="preview-grid"></div>
+        </div>
+    </div>
+
+    <!-- TAB 2: INVENTORY -->
+    <div class="tab-content" id="tab-inventory">
+        <div class="controls">
+            <div class="controls-title"><i class="fa-solid fa-warehouse" style="margin-right: 8px;"></i>HARDWARE REGISTRY INVENTORY</div>
+            <div class="info-box">
+                <i class="fa-solid fa-circle-info"></i>
+                Live view of the <strong>hardware_registry</strong> table. Shows all serial numbers and their claim status.
+            </div>
+
+            <!-- Filters -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;" id="inv-filters"></div>
+
+            <!-- Stats -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                <div style="background:#0a0a0a; border:1px solid #222; border-radius:8px; padding:15px; text-align:center;">
+                    <div style="font-family:'Russo One'; font-size:1.5rem; color:var(--sub-gold);" id="stat-total">-</div>
+                    <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:1px;">Total</div>
+                </div>
+                <div style="background:#0a0a0a; border:1px solid #222; border-radius:8px; padding:15px; text-align:center;">
+                    <div style="font-family:'Russo One'; font-size:1.5rem; color:#4caf50;" id="stat-claimed">-</div>
+                    <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:1px;">Claimed</div>
+                </div>
+                <div style="background:#0a0a0a; border:1px solid #222; border-radius:8px; padding:15px; text-align:center;">
+                    <div style="font-family:'Russo One'; font-size:1.5rem; color:var(--sub-gold);" id="stat-unclaimed">-</div>
+                    <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:1px;">Unclaimed</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="inventory">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Category</th>
+                        <th>Model</th>
+                        <th>Batch</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody id="inv-body">
+                    <tr><td colspan="6" style="text-align:center; color:#666; padding: 30px;">Loading...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        function generateBatch() {
-            const printArea = document.getElementById('print-area');
-            printArea.innerHTML = ''; // Clear previous
-            
-            const baseUrl = document.getElementById('baseUrl').value;
-            const prefix = document.getElementById('prefix').value;
-            const startNum = parseInt(document.getElementById('startNum').value);
-            const qty = parseInt(document.getElementById('qty').value);
-            
-            for(let i = 0; i < qty; i++) {
-                const currentNum = String(startNum + i).padStart(3, '0');
-                const serial = prefix + currentNum;
-                const finalUrl = baseUrl + "?sn=" + encodeURIComponent(serial);
-                
-                // Create sticker container
-                const sticker = document.createElement('div');
-                sticker.className = 'qr-sticker';
-                
-                sticker.innerHTML = `
-                    <h3>SUBSOCCER GO</h3>
-                    <div class="cta-text">SCAN TO PLAY INSTANTLY</div>
-                    <div id="qr-${serial}" class="qr-placeholder"></div>
-                    <div class="serial-text">SN: ${serial}</div>
-                `;
-                
-                printArea.appendChild(sticker);
-                
-                // Generate the QR code inside the placeholder
-                new QRCode(document.getElementById('qr-' + serial), {
-                    text: finalUrl,
-                    width: 150,
-                    height: 150,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
+        // ============================================
+        // SUPABASE
+        // ============================================
+        const SUPA_URL  = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY  = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const _supabase = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+        let qrType = 'instant-play';
+        let allHardware = [];
+
+        // ============================================
+        // INIT: Load filter options
+        // ============================================
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Get distinct models
+                const { data: models } = await _supabase.from('hardware_registry').select('product_model').limit(500);
+                if (models) {
+                    const unique = [...new Set(models.map(m => m.product_model).filter(Boolean))].sort();
+                    const sel = document.getElementById('filterModel');
+                    unique.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
+                }
+
+                // Get distinct batches
+                const { data: batches } = await _supabase.from('hardware_registry').select('batch_id').limit(500);
+                if (batches) {
+                    const unique = [...new Set(batches.map(b => b.batch_id).filter(Boolean))].sort();
+                    const sel = document.getElementById('filterBatch');
+                    unique.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
+                }
+            } catch (e) { console.warn('Init error:', e); }
+        });
+
+        // ============================================
+        // TAB SWITCHING
+        // ============================================
+        function switchTab(tab) {
+            document.querySelectorAll('.tabs .tab-btn').forEach((b, i) => {
+                b.classList.toggle('active', (tab === 'generate' && i === 0) || (tab === 'inventory' && i === 1));
+            });
+            document.getElementById('tab-generate').classList.toggle('active', tab === 'generate');
+            document.getElementById('tab-inventory').classList.toggle('active', tab === 'inventory');
+            if (tab === 'inventory') loadInventory();
+        }
+
+        function setQRType(type) {
+            qrType = type;
+            document.getElementById('btn-type-ip').classList.toggle('active', type === 'instant-play');
+            document.getElementById('btn-type-reg').classList.toggle('active', type === 'registration');
+            const baseUrlInput = document.getElementById('baseUrl');
+            baseUrlInput.value = type === 'instant-play'
+                ? 'https://subsoccer.pro/instant-play.html'
+                : 'https://subsoccer.pro/register.html';
+        }
+
+        // ============================================
+        // FETCH SERIALS & GENERATE EPS
+        // ============================================
+        async function fetchAndGenerate() {
+            const btn = document.getElementById('btn-download');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i>FETCHING...';
+            document.getElementById('status').innerHTML = '';
+
+            const modelFilter = document.getElementById('filterModel').value;
+            const batchFilter = document.getElementById('filterBatch').value;
+            const onlyUnclaimed = document.getElementById('onlyUnclaimed').checked;
+            const maxExport = parseInt(document.getElementById('maxExport').value) || 50;
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+
+            try {
+                let query = _supabase.from('hardware_registry').select('serial_number, product_model, product_category, batch_id, is_claimed');
+
+                if (modelFilter) query = query.eq('product_model', modelFilter);
+                if (batchFilter) query = query.eq('batch_id', batchFilter);
+                if (onlyUnclaimed) query = query.eq('is_claimed', false);
+
+                query = query.order('serial_number').limit(maxExport);
+
+                const { data: serials, error } = await query;
+                if (error) throw error;
+
+                if (!serials || serials.length === 0) {
+                    showStatus('No matching serial numbers found.', 'error');
+                    return;
+                }
+
+                // Show preview
+                const grid = document.getElementById('preview-grid');
+                grid.innerHTML = serials.slice(0, 6).map(s => {
+                    const url = buildURL(baseUrl, s.serial_number);
+                    return `<div class="preview-item"><span class="serial">${s.serial_number}</span>${s.product_model} · ${url.substring(0, 50)}...</div>`;
+                }).join('');
+                document.getElementById('preview-title').textContent = `EXPORTING ${serials.length} SERIALS`;
+                document.getElementById('preview-section').style.display = 'block';
+
+                // Generate ZIP
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i>GENERATING EPS...';
+
+                const zip = new JSZip();
+                const label = modelFilter || 'ALL';
+                const folderName = `Subsoccer_${qrType}_${label}_${new Date().toISOString().substring(0,10)}`;
+                const folder = zip.folder(folderName);
+
+                let manifest = 'Serial Number,Model,Category,URL\n';
+
+                for (const s of serials) {
+                    const url = buildURL(baseUrl, s.serial_number);
+                    const eps = generateEPS(url, s.serial_number);
+                    const safeName = s.serial_number.replace(/[^a-zA-Z0-9_-]/g, '_');
+                    folder.file(`${safeName}.eps`, eps);
+                    manifest += `${s.serial_number},${s.product_model},${s.product_category},${url}\n`;
+                }
+
+                folder.file('_manifest.csv', manifest);
+
+                const content = await zip.generateAsync({type: "blob"});
+                saveAs(content, `${folderName}.zip`);
+
+                showStatus(`✅ Exported ${serials.length} EPS files from hardware_registry!`, 'success');
+
+            } catch (err) {
+                showStatus('Error: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-download" style="margin-right: 8px;"></i>FETCH SERIALS & GENERATE EPS';
             }
+        }
+
+        function buildURL(baseUrl, serial) {
+            if (qrType === 'instant-play') {
+                return baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'sn=' + encodeURIComponent(serial);
+            } else {
+                // Registration QR = just register.html (serial entered manually by customer)
+                return baseUrl;
+            }
+        }
+
+        // ============================================
+        // EPS GENERATOR
+        // ============================================
+        function generateEPS(url, serial) {
+            const qr = qrcode(0, 'H');
+            qr.addData(url);
+            qr.make();
+            const count = qr.getModuleCount();
+            const margin = 4, scale = 10;
+            const qrWidth = (count + 2 * margin) * scale;
+            const width = qrWidth, height = qrWidth + 50;
+
+            let eps = `%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 ${width} ${height}\n%%Creator: Subsoccer QR Factory\n%%Title: ${serial}\n0 0 0 setrgbcolor\n`;
+            for (let r = 0; r < count; r++) {
+                for (let c = 0; c < count; c++) {
+                    if (qr.isDark(r, c)) {
+                        const x = (c + margin) * scale;
+                        const y = height - 50 - ((r + margin + 1) * scale);
+                        eps += `${x} ${y} ${scale} ${scale} rectfill\n`;
+                    }
+                }
+            }
+            eps += `\n/Helvetica-Bold findfont 20 scalefont setfont\n${width / 2} 18 moveto\n(${serial}) dup stringwidth pop 2 div neg 0 rmoveto show\nshowpage\n`;
+            return eps;
+        }
+
+        // ============================================
+        // INVENTORY
+        // ============================================
+        async function loadInventory() {
+            const tbody = document.getElementById('inv-body');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:30px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading from hardware_registry...</td></tr>';
+
+            try {
+                // Get counts
+                const { count: total } = await _supabase.from('hardware_registry').select('*', { count: 'exact', head: true });
+                const { count: claimed } = await _supabase.from('hardware_registry').select('*', { count: 'exact', head: true }).eq('is_claimed', true);
+
+                document.getElementById('stat-total').textContent = total || 0;
+                document.getElementById('stat-claimed').textContent = claimed || 0;
+                document.getElementById('stat-unclaimed').textContent = (total || 0) - (claimed || 0);
+
+                // Get rows (limited view)
+                const { data, error } = await _supabase
+                    .from('hardware_registry')
+                    .select('serial_number, product_category, product_model, batch_id, is_claimed, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(200);
+
+                if (error) throw error;
+                allHardware = data || [];
+                renderInventory(allHardware);
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sub-red); padding:30px;">${err.message}</td></tr>`;
+            }
+        }
+
+        function renderInventory(data) {
+            const tbody = document.getElementById('inv-body');
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:30px;">No serials found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(r => {
+                const date = new Date(r.created_at).toLocaleDateString();
+                const badge = r.is_claimed
+                    ? '<span class="badge badge-claimed">CLAIMED</span>'
+                    : '<span class="badge badge-unclaimed">UNCLAIMED</span>';
+                return `<tr>
+                    <td style="font-family:'Russo One'; color:var(--sub-gold); font-size:0.8rem;">${r.serial_number}</td>
+                    <td>${r.product_category || '-'}</td>
+                    <td>${r.product_model || '-'}</td>
+                    <td style="color:#888;">${r.batch_id || '-'}</td>
+                    <td>${badge}</td>
+                    <td style="color:#666;">${date}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function showStatus(msg, type) {
+            const el = document.getElementById('status');
+            el.className = 'status ' + type;
+            el.innerHTML = msg;
         }
     </script>
 </body>

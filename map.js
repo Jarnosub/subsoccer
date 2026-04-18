@@ -40,9 +40,10 @@ export async function fetchPublicGamesMap() {
     const mapContainer = document.getElementById('section-map');
 
     if (!state.publicMap) {
-        state.publicMap = L.map('public-game-map').setView([60.1699, 24.9384], 11);
+        state.publicMap = L.map('public-game-map', { zoomControl: false }).setView([60.1699, 24.9384], 11);
+        L.control.zoom({ position: 'bottomright' }).addTo(state.publicMap);
         state.publicMap.attributionControl.setPrefix(false); // Remove Leaflet prefix
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
 
         // Initialize Cluster Group
         state.clusterGroup = L.markerClusterGroup({
@@ -57,37 +58,6 @@ export async function fetchPublicGamesMap() {
             const center = state.publicMap.getCenter();
             updateNearestList(center.lat, center.lng);
         });
-
-        // Setup Fullscreen Toggle
-        const fullscreenBtn = document.getElementById('btn-map-fullscreen');
-        const mapWrapper = document.getElementById('map-wrapper');
-        if (fullscreenBtn && mapWrapper) {
-            fullscreenBtn.addEventListener('click', () => {
-                mapWrapper.classList.toggle('map-fullscreen');
-                
-                // Toggle Icon & Fix positioning
-                const icon = fullscreenBtn.querySelector('i');
-                if (mapWrapper.classList.contains('map-fullscreen')) {
-                    icon.classList.remove('fa-expand');
-                    icon.classList.add('fa-compress');
-                    document.body.style.overflow = 'hidden'; 
-                    // Force extremely high z-index to stay above leaflet
-                    fullscreenBtn.style.zIndex = '20000';
-                    fullscreenBtn.style.bottom = '100px';
-                } else {
-                    icon.classList.remove('fa-compress');
-                    icon.classList.add('fa-expand');
-                    document.body.style.overflow = '';
-                    
-                    // Revert z-index and bottom
-                    fullscreenBtn.style.zIndex = '20000';
-                    fullscreenBtn.style.bottom = '20px';
-                }
-                
-                setTimeout(() => state.publicMap.invalidateSize(), 350);
-            });
-        }
-
     } else {
         setTimeout(() => state.publicMap.invalidateSize(), 200);
     }
@@ -101,64 +71,26 @@ export async function fetchPublicGamesMap() {
         const { data: qGames, error } = await _supabase
             .from('games')
             .select('*')
-            .or(`is_public.eq.true,owner_id.eq.${state.user.id}`)
-            .limit(50000);
+            .or(`is_public.eq.true,owner_id.eq.${state.user.id}`);
         fetchedGames = qGames || [];
     } else {
         // Guest only sees public games
-        const { data: qGames } = await _supabase.from('games').select('*').eq('is_public', true).limit(50000);
+        const { data: qGames } = await _supabase.from('games').select('*').eq('is_public', true);
         fetchedGames = qGames || [];
     }
 
     // 2. Fetch Upcoming/Ongoing Tournaments linked to games
+    // We use !inner to ensure we only get tournaments that have a valid game link
     const { data: tournaments } = await _supabase
         .from('tournament_history')
         .select('*, games!inner(*)')
         .in('status', ['scheduled', 'ongoing'])
         .gt('end_datetime', new Date().toISOString());
 
-    // 3. Fetch Active Tables Today (from matches and public_tracking)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayIso = today.toISOString();
-
-    // Use a try-catch for these optional active tracking queries so they don't break the main map if columns are missing
-    let activeGameIds = new Set();
-    let activeSerials = new Set();
-    let scanLocations = new Set();
-
-    try {
-        const [matchesReq, trackingReq] = await Promise.all([
-            // Changed from select('game_id') to select('id') to avoid 400 Bad Request since matches table lacks game_id
-            _supabase.from('matches').select('id, tournament_id').gte('created_at', todayIso).limit(50000),
-            // The public_tracking table actually uses client_time, not created_at
-            _supabase.from('public_tracking').select('game_code, event_type, location').gte('client_time', todayIso).limit(50000)
-        ]);
-
-        if (matchesReq.data) {
-            // No game_id exists on matches table yet, so this array just validates if tournaments are active
-        }
-        if (trackingReq.data) {
-            trackingReq.data.forEach(t => {
-                if (t.event_type === 'game_finished' && t.game_code && t.game_code !== 'PUBLIC-APP') {
-                    activeSerials.add(t.game_code.toUpperCase());
-                }
-                if (t.location && t.location.includes('/')) {
-                    scanLocations.add(t.location);
-                }
-            });
-        }
-    } catch (metricErr) {
-        console.warn("Could not fetch active table metrics for map (schema mismatch)", metricErr);
-    }
-
     // Store data for filtering
     state.mapData = {
         games: fetchedGames,
-        tournaments: tournaments || [],
-        activeGameIds,
-        activeSerials,
-        scanLocations: Array.from(scanLocations)
+        tournaments: tournaments || []
     };
 
     if (state.mapData.games.length > 0 || state.mapData.tournaments.length > 0) {
@@ -177,8 +109,8 @@ export async function fetchPublicGamesMap() {
             mapContainer.appendChild(locateBtn);
         }
 
-        // Initial Render (Show All Tables so new users see their own immediately)
-        filterMap('all');
+        // Initial Render (Verified Focus)
+        filterMap('verified');
 
         // Initial Nearest List (based on map center)
         const center = state.publicMap.getCenter();
@@ -195,9 +127,9 @@ export function filterMap(type) {
         if (btnFilter === type) {
             btn.classList.add('active');
             if (type === 'verified') {
-                btn.style.background = 'rgba(227, 6, 19, 0.1)';
-                btn.style.borderColor = 'var(--sub-red)';
-                btn.style.color = 'var(--sub-red)';
+                btn.style.background = 'rgba(255, 215, 0, 0.1)';
+                btn.style.borderColor = 'var(--sub-gold)';
+                btn.style.color = 'var(--sub-gold)';
             } else {
                 btn.style.background = '#222';
                 btn.style.color = '#fff';
@@ -211,23 +143,7 @@ export function filterMap(type) {
     });
 
     state.clusterGroup.clearLayers();
-    state.mapMarkers = {}; // Cache markers to allow external triggering
     const { games, tournaments } = state.mapData;
-
-    // Define global marker trigger handler
-    window.triggerMarkerClick = (markerId) => {
-        if (state.mapMarkers && state.mapMarkers[markerId]) {
-            // Un-cluster and zoom down slightly if we're bundled before firing
-            const targetZm = state.publicMap.getZoom() > 13 ? state.publicMap.getZoom() : 13;
-            if (state.publicMap.getZoom() < targetZm) {
-                state.publicMap.setZoom(targetZm);
-            }
-            // Add a small delay so the cluster breaks apart before clicking the sub-marker
-            setTimeout(() => {
-                state.mapMarkers[markerId].fire('click');
-            }, 100);
-        }
-    };
 
     // Render Games (if type is 'all' or 'verified')
     if (type === 'all' || type === 'verified') {
@@ -235,115 +151,41 @@ export function filterMap(type) {
             // Filter verified if requested
             if (type === 'verified' && !g.verified) return;
 
-            // Stealth mode completely removes the table from the visual map
-            if (g.privacy_mode === 'stealth') return;
-
             if (g.latitude && g.longitude) {
-                let markerLat = g.latitude;
-                let markerLng = g.longitude;
-
-                // City-Level Private Blur Logic (Math.round to nearest 0.05 degrees ~ 5km)
-                // Defaulting legacy non-public tables to blur behavior as well
-                if (g.privacy_mode === 'private' || (!g.is_public && !g.privacy_mode)) {
-                    markerLat = Math.round(markerLat * 20) / 20;
-                    markerLng = Math.round(markerLng * 20) / 20;
-                }
-
-                const isActiveToday = (state.mapData.activeGameIds && state.mapData.activeGameIds.has(g.id)) ||
-                    (state.mapData.activeSerials && state.mapData.activeSerials.has((g.serial_number || '').toUpperCase()));
-
-                // Reverted back to dark blue for unverified/private for better map contrast
-                let iconColor = isActiveToday ? '#FFFF00' : (g.is_public ? (g.verified ? 'var(--sub-red)' : '#ff5722') : '#0033cc');
-                const verifiedClass = g.verified && g.is_public && !isActiveToday ? 'verified-marker-pulse' : '';
-                
-                // Determine pulse animation based on color
-                let pulseName = 'bluePulse';
-                if (isActiveToday) pulseName = 'yellowPulse';
-                else if (g.is_public && g.verified) pulseName = 'markerPulse';
-                else if (g.is_public) pulseName = 'orangePulse';
-
-                // Add a strong LED-like glow and pulsing ring
-                const glowStyle = `animation: ${pulseName} 2.0s infinite; box-shadow: 0 0 15px ${iconColor};`;
+                let iconColor = g.is_public ? (g.verified ? 'var(--sub-gold)' : 'var(--sub-red)') : '#4a9eff'; // Blue for Private
+                const verifiedBadge = g.verified ? '<div style="color:var(--sub-gold); font-size:0.6rem; font-weight:bold; margin-bottom:4px;">⭐ VERIFIED TABLE</div>' : '';
+                const privateBadge = !g.is_public ? '<div style="color:#4a9eff; font-size:0.6rem; font-weight:bold; margin-bottom:4px;"><i class="fa fa-lock"></i> PRIVATE HOME TABLE</div>' : '';
+                const verifiedClass = g.verified && g.is_public ? 'verified-marker-pulse' : '';
 
                 const subsoccerIcon = L.divIcon({
                     className: `custom-div-icon ${verifiedClass}`,
-                    html: `<div style='background-color:${iconColor}; width:18px; height:18px; border-radius:50%; border:2px solid rgba(255,255,255,0.9); ${glowStyle}'></div>`,
-                    iconSize: [22, 22],
-                    iconAnchor: [11, 11]
+                    html: `<div style='background-color:${iconColor}; width:12px; height:12px; border-radius:50%; border:2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);'></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
                 });
 
-                let popupContent = `
-                    <div style="text-align:center; padding-bottom: 20px;">
-                `;
-                if (isActiveToday) {
-                    popupContent += `<div style="display:inline-block; background:#FFFF00; color:#000; font-family:var(--sub-name-font); font-size:0.7rem; padding:4px 10px; letter-spacing:1px; border-radius:15px; text-transform:uppercase; margin-bottom:15px; animation: markerPulse 1.5s infinite; font-weight:bold;">⚡ ACTIVE TODAY!</div>`;
-                } else if (g.verified) {
+                let popupContent = `<div style="min-width:160px; text-align:center;">`;
+                if (g.verified) {
                     popupContent += `
-                        <div style="display:inline-block; background:var(--sub-red); color:#fff; font-family:var(--sub-name-font); font-size:0.7rem; padding:4px 10px; letter-spacing:1px; border-radius:15px; text-transform:uppercase; margin-bottom:15px; box-shadow:0 0 10px rgba(227,6,19,0.5);">
-                            <i class="fa-solid fa-crown" style="margin-right:5px;"></i> VERIFIED GAME
+                        <div style="background:var(--sub-gold); color:#000; font-family:'Russo One'; font-size:0.6rem; padding:3px 0; letter-spacing:1px; border-radius:3px 3px 0 0; text-transform:uppercase; margin:-14px -14px 10px -14px;">
+                            OFFICIAL ARENA
                         </div>
+                        <i class="fa-solid fa-crown" style="color:var(--sub-gold); font-size:1.5rem; margin-bottom:5px;"></i>
                     `;
-                } else if (!g.is_public || g.privacy_mode === 'private') {
-                    popupContent += `<div style="display:inline-block; border: 1px dashed #4a9eff; color:#4a9eff; font-size:0.65rem; padding:4px 10px; border-radius:15px; font-weight:bold; margin-bottom:15px; font-family:var(--sub-name-font); text-transform:uppercase;"><i class="fa fa-mask"></i> CITY-LEVEL PRIVATE</div>`;
+                } else if (!g.is_public) {
+                    popupContent += `<div style="color:#4a9eff; font-size:0.6rem; font-weight:bold; margin-bottom:4px;"><i class="fa fa-lock"></i> PRIVATE HOME TABLE</div>`;
                 }
 
                 popupContent += `
-                    <h2 style="font-size:1.8rem; text-transform:uppercase; color:#fff; margin-bottom:10px; font-family:var(--sub-name-font); letter-spacing: 1px;">
-                        ${g.privacy_mode === 'private' ? 'HIDDEN VENUE' : g.game_name}
-                    </h2>
-                    <div style="color:#aaa; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:25px; line-height: 1.5;">
-                        <i class="fa-solid fa-location-dot" style="color:${iconColor}; margin-right:8px; font-size: 1.1rem;"></i> 
+                    <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; font-family:'Russo One';">${g.game_name}</b>
+                    <div style="color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">
+                        <i class="fa-solid fa-location-dot" style="color:${iconColor}; margin-right:5px;"></i>${g.location}
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        ${g.serial_number ? `<button class="btn-dark" onclick="window.openPublicVenueCardModal('${g.id}')" style="width: 100%; box-sizing: border-box; border:1px solid #333; padding:15px 0; background:#111; color:#aaa; font-family:'Russo One', sans-serif; font-size:1rem; border-radius:8px; letter-spacing:1px; text-align:center;"><i class="fa-solid fa-id-card" style="margin-right:10px;"></i> VIEW PRO CARD</button>` : ''}
-                        ${g.privacy_mode !== 'private' ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${markerLat},${markerLng}" target="_blank" style="display:inline-block; width: 100%; box-sizing: border-box; border:none; padding:15px 0; background:var(--sub-gold); color:#000; font-family:'Russo One', sans-serif; text-decoration:none; font-size:1rem; border-radius:8px; letter-spacing:1px; text-align:center; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);"><i class="fa-solid fa-diamond-turn-right" style="margin-right:10px;"></i> GET DIRECTIONS</a>` : ''}
-                    </div>
-                `;
+                </div>`;
 
-                const marker = L.marker([markerLat, markerLng], { icon: subsoccerIcon })
-                    .on('click', () => {
-                        const content = document.getElementById('venue-card-content');
-                        if(content) {
-                            const statsContainerId = `stats-container-${g.id}`;
-                            const fullHTML = popupContent + `
-                                <div id="${statsContainerId}" style="margin-top: 20px; background: #080808; border: 1px solid #222; border-radius: 8px; padding: 15px;">
-                                    <i class="fa-solid fa-circle-notch fa-spin" style="color:var(--sub-gold); font-size:1.5rem;"></i>
-                                </div>
-                            </div>`; // Closes the main wrapper right here
-                            
-                            content.innerHTML = fullHTML;
-                            document.getElementById('venue-card-modal').classList.add('active');
-                            // Gently fly to the marker slightly above center so the bottom sheet doesn't cover it
-                            state.publicMap.flyTo([markerLat - 0.005, markerLng], state.publicMap.getZoom() > 13 ? state.publicMap.getZoom() : 13, { animate: true, duration: 0.5 });
-                            
-                            // Fetch real backend data!
-                            if (g.serial_number) {
-                                _supabase.from('public_tracking')
-                                    .select('*', { count: 'exact', head: true })
-                                    .eq('game_code', g.serial_number.toUpperCase())
-                                    .then(({ count, error }) => {
-                                        const statsDiv = document.getElementById(statsContainerId);
-                                        if (statsDiv) {
-                                            const totalGames = count || 0;
-                                            statsDiv.innerHTML = `
-                                                <div style="font-size: 0.7rem; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px;">GAMES PLAYED HERE</div>
-                                                <div style="font-family: 'Russo One', sans-serif; font-size: 2.2rem; color: var(--sub-gold); text-shadow: 0 0 15px rgba(255, 215, 0, 0.2); line-height:1;">${totalGames}</div>
-                                            `;
-                                        }
-                                    });
-                            } else {
-                                const statsDiv = document.getElementById(statsContainerId);
-                                if (statsDiv) {
-                                    statsDiv.innerHTML = `
-                                        <div style="font-size: 0.7rem; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px;">GAMES PLAYED HERE</div>
-                                        <div style="font-family: 'Russo One', sans-serif; font-size: 2.2rem; color: #444; line-height:1;">0</div>
-                                    `;
-                                }
-                            }
-                        }
-                    });
+                const marker = L.marker([g.latitude, g.longitude], { icon: subsoccerIcon })
+                    .bindPopup(popupContent);
 
-                state.mapMarkers[g.id] = marker;
                 state.clusterGroup.addLayer(marker);
             }
         });
@@ -368,20 +210,20 @@ export function filterMap(type) {
 
                 const marker = L.marker([g.latitude, g.longitude], { icon: tournamentIcon })
                     .bindPopup(`<div style="min-width:180px;">
-                        <div style="color:var(--sub-red); font-size:0.65rem; font-weight:bold; margin-bottom:4px; letter-spacing:1px; font-family: var(--sub-name-font);">
+                        <div style="color:var(--sub-red); font-size:0.65rem; font-weight:bold; margin-bottom:4px; letter-spacing:1px;">
                             ${isLive ? '● LIVE TOURNAMENT' : '📅 UPCOMING TOURNAMENT'}
                         </div>
-                        <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; line-height:1.2; font-family: var(--sub-name-font);">
+                        <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; line-height:1.2;">
                             ${t.tournament_name}
                         </b>
-                        <div style="color:#ccc; font-size:0.8rem; margin-bottom:8px; font-family: var(--sub-body-font);">
+                        <div style="color:#ccc; font-size:0.8rem; margin-bottom:8px;">
                             ${dateStr} @ ${timeStr}
                         </div>
                         <div style="color:#888; font-size:0.7rem; border-top:1px solid #333; padding-top:5px;">
                             <i class="fa-solid fa-location-dot"></i> ${g.game_name}
                         </div>
                     </div>`);
-                state.mapMarkers[t.id] = marker;
+
                 state.clusterGroup.addLayer(marker);
             }
         });
@@ -391,43 +233,6 @@ export function filterMap(type) {
     if (state.publicMap) {
         const center = state.publicMap.getCenter();
         updateNearestList(center.lat, center.lng);
-    }
-
-    // Render Anonymous Scans as Small Cyan Dots
-    if ((type === 'all' || type === 'verified') && state.mapData.scanLocations) {
-        state.mapData.scanLocations.forEach(async (tz) => {
-            let city = tz.split('/').pop().replace(/_/g, ' ');
-            if (!city) return;
-
-            state.tzCache = state.tzCache || {};
-            let coords = state.tzCache[tz];
-
-            if (!coords) {
-                try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&city=${encodeURIComponent(city)}&limit=1`);
-                    const data = await res.json();
-                    if (data && data.length > 0) {
-                        coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-                        state.tzCache[tz] = coords;
-                    }
-                } catch (e) { }
-            }
-
-            if (coords && state.clusterGroup) {
-                // Determine a slight offset so multiple cities don't overlap perfectly if they share the same timezone string perfectly
-                // For timezone level granularity, it's fine.
-                // Scan markers restored to cyan for lightning feel
-                const scanIcon = L.divIcon({
-                    className: `custom-div-icon`,
-                    html: `<div style='background-color:#00FFCC; width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.9); box-shadow: 0 0 15px #00FFCC; animation: bluePulse 1.5s infinite;'></div>`,
-                    iconSize: [18, 18],
-                    iconAnchor: [9, 9]
-                });
-                const scanMarker = L.marker(coords, { icon: scanIcon })
-                    .bindPopup(`<div style="color:#00FFCC; font-size:0.75rem; text-align:center; font-family:'Russo One'; text-transform:uppercase;">⚡ LIVE SCAN<br><span style="color:#fff; font-size:1.1rem; line-height:1.5;">${city}</span></div>`);
-                state.clusterGroup.addLayer(scanMarker);
-            }
-        });
     }
 }
 
@@ -469,21 +274,21 @@ function updateNearestList(lat, lng) {
         const isVerified = g.verified;
         const isPrivate = !g.is_public;
 
-        const borderStyle = isVerified ? 'border-left: 4px solid var(--sub-red); background: rgba(255, 255, 255, 0.03);' : (isPrivate ? 'border-left: 4px solid #4a9eff; background: rgba(255, 255, 255, 0.03);' : 'border-left: 4px solid #333;');
-        const titleColor = isVerified ? '#fff' : (isPrivate ? '#4a9eff' : '#fff');
-        const badge = isVerified ? '<span style="background:var(--sub-red); color:#fff; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">VERIFIED GAME</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
+        const borderStyle = isVerified ? 'border-left: 4px solid var(--sub-gold); background: rgba(255, 215, 0, 0.05);' : (isPrivate ? 'border-left: 4px solid #4a9eff; background: rgba(74, 158, 255, 0.05);' : 'border-left: 4px solid #333;');
+        const titleColor = isVerified ? 'var(--sub-gold)' : (isPrivate ? '#4a9eff' : '#fff');
+        const badge = isVerified ? '<span style="background:var(--sub-gold); color:#000; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">PRO ARENA</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
 
         return `
-            <div class="nearest-game-item" style="${borderStyle} padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;" onclick="if(!event.target.closest('a')) { window.triggerMarkerClick('${g.id}'); }">
+            <div class="nearest-game-item" style="${borderStyle} padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;" data-action="fly-to-location" data-lat="${g.latitude}" data-lng="${g.longitude}">
                 <div style="flex-grow:1; cursor:pointer;">
                     <div style="font-family:'Russo One'; color:${titleColor}; font-size:0.95rem; margin-bottom:3px; text-transform:uppercase;">
                         ${badge}${g.game_name}
                     </div>
-                    <div style="font-size:0.75rem; color:#ffffff; opacity:0.9;"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:var(--sub-red);"></i>${g.location}</div>
+                    <div style="font-size:0.75rem; color:#888;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${g.location}</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:0.8rem; font-weight:bold; color:#ccc; margin-bottom:3px;">${distDisplay}</div>
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=${g.latitude},${g.longitude}" target="_blank" data-action="external-link" style="color:var(--sub-red); font-size:1.1rem; padding:5px; display:inline-block;" title="Get Directions">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${g.latitude},${g.longitude}" target="_blank" data-action="external-link" style="color:var(--sub-gold); font-size:1.1rem; padding:5px; display:inline-block;" title="Get Directions">
                         <i class="fa-solid fa-diamond-turn-right"></i>
                     </a>
                 </div>
@@ -521,40 +326,10 @@ export async function searchLocation() {
 }
 
 export async function searchPublicMap() {
-    const q = document.getElementById('public-map-search').value.trim().toLowerCase();
+    const q = document.getElementById('public-map-search').value;
     if (!q) return;
-
-    // 1. Native Search: Try to find a matching Subsoccer Venue or Tournament first!
-    if (state.mapData) {
-        const matchingGame = state.mapData.games?.find(g => 
-            g.game_name?.toLowerCase().includes(q) || 
-            (g.location && g.location.toLowerCase().includes(q))
-        );
-        if (matchingGame && matchingGame.id) {
-            showNotification(`Found venue: ${matchingGame.game_name}`, "success");
-            document.getElementById('public-map-search').value = '';
-            // Blur the keyboard
-            document.getElementById('public-map-search').blur();
-            window.triggerMarkerClick(matchingGame.id);
-            return; // Stop here, we found our table natively!
-        }
-
-        const matchingTour = state.mapData.tournaments?.find(t => 
-            t.tournament_name?.toLowerCase().includes(q) || 
-            t.name?.toLowerCase().includes(q)
-        );
-        if (matchingTour && matchingTour.id) {
-            showNotification(`Found event: ${matchingTour.name || matchingTour.tournament_name}`, "success");
-            document.getElementById('public-map-search').value = '';
-            document.getElementById('public-map-search').blur();
-            window.triggerMarkerClick(matchingTour.id);
-            return;
-        }
-    }
-
-    // 2. Global Fallback: Search for a City/Country using OpenStreetMap
     try {
-        showNotification("Searching regions...", "info");
+        showNotification("Searching...", "info");
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
         const data = await res.json();
         if (data && data.length > 0) {
@@ -563,8 +338,6 @@ export async function searchPublicMap() {
             if (state.publicMap) {
                 state.publicMap.flyTo([lat, lon], 12);
                 showNotification(`Moved to ${data[0].display_name.split(',')[0]}`, "success");
-                document.getElementById('public-map-search').value = '';
-                document.getElementById('public-map-search').blur();
             }
         }
         else showNotification("Location not found", "error");

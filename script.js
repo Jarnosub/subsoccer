@@ -11,9 +11,11 @@ export async function handleSearch(v) {
     const q = v.trim().toUpperCase();
     let dbNames = [];
 
-    // SECURITY/UX PATCH: Do not allow searching the entire DB for online players.
-    // Online players must join via QR. Manual additions are for Local Guests only.
-    // We keep dbNames empty so only sessionGuests and raw manual names are used.
+    // FIX: Haetaan pelaajat suoraan tietokannasta (state.allDbNames poistettiin optimoinnin vuoksi)
+    try {
+        const { data } = await _supabase.from('players').select('username').ilike('username', `%${q}%`).limit(5);
+        if (data) dbNames = data.map(p => p.username);
+    } catch (e) { console.error(e); }
 
     const combined = [...new Set([...dbNames, ...state.sessionGuests])];
     const f = combined.filter(n => n.toUpperCase().includes(q) && !state.pool.includes(n));
@@ -25,25 +27,17 @@ export async function handleSearch(v) {
 
 export function addP() {
     const i = document.getElementById('add-p-input');
-    let raw = i.value.trim().toUpperCase();
-    if (!raw) return;
-    
-    // Prefix with \u200B (Zero-Width Space) to ensure it fails exact DB username matched in MatchService
-    const n = '\u200B' + raw;
-    if (!state.pool.includes(n)) { state.pool = [...state.pool, n]; }
+    const n = i.value.trim().toUpperCase();
+    if (n && !state.pool.includes(n)) { state.pool = [...state.pool, n]; }
     i.value = '';
     document.getElementById('search-results').style.display = 'none';
 }
 
 export function directAdd(n) {
     const nameUpper = n.toUpperCase();
-    // Prefix with \u200B if not already there, guaranteeing it fails DB ilike lookups
-    const finalName = nameUpper.startsWith('\u200B') ? nameUpper : ('\u200B' + nameUpper);
-    if (!state.pool.includes(finalName)) { state.pool = [...state.pool, finalName]; }
-    const i = document.getElementById('add-p-input');
-    if (i) i.value = '';
-    const r = document.getElementById('search-results');
-    if (r) r.style.display = 'none';
+    if (!state.pool.includes(nameUpper)) { state.pool = [...state.pool, nameUpper]; }
+    document.getElementById('add-p-input').value = '';
+    document.getElementById('search-results').style.display = 'none';
 }
 
 // ============================================================

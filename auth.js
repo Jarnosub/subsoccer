@@ -43,6 +43,16 @@ export async function initApp() {
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
                 if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+                    // Hub redirect: if ?redirect= param exists, navigate IMMEDIATELY
+                    // to prevent the old app UI from flashing before the redirect fires.
+                    // The profile will be fetched normally on the destination page.
+                    const redirectTo = new URLSearchParams(window.location.search).get('redirect');
+                    if (redirectTo) {
+                        window.location.replace(redirectTo);
+                        return;
+                    }
+
+                    // No redirect param — normal in-app login flow
                     if (!state.user || state.user.id !== session.user.id) {
                         await refreshUserProfile(session.user.id);
                     }
@@ -96,7 +106,7 @@ async function refreshUserProfile(userId) {
     try {
         const { data, error } = await _supabase
             .from('players')
-            .select('id, username, email, elo, wins, losses, country, avatar_url, rank, is_admin, full_name, phone, city, acquired_via, team_id, team_data:teams!players_team_id_fkey(*)')
+            .select('*, team_data:teams!players_team_id_fkey(*)')
             .eq('id', userId);
 
         const profile = data?.[0]; // Otetaan manuaalisesti ensimmäinen tulos
@@ -189,19 +199,17 @@ export async function handleSignUp() {
     const u = document.getElementById('reg-user').value.replace(/\s+/g, ' ').trim().toUpperCase();
     const email = document.getElementById('reg-email')?.value.trim();
     const p = document.getElementById('reg-pass').value.trim();
-    const gdpr = document.getElementById('reg-gdpr-consent');
-    const marketingOptIn = document.getElementById('reg-marketing-consent')?.checked || false;
 
     if (!u || !p || !email) return showNotification("Fill all fields including email", "error");
-    if (gdpr && !gdpr.checked) return showNotification("You must accept the Terms & Privacy Policy to register.", "error");
 
-    let { data: matches } = await _supabase.from('players').select('id, username, email, elo, wins, losses, team, rank, avatar_url, country, phone, city, acquired_via, is_admin').ilike('username', u);
+    // Tarkistetaan onko nimi jo varattu (huomioidaan eri välilyönnit)
+    let { data: matches } = await _supabase.from('players').select('*').ilike('username', u);
 
     if (!matches || matches.length === 0) {
         const fuzzyName = u.replace(/\s+/g, '%');
         const { data: fuzzyMatches } = await _supabase
             .from('players')
-            .select('id, username, email, elo, wins, losses, team, rank, avatar_url, country, phone, city, acquired_via, is_admin')
+            .select('*')
             .ilike('username', fuzzyName);
         matches = fuzzyMatches || [];
     }
@@ -222,8 +230,7 @@ export async function handleSignUp() {
             data: {
                 username: u,
                 full_name: u,      // Näkyy Supabase Dashboardissa
-                display_name: u,    // Yleinen standardi metadatalle
-                marketing_consent: marketingOptIn
+                display_name: u    // Yleinen standardi metadatalle
             }
         }
     });
@@ -421,12 +428,12 @@ export async function handleAuth(event) {
             // Tarkistetaan löytyykö sähköposti players-taulusta (migraatiotuki)
             const { data: emailMatches, error: emailErr } = await _supabase
                 .from('players')
-                .select('id, username, email, password')
+                .select('*')
                 .ilike('email', input);
 
             if (!emailErr && emailMatches && emailMatches.length > 0) {
                 const hashed = await hashPassword(p);
-                const userRecord = emailMatches.find(m => m.password === hashed) || emailMatches[0];
+                const userRecord = emailMatches.find(m => m.password === hashed || m.password === p) || emailMatches[0];
 
                 console.log("Legacy record found by email:", userRecord.username);
                 if (isUuid(userRecord.id)) {
@@ -437,7 +444,7 @@ export async function handleAuth(event) {
                     throw error;
                 } else {
                     // Legacy-käyttäjä jolla on sähköposti. Tarkistetaan vanha salasana.
-                    if (userRecord.password === hashed) {
+                    if (userRecord.password === hashed || userRecord.password === p) {
                         promptForEmailMigration(userRecord, p);
                         return;
                     }
@@ -451,7 +458,7 @@ export async function handleAuth(event) {
 
         // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
         let { data: nameMatches, error: nameErr } = await _supabase
-            .from('players').select('id, username, email, password, elo, wins, losses, is_admin, avatar_url, country, rank').ilike('username', input);
+            .from('players').select('*').ilike('username', input);
 
         console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
 
@@ -466,7 +473,7 @@ export async function handleAuth(event) {
             const fuzzyInput = input.replace(/\s+/g, '%');
             const { data: fuzzyMatches } = await _supabase
                 .from('players')
-                .select('id, username, email, password, elo, wins, losses, is_admin, avatar_url, country, rank')
+                .select('*')
                 .ilike('username', fuzzyInput);
             nameMatches = fuzzyMatches || [];
         }
@@ -492,7 +499,7 @@ export async function handleAuth(event) {
             }
 
             // 2. Jos Auth-kirjautuminen ei onnistunut, kokeillaan legacy-salasanaa osumiin
-            const legacyRecord = nameMatches.find(m => m.password === hashed);
+            const legacyRecord = nameMatches.find(m => m.password === hashed || m.password === p);
             if (legacyRecord) {
                 console.log("Legacy password match found for ID:", legacyRecord.id);
                 promptForEmailMigration(legacyRecord, p);
@@ -560,61 +567,6 @@ export async function handleLogout() {
 
     resetFullState();
     window.location.replace('index.html');
-}
-
-/**
- * GDPR: Oikeus tulla unohdetuksi (Delete Account)
- */
-export async function deleteAccount() {
-    if (!state.user || state.user.id === 'guest') return;
-
-    const confirmation = prompt("⚠️ WARNING! This action cannot be undone. All your match history, ranking, and ELO will be permanently lost.\n\nType DELETE to confirm:");
-    if (confirmation !== "DELETE") {
-        showNotification("Account deletion cancelled.", "info");
-        return;
-    }
-
-    try {
-        const btn = document.getElementById('btn-delete-account');
-        if (btn) btn.disabled = true;
-        showNotification("Deleting account and removing data...", "info");
-
-        // Supabase DB delete request. RLS and ON DELETE CASCADE should handle the rest.
-        // If not, we will attempt to anonymize the account as a fallback.
-        const { error } = await _supabase.from('players').delete().eq('id', state.user.id);
-        
-        if (error) {
-            console.warn("Delete failed, anonymizing data instead to comply with GDPR:", error.message);
-            // Fallback: Anonymize personal data if delete blocked by Foreign Keys without CASCADE
-            await _supabase.from('players').update({
-                username: 'DELETED_USER_' + Date.now().toString().slice(-4),
-                full_name: null,
-                email: null,
-                phone: null,
-                city: null,
-                country: null,
-                avatar_url: null
-            }).eq('id', state.user.id);
-        }
-
-        // Kutsutaan auth signOut ja nollataan cache huolimatta siitä onnistuiko DB poisto vai ei
-        await _supabase.auth.signOut().catch(() => {});
-        Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('sb-') || key.includes('supabase') || key.includes('subsoccer')) {
-                localStorage.removeItem(key);
-            }
-        });
-
-        resetFullState();
-        alert("Account and personal data have been completely removed.");
-        window.location.replace('index.html');
-
-    } catch (e) {
-        console.error("Critical error deleting account:", e);
-        showNotification("Failed to process account deletion.", "error");
-        const btn = document.getElementById('btn-delete-account');
-        if (btn) btn.disabled = false;
-    }
 }
 
 /**
@@ -716,6 +668,7 @@ export async function saveProfile(e) {
         const fileInput = document.getElementById('avatar-file-input');
         const file = fileInput?.files[0];
 
+        const usernameInput = document.getElementById('edit-username')?.value.trim();
         const fullName = document.getElementById('edit-full-name')?.value.trim();
         const email = document.getElementById('edit-email')?.value.trim();
         const phone = document.getElementById('edit-phone')?.value.trim();
@@ -749,6 +702,20 @@ export async function saveProfile(e) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 showNotification('Please enter a valid email address', 'error');
+                if (btn) { btn.textContent = originalText; btn.disabled = false; }
+                return;
+            }
+        }
+
+        if (usernameInput) { // Only validate if a username was provided
+            if (usernameInput.length < 2) {
+                showNotification('Gamertag must be at least 2 characters', 'error');
+                if (btn) { btn.textContent = originalText; btn.disabled = false; }
+                return;
+            }
+            if (usernameInput.includes(' ')) {
+                showNotification('Gamertag cannot contain spaces', 'error');
+                if (btn) { btn.textContent = originalText; btn.disabled = false; }
                 return;
             }
         }
@@ -763,6 +730,10 @@ export async function saveProfile(e) {
             avatar_url: avatarUrl
         };
 
+        if (usernameInput && usernameInput !== state.user.username) {
+            updates.username = usernameInput;
+        }
+
         // Update password via Supabase Auth if provided
         if (newPassword) {
             if (btn) btn.textContent = 'Updating Security...';
@@ -771,7 +742,8 @@ export async function saveProfile(e) {
                 showNotification("Password update failed: " + pwdError.message, "error");
                 return;
             }
-            // Note: Legacy password update removed as Trigger blocks it. Auth handles it.
+            // Sync password with players table to keep username login working
+            updates.password = await hashPassword(newPassword);
         }
 
         if (Object.keys(updates).length === 0) {
@@ -784,11 +756,16 @@ export async function saveProfile(e) {
         const { error } = await _supabase.from('players').update(updates).eq('id', state.user.id);
 
         if (error) {
-            showNotification("Error updating profile: " + error.message, "error");
+            if (error.code === '23505') {
+                showNotification("This Gamertag is already taken. Choose another.", "error");
+            } else {
+                showNotification("Error updating profile: " + error.message, "error");
+            }
         } else {
             // TÄRKEÄÄ: Päivitetään globaali tila, jotta sovellus 'muistaa' uudet tiedot
             state.user = {
                 ...state.user,
+                username: updates.username || state.user.username,
                 full_name: fullName,
                 email: email,
                 phone: phone,
@@ -834,7 +811,6 @@ export function setupAuthListeners() {
     document.getElementById('btn-register')?.addEventListener('click', handleSignUp);
     document.getElementById('link-back-to-login')?.addEventListener('click', () => toggleAuth(false));
     document.getElementById('btn-guest-login')?.addEventListener('click', handleGuest);
-    document.getElementById('btn-delete-account')?.addEventListener('click', deleteAccount);
 
     // Kytketään kaikki uloskirjautumispainikkeet
     document.querySelectorAll('.logout-item, #btn-logout').forEach(el => {

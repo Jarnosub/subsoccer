@@ -1,0 +1,15 @@
+#!/usr/bin/expect
+set timeout -1
+
+spawn scp -o StrictHostKeyChecking=no tailwind_cdn.js config.js socket-service.js tv-logic.js tv.html lounge-logic.js lounge-remote.html the-forge.css bracket-engine.js forge@theforge.local:~/subsoccer/
+expect {
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "assword:" {
+        send "subsoccer\r"
+        exp_continue
+    }
+    eof
+}

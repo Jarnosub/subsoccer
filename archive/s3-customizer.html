@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer S3 Customizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #222;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .customizer-container {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            height: 90vh;
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* LEFT SIDE - VISUAL PREVIEW */
+        .preview-section {
+            flex: 6;
+            background-color: #d7d5d2;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn.minus { background: #e5e7eb; color: #374151; }
+        .zoom-btn.plus { background: #dc2626; color: #fff; }
+
+        .table-image-wrapper {
+            position: relative;
+            width: 80%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .table-image-wrapper img {
+            max-width: 100%;
+            height: auto;
+            /* Placeholder styling if image is missing */
+            min-height: 400px; 
+        }
+
+        /* RIGHT SIDE - UI PANEL */
+        .controls-section {
+            flex: 4;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 20px 0;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #9ca3af;
+            letter-spacing: 1px;
+        }
+
+        .tab.active {
+            color: #111827;
+            border-bottom: 3px solid #dc2626;
+        }
+
+        .content-area {
+            padding: 40px;
+        }
+
+        .brand-subtitle {
+            font-family: 'Inter', sans-serif;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .brand-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 3.5rem;
+            line-height: 1;
+            color: #111827;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+        }
+
+        .description {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 18px;
+            border: 2px solid #111827;
+            border-radius: 4px;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            color: #111827;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 40px;
+        }
+        
+        .download-btn:hover {
+            background: #f9fafb;
+        }
+
+        .upload-accordion {
+            background: #dc2626;
+            color: white;
+            padding: 16px 20px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        .upload-field-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            color: #111827;
+            margin-bottom: 12px;
+        }
+
+        .dropzone {
+            border: 2px dashed #e5e7eb;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 30px;
+        }
+
+        .dropzone:hover {
+            border-color: #9ca3af;
+            background: #f9fafb;
+        }
+
+        .dropzone i {
+            font-size: 24px;
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+
+        .dropzone-text {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .dropzone-subtext {
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="customizer-container">
+        
+        <!-- LEFT PREVIEW AREA -->
+        <div class="preview-section">
+            
+            <div class="zoom-controls">
+                <span class="text-sm font-medium text-gray-500 mr-2">Zoom:</span>
+                <div class="zoom-btn minus"><i class="fas fa-minus text-xs"></i></div>
+                <div class="font-bold text-lg w-16 text-center tracking-wide">100%</div>
+                <div class="zoom-btn plus"><i class="fas fa-plus text-xs"></i></div>
+            </div>
+
+            <div class="table-image-wrapper">
+                <!-- User can replace this src with their actual S3 rendered image -->
+                <img src="#" alt="Subsoccer S3" id="main-table-preview" style="background-image: url('placeholder-silhouette-5-wide.png'); background-size: contain; background-repeat: no-repeat; background-position: center; width: 100%; height: 500px;">
+                
+                <!-- This can be the div where the overlays mask is applied -->
+                <div id="overlays" style="position: absolute; top:0; left:0; right:0; bottom:0; pointer-events:none;"></div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT UI PANEL -->
+        <div class="controls-section">
+            
+            <div class="tabs">
+                <div class="tab active">DESIGN UPLOAD</div>
+                <div class="tab">CSS TUNER</div>
+            </div>
+
+            <div class="content-area">
+                
+                <div class="brand-subtitle">CUSTOMIZE YOUR GAME</div>
+                <h1 class="brand-title">SUBSOCCER S3</h1>
+
+                <p class="description">
+                    Download the template files below and create your own design. You can either provide print-ready PDFs, or simply upload correctly sized images and let our team finalize the print files for you.
+                </p>
+
+                <button class="download-btn">
+                    <i class="fas fa-download"></i>
+                    DOWNLOAD TEMPLATES
+                </button>
+
+                <div class="upload-accordion">
+                    <span>UPLOAD GRAPHICS</span>
+                    <i class="fas fa-chevron-down text-sm"></i>
+                </div>
+
+                <!-- TABLE LONG SIDE -->
+                <div class="upload-field-title">TABLE (LONG SIDE)</div>
+                <div class="dropzone">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <div class="dropzone-text">Click or drop PDF/Image here</div>
+                    <div class="dropzone-subtext">Rec. size: 1190 x 195 mm</div>
+                </div>
+
+                <!-- CHAIR GRAPHICS -->
+                <div class="upload-field-title">CHAIR GRAPHICS (LEFT/RIGHT)</div>
+                <div class="dropzone">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <div class="dropzone-text">Click or drop PDF/Image here</div>
+                    <div class="dropzone-subtext">Rec. size: 300 x 300 mm</div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

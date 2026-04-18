@@ -91,11 +91,8 @@ export function showModal(title, content, options = {}) {
     const maxWidth = options.maxWidth || '500px';
     const borderColor = options.borderColor || 'var(--sub-gold)';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: ${maxWidth}; border-top: 2px solid ${borderColor};">
-            <div style="width: 100%; display: flex; justify-content: center; position: absolute; top: 8px; left: 0; z-index: 10; pointer-events: none;">
-                <div style="width: 40px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px;"></div>
-            </div>
-            <div class="modal-header" style="margin-top: 10px;">
+        <div class="modal-content" style="max-width: ${maxWidth}; border-color: ${borderColor};">
+            <div class="modal-header">
                 <h3 style="color: ${borderColor};">${title}</h3>
                 <button class="modal-close" data-close-modal="${modalId}">&times;</button>
             </div>

@@ -9,7 +9,7 @@ import { fetchLB, fetchHist } from './stats-service.js';
 import { fetchMyGames, cancelEdit, registerGame, updateGame, viewOwnershipRequests } from './game-service.js';
 import { fetchPublicGamesMap, initGameMap, searchPublicMap, filterMap, flyToLocation, searchLocation } from './map.js';
 import {
-    loadEventsPage, viewTournamentBracket,
+    loadEventsPage, viewEventDetails, viewTournamentBracket,
     finishEventTournament, closeBracketModal, viewTournamentParticipants,
     setupEventUIListeners
 } from './events-v3-final.js';
@@ -18,16 +18,15 @@ import {
 } from './quick-match.js';
 import { shareLiveEventLink } from './live-view-service.js';
 import { saveProfile, previewAvatarFile, populateCountries } from './auth.js';
-import { processConsentRequestParams } from './anti-cheat.js';
 import { hostWithQR, cancelQRHost, startQRBracket } from './qr-lobby.js';
 import { startTournament, advanceRound, saveTour, replayTournament, populateEventDropdown } from './tournament.js';
-import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard, setupModeratorListeners } from './moderator-service.js';
+import { showPartnerLinkGenerator, viewAllUsers, downloadSystemLogs, resetGlobalLeaderboard, setupModeratorListeners, loadAnalytics } from './moderator-service.js';
 
 // Swipe-toiminnallisuus muuttujat (siirretty alkuun ReferenceErrorin välttämiseksi)
 let touchStartX = null;
 let touchEndX = 0;
 const pages = ['profile', 'tournament', 'events', 'map', 'leaderboard', 'moderator'];
-let currentPageIndex = 0;
+let currentPageIndex = 1; // Aloitetaan play-sivulta
 
 /**
  * Shows the victory animation overlay.
@@ -67,7 +66,6 @@ export function showPage(p) {
     }
     state.currentPage = p;
 }
-window.showPage = showPage;
 
 /**
  * Manages authentication page states and app content visibility.
@@ -85,20 +83,6 @@ export function showAuthPage(mode = 'landing') {
         if (navTabs) navTabs.style.display = 'flex';
         const header = document.querySelector('header');
         if (header) header.style.display = 'flex';
-
-        // Show Beta Welcome Modal for new users
-        if (!localStorage.getItem('subsoccer_beta_welcome_seen')) {
-            const welcomeModal = document.getElementById('beta-welcome-modal');
-            if (welcomeModal) welcomeModal.style.display = 'flex';
-        }
-
-        // Ensure URL routing works smoothly upon app unlock
-        const urlParams = new URLSearchParams(window.location.search);
-        const pageToLoad = urlParams.get('page');
-        if (pageToLoad) {
-            showPage(pageToLoad);
-        }
-
         // Ensure auth page doesn't hide other UI elements
         return;
     }
@@ -131,64 +115,11 @@ export function showAuthPage(mode = 'landing') {
 
 window.showAuthPage = showAuthPage;
 
-// --- UNIVERSAL QR SCANNER (HTML5-QRCode) ---
-let html5QrCode = null;
-
-window.openUniversalScanner = function () {
-    const modal = document.getElementById('universal-scanner-modal');
-    if (!modal) return;
-    modal.style.display = 'flex';
-
-    if (typeof Html5Qrcode === 'undefined') {
-        alert("Scanner library is loading, please wait and try again in a few seconds.");
-        modal.style.display = 'none';
-        return;
-    }
-
-    if (!html5QrCode) {
-        html5QrCode = new Html5Qrcode("universal-reader");
-    }
-
-    const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
-
-    html5QrCode.start({ facingMode: "environment" }, config,
-        (decodedText) => {
-            // Handle successful scan
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-            window.closeUniversalScanner();
-
-            // Action routing based on QR content
-            if (decodedText.includes('join=') || decodedText.includes('subsoccer.com') || decodedText.includes('192.168.')) {
-                // Forward everything back to standard browser navigation
-                window.location.href = decodedText;
-            } else {
-                console.error("Unknown QR code format:", decodedText);
-                alert("This doesn't seem to be a valid Subsoccer QR code.");
-            }
-        },
-        (errorMessage) => {
-            // Expected non-critical decode errors; silent ignore
-        }).catch((err) => {
-            console.error("Scanner failed to start", err);
-            alert("Camera access was denied or is completely unavailable.");
-            window.closeUniversalScanner();
-        });
-};
-
-window.closeUniversalScanner = function () {
-    const modal = document.getElementById('universal-scanner-modal');
-    if (modal) modal.style.display = 'none';
-    if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => {
-            html5QrCode.clear();
-        }).catch(err => console.error("Failed to stop scanner", err));
-    }
-};
-
 function updatePageUI(p) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('section-' + p).classList.add('active');
+    const targetSection = document.getElementById('section-' + p);
+    if (targetSection) targetSection.classList.add('active');
 
     // Aina kun sivu vaihtuu, nollataan scrollaus ylös
     window.scrollTo(0, 0);
@@ -237,6 +168,7 @@ function updatePageUI(p) {
     if (p !== 'profile') cancelEditProfile();
     if (p === 'map') fetchPublicGamesMap();
     if (p === 'events') loadEventsPage();
+    if (p === 'analytics') loadAnalytics();
 
     // Alustaa kartan 'games'-sivulla
     if (p === 'games') {
@@ -253,7 +185,7 @@ function updatePageUI(p) {
 export function populateGameSelect() {
     const sel = document.getElementById('tournament-game-select');
     if (!sel) return;
-    sel.innerHTML = '<option value="" disabled selected>Select Game</option>';
+    sel.innerHTML = '<option value="" disabled selected>Select Game Table</option>';
     state.allGames.forEach(g => {
         const opt = document.createElement('option');
         opt.value = g.id;
@@ -296,13 +228,13 @@ export function showMatchMode(mode) {
         quickBtn.style.background = 'linear-gradient(135deg, #E30613 0%, #c00510 100%)';
         quickBtn.style.color = '#fff';
         quickBtn.style.border = 'none';
-        quickBtn.style.boxShadow = '0 4px 15px rgba(227, 6, 19, 0.3)';
+        quickBtn.style.boxShadow = 'none';
 
         // Tournament - inactive
         tournamentBtn.style.background = '#1a1a1a';
         tournamentBtn.style.color = '#888';
         tournamentBtn.style.border = '2px solid #333';
-        tournamentBtn.style.boxShadow = 'none';
+        tournamentBtn.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.3)'; // Keltainen hohde
         if (tourIcon) tourIcon.style.color = '#666';
     } else {
         quickSection.style.display = 'none';
@@ -312,14 +244,14 @@ export function showMatchMode(mode) {
         quickBtn.style.background = '#1a1a1a';
         quickBtn.style.color = '#888';
         quickBtn.style.border = '2px solid #333';
-        quickBtn.style.boxShadow = 'none';
+        quickBtn.style.boxShadow = '0 0 15px rgba(227, 6, 19, 0.3)'; // Punainen hohde
 
-        // Tournament - active (Brand Red Theme)
-        tournamentBtn.style.background = 'linear-gradient(135deg, #E30613 0%, #c00510 100%)';
-        tournamentBtn.style.color = '#fff';
+        // Tournament - active (Kultainen teema)
+        tournamentBtn.style.background = 'linear-gradient(135deg, #FFD700 0%, #d4af37 100%)';
+        tournamentBtn.style.color = '#000';
         tournamentBtn.style.border = 'none';
-        tournamentBtn.style.boxShadow = '0 4px 15px rgba(227, 6, 19, 0.3)';
-        if (tourIcon) tourIcon.style.color = '#fff';
+        tournamentBtn.style.boxShadow = 'none';
+        if (tourIcon) tourIcon.style.color = '#000'; // Ikoni mustaksi kultaa vasten
         populateEventDropdown();
     }
 }
@@ -360,20 +292,9 @@ function initSwipeListener() {
     const appContent = document.getElementById('app-content');
     if (!appContent) return;
 
-    const shouldIgnoreSwipe = (target) => {
-        return target.closest('.leaflet-container')
-            || target.closest('.no-swipe')
-            || target.closest('#map-wrapper')
-            || target.closest('#hardware-garage-list')
-            || target.closest('.venue-card')
-            || target.closest('input[type="range"]')
-            || target.closest('.pro-card')
-            || target.closest('button');
-    };
-
     appContent.addEventListener('touchstart', (e) => {
-        // Estä sivun vaihto jos käyttäjä on kartan päällä, vaultissa tai painamassa jotain nappia
-        if (shouldIgnoreSwipe(e.target)) {
+        // Estä sivun vaihto jos käyttäjä on kartan päällä tai kortin päällä tai elementissä jossa on 'no-swipe'
+        if (e.target.closest('.leaflet-container') || e.target.closest('.no-swipe') || e.target.closest('input[type="range"]') || e.target.closest('.pro-card')) {
             touchStartX = null;
             return;
         }
@@ -382,18 +303,8 @@ function initSwipeListener() {
 
     appContent.addEventListener('touchend', (e) => {
         if (touchStartX === null) return;
-
-        if (shouldIgnoreSwipe(e.target)) {
-            touchStartX = null;
-            return;
-        }
-
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
-
-        // Nollaa AINA kosketuksen lähtöpiste, ettei se jää "kummittelemaan" ja laukaise 
-        // satunnaisia siirtymiä seuraavasta irrallisesta touchend-tapahtumasta (kuten kartan nappeja painaessa).
-        touchStartX = null;
     }, { passive: true });
 }
 
@@ -453,8 +364,7 @@ export function initTiltEffect(card) {
                 const rotateX = (centerY - y) / 12;
                 const rotateY = (x - centerX) / 12;
 
-                const target = card.querySelector('.card-flipper') || card.querySelector('.pro-card-flipper') || card;
-                target.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
                 card.style.setProperty('--x', `${x} px`);
                 card.style.setProperty('--y', `${y} px`);
 
@@ -465,45 +375,12 @@ export function initTiltEffect(card) {
     };
 
     const handleReset = () => {
-        const target = card.querySelector('.card-flipper') || card.querySelector('.pro-card-flipper') || card;
-        target.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+        card.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     };
 
-    // Desktop Hover
+    // 3D Hover Tilt is strictly for mouse devices to prevent mobile touch/click cancellations
     card.addEventListener('mousemove', handleMove);
     card.addEventListener('mouseleave', handleReset);
-
-    // Mobile Phone Gyroscope (Tilt to parallax)
-    if (window.DeviceOrientationEvent) {
-        // Request iOS 13+ permission upon first user interaction
-        card.addEventListener('click', () => {
-             if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                  DeviceOrientationEvent.requestPermission().catch(console.error);
-             }
-        }, { once: true });
-
-        window.addEventListener('deviceorientation', (e) => {
-            if (!document.contains(card)) return;
-            
-            let gamma = e.gamma || 0;
-            let beta = e.beta || 0;
-            
-            // Sanitize rotation values
-            gamma = Math.max(-45, Math.min(45, gamma));
-            beta = Math.max(0, Math.min(90, beta));
-            
-            // Apply gentle perspective transform based on gravity vector
-            const rx = ((beta - 45) / 45) * -15;
-            const ry = (gamma / 45) * 15;
-            
-            const target = card.querySelector('.card-flipper') || card.querySelector('.pro-card-flipper') || card;
-            target.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
-        }, true);
-    }
-    
-    // Fallback: manual finger sweep on card for mobile if gyro permission is denied
-    card.addEventListener('touchmove', handleMove, { passive: true });
-    card.addEventListener('touchend', handleReset);
 }
 
 /**
@@ -630,12 +507,6 @@ export function setupUIListeners() {
 
     // Settings Menu
     document.getElementById('menu-toggle-btn')?.addEventListener('click', (e) => toggleSettingsMenu(e));
-    document.getElementById('menu-item-register-hardware')?.addEventListener('click', (e) => {
-        cancelEdit(); // Explicitly clear any edit locks before entering
-        toggleSettingsMenu(e);
-        if (window.openHardwareClaimModal) window.openHardwareClaimModal();
-    });
-
     document.getElementById('menu-item-leaderboard')?.addEventListener('click', (e) => {
         showPage('leaderboard');
         toggleSettingsMenu(e);
@@ -644,104 +515,6 @@ export function setupUIListeners() {
         showPage('map');
         toggleSettingsMenu(e);
     });
-    const orderBtn = document.getElementById('menu-item-export-pdf');
-    const isProd = window.location.hostname === 'subsoccer.pro' || window.location.hostname === 'www.subsoccer.pro';
-    if (orderBtn) {
-        if (isProd) {
-            orderBtn.style.opacity = '0.5';
-            orderBtn.style.cursor = 'not-allowed';
-            orderBtn.style.color = '#777';
-            orderBtn.innerHTML = '<i class="fa-solid fa-lock" style="color:#555;"></i> PRO CARD (SOON)';
-            orderBtn.addEventListener('click', (e) => {
-                toggleSettingsMenu(e); // Close menu
-                alert("Physical Pro Card Ordering is unlocking for all ranked players very soon! Stay tuned.");
-            });
-        } else {
-            orderBtn.addEventListener('click', (e) => {
-                toggleSettingsMenu(e); // Close menu
-                
-                // Render Card Preview visually for the user
-        const previewContainer = document.getElementById('card-order-preview');
-        const originalCard = document.querySelector('#profile-card-container .pro-card');
-        if (previewContainer && originalCard) {
-            previewContainer.innerHTML = '';
-            
-            const scaleWrapper = document.createElement('div');
-            scaleWrapper.style.display = 'flex';
-            scaleWrapper.style.gap = '30px';
-            scaleWrapper.style.transform = 'scale(0.42)'; // Scale down both
-            scaleWrapper.style.transformOrigin = 'top center';
-            scaleWrapper.style.width = '710px'; // 340+340+30 to avoid flex-shrink
-            scaleWrapper.style.justifyContent = 'center';
-
-            // Front Proof
-            const cloneFront = originalCard.cloneNode(true);
-            cloneFront.style.pointerEvents = 'none'; 
-            cloneFront.style.margin = '0';
-            cloneFront.style.transform = 'none'; // Clear any inherited 3D hover tilt
-            cloneFront.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
-            const bBackToDel = cloneFront.querySelector('.pro-card-back') || cloneFront.querySelector('.card-back');
-            if (bBackToDel) bBackToDel.remove();
-            
-            const frontFlipper = cloneFront.querySelector('.pro-card-flipper') || cloneFront.querySelector('.card-flipper');
-            if(frontFlipper) {
-                frontFlipper.style.transition = 'none';
-                frontFlipper.style.transform = 'none';
-            }
-            cloneFront.querySelectorAll('.flip-hint').forEach(e => e.style.display = 'none');
-            
-            // Back Proof
-            const cloneBack = originalCard.cloneNode(true);
-            cloneBack.style.pointerEvents = 'none'; 
-            cloneBack.style.margin = '0';
-            cloneBack.style.transform = 'none'; // Clear any inherited 3D hover tilt
-            cloneBack.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
-            
-            // For the back proof, we literally just delete the front side
-            // and remove any rotateY on the back side so it faces forward naturally
-            const bFront = cloneBack.querySelector('.pro-card-front') || cloneBack.querySelector('.card-front');
-            if (bFront) bFront.remove();
-            
-            const bBack = cloneBack.querySelector('.pro-card-back') || cloneBack.querySelector('.card-back');
-            if (bBack) {
-                bBack.style.display = 'flex';
-                bBack.style.transform = 'none'; // Overwrite rotateY(180deg) so it faces camera
-                bBack.style.zIndex = '5';
-            }
-            
-            const backFlipper = cloneBack.querySelector('.pro-card-flipper') || cloneBack.querySelector('.card-flipper');
-            if(backFlipper) {
-                backFlipper.style.transition = 'none';
-                backFlipper.style.transform = 'none';
-            }
-            cloneBack.querySelectorAll('.flip-hint').forEach(e => e.style.display = 'none');
-
-            scaleWrapper.appendChild(cloneFront);
-            scaleWrapper.appendChild(cloneBack);
-            previewContainer.appendChild(scaleWrapper);
-        }
-
-        const modal = document.getElementById('order-card-modal');
-        if (modal) modal.style.display = 'flex';
-            });
-        }
-    }
-
-    document.getElementById('btn-submit-card-order')?.addEventListener('click', async (e) => {
-        const modal = document.getElementById('order-card-modal');
-        if (modal) modal.style.display = 'none';
-        const { exportPhysicalCardToPDF } = await import('./profile-ui.js');
-        // Retrieve shipping info and pass it to the generator
-        const shippingInfo = {
-            name: document.getElementById('order-shipping-name').value.trim(),
-            street: document.getElementById('order-shipping-street').value.trim(),
-            zip: document.getElementById('order-shipping-zip').value.trim(),
-            city: document.getElementById('order-shipping-city').value.trim(),
-            country: document.getElementById('order-shipping-country').value.trim()
-        };
-        exportPhysicalCardToPDF(shippingInfo);
-    });
-
     document.getElementById('menu-item-edit-profile')?.addEventListener('click', (e) => {
         showPage('profile');
         showEditProfile();
@@ -773,7 +546,7 @@ export function setupUIListeners() {
     document.getElementById('btn-dashboard-play')?.addEventListener('click', () => showPage('tournament'));
     document.getElementById('btn-dashboard-arena')?.addEventListener('click', () => showPage('map'));
     document.getElementById('btn-profile-history')?.addEventListener('click', () => showPage('history'));
-    document.getElementById('btn-profile-register-game')?.addEventListener('click', () => { cancelEdit(); showPage('games'); });
+    document.getElementById('btn-profile-register-game')?.addEventListener('click', () => showPage('games'));
     document.getElementById('menu-item-concept')?.addEventListener('click', () => {
         showAppConcept();
         document.getElementById('settings-menu').style.display = 'none';
@@ -800,15 +573,12 @@ export function setupUIListeners() {
             const desc = document.getElementById('visibility-desc');
             if (val === 'public') desc.innerText = "Visible to all players on the global map.";
             else if (val === 'private') desc.innerText = "Hidden from others, but visible to you on your personal map.";
-            else desc.innerText = "Completely hidden from the map. Only visible in your 'My Games' list.";
+            else desc.innerText = "Completely hidden from the map. Only visible in your 'My Game Tables' list.";
         });
     });
 
     // Map Section
     document.getElementById('btn-search-public-map')?.addEventListener('click', () => searchPublicMap());
-    document.getElementById('public-map-search')?.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') searchPublicMap();
-    });
 
     // Quick Match Section
     document.getElementById('btn-quick-match-mode')?.addEventListener('click', () => showMatchMode('quick'));
@@ -873,13 +643,8 @@ export function setupUIListeners() {
         }
 
         // 15. Order Physical Card
-        const orderCardBtn = e.target.closest('[data-action="order-physical-card"]');
-        if (orderCardBtn) {
-            const isProd = window.location.hostname === 'subsoccer.pro' || window.location.hostname === 'www.subsoccer.pro';
-            if (isProd) {
-                showNotification('Physical card ordering opens soon!', 'info');
-                return;
-            }
+        const orderBtn = e.target.closest('[data-action="order-physical-card"]');
+        if (orderBtn) {
             showPhysicalOrderDialog();
             return;
         }
@@ -1012,6 +777,12 @@ export function updatePoolUI() {
     if (!list) return;
     list.innerHTML = '';
     if (state.pool.length === 0) {
+        list.innerHTML = `
+            <div style="text-align:center; color:#444; padding:30px 0; font-size:0.8rem;">
+                <i class="fa fa-users" style="font-size:2rem; margin-bottom:10px; opacity:0.3;"></i><br>
+                Add players to start
+            </div>
+        `;
         if (countSpan) countSpan.innerText = 0;
         return;
     }
@@ -1074,6 +845,9 @@ subscribe('user', () => {
             const isUserAdmin = isAdmin();
             const modMenu = document.getElementById('menu-item-moderator');
             if (modMenu) modMenu.style.display = isUserAdmin ? 'flex' : 'none';
+
+            const venueMenu = document.getElementById('menu-item-venue-manager');
+            if (venueMenu) venueMenu.style.display = isUserAdmin ? 'flex' : 'none';
 
             const sensorMenu = document.getElementById('menu-item-sensors');
             if (sensorMenu) sensorMenu.style.display = 'flex'; // Allow anyone to calibrate audio
@@ -1139,10 +913,10 @@ subscribe('user', () => {
         }
 
         // 4. Instant Play -linkin päivitys
-        const instantPlayLink = document.querySelector('a[href*="instant-play.html"]');
+        const instantPlayLink = document.querySelector('a[href*="flick-game.html"]');
         if (instantPlayLink) {
             const userType = state.user.id === 'guest' ? 'guest' : 'registered';
-            instantPlayLink.href = `instant-play.html?game_id=QUICK-PLAY&mode=casual&user_type=${userType}`;
+            instantPlayLink.href = `flick-game.html?game_id=QUICK-PLAY&mode=casual&user_type=${userType}`;
         }
 
         // 5. Komponenttien päivitys
@@ -1174,10 +948,9 @@ subscribe('user', () => {
                         showMatchMode('tournament');
                     }
                 } else {
-                    state.currentPage = 'profile'; // Oletuksena näytetään The Vault & Player Card
+                    state.currentPage = 'tournament'; // Oletuksena näytetään Play/Quick Match
                 }
             }
-            processConsentRequestParams();
         }
     } catch (err) {
         console.error("Error in user state subscription:", err);

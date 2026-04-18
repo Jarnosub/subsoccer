@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer - Scan Code</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+            font-display: swap;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: #000;
+            color: white;
+            width: 100vw;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========================================
+           HEADER
+           ======================================== */
+        .scan-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            padding-top: calc(12px + env(safe-area-inset-top, 20px));
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+
+        .scan-back-btn {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .scan-title {
+            flex: 1;
+            text-align: center;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+        }
+
+        /* ========================================
+           VIDEO (fullscreen camera)
+           ======================================== */
+        #camera-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        /* ========================================
+           SCAN FRAME OVERLAY
+           ======================================== */
+        .scan-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .scan-frame {
+            width: 240px;
+            height: 240px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        /* Corner markers */
+        .scan-frame::before,
+        .scan-frame::after,
+        .scan-corner-bl::before,
+        .scan-corner-br::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: #D4AF37;
+            border-style: solid;
+        }
+        .scan-frame::before {
+            top: 0; left: 0;
+            border-width: 3px 0 0 3px;
+        }
+        .scan-frame::after {
+            top: 0; right: 0;
+            border-width: 3px 3px 0 0;
+        }
+        .scan-corner-bl::before {
+            bottom: 0; left: 0;
+            border-width: 0 0 3px 3px;
+        }
+        .scan-corner-br::before {
+            bottom: 0; right: 0;
+            border-width: 0 3px 3px 0;
+        }
+
+        /* Scanning line animation */
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 10px;
+            right: 10px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            box-shadow: 0 0 10px rgba(212,175,55,0.5);
+            animation: scanLine 2s ease-in-out infinite;
+        }
+
+        @keyframes scanLine {
+            0%, 100% { top: 10px; opacity: 0.3; }
+            50% { top: calc(100% - 10px); opacity: 1; }
+        }
+
+        .scan-instruction {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+        }
+
+        .scan-instruction-sub {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
+        /* ========================================
+           BOTTOM STATUS BAR
+           ======================================== */
+        .scan-status {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom, 20px));
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            z-index: 100;
+            text-align: center;
+        }
+
+        .scan-status-text {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: #D4AF37;
+        }
+
+        /* ========================================
+           RESULT OVERLAY (when code found)
+           ======================================== */
+        .scan-result {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 200;
+            background: rgba(0,0,0,0.95);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .scan-result.active { display: flex; }
+
+        .scan-result-icon {
+            font-size: 3rem;
+            color: #D4AF37;
+            margin-bottom: 20px;
+        }
+
+        .scan-result-title {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .scan-result-desc {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .scan-result-btn {
+            background: #E30613;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-bottom: 12px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .scan-result-cancel {
+            background: none;
+            border: 1px solid #333;
+            color: #888;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        /* ========================================
+           ERROR / NO CAMERA
+           ======================================== */
+        .scan-error {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 200;
+            background: #0a0a0a;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .scan-error.active { display: flex; }
+    </style>
+</head>
+<body>
+
+    <!-- CAMERA FEED -->
+    <video id="camera-video" autoplay playsinline muted></video>
+
+    <!-- HEADER -->
+    <div class="scan-header">
+        <button class="scan-back-btn" onclick="stopCamera(); window.location.href='index.html'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="scan-title">SCAN QR CODE</div>
+        <div style="width: 40px;"></div>
+    </div>
+
+    <!-- SCAN FRAME -->
+    <div class="scan-overlay">
+        <div class="scan-frame">
+            <div class="scan-corner-bl" style="position:absolute; bottom:0; left:0; width:1px; height:1px;"></div>
+            <div class="scan-corner-br" style="position:absolute; bottom:0; right:0; width:1px; height:1px;"></div>
+            <div class="scan-line"></div>
+        </div>
+        <div class="scan-instruction">POINT AT A SUBSOCCER QR CODE</div>
+        <div class="scan-instruction-sub">Table codes, event QR, or lobby invites</div>
+    </div>
+
+    <!-- BOTTOM STATUS -->
+    <div class="scan-status">
+        <div class="scan-status-text" id="scan-status">
+            <i class="fas fa-circle" style="font-size: 6px; color: #4ade80; vertical-align: middle; margin-right: 4px;"></i>
+            CAMERA ACTIVE
+        </div>
+    </div>
+
+    <!-- RESULT OVERLAY -->
+    <div class="scan-result" id="scan-result">
+        <div class="scan-result-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="scan-result-title" id="result-title">CODE FOUND</div>
+        <div class="scan-result-desc" id="result-desc">SUBSOCCER TABLE DETECTED</div>
+        <button class="scan-result-btn" id="result-action" onclick="">GO</button>
+        <button class="scan-result-cancel" onclick="dismissResult()">SCAN AGAIN</button>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div class="scan-error" id="scan-error">
+        <i class="fas fa-camera-slash" style="font-size: 3rem; color: #E30613; margin-bottom: 20px;"></i>
+        <div style="font-family: 'Subsoccer', sans-serif; font-size: 1.3rem; margin-bottom: 8px;">CAMERA ACCESS DENIED</div>
+        <div style="color: #666; font-size: 0.85rem; margin-bottom: 30px; line-height: 1.5;">
+            Allow camera access in your browser settings to scan QR codes.
+        </div>
+        <button class="scan-result-cancel" onclick="window.location.href='index.html'">BACK TO HUB</button>
+    </div>
+
+    <script>
+        let videoStream = null;
+        let scanning = true;
+        let barcodeDetector = null;
+
+        // ============================================
+        // CAMERA INIT
+        // ============================================
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                videoStream = stream;
+                const video = document.getElementById('camera-video');
+                video.srcObject = stream;
+                video.play();
+
+                // Start QR detection after camera is rolling
+                video.addEventListener('loadedmetadata', () => {
+                    initBarcodeDetection(video);
+                });
+            } catch(e) {
+                console.error('Camera error:', e);
+                document.getElementById('scan-error').classList.add('active');
+            }
+        }
+
+        function stopCamera() {
+            scanning = false;
+            if (videoStream) {
+                videoStream.getTracks().forEach(t => t.stop());
+            }
+        }
+
+        // ============================================
+        // BARCODE DETECTION (native API or fallback)
+        // ============================================
+        let canvasElement = document.createElement("canvas");
+        let canvasContext = canvasElement.getContext("2d", { willReadFrequently: true });
+
+        function initBarcodeDetection(video) {
+            if ('BarcodeDetector' in window) {
+                barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+                detectLoopNative(video);
+            } else {
+                // Fallback to jsQR for iOS Safari etc.
+                if (typeof jsQR !== 'undefined') {
+                    detectLoopFallback(video);
+                } else {
+                    document.getElementById('scan-status').innerHTML = 'SCANNER OFFLINE (Missing Library)';
+                }
+            }
+        }
+
+        async function detectLoopNative(video) {
+            if (!scanning) return;
+            try {
+                const barcodes = await barcodeDetector.detect(video);
+                if (barcodes.length > 0) {
+                    const code = barcodes[0].rawValue;
+                    if (code) {
+                        scanning = false;
+                        if (navigator.vibrate) navigator.vibrate(100);
+                        handleQRResult(code);
+                        return;
+                    }
+                }
+            } catch(e) {}
+            requestAnimationFrame(() => detectLoopNative(video));
+        }
+
+        function detectLoopFallback(video) {
+            if (!scanning) return;
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "attemptBoth",
+                });
+                if (code) {
+                    scanning = false;
+                    if (navigator.vibrate) navigator.vibrate(100);
+                    handleQRResult(code.data);
+                    return;
+                }
+            }
+            requestAnimationFrame(() => detectLoopFallback(video));
+        }
+
+        // ============================================
+        // QR RESULT HANDLER
+        // ============================================
+        function handleQRResult(rawValue) {
+            const result = document.getElementById('scan-result');
+            const title = document.getElementById('result-title');
+            const desc = document.getElementById('result-desc');
+            const action = document.getElementById('result-action');
+
+            let targetUrl = rawValue;
+            let displayTitle = 'CODE FOUND';
+            let displayDesc = 'OPENING LINK...';
+
+            // Parse known subsoccer URL patterns
+            if (rawValue.includes('lounge-remote') || rawValue.includes('table-')) {
+                displayTitle = 'TABLE DETECTED';
+                displayDesc = 'ARCADE TABLE QR CODE';
+                action.innerText = 'JOIN TABLE';
+            } else if (rawValue.includes('join=')) {
+                displayTitle = 'LOBBY INVITE';
+                displayDesc = 'JOIN A TOURNAMENT LOBBY';
+                action.innerText = 'JOIN LOBBY';
+            } else if (rawValue.includes('game_id=')) {
+                displayTitle = 'LIVE GAME';
+                displayDesc = 'SPECTATE OR JOIN GAME';
+                action.innerText = 'OPEN GAME';
+            } else if (rawValue.includes('live=')) {
+                displayTitle = 'LIVE EVENT';
+                displayDesc = 'TOURNAMENT BROADCAST';
+                action.innerText = 'WATCH LIVE';
+            } else if (rawValue.includes('subsoccer')) {
+                displayTitle = 'SUBSOCCER LINK';
+                displayDesc = rawValue.replace(/https?:\/\//, '').substring(0, 40);
+                action.innerText = 'OPEN';
+            } else {
+                displayTitle = 'QR CODE';
+                displayDesc = rawValue.substring(0, 50);
+                action.innerText = 'OPEN LINK';
+            }
+
+            title.innerText = displayTitle;
+            desc.innerText = displayDesc;
+            action.onclick = () => {
+                stopCamera();
+                window.location.href = targetUrl;
+            };
+
+            result.classList.add('active');
+        }
+
+        function dismissResult() {
+            document.getElementById('scan-result').classList.remove('active');
+            scanning = true;
+            const video = document.getElementById('camera-video');
+            if ('BarcodeDetector' in window) {
+                detectLoopNative(video);
+            } else {
+                detectLoopFallback(video);
+            }
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        startCamera();
+    </script>
+
+</body>
+</html>

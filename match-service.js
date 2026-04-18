@@ -41,8 +41,9 @@ export const MatchService = {
         try {
             showLoading('Recording match...');
 
-            let { data: p1Data } = await _supabase.from('players').select('id, username, elo').ilike('username', player1Name).maybeSingle();
-            let { data: p2Data } = await _supabase.from('players').select('id, username, elo').ilike('username', player2Name).maybeSingle();
+            // 1. Fetch player and game data
+            let { data: p1Data } = await _supabase.from('players').select('*').ilike('username', player1Name).maybeSingle();
+            let { data: p2Data } = await _supabase.from('players').select('*').ilike('username', player2Name).maybeSingle();
 
             // Try to find game info if gameId is provided
             let isVerifiedTable = false;
@@ -112,7 +113,6 @@ export const MatchService = {
                     winner: winnerName,
                     player1_score: p1Score,
                     player2_score: p2Score,
-                    game_id: actualGameId,
                     tournament_id: isUuid(tournamentId) ? tournamentId : null,
                     tournament_name: tournamentName,
                     is_verified_table: isVerifiedTable,
@@ -133,12 +133,12 @@ export const MatchService = {
                     <h2 style="font-family:'Russo One'; color:var(--sub-red); margin-bottom:15px; text-transform:uppercase; letter-spacing:1px;">🚨 HUSTLER CAUGHT!</h2>
                     
                     <p style="color:#ccc; font-size:0.95rem; line-height:1.6; margin-bottom:20px;">
-                        Impressive farming skills. We see you've reached the <strong>1600 ELO</strong> cap for Living Room games. 
+                        Impressive farming skills. We see you've reached the <strong>1600 ELO</strong> cap for Living Room tables. 
                     </p>
                     
                     <div style="background:rgba(227, 6, 19, 0.1); border:1px solid rgba(227, 6, 19, 0.3); border-radius:8px; padding:15px; margin-bottom:25px;">
                         <p style="color:#fff; font-size:0.85rem; line-height:1.5; margin:0;">
-                            To climb the Global Leaderboard and reach the true <strong>Top Ranks</strong>, you need to step outside. Find an official <span style="color:var(--sub-gold); font-weight:bold;">Verified Game</span> and prove your skills against real challengers.
+                            To climb the Global Leaderboard and reach the true <strong>Pro Ranks</strong>, you need to step outside. Find an official <span style="color:var(--sub-gold); font-weight:bold;">Verified Public Arena</span> and prove your skills against real challengers.
                         </p>
                     </div>
 
@@ -151,10 +151,7 @@ export const MatchService = {
             }
 
             // Check Level Up
-            // ONLY show the Rank Up pop-up if the winner is actually logged in on THIS device (not for tournament hosts/moderators)
-            const isWinnerLoggedInHere = state.user && state.user.id === winnerData.id;
-
-            if (!wasCapped && isWinnerLoggedInHere && Math.floor(newElo / 100) > Math.floor(winnerCurrentElo / 100)) {
+            if (!wasCapped && Math.floor(newElo / 100) > Math.floor(winnerCurrentElo / 100)) {
                 setTimeout(() => { if (window.showLevelUpCard) window.showLevelUpCard(winnerName, newElo); }, 2000);
             }
 

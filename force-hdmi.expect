@@ -1,0 +1,7 @@
+#!/usr/bin/expect
+spawn ssh forge@theforge.local "echo '\nhdmi_force_hotplug=1\nhdmi_group=1\nhdmi_mode=16\nhdmi_drive=2' | sudo tee -a /boot/firmware/config.txt && sudo reboot"
+expect "password:"
+send "subsoccer\r"
+expect "password for forge:"
+send "subsoccer\r"
+expect eof

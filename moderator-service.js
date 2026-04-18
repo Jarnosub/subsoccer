@@ -192,127 +192,38 @@ export async function viewAllUsers() {
         const { data, error } = await _supabase
             .from('players')
             .select('id, username, elo, wins, losses, country, created_at, is_admin, email')
-            .order('created_at', { ascending: false });
+            .order('username');
 
         if (error) throw error;
 
         // Suodatetaan pois vieraat (ne joilla ei ole sähköpostia)
         const registeredUsers = data.filter(u => u.email);
-        
-        // Tilastot
-        const totalUsers = registeredUsers.length;
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        const newThisWeek = registeredUsers.filter(u => new Date(u.created_at) > oneWeekAgo).length;
-
-        // Maakohtainen erittely
-        const countryCounts = {};
-        registeredUsers.forEach(u => {
-            const c = (u.country || 'FI').toUpperCase();
-            countryCounts[c] = (countryCounts[c] || 0) + 1;
-        });
-        const countryOptions = Object.entries(countryCounts)
-            .sort((a,b) => b[1] - a[1])
-            .map(([c, count]) => `<option value="${c}">${c} (${count})</option>`)
-            .join('');
 
         const html = `
-            <style>
-               .stat-box { flex: 1; background: #111; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; }
-               .stat-val { font-family: 'Russo One'; color: var(--sub-gold); font-size: 1.8rem; line-height: 1; margin-bottom: 5px; text-shadow: 0 0 10px rgba(255,215,0,0.2); }
-               .stat-label { font-size: 0.65rem; color: #888; font-family: 'Open Sans', sans-serif; font-weight: bold; letter-spacing: 1px; }
-               .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; }
-               .filter-input { flex: 2; background: #111; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 4px; font-family: 'Open Sans', sans-serif; font-size: 0.9rem; }
-               .filter-select { flex: 1; background: #111; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 4px; font-family: 'Open Sans', sans-serif; font-size: 0.9rem; }
-            </style>
-            
-            <div style="display:flex; gap:10px; margin-bottom: 20px;">
-                <div class="stat-box">
-                    <div class="stat-val">${totalUsers}</div>
-                    <div class="stat-label">TOTAL REGISTERED</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-val" style="color: #00FFCC; text-shadow: 0 0 10px rgba(0,255,204,0.3);">+${newThisWeek}</div>
-                    <div class="stat-label">NEW THIS 7 DAYS</div>
-                </div>
-            </div>
-
-            <div class="filter-bar">
-                <input type="text" id="admin-user-search" class="filter-input" placeholder="Search username, email...">
-                <select id="admin-country-filter" class="filter-select">
-                    <option value="">All Countries</option>
-                    ${countryOptions}
-                </select>
-            </div>
-
-            <div id="admin-users-list" style="max-height: 350px; overflow-y: auto; padding-right: 5px; display:flex; flex-direction:column; gap:8px;">
-                <!-- List renders here -->
-            </div>
-        `;
-
-        // Renderöintilogiikka modaaliin asettamisen jälkeen
-        const renderList = (users) => {
-            const list = document.getElementById('admin-users-list');
-            if (!list) return;
-            
-            if (users.length === 0) {
-                list.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">No users match your filters.</div>';
-                return;
-            }
-
-            list.innerHTML = users.map(u => `
-                <div style="background:#111; padding:12px; border-radius:6px; border-left:3px solid ${u.is_admin ? 'var(--sub-gold)' : '#333'}; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-family:'Russo One', sans-serif; color:#fff; font-size:0.9rem; letter-spacing:1px; display:flex; align-items:center; gap:6px;">
-                            ${u.is_admin ? '<i class="fa-solid fa-crown" style="color:var(--sub-gold); font-size:0.8rem;"></i>' : ''}${u.username.toUpperCase()}
+            <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                ${registeredUsers.map(u => `
+                    <div style="background:#111; padding:12px; border-radius:4px; margin-bottom:8px; border-left:3px solid ${u.is_admin ? 'var(--sub-gold)' : '#333'}; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-family:'Resolve'; color:#fff; font-size:0.9rem;">
+                                ${u.is_admin ? '⭐ ' : ''}${u.username}
+                            </div>
+                            <div style="font-size:0.7rem; color:#666;">${u.country?.toUpperCase() || 'FI'} • Joined ${new Date(u.created_at).toLocaleDateString()}</div>
+                            <div style="font-size:0.6rem; color:#444;">${u.email}</div>
                         </div>
-                        <div style="font-size:0.7rem; color:#888; font-family:'Open Sans', sans-serif; margin-top:4px;">
-                            <img src="https://flagcdn.com/w20/${(u.country || 'fi').toLowerCase()}.png" width="14" style="vertical-align:middle; border-radius:2px; margin-right:4px; opacity:0.8;">
-                            ${(u.country||'FI').toUpperCase()} • Joined ${new Date(u.created_at).toLocaleDateString()}
-                        </div>
-                        <div style="font-size:0.6rem; color:#555; font-family:'Open Sans', sans-serif; margin-top:2px;">${u.email}</div>
-                    </div>
-                    <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">
-                        <div style="color:var(--sub-gold); font-family:'Russo One', sans-serif; font-size:1.1rem;">${u.elo} <span style="font-size:0.55rem; color:#888;">ELO</span></div>
-                        <div style="display:flex; gap: 5px; width: 100%; justify-content: flex-end;">
+                        <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">
+                            <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1rem;">${u.elo}</div>
                             <button class="btn-red" 
-                                    style="font-size:0.55rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : '#222'}; color:${u.is_admin ? '#fff' : 'var(--sub-gold)'}; border:1px solid ${u.is_admin ? 'transparent' : 'var(--sub-gold)'}; width:auto; min-width:85px; font-weight:bold; letter-spacing:1px; cursor:pointer;"
+                                    style="font-size:0.6rem; padding:4px 8px; background:${u.is_admin ? '#c62828' : 'var(--sub-gold)'}; color:${u.is_admin ? '#fff' : '#000'}; border:none; width:auto; min-width:80px;"
                                     onclick="toggleAdminStatus('${u.id}', ${u.is_admin})">
                                 ${u.is_admin ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
                             </button>
                         </div>
                     </div>
-                </div>
-            `).join('');
-        };
+                `).join('')}
+            </div>
+        `;
 
-        showModal('USER ANALYTICS', html, { maxWidth: '550px' });
-        
-        // Listeners for runtime filtering
-        setTimeout(() => {
-            const searchInput = document.getElementById('admin-user-search');
-            const countryFilter = document.getElementById('admin-country-filter');
-            
-            const applyFilters = () => {
-                const term = searchInput.value.toLowerCase();
-                const country = countryFilter.value.toUpperCase();
-                
-                const filtered = registeredUsers.filter(u => {
-                    const matchesSearch = u.username.toLowerCase().includes(term) || u.email.toLowerCase().includes(term);
-                    const matchesCountry = country === '' || (u.country || 'FI').toUpperCase() === country;
-                    return matchesSearch && matchesCountry;
-                });
-                
-                renderList(filtered);
-            };
-
-            if(searchInput) searchInput.addEventListener('input', applyFilters);
-            if(countryFilter) countryFilter.addEventListener('change', applyFilters);
-            
-            // Initial render
-            renderList(registeredUsers);
-        }, 100);
-
+        showModal('REGISTERED USERS', html, { maxWidth: '450px' });
     } catch (e) {
         showNotification('Failed to fetch users: ' + e.message, 'error');
     } finally {
@@ -320,194 +231,33 @@ export async function viewAllUsers() {
     }
 }
 
-export async function viewAvatarModerator() {
-    showLoading('Fetching avatars...');
-    try {
-        const { data: users, error } = await _supabase
-            .from('players')
-            .select('id, username, avatar_url, created_at')
-            .not('avatar_url', 'is', null)
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        let html = `
-            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 5px;">
-        `;
-
-        if (!users || users.length === 0) {
-            html += `<div style="text-align:center; grid-column: 1 / -1; color: #888;">No avatars found to moderate.</div>`;
-        }
-
-        users.forEach(u => {
-            html += `
-                <div id="avatar-mod-${u.id}" style="background: #111; border: 1px solid #333; border-radius: 6px; padding: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                    <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid var(--sub-gold);">
-                        <img src="${u.avatar_url}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
-                    </div>
-                    <div style="font-family:'Russo One', sans-serif; font-size: 0.8rem; color: #fff; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${u.username}</div>
-                    <button class="btn-red" style="padding: 4px 8px; font-size: 0.65rem; width: 100%; background: #c62828;" onclick="removePlayerAvatar('${u.id}')">
-                        <i class="fa-solid fa-trash"></i> REMOVE
-                    </button>
-                </div>
-            `;
-        });
-
-        html += `</div>`;
-        showModal('AVATAR MODERATION', html, { maxWidth: '700px' });
-    } catch(err) {
-        showNotification('Failed to fetch avatars: ' + err.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
-window.removePlayerAvatar = async function(playerId) {
-    if (!confirm('Are you sure you want to remove this avatar? It will be permanently removed.')) return;
-    
-    try {
-        const { error } = await _supabase
-            .from('players')
-            .update({ avatar_url: null })
-            .eq('id', playerId);
-            
-        if (error) throw error;
-        
-        showNotification('Avatar removed successfully.', 'success');
-        
-        const el = document.getElementById('avatar-mod-' + playerId);
-        if (el) el.remove();
-        
-    } catch(err) {
-        showNotification('Failed to remove avatar: ' + err.message, 'error');
-    }
-};
-
 export async function openAdminPrintMode(username) {
-    showLoading('Generating 300+ DPI Origials...');
     import('./player-card-ui.js').then(module => {
         if (window.closeModal) window.closeModal('generic-modal');
 
-        // Ladataan kortti modaaliin, mutta ei rikota sitä visuaalisesti!
         module.viewPlayerCard(username);
 
-        setTimeout(async () => {
-             try {
-                const liveFront = document.querySelector('#card-modal .card-front');
-                const liveBack = document.querySelector('#card-modal .card-back');
-                
-                if (!liveFront || !liveBack) throw new Error("Card elements not found");
-
-                // Odota graafikoiden ja fonttien latausta
-                await new Promise(r => setTimeout(r, 600));
-
-                // 1. CLONE STRATEGY: Eristetään kaappaus kokonaan ruudulta
-                // Pidetään alkuperäinen modaali ehjänä, ettei käyttäjän UI hajoa.
-                const trap = document.createElement('div');
-                trap.style.position = 'absolute'; // ABSOLUTE on oikein, yhdistettynä top: 0 koodiin
-                trap.style.top = '0px'; // Pakotetaan DOkumentin yläreunaan, ei viewportin, välttääksemme scroll offsetit!
-                trap.style.left = '0px'; 
-                trap.style.zIndex = '-9999'; // Piiloon muun sisällön taakse
-                trap.style.width = '354px';
-                trap.style.display = 'block';
-                document.body.appendChild(trap);
-                
-                const front = liveFront.cloneNode(true);
-                const back = liveBack.cloneNode(true);
-
-                // Siivotaan kääntönapit klooneista
-                front.querySelectorAll('.fa-rotate-right, .fa-rotate-left, .flip-hint').forEach(e => {
-                    if (e.parentNode) e.parentNode.style.display = 'none';
-                });
-                back.querySelectorAll('.fa-rotate-right, .fa-rotate-left, .flip-hint').forEach(e => {
-                    if (e.parentNode) e.parentNode.style.display = 'none';
-                });
-
-                // Apufunktio inset offset bugien korjaamiseen
-                const fixInsets = (el) => {
-                    el.querySelectorAll('.card-bleed-edge').forEach(e => { 
-                        e.style.top='0px'; e.style.left='0px'; e.style.bottom='0px'; e.style.right='0px'; e.style.inset='auto'; 
-                    });
-                    el.querySelectorAll('.card-safe-zone').forEach(z => { 
-                        z.style.top='16px'; z.style.left='16px'; z.style.bottom='16px'; z.style.right='16px'; z.style.inset='auto'; 
-                    });
-                };
-
-                // Valmistellaan ETUPUOLI suoraan (0,0) origoon
-                front.style.position = 'relative';
-                front.style.transform = 'none';
-                front.style.backfaceVisibility = 'visible';
-                front.style.width = '354px';
-                front.style.height = '474px';
-                front.style.margin = '0';
-                front.style.overflow = 'hidden';
-                fixInsets(front);
-
-                trap.appendChild(front);
-
-                // KORJAUS: Nollataan html2canvas mahdolliset offset/scroll -bugit täysin 
-                const canvasOpts = {
-                    scale: 4, 
-                    useCORS: true, 
-                    logging: false,
-                    x: 0,
-                    y: 0,
-                    scrollX: 0,
-                    scrollY: 0,
-                    width: 354,
-                    height: 474
-                };
-
-                // 2. Kaappaus ETUPUOLI
-                const frontCanvas = await html2canvas(front, { ...canvasOpts, backgroundColor: null });
-                trap.innerHTML = ''; // Tyhjennä 
-
-                // Valmistellaan TAKAPUOLI 
-                back.style.position = 'relative';
-                back.style.transform = 'none';
-                back.style.backfaceVisibility = 'visible';
-                back.style.width = '354px';
-                back.style.height = '474px';
-                back.style.margin = '0';
-                back.style.overflow = 'hidden'; // Katkaisee ylipitkän tyhjän tilan
-                
-                // Rajoitetaan lista
-                const bb = back.querySelector('#profile-card-back-content');
-                if(bb) {
-                    bb.style.flex = 'none';
-                    bb.style.height = '290px'; // Pakota korkeus kiinteäksi
-                    bb.style.overflow = 'hidden';
-                }
-                fixInsets(back);
-                
-                trap.appendChild(back);
-
-                // Kaappaus TAKAPUOLI
-                const backCanvas = await html2canvas(back, { ...canvasOpts, backgroundColor: '#0a0a0a' });
-                document.body.removeChild(trap); 
-
-                // 3. Lataukset
-                const link1 = document.createElement('a');
-                link1.download = `SUBSOCCER_PRO_CARD_${username}_FRONT_PRINT.png`;
-                link1.href = frontCanvas.toDataURL('image/png');
-                link1.click();
-                
-                setTimeout(() => {
-                    const link2 = document.createElement('a');
-                    link2.download = `SUBSOCCER_PRO_CARD_${username}_BACK_PRINT.png`;
-                    link2.href = backCanvas.toDataURL('image/png');
-                    link2.click();
-                    
-                    showNotification('Hi-Res Print Originals Downloaded!', 'success');
-                    hideLoading();
-                }, 800);
-
-             } catch(err) {
-                 console.error("Print generation failed:", err);
-                 showNotification("Failed to generate prints", "error");
-                 hideLoading();
-             }
-        }, 1200); 
+        setTimeout(() => {
+            document.body.classList.add('print-mode-active');
+            
+            if (!document.getElementById('admin-print-style')) {
+                const s = document.createElement('style');
+                s.id = 'admin-print-style';
+                s.innerHTML = `
+                    body.print-mode-active .modal-overlay:not(#card-modal) { display: none !important; }
+                    body.print-mode-active #card-modal { background: #fff !important; z-index: 999999 !important; display: flex !important; align-items: center; justify-content: center; }
+                    body.print-mode-active #card-modal .modal-content { width: 100vw !important; height: 100vh !important; max-width: none !important; max-height: none !important; border-radius: 0 !important; margin: 0 !important; background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; display: flex !important; flex-direction: column; justify-content: center; align-items: center; }
+                    body.print-mode-active #card-modal .modal-header, body.print-mode-active #card-modal .btn-close, body.print-mode-active #card-modal button { display: none !important; }
+                    body.print-mode-active #card-modal .modal-body { flex: none; overflow: visible; display: flex; justify-content: center; height: 100%; align-items: center; width: 100%; }
+                    body.print-mode-active .pro-card { width: 354px !important; height: 474px !important; max-width: none !important; margin: 0 !important; zoom: 2.5; position: static !important; transform: none !important; }
+                    body.print-mode-active .card-front { background: radial-gradient(circle, rgba(0,0,0,0.15) 1.5px, transparent 1.5px) 0 0, #00FFCC !important; background-size: 8px 8px !important; border: 1px solid #00ccaa !important; }
+                    body.print-mode-active .card-bleed-edge { inset: 12px !important; border: none !important; }
+                    body.print-mode-active .card-safe-zone { inset: 28px !important; box-shadow: none !important; border: 1px solid #999 !important; border-top: 2px solid #fff !important; border-bottom: 2px solid #555 !important; }
+                    body.print-mode-active .pro-stamp { top: 24px !important; left: 24px !important; }
+                `;
+                document.head.appendChild(s);
+            }
+        }, 800);
     });
 }
 window.openAdminPrintMode = openAdminPrintMode;
@@ -529,7 +279,10 @@ export async function toggleAdminStatus(userId, currentStatus) {
 
     showLoading('Updating permissions...');
     try {
-        const { error } = await _supabase.rpc('toggle_admin_status', { p_target: userId });
+        const { error } = await _supabase
+            .from('players')
+            .update({ is_admin: !currentStatus })
+            .eq('id', userId);
 
         if (error) throw error;
 
@@ -604,9 +357,11 @@ export async function resetGlobalLeaderboard() {
     showLoading('Resetting ELOs...');
     try {
         // Päivitetään kaikki pelaajat (käytetään ehtoa joka täsmää kaikkiin)
-        const { error } = await _supabase.rpc('reset_global_leaderboard');
+        const { error } = await _supabase
+            .from('players')
+            .update({ elo: 1300, wins: 0, losses: 0 })
+            .neq('username', 'SYSTEM_RESERVED_NAME');
 
-        if (error) throw error;
         if (error) throw error;
         showNotification('Leaderboard reset successfully', 'success');
     } catch (e) {
@@ -616,212 +371,12 @@ export async function resetGlobalLeaderboard() {
     }
 }
 
-export async function refreshTrackingAnalytics() {
-    if (!isAdmin()) {
-        showNotification("Access denied: Admin privileges required.", "error");
-        return;
-    }
-
-    const tbody = document.getElementById('mod-tracking-list');
-    if (!tbody) return;
-
-    tbody.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center;">Loading data from Supabase...</td></tr>';
-
-    try {
-        let { data: events, error } = await _supabase
-            .from('public_tracking')
-            .select('*')
-            .order('client_time', { ascending: false })
-            .limit(500);
-
-        if (error) throw error;
-
-        if (!events || events.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center;">No tracking data found yet.</td></tr>';
-            return;
-        }
-
-        let opens = 0;
-        let finished = 0;
-        let codeCounts = {};
-        let html = '';
-
-        // Hae oikeat kokonaismäärät kyselyillä (koska limit 500 leikkaa vanhat data-pisteet ja aiheuttaa määrien putoamista)
-        const { count: totalOpens } = await _supabase.from('public_tracking').select('id', { count: 'exact', head: true }).eq('event_type', 'app_opened');
-        const { count: totalFinished } = await _supabase.from('public_tracking').select('id', { count: 'exact', head: true }).eq('event_type', 'game_finished');
-
-        events.forEach(ev => {
-
-            const code = ev.game_code || 'Unknown';
-            codeCounts[code] = (codeCounts[code] || 0) + 1;
-
-            let badgeClass = ev.event_type === 'game_finished' ? 'background:#E30613; padding:2px 4px; border-radius:3px;' : 'background:#4CAF50; padding:2px 4px; border-radius:3px;';
-            let typeLabel = ev.event_type === 'game_finished' ? 'GAME FINISHED' : 'APP OPENED';
-            let dateStr = new Date(ev.client_time).toLocaleString();
-            let returningBadge = ev.is_returning ? '<span style="color:#00FFCC; font-weight:bold;">PRO</span>' : '<span style="color:#888;">NEW</span>';
-            let durationText = ev.session_duration ? Math.floor(ev.session_duration / 60) + 'm ' + (ev.session_duration % 60) + 's' : '-';
-
-            html += `
-                <tr style="border-bottom:1px solid #222;">
-                    <td style="padding:10px; color:#888;">${dateStr.split(',')[1]}</td>
-                    <td style="padding:10px;"><span style="${badgeClass} color:#fff; font-size:0.75rem; font-weight:bold;">${typeLabel}</span></td>
-                    <td style="padding:10px; font-weight:bold; color:var(--sub-gold);">${code}</td>
-                    <td style="padding:10px;">${returningBadge}</td>
-                    <td style="padding:10px;"><span style="font-size:0.8rem; background:#333; padding:2px 5px; border-radius:3px;">${ev.browser_lang || '-'}</span></td>
-                    <td style="padding:10px; color:#00FFCC;">${ev.location || 'Unknown'}</td>
-                    <td style="padding:10px; color:#FFD700; font-family:'Jockey One', sans-serif;">${durationText}</td>
-                </tr>
-            `;
-        });
-
-        tbody.innerHTML = html;
-        document.getElementById('mod-total-opens').textContent = totalOpens || 0;
-        document.getElementById('mod-total-finished').textContent = totalFinished || 0;
-
-        let topCode = '-';
-        let maxCount = 0;
-        for (const [code, count] of Object.entries(codeCounts)) {
-            if (count > maxCount) { maxCount = count; topCode = code; }
-        }
-        document.getElementById('mod-top-code').textContent = topCode;
-
-    } catch (err) {
-        console.error(err);
-        tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; color:red; text-align:center;">Error: ${err.message}</td></tr>`;
-    }
-}
-
-export async function exportTrackingCSV() {
-    if (!isAdmin()) {
-        showNotification("Access denied: Admin privileges required.", "error");
-        return;
-    }
-
-    showLoading('Generating CSV logs...');
-    try {
-        const { data, error } = await _supabase
-            .from('public_tracking')
-            .select('*')
-            .order('client_time', { ascending: false });
-
-        if (error) throw error;
-
-        if (!data || data.length === 0) {
-            showNotification('No tracking data found', 'info');
-            return;
-        }
-
-        const headers = ['ID', 'Client Time', 'Event Type', 'Game Code', 'Score', 'Source Partner', 'Location', 'Is Returning', 'Language', 'Duration (s)'];
-        const csvRows = [headers.join(',')];
-
-        data.forEach(m => {
-            const row = [
-                m.id, 
-                m.client_time, 
-                m.event_type, 
-                m.game_code, 
-                m.score, 
-                m.source_partner, 
-                m.location, 
-                m.is_returning, 
-                m.browser_lang, 
-                m.session_duration
-            ];
-            csvRows.push(row.map(v => `"${v === null || v === undefined ? '' : String(v).replace(/"/g, '""')}"`).join(','));
-        });
-
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', `subsoccer_qr_analytics_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showNotification('Analytics downloaded successfully!', 'success');
-    } catch (e) {
-        showNotification('Download failed: ' + e.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
-export async function viewCardOrders() {
-    if (!isAdmin()) {
-        showNotification("Access denied: Admin privileges required.", "error");
-        return;
-    }
-
-    showLoading('Fetching Print Orders...');
-    try {
-        const { data, error } = await _supabase
-            .from('card_orders')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            // Check if table doesn't exist yet gracefully
-            if (error.code === '42P01') {
-                showModal('CARD ORDERS', '<div style="padding:20px; color:#aaa; text-align:center;">The card_orders table does not exist yet. Please run orders_schema.sql first.</div>', { maxWidth: '500px' });
-                return;
-            }
-            throw error;
-        }
-
-        if (!data || data.length === 0) {
-            showModal('CARD ORDERS', '<div style="padding:20px; color:#aaa; text-align:center;">No card orders found.</div>', { maxWidth: '500px' });
-            return;
-        }
-
-        const html = `
-            <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
-                ${data.map(o => `
-                    <div style="background:#111; padding:12px; border-radius:4px; margin-bottom:8px; border-left:3px solid var(--sub-gold); display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div style="font-family:'Resolve'; color:#fff; font-size:0.9rem;">
-                                ${o.shipping_name}
-                            </div>
-                            <div style="font-size:0.7rem; color:#666;">
-                                ${new Date(o.created_at).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • Status: <span style="color:${o.status === 'pending' ? 'var(--sub-red)' : '#4CAF50'}; font-weight:bold;">${o.status.toUpperCase()}</span>
-                            </div>
-                            <div style="font-size:0.6rem; color:#888;">
-                                ${o.shipping_street}, ${o.shipping_zip} ${o.shipping_city}, ${o.shipping_country}
-                            </div>
-                        </div>
-                        <div style="text-align:right;">
-                            <a href="${o.pdf_url}" target="_blank" class="btn-red" style="padding:6px 12px; font-size:0.75rem; text-decoration:none; display:inline-block; background:var(--sub-gold); color:#000;">
-                                <i class="fa-solid fa-file-pdf"></i> PRINT PDF
-                            </a>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-            <div style="text-align:center; padding-top:15px; border-top:1px solid #333; margin-top:10px;">
-                <p style="font-size:0.7rem; color:#888;">These orders will automatically sync with Shopify in the future.</p>
-            </div>
-        `;
-
-        showModal('300 DPI CARD ORDERS', html, { maxWidth: '500px' });
-    } catch (e) {
-        showNotification('Failed to fetch orders: ' + e.message, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
 export function setupModeratorListeners() {
-    document.getElementById('btn-mod-view-card-orders')?.addEventListener('click', () => {
-        viewCardOrders();
-    });
     document.getElementById('btn-mod-partner-gen')?.addEventListener('click', () => {
         showPartnerLinkGenerator();
     });
     document.getElementById('btn-mod-view-users')?.addEventListener('click', () => {
         viewAllUsers();
-    });
-    document.getElementById('btn-mod-avatar-moderator')?.addEventListener('click', () => {
-        viewAvatarModerator();
     });
     document.getElementById('btn-mod-download-logs')?.addEventListener('click', () => {
         downloadSystemLogs();
@@ -829,188 +384,73 @@ export function setupModeratorListeners() {
     document.getElementById('btn-mod-reset-lb')?.addEventListener('click', () => {
         resetGlobalLeaderboard();
     });
-    document.getElementById('btn-refresh-tracking')?.addEventListener('click', () => {
-        refreshTrackingAnalytics();
-    });
-    document.getElementById('btn-export-tracking')?.addEventListener('click', () => {
-        exportTrackingCSV();
-    });
-    // Auto-load if tab is opened? We can just hook up a click event on the mod tab.
-    document.getElementById('menu-item-moderator')?.addEventListener('click', () => {
-        if (isAdmin()) {
-            refreshTrackingAnalytics();
-        }
-    });
-
-    document.querySelectorAll('.mod-map-filter-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.mod-map-filter-btn').forEach(b => {
-                b.classList.remove('active');
-                b.style.background = 'transparent';
-                b.style.borderColor = 'transparent';
-                b.style.color = '#fff';
-            });
-            const clicked = e.target;
-            clicked.classList.add('active');
-            clicked.style.background = 'rgba(255, 215, 0, 0.1)';
-            clicked.style.borderColor = 'var(--sub-gold)';
-            clicked.style.color = 'var(--sub-gold)';
-            
-            const filterMap = clicked.getAttribute('data-filter');
-            loadAnalyticsMap(filterMap);
-        });
-    });
 }
 
-let moderatorMap = null;
-let modMapCluster = null;
+// ==========================================
+// GLOBAL ANALYTICS DASHBOARD
+// ==========================================
+export async function loadAnalytics() {
+    const arcadeList = document.getElementById('analytics-arcade-list');
+    const tourList = document.getElementById('analytics-tour-list');
 
-export async function refreshModeratorDashboard() {
-    if (!isAdmin()) return;
+    if (!arcadeList || !tourList) return;
 
-    try {
-        // User Stats
-        const { count: totalUsers } = await _supabase.from('players').select('id', { count: 'exact', head: true });
-        const { count: activePros } = await _supabase.from('players').select('avatar_url', { count: 'exact', head: true }).not('avatar_url', 'is', null);
-
-        if (document.getElementById('mod-total-users')) document.getElementById('mod-total-users').textContent = totalUsers || 0;
-        if (document.getElementById('mod-active-pro-cards')) document.getElementById('mod-active-pro-cards').textContent = activePros || 0;
-
-        // System Logs mock logic or real logic
-        if (document.getElementById('mod-sys-logs')) {
-             const sysLogsText = "[INFO] Analytics Engine Running\n[INFO] DB Connection Stabilized\n[INFO] " + totalUsers + " registered players confirmed.\n[OK] Ready.";
-             document.getElementById('mod-sys-logs').textContent = sysLogsText;
-        }
-
-        // Initialize Map
-        setTimeout(() => loadAnalyticsMap('all'), 500);
-
-    } catch(err) {
-        console.error("Dashboard refresh failed", err);
-    }
-}
-
-window.refreshModeratorDashboard = refreshModeratorDashboard;
-
-async function loadAnalyticsMap(filterPeriod = 'all') {
-    const mapContainer = document.getElementById('mod-analytics-map');
-    if (!mapContainer || mapContainer.offsetParent === null) return;
-
-    if (!moderatorMap) {
-        moderatorMap = L.map('mod-analytics-map', { scrollWheelZoom: false }).setView([45, 10], 2);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '© CARTO',
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(moderatorMap);
-        
-        modMapCluster = L.markerClusterGroup({
-            iconCreateFunction: function(cluster) {
-                return L.divIcon({ 
-                    html: '<div style="background:var(--sub-red); color:#fff; border-radius:50%; width:30px; height:30px; display:flex; justify-content:center; align-items:center; font-family:\'Russo One\'; border:2px solid var(--sub-gold);">' + cluster.getChildCount() + '</div>', 
-                    className: 'mod-cluster', 
-                    iconSize: L.point(30, 30) 
-                });
-            }
-        });
-        moderatorMap.addLayer(modMapCluster);
-    } else {
-        moderatorMap.invalidateSize();
-        modMapCluster.clearLayers();
-    }
+    arcadeList.innerHTML = "Loading...";
+    tourList.innerHTML = "Loading...";
 
     try {
-        let dateFilterStr = null;
-        if (filterPeriod !== 'all') {
-            const date = new Date();
-            if (filterPeriod === '24h') date.setHours(date.getHours() - 24);
-            if (filterPeriod === '7d') date.setDate(date.getDate() - 7);
-            if (filterPeriod === '1m') date.setMonth(date.getMonth() - 1);
-            dateFilterStr = date.toISOString();
+        const { data: tourData } = await _supabase.from('tournament_history').select('*, events(event_name)').order('created_at', { ascending: false }).limit(20);
+        const { data: matchData } = await _supabase.from('matches').select('*').order('created_at', { ascending: false }).limit(50);
+
+        // Group standalone matches (Arcade mode, Quick matches)
+        const standaloneMatches = matchData ? matchData.filter(m => !m.tournament_id) : [];
+        if (standaloneMatches.length > 0) {
+            arcadeList.innerHTML = standaloneMatches.map(m => {
+                const date = new Date(m.created_at);
+                const fDate = `${date.getDate()}.${date.getMonth() + 1}. ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+                const tName = m.tournament_name || 'Verified Session';
+                const scoreStr = (m.player1_score !== null && m.player2_score !== null) ? `${m.player1_score} - ${m.player2_score}` : 'WIN';
+                
+                return `
+                <div style="background:#111; padding:15px; border-radius:5px; margin-top:5px; font-size:0.9rem; border-left:3px solid var(--sub-red); position:relative;">
+                    <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold; letter-spacing: 1px;">[${tName}]</div>
+                    <span style="font-family:'Resolve'; color:#fff; text-transform:uppercase;">${m.winner}</span> 
+                    <span style="color:#888;">defeated</span> 
+                    <span style="font-family:'Resolve'; color:#fff; text-transform:uppercase;">${m.winner === m.player1 ? m.player2 : m.player1}</span> 
+                    <span style="color:var(--sub-gold); font-weight:bold;">(${scoreStr})</span>
+                    <div style="position: absolute; top: 15px; right: 15px; font-size: 0.7rem; color: #666;">${fDate}</div>
+                </div>`;
+            }).join('');
+        } else {
+            arcadeList.innerHTML = "<div style='color:#666;'>No recent free play or arcade sessions found.</div>";
         }
 
-        let trackingQuery = _supabase.from('public_tracking').select('game_code, location, client_time');
-        if (dateFilterStr) trackingQuery = trackingQuery.gte('client_time', dateFilterStr);
-        trackingQuery = trackingQuery.limit(50000); // Prevent 1000 row limit drop-offs
-        
-        const { data: trackingData } = await trackingQuery;
-        const { data: gamesData } = await _supabase.from('games').select('unique_code, latitude, longitude, created_at, is_public').limit(50000);
-
-        const IconFactory = (color) => L.divIcon({
-            html: `<div style="color:${color}; font-size: 20px;"><i class="fa-solid fa-location-dot"></i></div>`,
-            className: 'mod-marker',
-            iconSize: [20, 20],
-            iconAnchor: [10, 20]
-        });
-
-        const activeGames = new Set();
-        const scanLocations = new Set();
-        if (trackingData) {
-            trackingData.forEach(t => { 
-                if (t.game_code && t.game_code !== 'PUBLIC-APP') activeGames.add(t.game_code);
-                if (t.location && t.location.includes('/')) scanLocations.add(t.location);
-            });
+        // Output tournament history
+        if (tourData && tourData.length > 0) {
+            tourList.innerHTML = tourData.map(h => {
+                const eventName = h.events?.event_name || h.event_name || '';
+                const date = new Date(h.created_at);
+                const fDate = `${date.getDate()}.${date.getMonth() + 1}. ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+                
+                let html = `
+                <div style="background:#111; padding:15px; border-radius:5px; margin-top:10px; font-size:0.9rem; border-left:3px solid var(--sub-gold); position:relative;">
+                    <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold; letter-spacing: 1px;">[${h.tournament_name}] ${eventName ? ' - ' + eventName : ''}</div>
+                    <div style="position: absolute; top: 15px; right: 15px; font-size: 0.7rem; color: #666;">${fDate}</div>`;
+                
+                if (h.winner_name) html += `<div style="margin-top:5px; font-family:'Resolve';">🏆 ${h.winner_name}</div>`;
+                if (h.second_place_name) html += `<div style="color:#aaa; font-size:0.8rem; margin-top:2px;">🥈 ${h.second_place_name}</div>`;
+                if (h.third_place_name) html += `<div style="color:#aa7f32; font-size:0.8rem; margin-top:2px;">🥉 ${h.third_place_name}</div>`;
+                
+                html += `</div>`;
+                return html;
+            }).join('');
+        } else {
+            tourList.innerHTML = "<div style='color:#666;'>No official tournaments found.</div>";
         }
 
-        if (gamesData) {
-            gamesData.forEach(game => {
-                if (game.latitude && game.longitude) {
-                    if (dateFilterStr && new Date(game.created_at) < new Date(dateFilterStr) && !activeGames.has(game.unique_code)) return; 
-
-                    const isActive = activeGames.has(game.unique_code);
-                    const color = isActive ? 'var(--sub-gold)' : (game.is_public ? 'var(--sub-red)' : '#555');
-                    const marker = L.marker([game.latitude, game.longitude], { icon: IconFactory(color) });
-                    marker.bindPopup(`<b>${game.unique_code || 'Unknown'}</b><br>Active: ${isActive ? 'YES' : 'NO'}`);
-                    modMapCluster.addLayer(marker);
-                }
-            });
-        }
-
-        if (scanLocations.size > 0) {
-            window.modTzCache = window.modTzCache || {
-                'Europe/Helsinki': [60.1699, 24.9384],
-                'Europe/London': [51.5072, -0.1276],
-                'Europe/Paris': [48.8566, 2.3522],
-                'Europe/Berlin': [52.5200, 13.4050],
-                'Europe/Stockholm': [59.3293, 18.0686],
-                'Europe/Oslo': [59.9139, 10.7522],
-                'America/New_York': [40.7128, -74.0060]
-            };
-
-            for (const tz of Array.from(scanLocations)) {
-                let city = tz.split('/').pop().replace(/_/g, ' ');
-                if (!city) continue;
-
-                let coords = window.modTzCache[tz];
-
-                if (!coords) {
-                    try {
-                        await new Promise(r => setTimeout(r, 1100)); // Respect Nominatim 1 request per second limit
-                        const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&city=' + encodeURIComponent(city) + '&limit=1');
-                        const data = await res.json();
-                        if (data && data.length > 0) {
-                            coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-                            window.modTzCache[tz] = coords;
-                        }
-                    } catch (e) {
-                        console.warn("Nominatim fetch failed for", tz, e);
-                    }
-                }
-
-                if (coords && modMapCluster) {
-                    const scanIcon = L.divIcon({
-                        className: 'custom-div-icon',
-                        html: "<div style='background-color:#00FFCC; width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.9); box-shadow: 0 0 15px #00FFCC; animation: bluePulse 1.5s infinite;'></div>",
-                        iconSize: [18, 18],
-                        iconAnchor: [9, 9]
-                    });
-                    const scanMarker = L.marker(coords, { icon: scanIcon })
-                        .bindPopup('<div style="color:#00ccaa; font-size:0.75rem; text-align:center; font-family:\'Russo One\'; text-transform:uppercase;">⚡ INSTANT PLAY<br><span style="color:#222; font-size:1.1rem; line-height:1.5;">' + city + '</span></div>');
-                    modMapCluster.addLayer(scanMarker);
-                }
-            }
-        }
-    } catch(err) {
-        console.error("Map data fetch err", err);
+    } catch (e) {
+        console.error("Failed to load analytics:", e);
+        arcadeList.innerHTML = "Error loading analytics";
+        tourList.innerHTML = "Error loading analytics";
     }
 }

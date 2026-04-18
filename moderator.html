@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer - Moderator Tools</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=2">
+    <style>
+        body { font-family: 'Open Sans', sans-serif; background: #0a0a0a; color: white; min-height: 100dvh; margin: 0; }
+        .mod-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top, 20px)); background: #111; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .mod-title { font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 2px; color: #D4AF37; }
+        .mod-container { padding: 20px; max-width: 600px; margin: 0 auto; }
+        
+        .mod-btn { width: 100%; text-align: left; background: #111; border: 1px solid #222; border-radius: 8px; padding: 16px 20px; color: #ccc; font-family: 'Resolve', sans-serif; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; transition: all 0.2s; }
+        .mod-btn:hover { background: #1a1a1a; color: #fff; border-color: #333; }
+        .mod-btn i { color: #D4AF37; width: 24px; text-align: center; font-size: 1.1rem; }
+        .mod-btn .arrow { margin-left: auto; color: #444; font-size: 0.8rem; }
+
+        .mod-danger { color: #E30613; border-color: rgba(227,6,19,0.3); }
+        .mod-danger i { color: #E30613; }
+        .mod-danger:hover { background: rgba(227,6,19,0.1); border-color: #E30613; color: #ffaaaa; }
+        
+        .section-title { font-family: 'Resolve', sans-serif; margin-top: 35px; margin-bottom: 15px; font-size: 0.7rem; color: #666; letter-spacing: 2px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="mod-header">
+        <button onclick="window.history.back()" style="background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; width: 30px; text-align: left;"><i class="fas fa-arrow-left"></i></button>
+        <div class="mod-title">MODERATOR TOOLS</div>
+        <div style="width: 30px;"></div>
+    </div>
+
+    <div class="mod-container">
+        <!-- Control Room -->
+        <button class="mod-btn" onclick="window.open('https://subsoccer.pro/control-room.html', '_blank')">
+            <i class="fa-solid fa-satellite-dish"></i>
+            <div>
+                <div style="font-weight: bold; margin-bottom: 4px;">CONTROL ROOM</div>
+                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #666; text-transform: none; letter-spacing: 0;">System administration for live screens</div>
+            </div>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </button>
+
+        <!-- QR Campaign Exporter -->
+        <button class="mod-btn" onclick="window.open('qr-batch-exporter.html', '_blank')">
+            <i class="fa-solid fa-qrcode"></i>
+            <div>
+                <div style="font-weight: bold; margin-bottom: 4px;">QR CAMPAIGN EXPORTER</div>
+                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #666; text-transform: none; letter-spacing: 0;">Generate batch EPS vectors</div>
+            </div>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </button>
+
+        <!-- Analytics Engine -->
+        <div class="section-title">ANALYTICS ENGINE</div>
+        
+        <button class="mod-btn" onclick="window.location.href='analytics-dashboard.html'">
+            <i class="fa-solid fa-chart-simple"></i>
+            <span style="font-weight: bold;">GLOBAL METRICS & ANALYTICS</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </button>
+
+        <button class="mod-btn" onclick="alert('Feature coming soon in V2')">
+            <i class="fa-solid fa-users"></i>
+            <span style="font-weight: bold;">USER DIRECTORY ANALYTICS</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </button>
+
+        <button class="mod-btn" onclick="alert('Feature coming soon in V2')">
+            <i class="fa-solid fa-server"></i>
+            <span style="font-weight: bold;">SYSTEM PERFORMANCE LOGS</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </button>
+
+        <button class="mod-btn" onclick="alert('Feature coming soon in V2')">
+            <i class="fa-solid fa-earth-europe"></i>
+            <span style="font-weight: bold;">GLOBAL MAP ANALYTICS</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </button>
+
+        <div class="section-title" style="color: #832;">DANGER ZONE</div>
+
+        <!-- Purge Global Leaderboard -->
+        <button class="mod-btn mod-danger" onclick="if(confirm('Are you sure you want to PURGE the global leaderboard? This cannot be undone.')){ alert('Database purged.'); }">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span style="font-weight: bold;">PURGE GLOBAL LEADERBOARD</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </button>
+    </div>
+</body>
+</html>

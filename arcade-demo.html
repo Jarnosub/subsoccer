@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer Arcade - Interactive Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { margin: 0; padding: 0; background: #3d3d3d; color: white; height: 100vh; overflow: hidden; display: flex; font-family: sans-serif; }
+        
+        .tv-container {
+            flex: 1;
+            min-width: 0; /* Estää containeria puskemasta ulos puhelimen tieltä */
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #555 0%, #3d3d3d 100%);
+            position: relative;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        
+        #tv-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tv-scale-box {
+            /* Pakottaa iframen AINA 1920x1080 resoluutioon jotta Kioskin fontit säilyvät oikein */
+            width: 1920px;
+            height: 1080px;
+            position: absolute;
+            transform-origin: center center;
+            border: 24px solid #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 30px rgba(255,255,255,0.05);
+            background: #000;
+            overflow: hidden;
+            transition: width 0.4s ease, height 0.4s ease, transform 0.4s ease;
+        }
+
+        .tv-scale-box iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        .phone-container {
+            flex-shrink: 0; /* Estää puhelinta litistymästä! */
+            width: 360px;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: #333;
+            border-left: 1px solid #444;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.4);
+            padding: 2rem;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .phone-frame {
+            width: 310px;
+            height: 680px;
+            flex-shrink: 0;
+            border: 14px solid #222;
+            border-radius: 40px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 0 10px rgba(0,0,0,1);
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+
+        /* Fake iPhone Notch */
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 28px;
+            background: #222;
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+                overflow-y: auto;
+                height: 100dvh;
+                scroll-snap-type: y mandatory;
+                scroll-behavior: smooth;
+            }
+            .tv-container {
+                height: 100dvh;
+                min-height: 100dvh;
+                padding: 1rem;
+                scroll-snap-align: start;
+            }
+            .phone-container {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #444;
+                height: 100dvh;
+                min-height: 100dvh;
+                padding-bottom: 0rem;
+                scroll-snap-align: start;
+            }
+            .hardware-panel {
+                width: 100%;
+                max-width: 360px;
+                margin: 2rem auto 8rem auto;
+                scroll-snap-align: start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LEFT: The 55" TV Kiosk Mockup -->
+    <div class="tv-container" style="flex-direction: column;">
+        <div class="flex items-center justify-center gap-6 mb-2">
+            <div class="text-gray-500 font-bold tracking-[6px] text-sm uppercase opacity-80" style="font-family: 'Inter', sans-serif;">GAME SCREEN</div>
+            <button onclick="togglePortrait()" class="bg-[#222] text-[#D4AF37] font-bold text-xs px-4 py-2 rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.5)] hover:bg-[#333] transition-all border border-[#333] flex items-center gap-2">
+                <i class="fas fa-mobile-alt"></i> Toggle Vertical
+            </button>
+        </div>
+        <div id="tv-wrapper">
+            <div class="tv-scale-box" id="tv-scale-box">
+                <iframe src="tv.html?v=4" title="Subsoccer Kiosk TV"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: The Mobile Phone Remote Mockup -->
+    <div class="phone-container">
+        <div class="text-gray-500 font-bold tracking-[6px] text-sm mb-4 uppercase opacity-80" style="font-family: 'Inter', sans-serif;">CUSTOMER PHONE</div>
+        <div class="phone-frame" id="phone-frame">
+            <iframe src="lounge-remote.html?v=1" title="Subsoccer Mobile Remote"></iframe>
+        </div>
+
+        <!-- HARDWARE RELAY SIMULATION -->
+        <div class="hardware-panel w-full mt-6 bg-[#111] border border-[#222] rounded-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex-shrink-0">
+            <div class="text-[#D4AF37] text-[10px] font-bold tracking-widest mb-4 uppercase">Device Interfaces</div>
+            
+            <div class="flex items-center justify-between mb-3 border-b border-[#222] pb-2">
+                <span class="text-gray-400 text-xs font-sans tracking-wide">1. Transparent table top</span>
+                <div class="flex items-center gap-2">
+                    <span id="relay1-text" class="text-[9px] text-[#444] font-bold">OFF</span>
+                    <span id="relay1-dot" class="w-2.5 h-2.5 bg-red-500 rounded-full shadow-[0_0_8px_red]"></span>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between mb-3 border-b border-[#222] pb-2">
+                <span class="text-gray-400 text-xs font-sans tracking-wide">2. Goal detecting sensors</span>
+                <div class="flex items-center gap-2">
+                    <span id="relay2-text" class="text-[9px] text-[#444] font-bold">OFF</span>
+                    <span id="relay2-dot" class="w-2.5 h-2.5 bg-red-500 rounded-full shadow-[0_0_8px_red]"></span>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <span class="text-gray-400 text-xs font-sans tracking-wide">3. Light effects</span>
+                <div class="flex items-center gap-2">
+                    <span id="relay3-text" class="text-[9px] text-[#444] font-bold">OFF</span>
+                    <span id="relay3-dot" class="w-2.5 h-2.5 bg-red-500 rounded-full shadow-[0_0_8px_red]"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="socket-service.js"></script>
+    <script type="module">
+        import { arcadeSocket } from './socket-service.js';
+
+        arcadeSocket.connect();
+
+        const r1t = document.getElementById('relay1-text');
+        const r1d = document.getElementById('relay1-dot');
+        const r2t = document.getElementById('relay2-text');
+        const r2d = document.getElementById('relay2-dot');
+        const r3t = document.getElementById('relay3-text');
+        const r3d = document.getElementById('relay3-dot');
+
+        function setRelay(t, d, isOn, onText="ON", offText="OFF") {
+            if (isOn) {
+                t.innerText = onText;
+                t.className = "text-[9px] text-[#22c55e] font-bold";
+                d.className = "w-2.5 h-2.5 rounded-full shadow-[0_0_8px_#22c55e] bg-green-500";
+            } else {
+                t.innerText = offText;
+                t.className = "text-[9px] text-[#444] font-bold";
+                d.className = "w-2.5 h-2.5 rounded-full shadow-[0_0_8px_red] bg-red-500";
+            }
+        }
+
+        arcadeSocket.on('payment_success', () => {
+            // No longer forcing shelly active on payment
+            setRelay(r3t, r3d, true, "POST PAYMENT");
+            setTimeout(() => setRelay(r3t, r3d, false), 5000);
+        });
+        
+        arcadeSocket.on('trigger_onboarding_flash', () => {
+            let flashes = 0;
+            setRelay(r1t, r1d, true, "FLASHING");
+            const intv = setInterval(() => {
+                flashes++;
+                setRelay(r1t, r1d, flashes % 2 === 0, flashes % 2 === 0 ? "FLASH ON" : "FLASH OFF");
+                if(flashes >= 6) {
+                    clearInterval(intv);
+                    setRelay(r1t, r1d, false); // Final off
+                }
+            }, 700);
+        });
+
+        arcadeSocket.on('start_1v1', () => {
+            setRelay(r1t, r1d, true, "ACTIVE (RELAY)");
+            setRelay(r2t, r2d, true, "SENSING", "IDLE");
+            setRelay(r3t, r3d, true, "MATCH LIGHTS");
+        });
+
+        // Simulate goal sensors blinking on state_update
+        let previousP1 = 0, previousP2 = 0;
+        arcadeSocket.on('state_update', (data) => {
+            if (data.p1Score > previousP1 || data.p2Score > previousP2) {
+                // Goal triggered!
+                setRelay(r2t, r2d, false, "", "GOAL DETECT");
+                setRelay(r3t, r3d, true, "GOAL FLASH");
+                setTimeout(() => {
+                    setRelay(r2t, r2d, true, "SENSING");
+                    setRelay(r3t, r3d, true, "MATCH LIGHTS");
+                }, 1500);
+            }
+            previousP1 = data.p1Score || 0;
+            previousP2 = data.p2Score || 0;
+        });
+
+        arcadeSocket.on('end_game', () => {
+            setRelay(r1t, r1d, false);
+            setRelay(r2t, r2d, false);
+            setRelay(r3t, r3d, true, "VICTORY STROBE");
+            setTimeout(() => setRelay(r3t, r3d, false), 8000);
+        });
+
+        arcadeSocket.on('reset_system', () => {
+            setRelay(r1t, r1d, false);
+            setRelay(r2t, r2d, false);
+            setRelay(r3t, r3d, false);
+            previousP1 = 0;
+            previousP2 = 0;
+        });
+
+        let isPortrait = false;
+        window.togglePortrait = function() {
+            isPortrait = !isPortrait;
+            resizeTv();
+        };
+
+        function resizeTv() {
+            // -- 1. SCALE THE TV ENGINE --
+            const wrapper = document.getElementById('tv-wrapper');
+            const scaleBox = document.getElementById('tv-scale-box');
+            
+            // Available space in wrapper
+            const W = wrapper.clientWidth;
+            const H = wrapper.clientHeight;
+            
+            // Fixed iframe resolution
+            const targetW = isPortrait ? 1080 + 48 : 1920 + 48; // borders
+            const targetH = isPortrait ? 1920 + 48 : 1080 + 48;
+            
+            // Apply straight dimensions
+            scaleBox.style.width = isPortrait ? '1080px' : '1920px';
+            scaleBox.style.height = isPortrait ? '1920px' : '1080px';
+            
+            // Calculate scale to perfectly Fit within available space
+            const scaleX = W / targetW;
+            const scaleY = H / targetH;
+            const scale = Math.min(scaleX, scaleY);
+            scaleBox.style.transform = `scale(${scale})`;
+
+            // -- 2. SCALE THE VIRTUAL PHONE ON MOBILE --
+            const phoneFrame = document.getElementById('phone-frame');
+            if (phoneFrame && window.innerWidth <= 900) {
+                const phoneContainer = document.querySelector('.phone-container');
+                const pW = phoneContainer.clientWidth;
+                const pH = phoneContainer.clientHeight - 80; // Minus header text & padding
+                
+                // Fixed iPhone frame dimensions inside simulator
+                const ptW = 310 + 28;
+                const ptH = 680 + 28;
+                
+                const pScaleX = pW / ptW;
+                const pScaleY = pH / ptH;
+                const pScale = Math.min(pScaleX, pScaleY) * 0.95; // 5% extra margin to breathe
+                
+                phoneFrame.style.transform = `scale(${pScale})`;
+                phoneFrame.style.transformOrigin = `center top`;
+            } else if (phoneFrame) {
+                // Reset scale on Desktop
+                phoneFrame.style.transform = `scale(1)`;
+            }
+        }
+
+        window.addEventListener('resize', resizeTv);
+        // Pieni viive varmistaa tyylien latautumisen ensin
+        setTimeout(resizeTv, 50);
+    </script>
+</body>
+</html>
