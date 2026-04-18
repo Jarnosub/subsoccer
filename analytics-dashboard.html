@@ -256,7 +256,13 @@
                 <option value="30">Viimeiset 30pv (Last 30 Days)</option>
                 <option value="9999">Kaikki (All Time)</option>
             </select>
+            <select id="eventFilter" style="background-color: var(--bg-card); color: var(--accent-blue); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; font-weight: 500; cursor: pointer; outline: none;" onchange="renderData()">
+                <option value="ALL">Kaikki Tapahtumat (All Events)</option>
+                <option value="tournament_finished">Tournaments</option>
+                <option value="app_opened">App Opened</option>
+            </select>
             <button onclick="fetchData()"><i class="fas fa-sync-alt"></i> Päivitä (Refresh)</button>
+            <button onclick="exportToCSV()" style="background-color: rgba(129, 201, 149, 0.1); color: var(--accent-green); border-color: var(--border-color); margin-left: auto;"><i class="fas fa-file-csv"></i> Lataa CSV (Export)</button>
         </div>
 
         <!-- KPI Row -->
@@ -304,23 +310,46 @@
             <div id="map" style="height: 400px; width: 100%; background: #0a0a0a;"></div>
         </div>
 
-        <!-- Table Row -->
-        <div class="table-card">
-            <h2>Recent Global Activity Feed</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Timestamp (Local)</th>
-                        <th>Event Type</th>
-                        <th>User Type</th>
-                        <th>Details (Score / Size)</th>
-                        <th>Location (TZ)</th>
-                    </tr>
-                </thead>
-                <tbody id="activity-table-body">
-                    <!-- Javascript will populate this -->
-                </tbody>
-            </table>
+        <!-- Data Tables Row -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 40px;">
+            <div class="table-card" style="margin-bottom: 0;">
+                <h2>Recent Global Activity Feed</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp (Local)</th>
+                                <th>Event Type</th>
+                                <th>User Type</th>
+                                <th>Details</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-table-body">
+                            <!-- Javascript will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-card" style="margin-bottom: 0;">
+                <h2>Top ELO Leaderboard <i class="fas fa-crown" style="color: var(--accent-yellow); margin-left: 8px;"></i></h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th style="text-align:right;">ELO Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-players-body">
+                            <!-- Javascript will populate this -->
+                            <tr><td colspan="3" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Ladataan...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -338,6 +367,7 @@
 
         let chartInstance = null;
         let doughnutInstance = null;
+        let globalTrackingData = []; // Tallenna data lokaalia filtteröintiä varten
 
         async function fetchData() {
             document.getElementById('loading').style.display = 'flex';
@@ -374,11 +404,12 @@
                 let trackingQuery = client.from('public_tracking').select('*').order('client_time', { ascending: false }).limit(1000);
                 if (days !== 9999) trackingQuery = trackingQuery.gte('client_time', dateStr);
 
-                const [trackingRes, usersRes, historyRes, matchesRes] = await Promise.all([
+                const [trackingRes, usersRes, historyRes, matchesRes, topPlayersRes] = await Promise.all([
                     trackingQuery,
                     client.from('players').select('id', { count: 'exact' }),
                     client.from('tournament_history').select('*', { count: 'exact' }),
-                    client.from('games_analytics').select('id', { count: 'exact' }) // or similar match tracking
+                    client.from('games_analytics').select('id', { count: 'exact' }), // or similar match tracking
+                    client.from('players').select('username, display_name, elo').order('elo', { ascending: false }).limit(10)
                 ]);
 
                 if (trackingRes.error) {
@@ -398,32 +429,31 @@
                 document.getElementById('kpi-users').textContent = totalUsers;
                 document.getElementById('kpi-matches').textContent = totalMatches;
 
-                // Populate Table
-                const tbody = document.getElementById('activity-table-body');
-                tbody.innerHTML = '';
-                
-                trackingData.slice(0, 50).forEach(row => {
-                    const tr = document.createElement('tr');
-                    const dateObj = new Date(row.client_time || new Date());
-                    
-                    const badgeClass = row.source_partner === 'guest' ? 'guest' : 'registered';
-                    
-                    tr.innerHTML = `
-                        <td>${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-                        <td>${(row.event_type || 'UNKNOWN').replace('_', ' ').toUpperCase()}</td>
-                        <td><span class="badge ${badgeClass}">${(row.source_partner || 'UNKNOWN').toUpperCase()}</span></td>
-                        <td>${row.match_score || '-'}</td>
-                        <td>${row.location || 'Unknown'}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                if (trackingData.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#666;">No recent activity logged yet (or RLS blocked reading).</td></tr>';
+                // Populate Top Players List
+                const topBody = document.getElementById('top-players-body');
+                topBody.innerHTML = '';
+                if (topPlayersRes.data && topPlayersRes.data.length > 0) {
+                    topPlayersRes.data.forEach((p, idx) => {
+                        const tr = document.createElement('tr');
+                        const isTop3 = idx < 3;
+                        const rankColor = idx === 0 ? 'color: var(--accent-yellow);' : (idx === 1 ? 'color: #C0C0C0;' : (idx === 2 ? 'color: #cd7f32;' : 'color: var(--text-secondary);'));
+                        
+                        tr.innerHTML = \`
+                            <td><strong style="\${rankColor}"><i class="fas fa-trophy"></i> \${idx + 1}.</strong></td>
+                            <td style="font-weight: \${isTop3 ? 'bold' : 'normal'}; color: \${isTop3 ? 'white' : 'inherit'};">\${(p.username || p.display_name || 'Anonymous').toUpperCase()}</td>
+                            <td style="text-align:right; font-weight: bold; color: var(--accent-blue);">\${p.elo || 1500}</td>
+                        \`;
+                        topBody.appendChild(tr);
+                    });
+                } else {
+                    topBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:#666;">Ei rating-dataa saatavilla.</td></tr>';
                 }
 
-                initCharts(trackingData);
-                initMap(trackingData);
+                // Kirjoitetaan datamuuttujaan
+                globalTrackingData = trackingRes.data || [];
+                
+                // Renderöi
+                renderData();
 
             } catch (err) {
                 console.error("Error fetching analytics:", err);
@@ -431,6 +461,73 @@
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
+        }
+
+        function renderData() {
+            const data = globalTrackingData;
+            if (!data) return;
+
+            // Suodatus event-tyypin mukaan
+            const eventFilter = document.getElementById('eventFilter').value;
+            const filteredData = eventFilter === 'ALL' ? data : data.filter(d => d.event_type === eventFilter);
+
+            // Populate Table
+            const tbody = document.getElementById('activity-table-body');
+            tbody.innerHTML = '';
+            
+            filteredData.slice(0, 50).forEach(row => {
+                const tr = document.createElement('tr');
+                const dateObj = new Date(row.client_time || new Date());
+                
+                const badgeClass = row.source_partner === 'guest' ? 'guest' : 'registered';
+                
+                tr.innerHTML = `
+                    <td>${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td>${(row.event_type || 'UNKNOWN').replace('_', ' ').toUpperCase()}</td>
+                    <td><span class="badge ${badgeClass}">${(row.source_partner || 'UNKNOWN').toUpperCase()}</span></td>
+                    <td>${row.match_score || '-'}</td>
+                    <td>${row.location || 'Unknown'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#666;">No recent activity matches filters.</td></tr>';
+            }
+
+            initCharts(filteredData);
+            initMap(filteredData);
+        }
+
+        window.exportToCSV = function() {
+            if (!globalTrackingData || globalTrackingData.length === 0) {
+                alert("Ei dataa vietäväksi.");
+                return;
+            }
+            
+            const eventFilter = document.getElementById('eventFilter').value;
+            const filteredData = eventFilter === 'ALL' ? globalTrackingData : globalTrackingData.filter(d => d.event_type === eventFilter);
+
+            const headers = ["Timestamp", "EventType", "UserType", "Score/Details", "Location"];
+            const rows = filteredData.map(r => [
+                new Date(r.client_time).toISOString(),
+                r.event_type || 'UNKNOWN',
+                r.source_partner || 'UNKNOWN',
+                r.match_score || '-',
+                r.location || 'Unknown'
+            ]);
+            
+            let csvContent = "data:text/csv;charset=utf-8," 
+                + headers.join(",") + "\\n"
+                + rows.map(e => e.join(",")).join("\\n");
+                
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", \`subsoccer_analytics_\${new Date().toISOString().split('T')[0]}.csv\`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function initCharts(data) {

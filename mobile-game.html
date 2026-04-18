@@ -60,14 +60,13 @@
         /* ========================================
            LAYER 1: SETUP (Player names)
            ======================================== */
-        .setup-container {
-            width: 100%;
-            max-width: 400px;
             padding: 20px;
             padding-top: calc(20px + env(safe-area-inset-top, 20px));
             display: flex;
             flex-direction: column;
-            min-height: 100dvh;
+            height: 100dvh;
+            max-height: 100dvh;
+            overflow: hidden;
             position: relative;
             z-index: 2;
         }
@@ -563,7 +562,7 @@
             <h1 class="setup-title">TOURNAMENT</h1>
             <p class="setup-subtitle">Add players to begin. Winner takes all.</p>
 
-            <div id="m-players-list">
+            <div id="m-players-list" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 10px; padding-right: 5px;">
                 <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
                     <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#1</span>
                     <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 1" 
@@ -584,7 +583,9 @@
                 </div>
             </div>
 
-            <div id="m-add-buttons-container" style="display: flex; gap: 8px; width: 100%; margin-top: 16px; margin-bottom: 24px;">
+            <!-- BUTTONS CONTAINER FIXED TO BOTTOM OF SETUP -->
+            <div style="flex-shrink: 0; margin-top: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom, 10px));">
+                <div id="m-add-buttons-container" style="display: flex; gap: 8px; width: 100%; margin-top: 10px; margin-bottom: 16px;">
                 <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()" style="flex: 1; margin-top: 0;">+ ADD PLAYER</button>
                 <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()" style="flex: 1; margin-top: 0;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR JOIN</button>
             </div>
@@ -595,11 +596,12 @@
                 <i class="fas fa-play"></i> START MATCH
             </button>
 
-            <!-- Back to Hub link -->
-            <div style="text-align: center; margin-top: 20px; padding-bottom: 40px;">
-                <a href="index.html" style="color: #ccc; text-decoration: none; font-family: Arial, Helvetica, sans-serif !important; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; display: inline-flex; align-items: center;">
-                    ← BACK TO HUB
-                </a>
+                <!-- Back to Hub link -->
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="index.html" style="color: #ccc; text-decoration: none; font-family: Arial, Helvetica, sans-serif !important; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; display: inline-flex; align-items: center;">
+                        ← BACK TO HUB
+                    </a>
+                </div>
             </div>
         </div>
     </div>

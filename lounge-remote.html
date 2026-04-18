@@ -7,7 +7,6 @@
     <title>Subsoccer Remote</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="https://js.stripe.com/v3/"></script>
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -60,56 +59,16 @@
 
             <!-- Bottom Buttons -->
             <div class="mt-4">
-
-                <!-- Dynamic Payment Button -->
-                <button id="btn-use-ticket" style="display: none;"
-                    class="w-full bg-gradient-to-r from-[#D4AF37] to-[#B8860B] text-black font-bold py-4 rounded-xl flex justify-between items-center px-6 hover:opacity-90 transition-all shadow-[0_0_20px_rgba(212,175,55,0.4)] mb-3"
-                    onclick="window.useFreeTicket()">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-ticket-alt text-xl"></i>
-                        <span class="tracking-widest uppercase text-sm">Play using Ticket</span>
-                    </div>
-                    <span id="ticket-badge" class="font-bold text-xs bg-black text-[#D4AF37] px-2 py-1 rounded" style="font-family: 'Subsoccer', sans-serif;"></span>
+                <button id="btn-start-free"
+                    class="w-full bg-[#E30613] text-white font-bold py-4 mt-6 rounded-lg flex justify-center items-center px-6 hover:opacity-90 transition-all shadow-[0_0_15px_rgba(227,6,19,0.4)] tracking-widest text-lg"
+                    onclick="window.startFreeTournament()">
+                    <i class="fas fa-play mr-2"></i> START TOURNAMENT
                 </button>
 
-                <!-- STRIPE SECURE PAYMENT UI -->
-                <div class="flex justify-between items-center bg-[#1a1a1a] p-3 rounded-lg border border-[#333] border-b-0 rounded-b-none">
-                    <span class="text-gray-400 text-xs font-bold uppercase tracking-widest">Total to Pay</span>
-                    <span id="dynamic-price-large" class="text-white text-xl font-black dynamic-price-display">2.00 €</span>
-                </div>
-                <div class="bg-[#111] p-3 rounded-lg border border-[#333] rounded-t-none mb-4">
-                    <button id="demo-apple-pay-btn" style="display: none;" class="w-full bg-black text-white hover:bg-gray-900 border border-gray-800 rounded-lg h-12 justify-center items-center mb-2 transition transform active:scale-95" onclick="demoFakeApplePay()">
-                        <i class="fab fa-apple text-2xl mr-1"></i> <span class="font-bold text-lg" style="font-family: -apple-system, sans-serif;">Pay</span>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button onclick="forceTVReload()" class="text-[10px] text-[#444] bg-transparent rounded mt-4">
+                        Force Refresh TV
                     </button>
-                    <div id="stripe-express-checkout-element"></div>
-                    
-                    <button id="btn-toggle-card" onclick="document.getElementById('card-element-container').classList.toggle('hidden');" class="w-full text-center text-xs text-gray-500 py-3 mt-2 hover:text-white transition-colors">
-                        <i class="fas fa-credit-card mr-1"></i> Use physical card instead (<span class="dynamic-price-display">2.00 €</span>)
-                    </button>
-
-                    <div id="card-element-container" class="hidden mt-2 pt-3 border-t border-[#333]">
-                        <div id="stripe-payment-element"></div>
-                        <button id="btn-checkout"
-                            class="w-full bg-white text-black font-bold py-3 mt-4 rounded-lg flex justify-center items-center px-6 hover:bg-gray-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-                            onclick="startDynamicCheckout()">
-                            <i id="btn-checkout-icon" class="fas fa-lock mr-2 text-gray-500"></i>
-                            <span id="btn-checkout-text" class="tracking-widest uppercase text-sm">Submit Payment</span>
-                        </button>
-                    </div>
-                </div>
-                <div id="powered-by-stripe" class="text-center text-[10px] text-gray-600 mt-3 font-mono flex justify-center items-center gap-1 uppercase tracking-wider mb-2">
-                    <i class="fas fa-lock text-[8px]"></i> Powered by Stripe
-                </div>
-
-                <div id="promo-code-container" class="text-center mt-2">
-                    <button onclick="const c=prompt('Enter Promo or Voucher Code:'); if(c) window.useFreeTicketCode(c);" class="text-sm text-gray-400 underline decoration-gray-600 hover:text-white transition-colors tracking-wide" style="font-family: 'Resolve', sans-serif;">
-                        Have a Promo Code?
-                    </button>
-                </div>
-
-                <div style="text-align: center; margin-top: 10px;">
-                    <button onclick="forceTVReload()" class="text-[10px] text-[#222] bg-transparent rounded mt-4">Force
-                        Refresh TV</button>
                 </div>
             </div>
         </div>

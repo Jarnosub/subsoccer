@@ -1,64 +1,20 @@
 import { arcadeSocket } from './socket-service.js';
 import { BracketEngine } from './bracket-engine.js';
 
-// In production, this should ideally be injected via build process or loaded from config endpoint.
-// For smooth testing to live transition, we define both here and toggle based on logic.
-const STRIPE_PK_TEST = 'pk_test_51TJa0WKDl6NoIsIlxgo7hCrNuLG2HoMT7R7ICsYBvQgbsNZFV6un3q9pA7UvnnsZsbgmj4kiIL22iZoybnedfvIY00FDkVxh9X';
-const STRIPE_PK_LIVE = 'pk_live_your_actual_live_key_here';
-
-// Auto-switch to live if on production domain, otherwise use test key
-const isProductionDomain = window.location.hostname === 'subsoccer.app' || window.location.hostname === 'subsoccer.com';
-const stripe = Stripe(isProductionDomain ? STRIPE_PK_LIVE : STRIPE_PK_TEST);
-
-let stripeElements = null;
+// STRIPE DELETED: Pure Free-to-Play Arcade Web Logic
 const tableId = 'table-04';
 arcadeSocket.connect();
 
-// Kysy TV:ltä tuoreimmat konfiguraatiot (esim. Free Play tila) kunnes onnistuu
+// Kysy TV:ltä tuoreimmat konfiguraatiot
 let cfgInterval = setInterval(() => {
     if (arcadeSocket.isConnected) {
         arcadeSocket.send('request_table_config', {});
     }
 }, 500);
 
-// STRIPE PAYMENT REDIRECT LISTENER
 const urlParams = new URLSearchParams(window.location.search);
-const paymentMode = urlParams.get('mode') || 'tournament';
 
-if (urlParams.get('payment') === 'success') {
-    // Siistitä URL, ettei refresh aktivoi maksua uudestaan
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-    setTimeout(() => {
-        // Palauta pelaajat local storagesta
-        const saved = localStorage.getItem('subsoccer_saved_roster');
-        if (saved) {
-            try {
-                const players = JSON.parse(saved);
-                const container = document.getElementById('tourny-players-list');
-                if (container) {
-                    container.innerHTML = '';
-                    players.forEach((p, idx) => {
-                        const num = idx + 1;
-                        let div = document.createElement('div');
-                        div.className = "flex items-center bg-[#111] p-2 rounded-lg border border-[#333] mb-3 player-row relative";
-                        div.innerHTML = `<span class="player-num text-gray-500 font-bold px-2 w-8">#${num}</span><input type="text" autocomplete="off" onfocus="this.select()" oninput="broadcastRoster()" value="${p}" class="player-input text-white w-full p-2 text-lg uppercase font-bold bg-transparent focus:outline-none placeholder-gray-600"><button onclick="removePlayer(this)" class="text-red-500 px-3 py-1"><i class="fas fa-times"></i></button>`;
-                        container.appendChild(div);
-                    });
-                }
-            } catch (e) { }
-        }
-
-        // Aktivoi Pöydän Releet ja pelitila livenä
-        arcadeSocket.send('payment_success', { mode: paymentMode });
-
-        // Näytä setup sekunniksi ja siirry suoraan Hubiin (turnaus on maksettu!)
-        switchScreen('s-tourny-setup');
-        setTimeout(() => {
-            generateTournament();
-        }, 100);
-    }, 100);
-} else if (urlParams.get('reconnect') === 'true') {
+if (urlParams.get('reconnect') === 'true') {
     // RECONNECT FLOW
     setTimeout(() => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -68,7 +24,6 @@ if (urlParams.get('payment') === 'success') {
         setTimeout(() => {
             if (!gameState.isTournament) {
                 document.getElementById('s-onboarding').classList.add('active');
-                window.updateDynamicPrice();
             }
         }, 3000);
     }, 500);
@@ -77,7 +32,6 @@ if (urlParams.get('payment') === 'success') {
     setTimeout(() => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById('s-onboarding').classList.add('active'); // Start with onboarding!
-        window.updateDynamicPrice();
     }, 50);
 }
 
@@ -161,287 +115,24 @@ let pMatchProcessing = false;
 let remoteTimerInterval;
 let isOnboardingDone = false;
 
-window.updateDynamicPrice = function () {
-    const list = document.getElementById('tourny-players-list');
-    if (!list) return;
-    const numPlayers = list.children.length;
-
-    let base = window.tableConfig?.basePrice ?? 2.00;
-    let price = base; 
-    let title = "TOURNAMENT";
-    let subtitle = "Buy the Bracket";
-
-    // Add logic to calculate Stripe mode based on players
-    if (numPlayers >= 7) {
-        price = base + 4.0; // 7-8 players
-    } else if (numPlayers >= 5) {
-        price = base + 3.0; // 5-6 players
-    } else if (numPlayers >= 3) {
-        price = base + 1.0; // 3-4 players
-    } else {
-        title = "1VS1 MATCH";
-        subtitle = "Winner takes all";
-    }
-
-    let savedPromo = null;
-    try {
-        savedPromo = localStorage.getItem('subsoccer_saved_promo');
-    } catch (e) {
-        console.warn("localStorage restricted by browser", e);
-    }
-    const isFree = window.tableConfig?.freePlay || savedPromo;
-
-    if (isFree) {
-        price = 0.0;
-    }
-
-    const priceString = price === 0 ? "FREE" : price.toFixed(2) + " €";
-    document.querySelectorAll('.dynamic-price-display').forEach(el => el.innerText = priceString);
-
-    // Save for Stripe Deferred Intents
-    window.currentPriceCents = Math.round(price * 100);
-
-    const titleEl = document.getElementById('setup-title');
-    if (titleEl) titleEl.innerText = title;
-
-    const subEl = document.getElementById('setup-subtitle');
-    if (subEl) subEl.innerText = "Add players to calculate price. " + subtitle;
-
-    // Apply Free Play visual overrides
-    const btnIcon = document.getElementById('btn-checkout-icon');
-    const btnText = document.getElementById('btn-checkout-text');
-    const poweredByStripe = document.getElementById('powered-by-stripe');
-    const promoCode = document.getElementById('promo-code-container');
-    const step1 = document.getElementById('onboarding-step-1');
-
-    if (isFree) {
-        if (subEl) subEl.innerText = savedPromo ? "Gift Card Applied! Add players to begin." : "Add players to begin. " + subtitle;
-        if (btnIcon) btnIcon.className = "fas fa-ticket-alt text-xl text-black mr-2";
-        if (btnText) btnText.innerText = savedPromo ? "USE GIFT CARD" : "START MATCH";
-        if (poweredByStripe) poweredByStripe.style.display = 'none';
-        if (promoCode) promoCode.style.display = 'none';
-        if (step1) step1.innerText = "1. SELECT PLAYERS";
-
-        document.getElementById('stripe-express-checkout-element').style.display = 'none';
-        document.getElementById('btn-toggle-card').style.display = 'none';
-        
-        const cardContainer = document.getElementById('card-element-container');
-        if (cardContainer) {
-            cardContainer.classList.remove('hidden');
-            cardContainer.classList.remove('border-t');
-        }
-        const stripePaymentEl = document.getElementById('stripe-payment-element');
-        if (stripePaymentEl) stripePaymentEl.style.display = 'none';
-
-        const checkoutBtn = document.getElementById('btn-checkout');
-        if (checkoutBtn) {
-            checkoutBtn.className = "w-full bg-black text-white font-bold py-3 mt-2 rounded-lg flex justify-center items-center px-6 hover:bg-gray-900 border border-gray-800 transition-all";
-        }
-        
-        const demoBtn = document.getElementById('demo-apple-pay-btn');
-        if (demoBtn) demoBtn.style.display = 'none';
-    } else {
-        if (btnIcon) btnIcon.className = "fas fa-lock mr-2 text-gray-500";
-        if (btnText) btnText.innerText = "SUBMIT PAYMENT";
-        if (poweredByStripe) poweredByStripe.style.display = 'flex';
-        if (promoCode) promoCode.style.display = 'block';
-        if (step1) step1.innerText = "1. SELECT PLAYERS & PAY";
-
-        document.getElementById('stripe-express-checkout-element').style.display = 'block';
-        document.getElementById('btn-toggle-card').style.display = 'block';
-        const cardContainer = document.getElementById('card-element-container');
-        if (cardContainer) {
-            cardContainer.classList.add('border-t');
-        }
-        const stripePaymentEl = document.getElementById('stripe-payment-element');
-        if (stripePaymentEl) stripePaymentEl.style.display = 'block';
-
-        const checkoutBtn = document.getElementById('btn-checkout');
-        if (checkoutBtn) {
-            checkoutBtn.className = "w-full bg-white text-black font-bold py-3 mt-4 rounded-lg flex justify-center items-center px-6 hover:bg-gray-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]";
-        }
-        
-        if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
-            const demoBtn = document.getElementById('demo-apple-pay-btn');
-            if (demoBtn) demoBtn.style.display = 'flex';
-        }
-
-        // Initialize or update Stripe Elements
-        if (!stripeElements) {
-            initStripeElements();
-        } else if (typeof stripeElements.update === 'function') {
-            stripeElements.update({ amount: window.currentPriceCents });
-        }
-    }
-};
-
-async function initStripeElements() {
-    const container = document.getElementById('stripe-payment-element');
-    if (!container || stripeElements) return;
-
-    try {
-        // We use Stripe Deferred Intents so the amount can update dynamically without reloading!
-        stripeElements = stripe.elements({ 
-            mode: 'payment',
-            amount: window.currentPriceCents || 200,
-            currency: 'eur',
-            appearance: {
-                theme: 'night',
-                variables: {
-                    fontFamily: 'Inter, sans-serif',
-                    colorPrimary: '#D4AF37',
-                    colorBackground: '#111111',
-                    colorText: '#ffffff',
-                    colorDanger: '#E30613',
-                }
-            } 
-        });
-
-        const paymentElement = stripeElements.create("payment", { layout: "tabs" });
-        paymentElement.mount("#stripe-payment-element");
-
-        // Add Express Checkout element (Apple Pay / Google Pay directly)
-        const expressCheckoutElement = stripeElements.create('expressCheckout', {
-            paymentMethods: {
-                link: 'never' // Disable bright green Link explicitly
-            }
-        });
-        expressCheckoutElement.mount('#stripe-express-checkout-element');
-        
-        // Show DEMO APPLE PAY if we are on local network HTTP without SSL (since real won't load)
-        if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
-            document.getElementById('demo-apple-pay-btn').style.display = 'flex';
-        }
-
-        expressCheckoutElement.on('confirm', async (event) => {
-            const { error: submitError } = await stripeElements.submit();
-            if (submitError) {
-                console.error("Submit Error:", submitError);
-                return;
-            }
-
-            // Now we fetch the backend to lock in the server-side PaymentIntent with dynamic amount
-            const response = await fetch(`/create-payment-intent`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    items: [{ id: "subsoccer-arcade" }],
-                    customAmount: window.currentPriceCents || 200 
-                }),
-            });
-            const { clientSecret } = await response.json();
-
-            const returnUrlParams = new URLSearchParams({ payment: 'success', mode: 'tournament' });
-            const { error } = await stripe.confirmPayment({
-                elements: stripeElements,
-                clientSecret,
-                confirmParams: {
-                    return_url: `${window.location.protocol}//${window.location.host}/lounge-remote.html?${returnUrlParams.toString()}`,
-                },
-            });
-            if (error) console.error(error);
-        });
-    } catch(e) {
-        console.error("Failed to load Stripe Elements", e);
-    }
-}
-
-window.demoFakeApplePay = function() {
+window.startFreeTournament = function () {
     const inputs = document.querySelectorAll('.player-input');
     const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
     localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
 
-    const btn = document.getElementById('demo-apple-pay-btn');
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-2xl"></i>';
+    const btn = document.getElementById('btn-start-free');
+    if (btn) {
+        btn.style.opacity = '0.5';
+        btn.innerHTML = '<span><i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...</span>';
+    }
+
+    // Aktivoi Pöydän Releet heti
+    arcadeSocket.send('payment_success', { mode: 'tournament' });
+
     setTimeout(() => {
-        const returnUrlParams = new URLSearchParams({ payment: 'success', mode: 'tournament' });
-        window.location.href = `lounge-remote.html?${returnUrlParams.toString()}`;
-    }, 1200);
-};
-
-window.startDynamicCheckout = async function () {
-    const inputs = document.querySelectorAll('.player-input');
-    const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
-    localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
-
-    const btn = document.getElementById('btn-checkout');
-    btn.style.opacity = '0.5';
-    btn.innerHTML = '<span><i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING...</span>';
-
-    let savedPromo = null;
-    try {
-        savedPromo = localStorage.getItem('subsoccer_saved_promo');
-    } catch(e) {}
-    
-    if (savedPromo) {
-        window.useFreeTicketCode(savedPromo);
-        return;
-    }
-
-    // In Free Play mode, bypass payment entirely.
-    if (window.tableConfig?.freePlay) {
-        setTimeout(() => {
-            window.location.href = window.location.pathname + "?payment=success&mode=tournament";
-        }, 100);
-    } else {
-        if (!stripeElements) {
-            btn.innerHTML = '<span><i class="fas fa-exclamation-triangle mr-2"></i> NETWORK ERROR</span>';
-            btn.style.backgroundColor = '#E30613';
-            btn.style.color = 'white';
-            return;
-        }
-
-        const { error: submitError } = await stripeElements.submit();
-        if (submitError) {
-            btn.style.opacity = '1';
-            btn.innerHTML = `<span><i class="fas fa-exclamation-triangle mr-2"></i> ${submitError.message}</span>`;
-            btn.style.backgroundColor = '#E30613';
-            btn.style.color = 'white';
-            return;
-        }
-
-        // Fetch the backend to lock in the server-side PaymentIntent with dynamic amount
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameIdParam = urlParams.get('game_id');
-        
-        const response = await fetch(`/.netlify/functions/create-payment-intent`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                items: [{ id: "subsoccer-arcade" }],
-                customAmount: window.currentPriceCents || 200,
-                gameId: gameIdParam
-            }),
-        });
-        const { clientSecret } = await response.json();
-
-        const returnUrlParams = new URLSearchParams({ payment: 'success', mode: 'tournament' });
-        const { error } = await stripe.confirmPayment({
-            elements: stripeElements,
-            clientSecret,
-            confirmParams: {
-                return_url: `${window.location.protocol}//${window.location.host}/lounge-remote.html?${returnUrlParams.toString()}`,
-            },
-        });
-
-        if (error) {
-            btn.style.opacity = '1';
-            btn.innerHTML = `<span><i class="fas fa-exclamation-triangle mr-2"></i> ${error.message}</span>`;
-            btn.style.backgroundColor = '#E30613';
-            btn.style.color = 'white';
-            
-            setTimeout(() => {
-                btn.style.backgroundColor = 'white';
-                btn.style.color = 'black';
-                btn.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <i id="btn-checkout-icon" class="fab fa-apple text-xl"></i>
-                        <span id="btn-checkout-text" class="tracking-widest uppercase text-sm">Pay & Start</span>
-                    </div>
-                `;
-            }, 3000);
-        }
-    }
+        switchScreen('s-tourny-setup');
+        generateTournament();
+    }, 300);
 };
 
 
