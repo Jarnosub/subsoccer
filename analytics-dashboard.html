@@ -327,7 +327,7 @@
 
                 // Fetch metrics concurrently
                 const [trackingRes, usersRes, historyRes, matchesRes] = await Promise.all([
-                    client.from('public_tracking').select('*').order('created_at', { ascending: false }).limit(100),
+                    client.from('public_tracking').select('*').order('client_time', { ascending: false }).limit(100),
                     client.from('players').select('id', { count: 'exact' }),
                     client.from('tournament_history').select('*', { count: 'exact' }),
                     client.from('games_analytics').select('id', { count: 'exact' }) // or similar match tracking
@@ -356,7 +356,7 @@
                 
                 trackingData.slice(0, 50).forEach(row => {
                     const tr = document.createElement('tr');
-                    const dateObj = new Date(row.created_at);
+                    const dateObj = new Date(row.client_time || new Date());
                     
                     const badgeClass = row.source_partner === 'guest' ? 'guest' : 'registered';
                     
