@@ -563,21 +563,23 @@ window.showCastModal = function(url) {
 
     const overlay = document.createElement('div');
     overlay.id = 'cast-modal-overlay';
-    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(8px);';
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(5px);';
     
     overlay.innerHTML = `
-        <div style="background:#111; border:1px solid #333; padding:30px; border-radius:12px; max-width:90%; width: 400px; box-shadow:0 10px 40px rgba(0,0,0,0.9);">
-            <h2 style="color:white; margin-bottom:10px; font-size:1.5rem; letter-spacing:1px;"><i class="fas fa-tv" style="color:#E30613; margin-right:8px;"></i> TV-TILA</h2>
-            <p style="color:#aaa; font-size:0.9rem; margin-bottom:20px; font-family:'Arial',sans-serif; line-height:1.4;">Avaa tämä osoite samassa WiFi-verkossa olevalla TV:n tai tietokoneen selaimella:</p>
-            <div style="background:#000; color:#fff; padding:15px; border-radius:8px; word-break:break-all; font-family:monospace; margin-bottom:25px; border:1px solid #333; user-select:all; cursor:pointer;" id="cast-url-box">
+        <div style="background:rgba(20,20,25,0.85); border:1px solid rgba(255,255,255,0.1); padding:24px; border-radius:12px; backdrop-filter:blur(10px); max-width:90%; width: 340px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+            <h2 style="color:white; margin-bottom:8px; font-size:1.2rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-tv" style="color:#E30613; margin-right:8px;"></i> SPECTATOR MODE</h2>
+            <p style="color:#888; font-size:0.8rem; margin-bottom:16px; font-family:'Resolve',sans-serif; letter-spacing:1px;">OPEN THIS LINK ON ANY SCREEN</p>
+            
+            <div style="background:rgba(0,0,0,0.5); color:#fff; padding:12px; border-radius:6px; word-break:break-all; font-family:monospace; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05); user-select:all; cursor:pointer;" id="cast-url-box">
                 ${url}
             </div>
-            <div style="display:flex; gap:10px; justify-content:center; flex-direction:column;">
-                <button id="cast-copy-btn" style="background:#E30613; color:white; border:none; padding:15px 20px; font-family:'Resolve',sans-serif; font-size:1.1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%;">
-                    <i class="fas fa-copy" style="margin-right:8px;"></i> KOPIOI LINKKI
+            
+            <div style="display:flex; gap:8px; flex-direction:column;">
+                <button id="cast-copy-btn" style="background:transparent; color:#E30613; border:1px solid rgba(227,6,19,0.3); padding:12px; font-family:'Resolve',sans-serif; font-size:0.9rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
+                    <i class="fas fa-copy" style="margin-right:8px;"></i> COPY LINK
                 </button>
-                <button onclick="document.getElementById('cast-modal-overlay').remove()" style="background:transparent; color:#888; border:1px solid #333; padding:12px 20px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%;">
-                    SULJE
+                <button onclick="document.getElementById('cast-modal-overlay').remove()" style="background:transparent; color:#666; border:none; padding:12px; font-family:'Resolve',sans-serif; font-size:0.8rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%;">
+                    CLOSE
                 </button>
             </div>
         </div>
@@ -591,11 +593,13 @@ window.showCastModal = function(url) {
     const copyFn = async () => {
         try {
             await navigator.clipboard.writeText(url);
-            copyBtn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i> KOPIOITU!';
-            copyBtn.style.background = '#4CAF50';
+            copyBtn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i> COPIED!';
+            copyBtn.style.color = '#4CAF50';
+            copyBtn.style.borderColor = 'rgba(76, 175, 80, 0.3)';
             setTimeout(() => {
-                copyBtn.innerHTML = '<i class="fas fa-copy" style="margin-right:8px;"></i> KOPIOI LINKKI';
-                copyBtn.style.background = '#E30613';
+                copyBtn.innerHTML = '<i class="fas fa-copy" style="margin-right:8px;"></i> COPY LINK';
+                copyBtn.style.color = '#E30613';
+                copyBtn.style.borderColor = 'rgba(227,6,19,0.3)';
             }, 3000);
         } catch(e) {
             const textArea = document.createElement("textarea");
@@ -604,8 +608,9 @@ window.showCastModal = function(url) {
             textArea.select();
             document.execCommand("copy");
             document.body.removeChild(textArea);
-            copyBtn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i> KOPIOITU!';
-            copyBtn.style.background = '#4CAF50';
+            copyBtn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i> COPIED!';
+            copyBtn.style.color = '#4CAF50';
+            copyBtn.style.borderColor = 'rgba(76, 175, 80, 0.3)';
         }
     };
 
