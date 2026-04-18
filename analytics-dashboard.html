@@ -11,6 +11,8 @@
     <!-- Dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         :root {
@@ -289,6 +291,12 @@
             </div>
         </div>
 
+        <!-- Global Map Row -->
+        <div class="table-card">
+            <h2>Live Global Match Map <i class="fas fa-satellite-dish" style="color: var(--accent-blue); margin-left:8px;"></i></h2>
+            <div id="map" style="height: 400px; width: 100%; background: #0a0a0a;"></div>
+        </div>
+
         <!-- Table Row -->
         <div class="table-card">
             <h2>Recent Global Activity Feed</h2>
@@ -393,6 +401,7 @@
                 }
 
                 initCharts(trackingData);
+                initMap(trackingData);
 
             } catch (err) {
                 console.error("Error fetching analytics:", err);
@@ -467,6 +476,71 @@
                     cutout: '70%'
                 }
             });
+        }
+
+        let mymap = null;
+        function initMap(data) {
+            if(!mymap) {
+                mymap = L.map('map').setView([25, 0], 2);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '© OpenStreetMap © CartoDB',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(mymap);
+            }
+            
+            // Clear old markers
+            mymap.eachLayer((layer) => {
+                if(layer instanceof L.CircleMarker) layer.remove();
+            });
+
+            // Rough mapping of timezones to coordinates for visual heatmap
+            const tzCoords = {
+                'Europe/Helsinki': [60.1695, 24.9354], 'Europe/Stockholm': [59.3293, 18.0686],
+                'Europe/London': [51.5074, -0.1278], 'Europe/Paris': [48.8566, 2.3522],
+                'Europe/Berlin': [52.52, 13.405], 'Europe/Madrid': [40.4168, -3.7038],
+                'Europe/Rome': [41.9028, 12.4964], 'Europe/Amsterdam': [52.3676, 4.9041],
+                'America/New_York': [40.7128, -74.006], 'America/Los_Angeles': [34.0522, -118.2437],
+                'America/Chicago': [41.8781, -87.6298], 'America/Toronto': [43.6532, -79.3832],
+                'America/Phoenix': [33.4484, -112.0740], 'America/Denver': [39.7392, -104.9903],
+                'America/Sao_Paulo': [-23.5505, -46.6333], 'America/Bogota': [4.7110, -74.0721],
+                'Asia/Tokyo': [35.6762, 139.6503], 'Asia/Dubai': [25.2048, 55.2708],
+                'Asia/Singapore': [1.3521, 103.8198], 'Asia/Shanghai': [31.2304, 121.4737],
+                'Asia/Seoul': [37.5665, 126.9780], 'Asia/Bangkok': [13.7563, 100.5018],
+                'Australia/Sydney': [-33.8688, 151.2093], 'Australia/Melbourne': [-37.8136, 144.9631],
+                'Africa/Johannesburg': [-26.2041, 28.0473], 'UTC': [51.4769, 0.0005] // fallback
+            };
+
+            const locCounts = {};
+            data.forEach(d => {
+                if (!d.location) return;
+                locCounts[d.location] = (locCounts[d.location] || 0) + 1;
+            });
+
+            for (const loc in locCounts) {
+                if (tzCoords[loc]) {
+                    const count = locCounts[loc];
+                    const radius = Math.min(Math.max(count * 2, 8), 35);
+                    L.circleMarker(tzCoords[loc], {
+                        color: 'rgba(138, 180, 248, 0.8)',
+                        fillColor: '#8AB4F8',
+                        fillOpacity: 0.6,
+                        weight: 2,
+                        radius: radius
+                    }).bindPopup(`<div style="color:black"><b>${loc}</b><br>${count} Events tracked</div>`).addTo(mymap);
+                } else if(loc !== 'Unknown') {
+                    // Slight randomization near equator for unknown mapped timezones just for visualization
+                    const hash = loc.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+                    const lat = (hash % 100) / 3;
+                    const lng = ((hash / 100) % 180);
+                    L.circleMarker([lat, lng], {
+                        color: 'rgba(242, 139, 130, 0.8)',
+                        fillColor: '#F28B82',
+                        fillOpacity: 0.6,
+                        radius: 5
+                    }).bindPopup(`<div style="color:black"><b>${loc}</b><br>${locCounts[loc]} Events tracked</div>`).addTo(mymap);
+                }
+            }
         }
 
         // Initialize
