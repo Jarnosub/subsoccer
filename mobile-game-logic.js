@@ -506,7 +506,7 @@ window.openQrJoin = function() {
             // Päivitetään asettelu popuppiin
             const listEl = document.getElementById('qr-joined-list');
             if (listEl) {
-                if (listEl.innerHTML.includes('Odotetaan pelaajia')) listEl.innerHTML = '';
+                if (listEl.innerHTML.includes('Waiting for players')) listEl.innerHTML = '';
                 const num = listEl.children.length + 1;
                 const row = document.createElement('div');
                 row.style.cssText = "padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;";
@@ -543,7 +543,7 @@ window.openQrJoin = function() {
             </div>
             
             <div id="qr-joined-list" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; min-height: 50px; max-height: 150px; overflow-y: auto; text-align: left; margin-bottom: 20px; display: flex; flex-direction: column;">
-                <div style="color: #666; text-align: center; padding: 15px; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem;">Odotetaan pelaajia...</div>
+                <div style="color: #666; text-align: center; padding: 15px; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem;">Waiting for players...</div>
             </div>
             
             <button onclick="document.getElementById('qr-join-overlay').remove(); if(qrJoinChannel) { _sb.removeChannel(qrJoinChannel); qrJoinChannel = null; }" style="background:transparent; color:#888; border:1px solid rgba(255,255,255,0.2); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
