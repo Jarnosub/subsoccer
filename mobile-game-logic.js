@@ -516,15 +516,20 @@ window.openQrJoin = function() {
             }
             if (!replaced) window.mobileAddPlayer(upName);
             
-            // Päivitetään asettelu popuppiin
+            // Päivitetään asettelu popuppiin lukemalla kentät uusiksi
             const listEl = document.getElementById('qr-joined-list');
             if (listEl) {
-                if (listEl.innerHTML.includes('Waiting for players')) listEl.innerHTML = '';
-                const num = listEl.children.length + 1;
-                const row = document.createElement('div');
-                row.style.cssText = "display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;";
-                row.innerHTML = `<span style="color:#888; margin-right: 4px;">#${num}</span> ${payload.name.toUpperCase()}`;
-                listEl.appendChild(row);
+                let existingPlayersHtml = '';
+                let existingCount = 0;
+                document.querySelectorAll('.player-input').forEach((input, idx) => {
+                    const name = input.value.trim();
+                    if (name && !name.startsWith("PLAYER ")) {
+                        existingCount++;
+                        existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${name.toUpperCase()}</div>`;
+                    }
+                });
+                const emptyHtml = `<div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>`;
+                listEl.innerHTML = existingCount > 0 ? existingPlayersHtml : emptyHtml;
                 listEl.scrollTop = listEl.scrollHeight;
             }
 
@@ -556,7 +561,7 @@ window.openQrJoin = function() {
             </div>
             
             <div id="qr-joined-list" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; min-height: 50px; max-height: 120px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; justify-content: center; align-content: flex-start;">
-                <div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>
+                <!-- Lista injektoidaan -->
             </div>
             
             <button onclick="document.getElementById('qr-join-overlay').remove(); if(qrJoinChannel) { _sb.removeChannel(qrJoinChannel); qrJoinChannel = null; }" style="background:transparent; color:#888; border:1px solid rgba(255,255,255,0.2); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
@@ -567,23 +572,19 @@ window.openQrJoin = function() {
 
     document.body.appendChild(overlay);
 
-    // Haetaan olemassa olevat pelaajat
-    const inputs = document.querySelectorAll('.player-input');
-    let existingPlayersHtml = '';
-    let existingCount = 0;
-    inputs.forEach((input, idx) => {
-        const name = input.value.trim();
-        if (name && !name.startsWith("PLAYER ")) {
-            existingCount++;
-            existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${existingCount}</span> ${name.toUpperCase()}</div>`;
-        }
-    });
-
-    const emptyHtml = `<div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>`;
-    
-    // Injektoidaan olemassa olevat pelaajat tai tyhjä tila
+    // Injektoidaan lista heti kun avataan
     const listEl = document.getElementById('qr-joined-list');
     if (listEl) {
+        let existingPlayersHtml = '';
+        let existingCount = 0;
+        document.querySelectorAll('.player-input').forEach((input, idx) => {
+            const name = input.value.trim();
+            if (name && !name.startsWith("PLAYER ")) {
+                existingCount++;
+                existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${name.toUpperCase()}</div>`;
+            }
+        });
+        const emptyHtml = `<div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>`;
         listEl.innerHTML = existingCount > 0 ? existingPlayersHtml : emptyHtml;
     }
 };
