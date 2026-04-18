@@ -633,7 +633,7 @@ function broadcastTvState() {
         setupHtml: document.getElementById('m-players-list') ? document.getElementById('m-players-list').innerHTML : '',
         bracketHtml: document.getElementById('mobile-bracket-area') ? document.getElementById('mobile-bracket-area').innerHTML : '',
         titleText: document.getElementById('m-tourny-title') ? document.getElementById('m-tourny-title').innerHTML : '',
-        standingsHtml: document.getElementById('m-standings-table') ? document.getElementById('m-standings-table').innerHTML : '',
+        standingsHtml: document.getElementById('m-leaderboard-list') ? document.getElementById('m-leaderboard-list').innerHTML : '',
         p1Score: document.getElementById('m-score-p1') ? document.getElementById('m-score-p1').innerText : '',
         p2Score: document.getElementById('m-score-p2') ? document.getElementById('m-score-p2').innerText : '',
         p1Goals: document.getElementById('m-goals-p1') ? document.getElementById('m-goals-p1').innerText : '',
@@ -665,7 +665,7 @@ function initTvReceiver() {
         e('m-players-list', payload.setupHtml);
         e('mobile-bracket-area', payload.bracketHtml);
         e('m-tourny-title', payload.titleText);
-        e('m-standings-table', payload.standingsHtml);
+        e('m-leaderboard-list', payload.standingsHtml);
         e('m-champion-name', payload.champName);
         
         t('m-score-p1', payload.p1Score);
