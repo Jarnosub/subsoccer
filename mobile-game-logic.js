@@ -10,7 +10,7 @@ import { BracketEngine } from './bracket-engine.js';
 let isLoggedIn = false;
 let currentUserId = null;
 let _sb = null;
-const MAX_PLAYERS_GUEST = 4;
+const MAX_PLAYERS_GUEST = 8;
 const MAX_PLAYERS_LOGGED = 8;
 
 // --- SMART MIRROR (TV CAST) ---
