@@ -185,13 +185,12 @@
         </div>
         
         <!-- Tyhjä div pitämään logo keskellä space-between asettelulla -->
-        <!-- Logout-nappi (kirjautuneet) / tyhjä spacer (vieraat) -->
-        <div id="hub-logout-btn" style="display: none; width: 100px; text-align: right;">
-            <button onclick="hubLogout()" style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 0.75rem; backdrop-filter: blur(5px);">
-                <i class="fa-solid fa-right-from-bracket"></i>
+        <!-- Hamburger Menu Button -->
+        <div style="width: 100px; text-align: right; z-index: 100;">
+            <button onclick="document.getElementById('main-nav-menu').style.display='flex'" style="background: transparent; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
+                <i class="fa-solid fa-bars"></i>
             </button>
         </div>
-        <div id="hub-spacer" style="width: 100px;"></div>
     </div>
 
     <!-- PÄÄVALIKKO / TARINAN VALINTA -->
@@ -221,6 +220,31 @@
 
     </div>
 
+    <!-- MAIN HAMBURGER MENU OVERLAY -->
+    <div id="main-nav-menu" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.98); z-index: 3000; flex-direction: column; padding: 40px 20px;">
+        <button onclick="document.getElementById('main-nav-menu').style.display='none'" style="position: absolute; top: calc(20px + env(safe-area-inset-top, 20px)); right: 20px; background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <img src="subsoccer_logo.svg" style="height: 40px; margin-top: calc(20px + env(safe-area-inset-top, 20px)); margin-bottom: 50px; align-self: flex-start;" alt="Subsoccer">
+
+        <div style="display: flex; flex-direction: column; gap: 20px; font-family: 'Resolve', sans-serif; font-size: 1.1rem; letter-spacing: 2px;">
+            
+            <a href="scan-code.html" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center;"><i class="fa-solid fa-qrcode" style="color: var(--sub-gold); width: 40px; text-align: center;"></i> SCAN CODE</a>
+            
+            <a href="register.html" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center;"><i class="fa-solid fa-hammer" style="color: var(--sub-gold); width: 40px; text-align: center;"></i> REGISTER NEW TABLE</a>
+            
+            <a href="player-card.html" id="menu-profile-link" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-user" style="color: var(--sub-gold); width: 40px; text-align: center;"></i> MY PROFILE</a>
+
+            <a href="owner-dashboard.html" id="menu-owner-link" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-toolbox" style="color: var(--sub-gold); width: 40px; text-align: center;"></i> MY HARDWARE</a>
+
+            <a href="moderator.html" id="menu-mod-link" style="color: #D4AF37; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-shield-halved" style="color: #E30613; width: 40px; text-align: center;"></i> MODERATOR TOOLS</a>
+            
+            <a href="https://subsoccer.com" target="_blank" style="color: #888; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center; margin-top: 10px;"><i class="fa-solid fa-cart-shopping" style="width: 40px; text-align: center;"></i> BUY SUBSOCCER</a>
+
+            <a href="#" id="menu-logout-link" onclick="hubLogout()" style="color: #E30613; text-decoration: none; padding-bottom: 15px; display: none; align-items: center; margin-top: 10px;"><i class="fa-solid fa-right-from-bracket" style="width: 40px; text-align: center;"></i> LOG OUT</a>
+        </div>
+    </div>
     <!-- KARTTANÄKYMÄ (Piilotettu oletuksena) -->
     <div id="map-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2000; background: #0a0a0a;">
         <div id="public-game-map" style="width: 100%; height: 100%;"></div>
@@ -244,10 +268,10 @@
                 
                 if (session && session.user) {
                     // Fetch player profile from DB
-                    const { data: player } = await sb.from('players').select('username, elo').eq('id', session.user.id).single();
+                    const { data: player } = await sb.from('players').select('username, elo, is_admin, is_owner').eq('id', session.user.id).single();
                     
                     if (player) {
-                        showPlayerCard(player.username, player.elo);
+                        showPlayerCard(player);
                         return;
                     }
                 }
@@ -258,7 +282,7 @@
                     try {
                         const user = JSON.parse(cached);
                         if (user && user.username) {
-                            showPlayerCard(user.username, user.elo);
+                            showPlayerCard(user);
                             return;
                         }
                     } catch(e) {}
@@ -271,20 +295,29 @@
                     try {
                         const user = JSON.parse(cached);
                         if (user && user.username) {
-                            showPlayerCard(user.username, user.elo);
+                            showPlayerCard(user);
                         }
                     } catch(e2) {}
                 }
             }
         })();
 
-        function showPlayerCard(name, elo) {
-            document.getElementById('hub-player-name').innerText = name || 'PLAYER';
-            document.getElementById('hub-player-elo').innerHTML = '<i class="fa-solid fa-bolt"></i> ' + (elo || 1500);
+        function showPlayerCard(player) {
+            document.getElementById('hub-player-name').innerText = player.username || 'PLAYER';
+            document.getElementById('hub-player-elo').innerHTML = '<i class="fa-solid fa-bolt"></i> ' + (player.elo || 1500);
             document.getElementById('hub-login-btn').style.display = 'none';
             document.getElementById('hub-player-card').style.display = 'flex';
-            document.getElementById('hub-logout-btn').style.display = 'block';
-            document.getElementById('hub-spacer').style.display = 'none';
+            
+            // Menu toggles
+            document.getElementById('menu-profile-link').style.display = 'flex';
+            document.getElementById('menu-logout-link').style.display = 'flex';
+            
+            if (player.is_owner || player.is_admin) {
+                document.getElementById('menu-owner-link').style.display = 'flex';
+            }
+            if (player.is_admin) {
+                document.getElementById('menu-mod-link').style.display = 'flex';
+            }
         }
 
         async function hubLogout() {
