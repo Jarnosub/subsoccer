@@ -548,7 +548,7 @@ window.openQrJoin = function() {
     overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.85)), url('Subsoccer_tournament_2.jpg') center/cover no-repeat; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(8px);`;
     
     overlay.innerHTML = `
-        <div style="background:rgba(35, 35, 40, 0.95); border:1px solid rgba(255,255,255,0.15); padding:40px 20px; border-radius:16px; max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.9); position: relative; overflow: hidden; backdrop-filter: blur(10px);">
+        <div style="background:rgba(0, 0, 0, 0.90); border:1px solid rgba(255,255,255,0.15); padding:40px 20px; border-radius:16px; max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.9); position: relative; overflow: hidden; backdrop-filter: blur(10px);">
             <!-- Inner glowing accent -->
             <div style="position:absolute; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, transparent, #E30613, transparent);"></div>
             <h2 style="color:white; margin-bottom:12px; font-size:1.8rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-qrcode" style="color:#E30613; margin-right:12px;"></i> JOIN TOURNAMENT</h2>
@@ -558,11 +558,11 @@ window.openQrJoin = function() {
                 <img src="${qrImageUrl}" alt="Join QR Code" style="width: 200px; height: 200px; display:block;">
             </div>
             
-            <div id="qr-joined-list" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; min-height: 50px; max-height: 120px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; justify-content: center; align-content: flex-start;">
+            <div id="qr-joined-list" style="background: rgba(35, 35, 40, 0.9); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; min-height: 50px; max-height: 120px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; justify-content: center; align-content: flex-start;">
                 <!-- Lista injektoidaan -->
             </div>
             
-            <button onclick="document.getElementById('qr-join-overlay').remove(); if(qrJoinChannel) { _sb.removeChannel(qrJoinChannel); qrJoinChannel = null; }" style="background:transparent; color:#888; border:1px solid rgba(255,255,255,0.2); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
+            <button onclick="document.getElementById('qr-join-overlay').remove(); if(qrJoinChannel) { _sb.removeChannel(qrJoinChannel); qrJoinChannel = null; }" style="background: rgba(35, 35, 40, 0.9); color:#fff; border:1px solid rgba(255,255,255,0.1); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
                 <i class="fas fa-times" style="margin-right:8px;"></i> CLOSE
             </button>
         </div>
