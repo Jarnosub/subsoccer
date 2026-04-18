@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Subsoccer - Player Card</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=2">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         @font-face {
@@ -496,6 +496,12 @@
 
     <!-- ACTION BUTTONS -->
     <div class="pc-actions">
+        
+        <div class="pc-action-btn" id="btn-download-card" onclick="exportPrintableCard()" style="background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%); color: #000; border: none; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);">
+            <i class="fas fa-print" style="color: #000;"></i>
+            ORDER / EXPORT TOPPS CARD
+            <i class="fas fa-download pc-action-arrow" style="color: #000;"></i>
+        </div>
 
         <!-- OWNER-ONLY: Dashboard link -->
         <div class="pc-action-btn owner-only" id="pc-owner-btn" style="display: none;" onclick="window.location.href='owner-dashboard.html'">
@@ -750,6 +756,40 @@
                 } catch(e) {}
             }
         })();
+
+        async function exportPrintableCard() {
+            try {
+                const btn = document.getElementById('btn-download-card');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color:#000;"></i> GENERATING TOPPS CARD...';
+
+                // Ensure perfect 2.5x3.5" (750x1050 px @ 300DPI) format
+                const cardFront = document.querySelector('.pro-card-front');
+                const scaleTarget = 750 / 280; // Scale from 280px CSS width to 750px high-res width
+                
+                const canvas = await html2canvas(cardFront, {
+                    scale: scaleTarget,
+                    useCORS: true,
+                    backgroundColor: '#0a0a0a',
+                    logging: false
+                });
+
+                const dataUrl = canvas.toDataURL('image/png', 1.0);
+                
+                // Prompt download
+                const link = document.createElement('a');
+                link.download = 'subsoccer-pro-card.png';
+                link.href = dataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                btn.innerHTML = originalHtml;
+            } catch (error) {
+                console.error("Error generating card:", error);
+                alert("Generation failed. Please try on a desktop browser.");
+            }
+        }
     </script>
 
 </body>
