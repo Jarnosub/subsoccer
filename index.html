@@ -221,12 +221,12 @@
     </div>
 
     <!-- MAIN HAMBURGER MENU OVERLAY -->
-    <div id="main-nav-menu" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.98); z-index: 3000; flex-direction: column; padding: 40px 20px;">
-        <button onclick="document.getElementById('main-nav-menu').style.display='none'" style="position: absolute; top: calc(20px + env(safe-area-inset-top, 20px)); right: 20px; background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer;">
+    <div id="main-nav-menu" onclick="if(event.target === this) this.style.display='none'" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.98); z-index: 3000; flex-direction: column; padding: 40px 20px;">
+        <button onclick="document.getElementById('main-nav-menu').style.display='none'" style="position: absolute; top: 30px; right: 30px; background: none; border: none; color: #fff; font-size: 2.5rem; cursor: pointer; z-index: 3001;">
             <i class="fa-solid fa-xmark"></i>
         </button>
         
-        <img src="subsoccer_logo.svg" style="height: 40px; margin-top: calc(20px + env(safe-area-inset-top, 20px)); margin-bottom: 50px; align-self: flex-start;" alt="Subsoccer">
+        <img src="subsoccer_logo.svg" style="height: 40px; margin-top: 10px; margin-bottom: 50px; align-self: flex-start; pointer-events: none;" alt="Subsoccer">
 
         <div style="display: flex; flex-direction: column; gap: 20px; font-family: 'Resolve', sans-serif; font-size: 1.1rem; letter-spacing: 2px;">
             
