@@ -1,4 +1,7 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_fallback_override_this_in_netlify');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('FATAL: STRIPE_SECRET_KEY environment variable is missing!');
+}
 
 exports.handler = async (event, context) => {
     // Only allow POST
@@ -25,7 +28,7 @@ exports.handler = async (event, context) => {
             statusCode: 200,
             headers: {
                 // Ensure CORS headers so local testing or remote browsers can fetch this
-                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Origin': 'https://subsoccer.pro',
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Allow-Methods': 'OPTIONS,POST'
             },
@@ -36,9 +39,9 @@ exports.handler = async (event, context) => {
     } catch (e) {
         return {
             statusCode: 400,
-            headers: { 'Access-Control-Allow-Origin': '*' },
+            headers: { 'Access-Control-Allow-Origin': 'https://subsoccer.pro' },
             body: JSON.stringify({
-                error: { message: e.message }
+                error: { message: 'Payment processing failed. Please try again.' }
             }),
         };
     }

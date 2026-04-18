@@ -125,9 +125,11 @@ export const subscribe = (prop, callback) => {
     listeners[prop].push(callback);
 };
 
-// Globaali pääsy debuggausta varten ja vanhoille scripteille
-window._appState = state;
-window._supabase = _supabase;
+// Debug access – only available on localhost (disabled in production)
+if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location?.hostname)) {
+    window._appState = state;
+    window._supabase = _supabase;
+}
 
 /**
  * Checks if the current user has administrative privileges.

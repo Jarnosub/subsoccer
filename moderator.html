@@ -23,8 +23,15 @@
         
         .section-title { font-family: 'Resolve', sans-serif; margin-top: 35px; margin-bottom: 15px; font-size: 0.7rem; color: #666; letter-spacing: 2px; text-transform: uppercase; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- Auth guard: hide everything until verified -->
+    <div id="auth-wall" style="display:flex; justify-content:center; align-items:center; min-height:100dvh; font-family:'Resolve',sans-serif; color:#666; letter-spacing:1px; font-size:0.8rem;">
+        <i class="fas fa-circle-notch fa-spin" style="margin-right:10px;"></i> VERIFYING ACCESS...
+    </div>
+
+    <div id="mod-content" style="display:none;">
     <div class="mod-header">
         <button onclick="window.location.href='index.html'" style="background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; width: 30px; text-align: left;"><i class="fas fa-arrow-left"></i></button>
         <div class="mod-title">MODERATOR TOOLS</div>
@@ -71,5 +78,30 @@
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
     </div>
+    </div><!-- /mod-content -->
+
+    <script>
+        (async function() {
+            const _sb = supabase.createClient(
+                'https://ujxmmrsmdwrgcwatdhvx.supabase.co',
+                'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t'
+            );
+            const { data } = await _sb.auth.getSession();
+            if (!data.session) {
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="index.html" style="color:#D4AF37; margin-left:8px;">LOG IN</a>';
+                return;
+            }
+            // Verify admin status
+            const { data: player } = await _sb.from('players').select('id, is_admin').eq('id', data.session.user.id).maybeSingle();
+            const SUPER_ADMIN_ID = '054f6378-95c5-4f5b-a678-745e585a01fc';
+            if (!player?.is_admin && data.session.user.id !== SUPER_ADMIN_ID) {
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="index.html" style="color:#D4AF37; margin-left:8px;">BACK</a>';
+                return;
+            }
+            // Auth passed - show content
+            document.getElementById('auth-wall').style.display = 'none';
+            document.getElementById('mod-content').style.display = 'block';
+        })();
+    </script>
 </body>
 </html>
