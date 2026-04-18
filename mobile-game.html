@@ -562,7 +562,7 @@
             <h1 class="setup-title">TOURNAMENT</h1>
             <p class="setup-subtitle">Add players to begin. Winner takes all.</p>
 
-            <div id="m-players-list" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 10px; padding-right: 5px;">
+            <div id="m-players-list" style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 10px; padding-right: 5px;">
                 <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
                     <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#1</span>
                     <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 1" 
