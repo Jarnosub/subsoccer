@@ -476,7 +476,7 @@ window.mobileAddPlayer = function() {
     div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);';
     div.innerHTML = `
         <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#${num}</span>
-        <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) broadcastTvState();" value="PLAYER ${num}" 
+        <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER ${num}" 
                class="player-input" 
                style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
 
@@ -486,6 +486,7 @@ window.mobileAddPlayer = function() {
     `;
     container.appendChild(div);
     updateAddPlayerButton();
+    broadcastTvState();
 };
 
 window.mobileRemovePlayer = function(btn) {
@@ -505,6 +506,7 @@ window.mobileRemovePlayer = function(btn) {
         r.querySelector('.player-num').innerText = '#' + (idx + 1);
     });
     updateAddPlayerButton();
+    broadcastTvState();
 };
 
 // ============================================================
@@ -648,6 +650,8 @@ function broadcastTvState() {
     
     tvChannel.send({ type: 'broadcast', event: 'tv-update', payload: state });
 }
+
+window.broadcastTvState = broadcastTvState;
 
 function initTvReceiver() {
     tvChannel = _sb.channel('tv-' + tvRoomCode);
