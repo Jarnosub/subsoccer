@@ -323,11 +323,20 @@ function finishMatch(winnerName, winnerIndex) {
     showLayer('m-layer-victory');
     broadcastTvState();
 
-    // Auto-advance after 4 seconds
-    setTimeout(() => {
+    // Auto-advance after 4 seconds, or tap to skip
+    let victoryTimer = setTimeout(() => {
         pMatchProcessing = false;
         nextTournyMatch();
     }, 4000);
+    
+    const vicLayer = document.getElementById('m-layer-victory');
+    const skipFn = () => {
+        clearTimeout(victoryTimer);
+        vicLayer.removeEventListener('click', skipFn);
+        pMatchProcessing = false;
+        nextTournyMatch();
+    };
+    vicLayer.addEventListener('click', skipFn);
 }
 
 // ============================================================
@@ -565,7 +574,7 @@ window.openQrJoin = function() {
             </div>
             
             <button onclick="document.getElementById('qr-join-overlay').remove(); if(qrJoinChannel) { _sb.removeChannel(qrJoinChannel); qrJoinChannel = null; }" style="background:transparent; color:#888; border:1px solid rgba(255,255,255,0.2); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
-                <i class="fas fa-times" style="margin-right:8px;"></i> SULJE (CLOSE)
+                <i class="fas fa-times" style="margin-right:8px;"></i> CLOSE
             </button>
         </div>
     `;
@@ -594,7 +603,8 @@ window.mobileRemovePlayer = function(btn) {
     const container = document.getElementById('m-players-list');
     
     if (container.querySelectorAll('.player-row').length <= 2) {
-        row.querySelector('.player-input').value = "";
+        const idx = Array.from(container.querySelectorAll('.player-row')).indexOf(row);
+        row.querySelector('.player-input').value = 'PLAYER ' + (idx + 1);
         return;
     }
     
@@ -732,7 +742,7 @@ function broadcastTvState() {
         layer: activeLayer,
         setupHtml: document.getElementById('m-players-list') ? document.getElementById('m-players-list').innerHTML : '',
         bracketHtml: document.getElementById('mobile-bracket-area') ? document.getElementById('mobile-bracket-area').innerHTML : '',
-        titleText: document.getElementById('m-tourny-title') ? document.getElementById('m-tourny-title').innerHTML : '',
+        titleText: '',
         standingsHtml: document.getElementById('m-leaderboard-list') ? document.getElementById('m-leaderboard-list').innerHTML : '',
         p1Score: document.getElementById('m-score-p1') ? document.getElementById('m-score-p1').innerText : '',
         p2Score: document.getElementById('m-score-p2') ? document.getElementById('m-score-p2').innerText : '',
