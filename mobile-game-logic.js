@@ -545,10 +545,10 @@ window.openQrJoin = function() {
 
     const overlay = document.createElement('div');
     overlay.id = 'qr-join-overlay';
-    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(8px);';
+    overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.85)), url('Subsoccer_tournament_2.jpg') center/cover no-repeat; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(8px);`;
     
     overlay.innerHTML = `
-        <div style="background: linear-gradient(rgba(15, 18, 25, 0.8), rgba(10, 10, 12, 0.95)), url('Subsoccer_tournament_2.jpg') center/cover no-repeat; border:1px solid rgba(255,255,255,0.15); padding:40px 20px; border-radius:16px; max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.9); position: relative; overflow: hidden; backdrop-filter: blur(5px);">
+        <div style="background:rgba(35, 35, 40, 0.95); border:1px solid rgba(255,255,255,0.15); padding:40px 20px; border-radius:16px; max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.9); position: relative; overflow: hidden; backdrop-filter: blur(10px);">
             <!-- Inner glowing accent -->
             <div style="position:absolute; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, transparent, #E30613, transparent);"></div>
             <h2 style="color:white; margin-bottom:12px; font-size:1.8rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-qrcode" style="color:#E30613; margin-right:12px;"></i> JOIN TOURNAMENT</h2>
