@@ -62,7 +62,12 @@
     </style>
 </head>
 <body>
+    <!-- Auth guard: hide everything until verified -->
+    <div id="auth-wall" style="display:flex; justify-content:center; align-items:center; min-height:100dvh; font-family:'Russo One',sans-serif; color:#666; letter-spacing:1px; font-size:0.8rem;">
+        <i class="fas fa-circle-notch fa-spin" style="margin-right:10px;"></i> VERIFYING ACCESS...
+    </div>
 
+    <div id="mod-content" style="display:none;">
     <div class="header">SUBSOCCER QR FACTORY</div>
     <div class="sub-header">Generate EPS vectors from hardware_registry & track inventory</div>
 
@@ -409,6 +414,28 @@
             el.className = 'status ' + type;
             el.innerHTML = msg;
         }
+
+        // ============================================
+        // AUTH GUARD
+        // ============================================
+        (async function() {
+            const { data } = await _supabase.auth.getSession();
+            if (!data.session) {
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="index.html" style="color:var(--sub-gold); margin-left:8px;">LOG IN</a>';
+                return;
+            }
+            // Verify admin status
+            const { data: player } = await _supabase.from('players').select('id, is_admin').eq('id', data.session.user.id).maybeSingle();
+            const SUPER_ADMIN_ID = '054f6378-95c5-4f5b-a678-745e585a01fc';
+            if (!player?.is_admin && data.session.user.id !== SUPER_ADMIN_ID) {
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="index.html" style="color:var(--sub-gold); margin-left:8px;">BACK</a>';
+                return;
+            }
+            // Auth passed - show content
+            document.getElementById('auth-wall').style.display = 'none';
+            document.getElementById('mod-content').style.display = 'block';
+        })();
     </script>
+    </div> <!-- /mod-content -->
 </body>
 </html>
