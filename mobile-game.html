@@ -201,53 +201,49 @@
         .match-start-btn:active { transform: scale(0.97); }
 
         /* ========================================
-           LAYER 2b: BRACKET VIEW
+           LAYER 2b: BRACKET VIEW (SWIPABLE)
            ======================================== */
         .bracket-container {
             width: 100%;
-            padding: 20px;
+            height: 100%;
+            padding: 20px 0;
             padding-top: calc(20px + env(safe-area-inset-top, 20px));
-            overflow-x: auto;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         #mobile-bracket-area {
             width: 100%;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex-direction: row-reverse;
+            align-items: stretch;
+            justify-content: flex-end;
+            padding: 0 5vw;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* TV Mirroring Optimization: Horizontal Bracket on Landscape */
-        @media (orientation: landscape) {
-            #mobile-bracket-area {
-                flex-direction: row-reverse;
-                align-items: stretch;
-                justify-content: center;
-                gap: 30px;
-                transform: scale(0.85);
-                transform-origin: center;
-                margin: 0 auto;
-            }
-            .bracket-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
-            /* Override internal BracketTree CSS inline */
-            #mobile-bracket-area .bracket-round {
-                min-width: 250px;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-evenly;
-                padding: 0;
-            }
-            #mobile-bracket-area .round-title {
-                position: static !important;
-                margin-bottom: 20px !important;
-            }
+        /* Make each round a swipable card */
+        #mobile-bracket-area .bracket-round {
+            min-width: 90vw;
+            max-width: 90vw;
+            scroll-snap-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            margin: 0;
+            padding: 0 10px;
+        }
+
+        #mobile-bracket-area .round-title {
+            position: static !important;
+            margin-bottom: 20px !important;
+            text-align: center;
         }
 
         .bracket-back-btn {

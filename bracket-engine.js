@@ -329,7 +329,7 @@ export class BracketEngine {
             }
 
             if (targetEl) {
-                targetEl.scrollIntoView({ behavior: 'smooth', block: scrollBlock });
+                targetEl.scrollIntoView({ behavior: 'smooth', block: scrollBlock, inline: 'center' });
             }
         }, 300); // Pidennetty viive (100ms -> 300ms) varmistaa että renderöinti on valmis
     }
