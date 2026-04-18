@@ -230,6 +230,13 @@
 </head>
 <body>
 
+    <!-- Auth guard: hide everything until verified -->
+    <div id="auth-wall" style="display:flex; justify-content:center; align-items:center; min-height:100dvh; font-family:'Roboto',sans-serif; color:#666; letter-spacing:1px; font-size:1rem;">
+        <i class="fas fa-circle-notch fa-spin" style="margin-right:10px;"></i> VERIFYING ACCESS...
+    </div>
+
+    <div id="mod-content" style="display:none;">
+
     <div class="loading-overlay" id="loading">
         <i class="fas fa-circle-notch fa-spin"></i>
         <div style="font-size: 1rem; color: var(--text-secondary);">Fetching Global Metrics...</div>
@@ -345,8 +352,23 @@
             try {
                 const { data: sessionData } = await client.auth.getSession();
                 if (!sessionData.session) {
-                    alert("HUOMIO: Et ole kirjautunut sisään tässä selaimessa/domainissa. Supabase RLS (Row Level Security) estää datan lukemisen anonyymeiltä. Kirjaudu ensin The Hubiin Admin-tunnuksilla!");
+                    document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="color:var(--accent-red); margin-right:8px;"></i> ACCESS DENIED — PLEASE LOG IN';
+                    document.getElementById('loading').style.display = 'none';
+                    return;
                 }
+                
+                // Admin check
+                const { data: player } = await client.from('players').select('id, is_admin').eq('id', sessionData.session.user.id).maybeSingle();
+                const SUPER_ADMIN_ID = '054f6378-95c5-4f5b-a678-745e585a01fc';
+                if (!player?.is_admin && sessionData.session.user.id !== SUPER_ADMIN_ID) {
+                    document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="color:var(--accent-red); margin-right:8px;"></i> ACCESS DENIED — ADMIN ONLY';
+                    document.getElementById('loading').style.display = 'none';
+                    return;
+                }
+
+                // Passed check
+                document.getElementById('auth-wall').style.display = 'none';
+                document.getElementById('mod-content').style.display = 'block';
 
                 // Fetch metrics concurrently
                 let trackingQuery = client.from('public_tracking').select('*').order('client_time', { ascending: false }).limit(1000);
@@ -558,7 +580,9 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', fetchData);
+        fetchData();
+        setInterval(fetchData, 60000); // 1 minuutti
     </script>
+    </div> <!-- /mod-content -->
 </body>
 </html>
