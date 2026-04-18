@@ -89,20 +89,22 @@
 
         .setup-btn-add {
             width: 100%;
-            background: rgba(255,255,255,0.08);
+            background: rgba(8, 55, 75, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             color: #fff;
             font-weight: 700;
             padding: 14px;
             border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             margin-top: 8px;
             cursor: pointer;
             font-family: 'Resolve', sans-serif;
             font-size: 0.9rem;
             letter-spacing: 1px;
-            transition: all 0.2s;
+            transition: transform 0.1s, background 0.3s;
         }
-        .setup-btn-add:active { background: rgba(255,255,255,0.1); }
+        .setup-btn-add:active { transform: scale(0.97); background: rgba(12, 75, 100, 0.95); }
 
         .setup-price-bar {
             display: none; /* Piilotettu, koska mobiili-hubin flow on aina ilmainen */
