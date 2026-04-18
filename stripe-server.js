@@ -1,9 +1,12 @@
 const express = require('express');
 const cors = require('cors');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_fallback_override_this_in_netlify');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('FATAL: STRIPE_SECRET_KEY environment variable is missing!');
+}
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: ['https://subsoccer.pro', 'http://localhost:8000'] }));
 app.use(express.json());
 app.use(express.static('.'));
 
@@ -25,7 +28,7 @@ app.post('/create-payment-intent', async (req, res) => {
         });
     } catch (e) {
         res.status(400).send({
-            error: { message: e.message }
+            error: { message: 'Payment processing failed.' }
         });
     }
 });

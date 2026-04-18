@@ -42,8 +42,8 @@ export const MatchService = {
             showLoading('Recording match...');
 
             // 1. Fetch player and game data
-            let { data: p1Data } = await _supabase.from('players').select('*').ilike('username', player1Name).maybeSingle();
-            let { data: p2Data } = await _supabase.from('players').select('*').ilike('username', player2Name).maybeSingle();
+            let { data: p1Data } = await _supabase.from('players').select('id, username, elo, wins, losses, country, avatar_url, team_id, is_admin').ilike('username', player1Name).maybeSingle();
+            let { data: p2Data } = await _supabase.from('players').select('id, username, elo, wins, losses, country, avatar_url, team_id, is_admin').ilike('username', player2Name).maybeSingle();
 
             // Try to find game info if gameId is provided
             let isVerifiedTable = false;
