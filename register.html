@@ -6,13 +6,14 @@
     <title>Subsoccer - Register Your Table</title>
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <style>
+        @font-face { font-family: 'Subsoccer'; src: url('fonts/Subsoccer-Regular.otf') format('opentype'); font-display: swap; }
         @font-face { font-family: 'Resolve'; src: url('fonts/Resolve-BoldNrw.otf') format('opentype'); font-display: swap; }
-        :root { --sub-red: #E30613; --sub-gold: #FFD700; --sub-black: #0a0a0a; --sub-radius: 8px; }
+        :root { --sub-red: #E30613; --sub-gold: #D4AF37; --sub-black: #0a0a0a; --sub-radius: 8px; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
@@ -25,9 +26,9 @@
         }
 
         .reg-header { text-align: center; padding: 40px 0 25px; width: 100%; max-width: 420px; }
-        .reg-header img { width: 120px; margin-bottom: 15px; filter: drop-shadow(0 0 15px rgba(227, 6, 19, 0.3)); }
-        .reg-header h1 { font-family: 'Russo One', sans-serif; font-size: 1.3rem; letter-spacing: 2px; color: #fff; margin-bottom: 8px; }
-        .reg-header p { color: #888; font-size: 0.8rem; line-height: 1.5; }
+        .reg-header img { width: 100px; margin-bottom: 25px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        .reg-header h1 { font-family: 'Subsoccer', sans-serif; font-size: 2rem; letter-spacing: 2px; color: #fff; margin-bottom: 10px; font-weight: normal; }
+        .reg-header p { font-family: 'Resolve', sans-serif; color: #888; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; line-height: 1.5; }
 
         .product-badge {
             background: linear-gradient(135deg, #1a1500, #2a1f00);
@@ -36,47 +37,48 @@
             width: 100%; max-width: 420px;
         }
         .product-badge .badge-icon { font-size: 2rem; color: var(--sub-gold); }
-        .product-badge .badge-info h3 { font-family: 'Russo One', sans-serif; font-size: 1rem; color: #fff; letter-spacing: 1px; }
+        .product-badge .badge-info h3 { font-family: 'Resolve', sans-serif; font-size: 1.1rem; color: #fff; letter-spacing: 1px; }
         .product-badge .badge-info p { color: var(--sub-gold); font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
 
         .step-indicator { display: flex; gap: 0; width: 100%; max-width: 420px; margin-bottom: 25px; }
-        .step { flex: 1; text-align: center; padding: 10px 5px; font-size: 0.65rem; font-weight: 700; color: #555; letter-spacing: 1px; text-transform: uppercase; border-bottom: 3px solid #222; }
+        .step { flex: 1; text-align: center; padding: 10px 5px; font-family: 'Resolve', sans-serif; font-size: 0.65rem; color: #555; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #333; }
         .step.active { color: var(--sub-gold); border-bottom-color: var(--sub-gold); }
         .step.done { color: #4caf50; border-bottom-color: #4caf50; }
 
         .reg-form { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
         .form-group { display: flex; flex-direction: column; gap: 5px; }
-        .form-group label { font-family: 'Resolve', 'Russo One', sans-serif; font-size: 0.65rem; letter-spacing: 2px; color: #888; text-transform: uppercase; }
+        .form-group label { font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 2px; color: #888; text-transform: uppercase; }
         .form-group input, .form-group select {
             background: #111; border: 1px solid #333; color: #fff; padding: 14px 16px;
             border-radius: var(--sub-radius); font-size: 1rem; font-family: 'Open Sans', sans-serif;
             transition: border-color 0.3s; width: 100%;
         }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--sub-gold); box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1); }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--sub-gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1); }
         .form-group input::placeholder { color: #444; }
 
         .serial-input-wrapper { position: relative; display: flex; align-items: stretch; }
         .serial-input-wrapper input {
-            flex: 1; font-family: 'Russo One', sans-serif; letter-spacing: 3px;
+            flex: 1; font-family: 'Resolve', sans-serif; letter-spacing: 2px;
             text-transform: uppercase; font-size: 1.1rem; text-align: center;
         }
         .form-hint { font-size: 0.68rem; color: #555; margin-top: 3px; }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%); color: white; border: none;
-            padding: 18px; border-radius: var(--sub-radius); font-family: 'Russo One', sans-serif;
-            font-size: 1.05rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
-            box-shadow: 0 5px 20px rgba(227, 6, 19, 0.3); text-transform: uppercase; margin-top: 5px;
+            background: linear-gradient(135deg, var(--sub-red) 0%, #900000 100%); color: white; border: none;
+            padding: 18px; border-radius: var(--sub-radius); font-family: 'Resolve', sans-serif;
+            font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
+            text-transform: uppercase; margin-top: 5px;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(227, 6, 19, 0.5); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(227, 6, 19, 0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .btn-gold {
-            background: linear-gradient(135deg, var(--sub-gold) 0%, #d4a017 100%); color: #000; border: none;
-            padding: 18px; border-radius: var(--sub-radius); font-family: 'Russo One', sans-serif;
-            font-size: 1.05rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2); text-transform: uppercase; margin-top: 5px;
+            background: #111; border: 1px solid var(--sub-gold); color: var(--sub-gold);
+            padding: 18px; border-radius: var(--sub-radius); font-family: 'Resolve', sans-serif;
+            font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
+            text-transform: uppercase; margin-top: 5px;
         }
+        .btn-gold:hover { background: rgba(212, 175, 55, 0.1); }
 
         .btn-secondary {
             background: none; border: 1px solid #333; color: #888; padding: 14px 30px;
@@ -103,7 +105,7 @@
             border-radius: 12px; padding: 30px; text-align: center; width: 100%; max-width: 420px;
         }
         .success-card .icon { font-size: 3rem; color: #4caf50; margin-bottom: 15px; }
-        .success-card h2 { font-family: 'Russo One'; font-size: 1.2rem; color: var(--sub-gold); letter-spacing: 2px; margin-bottom: 10px; }
+        .success-card h2 { font-family: 'Subsoccer', sans-serif; font-size: 1.5rem; color: var(--sub-gold); letter-spacing: 2px; margin-bottom: 10px; font-weight: normal; }
         .success-card p { color: #aaa; font-size: 0.85rem; line-height: 1.6; }
         .success-card strong { color: #fff; }
 
@@ -168,8 +170,8 @@
             <!-- Logged-in state -->
             <div id="logged-in-section" style="display:none;">
                 <div style="background:#111; border:1px solid #333; border-radius:var(--sub-radius); padding:15px; text-align:center; margin-bottom:15px;">
-                    <div style="font-size:0.7rem; color:#888; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px;">Logged in as</div>
-                    <div style="font-family:'Russo One'; font-size:1.1rem; color:var(--sub-gold);" id="logged-in-name">PLAYER</div>
+                    <div style="font-family: 'Resolve', sans-serif; font-size:0.7rem; color:#888; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px;">Logged in as</div>
+                    <div style="font-family:'Resolve', sans-serif; font-size:1.1rem; color:var(--sub-gold); letter-spacing: 1px;" id="logged-in-name">PLAYER</div>
                 </div>
                 <div class="form-group">
                     <label>Give Your Table a Name</label>
