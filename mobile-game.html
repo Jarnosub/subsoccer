@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer - Mobile Tournament</title>
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="the-forge.css?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <style>
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+            font-display: swap;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Subsoccer', sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            width: 100vw;
+            height: 100dvh;
+        }
+
+        /* ========================================
+           LAYER SYSTEM (stacked full-screen views)
+           ======================================== */
+        .m-layer {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100vw;
+            height: 100dvh;
+            position: fixed;
+            top: 0; left: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ========================================
+           LAYER 1: SETUP (Player names)
+           ======================================== */
+        .setup-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top, 20px));
+            display: flex;
+            flex-direction: column;
+            min-height: 100dvh;
+            position: relative;
+            z-index: 2;
+        }
+
+        .setup-logo {
+            height: 40px;
+            display: block;
+            margin: 0 auto 20px;
+        }
+
+        .setup-title {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .setup-subtitle {
+            font-family: 'Open Sans', sans-serif;
+            color: #ccc;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .setup-btn-add {
+            width: 100%;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            font-weight: 700;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            margin-top: 8px;
+            cursor: pointer;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .setup-btn-add:active { background: rgba(255,255,255,0.1); }
+
+        .setup-price-bar {
+            display: none; /* Piilotettu, koska mobiili-hubin flow on aina ilmainen */
+        }
+
+        .setup-start-btn {
+            width: 100%;
+            background: #E30613;
+            color: white;
+            font-weight: 700;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 40px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s;
+            box-shadow: 0 8px 25px rgba(227, 6, 19, 0.4);
+        }
+        .setup-start-btn:active { transform: scale(0.98); }
+
+        /* ========================================
+           LAYER 2: NEXT MATCH PREVIEW
+           ======================================== */
+        .nextmatch-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            padding-top: calc(60px + env(safe-area-inset-top, 20px));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+        }
+
+        .match-card {
+            width: 100%;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .match-round-label {
+            font-family: 'Resolve', sans-serif;
+            color: #888;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .match-player-name {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: white;
+        }
+
+        .match-vs {
+            color: #E30613;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            margin: 10px 0;
+        }
+
+        .match-start-btn {
+            width: 100%;
+            max-width: 400px;
+            background: #E30613;
+            color: white;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(227, 6, 19, 0.4);
+            transition: transform 0.1s;
+        }
+        .match-start-btn:active { transform: scale(0.97); }
+
+        /* ========================================
+           LAYER 2b: BRACKET VIEW
+           ======================================== */
+        .bracket-container {
+            width: 100%;
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top, 20px));
+            overflow-x: auto;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #mobile-bracket-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* TV Mirroring Optimization: Horizontal Bracket on Landscape */
+        @media (orientation: landscape) {
+            #mobile-bracket-area {
+                flex-direction: row-reverse;
+                align-items: stretch;
+                justify-content: center;
+                gap: 30px;
+                transform: scale(0.85);
+                transform-origin: center;
+                margin: 0 auto;
+            }
+            .bracket-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            /* Override internal BracketTree CSS inline */
+            #mobile-bracket-area .bracket-round {
+                min-width: 250px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-evenly;
+                padding: 0;
+            }
+            #mobile-bracket-area .round-title {
+                position: static !important;
+                margin-bottom: 20px !important;
+            }
+        }
+
+        .bracket-back-btn {
+            position: fixed;
+            bottom: calc(20px + env(safe-area-inset-bottom, 10px));
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: #D4AF37;
+            border: 1px solid rgba(212,175,55,0.4);
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        /* ========================================
+           LAYER 3: GAME SCOREBOARD (Landscape, side-by-side like instant-play)
+           ======================================== */
+        .game-container {
+            width: 100%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-scoreboard {
+            flex: 1;
+            display: flex;
+            width: 100%;
+        }
+
+        .game-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            border: 2px solid #222;
+            transition: filter 0.1s;
+        }
+        .game-side:active { filter: brightness(1.3); }
+
+        .game-side.side-p1 {
+            background: linear-gradient(135deg, #243647 0%, #121e2b 100%);
+        }
+        .game-side.side-p2 {
+            background: linear-gradient(135deg, #E30613 0%, #900000 100%);
+        }
+
+        .game-side .side-label {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: clamp(1rem, 3vw, 2rem);
+            color: #ffffff;
+            position: absolute;
+            top: clamp(15px, 4vh, 30px);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .game-side .side-score {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: clamp(8rem, 25vh, 16rem);
+            color: #ffffff;
+            text-shadow: 0 0 40px rgba(255,255,255,0.2);
+            line-height: 1;
+            margin-top: clamp(20px, 5vh, 50px);
+        }
+
+        .game-side .side-goals {
+            font-size: clamp(1.5rem, 4vh, 3rem);
+            margin-top: clamp(6px, 1vh, 12px);
+            letter-spacing: clamp(8px, 1.5vw, 16px);
+        }
+
+        .game-center-divider {
+            width: 3px;
+            background: #333;
+            z-index: 5;
+        }
+
+        .game-walkovers {
+            display: flex;
+            gap: 8px;
+            padding: 8px 12px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 10px));
+            background: #0a0a0a;
+        }
+
+        .walkover-btn {
+            flex: 1;
+            background: transparent;
+            border: 1px solid #333;
+            color: #555;
+            border-radius: 8px;
+            padding: 8px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        /* ========================================
+           LAYER 4: VICTORY
+           ======================================== */
+        .victory-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            text-align: center;
+        }
+
+        .victory-round {
+            font-family: 'Resolve', sans-serif;
+            color: #E30613;
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .victory-name {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 3rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            text-shadow: 0 0 30px rgba(255,255,255,0.1);
+        }
+
+        .victory-score {
+            font-family: sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            background: linear-gradient(to right, #12222d 50%, #b70000 50%);
+            padding: 16px 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .victory-label {
+            font-family: 'Resolve', sans-serif;
+            color: #666;
+            font-size: 0.65rem;
+            letter-spacing: 3px;
+            margin-top: 20px;
+        }
+
+        /* ========================================
+           LAYER 5: TOURNAMENT LEADERBOARD
+           ======================================== */
+        .leaderboard-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            padding-top: calc(40px + env(safe-area-inset-top, 20px));
+            padding-bottom: calc(100px + env(safe-area-inset-bottom, 20px));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100dvh;
+        }
+
+        .leaderboard-champion {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #D4AF37;
+            margin-bottom: 4px;
+            text-shadow: 0 0 20px rgba(212,175,55,0.3);
+        }
+
+        .leaderboard-subtitle {
+            font-family: 'Resolve', sans-serif;
+            color: #888;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+        }
+
+        .leaderboard-card {
+            width: 100%;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-title {
+            font-family: 'Resolve', sans-serif;
+            color: #D4AF37;
+            font-size: 0.65rem;
+            letter-spacing: 3px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .restart-btn {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(20,20,20,0.9);
+            color: #D4AF37;
+            border: 1px solid rgba(212,175,55,0.4);
+            padding: 16px;
+            border-radius: 12px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            cursor: pointer;
+            position: fixed;
+            bottom: calc(20px + env(safe-area-inset-bottom, 20px));
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* ========================================
+           ANIMATIONS
+           ======================================== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .anim-in {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        /* Quit button */
+        .quit-btn {
+            background: none;
+            border: none;
+            color: #444;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            padding: 8px 16px;
+            margin-top: 12px;
+        }
+        .quit-btn:hover { color: #888; }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+         LAYER 1: SETUP (Player names + Start)
+         ========================================== -->
+    <div class="m-layer" id="m-layer-setup" style="display: flex; background: #0a0a0a; position: relative;">
+        <!-- Taustakuva + vignette kuten etusivulla -->
+        <button id="cast-btn" onclick="startTvCast()" style="display: none !important; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; background: transparent; border: none; color: rgba(255,255,255,0.2); font-size: 0.8rem; cursor: pointer; transition: 0.2s;"><i class="fas fa-tv mr-2"></i> CAST TV</button>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('subsoccer-teams.jpg') no-repeat 54% top / cover; filter: brightness(0.65) contrast(1.1); z-index: 0;"></div>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 20%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.75) 100%); z-index: 1;"></div>
+        <div class="setup-container">
+            <img src="subsoccer_logo.svg" class="setup-logo" alt="Subsoccer">
+            <h1 class="setup-title">TOURNAMENT</h1>
+            <p class="setup-subtitle">Add players to begin. Winner takes all.</p>
+
+            <div id="m-players-list">
+                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
+                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#1</span>
+                    <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 1" 
+                           class="player-input" 
+                           style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+                    <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
+                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#2</span>
+                    <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 2" 
+                           class="player-input" 
+                           style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+                    <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; width: 100%; margin-top: 16px; margin-bottom: 24px;">
+                <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()" style="flex: 1; margin-top: 0;">+ ADD PLAYER</button>
+                <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()" style="flex: 1; margin-top: 0;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR JOIN</button>
+            </div>
+
+            <!-- Login upsell (näkyy vain vierailijoille kun 2 paikka täynnä) -->
+            <div id="m-login-upsell" style="display: none; text-align: center; margin-top: 8px; padding: 10px; background: rgba(8, 55, 75, 0.9); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+                <span style="color: #fff; font-family: 'Resolve', sans-serif; font-size: 0.6rem; letter-spacing: 1px;">
+                    <i class="fas fa-lock" style="margin-right: 4px;"></i> LOG IN TO CREATE UP TO 8 PLAYER TOURNAMENTS
+                </span>
+                <br>
+                <a href="#" onclick="saveAndLogin(); return false;" style="color: #fff; font-family: Arial, Helvetica, sans-serif !important; font-weight: bold; font-size: 0.75rem; letter-spacing: 1px; text-decoration: underline; text-underline-offset: 3px; margin-top: 4px; display: inline-block;">LOG IN →</a>
+            </div>
+
+            <button class="setup-start-btn" onclick="mobileStartTournament()">
+                <i class="fas fa-play"></i> START MATCH
+            </button>
+
+            <!-- Back to Hub link -->
+            <div style="text-align: center; margin-top: 20px; padding-bottom: 40px;">
+                <a href="index.html" style="color: #ccc; text-decoration: none; font-family: Arial, Helvetica, sans-serif !important; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; display: inline-flex; align-items: center;">
+                    ← BACK TO HUB
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         LAYER 2: NEXT MATCH PREVIEW
+         ========================================== -->
+    <div class="m-layer" id="m-layer-nextmatch" style="background: #0a0a0a;">
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('subsoccer-teams%203.jpg') no-repeat center center / cover; filter: brightness(0.5) contrast(1.1); z-index: 0;"></div>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 30%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.75) 100%); z-index: 1;"></div>
+        <div class="nextmatch-container" style="position: relative; z-index: 2;">
+            <img src="subsoccer_logo.svg" style="height: 30px; margin-bottom: 30px; opacity: 0.6;" alt="Subsoccer">
+
+            <div class="match-card anim-in">
+                <div class="match-round-label" id="m-round-name">SEMIFINAL 1</div>
+                <div class="match-player-name" id="m-matchup-p1">PLAYER 1</div>
+                <div class="match-vs">VS</div>
+                <div class="match-player-name" id="m-matchup-p2">PLAYER 2</div>
+            </div>
+
+            <button class="match-start-btn anim-in" onclick="mobileStartMatch()" style="animation-delay: 0.2s;">
+                START MATCH
+            </button>
+
+            <!-- View bracket link -->
+            <button onclick="showBracketView()" style="margin-top: 16px; background: none; border: none; color: #666; font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;">
+                VIEW BRACKET
+            </button>
+            <button class="quit-btn" onclick="quitTournament()"><i class="fas fa-sign-out-alt" style="margin-right: 4px;"></i> QUIT TOURNAMENT</button>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         LAYER 2b: BRACKET VIEW (scrollable)
+         ========================================== -->
+    <div class="m-layer" id="m-layer-bracket" style="background: #050510;">
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('subsoccer-teams%203.jpg') no-repeat center center / cover; filter: brightness(0.7) contrast(1.1); z-index: 0; pointer-events: none;"></div>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 0%, #000 100%); z-index: 1; pointer-events: none; opacity: 0.5;"></div>
+        <div class="bracket-container" style="position: relative; z-index: 2;">
+            <img src="subsoccer_logo.svg" style="height: 24px; margin-bottom: 8px; opacity: 0.6;" alt="Subsoccer">
+            <div style="color: #666; font-family: 'Resolve', sans-serif; font-size: 0.6rem; letter-spacing: 3px; text-align: center; margin-bottom: 12px;">TOURNAMENT BRACKET</div>
+            <div id="mobile-bracket-area"></div>
+        </div>
+        <button class="bracket-back-btn" onclick="hideBracketView()">
+            <i class="fas fa-arrow-left" style="margin-right: 6px;"></i> BACK TO MATCH
+        </button>
+        <button class="quit-btn" onclick="quitTournament()" style="position:fixed; top: calc(16px + env(safe-area-inset-top, 10px)); right: 16px; z-index:100; color:#555;">
+            <i class="fas fa-sign-out-alt"></i> QUIT
+        </button>
+    </div>
+
+    <!-- ==========================================
+         LAYER 3: GAME SCOREBOARD
+         ========================================== -->
+    <div class="m-layer" id="m-layer-game" style="background: #0a0a0a;">
+        <div class="game-container">
+            <div class="game-scoreboard">
+                <!-- Player 1 (Blue / Left) -->
+                <div class="game-side side-p1" onclick="mobileGoal(1)">
+                    <div class="side-label" id="m-p1-name">PLAYER 1</div>
+                    <div class="side-score" id="m-score-p1">0</div>
+                    <div class="side-goals" id="m-goals-p1">○○○</div>
+                </div>
+
+                <!-- Center divider -->
+                <div class="game-center-divider"></div>
+
+                <!-- Player 2 (Red / Right) -->
+                <div class="game-side side-p2" onclick="mobileGoal(2)">
+                    <div class="side-label" id="m-p2-name">PLAYER 2</div>
+                    <div class="side-score" id="m-score-p2">0</div>
+                    <div class="side-goals" id="m-goals-p2">○○○</div>
+                </div>
+            </div>
+
+            <div class="game-walkovers">
+                <button class="walkover-btn" onclick="mobileSkipMatch(1)">WALKOUT: P1 WINS</button>
+                <button class="walkover-btn" onclick="mobileSkipMatch(2)">WALKOUT: P2 WINS</button>
+                <button class="walkover-btn" style="color: #E30613; border-color: rgba(227,6,19,0.3);" onclick="quitTournament()"><i class="fas fa-sign-out-alt"></i> QUIT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         LAYER 4: MATCH VICTORY
+         ========================================== -->
+    <div class="m-layer" id="m-layer-victory" style="background: #000;">
+        <video autoplay muted loop playsinline style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.4;">
+            <source src="Trophy.mp4" type="video/mp4">
+        </video>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.8) 100%); z-index: 1;"></div>
+        <div class="victory-container anim-in" style="position: relative; z-index: 2;">
+            <div class="victory-round" id="m-victory-round">MATCH CONCLUDED</div>
+            <div class="victory-name" id="m-winner-name">PLAYER</div>
+            <div class="victory-score" id="m-victory-score">0 - 0</div>
+            <div class="victory-label">NEXT MATCH LOADING...</div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         LAYER 5: TOURNAMENT LEADERBOARD
+         ========================================== -->
+    <div class="m-layer" id="m-layer-leaderboard" style="background: #000;">
+        <video autoplay muted loop playsinline style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.3;">
+            <source src="Trophy.mp4" type="video/mp4">
+        </video>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.85) 100%); z-index: 1;"></div>
+        <div class="leaderboard-container" style="position: relative; z-index: 2;">
+            <img src="subsoccer_logo.svg" style="height: 30px; margin-bottom: 20px; opacity: 0.6;" alt="Subsoccer">
+            
+            <div style="font-family: 'Resolve', sans-serif; color: #E30613; font-size: 0.65rem; letter-spacing: 4px; margin-bottom: 4px;">TOURNAMENT CHAMPION</div>
+            <div class="leaderboard-champion" id="m-champion-name">PLAYER</div>
+            <div class="leaderboard-subtitle">🏆 WINNER</div>
+
+            <div class="leaderboard-card">
+                <div class="leaderboard-title">FINAL STANDINGS</div>
+                <div id="m-leaderboard-list">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+
+        <button class="restart-btn" style="z-index: 2;" onclick="mobileRestart()">
+            <i class="fas fa-redo" style="margin-right: 8px;"></i> NEW TOURNAMENT
+        </button>
+    </div>
+
+    <!-- ==========================================
+         BRACKET VIEW HELPER (JS)
+         ========================================== -->
+    <script>
+        function showBracketView() {
+            document.getElementById('m-layer-nextmatch').style.display = 'none';
+            document.getElementById('m-layer-bracket').style.display = 'flex';
+            if (window.broadcastTvState) window.broadcastTvState();
+        }
+        function hideBracketView() {
+            document.getElementById('m-layer-bracket').style.display = 'none';
+            document.getElementById('m-layer-nextmatch').style.display = 'flex';
+            if (window.broadcastTvState) window.broadcastTvState();
+        }
+        function quitTournament() {
+            if (confirm('Quit this tournament? All progress will be lost.')) {
+                window.location.href = 'index.html';
+            }
+        }
+        function saveAndLogin() {
+            const inputs = document.querySelectorAll('.player-input');
+            const players = [];
+            inputs.forEach(i => { if (i.value.trim()) players.push(i.value.trim()); });
+            sessionStorage.setItem('tempMobilePlayers', JSON.stringify(players));
+            window.location.href = "login.html?source=go&redirect=mobile-game.html#login";
+        }
+        function restoreMobilePlayers() {
+            const saved = sessionStorage.getItem('tempMobilePlayers');
+            if (saved) {
+                try {
+                    const players = JSON.parse(saved);
+                    if (players.length > 0) {
+                        const container = document.getElementById('m-players-list');
+                        container.innerHTML = '';
+                        players.forEach((p, idx) => {
+                            const num = idx + 1;
+                            const div = document.createElement('div');
+                            div.className = 'player-row';
+                            div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);';
+                            div.innerHTML = `
+                                <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#${num}</span>
+                                <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${p}" 
+                                       class="player-input" 
+                                       style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+                                <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            `;
+                            container.appendChild(div);
+                        });
+                    }
+                    sessionStorage.removeItem('tempMobilePlayers');
+                } catch(e) { console.warn("Failed to restore players", e); }
+            }
+        }
+    </script>
+
+    <!-- GAME LOGIC -->
+    <script type="module" src="mobile-game-logic.js?v=2"></script>
+
+</body>
+</html>

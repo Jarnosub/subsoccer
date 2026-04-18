@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Join Subsoccer Tournament</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        body {
+            background-color: #050510;
+            background-image: radial-gradient(circle at center, transparent 0%, #000 100%), url('subsoccer-teams.jpg');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(20, 20, 25, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .logo {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-family: 'Resolve', sans-serif;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            border-color: #E30613;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: none;
+            background: #E30613;
+            color: white;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+            background: #b3000b;
+        }
+
+        .error-msg {
+            color: #E30613;
+            font-size: 0.8rem;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-state {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="join-card">
+        <img src="subsoccer_logo.svg" alt="Subsoccer" class="logo" onerror="this.src=''; this.alt='SUBSOCCER'; this.style.color='#E30613'; this.style.fontFamily='Resolve'; this.style.fontSize='2rem';">
+        <h2 id="join-title">JOIN TOURNAMENT</h2>
+        <p id="join-subtitle">Enter your name to register securely to the waiting list.</p>
+
+        <div id="join-form">
+            <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="15" autocomplete="off" autocorrect="off">
+            <div class="error-msg" id="error-msg">Please enter a valid name.</div>
+            <button onclick="joinTournament()">SUBMIT</button>
+        </div>
+
+        <div class="success-state" id="success-state">
+            <svg style="width: 60px; height: 60px; color: #4CAF50; margin-bottom: 15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h2 style="color: #4CAF50;">SUCCESS!</h2>
+            <p style="color: #fff; margin-bottom: 10px;">Your name has been added to the host's screen.</p>
+            <p>Get ready to play.</p>
+        </div>
+    </div>
+
+    <!-- Supabase Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const joinCode = urlParams.get('code');
+
+        if (!joinCode) {
+            document.getElementById('join-title').innerText = "INVALID LINK";
+            document.getElementById('join-subtitle').innerText = "No secure room code found in the URL. Please scan the QR code again.";
+            document.getElementById('join-form').style.display = 'none';
+        }
+
+        // Initialize Supabase pubsub client
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+        const channel = sb.channel('qr-join-' + joinCode);
+        channel.subscribe(); // Connect to proper websocket room
+
+        function joinTournament() {
+            if (!joinCode) return;
+            const input = document.getElementById('player-name');
+            let name = input.value.trim().toUpperCase();
+            
+            if (name.length < 2) {
+                document.getElementById('error-msg').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('error-msg').style.display = 'none';
+            // Send payload securely through established realtime socket
+            channel.send({
+                type: 'broadcast',
+                event: 'player-join',
+                payload: { name: name }
+            }).then(() => {
+                // Instantly update UI on callback success
+                document.getElementById('join-form').style.display = 'none';
+                document.getElementById('success-state').style.display = 'block';
+                document.getElementById('join-title').style.display = 'none';
+                document.getElementById('join-subtitle').style.display = 'none';
+            }).catch(e => {
+                console.error("Transmission Error:", e);
+                alert("Network error. Please try again.");
+            });
+        }
+
+        // Automatically hit enter to submit
+        document.getElementById('player-name').addEventListener('keyup', function(e) {
+            if(e.key === 'Enter') joinTournament();
+        });
+    </script>
+</body>
+</html>
