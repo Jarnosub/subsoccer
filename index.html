@@ -162,10 +162,10 @@
     <div class="top-header">
         
         <!-- LOGIN-nappi (vierailijat) -->
-        <div id="hub-login-btn" style="display: flex; align-items: center; gap: 6px; background: rgba(8, 55, 75, 0.9); padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(5px); cursor: pointer;" onclick="window.location.href='login.html?source=go&redirect=index.html#login'">
-            <i class="fa-solid fa-right-to-bracket" style="color: #fff; font-size: 0.8rem;"></i>
-            <span style="color: #fff; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px;">LOG IN</span>
-        </div>
+        <button id="hub-login-btn" style="display: none; align-items: center; gap: 6px; background: rgba(8, 55, 75, 0.9); padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(5px); cursor: pointer;" onclick="window.location.href='login.html?source=go&redirect=index.html#login'">
+            <i class="fa-solid fa-right-to-bracket" style="color: #fff; font-size: 0.8rem; pointer-events: none;"></i>
+            <span style="color: #fff; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px; pointer-events: none;">LOG IN</span>
+        </button>
 
         <!-- Pelaajakortti (kirjautuneet) - piilotettu oletuksena -->
         <div id="hub-player-card" class="player-mini-card" style="display: none; align-items: center; gap: 8px; background: rgba(0,0,0,0.8); padding: 5px 12px 5px 5px; border-radius: 20px; border: 1px solid rgba(255,215,0,0.3); backdrop-filter: blur(5px); cursor: pointer;" onclick="window.location.href='player-card.html'">
@@ -276,6 +276,14 @@
                 const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
                 const sb = window.supabase ? supabase.createClient(SUPA_URL, SUPA_KEY) : null;
                 
+                let hasCachedUser = false;
+                if (cached) {
+                    try {
+                        const user = JSON.parse(cached);
+                        if (user && user.username) hasCachedUser = true;
+                    } catch(e) {}
+                }
+
                 if(sb) {
                     // Check explicitly and await it on load (solves async bfcache bugs)
                     const { data: { session } } = await sb.auth.getSession();
@@ -284,7 +292,11 @@
                         if (player) {
                             showPlayerCard(player);
                             localStorage.setItem('subsoccer-user', JSON.stringify(player));
+                        } else if (!hasCachedUser) {
+                            document.getElementById('hub-login-btn').style.display = 'flex';
                         }
+                    } else if (!hasCachedUser) {
+                        document.getElementById('hub-login-btn').style.display = 'flex';
                     }
 
                     // Background listener for future sign out / parallel sign in
@@ -294,6 +306,8 @@
                             if (p) {
                                 showPlayerCard(p);
                                 localStorage.setItem('subsoccer-user', JSON.stringify(p));
+                            } else {
+                                document.getElementById('hub-login-btn').style.display = 'flex';
                             }
                         } else if(event === 'SIGNED_OUT') {
                             localStorage.removeItem('subsoccer-user');
@@ -305,9 +319,13 @@
                             document.getElementById('menu-mod-link').style.display = 'none';
                         }
                     });
+                } else if (!hasCachedUser) {
+                    document.getElementById('hub-login-btn').style.display = 'flex';
                 }
             } catch(e) {
                 console.log('Auth check error:', e);
+                const cached = localStorage.getItem('subsoccer-user');
+                if(!cached) document.getElementById('hub-login-btn').style.display = 'flex';
             }
         }
         
