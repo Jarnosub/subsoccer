@@ -540,7 +540,10 @@
                 </div>
             </div>
 
-            <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()">+ ADD PLAYER</button>
+            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 24px;">
+                <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()" style="flex: 1; margin-bottom: 0;">+ ADD PLAYER</button>
+                <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()" style="flex: 1; margin-bottom: 0; background: rgba(255,255,255,0.05); color: #fff;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR JOIN</button>
+            </div>
 
             <!-- Login upsell (näkyy vain vierailijoille kun 2 paikka täynnä) -->
             <div id="m-login-upsell" style="display: none; text-align: center; margin-top: 8px; padding: 10px; background: rgba(8, 55, 75, 0.9); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">

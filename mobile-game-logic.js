@@ -452,7 +452,7 @@ function showTournamentComplete() {
 // SETUP UI HELPERS (Player add/remove for setup screen)
 // ============================================================
 
-window.mobileAddPlayer = function() {
+window.mobileAddPlayer = function(defaultName) {
     const container = document.getElementById('m-players-list');
     const num = container.children.length + 1;
     
@@ -476,7 +476,7 @@ window.mobileAddPlayer = function() {
     div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);';
     div.innerHTML = `
         <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#${num}</span>
-        <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER ${num}" 
+        <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
                class="player-input" 
                style="color: white; width: 100%; padding: 8px; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
 
@@ -487,6 +487,60 @@ window.mobileAddPlayer = function() {
     container.appendChild(div);
     updateAddPlayerButton();
     broadcastTvState();
+};
+
+let qrJoinChannel = null;
+window.openQrJoin = function() {
+    // Luodaan satunnainen 4-numeroinen huonekoodi
+    const joinCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const joinUrl = `${window.location.origin}/join.html?code=${joinCode}`;
+    const qrImageUrl = `https://chart.googleapis.com/chart?chs=400x400&cht=qr&chl=${encodeURIComponent(joinUrl)}&choe=UTF-8&chf=bg,s,FFFFFF00`;
+
+    // Kuunnellaan uusia pelaajia tässä kanavassa
+    if (qrJoinChannel) _sb.removeChannel(qrJoinChannel);
+    qrJoinChannel = _sb.channel('qr-join-' + joinCode);
+    qrJoinChannel.on('broadcast', { event: 'player-join' }, ({ payload }) => {
+        if (payload.name) {
+            window.mobileAddPlayer(payload.name.toUpperCase());
+            // Play a ding sound optionally or just flash screen?
+            const addBtn = document.getElementById('m-add-player-btn');
+            if(addBtn) {
+                const origBg = addBtn.style.background;
+                addBtn.style.background = '#4CAF50';
+                setTimeout(() => { if(addBtn) addBtn.style.background = origBg; }, 500);
+            }
+        }
+    });
+    qrJoinChannel.subscribe();
+
+    // Rakennetaan visuaalinen pop-up yhdellä isolla QR-koodilla
+    let existing = document.getElementById('qr-join-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'qr-join-overlay';
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(8px);';
+    
+    overlay.innerHTML = `
+        <div style="background:rgba(20,20,25,0.9); border:1px solid rgba(255,255,255,0.1); padding:40px; border-radius:12px; backdrop-filter:blur(10px); max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.8);">
+            <h2 style="color:white; margin-bottom:12px; font-size:2rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-qrcode" style="color:#E30613; margin-right:12px;"></i> JOIN TOURNAMENT</h2>
+            <p style="color:#aaa; font-size:1rem; margin-bottom:30px; font-family:'Inter',sans-serif; letter-spacing:1px; text-transform:uppercase;">Scan code with your phone camera</p>
+            
+            <div style="background:white; display:inline-block; padding:15px; border-radius:12px; margin-bottom:25px; border:4px solid #E30613;">
+                <img src="${qrImageUrl}" alt="Join QR Code" style="width: 250px; height: 250px; display:block;">
+            </div>
+            
+            <div style="color:#666; font-size:0.8rem; font-family:monospace; margin-bottom:30px;">
+                room code: ${joinCode}
+            </div>
+            
+            <button onclick="document.getElementById('qr-join-overlay').remove(); if(qrJoinChannel) { _sb.removeChannel(qrJoinChannel); qrJoinChannel = null; }" style="background:transparent; color:#888; border:1px solid rgba(255,255,255,0.2); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
+                <i class="fas fa-times" style="margin-right:8px;"></i> SULJE (CLOSE)
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
 };
 
 window.mobileRemovePlayer = function(btn) {

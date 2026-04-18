@@ -3,205 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Subsoccer - Join Lobby</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <title>Join Subsoccer Tournament</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         @font-face {
-            font-family: 'SubsoccerLogo';
-            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2');
-            font-display: swap;
-        }
-
-        :root {
-            --sub-red: #E30613;
-            --sub-gold: #D4AF37;
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-Black.woff2') format('woff2');
+            font-weight: 900;
+            font-style: normal;
         }
 
         body {
-            background-color: #060606;
-            color: #fff;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            background-color: #050510;
+            background-image: radial-gradient(circle at center, transparent 0%, #000 100%), url('subsoccer-teams.jpg');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            color: white;
             font-family: 'Inter', sans-serif;
-            background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .phone-container {
-            width: 100%;
+        .container {
+            background: rgba(20, 20, 25, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            width: 90%;
             max-width: 400px;
-            background: #0a0a0a;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            border: 1px solid #222;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
         }
 
-        .primary-btn {
-            background: var(--sub-red);
+        .logo {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-family: 'Resolve', sans-serif;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
             color: #fff;
-            padding: 16px;
+        }
+
+        p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            border-color: #E30613;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
             border-radius: 8px;
             border: none;
-            font-weight: bold;
-            font-size: 1.2rem;
-            text-align: center;
-            cursor: pointer;
-            width: 100%;
-            transition: transform 0.1s;
-            font-family: 'SubsoccerLogo', sans-serif;
+            background: #E30613;
+            color: white;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.1rem;
             letter-spacing: 2px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
         }
-        .primary-btn:active { transform: scale(0.98); }
-        .primary-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
 
-        .input-field {
-            width: 100%;
-            padding: 14px;
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            margin-bottom: 5px;
+        button:active {
+            transform: scale(0.98);
+            background: #b3000b;
         }
-        .input-field:focus { border-color: var(--sub-red); }
+
+        .error-msg {
+            color: #E30613;
+            font-size: 0.8rem;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-state {
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <div class="phone-container">
-        
-        <div class="text-center mb-6">
-            <img src="subsoccer_logo.svg" alt="Subsoccer" class="h-6 mx-auto mb-2 opacity-80" onerror="this.style.display='none'">
-            <div class="text-xs text-[var(--sub-gold)] font-bold tracking-widest"><i class="fas fa-satellite-dish mr-1"></i> TABLE 04 LOBBY</div>
+    <div class="container" id="join-card">
+        <img src="subsoccer_logo.svg" alt="Subsoccer" class="logo" onerror="this.src=''; this.alt='SUBSOCCER'; this.style.color='#E30613'; this.style.fontFamily='Resolve'; this.style.fontSize='2rem';">
+        <h2 id="join-title">JOIN TOURNAMENT</h2>
+        <p id="join-subtitle">Enter your name to register securely to the waiting list.</p>
+
+        <div id="join-form">
+            <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="15" autocomplete="off" autocorrect="off">
+            <div class="error-msg" id="error-msg">Please enter a valid name.</div>
+            <button onclick="joinTournament()">SUBMIT</button>
         </div>
 
-        <!-- MOCK AUTHENTICATION STEP -->
-        <div id="step-auth" class="block">
-            <h2 class="text-xl font-bold mb-2 text-center" style="font-family: 'SubsoccerLogo', sans-serif;">VERIFY PROFILE</h2>
-            <p class="text-gray-400 text-center text-xs mb-6 px-4">To join this ranked lobby, please log into your Subsoccer Pro account.</p>
-
-            <div class="mb-4">
-                <input type="text" id="auth-username" class="input-field" placeholder="Enter Username (e.g. JARNO)" autocomplete="off">
-            </div>
-            
-            <button class="primary-btn" onclick="mockLogin()" style="background: #2a2a2a; border-bottom: 2px solid #D4AF37; font-size: 1rem;">
-                <i class="fas fa-fingerprint mr-2"></i> LOGIN
-            </button>
-            <p id="auth-error" class="text-red-500 text-xs mt-3 text-center hidden">Player not found in database.</p>
+        <div class="success-state" id="success-state">
+            <svg style="width: 60px; height: 60px; color: #4CAF50; margin-bottom: 15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h2 style="color: #4CAF50;">SUCCESS!</h2>
+            <p style="color: #fff; margin-bottom: 10px;">Your name has been added to the host's screen.</p>
+            <p>Get ready to play.</p>
         </div>
-
-        <!-- JOIN LOBBY STEP -->
-        <div id="step-join" class="hidden">
-            <div class="bg-[#111] border border-[var(--sub-gold)] rounded-lg p-4 mb-8 relative overflow-hidden">
-                <div class="absolute right-0 top-0 opacity-10"><i class="fas fa-trophy text-6xl"></i></div>
-                <div class="text-xs text-gray-500 font-bold mb-1">LOGGED IN AS</div>
-                <div id="player-name-display" class="text-2xl font-bold text-white uppercase tracking-widest" style="font-family: 'SubsoccerLogo', sans-serif;">PLAYER</div>
-                <div id="player-elo-display" class="inline-block bg-[var(--sub-gold)] text-black text-xs font-bold px-2 py-1 rounded mt-2 uppercase tracking-wider">0 ELO</div>
-            </div>
-
-            <p class="text-center text-sm text-gray-400 mb-4" id="lobby-status-text">Waiting for host to open tournament lobby...</p>
-
-            <button id="btn-join" class="primary-btn" onclick="joinLobby()" disabled>
-                <i class="fas fa-sign-in-alt mr-2"></i> JOIN TOURNAMENT
-            </button>
-        </div>
-
     </div>
 
-    <script type="module">
-        import { _supabase } from './config.js';
-        
-        const tableId = 'table-04';
-        const channel = _supabase.channel(`lounge_${tableId}`);
-        channel.subscribe();
+    <!-- Supabase Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const joinCode = urlParams.get('code');
 
-        let currentUser = null;
-        let isLobbyOpen = true; // Assume true for demo purposes, would be synced by channel normally
-
-        window.mockLogin = async function() {
-            const username = document.getElementById('auth-username').value.trim();
-            if(!username) return;
-
-            const btn = event.currentTarget;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            document.getElementById('auth-error').classList.add('hidden');
-
-            const { data, error } = await _supabase
-                .from('players')
-                .select('id, username, elo')
-                .ilike('username', username)
-                .single();
-
-            btn.innerHTML = '<i class="fas fa-fingerprint mr-2"></i> LOGIN';
-
-            if (data) {
-                currentUser = data;
-                document.getElementById('step-auth').classList.add('hidden');
-                document.getElementById('step-join').classList.remove('hidden');
-                
-                document.getElementById('player-name-display').innerText = data.username;
-                document.getElementById('player-elo-display').innerText = `${data.elo} TIER RATING`;
-                
-                checkLobbyState();
-            } else {
-                document.getElementById('auth-error').classList.remove('hidden');
-            }
-        };
-
-        function checkLobbyState() {
-            const btn = document.getElementById('btn-join');
-            const status = document.getElementById('lobby-status-text');
-            
-            if (isLobbyOpen) {
-                btn.disabled = false;
-                status.innerHTML = "<span class='text-green-500'><i class='fas fa-door-open mr-1'></i> Lobby is open and accepting players!</span>";
-            } else {
-                btn.disabled = true;
-                status.innerHTML = "Host has not opened the lobby yet.";
-            }
+        if (!joinCode) {
+            document.getElementById('join-title').innerText = "INVALID LINK";
+            document.getElementById('join-subtitle').innerText = "No secure room code found in the URL. Please scan the QR code again.";
+            document.getElementById('join-form').style.display = 'none';
         }
 
-        window.joinLobby = function() {
-            if (!currentUser) return;
-            
-            const btn = document.getElementById('btn-join');
-            btn.innerHTML = '<i class="fas fa-check mr-2"></i> JOINED!';
-            btn.style.background = "#228B22"; // Green success
-            btn.disabled = true;
+        // Initialize Supabase pubsub client
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
+        const channel = sb.channel('qr-join-' + joinCode);
+        channel.subscribe(); // Connect to proper websocket room
+
+        function joinTournament() {
+            if (!joinCode) return;
+            const input = document.getElementById('player-name');
+            let name = input.value.trim().toUpperCase();
+            
+            if (name.length < 2) {
+                document.getElementById('error-msg').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('error-msg').style.display = 'none';
+            // Send payload securely through established realtime socket
             channel.send({
                 type: 'broadcast',
-                event: 'lobby_player_joined',
-                payload: {
-                    id: currentUser.id,
-                    username: currentUser.username,
-                    elo: currentUser.elo
-                }
+                event: 'player-join',
+                payload: { name: name }
+            }).then(() => {
+                // Instantly update UI on callback success
+                document.getElementById('join-form').style.display = 'none';
+                document.getElementById('success-state').style.display = 'block';
+                document.getElementById('join-title').style.display = 'none';
+                document.getElementById('join-subtitle').style.display = 'none';
+            }).catch(e => {
+                console.error("Transmission Error:", e);
+                alert("Network error. Please try again.");
             });
+        }
 
-            document.getElementById('lobby-status-text').innerHTML = "You are in! Look at the Host's remote to see your name.";
-        };
-
-        // Listen for Lobby State Changes from the Host
-        channel.on('broadcast', { event: 'lobby_opened' }, (payload) => {
-            isLobbyOpen = true;
-            if (currentUser) checkLobbyState();
+        // Automatically hit enter to submit
+        document.getElementById('player-name').addEventListener('keyup', function(e) {
+            if(e.key === 'Enter') joinTournament();
         });
-
-        channel.on('broadcast', { event: 'lobby_closed' }, (payload) => {
-            isLobbyOpen = false;
-            if (currentUser) checkLobbyState();
-        });
-
     </script>
 </body>
 </html>
