@@ -255,46 +255,42 @@
         // ============================================================
         // AUTH STATE: LOG IN vs. PLAYER CARD
         // ============================================================
-        (async function checkAuth() {
+        (function initAuth() {
             try {
-                const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
-                const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
-                const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
-                const { data: { session } } = await sb.auth.getSession();
-                
-                if (session && session.user) {
-                    // Fetch player profile from DB
-                    const { data: player } = await sb.from('players').select('username, elo, is_admin, is_owner').eq('id', session.user.id).single();
-                    
-                    if (player) {
-                        showPlayerCard(player);
-                        return;
-                    }
-                }
-
-                // Fallback: check localStorage (set by index.html's auth.js on login)
+                // 1. Fallback: check localStorage immediately for instantaneous UI update before network
                 const cached = localStorage.getItem('subsoccer-user');
                 if (cached) {
                     try {
                         const user = JSON.parse(cached);
                         if (user && user.username) {
                             showPlayerCard(user);
-                            return;
                         }
                     } catch(e) {}
                 }
-            } catch(e) {
-                console.log('Auth check:', e.message);
-                // Still try localStorage fallback
-                const cached = localStorage.getItem('subsoccer-user');
-                if (cached) {
-                    try {
-                        const user = JSON.parse(cached);
-                        if (user && user.username) {
-                            showPlayerCard(user);
+
+                // 2. Setup Supabase listener for authoritative state and sync
+                const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+                const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+                const sb = window.supabase ? supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+                
+                if(sb) {
+                    sb.auth.onAuthStateChange(async (event, session) => {
+                        if (session && session.user) {
+                            // Fetch authoritative profile
+                            const { data: player } = await sb.from('players').select('username, elo, is_admin, is_owner').eq('id', session.user.id).single();
+                            if (player) {
+                                showPlayerCard(player);
+                                localStorage.setItem('subsoccer-user', JSON.stringify(player));
+                            }
+                        } else if(event === 'SIGNED_OUT') {
+                            localStorage.removeItem('subsoccer-user');
+                            document.getElementById('hub-login-btn').style.display = 'flex';
+                            document.getElementById('hub-player-card').style.display = 'none';
                         }
-                    } catch(e2) {}
+                    });
                 }
+            } catch(e) {
+                console.log('Auth check error:', e);
             }
         })();
 
