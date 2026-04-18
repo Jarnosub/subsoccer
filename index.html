@@ -288,7 +288,7 @@
                     // Check explicitly and await it on load (solves async bfcache bugs)
                     const { data: { session } } = await sb.auth.getSession();
                     if (session && session.user) {
-                        const { data: player } = await sb.from('players').select('username, elo, is_admin, is_owner').eq('id', session.user.id).single();
+                        const { data: player } = await sb.from('players').select('username, elo, is_admin').eq('id', session.user.id).single();
                         if (player) {
                             showPlayerCard(player);
                             localStorage.setItem('subsoccer-user', JSON.stringify(player));
@@ -302,7 +302,7 @@
                     // Background listener for future sign out / parallel sign in
                     sb.auth.onAuthStateChange(async (event, currentSession) => {
                         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && currentSession && currentSession.user) {
-                            const { data: p } = await sb.from('players').select('username, elo, is_admin, is_owner').eq('id', currentSession.user.id).single();
+                            const { data: p } = await sb.from('players').select('username, elo, is_admin').eq('id', currentSession.user.id).single();
                             if (p) {
                                 showPlayerCard(p);
                                 localStorage.setItem('subsoccer-user', JSON.stringify(p));
