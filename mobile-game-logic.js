@@ -528,20 +528,89 @@ window.mobileRestart = function() {
 // ============================================================
 
 window.startTvCast = function() {
-    if (tvRoomCode) return; // already casting
-    tvRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+    if (!tvRoomCode) {
+        tvRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+        tvChannel = _sb.channel('tv-' + tvRoomCode);
+        tvChannel.subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log("Broadcasting to TV...");
+                broadcastTvState();
+                const castBtn = document.getElementById('cast-btn');
+                if (castBtn) { castBtn.style.color = '#4CAF50'; castBtn.innerHTML = `<i class="fas fa-tv mr-2"></i> CASTING: ${tvRoomCode}`; }
+            }
+        });
+    }
+
     const castUrl = `${window.location.origin}${window.location.pathname}?tv=${tvRoomCode}`;
-    alert(`📺 SPECTATOR MODE STARTED\n\nOpen a browser on your TV or big screen to:\n\n${castUrl}\n\nAll your actions will now be synced in real-time.`);
     
-    tvChannel = _sb.channel('tv-' + tvRoomCode);
-    tvChannel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-            console.log("Broadcasting to TV...");
-            broadcastTvState();
-            const castBtn = document.getElementById('cast-btn');
-            if (castBtn) { castBtn.style.color = '#4CAF50'; castBtn.innerHTML = `<i class="fas fa-tv mr-2"></i> CASTING: ${tvRoomCode}`; }
+    // Try native share UI first, mostly for mobile devices
+    if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+        navigator.share({
+            title: 'Subsoccer Tournament Stream',
+            text: 'Open this link on the big screen to see the live tournament stats:',
+            url: castUrl
+        }).catch(err => {
+            showCastModal(castUrl);
+        });
+    } else {
+        showCastModal(castUrl);
+    }
+};
+
+window.showCastModal = function(url) {
+    let existing = document.getElementById('cast-modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cast-modal-overlay';
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(8px);';
+    
+    overlay.innerHTML = `
+        <div style="background:#111; border:1px solid #333; padding:30px; border-radius:12px; max-width:90%; width: 400px; box-shadow:0 10px 40px rgba(0,0,0,0.9);">
+            <h2 style="color:white; margin-bottom:10px; font-size:1.5rem; letter-spacing:1px;"><i class="fas fa-tv" style="color:#E30613; margin-right:8px;"></i> TV-TILA</h2>
+            <p style="color:#aaa; font-size:0.9rem; margin-bottom:20px; font-family:'Arial',sans-serif; line-height:1.4;">Avaa tämä osoite samassa WiFi-verkossa olevalla TV:n tai tietokoneen selaimella:</p>
+            <div style="background:#000; color:#fff; padding:15px; border-radius:8px; word-break:break-all; font-family:monospace; margin-bottom:25px; border:1px solid #333; user-select:all; cursor:pointer;" id="cast-url-box">
+                ${url}
+            </div>
+            <div style="display:flex; gap:10px; justify-content:center; flex-direction:column;">
+                <button id="cast-copy-btn" style="background:#E30613; color:white; border:none; padding:15px 20px; font-family:'Resolve',sans-serif; font-size:1.1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%;">
+                    <i class="fas fa-copy" style="margin-right:8px;"></i> KOPIOI LINKKI
+                </button>
+                <button onclick="document.getElementById('cast-modal-overlay').remove()" style="background:transparent; color:#888; border:1px solid #333; padding:12px 20px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%;">
+                    SULJE
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const copyBtn = document.getElementById('cast-copy-btn');
+    const urlBox = document.getElementById('cast-url-box');
+
+    const copyFn = async () => {
+        try {
+            await navigator.clipboard.writeText(url);
+            copyBtn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i> KOPIOITU!';
+            copyBtn.style.background = '#4CAF50';
+            setTimeout(() => {
+                copyBtn.innerHTML = '<i class="fas fa-copy" style="margin-right:8px;"></i> KOPIOI LINKKI';
+                copyBtn.style.background = '#E30613';
+            }, 3000);
+        } catch(e) {
+            const textArea = document.createElement("textarea");
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            copyBtn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i> KOPIOITU!';
+            copyBtn.style.background = '#4CAF50';
         }
-    });
+    };
+
+    copyBtn.onclick = copyFn;
+    urlBox.onclick = copyFn;
 };
 
 function broadcastTvState() {
