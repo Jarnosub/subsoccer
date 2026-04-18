@@ -501,7 +501,20 @@ window.openQrJoin = function() {
     qrJoinChannel = _sb.channel('qr-join-' + joinCode);
     qrJoinChannel.on('broadcast', { event: 'player-join' }, ({ payload }) => {
         if (payload.name) {
-            window.mobileAddPlayer(payload.name.toUpperCase());
+            const upName = payload.name.toUpperCase();
+            
+            // Etsitään onko valmiina tyhjiä paikkoja ("PLAYER X")
+            const inputs = document.querySelectorAll('.player-input');
+            let replaced = false;
+            for(let i=0; i<inputs.length; i++) {
+                if(inputs[i].value.trim().startsWith("PLAYER ")) {
+                    inputs[i].value = upName;
+                    inputs[i].dispatchEvent(new Event('keyup')); // Pakotetaan tv-synkki
+                    replaced = true;
+                    break;
+                }
+            }
+            if (!replaced) window.mobileAddPlayer(upName);
             
             // Päivitetään asettelu popuppiin
             const listEl = document.getElementById('qr-joined-list');
