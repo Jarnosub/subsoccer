@@ -497,6 +497,7 @@
             // Rough mapping of timezones to coordinates for visual heatmap
             const tzCoords = {
                 'Europe/Helsinki': [60.1695, 24.9354], 'Europe/Stockholm': [59.3293, 18.0686],
+                'Europe/Oslo': [59.9139, 10.7522], 'Europe/Copenhagen': [55.6761, 12.5683],
                 'Europe/London': [51.5074, -0.1278], 'Europe/Paris': [48.8566, 2.3522],
                 'Europe/Berlin': [52.52, 13.405], 'Europe/Madrid': [40.4168, -3.7038],
                 'Europe/Rome': [41.9028, 12.4964], 'Europe/Amsterdam': [52.3676, 4.9041],
@@ -511,6 +512,15 @@
                 'Africa/Johannesburg': [-26.2041, 28.0473], 'UTC': [51.4769, 0.0005] // fallback
             };
 
+            const tzContinents = {
+                'Europe': [48.0, 15.0],
+                'America': [38.0, -97.0],
+                'Asia': [34.0, 100.0],
+                'Australia': [-25.0, 135.0],
+                'Africa': [0.0, 20.0],
+                'Pacific': [-10.0, 160.0]
+            };
+
             const locCounts = {};
             data.forEach(d => {
                 if (!d.location) return;
@@ -518,27 +528,31 @@
             });
 
             for (const loc in locCounts) {
-                if (tzCoords[loc]) {
-                    const count = locCounts[loc];
+                const count = locCounts[loc];
+                let coords = tzCoords[loc];
+                let isFallback = false;
+
+                if (!coords && loc !== 'Unknown') {
+                    const continent = loc.split('/')[0];
+                    if (tzContinents[continent]) {
+                        // Spread unknown continent locations randomly across the continent area
+                        const hash = loc.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+                        const latOffset = (hash % 20) - 10;
+                        const lngOffset = ((hash >> 4) % 30) - 15;
+                        coords = [tzContinents[continent][0] + latOffset, tzContinents[continent][1] + lngOffset];
+                        isFallback = true;
+                    }
+                }
+
+                if (coords) {
                     const radius = Math.min(Math.max(count * 2, 8), 35);
-                    L.circleMarker(tzCoords[loc], {
-                        color: 'rgba(138, 180, 248, 0.8)',
-                        fillColor: '#8AB4F8',
+                    L.circleMarker(coords, {
+                        color: isFallback ? 'rgba(242, 139, 130, 0.8)' : 'rgba(138, 180, 248, 0.8)',
+                        fillColor: isFallback ? '#F28B82' : '#8AB4F8',
                         fillOpacity: 0.6,
                         weight: 2,
-                        radius: radius
+                        radius: isFallback ? 6 : radius
                     }).bindPopup(`<div style="color:black"><b>${loc}</b><br>${count} Events tracked</div>`).addTo(mymap);
-                } else if(loc !== 'Unknown') {
-                    // Slight randomization near equator for unknown mapped timezones just for visualization
-                    const hash = loc.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
-                    const lat = (hash % 100) / 3;
-                    const lng = ((hash / 100) % 180);
-                    L.circleMarker([lat, lng], {
-                        color: 'rgba(242, 139, 130, 0.8)',
-                        fillColor: '#F28B82',
-                        fillOpacity: 0.6,
-                        radius: 5
-                    }).bindPopup(`<div style="color:black"><b>${loc}</b><br>${locCounts[loc]} Events tracked</div>`).addTo(mymap);
                 }
             }
         }
