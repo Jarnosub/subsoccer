@@ -736,13 +736,23 @@
          ========================================== -->
     <script>
         function showBracketView() {
-            document.getElementById('m-layer-nextmatch').style.display = 'none';
-            document.getElementById('m-layer-bracket').style.display = 'flex';
+            const next = document.getElementById('m-layer-nextmatch');
+            const bracket = document.getElementById('m-layer-bracket');
+            next.style.display = 'none';
+            next.classList.remove('fade-in');
+            bracket.style.display = 'flex';
+            void bracket.offsetWidth; // force reflow
+            bracket.classList.add('fade-in');
             if (window.broadcastTvState) window.broadcastTvState();
         }
         function hideBracketView() {
-            document.getElementById('m-layer-bracket').style.display = 'none';
-            document.getElementById('m-layer-nextmatch').style.display = 'flex';
+            const next = document.getElementById('m-layer-nextmatch');
+            const bracket = document.getElementById('m-layer-bracket');
+            bracket.style.display = 'none';
+            bracket.classList.remove('fade-in');
+            next.style.display = 'flex';
+            void next.offsetWidth; // force reflow
+            next.classList.add('fade-in');
             if (window.broadcastTvState) window.broadcastTvState();
         }
         function quitTournament() {
