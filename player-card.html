@@ -525,6 +525,10 @@
 
             <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()">SAVE CHANGES</button>
             <div class="pc-edit-msg" id="pc-edit-msg"></div>
+
+            <button id="pc-mod-btn" class="pc-save-btn" style="display: none; background: transparent; color: #D4AF37; border: 1px solid rgba(212,175,55,0.4); margin-top: 15px; font-size: 0.8rem;" onclick="window.location.href='moderator.html'">
+                <i class="fa-solid fa-shield-halved" style="margin-right: 8px;"></i> MODERATOR TOOLS
+            </button>
         </div>
 
         <button class="pc-logout-btn" onclick="logoutPlayer()">
@@ -588,6 +592,8 @@
 
             if (player.is_owner || player.is_admin) {
                 document.getElementById('pc-owner-btn').style.display = 'flex';
+                const modBtn = document.getElementById('pc-mod-btn');
+                if(modBtn) modBtn.style.display = 'block';
             }
 
             // Pre-fill edit form
