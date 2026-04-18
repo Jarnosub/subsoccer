@@ -494,7 +494,7 @@ window.openQrJoin = function() {
     // Luodaan satunnainen 4-numeroinen huonekoodi
     const joinCode = Math.floor(1000 + Math.random() * 9000).toString();
     const joinUrl = `${window.location.origin}/join.html?code=${joinCode}`;
-    const qrImageUrl = `https://chart.googleapis.com/chart?chs=400x400&cht=qr&chl=${encodeURIComponent(joinUrl)}&choe=UTF-8&chf=bg,s,FFFFFF00`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(joinUrl)}&margin=0`;
 
     // Kuunnellaan uusia pelaajia tässä kanavassa
     if (qrJoinChannel) _sb.removeChannel(qrJoinChannel);
