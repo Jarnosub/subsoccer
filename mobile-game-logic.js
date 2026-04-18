@@ -553,6 +553,26 @@ window.openQrJoin = function() {
     `;
 
     document.body.appendChild(overlay);
+
+    // Haetaan olemassa olevat pelaajat
+    const inputs = document.querySelectorAll('.player-input');
+    let existingPlayersHtml = '';
+    let existingCount = 0;
+    inputs.forEach((input, idx) => {
+        const name = input.value.trim();
+        if (name && !name.startsWith("PLAYER ")) {
+            existingCount++;
+            existingPlayersHtml += `<div style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 8px;">#${existingCount}</span> ${name.toUpperCase()}</div>`;
+        }
+    });
+
+    const emptyHtml = `<div style="color: #666; text-align: center; padding: 15px; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem;">Waiting for players...</div>`;
+    
+    // Injektoidaan olemassa olevat pelaajat tai tyhjä tila
+    const listEl = document.getElementById('qr-joined-list');
+    if (listEl) {
+        listEl.innerHTML = existingCount > 0 ? existingPlayersHtml : emptyHtml;
+    }
 };
 
 window.mobileRemovePlayer = function(btn) {
