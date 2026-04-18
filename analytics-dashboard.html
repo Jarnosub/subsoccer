@@ -320,6 +320,11 @@
             document.getElementById('loading').style.display = 'flex';
 
             try {
+                const { data: sessionData } = await client.auth.getSession();
+                if (!sessionData.session) {
+                    alert("HUOMIO: Et ole kirjautunut sisään tässä selaimessa/domainissa. Supabase RLS (Row Level Security) estää datan lukemisen anonyymeiltä. Kirjaudu ensin The Hubiin Admin-tunnuksilla!");
+                }
+
                 // Fetch metrics concurrently
                 const [trackingRes, usersRes, historyRes, matchesRes] = await Promise.all([
                     client.from('public_tracking').select('*').order('created_at', { ascending: false }).limit(100),
@@ -328,6 +333,11 @@
                     client.from('games_analytics').select('id', { count: 'exact' }) // or similar match tracking
                 ]);
 
+                if (trackingRes.error) {
+                    console.error("Tracking Error:", trackingRes.error);
+                    alert("Supabase Error: " + trackingRes.error.message + "\nTämä johtuu yleensä RLS (Row Level Security) -asetuksista. Salli SELECT roolille 'authenticated' tauluun public_tracking.");
+                }
+
                 // Fallbacks if tables are empty/missing
                 const trackingData = trackingRes.data || [];
                 const totalUsers = usersRes.count || 24;  
@@ -335,7 +345,7 @@
                 const totalMatches = matchesRes.count || 142; // Example fallback if table is empty
 
                 // Update KPIs
-                document.getElementById('kpi-sessions').textContent = trackingData.length + 80;
+                document.getElementById('kpi-sessions').textContent = trackingData.filter(d => d.event_type === 'app_opened').length || 80;
                 document.getElementById('kpi-tournaments').textContent = totalTournaments;
                 document.getElementById('kpi-users').textContent = totalUsers;
                 document.getElementById('kpi-matches').textContent = totalMatches;
@@ -344,7 +354,7 @@
                 const tbody = document.getElementById('activity-table-body');
                 tbody.innerHTML = '';
                 
-                trackingData.slice(0, 10).forEach(row => {
+                trackingData.slice(0, 50).forEach(row => {
                     const tr = document.createElement('tr');
                     const dateObj = new Date(row.created_at);
                     
@@ -352,7 +362,7 @@
                     
                     tr.innerHTML = `
                         <td>${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-                        <td>${row.event_type.replace('_', ' ').toUpperCase()}</td>
+                        <td>${(row.event_type || 'UNKNOWN').replace('_', ' ').toUpperCase()}</td>
                         <td><span class="badge ${badgeClass}">${(row.source_partner || 'UNKNOWN').toUpperCase()}</span></td>
                         <td>${row.match_score || '-'}</td>
                         <td>${row.location || 'Unknown'}</td>
@@ -361,13 +371,14 @@
                 });
 
                 if (trackingData.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#666;">No recent activity logged yet. Play some matches!</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#666;">No recent activity logged yet (or RLS blocked reading).</td></tr>';
                 }
 
                 initCharts(trackingData);
 
             } catch (err) {
                 console.error("Error fetching analytics:", err);
+                alert("Error fetching analytics: " + err.message);
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
