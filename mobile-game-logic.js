@@ -72,20 +72,17 @@ function getMaxPlayers() {
 
 function updateAddPlayerButton() {
     const container = document.getElementById('m-players-list');
-    const addBtn = document.getElementById('m-add-player-btn');
-    if (!container || !addBtn) return;
+    const addContainer = document.getElementById('m-add-buttons-container');
+    if (!container || !addContainer) return;
+    
     const count = container.children.length;
     const max = getMaxPlayers();
-    // Always show the button
-    addBtn.style.display = 'block';
-    // Show/hide login upsell
-    const upsell = document.getElementById('m-login-upsell');
-    if (upsell) {
-        upsell.style.display = (!isLoggedIn && count >= MAX_PLAYERS_GUEST) ? 'block' : 'none';
-    }
-    // Hide button only when logged in and at max
-    if (isLoggedIn && count >= max) {
-        addBtn.style.display = 'none';
+    
+    // Hide BOTH 'ADD PLAYER' and 'QR JOIN' buttons when max limit is reached
+    if (count >= max) {
+        addContainer.style.display = 'none';
+    } else {
+        addContainer.style.display = 'flex';
     }
 }
 
@@ -466,18 +463,7 @@ window.mobileAddPlayer = function(defaultName) {
     const container = document.getElementById('m-players-list');
     const num = container.children.length + 1;
     
-    // Guest trying to add 3rd player → show upsell
-    if (!isLoggedIn && num > MAX_PLAYERS_GUEST) {
-        const upsell = document.getElementById('m-login-upsell');
-        if (upsell) {
-            upsell.style.display = 'block';
-            upsell.style.animation = 'none';
-            upsell.offsetHeight; // trigger reflow
-            upsell.style.animation = 'fadeInUp 0.3s ease forwards';
-            upsell.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        return;
-    }
+    if (num > getMaxPlayers()) return;
     
     if (num > getMaxPlayers()) return;
 
