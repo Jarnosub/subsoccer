@@ -355,7 +355,8 @@ async function trackTournamentAnonymously(results) {
             match_score: `${participants.length}p`,
             source_partner: isLoggedIn ? 'registered' : 'guest',
             user_agent: navigator.userAgent,
-            browser_lang: navigator.language || 'Unknown'
+            browser_lang: navigator.language || 'Unknown',
+            location: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown'
         });
     } catch (_) { /* silent */ }
 }
