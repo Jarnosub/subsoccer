@@ -502,7 +502,19 @@ window.openQrJoin = function() {
     qrJoinChannel.on('broadcast', { event: 'player-join' }, ({ payload }) => {
         if (payload.name) {
             window.mobileAddPlayer(payload.name.toUpperCase());
-            // Play a ding sound optionally or just flash screen?
+            
+            // Päivitetään asettelu popuppiin
+            const listEl = document.getElementById('qr-joined-list');
+            if (listEl) {
+                if (listEl.innerHTML.includes('Odotetaan pelaajia')) listEl.innerHTML = '';
+                const num = listEl.children.length + 1;
+                const row = document.createElement('div');
+                row.style.cssText = "padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;";
+                row.innerHTML = `<span style="color:#888; margin-right: 8px;">#${num}</span> ${payload.name.toUpperCase()}`;
+                listEl.appendChild(row);
+                listEl.scrollTop = listEl.scrollHeight;
+            }
+
             const addBtn = document.getElementById('m-add-player-btn');
             if(addBtn) {
                 const origBg = addBtn.style.background;
@@ -522,16 +534,16 @@ window.openQrJoin = function() {
     overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(8px);';
     
     overlay.innerHTML = `
-        <div style="background:rgba(20,20,25,0.9); border:1px solid rgba(255,255,255,0.1); padding:40px; border-radius:12px; backdrop-filter:blur(10px); max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.8);">
-            <h2 style="color:white; margin-bottom:12px; font-size:2rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-qrcode" style="color:#E30613; margin-right:12px;"></i> JOIN TOURNAMENT</h2>
-            <p style="color:#aaa; font-size:1rem; margin-bottom:30px; font-family:'Inter',sans-serif; letter-spacing:1px; text-transform:uppercase;">Scan code with your phone camera</p>
+        <div style="background:rgba(20,20,25,0.9); border:1px solid rgba(255,255,255,0.1); padding:40px 20px; border-radius:12px; backdrop-filter:blur(10px); max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.8);">
+            <h2 style="color:white; margin-bottom:12px; font-size:1.8rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-qrcode" style="color:#E30613; margin-right:12px;"></i> JOIN TOURNAMENT</h2>
+            <p style="color:#aaa; font-size:0.9rem; margin-bottom:20px; font-family:'Inter',sans-serif; letter-spacing:1px; text-transform:uppercase;">Scan code with your phone camera</p>
             
-            <div style="background:white; display:inline-block; padding:15px; border-radius:12px; margin-bottom:25px; border:4px solid #E30613;">
-                <img src="${qrImageUrl}" alt="Join QR Code" style="width: 250px; height: 250px; display:block;">
+            <div style="background:white; margin: 0 auto 20px auto; padding:15px; border-radius:12px; border:4px solid #E30613; width: max-content; display: block;">
+                <img src="${qrImageUrl}" alt="Join QR Code" style="width: 200px; height: 200px; display:block;">
             </div>
             
-            <div style="color:#666; font-size:0.8rem; font-family:monospace; margin-bottom:30px;">
-                room code: ${joinCode}
+            <div id="qr-joined-list" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; min-height: 50px; max-height: 150px; overflow-y: auto; text-align: left; margin-bottom: 20px; display: flex; flex-direction: column;">
+                <div style="color: #666; text-align: center; padding: 15px; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem;">Odotetaan pelaajia...</div>
             </div>
             
             <button onclick="document.getElementById('qr-join-overlay').remove(); if(qrJoinChannel) { _sb.removeChannel(qrJoinChannel); qrJoinChannel = null; }" style="background:transparent; color:#888; border:1px solid rgba(255,255,255,0.2); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
