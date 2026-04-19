@@ -403,11 +403,8 @@
                 const { data: { session } } = await _supabase.auth.getSession();
                 if (!session || !session.user) {
                     console.log("No auth session, redirecting to login");
-                    // In a production environment, uncomment this to enforce login
-                    // window.location.href = 'frontpage-test.html?redirect=owner-dashboard.html';
-
-                    // For current development/demo purposes, we show an alert but allow viewing
-                    console.warn("DEV MODE: Auth bypassed. In production, this would redirect.");
+                    window.location.href = 'index.html';
+                    return null;
                 } else {
                     console.log("Owner logged in:", session.user.email);
                 }

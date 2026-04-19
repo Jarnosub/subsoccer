@@ -63,11 +63,8 @@
                 return;
             }
 
-            // Quick bypass for the master code
-            if (promoCode === "ADMIN-100-USES") {
-                saveSuccess(promoCode);
-                return;
-            }
+            // Free2Play version: No master code bypass needed.
+            // Voucher verification proceeds through DB only.
 
             try {
                 // Verify with DB
