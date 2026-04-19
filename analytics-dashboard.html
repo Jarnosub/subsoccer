@@ -132,7 +132,7 @@
         /* Charts Row */
         .chart-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 2fr 1fr 1fr;
             gap: 24px;
             margin-bottom: 24px;
         }
@@ -314,8 +314,12 @@
                 <canvas id="mainChart"></canvas>
             </div>
             <div class="chart-card">
-                <h2>Platform Usage</h2>
+                <h2>User Segments</h2>
                 <canvas id="doughnutChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h2>Top Hubs</h2>
+                <canvas id="citiesChart"></canvas>
             </div>
         </div>
 
@@ -382,6 +386,7 @@
 
         let chartInstance = null;
         let doughnutInstance = null;
+        let citiesInstance = null;
         let globalTrackingData = []; // Tallenna data lokaalia filtteröintiä varten
 
         async function fetchData() {
@@ -559,6 +564,7 @@
         function initCharts(data) {
             if (chartInstance) chartInstance.destroy();
             if (doughnutInstance) doughnutInstance.destroy();
+            if (citiesInstance) citiesInstance.destroy();
 
             // Aggregation by day for trend line
             const daysMap = {};
@@ -596,18 +602,24 @@
                 }
             });
 
-            // Doughnut Chart
+            // Doughnut Chart (User Personas)
             const ctx2 = document.getElementById('doughnutChart').getContext('2d');
-            const guestCount = data.filter(d => d.source_partner === 'guest').length || 0;
-            const regCount = data.filter(d => d.source_partner === 'registered').length || 0;
+            let socialCount = 0, costcoCount = 0, regCount = 0, guestCount = 0;
+            data.forEach(d => {
+                const s = d.source_partner || 'unknown';
+                if (s === 'social') socialCount++;
+                else if (s === 'costco') costcoCount++;
+                else if (s === 'registered') regCount++;
+                else if (s === 'guest') guestCount++;
+            });
 
             doughnutInstance = new Chart(ctx2, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Guest Players', 'Registered Users'],
+                    labels: ['Social', 'Costco', 'Registered', 'Guest'],
                     datasets: [{
-                        data: [guestCount, regCount],
-                        backgroundColor: ['#8AB4F8', '#81C995'],
+                        data: [socialCount, costcoCount, regCount, guestCount],
+                        backgroundColor: ['#8AB4F8', '#F28B82', '#81C995', '#FDE293'],
                         borderWidth: 0,
                         hoverOffset: 4
                     }]
@@ -619,6 +631,39 @@
                         legend: { position: 'bottom' }
                     },
                     cutout: '70%'
+                }
+            });
+
+            // Top Cities Chart
+            const ctx3 = document.getElementById('citiesChart').getContext('2d');
+            const cityMap = {};
+            data.forEach(d => {
+                if (d.location && d.location !== 'Unknown') {
+                    const city = d.location.split('/')[1] || d.location;
+                    cityMap[city] = (cityMap[city] || 0) + 1;
+                }
+            });
+            const sortedCities = Object.keys(cityMap).map(c => ({city: c.replace('_', ' '), count: cityMap[c]})).sort((a,b) => b.count - a.count).slice(0, 5);
+            
+            citiesInstance = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: sortedCities.map(c => c.city),
+                    datasets: [{
+                        label: 'Events',
+                        data: sortedCities.map(c => c.count),
+                        backgroundColor: '#8AB4F8',
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { grid: { display: false } }
+                    }
                 }
             });
         }
