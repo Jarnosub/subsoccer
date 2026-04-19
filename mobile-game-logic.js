@@ -512,6 +512,11 @@ window.mobileAddPlayer = function(defaultName) {
     container.appendChild(div);
     updateAddPlayerButton();
     broadcastTvState();
+    
+    // Auto-scroll to bottom so new player is always visible
+    setTimeout(() => {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }, 10);
 };
 
 let qrJoinChannel = null;
