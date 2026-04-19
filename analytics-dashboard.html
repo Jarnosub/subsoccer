@@ -311,15 +311,21 @@
         <div class="chart-grid">
             <div class="chart-card">
                 <h2 id="chart-title">Activity Trend</h2>
-                <canvas id="mainChart"></canvas>
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="mainChart"></canvas>
+                </div>
             </div>
             <div class="chart-card">
                 <h2>User Segments</h2>
-                <canvas id="doughnutChart"></canvas>
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
             </div>
             <div class="chart-card">
                 <h2>Top Hubs</h2>
-                <canvas id="citiesChart"></canvas>
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="citiesChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -569,7 +575,8 @@
             // Aggregation by day for trend line
             const daysMap = {};
             data.forEach(d => {
-                const dateKey = new Date(d.client_time || new Date()).toLocaleDateString();
+                const dateObj = new Date(d.client_time || new Date());
+                const dateKey = ('0' + dateObj.getDate()).slice(-2) + '/' + ('0' + (dateObj.getMonth() + 1)).slice(-2);
                 daysMap[dateKey] = (daysMap[dateKey] || 0) + 1;
             });
             const labels = Object.keys(daysMap).reverse();
@@ -582,7 +589,7 @@
                 data: {
                     labels: labels.length ? labels : ['No data'],
                     datasets: [{
-                        label: 'Total Active Sessions',
+                        label: 'Events',
                         data: counts.length ? counts : [0],
                         borderColor: '#8AB4F8',
                         backgroundColor: 'rgba(138, 180, 248, 0.1)',
@@ -594,10 +601,11 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { bottom: 5 } },
                     plugins: { legend: { display: false } },
                     scales: {
                         y: { beginAtZero: true, grid: { color: '#3C4043' }, ticks: { precision: 0 } },
-                        x: { grid: { display: false } }
+                        x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0 } }
                     }
                 }
             });
@@ -627,10 +635,11 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: 20 },
                     plugins: {
-                        legend: { position: 'bottom' }
+                        legend: { position: 'bottom', labels: { boxWidth: 12 } }
                     },
-                    cutout: '70%'
+                    cutout: '65%'
                 }
             });
 
@@ -653,16 +662,22 @@
                         label: 'Events',
                         data: sortedCities.map(c => c.count),
                         backgroundColor: '#8AB4F8',
+                        maxBarThickness: 32,
+                        borderRadius: 4
                     }]
                 },
                 options: {
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { right: 30, top: 10, bottom: 10 } },
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { display: false },
-                        y: { grid: { display: false } }
+                        y: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 11 } }
+                        }
                     }
                 }
             });
