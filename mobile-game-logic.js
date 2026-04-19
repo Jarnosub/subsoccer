@@ -111,10 +111,14 @@ const GOALS_TO_WIN = 3; // Best of 5: first to 3 wins
 function showLayer(layerId) {
     document.querySelectorAll('.m-layer').forEach(l => {
         l.style.display = 'none';
+        l.classList.remove('fade-in');
     });
     const target = document.getElementById(layerId);
     if (target) {
         target.style.display = 'flex';
+        // force reflow for transition
+        void target.offsetWidth;
+        target.classList.add('fade-in');
     }
     broadcastTvState();
 }
@@ -211,6 +215,15 @@ function nextTournyMatch() {
 
     // Show the "next match" layer
     showLayer('m-layer-nextmatch');
+
+    // Highlight the pending match in the bracket DOM
+    setTimeout(() => {
+        const activeMatchDiv = document.getElementById(`match-${pending.rIndex}-${pending.mIndex}`);
+        if (activeMatchDiv) {
+            activeMatchDiv.classList.add('glow');
+            activeMatchDiv.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        }
+    }, 50);
 }
 
 // ============================================================
@@ -440,18 +453,34 @@ function showTournamentComplete() {
             padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
             background: ${idx === 0 ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)'};
             border: 1px solid ${idx === 0 ? 'rgba(212,175,55,0.4)' : 'rgba(255,255,255,0.05)'};
+            ${idx === 0 ? 'box-shadow: 0 0 15px rgba(212,175,55,0.3);' : ''}
         `;
         row.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="color: ${idx === 0 ? '#D4AF37' : '#666'}; font-weight: 900; width: 24px;">#${idx + 1}</span>
-                <span style="color: #fff; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">${name}</span>
+                <span style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">${name}</span>
             </div>
-            <span style="color: ${idx === 0 ? '#D4AF37' : '#888'}; font-weight: 700;">${w} ${w === 1 ? 'WIN' : 'WINS'}</span>
+            <div style="font-family: 'Resolve', sans-serif; color: ${idx === 0 ? '#D4AF37' : '#888'}; font-size: 0.9rem;">${w} WINS</div>
         `;
         leaderboardEl.appendChild(row);
     });
 
     showLayer('m-layer-leaderboard');
+    
+    // Confetti effect
+    for (let i = 0; i < 60; i++) {
+        const conf = document.createElement('div');
+        conf.style.cssText = `
+            position: absolute; top: -20px; width: 10px; height: 10px; z-index: 999;
+            background-color: ${['#E30613', '#FFD700', '#ffffff', '#0A84FF'][Math.floor(Math.random()*4)]};
+            left: ${Math.random() * 100}vw;
+            animation: mFall ${Math.random() * 3 + 2}s linear forwards;
+            border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+            transform: rotate(${Math.random() * 360}deg);
+        `;
+        document.getElementById('m-layer-leaderboard').appendChild(conf);
+        setTimeout(() => conf.remove(), 5000);
+    }
     broadcastTvState();
 }
 
@@ -469,12 +498,12 @@ window.mobileAddPlayer = function(defaultName) {
 
     const div = document.createElement('div');
     div.className = 'player-row';
-    div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);';
+    div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 4px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 6px; backdrop-filter: blur(10px);';
     div.innerHTML = `
-        <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#${num}</span>
-        <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
+        <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#${num}</span>
+        <input type="text" autocomplete="off" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
                class="player-input" 
-               style="color: white; width: 100%; padding: 6px 8px; font-size: 1.15rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+               style="color: white; width: 100%; padding: 4px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
 
         <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
             <i class="fas fa-times"></i>
