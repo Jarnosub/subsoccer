@@ -439,11 +439,11 @@
                         const isTop3 = idx < 3;
                         const rankColor = idx === 0 ? 'color: var(--accent-yellow);' : (idx === 1 ? 'color: #C0C0C0;' : (idx === 2 ? 'color: #cd7f32;' : 'color: var(--text-secondary);'));
                         
-                        tr.innerHTML = \`
-                            <td><strong style="\${rankColor}"><i class="fas fa-trophy"></i> \${idx + 1}.</strong></td>
-                            <td style="font-weight: \${isTop3 ? 'bold' : 'normal'}; color: \${isTop3 ? 'white' : 'inherit'};">\${(p.username || p.display_name || 'Anonymous').toUpperCase()}</td>
-                            <td style="text-align:right; font-weight: bold; color: var(--accent-blue);">\${p.elo || 1500}</td>
-                        \`;
+                        tr.innerHTML = `
+                            <td><strong style="${rankColor}"><i class="fas fa-trophy"></i> ${idx + 1}.</strong></td>
+                            <td style="font-weight: ${isTop3 ? 'bold' : 'normal'}; color: ${isTop3 ? 'white' : 'inherit'};">${(p.username || p.display_name || 'Anonymous').toUpperCase()}</td>
+                            <td style="text-align:right; font-weight: bold; color: var(--accent-blue);">${p.elo || 1500}</td>
+                        `;
                         topBody.appendChild(tr);
                     });
                 } else {
@@ -525,7 +525,7 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", \`subsoccer_analytics_\${new Date().toISOString().split('T')[0]}.csv\`);
+            link.setAttribute("download", `subsoccer_analytics_${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
