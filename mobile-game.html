@@ -280,16 +280,19 @@
         @media (min-width: 768px) {
             #mobile-bracket-area {
                 justify-content: center;
+                align-items: flex-start; /* Prevent vertical squeezing */
                 gap: 30px;
-                padding: 0;
-                overflow-x: hidden;
+                padding: 20px;
+                overflow: auto; /* Allow moving around the bracket */
                 scroll-snap-type: none;
             }
             #mobile-bracket-area .bracket-round {
-                min-width: 250px;
-                max-width: 300px;
+                min-width: 220px;
+                max-width: 260px;
                 scroll-snap-align: none;
                 margin: 0;
+                justify-content: center;
+                gap: 15px;
             }
         }
 
