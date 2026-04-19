@@ -6,6 +6,7 @@
     <title>Join Subsoccer Tournament</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @font-face {
             font-family: 'Resolve';
@@ -139,6 +140,8 @@
     <!-- Supabase Logic -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        window.verifiedUserId = null;
+        
         const urlParams = new URLSearchParams(window.location.search);
         const joinCode = urlParams.get('code');
 
@@ -156,6 +159,25 @@
         const channel = sb.channel('qr-join-' + joinCode);
         channel.subscribe(); // Connect to proper websocket room
 
+        // Authenticate PRO players automatically if session exists on their mobile device
+        sb.auth.getSession().then(({ data: { session } }) => {
+            if (session && session.user) {
+                sb.from('players').select('username').eq('id', session.user.id).single().then(({ data }) => {
+                    if (data && data.username) {
+                        const inputField = document.getElementById('player-name');
+                        inputField.value = data.username;
+                        window.verifiedUserId = session.user.id;
+                        
+                        // Show visual PRO indicator
+                        document.getElementById('join-subtitle').innerHTML = `<span style="color:var(--sub-gold, #FFD700); font-weight:bold;"><i class="fas fa-trophy"></i> PRO CARD LINKED</span><br>Submit to join the active match.`;
+                        // Lock the input so they can't change their name while passing a verified ID
+                        inputField.readOnly = true;
+                        inputField.style.opacity = '0.8';
+                    }
+                });
+            }
+        });
+
         function joinTournament() {
             if (!joinCode) return;
             const input = document.getElementById('player-name');
@@ -171,7 +193,10 @@
             channel.send({
                 type: 'broadcast',
                 event: 'player-join',
-                payload: { name: name }
+                payload: { 
+                    name: name,
+                    id: window.verifiedUserId || null
+                }
             }).then(() => {
                 // Instantly update UI on callback success
                 document.getElementById('join-form').style.display = 'none';
