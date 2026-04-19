@@ -168,10 +168,8 @@
         </button>
 
         <!-- Pelaajakortti (kirjautuneet) - piilotettu oletuksena -->
-        <div id="hub-player-card" class="player-mini-card" style="display: none; align-items: center; gap: 8px; background: rgba(0,0,0,0.8); padding: 0 12px 0 5px; height: 42px; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(255,215,0,0.3); backdrop-filter: blur(5px); cursor: pointer; margin-top: 4px;" onclick="window.location.href='player-card.html'">
-            <div style="width: 32px; height: 32px; border-radius: 50%; background: #111; display: flex; align-items: center; justify-content: center; color: var(--sub-gold); border: 1px solid var(--sub-gold);">
-                <i class="fa-solid fa-user" style="font-size: 0.8rem;"></i>
-            </div>
+        <div id="hub-player-card" class="player-mini-card" style="display: none; align-items: center; gap: 6px; background: rgba(0,0,0,0.8); padding: 0 10px 0 10px; height: 42px; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(255,215,0,0.3); backdrop-filter: blur(5px); cursor: pointer; margin-top: 4px;" onclick="window.location.href='player-card.html'">
+            <i class="fa-solid fa-user" style="color: var(--sub-gold); font-size: 1.2rem;"></i>
             <div style="display: flex; flex-direction: column; justify-content: center;">
                 <span id="hub-player-name" style="color: #fff; font-family: 'Subsoccer', sans-serif; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 2px;">PLAYER</span>
                 <span id="hub-player-elo" style="color: var(--sub-gold); font-family: 'Resolve', sans-serif; font-size: 0.55rem; letter-spacing: 1px;"><i class="fa-solid fa-bolt"></i> PRO 1500</span>
@@ -188,7 +186,7 @@
         <!-- Hamburger Menu Button -->
         <div style="height: 42px; width: 100px; display: flex; align-items: center; justify-content: flex-end; z-index: 100; margin-top: 4px;">
             <button onclick="document.getElementById('main-nav-menu').style.display='flex'" style="background: transparent; border: none; color: #fff; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8); height: 100%; display: flex; align-items: center;">
-                <i class="fa-solid fa-bars" style="font-size: 1.8rem; line-height: 1;"></i>
+                <i class="fa-solid fa-bars" style="font-size: 2.2rem; transform: scaleX(1.1); line-height: 1;"></i>
             </button>
         </div>
     </div>
