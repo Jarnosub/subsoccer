@@ -418,12 +418,13 @@
                     client.from('players').select('id', { count: 'exact' }),
                     historyQuery,
                     matchesQuery,
-                    client.from('players').select('username, display_name, elo').order('elo', { ascending: false }).limit(10)
+                    client.from('players').select('username, display_name, elo').or('wins.gt.0,losses.gt.0').order('elo', { ascending: false }).limit(10)
                 ]);
 
-                if (trackingRes.error) {
-                    console.error("Tracking Error:", trackingRes.error);
-                }
+                if (trackingRes.error) console.error("Tracking Error:", trackingRes.error);
+                if (historyRes.error) console.error("History Error:", historyRes.error);
+                if (matchesRes.error) console.error("Matches Error:", matchesRes.error);
+                if (topPlayersRes.error) console.error("Leaderboard Error:", topPlayersRes.error);
 
                 // Real data — no hardcoded fallbacks
                 const trackingData = trackingRes.data || [];
