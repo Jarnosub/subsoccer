@@ -613,13 +613,23 @@ window.openQrJoin = function() {
                 <!-- Lista injektoidaan -->
             </div>
             
-            <button onclick="document.getElementById('qr-join-overlay').remove(); if(qrJoinChannel) { _sb.removeChannel(qrJoinChannel); qrJoinChannel = null; }" style="background: rgba(35, 35, 40, 0.9); color:#fff; border:1px solid rgba(255,255,255,0.1); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
+            <button onclick="window.closeQrJoin()" style="background: rgba(35, 35, 40, 0.9); color:#fff; border:1px solid rgba(255,255,255,0.1); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
                 <i class="fas fa-times" style="margin-right:8px;"></i> CLOSE
             </button>
         </div>
     `;
 
     document.body.appendChild(overlay);
+    
+    // Yhdistetään poistofunktio window-objektiin
+    window.closeQrJoin = function() {
+        const ov = document.getElementById('qr-join-overlay');
+        if (ov) ov.remove();
+        if (qrJoinChannel) {
+            _sb.removeChannel(qrJoinChannel);
+            qrJoinChannel = null;
+        }
+    };
 
     // Injektoidaan lista heti kun avataan
     const listEl = document.getElementById('qr-joined-list');
