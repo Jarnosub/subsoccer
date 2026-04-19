@@ -565,37 +565,39 @@
             <h1 class="setup-title">TOURNAMENT</h1>
             <p class="setup-subtitle">Add players to begin. Winner takes all.</p>
 
-            <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 20px; padding-right: 5px; display: flex; flex-direction: column;">
-                <div id="m-players-list" style="display: flex; flex-direction: column;">
-                    <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
-                        <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#1</span>
-                        <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 1" 
-                               class="player-input" 
-                               style="text-transform: uppercase; color: white; width: 100%; padding: 8px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
-                        <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 8px 12px; background: none; border: none; cursor: pointer;">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
-                        <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#2</span>
-                        <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 2" 
-                               class="player-input" 
-                               style="text-transform: uppercase; color: white; width: 100%; padding: 8px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
-                        <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 8px 12px; background: none; border: none; cursor: pointer;">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+            <!-- SCROLLABLE PLAYER LIST ONLY -->
+            <div id="m-players-list" style="flex: 0 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 5px; margin-bottom: 8px;">
+                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
+                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#1</span>
+                    <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 1" 
+                           class="player-input" 
+                           style="text-transform: uppercase; color: white; width: 100%; padding: 8px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+                    <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 8px 12px; background: none; border: none; cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-
-                <!-- ADD BUTTONS TIED DIRECTLY TO PLAYER LIST -->
-                <div id="m-add-buttons-container" style="display: flex; gap: 8px; width: 100%; margin-top: 2px;">
-                    <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()" style="flex: 1; margin-top: 0;">+ ADD PLAYER</button>
-                    <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()" style="flex: 1; margin-top: 0;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR JOIN</button>
+                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
+                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#2</span>
+                    <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 2" 
+                           class="player-input" 
+                           style="text-transform: uppercase; color: white; width: 100%; padding: 8px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+                    <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 8px 12px; background: none; border: none; cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- START MATCH FIXED TO BOTTOM OF SETUP -->
-            <div style="flex-shrink: 0; margin-top: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom, 10px));">
+            <!-- ADD BUTTONS (NEVER SCROLL) -->
+            <div id="m-add-buttons-container" style="flex-shrink: 0; display: flex; gap: 8px; width: 100%;">
+                <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()" style="flex: 1; margin-top: 0;">+ ADD PLAYER</button>
+                <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()" style="flex: 1; margin-top: 0;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR JOIN</button>
+            </div>
+
+            <!-- FLEX SPACER TO PUSH START MATCH DOWN INITIALLY -->
+            <div style="flex: 1; min-height: 16px;"></div>
+
+            <!-- START MATCH FIXED TO BOTTOM -->
+            <div style="flex-shrink: 0; padding-bottom: calc(20px + env(safe-area-inset-bottom, 10px));">
                 <button class="setup-start-btn" onclick="mobileStartTournament()">
                     <i class="fas fa-play"></i> START MATCH
                 </button>
