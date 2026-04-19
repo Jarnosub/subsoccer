@@ -305,6 +305,18 @@
                 <div class="kpi-value" id="kpi-matches">--</div>
                 <div class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> Global arcade tables</div>
             </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Drop-off / Bounce Rate <i class="fas fa-arrow-right-from-bracket" style="color: var(--text-secondary);"></i></div>
+                <div class="kpi-value" id="kpi-bounce">--%</div>
+                <div class="kpi-trend trend-neutral"><i class="fas fa-chart-pie"></i> App opened vs games played</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Device Breakdown <i class="fas fa-laptop-mobile" style="color: var(--accent-blue);"></i></div>
+                <div class="kpi-value" id="kpi-device" style="font-size: 1.5rem; margin-top: 10px;">--</div>
+                <div class="kpi-trend trend-neutral"><i class="fas fa-globe"></i> Ecosystem usage</div>
+            </div>
         </div>
 
         <!-- Charts Row -->
@@ -461,10 +473,30 @@
 
                 // Update KPIs
                 const sessionCount = trackingData.filter(d => d.event_type === 'app_opened').length;
+                const playEventCount = trackingData.filter(d => ['game_finished', 'tournament_finished', 'game_start', 'tournament_match_finished'].includes(d.event_type)).length;
+                let bounceRate = 0;
+                if (sessionCount > 0) {
+                    bounceRate = Math.max(0, 100 - Math.round((playEventCount / sessionCount) * 100)); // Rough estimate
+                }
+
+                let ios = 0, android = 0, other = 0;
+                trackingData.forEach(d => {
+                    const ua = (d.user_agent || '').toLowerCase();
+                    if (ua.includes('iphone') || ua.includes('ipad')) ios++;
+                    else if (ua.includes('android')) android++;
+                    else other++;
+                });
+                const tDev = ios + android + other;
+                const iosP = tDev ? Math.round(ios / tDev * 100) : 0;
+                const andP = tDev ? Math.round(android / tDev * 100) : 0;
+                const othP = tDev ? Math.round(other / tDev * 100) : 0;
+
                 document.getElementById('kpi-sessions').textContent = sessionCount;
                 document.getElementById('kpi-tournaments').textContent = totalTournaments;
                 document.getElementById('kpi-users').textContent = totalUsers;
                 document.getElementById('kpi-matches').textContent = totalMatches;
+                document.getElementById('kpi-bounce').textContent = bounceRate + '%';
+                document.getElementById('kpi-device').textContent = `iOS ${iosP}% | And ${andP}% | Oth ${othP}%`;
 
                 // Populate Top Players List
                 const topBody = document.getElementById('top-players-body');

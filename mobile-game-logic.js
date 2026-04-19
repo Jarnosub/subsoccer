@@ -100,7 +100,8 @@ let gameState = {
     p2Score: 0,
     p1Name: "PLAYER 1",
     p2Name: "PLAYER 2",
-    isTournament: false
+    isTournament: false,
+    tournamentStartTime: null
 };
 
 let localEngine = null;
@@ -252,6 +253,7 @@ window.mobileStartTournament = function() {
     }
 
     gameState.isTournament = true;
+    gameState.tournamentStartTime = Date.now();
 
     // Initialize BracketEngine
     localEngine = new BracketEngine({ 
@@ -439,6 +441,21 @@ function finishMatch(winnerName, winnerIndex) {
         winner: winnerName,
         round: currentPendingMatch ? currentPendingMatch.roundName : 'Match'
     });
+    
+    // Explicit anonymous tracking for the individual tournament match
+    if (_sb) {
+        const isRet = !!localStorage.getItem('subsoccer-user');
+        _sb.from('public_tracking').insert({
+            event_type: 'tournament_match_finished',
+            game_code: 'MOBILE-TOURNAMENT',
+            match_score: `${gameState.p1Score}-${gameState.p2Score}`,
+            source_partner: isLoggedIn ? 'registered' : 'guest',
+            user_agent: navigator.userAgent,
+            browser_lang: navigator.language || 'Unknown',
+            location: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+            is_returning: isRet
+        }).catch(() => {});
+    }
 
     // Record the match in the global backend for ELO & Stats (silently, no loading overlay)
     try {
@@ -499,6 +516,12 @@ async function trackTournamentAnonymously(results) {
     if (!_sb) return;
     try {
         const participants = localEngine.participants.filter(p => p !== 'BYE');
+        const isRet = !!localStorage.getItem('subsoccer-user');
+        let duration = null;
+        if (gameState.tournamentStartTime) {
+            duration = Math.floor((Date.now() - gameState.tournamentStartTime) / 1000);
+        }
+
         await _sb.from('public_tracking').insert({
             event_type: 'tournament_finished',
             game_code: 'MOBILE-TOURNAMENT',
@@ -506,7 +529,9 @@ async function trackTournamentAnonymously(results) {
             source_partner: isLoggedIn ? 'registered' : 'guest',
             user_agent: navigator.userAgent,
             browser_lang: navigator.language || 'Unknown',
-            location: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown'
+            location: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+            is_returning: isRet,
+            session_duration: duration
         });
     } catch (_) { /* silent */ }
 }
