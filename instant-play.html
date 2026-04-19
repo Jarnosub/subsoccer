@@ -974,10 +974,9 @@
                     style="position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:linear-gradient(45deg, transparent 40%, rgba(255,215,0,0.2) 50%, transparent 60%); animation: shimmer 3s infinite;">
                 </div>
 
-                <i id="winner-card-icon" class="fa-solid fa-lock w-card-icon"></i>
-                <h3 id="winner-card-title" class="w-card-title">PRO CARD UNLOCKED</h3>
-                <p id="winner-card-desc" class="w-card-desc">You are currently playing as a Guest. Claim your official
-                    Subsoccer ELO ranking before you leave the game.</p>
+                <i id="winner-card-icon" class="fa-solid fa-users w-card-icon"></i>
+                <h3 id="winner-card-title" class="w-card-title">MORE PLAYERS?</h3>
+                <p id="winner-card-desc" class="w-card-desc">Hosting a party? Create a full tournament bracket and find out who the real champion is!</p>
             </div>
 
             <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
@@ -991,7 +990,7 @@
                 <button id="claim-victory-btn" class="claim-victory-btn w-btn-claim"
                     style="background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%); color: #000; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);"
                     onclick="claimVictory()">
-                    <i class="fa-solid fa-id-card" style="margin-right:10px;"></i> CLAIM MY PRO CARD
+                    <i class="fa-solid fa-trophy" style="margin-right:10px;"></i> HOST A TOURNAMENT
                 </button>
 
                 <button id="end-game-btn" class="play-again-btn"
@@ -1575,7 +1574,7 @@
                     if (cardDesc) cardDesc.textContent = "Great win! Save this result to boost your global rank and update your digital Pro Card.";
                 } else {
                     // Guest (QR Code or Guest in app) - Show Rookie Card
-                    if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-id-card' style='margin-right:10px;'></i> CLAIM MY PRO CARD";
+                    if (claimBtn) claimBtn.innerHTML = "<i class='fa-solid fa-trophy' style='margin-right:10px;'></i> HOST A TOURNAMENT";
                     if (endBtn) endBtn.style.display = 'none';
 
                     if (cardContainer) {
@@ -1585,14 +1584,14 @@
                     }
                     if (cardGlint) cardGlint.style.background = "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)";
                     if (cardIcon) {
-                        cardIcon.className = "fa-solid fa-lock";
+                        cardIcon.className = "fa-solid fa-users";
                         cardIcon.style.color = "#666";
                     }
                     if (cardTitle) {
-                        cardTitle.textContent = "ROOKIE CARD";
+                        cardTitle.textContent = "MORE PLAYERS?";
                         cardTitle.style.color = "#888";
                     }
-                    if (cardDesc) cardDesc.innerHTML = "You are playing as an Anonymous Guest.<br><br><span style='color:var(--sub-gold); font-weight:bold;'>UNLOCK YOUR PRO CARD</span><br>to claim this victory and enter the Global Top 100!";
+                    if (cardDesc) cardDesc.innerHTML = "Hosting a party?<br><br><span style='color:var(--sub-gold); font-weight:bold;'>CREATE A FULL TOURNAMENT RANKING</span><br>to test who the real champion is!";
                 }
             } else {
                 // Costco Logic
@@ -1645,7 +1644,16 @@
 
         // Claim victory (Redirect to main app)
         function claimVictory() {
-            // Construct URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const userType = urlParams.get('user_type') || 'guest';
+            
+            // For Guests passing through, directly upsell to tournament
+            if (userType === 'guest') {
+                window.location.href = 'mobile-game.html';
+                return;
+            }
+
+            // Construct URL parameters for PRO players saving results
             const params = new URLSearchParams();
             params.append('action', 'claim_result');
             params.append('p1_score', scoreP1);
