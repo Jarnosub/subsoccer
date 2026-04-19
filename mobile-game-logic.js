@@ -64,6 +64,13 @@ function captureGeolocation() {
     if (window.restoreMobilePlayers) {
         window.restoreMobilePlayers();
     }
+    
+    // Check if there is an active tournament in progress
+    if (restoreTournyState()) {
+        updateAddPlayerButton();
+        return;
+    }
+    
     updateAddPlayerButton();
 })();
 
@@ -104,6 +111,92 @@ let currentPendingMatch = null;
 let matchResults = []; // Track all match results for leaderboard
 
 const GOALS_TO_WIN = 3; // Best of 5: first to 3 wins
+
+// ============================================================
+// TOURNAMENT PERSISTENCE
+// ============================================================
+
+function saveTournyState() {
+    if (!localEngine || !gameState.isTournament) return;
+    const state = {
+        gameState: gameState,
+        currentPendingMatch: currentPendingMatch,
+        matchResults: matchResults,
+        activeLayer: getCurrentLayer(),
+        engine: {
+            participants: localEngine.participants,
+            rounds: localEngine.rounds,
+            currentRoundIndex: localEngine.currentRoundIndex,
+            isActive: localEngine.isActive
+        }
+    };
+    localStorage.setItem('subsoccer_mobile_tourny', JSON.stringify(state));
+}
+
+function getCurrentLayer() {
+    const layers = document.querySelectorAll('.m-layer');
+    for (let l of layers) {
+        if (l.style.display === 'flex' || l.style.display === 'block') {
+            return l.id;
+        }
+    }
+    return 'm-layer-setup';
+}
+
+function restoreTournyState() {
+    const raw = localStorage.getItem('subsoccer_mobile_tourny');
+    if (!raw) return false;
+    
+    try {
+        const state = JSON.parse(raw);
+        if (!state.engine || !state.engine.isActive) return false;
+
+        // Restore vars
+        gameState = state.gameState;
+        currentPendingMatch = state.currentPendingMatch;
+        matchResults = state.matchResults || [];
+
+        // Restore Engine
+        localEngine = new BracketEngine({ 
+            containerId: 'mobile-bracket-area', 
+            enableSaveButton: false 
+        });
+        localEngine.participants = state.engine.participants;
+        localEngine.rounds = state.engine.rounds;
+        localEngine.currentRoundIndex = state.engine.currentRoundIndex;
+        localEngine.isActive = state.engine.isActive;
+
+        // Render bracket
+        renderMobileBracket();
+
+        // Restore UI state based on layer
+        if (state.activeLayer === 'm-layer-game' && currentPendingMatch) {
+            // Restore match in progress
+            document.getElementById('m-p1-name').innerText = gameState.p1Name;
+            document.getElementById('m-p2-name').innerText = gameState.p2Name;
+            document.getElementById('m-score-p1').innerText = gameState.p1Score;
+            document.getElementById('m-score-p2').innerText = gameState.p2Score;
+            updateGoalVisual('m-goals-p1', gameState.p1Score);
+            updateGoalVisual('m-goals-p2', gameState.p2Score);
+            showLayer('m-layer-game');
+            pMatchProcessing = false;
+        } else if (state.activeLayer === 'm-layer-nextmatch' && currentPendingMatch) {
+            // Restore next match screen
+            document.getElementById('m-round-name').innerText = currentPendingMatch.roundName;
+            document.getElementById('m-matchup-p1').innerText = currentPendingMatch.p1;
+            document.getElementById('m-matchup-p2').innerText = currentPendingMatch.p2;
+            showLayer('m-layer-nextmatch');
+        } else {
+            // Fallback to bracket
+            showLayer('m-layer-bracket');
+        }
+
+        return true;
+    } catch(e) {
+        console.warn("Failed to restore tourny:", e);
+        return false;
+    }
+}
 
 // ============================================================
 // LAYER SWITCHING
@@ -172,6 +265,7 @@ window.mobileStartTournament = function() {
     
     // Move to first match
     nextTournyMatch();
+    saveTournyState();
 };
 
 // ============================================================
@@ -250,6 +344,7 @@ function nextTournyMatch() {
 // ============================================================
 
 window.mobileStartMatch = function() {
+    saveTournyState();
     if (!currentPendingMatch) return;
     
     gameState.p1Score = 0;
@@ -272,6 +367,7 @@ window.mobileStartMatch = function() {
 
 window.mobileGoal = function(playerNumber) {
     if (pMatchProcessing) return;
+    saveTournyState();
 
     if (playerNumber === 1) {
         gameState.p1Score++;
@@ -295,6 +391,7 @@ window.mobileGoal = function(playerNumber) {
         setTimeout(() => finishMatch(gameState.p2Name, 2), 800);
     }
     
+    saveTournyState();
     broadcastTvState();
 };
 
@@ -313,6 +410,7 @@ window.mobileSkipMatch = function(winnerNumber) {
     if (winnerNumber === 2) gameState.p2Score++;
 
     const winnerName = winnerNumber === 1 ? gameState.p1Name : gameState.p2Name;
+    saveTournyState();
     finishMatch(winnerName, winnerNumber);
 };
 
@@ -461,6 +559,7 @@ async function saveTournamentToDatabase(results) {
 }
 
 function showTournamentComplete() {
+    localStorage.removeItem('subsoccer_mobile_tourny');
     const results = localEngine.getTournamentResults();
     const winner = results.winner || 'UNKNOWN';
 

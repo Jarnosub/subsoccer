@@ -760,6 +760,7 @@
         }
         function quitTournament() {
             if (confirm('Quit this tournament? All progress will be lost.')) {
+                localStorage.removeItem('subsoccer_mobile_tourny');
                 window.location.href = 'index.html';
             }
         }
