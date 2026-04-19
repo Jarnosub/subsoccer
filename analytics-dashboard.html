@@ -690,7 +690,7 @@
             try {
                 // Determine time filter to apply (reuse the dashboard's current filter)
                 const days = parseInt(document.getElementById('timeFilter').value);
-                let query = supabase.from('feedback').select('*').order('created_at', { ascending: false });
+                let query = client.from('feedback').select('*').order('created_at', { ascending: false });
                 
                 if (days < 9000) {
                     const d = new Date();
