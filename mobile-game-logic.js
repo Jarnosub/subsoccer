@@ -529,9 +529,9 @@ window.mobileAddPlayer = function(defaultName, userId) {
     div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);';
     div.innerHTML = `
         <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#${num}</span>
-        <input type="text" autocomplete="off" autocapitalize="characters" style="text-transform: uppercase;" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
+        <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
                class="player-input" ${datasetAttr}
-               style="color: white; width: 100%; padding: 8px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+               style="text-transform: uppercase; color: white; width: 100%; padding: 8px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
 
         <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 8px 12px; background: none; border: none; cursor: pointer;">
             <i class="fas fa-times"></i>
