@@ -346,7 +346,7 @@
                         </thead>
                         <tbody id="top-players-body">
                             <!-- Javascript will populate this -->
-                            <tr><td colspan="3" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Ladataan...</td></tr>
+                            <tr><td colspan="3" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -374,11 +374,12 @@
             document.getElementById('loading').style.display = 'flex';
             
             const days = parseInt(document.getElementById('timeFilter').value) || 7;
+            const isAllTime = (days >= 9999);
             const pastDate = new Date();
             pastDate.setDate(pastDate.getDate() - days);
             const dateStr = pastDate.toISOString();
             
-            document.getElementById('chart-title').innerText = days === 9999 ? "Activity Trend (Kaikki)" : `Activity Trend (${days}pv)`;
+            document.getElementById('chart-title').innerText = isAllTime ? "Activity Trend (All Time)" : `Activity Trend (${days}d)`;
 
             try {
                 const { data: sessionData } = await client.auth.getSession();
@@ -401,31 +402,40 @@
                 document.getElementById('auth-wall').style.display = 'none';
                 document.getElementById('mod-content').style.display = 'block';
 
-                // Fetch metrics concurrently
-                let trackingQuery = client.from('public_tracking').select('*').order('client_time', { ascending: false }).limit(1000);
-                if (days !== 9999) trackingQuery = trackingQuery.gte('client_time', dateStr);
+                // Build time-filtered queries
+                let trackingQuery = client.from('public_tracking').select('*').order('client_time', { ascending: false }).limit(2000);
+                if (!isAllTime) trackingQuery = trackingQuery.gte('client_time', dateStr);
 
+                let historyQuery = client.from('tournament_history').select('*', { count: 'exact' });
+                if (!isAllTime) historyQuery = historyQuery.gte('start_datetime', dateStr);
+
+                let matchesQuery = client.from('games_analytics').select('id', { count: 'exact' });
+                if (!isAllTime) matchesQuery = matchesQuery.gte('created_at', dateStr);
+
+                // Players count is always "all time" (total registrations)
                 const [trackingRes, usersRes, historyRes, matchesRes, topPlayersRes] = await Promise.all([
                     trackingQuery,
                     client.from('players').select('id', { count: 'exact' }),
-                    client.from('tournament_history').select('*', { count: 'exact' }),
-                    client.from('games_analytics').select('id', { count: 'exact' }), // or similar match tracking
+                    historyQuery,
+                    matchesQuery,
                     client.from('players').select('username, display_name, elo').order('elo', { ascending: false }).limit(10)
                 ]);
 
                 if (trackingRes.error) {
                     console.error("Tracking Error:", trackingRes.error);
-                    alert("Supabase Error: " + trackingRes.error.message + "\nTämä johtuu yleensä RLS (Row Level Security) -asetuksista. Salli SELECT roolille 'authenticated' tauluun public_tracking.");
                 }
 
-                // Fallbacks if tables are empty/missing
+                // Real data — no hardcoded fallbacks
                 const trackingData = trackingRes.data || [];
-                const totalUsers = usersRes.count || 24;  
-                const totalTournaments = (historyRes.count || 0) + trackingData.filter(d => d.event_type === 'tournament_finished').length;
-                const totalMatches = matchesRes.count || 142; // Example fallback if table is empty
+                const totalUsers = usersRes.count || 0;
+                const trackingTournaments = trackingData.filter(d => d.event_type === 'tournament_finished').length;
+                const dbTournaments = historyRes.count || 0;
+                const totalTournaments = dbTournaments + trackingTournaments;
+                const totalMatches = matchesRes.count || 0;
 
                 // Update KPIs
-                document.getElementById('kpi-sessions').textContent = trackingData.filter(d => d.event_type === 'app_opened').length || 80;
+                const sessionCount = trackingData.filter(d => d.event_type === 'app_opened').length;
+                document.getElementById('kpi-sessions').textContent = sessionCount;
                 document.getElementById('kpi-tournaments').textContent = totalTournaments;
                 document.getElementById('kpi-users').textContent = totalUsers;
                 document.getElementById('kpi-matches').textContent = totalMatches;
@@ -447,7 +457,7 @@
                         topBody.appendChild(tr);
                     });
                 } else {
-                    topBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:#666;">Ei rating-dataa saatavilla.</td></tr>';
+                    topBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:#666;">No rating data available.</td></tr>';
                 }
 
                 // Kirjoitetaan datamuuttujaan
@@ -502,7 +512,7 @@
 
         window.exportToCSV = function() {
             if (!globalTrackingData || globalTrackingData.length === 0) {
-                alert("Ei dataa vietäväksi.");
+                alert("No data to export.");
                 return;
             }
             
@@ -549,7 +559,7 @@
             chartInstance = new Chart(ctx1, {
                 type: 'line',
                 data: {
-                    labels: labels.length ? labels : ['Ei dataa'],
+                    labels: labels.length ? labels : ['No data'],
                     datasets: [{
                         label: 'Total Active Sessions',
                         data: counts.length ? counts : [0],
