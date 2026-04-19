@@ -444,10 +444,10 @@
                 displayTitle = 'TABLE DETECTED';
                 displayDesc = 'ARCADE TABLE QR CODE';
                 action.innerText = 'JOIN TABLE';
-            } else if (rawValue.includes('join=')) {
-                displayTitle = 'LOBBY INVITE';
-                displayDesc = 'JOIN A TOURNAMENT LOBBY';
-                action.innerText = 'JOIN LOBBY';
+            } else if (rawValue.includes('join=') || rawValue.includes('join.html?code=')) {
+                displayTitle = 'TOURNAMENT LOBBY';
+                displayDesc = 'JOIN A TOURNAMENT LOBBY WITH YOUR PRO CARD';
+                action.innerText = 'JOIN TOURNAMENT';
             } else if (rawValue.includes('game_id=')) {
                 displayTitle = 'LIVE GAME';
                 displayDesc = 'SPECTATE OR JOIN GAME';
