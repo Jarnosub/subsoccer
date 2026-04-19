@@ -159,7 +159,29 @@
         const channel = sb.channel('qr-join-' + joinCode);
         channel.subscribe(); // Connect to proper websocket room
 
-        // Authenticate PRO players automatically if session exists on their mobile device
+        // Instant synchronous fallback for iOS/Safari PWA context isolation
+        try {
+            const lsKey = 'sb-ujxmmrsmdwrgcwatdhvx-auth-token';
+            const rawSession = localStorage.getItem(lsKey);
+            if (rawSession) {
+                const parsed = JSON.parse(rawSession);
+                if (parsed && parsed.user) {
+                    const fallbackName = parsed.user.user_metadata?.username || parsed.user.user_metadata?.full_name || parsed.user.email?.split('@')[0];
+                    if (fallbackName) {
+                        const inputField = document.getElementById('player-name');
+                        inputField.value = fallbackName.toUpperCase();
+                        window.verifiedUserId = parsed.user.id;
+                        document.getElementById('join-subtitle').innerHTML = `<span style="color:var(--sub-gold, #FFD700); font-weight:bold;"><i class="fas fa-trophy"></i> PRO CARD LINKED</span><br>Submit to join the active match.`;
+                        inputField.readOnly = true;
+                        inputField.style.opacity = '0.8';
+                    }
+                }
+            }
+        } catch(e) {
+            console.error("Local storage auth read failed:", e);
+        }
+
+        // Authenticate PRO players automatically (verifies against DB if possible)
         sb.auth.getSession().then(({ data: { session }, error: sessionError }) => {
             if (sessionError) console.error("Session error:", sessionError);
             if (session && session.user) {
