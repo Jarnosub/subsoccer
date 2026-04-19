@@ -418,7 +418,7 @@
                     client.from('players').select('id', { count: 'exact' }),
                     historyQuery,
                     matchesQuery,
-                    client.from('players').select('username, display_name, elo, wins, losses').order('elo', { ascending: false }).limit(10)
+                    client.from('players').select('username, elo, wins, losses').order('elo', { ascending: false }).limit(10)
                 ]);
 
                 if (trackingRes.error) console.error("Tracking Error:", trackingRes.error);
@@ -452,7 +452,7 @@
                         
                         tr.innerHTML = `
                             <td><strong style="${rankColor}"><i class="fas fa-trophy"></i> ${idx + 1}.</strong></td>
-                            <td style="font-weight: ${isTop3 ? 'bold' : 'normal'}; color: ${isTop3 ? 'white' : 'inherit'};">${(p.username || p.display_name || 'Anonymous').toUpperCase()}</td>
+                            <td style="font-weight: ${isTop3 ? 'bold' : 'normal'}; color: ${isTop3 ? 'white' : 'inherit'};">${(p.username || 'Anonymous').toUpperCase()}</td>
                             <td style="text-align:right; font-weight: bold; color: var(--accent-blue);">${p.elo || 1500}</td>
                         `;
                         topBody.appendChild(tr);
