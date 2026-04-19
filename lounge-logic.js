@@ -555,84 +555,20 @@ window.useFreeTicket = function() {
 window.useFreeTicketCode = async function(code) {
     if (!code) return;
     
-    // UI Feedback
+    // Free2Play version: No payment or gift card verification needed.
+    // This function is kept as a stub for future Stripe integration.
     const startBtn = document.getElementById('btn-checkout');
-    const originalText = startBtn.innerHTML;
-    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> VERIFYING...';
+    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> STARTING...';
     startBtn.style.pointerEvents = 'none';
     
-    try {
-        const { _supabase } = await import('./config.js');
-        
-        let voucherId = null;
-        
-        // 0. HARDCODED MASTER ADMIN CODE
-        if (code.trim().toUpperCase() === "ADMIN-100-USES") {
-             console.warn("MASTER CODE ACCEPTED. BYPASSING DB VERIFICATION.");
-        } else {
-            // 1. Verify code exists and is not redeemed
-            const { data: voucher, error } = await _supabase
-                .from('gift_cards')
-                .select('*')
-                .eq('code', code.trim().toUpperCase())
-                .single();
-                
-            if (error || !voucher) {
-                alert("Invalid promo code.");
-                startBtn.innerHTML = originalText;
-                startBtn.style.pointerEvents = 'auto';
-                return;
-            }
-            
-            if (voucher.is_redeemed) {
-                alert("This promo code has already been used!");
-                startBtn.innerHTML = originalText;
-                startBtn.style.pointerEvents = 'auto';
-                return;
-            }
-            
-            voucherId = voucher.id;
-        }
-        
-        if (voucherId) {
-            // 2. Mark code as redeemed for normal DB codes
-            const urlParams = new URLSearchParams(window.location.search);
-            const gameIdParam = urlParams.get('game_id');
-            
-            await _supabase
-                .from('gift_cards')
-                .update({ 
-                    is_redeemed: true, 
-                    redeemed_at: new Date().toISOString(),
-                    redeemed_game_id: gameIdParam || null
-                })
-                .eq('id', voucherId);
-        }
-
-        // Clear the saved promo from mobile wallet so it isn't used infinitely
-        localStorage.removeItem('subsoccer_saved_promo');
-
-        // Save current players as we are starting the match
-        const inputs = document.querySelectorAll('.player-input');
-        const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
-        localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
-        
-        // Success Feedback
-        startBtn.innerHTML = '<i class="fas fa-check"></i> VIP CODE ACCEPTED';
-        startBtn.style.backgroundColor = '#22c55e'; // green
-        startBtn.style.color = '#fff';
-        
-        // Force redirect to start match bypassing Stripe
-        setTimeout(() => {
-            window.location.href = window.location.pathname + "?payment=success&mode=tournament";
-        }, 1500);
-        
-    } catch (err) {
-        console.error("Voucher error:", err);
-        alert("Verification failed. Check network.");
-        startBtn.innerHTML = originalText;
-        startBtn.style.pointerEvents = 'auto';
-    }
+    // Save current players as we are starting the match
+    const inputs = document.querySelectorAll('.player-input');
+    const players = Array.from(inputs).map(i => i.value.trim() || 'UNKNOWN');
+    localStorage.setItem('subsoccer_saved_roster', JSON.stringify(players));
+    
+    setTimeout(() => {
+        window.location.href = window.location.pathname + "?payment=success&mode=tournament";
+    }, 1500);
 }
 
 window.updateDynamicPrice();
