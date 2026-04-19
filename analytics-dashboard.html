@@ -251,19 +251,19 @@
         
         <div class="filters">
             <select id="timeFilter" style="background-color: var(--bg-card); color: var(--accent-blue); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; font-weight: 500; cursor: pointer; outline: none;" onchange="fetchData()">
-                <option value="1">Tänään (Today)</option>
-                <option value="7" selected>Viimeiset 7pv (Last 7 Days)</option>
-                <option value="30">Viimeiset 30pv (Last 30 Days)</option>
-                <option value="9999">Kaikki (All Time)</option>
+                <option value="1">Today</option>
+                <option value="7" selected>Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="9999">All Time</option>
             </select>
             <select id="eventFilter" style="background-color: var(--bg-card); color: var(--accent-blue); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; font-weight: 500; cursor: pointer; outline: none;" onchange="renderData()">
-                <option value="ALL">Kaikki Tapahtumat (All Events)</option>
+                <option value="ALL">All Events</option>
                 <option value="tournament_finished">Tournaments</option>
                 <option value="app_opened">App Opened</option>
             </select>
-            <button onclick="fetchData()"><i class="fas fa-sync-alt"></i> Päivitä (Refresh)</button>
-            <button onclick="openFeedbackModal()" style="background-color: rgba(253, 226, 147, 0.1); color: var(--accent-yellow); border-color: var(--border-color); margin-left: 10px;"><i class="fas fa-comment-dots"></i> Palautteet (Feedbacks)</button>
-            <button onclick="exportToCSV()" style="background-color: rgba(129, 201, 149, 0.1); color: var(--accent-green); border-color: var(--border-color); margin-left: auto;"><i class="fas fa-file-csv"></i> Lataa CSV (Export)</button>
+            <button onclick="fetchData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <button onclick="openFeedbackModal()" style="background-color: rgba(253, 226, 147, 0.1); color: var(--accent-yellow); border-color: var(--border-color); margin-left: 10px;"><i class="fas fa-comment-dots"></i> Feedbacks</button>
+            <button onclick="exportToCSV()" style="background-color: rgba(129, 201, 149, 0.1); color: var(--accent-green); border-color: var(--border-color); margin-left: auto;"><i class="fas fa-file-csv"></i> Export CSV</button>
         </div>
 
         <!-- KPI Row -->

@@ -491,20 +491,6 @@ function showTournamentComplete() {
 
     showLayer('m-layer-leaderboard');
     
-    // Confetti effect
-    for (let i = 0; i < 60; i++) {
-        const conf = document.createElement('div');
-        conf.style.cssText = `
-            position: absolute; top: -20px; width: 10px; height: 10px; z-index: 999;
-            background-color: ${['#E30613', '#FFD700', '#ffffff', '#0A84FF'][Math.floor(Math.random()*4)]};
-            left: ${Math.random() * 100}vw;
-            animation: mFall ${Math.random() * 3 + 2}s linear forwards;
-            border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
-            transform: rotate(${Math.random() * 360}deg);
-        `;
-        document.getElementById('m-layer-leaderboard').appendChild(conf);
-        setTimeout(() => conf.remove(), 5000);
-    }
     broadcastTvState();
 }
 
