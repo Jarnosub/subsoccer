@@ -262,6 +262,7 @@
                 <option value="app_opened">App Opened</option>
             </select>
             <button onclick="fetchData()"><i class="fas fa-sync-alt"></i> Päivitä (Refresh)</button>
+            <button onclick="openFeedbackModal()" style="background-color: rgba(253, 226, 147, 0.1); color: var(--accent-yellow); border-color: var(--border-color); margin-left: 10px;"><i class="fas fa-comment-dots"></i> Palautteet (Feedbacks)</button>
             <button onclick="exportToCSV()" style="background-color: rgba(129, 201, 149, 0.1); color: var(--accent-green); border-color: var(--border-color); margin-left: auto;"><i class="fas fa-file-csv"></i> Lataa CSV (Export)</button>
         </div>
 
@@ -679,7 +680,85 @@
         // Initialize
         fetchData();
         setInterval(fetchData, 60000); // 1 minuutti
+
+        // Feedback Logic
+        async function openFeedbackModal() {
+            document.getElementById('feedback-modal').style.display = 'flex';
+            document.getElementById('feedback-loading').style.display = 'block';
+            document.getElementById('feedback-tbody').innerHTML = '';
+            
+            try {
+                // Determine time filter to apply (reuse the dashboard's current filter)
+                const days = parseInt(document.getElementById('timeFilter').value);
+                let query = supabase.from('feedback').select('*').order('created_at', { ascending: false });
+                
+                if (days < 9000) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - days);
+                    query = query.gte('created_at', d.toISOString());
+                }
+
+                const { data, error } = await query;
+                if (error) throw error;
+                
+                document.getElementById('feedback-loading').style.display = 'none';
+                const tbody = document.getElementById('feedback-tbody');
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No feedback entries found.</td></tr>';
+                } else {
+                    data.forEach(item => {
+                        const tr = document.createElement('tr');
+                        const ts = new Date(item.created_at).toLocaleString('fi-FI');
+                        tr.innerHTML = `
+                            <td>${ts}</td>
+                            <td><span class="badge ${item.user_id !== 'guest' ? 'registered' : 'guest'}">${item.user_id === 'guest' ? 'Guest' : item.user_id.substring(0,8)+'...'}</span></td>
+                            <td>${item.page || '-'}</td>
+                            <td style="white-space: pre-wrap; word-break: break-all;">${item.message}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch(e) {
+                console.error(e);
+                document.getElementById('feedback-loading').style.display = 'none';
+                document.getElementById('feedback-tbody').innerHTML = '<tr><td colspan="4" style="color:red;text-align:center;">Error loading feedbacks</td></tr>';
+            }
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedback-modal').style.display = 'none';
+        }
     </script>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center; padding: 20px; box-sizing: border-box;">
+        <div style="background:var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; width:100%; max-width: 900px; max-height: 80vh; display: flex; flex-direction: column;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin:0; font-size: 1.25rem; color: var(--accent-yellow);"><i class="fas fa-comment-dots"></i> Käyttäjäpalautteet (User Feedbacks)</h2>
+                <button onclick="closeFeedbackModal()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.5rem;"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="padding: 20px; overflow-y: auto; position: relative;">
+                <div id="feedback-loading" style="text-align: center; padding: 40px; color: var(--accent-yellow); display: none;">
+                    <i class="fas fa-circle-notch fa-spin fa-2x"></i>
+                </div>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width: 180px;">Aika (Time)</th>
+                            <th style="width: 120px;">Käyttäjä (User)</th>
+                            <th style="width: 120px;">Sivu (Page)</th>
+                            <th>Palaute (Message)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedback-tbody">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     </div> <!-- /mod-content -->
 </body>
 </html>
