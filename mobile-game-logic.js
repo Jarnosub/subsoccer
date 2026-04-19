@@ -131,8 +131,26 @@ function showLayer(layerId) {
 window.mobileStartTournament = function() {
     const inputs = document.querySelectorAll('.player-input');
     const players = [];
+    const usedNames = new Set();
+    window.verifiedMobilePlayers = window.verifiedMobilePlayers || {};
+
     inputs.forEach(i => {
-        if (i.value.trim()) players.push(i.value.trim());
+        let name = i.value.trim().toUpperCase();
+        if (name) {
+            let uniqueName = name;
+            let counter = 2;
+            while(usedNames.has(uniqueName)) {
+                uniqueName = `${name} ${counter}`;
+                counter++;
+            }
+            usedNames.add(uniqueName);
+            players.push(uniqueName);
+            i.value = uniqueName; // Update UI with unique name
+
+            if (i.dataset && i.dataset.userId) {
+                window.verifiedMobilePlayers[uniqueName] = i.dataset.userId;
+            }
+        }
     });
 
     if (players.length < 2 || players.length > 8) {
@@ -498,13 +516,13 @@ function showTournamentComplete() {
 // SETUP UI HELPERS (Player add/remove for setup screen)
 // ============================================================
 
-window.mobileAddPlayer = function(defaultName) {
+window.mobileAddPlayer = function(defaultName, userId) {
     const container = document.getElementById('m-players-list');
     const num = container.children.length + 1;
     
     if (num > getMaxPlayers()) return;
-    
-    if (num > getMaxPlayers()) return;
+
+    const datasetAttr = userId ? `data-user-id="${userId}"` : '';
 
     const div = document.createElement('div');
     div.className = 'player-row';
@@ -512,7 +530,7 @@ window.mobileAddPlayer = function(defaultName) {
     div.innerHTML = `
         <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#${num}</span>
         <input type="text" autocomplete="off" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
-               class="player-input" 
+               class="player-input" ${datasetAttr}
                style="color: white; width: 100%; padding: 8px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
 
         <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 8px 12px; background: none; border: none; cursor: pointer;">
@@ -541,7 +559,18 @@ window.openQrJoin = function() {
     qrJoinChannel = _sb.channel('qr-join-' + joinCode);
     qrJoinChannel.on('broadcast', { event: 'player-join' }, ({ payload }) => {
         if (payload.name) {
-            const upName = payload.name.toUpperCase();
+            let baseName = payload.name.toUpperCase();
+            let upName = baseName;
+
+            const inputs = document.querySelectorAll('.player-input');
+            const usedNames = new Set();
+            inputs.forEach(i => usedNames.add(i.value.trim().toUpperCase()));
+            
+            let counter = 2;
+            while(usedNames.has(upName)) {
+                upName = `${baseName} ${counter}`;
+                counter++;
+            }
             
             // Map verified IDs to names securely
             window.verifiedMobilePlayers = window.verifiedMobilePlayers || {};
@@ -549,19 +578,18 @@ window.openQrJoin = function() {
                 window.verifiedMobilePlayers[upName] = payload.id;
             }
 
-            
             // Etsitään onko valmiina tyhjiä paikkoja ("PLAYER X")
-            const inputs = document.querySelectorAll('.player-input');
             let replaced = false;
             for(let i=0; i<inputs.length; i++) {
                 if(inputs[i].value.trim().startsWith("PLAYER ")) {
                     inputs[i].value = upName;
+                    if (payload.id) inputs[i].dataset.userId = payload.id;
                     inputs[i].dispatchEvent(new Event('keyup')); // Pakotetaan tv-synkki
                     replaced = true;
                     break;
                 }
             }
-            if (!replaced) window.mobileAddPlayer(upName);
+            if (!replaced) window.mobileAddPlayer(upName, payload.id);
             
             // Päivitetään asettelu popuppiin lukemalla kentät uusiksi
             const listEl = document.getElementById('qr-joined-list');
