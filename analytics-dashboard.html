@@ -418,7 +418,7 @@
                     client.from('players').select('id', { count: 'exact' }),
                     historyQuery,
                     matchesQuery,
-                    client.from('players').select('username, display_name, elo').or('wins.gt.0,losses.gt.0').order('elo', { ascending: false }).limit(10)
+                    client.from('players').select('username, display_name, elo, wins, losses').order('elo', { ascending: false }).limit(10)
                 ]);
 
                 if (trackingRes.error) console.error("Tracking Error:", trackingRes.error);
