@@ -454,7 +454,7 @@ function finishMatch(winnerName, winnerIndex) {
             browser_lang: navigator.language || 'Unknown',
             location: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
             is_returning: isRet
-        }).catch(() => {});
+        }).then(() => {}).catch(() => {});
     }
 
     // Record the match in the global backend for ELO & Stats (silently, no loading overlay)
