@@ -226,6 +226,20 @@
             flex-direction: column;
             gap: 15px;
         }
+
+        /* Responsive Grids */
+        .grid-tables {
+            display: grid; 
+            grid-template-columns: 2fr 1fr; 
+            gap: 24px; 
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-tables {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -312,7 +326,7 @@
         </div>
 
         <!-- Data Tables Row -->
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 40px;">
+        <div class="grid-tables">
             <div class="table-card" style="margin-bottom: 0;">
                 <h2>Recent Global Activity Feed</h2>
                 <div style="overflow-x: auto;">
