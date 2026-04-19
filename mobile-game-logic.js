@@ -5,6 +5,7 @@
 // ============================================================
 
 import { BracketEngine } from './bracket-engine.js';
+import { MatchService } from './match-service.js';
 
 // --- AUTH STATE ---
 let isLoggedIn = false;
@@ -314,7 +315,6 @@ function finishMatch(winnerName, winnerIndex) {
         );
     }
 
-    // Track result for leaderboard
     matchResults.push({
         p1: gameState.p1Name,
         p2: gameState.p2Name,
@@ -323,6 +323,30 @@ function finishMatch(winnerName, winnerIndex) {
         winner: winnerName,
         round: currentPendingMatch ? currentPendingMatch.roundName : 'Match'
     });
+
+    // Record the match in the global backend for ELO & Stats (silently, no loading overlay)
+    try {
+        const viMap = window.verifiedMobilePlayers || {};
+        MatchService.recordMatch({
+            player1Name: gameState.p1Name,
+            player2Name: gameState.p2Name,
+            player1Id: viMap[gameState.p1Name] || null,
+            player2Id: viMap[gameState.p2Name] || null,
+            winnerName: winnerName,
+            p1Score: gameState.p1Score,
+            p2Score: gameState.p2Score,
+            tournamentName: "Mobile Arcade",
+            gameId: "MOBILE-FREEPLAY"
+        }).catch(err => console.log("ELO save skipped:", err));
+        // Immediately hide any loading overlay that MatchService creates
+        // since we don't want it blocking the victory screen
+        setTimeout(() => {
+            const loader = document.getElementById('loading-overlay');
+            if (loader) loader.style.display = 'none';
+        }, 0);
+    } catch(e) {
+        console.warn("Match logging offline or unavailable:", e);
+    }
 
     // Show victory screen
     document.getElementById('m-winner-name').innerText = winnerName;
@@ -532,6 +556,13 @@ window.openQrJoin = function() {
     qrJoinChannel.on('broadcast', { event: 'player-join' }, ({ payload }) => {
         if (payload.name) {
             const upName = payload.name.toUpperCase();
+            
+            // Map verified IDs to names securely
+            window.verifiedMobilePlayers = window.verifiedMobilePlayers || {};
+            if (payload.id) {
+                window.verifiedMobilePlayers[upName] = payload.id;
+            }
+
             
             // Etsitään onko valmiina tyhjiä paikkoja ("PLAYER X")
             const inputs = document.querySelectorAll('.player-input');

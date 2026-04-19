@@ -37,15 +37,34 @@ export const MatchService = {
      * Records a match, updates ELO, and handles statistics.
      * Includes Anti-Cheat / B2B logic: Non-verified/Private tables are capped at 1600 ELO.
      */
-    async recordMatch({ player1Name, player2Name, winnerName, p1Score = null, p2Score = null, tournamentId = null, tournamentName = null, gameId = null }) {
+    async recordMatch({ player1Name, player2Name, player1Id = null, player2Id = null, winnerName, p1Score = null, p2Score = null, tournamentId = null, tournamentName = null, gameId = null }) {
         try {
             showLoading('Recording match...');
 
-            // 1. Fetch player and game data
-            let { data: p1Data } = await _supabase.from('players').select('id, username, elo, wins, losses, country, avatar_url, team_id, is_admin').ilike('username', player1Name).maybeSingle();
-            let { data: p2Data } = await _supabase.from('players').select('id, username, elo, wins, losses, country, avatar_url, team_id, is_admin').ilike('username', player2Name).maybeSingle();
+            // 1. Fetch player data
+            // If a verified player ID is provided (e.g. from QR Join with active session),
+            // use it directly for secure ELO updates. Otherwise, fall back to username lookup
+            // which is used by the existing Forge app (where users are already authenticated).
+            
+            let p1Data = null;
+            if (player1Id) {
+                const { data } = await _supabase.from('players').select('id, username, elo, wins, losses, country, avatar_url, team_id, is_admin').eq('id', player1Id).maybeSingle();
+                p1Data = data;
+            } else {
+                const { data } = await _supabase.from('players').select('id, username, elo, wins, losses, country, avatar_url, team_id, is_admin').ilike('username', player1Name).maybeSingle();
+                p1Data = data;
+            }
+            
+            let p2Data = null;
+            if (player2Id) {
+                const { data } = await _supabase.from('players').select('id, username, elo, wins, losses, country, avatar_url, team_id, is_admin').eq('id', player2Id).maybeSingle();
+                p2Data = data;
+            } else {
+                const { data } = await _supabase.from('players').select('id, username, elo, wins, losses, country, avatar_url, team_id, is_admin').ilike('username', player2Name).maybeSingle();
+                p2Data = data;
+            }
 
-            // Try to find game info if gameId is provided
+            // Provide fallback guest data
             let isVerifiedTable = false;
             let actualGameId = null;
 
