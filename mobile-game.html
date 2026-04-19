@@ -63,8 +63,8 @@
         .setup-container {
             width: 100%;
             max-width: 400px;
-            padding: 20px;
-            padding-top: calc(20px + env(safe-area-inset-top, 20px));
+            padding: 12px 20px;
+            padding-top: calc(12px + env(safe-area-inset-top, 20px));
             display: flex;
             flex-direction: column;
             height: 100dvh;
@@ -75,17 +75,17 @@
         }
 
         .setup-logo {
-            height: 40px;
+            height: 32px;
             display: block;
-            margin: 0 auto 20px;
+            margin: 0 auto 12px;
         }
 
         .setup-title {
             font-family: 'Subsoccer', sans-serif;
             font-weight: normal;
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             letter-spacing: 2px;
         }
 
@@ -93,8 +93,8 @@
             font-family: 'Open Sans', sans-serif;
             color: #ccc;
             text-align: center;
-            font-size: 0.85rem;
-            margin-bottom: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 12px;
         }
 
         .setup-btn-add {
@@ -125,9 +125,9 @@
             background: #E30613;
             color: white;
             font-weight: 700;
-            padding: 16px;
+            padding: 14px;
             border-radius: 8px;
-            margin-top: 40px;
+            margin-top: 10px;
             border: none;
             cursor: pointer;
             font-family: 'Subsoccer', sans-serif;
@@ -566,20 +566,20 @@
             <p class="setup-subtitle">Add players to begin. Winner takes all.</p>
 
             <div id="m-players-list" style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 10px; padding-right: 5px;">
-                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
-                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#1</span>
+                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 4px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 6px; backdrop-filter: blur(10px);">
+                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#1</span>
                     <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 1" 
                            class="player-input" 
-                           style="color: white; width: 100%; padding: 6px 8px; font-size: 1.15rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+                           style="color: white; width: 100%; padding: 4px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
                     <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
-                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#2</span>
+                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 4px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 6px; backdrop-filter: blur(10px);">
+                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#2</span>
                     <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 2" 
                            class="player-input" 
-                           style="color: white; width: 100%; padding: 6px 8px; font-size: 1.15rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+                           style="color: white; width: 100%; padding: 4px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
                     <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
                         <i class="fas fa-times"></i>
                     </button>
@@ -779,12 +779,12 @@
                             const num = idx + 1;
                             const div = document.createElement('div');
                             div.className = 'player-row';
-                            div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);';
+                            div.style.cssText = 'display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 4px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 6px; backdrop-filter: blur(10px);';
                             div.innerHTML = `
-                                <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px;">#${num}</span>
+                                <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#${num}</span>
                                 <input type="text" autocomplete="off" onfocus="this.select()" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${p}" 
                                        class="player-input" 
-                                       style="color: white; width: 100%; padding: 6px 8px; font-size: 1.15rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
+                                       style="color: white; width: 100%; padding: 4px 6px; font-size: 1rem; font-weight: 700; background: transparent; border: none; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
                                 <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 4px 12px; background: none; border: none; cursor: pointer;">
                                     <i class="fas fa-times"></i>
                                 </button>
