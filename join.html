@@ -75,6 +75,7 @@
             margin-bottom: 20px;
             outline: none;
             letter-spacing: 1px;
+            text-transform: uppercase;
             transition: all 0.2s;
         }
 
@@ -124,7 +125,7 @@
         <p id="join-subtitle">Enter your name to register securely to the waiting list.</p>
 
         <div id="join-form">
-            <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="15" autocomplete="off" autocorrect="off">
+            <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="15" autocomplete="off" autocorrect="off" autocapitalize="characters">
             <div class="error-msg" id="error-msg">Please enter a valid name.</div>
             <button onclick="joinTournament()">SUBMIT</button>
         </div>
