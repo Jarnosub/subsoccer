@@ -160,21 +160,33 @@
         channel.subscribe(); // Connect to proper websocket room
 
         // Authenticate PRO players automatically if session exists on their mobile device
-        sb.auth.getSession().then(({ data: { session } }) => {
+        sb.auth.getSession().then(({ data: { session }, error: sessionError }) => {
+            if (sessionError) console.error("Session error:", sessionError);
             if (session && session.user) {
-                sb.from('players').select('username').eq('id', session.user.id).single().then(({ data }) => {
+                // Try from players table first
+                sb.from('players').select('username').eq('id', session.user.id).single().then(({ data, error }) => {
+                    let finalName = "";
                     if (data && data.username) {
+                        finalName = data.username;
+                    } else {
+                        if (error) console.error("Players table error:", error);
+                        // Fallback to auth metadata if DB query fails
+                        finalName = session.user.user_metadata?.username || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "PRO PLAYER";
+                    }
+
+                    if (finalName) {
                         const inputField = document.getElementById('player-name');
-                        inputField.value = data.username;
+                        inputField.value = finalName.toUpperCase();
                         window.verifiedUserId = session.user.id;
                         
                         // Show visual PRO indicator
                         document.getElementById('join-subtitle').innerHTML = `<span style="color:var(--sub-gold, #FFD700); font-weight:bold;"><i class="fas fa-trophy"></i> PRO CARD LINKED</span><br>Submit to join the active match.`;
-                        // Lock the input so they can't change their name while passing a verified ID
                         inputField.readOnly = true;
                         inputField.style.opacity = '0.8';
                     }
-                });
+                }).catch(err => console.error("Unhandled DB fetch error:", err));
+            } else {
+                console.warn("No active session found in join.html.");
             }
         });
 
