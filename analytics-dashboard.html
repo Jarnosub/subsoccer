@@ -409,7 +409,7 @@
                 let historyQuery = client.from('tournament_history').select('*', { count: 'exact' });
                 if (!isAllTime) historyQuery = historyQuery.gte('start_datetime', dateStr);
 
-                let matchesQuery = client.from('games_analytics').select('id', { count: 'exact' });
+                let matchesQuery = client.from('matches').select('id', { count: 'exact', head: true });
                 if (!isAllTime) matchesQuery = matchesQuery.gte('created_at', dateStr);
 
                 // Players count is always "all time" (total registrations)
