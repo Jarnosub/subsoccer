@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Subsoccer - Register Your Table</title>
+    <title>Subsoccer - Register Your Product</title>
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -121,8 +121,8 @@
 
     <div class="reg-header">
         <img src="subsoccer_logo.svg" alt="Subsoccer" style="cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
-        <h1>REGISTER YOUR TABLE</h1>
-        <p>Enter the serial number from your table sticker to activate your warranty and digital features.</p>
+        <h1>REGISTER YOUR PRODUCT</h1>
+        <p>Enter the serial number from your product sticker to activate your warranty and digital features.</p>
     </div>
 
     <!-- Product Badge (shown after serial validated) -->
@@ -151,7 +151,7 @@
                 </div>
                 <div class="form-hint">
                     <i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>
-                    Found on the sticker underneath your table
+                    Found on the sticker underneath your product
                 </div>
             </div>
 
@@ -179,15 +179,15 @@
                     <div style="font-family:'Resolve', sans-serif; font-size:1.1rem; color:var(--sub-gold); letter-spacing: 1px;" id="logged-in-name">PLAYER</div>
                 </div>
                 <div class="form-group">
-                    <label>Give Your Table a Name</label>
-                    <input type="text" id="reg-name-li" placeholder="e.g. Office Arena, Home Table">
+                    <label>Give Your Product a Name</label>
+                    <input type="text" id="reg-name-li" placeholder="e.g. Office Arena, Home Stadium">
                 </div>
                 <div class="form-group">
                     <label>City / Location</label>
                     <input type="text" id="reg-location-li" placeholder="e.g. Helsinki, Finland">
                 </div>
                 <button class="btn-gold" onclick="completeRegistration()">
-                    <i class="fa-solid fa-check-circle" style="margin-right: 8px;"></i>REGISTER TABLE
+                    <i class="fa-solid fa-check-circle" style="margin-right: 8px;"></i>REGISTER PRODUCT
                 </button>
             </div>
 
@@ -206,8 +206,8 @@
                     <input type="password" id="reg-password" placeholder="Min 6 characters" minlength="6">
                 </div>
                 <div class="form-group">
-                    <label>Table Name</label>
-                    <input type="text" id="reg-name" placeholder="e.g. Office Arena, Home Table">
+                    <label>Product Name</label>
+                    <input type="text" id="reg-name" placeholder="e.g. Office Arena, Home Stadium">
                 </div>
                 <div class="form-group">
                     <label>City / Location</label>
@@ -233,7 +233,7 @@
                     <input type="password" id="login-pass" placeholder="Password">
                 </div>
                 <div class="form-group">
-                    <label>Table Name</label>
+                    <label>Product Name</label>
                     <input type="text" id="reg-name-login" placeholder="e.g. Office Arena">
                 </div>
                 <div class="form-group">
@@ -259,8 +259,8 @@
         </div>
         <div class="success-card">
             <div class="icon"><i class="fa-solid fa-circle-check"></i></div>
-            <h2>TABLE REGISTERED!</h2>
-            <p id="success-desc">Your table is now part of the Subsoccer network.</p>
+            <h2>PRODUCT REGISTERED!</h2>
+            <p id="success-desc">Your product is now part of the Subsoccer network.</p>
         </div>
         <button class="btn-gold" style="width:100%; max-width:420px; margin-top: 20px;" onclick="window.location.href='login.html'">
             <i class="fa-solid fa-gamepad" style="margin-right: 8px;"></i>OPEN THE APP
@@ -333,7 +333,7 @@
             statusEl.className = 'status-msg'; statusEl.style.display = 'none';
 
             if (!fullSerial || fullSerial.length < 4) {
-                showSerialStatus('Please enter the full serial number from your table sticker.', 'error');
+                showSerialStatus('Please enter the full serial number from your product sticker.', 'error');
                 return;
             }
 
@@ -357,7 +357,7 @@
                 }
 
                 if (hw.is_claimed) {
-                    showSerialStatus(`This serial number is already registered. If you just bought this table, contact support@subsoccer.com`, 'error');
+                    showSerialStatus(`This serial number is already registered. If you just bought this product, contact support@subsoccer.com`, 'error');
                     return;
                 }
 
@@ -366,7 +366,7 @@
 
                 // Show product badge
                 const modelKey = hw.product_model?.toUpperCase() || hw.product_category?.toUpperCase() || '';
-                const display = MODEL_DISPLAY[modelKey] || { name: hw.product_model || 'Subsoccer Table', icon: 'fa-solid fa-trophy' };
+                const display = MODEL_DISPLAY[modelKey] || { name: hw.product_model || 'Subsoccer Product', icon: 'fa-solid fa-trophy' };
 
                 document.getElementById('product-badge').style.display = 'flex';
                 document.getElementById('badge-model-name').textContent = display.name;
@@ -403,7 +403,7 @@
 
             if (!username || !email || !password) { showAccountStatus('Please fill all account fields.', 'error'); return; }
             if (password.length < 6) { showAccountStatus('Password must be at least 6 characters.', 'error'); return; }
-            if (!tableName) { showAccountStatus('Give your table a name.', 'error'); return; }
+            if (!tableName) { showAccountStatus('Give your product a name.', 'error'); return; }
 
             try {
                 showAccountStatus('Creating account...', 'success');
@@ -432,7 +432,7 @@
             const location = document.getElementById('reg-location-login').value.trim();
 
             if (!userInput || !password) { showAccountStatus('Please fill login fields.', 'error'); return; }
-            if (!tableName) { showAccountStatus('Give your table a name.', 'error'); return; }
+            if (!tableName) { showAccountStatus('Give your product a name.', 'error'); return; }
 
             try {
                 showAccountStatus('Logging in...', 'success');
@@ -452,7 +452,7 @@
         async function completeRegistration() {
             const tableName = document.getElementById('reg-name-li').value.trim();
             const location = document.getElementById('reg-location-li').value.trim();
-            if (!tableName) { showAccountStatus('Give your table a name.', 'error'); return; }
+            if (!tableName) { showAccountStatus('Give your product a name.', 'error'); return; }
             await claimHardware(tableName, location);
         }
 
@@ -461,7 +461,7 @@
         // ============================================
         async function claimHardware(tableName, location) {
             try {
-                showAccountStatus('Registering table...', 'success');
+                showAccountStatus('Registering product...', 'success');
 
                 // 1. Claim in hardware_registry
                 const { error: hwErr } = await _supabase
@@ -499,7 +499,7 @@
                     <strong>${tableName}</strong><br>
                     <span style="color:var(--sub-gold)">${realSerial}</span><br><br>
                     Registered to <strong>${currentUser.username}</strong>.<br>
-                    Your table is now part of the Subsoccer network!
+                    Your product is now part of the Subsoccer network!
                 `;
                 document.getElementById('btn-play-now').onclick = () => {
                     window.location.href = 'instant-play.html?sn=' + encodeURIComponent(realSerial);
