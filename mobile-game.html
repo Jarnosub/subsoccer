@@ -223,21 +223,25 @@
             height: 100%;
             padding: 20px 0;
             padding-top: calc(20px + env(safe-area-inset-top, 20px));
+            padding-bottom: 80px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            overflow-y: auto;
         }
 
         #mobile-bracket-area {
             width: 100%;
+            flex: 1;
             display: flex;
-            flex-direction: row-reverse;
-            align-items: stretch;
-            justify-content: flex-end;
+            flex-direction: row;
+            direction: rtl; /* Fixes Samsung / old Safari bug where row-reverse breaks scroll offset */
+            align-items: flex-start;
+            justify-content: flex-start;
             padding: 0 5vw;
             overflow-x: auto;
-            overflow-y: hidden;
+            overflow-y: visible;
             scroll-snap-type: x mandatory;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
@@ -245,12 +249,14 @@
 
         /* Make each round a swipable card */
         #mobile-bracket-area .bracket-round {
+            direction: ltr; /* Reset text direction to normal */
             min-width: 90vw;
             max-width: 90vw;
             scroll-snap-align: center;
             display: flex;
             flex-direction: column;
-            justify-content: space-evenly;
+            justify-content: flex-start;
+            gap: 20px;
             margin: 0;
             padding: 0 10px;
         }
@@ -279,10 +285,14 @@
         /* Desktop & Landscape PC TV mirror styling (Side-by-side bracket Tree) */
         @media (min-width: 768px) {
             #mobile-bracket-area {
+                direction: ltr;
+                flex-direction: row-reverse;
                 justify-content: center;
+                align-items: center;
                 gap: 30px;
-                padding: 0;
-                overflow-x: hidden;
+                padding: 20px;
+                overflow-x: auto;
+                overflow-y: visible;
                 scroll-snap-type: none;
             }
             #mobile-bracket-area .bracket-round {
