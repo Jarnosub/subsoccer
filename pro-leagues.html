@@ -454,7 +454,7 @@
                         const isFinal = !match.nextMatchId;
                         if (isFinal && winner) {
                             setTimeout(() => {
-                                const confirmWin = confirm(\`🏆 \${winner} has won \${group.groupName}! Save this result and advance them to the Playoffs?\`);
+                                const confirmWin = confirm(`🏆 ${winner} has won ${group.groupName}! Save this result and advance them to the Playoffs?`);
                                 if (confirmWin) {
                                     alert("Saving " + winner + " as the playoff advancer! (DB sync coming next)");
                                     renderLeagueGroups(currentLeagueId, window.currentLeagueGroups);
