@@ -246,6 +246,16 @@
                     
                     <img src="${qrSrc}" style="width: 250px; height: 250px; border: 2px solid var(--sub-gold); border-radius: 12px; padding: 10px; background: #0a0a0a; margin-bottom: 20px;">
                     
+                    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                        <div style="font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">Or Add Manually</div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="manual-player-name" placeholder="Enter player name" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; font-family: 'Resolve', sans-serif;">
+                            <button class="btn-gold" style="width: auto; padding: 0 20px;" onclick="addManualLeaguePlayer('${leagueId}')">
+                                <i class="fa-solid fa-plus"></i> ADD
+                            </button>
+                        </div>
+                    </div>
+
                     <div style="font-family: 'Subsoccer', sans-serif; font-size: 4rem; color: #fff; margin-bottom: 5px; transition: all 0.2s;" id="lobby-player-count">0</div>
                     <div style="font-size: 0.8rem; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 40px;">Players Joined</div>
                     
@@ -287,6 +297,25 @@
             
             const countEl = document.getElementById('lobby-player-count');
             if (countEl) countEl.innerText = count || 0;
+        }
+
+        async function addManualLeaguePlayer(leagueId) {
+            const input = document.getElementById('manual-player-name');
+            const name = input.value.trim();
+            if (!name) return;
+
+            // Notice we do not set player_id, we set guest_name.
+            const { error } = await sb.from('league_participants').insert({
+                league_id: leagueId,
+                guest_name: name
+            });
+
+            if (error) {
+                alert("Failed to add player. Ensure you ran the SQL update! Error: " + error.message);
+                return;
+            }
+
+            input.value = ''; // clear field on success
         }
 
         async function generateLeagueGroups(leagueId) {
