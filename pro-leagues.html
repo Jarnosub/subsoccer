@@ -456,8 +456,10 @@
                             setTimeout(() => {
                                 const confirmWin = confirm(`🏆 ${winner} has won ${group.groupName}! Save this result and advance them to the Playoffs?`);
                                 if (confirmWin) {
-                                    alert("Saving " + winner + " as the playoff advancer! (DB sync coming next)");
-                                    renderLeagueGroups(currentLeagueId, window.currentLeagueGroups);
+                                    saveGroupAdvance(currentLeagueId, winner).then(() => {
+                                        alert(winner + " has secured their spot in the Playoffs!");
+                                        renderLeagueGroups(currentLeagueId, window.currentLeagueGroups);
+                                    });
                                 }
                             }, 500);
                         }
@@ -469,6 +471,32 @@
             } catch(e) {
                 console.error("Failed to load BracketEngine", e);
                 alert("Failed to load Bracket Engine. See console.");
+            }
+        }
+
+        async function saveGroupAdvance(leagueId, winnerName) {
+            // Find the UUID of the participant (could be guest or registered user)
+            const { data, error } = await sb.from('league_participants')
+                                     .select('id, guest_name, players(username)')
+                                     .eq('league_id', leagueId);
+            
+            if (error) {
+                console.error("Failed to fetch participant for saving.", error);
+                return;
+            }
+
+            let participantId = null;
+            for (let row of data) {
+                if (row.guest_name === winnerName) participantId = row.id;
+                if (row.players && row.players.username === winnerName) participantId = row.id;
+            }
+
+            if (participantId) {
+                await sb.from('league_participants')
+                        .update({ advanced_to_playoffs: true })
+                        .eq('id', participantId);
+            } else {
+                console.warn("Could not match winner string to a participant row", winnerName);
             }
         }
 
