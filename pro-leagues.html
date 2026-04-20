@@ -397,8 +397,11 @@
                     <div class="panel" style="margin-bottom: 20px;">
                         <h3 style="color: var(--sub-gold); margin-top: 0; font-family: 'Subsoccer', sans-serif; letter-spacing: 2px;">${g.groupName}</h3>
                         ${pList}
-                        <button class="btn-outline" style="margin-top: 15px;" onclick="playGroupBracket(${idx})">
-                            <i class="fa-solid fa-play" style="color: #fff; margin-right: 5px;"></i> PLAY GROUP BRACKET
+                        <button class="btn-outline" style="margin-top: 15px;" onclick="showGroupDispatchModal(${idx})">
+                            <i class="fa-solid fa-gamepad" style="color: #fff; margin-right: 5px;"></i> DISPATCH GROUP TO TABLE
+                        </button>
+                        <button class="btn-outline" style="margin-top: 15px; border-color: #333; margin-left: 10px;" onclick="playGroupBracket(${idx})">
+                            <i class="fa-solid fa-eye" color: #666; margin-right: 5px;"></i> VIEW BRACKET
                         </button>
                     </div>
                 `;
@@ -466,25 +469,76 @@
                     }
                 });
                 
-                const originalSetMatchWinner = window.localEngine.setMatchWinner.bind(window.localEngine);
-                window.localEngine.setMatchWinner = function(rIndex, mIndex, clickedName) {
-                    const match = window.localEngine.rounds[rIndex][mIndex];
-                    // If already a winner, allow them to undo natively
-                    if (match.winner === clickedName) {
-                        originalSetMatchWinner(rIndex, mIndex, clickedName);
-                        return;
-                    }
-                    showTableAssignmentModal(match, rIndex, mIndex, clickedName, currentLeagueId, () => {
-                        originalSetMatchWinner(rIndex, mIndex, clickedName);
-                    });
-                };
-                
                 window.localEngine.generateBracket(players, true); // true = shuffle seeds randomly
                 window.localEngine.render();
             } catch(e) {
                 console.error("Failed to load BracketEngine", e);
                 alert("Failed to load Bracket Engine. See console.");
             }
+        }
+
+        function showGroupDispatchModal(groupIndex) {
+            const group = window.currentLeagueGroups[groupIndex];
+            
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px;';
+            
+            const box = document.createElement('div');
+            box.style.cssText = 'background: #111; border: 1px solid var(--sub-gold); padding: 30px; border-radius: 12px; width: 100%; max-width: 500px; text-align: center; font-family: "Resolve", sans-serif;';
+
+            let buttonsHtml = '';
+            for (let i = 1; i <= 8; i++) {
+                buttonsHtml += `<button onclick="dispatchGroupToTable(${i}, ${groupIndex}, this)" style="background: #222; color: #fff; border: 1px solid #444; padding: 15px; margin: 5px; width: 20%; border-radius: 8px; cursor: pointer; font-size: 1.1rem;">TAB ${i}</button>`;
+            }
+
+            box.innerHTML = `
+                <h2 style="color: #fff; font-family: 'Subsoccer', sans-serif; letter-spacing: 2px; margin-top: 0;">DISPATCH GROUP</h2>
+                <h3 style="color: var(--sub-gold); margin-bottom: 20px;">${group.groupName}</h3>
+                <div style="font-size: 0.9rem; color: #888; margin-bottom: 30px;">Select the physical table where this 8-player group will play. The tablet at that table will automatically load their full tournament bracket!</div>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+                    ${buttonsHtml}
+                </div>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
+                    <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background: transparent; color: #888; border: none; cursor: pointer; text-decoration: underline;">CANCEL</button>
+                </div>
+            `;
+            
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+        }
+
+        async function dispatchGroupToTable(tableNumber, groupIndex, btn) {
+            const group = window.currentLeagueGroups[groupIndex];
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            const { data: existing } = await sb.from('pro_table_sessions')
+                .select('id')
+                .eq('league_id', currentLeagueId)
+                .eq('table_number', tableNumber);
+                
+            if (existing && existing.length > 0) {
+                // Clean up previous assignment for this table MVP
+                await sb.from('pro_table_sessions').delete().eq('league_id', currentLeagueId).eq('table_number', tableNumber);
+            }
+
+            const { error } = await sb.from('pro_table_sessions').insert({
+                league_id: currentLeagueId,
+                table_number: tableNumber,
+                group_name: group.groupName,
+                group_players: group.players,
+                status: 'bracket_view'
+            });
+
+            if (error) {
+                alert("Database error: " + error.message);
+                btn.innerHTML = 'TAB ' + tableNumber;
+                btn.disabled = false;
+                return;
+            }
+
+            alert(`${group.groupName} successfully dispatched to TABLE ${tableNumber}!\\n\\nTheir full bracket is now running on that iPad.`);
+            btn.closest('div').parentElement.parentElement.remove();
         }
 
         async function saveGroupAdvance(leagueId, winnerName) {
@@ -543,81 +597,7 @@
             playGrandFinalsBracket(playoffNames, leagueId);
         }
 
-        function showTableAssignmentModal(match, rIdx, mIdx, clickedName, activeLeagueId, manualCallback) {
-            // Create a dynamic modal
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; justify-content: center; align-items: center; pading: 20px;';
-            
-            const box = document.createElement('div');
-            box.style.cssText = 'background: #111; border: 1px solid var(--sub-gold); padding: 30px; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; font-family: "Resolve", sans-serif;';
 
-            let buttonsHtml = '';
-            // Generate 4 tables for demo purposes (Normally configurable)
-            for (let i = 1; i <= 4; i++) {
-                buttonsHtml += `<button onclick="assignTable(${i}, '${activeLeagueId}', ${rIdx}, ${mIdx}, this)" style="background: #222; color: #fff; border: 1px solid #444; padding: 15px; margin: 5px; width: 45%; border-radius: 8px; cursor: pointer; font-size: 1.1rem;">TABLE ${i}</button>`;
-            }
-
-            box.innerHTML = `
-                <h2 style="color: #fff; font-family: 'Subsoccer', sans-serif; letter-spacing: 2px; margin-top: 0;">MATCH DISPATCHER</h2>
-                <h3 style="color: var(--sub-gold); margin-bottom: 30px;">${match.p1} <span style="color:#666;">vs</span> ${match.p2}</h3>
-                <div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
-                    ${buttonsHtml}
-                </div>
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
-                    <button id="manual-win-btn" style="background: transparent; color: #888; border: 1px dashed #555; padding: 10px; width: 100%; border-radius: 6px; cursor: pointer;">MANUAL OVERRIDE WIN</button>
-                    <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background: transparent; color: #fff; border: none; margin-top: 15px; cursor: pointer;">CANCEL</button>
-                </div>
-            `;
-            
-            overlay.appendChild(box);
-            document.body.appendChild(overlay);
-
-            // Manual win
-            document.getElementById('manual-win-btn').onclick = () => {
-                overlay.remove();
-                manualCallback();
-            };
-        }
-
-        async function assignTable(tableNumber, leagueId, rIdx, mIdx, btn) {
-            const match = window.localEngine.rounds[rIdx][mIdx];
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            btn.disabled = true;
-
-            // Check if table is occupied
-            const { data: existing } = await sb.from('pro_match_sessions')
-                .select('id')
-                .eq('league_id', leagueId)
-                .eq('table_number', tableNumber)
-                .eq('status', 'active');
-                
-            if (existing && existing.length > 0) {
-                alert("Table " + tableNumber + " is currently in use! Wait for it to finish or clear it manually.");
-                btn.innerHTML = 'TABLE ' + tableNumber;
-                btn.disabled = false;
-                return;
-            }
-
-            // Insert new match session
-            const { error } = await sb.from('pro_match_sessions').insert({
-                league_id: leagueId,
-                table_number: tableNumber,
-                p1_name: match.p1,
-                p2_name: match.p2,
-                bracket_match_id: `r${rIdx}_m${mIdx}`
-            });
-
-            if (error) {
-                alert("Database error: " + error.message);
-                btn.innerHTML = 'TABLE ' + tableNumber;
-                btn.disabled = false;
-                return;
-            }
-
-            // Success
-            alert("Match dispatched to Table " + tableNumber + "!");
-            btn.closest('div').parentElement.parentElement.remove(); // Remove modal
-        }
 
         async function playGrandFinalsBracket(players, leagueId) {
             const container = document.getElementById('main-content');
@@ -653,17 +633,6 @@
                     }
                 });
                 
-                const originalSetMatchWinner = window.localEngine.setMatchWinner.bind(window.localEngine);
-                window.localEngine.setMatchWinner = function(rIndex, mIndex, clickedName) {
-                    const match = window.localEngine.rounds[rIndex][mIndex];
-                    if (match.winner === clickedName) {
-                        originalSetMatchWinner(rIndex, mIndex, clickedName);
-                        return;
-                    }
-                    showTableAssignmentModal(match, rIndex, mIndex, clickedName, leagueId, () => {
-                        originalSetMatchWinner(rIndex, mIndex, clickedName);
-                    });
-                };
                 
                 window.localEngine.generateBracket(players, true);
                 window.localEngine.render();

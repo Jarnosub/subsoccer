@@ -45,29 +45,27 @@ FOR INSERT WITH CHECK (
   )
 );
 
--- Active Table Match Sessions (For Scoreboards & iPads)
-CREATE TABLE IF NOT EXISTS pro_match_sessions (
+-- Active Table Sessions: Hosting full Group Brackets on iPads
+CREATE TABLE IF NOT EXISTS pro_table_sessions (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   league_id UUID REFERENCES pro_leagues(id) ON DELETE CASCADE,
-  table_number INTEGER NOT NULL, -- e.g. 1, 2, 3...
-  p1_name TEXT NOT NULL,
-  p2_name TEXT NOT NULL,
-  p1_score INTEGER DEFAULT 0,
-  p2_score INTEGER DEFAULT 0,
-  status TEXT DEFAULT 'active', -- 'active', 'p1_won', 'p2_won'
-  bracket_match_id TEXT NOT NULL, -- e.g. 'r0_m0' mapped from BracketEngine
-  group_index INTEGER, -- To track if it belongs to a group stage
+  table_number INTEGER NOT NULL,
+  group_name TEXT NOT NULL,
+  group_players JSONB NOT NULL, -- The array of 8 players assigned to this table
+  active_match_p1 TEXT,
+  active_match_p2 TEXT,
+  active_match_p1_score INTEGER DEFAULT 0,
+  active_match_p2_score INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'bracket_view', -- 'bracket_view', 'match_playing', 'completed'
+  group_winner TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(league_id, table_number) -- One active match per table per league
+  UNIQUE(league_id, table_number) -- One active session per physical table per league
 );
 
--- RLS for match sessions
-ALTER TABLE pro_match_sessions ENABLE ROW LEVEL SECURITY;
+-- RLS for Table sessions
+ALTER TABLE pro_table_sessions ENABLE ROW LEVEL SECURITY;
 
--- Allow public read for displays
-CREATE POLICY "Public read match sessions" ON pro_match_sessions FOR SELECT USING (true);
+CREATE POLICY "Public read table sessions" ON pro_table_sessions FOR SELECT USING (true);
+CREATE POLICY "Organizers full access table sessions" ON pro_table_sessions FOR ALL USING (true) WITH CHECK (true);
 
--- Allow organizers and game logic to update/insert
-CREATE POLICY "Organizers full access match sessions" ON pro_match_sessions 
-FOR ALL USING (true) WITH CHECK (true); -- Note: Simplified for staging, should secure by auth.uid() = organizer_id in prod

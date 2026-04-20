@@ -124,28 +124,7 @@
         <h2 style="color: #666; letter-spacing: 2px;">WAITING FOR NEXT MATCH</h2>
     </div>
 
-    <!-- Active Match View -->
-    <div id="match-view">
-        <div class="score-container">
-            <!-- Player 1 -->
-            <div class="player-side" onclick="changeScore(1, 1)">
-                <div class="player-name" id="p1-name">PLAYER 1</div>
-                <div class="score-number" id="p1-score">0</div>
-            </div>
-
-            <!-- Player 2 -->
-            <div class="player-side" onclick="changeScore(2, 1)">
-                <div class="player-name" id="p2-name">PLAYER 2</div>
-                <div class="score-number" id="p2-score">0</div>
-            </div>
-        </div>
-
-        <div class="controls">
-            <button class="btn-control" onclick="changeScore(1, -1)">- P1</button>
-            <button class="btn-control btn-finish" onclick="finishMatch()">FINISH MATCH</button>
-            <button class="btn-control" onclick="changeScore(2, -1)">- P2</button>
-        </div>
-    </div>
+    <div id="bracket-area" style="padding: 20px; overflow-x: auto; flex: 1;"></div>
 
     <script>
         const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
@@ -153,130 +132,115 @@
         const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
         const params = new URLSearchParams(window.location.search);
-        const leagueId = params.get('league');
-        const tableNumber = parseInt(params.get('table') || '1');
+        let leagueId = params.get('league');
+        let tableNumber = parseInt(params.get('table') || '1');
+        
+        let currentSession = null;
+        let localEngine = null;
 
         document.getElementById('table-label').innerText = "TABLE " + tableNumber;
-
-        let currentSession = null;
-        let p1Score = 0;
-        let p2Score = 0;
 
         async function init() {
             if (!leagueId) {
                 document.getElementById('waiting-view').innerHTML = "<h2 style='color:red;'>Missing League ID</h2>";
                 return;
             }
-
-            // Initial fetch
-            fetchCurrentMatch();
-
-            // Subscribe to realtime changes on this specific table!
-            sb.channel('table-updates')
+            
+            // Subscribe to table assignments
+            sb.channel('table-listen')
               .on('postgres_changes', { 
-                  event: '*', 
+                  event: 'INSERT', 
                   schema: 'public', 
-                  table: 'pro_match_sessions',
+                  table: 'pro_table_sessions',
                   filter: `league_id=eq.${leagueId}`
               }, payload => {
                   const data = payload.new;
                   if (data && data.table_number === tableNumber) {
-                      handleMatchData(data);
+                      loadGroupToTable(data);
                   }
               })
               .subscribe();
+
+            fetchCurrentSession();
         }
 
-        async function fetchCurrentMatch() {
-            const { data, error } = await sb.from('pro_match_sessions')
+        async function fetchCurrentSession() {
+            const { data, error } = await sb.from('pro_table_sessions')
                 .select('*')
                 .eq('league_id', leagueId)
                 .eq('table_number', tableNumber)
-                .eq('status', 'active')
+                .order('created_at', { ascending: false })
+                .limit(1)
                 .maybeSingle();
 
-            if (data) {
-                handleMatchData(data);
+            if (data && data.status === 'bracket_view') {
+                loadGroupToTable(data);
             } else {
                 showWaiting();
             }
-        }
-
-        function handleMatchData(data) {
-            // If match is deleted or finished by someone else
-            if (!data || data.status !== 'active') {
-                showWaiting();
-                return;
-            }
-
-            currentSession = data;
-            p1Score = data.p1_score;
-            p2Score = data.p2_score;
-
-            document.getElementById('p1-name').innerText = data.p1_name;
-            document.getElementById('p2-name').innerText = data.p2_name;
-            
-            updateScoreUI();
-            
-            document.getElementById('waiting-view').style.display = 'none';
-            document.getElementById('match-view').style.display = 'flex';
         }
 
         function showWaiting() {
-            currentSession = null;
-            document.getElementById('match-view').style.display = 'none';
             document.getElementById('waiting-view').style.display = 'flex';
+            document.getElementById('bracket-area').style.display = 'none';
         }
 
-        async function changeScore(playerNum, delta) {
-            if (!currentSession) return;
-            if (navigator.vibrate) navigator.vibrate(50); // haptic
+        async function loadGroupToTable(data) {
+            currentSession = data;
+            document.getElementById('waiting-view').style.display = 'none';
+            document.getElementById('bracket-area').style.display = 'block';
+            
+            document.getElementById('table-label').innerHTML = `TABLE ${tableNumber} <span style="color:#666; margin:0 10px;">|</span> <span style="color:var(--sub-gold)">${data.group_name}</span>`;
 
-            if (playerNum === 1) {
-                p1Score = Math.max(0, p1Score + delta);
-            } else {
-                p2Score = Math.max(0, p2Score + delta);
+            try {
+                const module = await import('./bracket-engine.js');
+                const BracketEngine = module.BracketEngine;
+                
+                localEngine = new BracketEngine({
+                    containerId: 'bracket-area',
+                    enableSaveButton: false,
+                    onMatchUpdate: (match, winner) => {
+                        const isFinal = !match.nextMatchId;
+                        if (isFinal && winner) {
+                            setTimeout(() => {
+                                const confirmWin = confirm(`🏆 ${winner} HAS WON THE GROUP! Finish and notify central admin?`);
+                                if (confirmWin) {
+                                    finishGroup(winner);
+                                }
+                            }, 500);
+                        }
+                    }
+                });
+                
+                // Usually group players are saved as a JSON string array
+                let players = typeof data.group_players === 'string' ? JSON.parse(data.group_players) : data.group_players;
+                localEngine.generateBracket(players, true);
+                localEngine.render();
+            } catch (e) {
+                console.error("Bracket load error", e);
             }
-
-            updateScoreUI();
-
-            // Sync to DB
-            await sb.from('pro_match_sessions')
-                .update({ p1_score: p1Score, p2_score: p2Score })
-                .eq('id', currentSession.id);
         }
-
-        function updateScoreUI() {
-            document.getElementById('p1-score').innerText = p1Score;
-            document.getElementById('p2-score').innerText = p2Score;
-
-            // Highlight leader (Subsoccer Gold)
-            document.getElementById('p1-score').className = 'score-number' + (p1Score > p2Score ? ' gold' : '');
-            document.getElementById('p2-score').className = 'score-number' + (p2Score > p1Score ? ' gold' : '');
-        }
-
-        async function finishMatch() {
-            if (!currentSession) return;
-
-            let winner = 'draw';
-            if (p1Score > p2Score) winner = 'p1_won';
-            else if (p2Score > p1Score) winner = 'p2_won';
-            else {
-                alert("Match is a draw! Determine a winner before finishing.");
-                return;
-            }
-
-            const confirmFinish = confirm(`Complete match? ${p1Score > p2Score ? currentSession.p1_name : currentSession.p2_name} wins!`);
-            if (!confirmFinish) return;
-
-            // Set DB status
-            await sb.from('pro_match_sessions')
-                .update({ status: winner })
-                .eq('id', currentSession.id);
-
-            // Revert to waiting immediately
-            // The Realtime channel will also catch this and hide the view, but doing it proactively feels faster.
-            showWaiting();
+        
+        async function finishGroup(winnerName) {
+            await sb.from('pro_table_sessions').update({ 
+                status: 'completed',
+                group_winner: winnerName 
+            }).eq('id', currentSession.id);
+            
+            document.getElementById('bracket-area').innerHTML = `
+                <div style="text-align:center; padding: 50px;">
+                    <i class="fa-solid fa-check-circle" style="font-size: 5rem; color: #4CAF50; margin-bottom: 20px;"></i>
+                    <h1 style="color:var(--sub-gold); letter-spacing: 2px;">${currentSession.group_name} FINISHED</h1>
+                    <h2 style="color:#fff;">Winner: ${winnerName}</h2>
+                    <p style="color:#666; margin-top:30px;">Notified central admin. You can return to your seats.</p>
+                </div>
+            `;
+            
+            // Auto reset back to waiting after some time so Table is free again
+            setTimeout(() => {
+                showWaiting();
+                document.getElementById('table-label').innerText = "TABLE " + tableNumber;
+            }, 10000); // 10 seconds viewing
         }
 
         document.addEventListener('DOMContentLoaded', init);
