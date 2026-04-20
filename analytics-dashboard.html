@@ -264,58 +264,95 @@
     <div class="dashboard-container">
         
         <div class="filters">
-            <select id="timeFilter" style="background-color: var(--bg-card); color: var(--accent-blue); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; font-weight: 500; cursor: pointer; outline: none;" onchange="fetchData()">
-                <option value="1">Today</option>
+            <!-- Global Time Range -->
+            <select id="timeFilter" onchange="fetchData()">
                 <option value="7" selected>Last 7 Days</option>
                 <option value="30">Last 30 Days</option>
                 <option value="9999">All Time</option>
             </select>
-            <select id="eventFilter" style="background-color: var(--bg-card); color: var(--accent-blue); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; font-weight: 500; cursor: pointer; outline: none;" onchange="renderData()">
-                <option value="ALL">All Events</option>
-                <option value="tournament_finished">Tournaments</option>
-                <option value="app_opened">App Opened</option>
+            <!-- Partner Segment Filter -->
+            <select id="partnerFilter" onchange="fetchData()" style="margin-left: 10px;">
+                <option value="all" selected>All Hubs / Segments</option>
+                <option value="social">Social Spots</option>
+                <option value="costco">Costco</option>
+                <option value="olearys">O'Learys</option>
+                <option value="event">Private Events</option>
             </select>
-            <button onclick="fetchData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <button class="btn-primary" onclick="fetchData()" style="margin-left: 10px;">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
             <button onclick="openFeedbackModal()" style="background-color: rgba(253, 226, 147, 0.1); color: var(--accent-yellow); border-color: var(--border-color); margin-left: 10px;"><i class="fas fa-comment-dots"></i> Feedbacks</button>
             <button onclick="exportToCSV()" style="background-color: rgba(129, 201, 149, 0.1); color: var(--accent-green); border-color: var(--border-color); margin-left: auto;"><i class="fas fa-file-csv"></i> Export CSV</button>
         </div>
 
         <!-- KPI Row -->
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-title">Hub Sessions Started <i class="fas fa-mobile-screen" style="color: var(--accent-blue);"></i></div>
-                <div class="kpi-value" id="kpi-sessions">--</div>
-                <div class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> +12% from last week</div>
-            </div>
-            
-            <div class="kpi-card">
-                <div class="kpi-title">Tournaments Completed <i class="fas fa-trophy" style="color: var(--accent-yellow);"></i></div>
-                <div class="kpi-value" id="kpi-tournaments">--</div>
-                <div class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> Live Tracking Active</div>
+        <div class="grid-kpis">
+            <!-- ROW 1 -->
+            <div class="grid-kpis">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>TOTAL APP OPENS</span>
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-sessions">0</div>
+                    <div class="kpi-trend"><i class="fas fa-arrow-up"></i> Total scanned QR codes</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>TOURNAMENTS PLAYED</span>
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-tournaments">0</div>
+                    <div class="kpi-trend"><i class="fas fa-arrow-up"></i> Live Tracking Active</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>PRO REGISTRATIONS</span>
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-users">0</div>
+                    <div class="kpi-trend" style="color: #888;">— Player conversion</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>INSTANT MATCHES (1V1)</span>
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-matches">0</div>
+                    <div class="kpi-trend"><i class="fas fa-arrow-up"></i> Fast play events</div>
+                </div>
             </div>
 
-            <div class="kpi-card">
-                <div class="kpi-title">Player Registrations <i class="fas fa-users" style="color: var(--accent-green);"></i></div>
-                <div class="kpi-value" id="kpi-users">--</div>
-                <div class="kpi-trend trend-neutral"><i class="fas fa-minus"></i> Steady growth</div>
-            </div>
+            <!-- ROW 2 -->
+            <div class="grid-kpis">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>DROP-OFF / BOUNCE RATE</span>
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-bounce">0%</div>
+                    <div class="kpi-trend" style="color: #888;"><i class="fas fa-chart-pie"></i> Opened app but didn't finish game</div>
+                </div>
 
-            <div class="kpi-card">
-                <div class="kpi-title">Instant Matches (1vs1) <i class="fas fa-bolt" style="color: var(--accent-red);"></i></div>
-                <div class="kpi-value" id="kpi-matches">--</div>
-                <div class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> Global arcade tables</div>
-            </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>AVERAGE MATCH DURATION</span>
+                        <i class="fas fa-stopwatch"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-duration">0m 0s</div>
+                    <div class="kpi-trend" style="color: #888;"><i class="fas fa-info-circle"></i> Instant Match length</div>
+                </div>
 
-            <div class="kpi-card">
-                <div class="kpi-title">Drop-off / Bounce Rate <i class="fas fa-arrow-right-from-bracket" style="color: var(--text-secondary);"></i></div>
-                <div class="kpi-value" id="kpi-bounce">--%</div>
-                <div class="kpi-trend trend-neutral"><i class="fas fa-chart-pie"></i> App opened vs games played</div>
-            </div>
-
-            <div class="kpi-card">
-                <div class="kpi-title">Device Breakdown <i class="fas fa-laptop-mobile" style="color: var(--accent-blue);"></i></div>
-                <div class="kpi-value" id="kpi-device" style="font-size: 1.5rem; margin-top: 10px;">--</div>
-                <div class="kpi-trend trend-neutral"><i class="fas fa-globe"></i> Ecosystem usage</div>
+                <div class="kpi-card" style="grid-column: span 2;">
+                    <div class="kpi-header">
+                        <span>DEVICE BREAKDOWN</span>
+                    </div>
+                    <div class="kpi-value" id="kpi-device" style="font-size: 1.5rem; margin-top: 10px;">iOS 0% | And 0% | Oth 0%</div>
+                    <div class="kpi-trend" style="color: #888;"><i class="fas fa-globe"></i> Ecosystem usage</div>
+                </div>
             </div>
         </div>
 
@@ -442,6 +479,12 @@
                 // Build time-filtered queries
                 let trackingQuery = client.from('public_tracking').select('*').order('client_time', { ascending: false }).limit(2000);
                 if (!isAllTime) trackingQuery = trackingQuery.gte('client_time', dateStr);
+                
+                const partnerFilter = document.getElementById('partnerFilter').value;
+                if (partnerFilter !== 'all') {
+                    // Match the source_partner substring to the filter choice
+                    trackingQuery = trackingQuery.ilike('source_partner', `%${partnerFilter}%`);
+                }
 
                 let historyQuery = client.from('tournament_history').select('*', { count: 'exact' });
                 if (!isAllTime) historyQuery = historyQuery.gte('start_datetime', dateStr);
@@ -491,11 +534,28 @@
                 const andP = tDev ? Math.round(android / tDev * 100) : 0;
                 const othP = tDev ? Math.round(other / tDev * 100) : 0;
 
+                // Calculate Average Match Duration
+                let matchDurations = [];
+                trackingData.forEach(d => {
+                    if (d.event_type === 'game_finished' && d.session_duration && d.session_duration > 15 && d.session_duration < 3600) {
+                        matchDurations.push(d.session_duration);
+                    }
+                });
+                
+                let durationTxt = "N/A";
+                if (matchDurations.length > 0) {
+                    const avgSecs = Math.round(matchDurations.reduce((a, b) => a + b, 0) / matchDurations.length);
+                    const mins = Math.floor(avgSecs / 60);
+                    const secs = avgSecs % 60;
+                    durationTxt = `${mins}m ${secs}s`;
+                }
+
                 document.getElementById('kpi-sessions').textContent = sessionCount;
                 document.getElementById('kpi-tournaments').textContent = totalTournaments;
                 document.getElementById('kpi-users').textContent = totalUsers;
-                document.getElementById('kpi-matches').textContent = totalMatches;
+                document.getElementById('kpi-matches').textContent = playEventCount; // use exact live tracking finishes for 1v1
                 document.getElementById('kpi-bounce').textContent = bounceRate + '%';
+                document.getElementById('kpi-duration').textContent = durationTxt;
                 document.getElementById('kpi-device').textContent = `iOS ${iosP}% | And ${andP}% | Oth ${othP}%`;
 
                 // Populate Top Players List
