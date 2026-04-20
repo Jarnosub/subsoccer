@@ -190,7 +190,7 @@
                                 <h3 style="margin:0; font-family:'Subsoccer', sans-serif;">${league.league_name}</h3>
                                 <div style="font-size:0.8rem; color:#888; margin-top:5px;">STATUS: ${league.status.toUpperCase()}</div>
                             </div>
-                            <button class="btn-outline" style="width:auto; margin:0;" onclick="alert('Lobby UI coming soon!')">OPEN LOBBY</button>
+                            <button class="btn-outline" style="width:auto; margin:0;" onclick="openLeagueLobby('${league.id}', '${league.league_name}')">OPEN LOBBY</button>
                         </div>
                     `;
                 });
@@ -216,6 +216,72 @@
 
             alert(`League "${name}" created successfully!`);
             loadLeaguesDashboard();
+        }
+
+        async function openLeagueLobby(leagueId, leagueName) {
+            const container = document.getElementById('main-content');
+            
+            // Cleanup previous listener
+            if (window.activeLobbyChannel) {
+                sb.removeChannel(window.activeLobbyChannel);
+            }
+            
+            const joinUrl = `https://subsoccer.pro/join-league.html?id=${leagueId}`;
+            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=ffffff&bgcolor=0a0a0a&data=${encodeURIComponent(joinUrl)}`;
+
+            container.innerHTML = `
+                <div class="panel" style="text-align: center; padding: 40px 20px;">
+                    <h2 style="font-family: 'Subsoccer', sans-serif; font-size: 1.8rem; letter-spacing: 2px; color: #fff; margin-top: 0; margin-bottom: 25px;">${leagueName}</h2>
+                    
+                    <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 20px; text-transform: uppercase;">Scan to join this Pro League</p>
+                    
+                    <img src="${qrSrc}" style="width: 250px; height: 250px; border: 2px solid var(--sub-gold); border-radius: 12px; padding: 10px; background: #0a0a0a; margin-bottom: 20px;">
+                    
+                    <div style="font-family: 'Subsoccer', sans-serif; font-size: 4rem; color: #fff; margin-bottom: 5px; transition: all 0.2s;" id="lobby-player-count">0</div>
+                    <div style="font-size: 0.8rem; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 40px;">Players Joined</div>
+                    
+                    <button class="btn-gold" style="padding: 20px;" onclick="generateLeagueGroups('${leagueId}')">
+                        <i class="fa-solid fa-layer-group"></i> GENERATE GROUPS
+                    </button>
+                    <button class="btn-outline" onclick="loadLeaguesDashboard()">
+                        <i class="fa-solid fa-arrow-left"></i> BACK TO DASHBOARD
+                    </button>
+                </div>
+            `;
+
+            // Start listening to Supabase for newly joined players using realtime
+            window.activeLobbyChannel = sb.channel('league-lobby-' + leagueId)
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'league_participants', 
+                    filter: `league_id=eq.${leagueId}` 
+                }, payload => {
+                    const countEl = document.getElementById('lobby-player-count');
+                    if (countEl) {
+                        let current = parseInt(countEl.innerText) || 0;
+                        countEl.innerText = current + 1;
+                        countEl.style.transform = 'scale(1.2)';
+                        countEl.style.color = 'var(--sub-gold)';
+                        setTimeout(() => {
+                            countEl.style.transform = 'scale(1)';
+                            countEl.style.color = '#fff';
+                        }, 250);
+                    }
+                })
+                .subscribe();
+
+            // Initial fetch to get already joined players count
+            const { count } = await sb.from('league_participants')
+                                      .select('id', { count: 'exact', head: true })
+                                      .eq('league_id', leagueId);
+            
+            const countEl = document.getElementById('lobby-player-count');
+            if (countEl) countEl.innerText = count || 0;
+        }
+
+        async function generateLeagueGroups(leagueId) {
+            alert("Drafting groups... (Fetching registered players and sending to league-engine.js)");
         }
 
         // Initialize
