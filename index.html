@@ -243,6 +243,8 @@
                 
                 <a href="player-card.html" id="menu-profile-link" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-user" style="color: #fff; width: 40px; text-align: center;"></i> MY PROFILE</a>
 
+                <a href="pro-leagues.html" id="menu-league-link" style="color: #D4AF37; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-crown" style="color: var(--sub-gold); width: 40px; text-align: center;"></i> PRO LEAGUES</a>
+
                 <a href="owner-dashboard.html" id="menu-owner-link" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-toolbox" style="color: #fff; width: 40px; text-align: center;"></i> MY HARDWARE</a>
 
                 <a href="moderator.html" id="menu-mod-link" style="color: #D4AF37; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-shield-halved" style="color: #E30613; width: 40px; text-align: center;"></i> MODERATOR TOOLS</a>
@@ -331,6 +333,7 @@
                             document.getElementById('hub-login-btn').style.display = 'flex';
                             document.getElementById('hub-player-card').style.display = 'none';
                             document.getElementById('menu-profile-link').style.display = 'none';
+                            document.getElementById('menu-league-link').style.display = 'none';
                             document.getElementById('menu-logout-link').style.display = 'none';
                             document.getElementById('menu-owner-link').style.display = 'none';
                             document.getElementById('menu-mod-link').style.display = 'none';
@@ -363,6 +366,7 @@
             
             // Menu toggles
             document.getElementById('menu-profile-link').style.display = 'flex';
+            document.getElementById('menu-league-link').style.display = 'flex';
             document.getElementById('menu-logout-link').style.display = 'flex';
             
             if (player.is_owner || player.is_admin) {

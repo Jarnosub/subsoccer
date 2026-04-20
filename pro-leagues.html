@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer - Pro Leagues</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="the-forge.css?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            background-color: var(--sub-black);
+            color: #fff;
+            font-family: 'Resolve', sans-serif;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            display: flex; flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: calc(15px + env(safe-area-inset-top, 15px)) 20px 15px;
+            background: rgba(10,10,10,0.95);
+            border-bottom: 1px solid #222;
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .back-btn {
+            background: none; border: none; color: #fff;
+            font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; gap: 10px;
+        }
+
+        .page-title {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.2rem; letter-spacing: 2px;
+            color: var(--sub-gold); text-align: center;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .league-container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            flex: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #888;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #FFD700, #D4AF37);
+            color: #000;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-gold:active { transform: scale(0.98); }
+
+        .btn-outline {
+            background: transparent;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='index.html'">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <h1 class="page-title"><i class="fa-solid fa-crown" style="margin-right: 5px;"></i> PRO LEAGUES</h1>
+        <div style="width: 24px;"></div> <!-- Spacer -->
+    </div>
+
+    <div class="league-container" id="main-content">
+        <!-- Auth check placeholder -->
+        <div style="text-align: center; color: #666; margin-top: 50px;" id="loading-txt">Loading Pro Leagues...</div>
+    </div>
+
+    <!-- MAIN LEAGUE MODULE TEMPLATE -->
+    <template id="tpl-league-dashboard">
+        <div class="panel" style="text-align: center;">
+            <h2 style="font-family: 'Subsoccer', sans-serif; letter-spacing: 2px; color: #fff; margin-top: 0;">CREATE A LEAGUE</h2>
+            <p style="color: #bbb; font-size: 0.9rem; line-height: 1.5; margin-bottom: 25px;">
+                Organize massive events using the Group Stage to Playoffs framework. 
+                Divide players into 8-player groups automatically, and cross-pair their winners in the grand finals.
+            </p>
+            <button class="btn-gold" onclick="alert('Module loading... (Staging experiment)')">
+                <i class="fa-solid fa-plus"></i> NEW PRO LEAGUE
+            </button>
+        </div>
+
+        <div class="empty-state" style="margin-top: 40px;">
+            <i class="fa-solid fa-trophy" style="color: #1a1a1a;"></i>
+            <h3>No Active Leagues</h3>
+            <p style="font-size: 0.85rem;">Events you create will appear here.</p>
+        </div>
+    </template>
+
+    <script src="league-engine.js"></script>
+    <script>
+        async function initPage() {
+            const cached = localStorage.getItem('subsoccer-user');
+            if (!cached) {
+                window.location.href = 'login.html?redirect=pro-leagues.html';
+                return;
+            }
+            
+            const user = JSON.parse(cached);
+            if (!user) {
+                window.location.href = 'login.html?redirect=pro-leagues.html';
+                return;
+            }
+
+            // User is logged in. Render the dashboard.
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+            
+            const tpl = document.getElementById('tpl-league-dashboard').content.cloneNode(true);
+            container.appendChild(tpl);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>
