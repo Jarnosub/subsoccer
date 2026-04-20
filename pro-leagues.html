@@ -130,20 +130,27 @@
                 Organize massive events using the Group Stage to Playoffs framework. 
                 Divide players into 8-player groups automatically, and cross-pair their winners in the grand finals.
             </p>
-            <button class="btn-gold" onclick="alert('Module loading... (Staging experiment)')">
+            <button class="btn-gold" onclick="createNewLeague()">
                 <i class="fa-solid fa-plus"></i> NEW PRO LEAGUE
             </button>
         </div>
 
-        <div class="empty-state" style="margin-top: 40px;">
-            <i class="fa-solid fa-trophy" style="color: #1a1a1a;"></i>
-            <h3>No Active Leagues</h3>
-            <p style="font-size: 0.85rem;">Events you create will appear here.</p>
+        <div id="active-leagues-list">
+            <div class="empty-state" style="margin-top: 40px;">
+                <i class="fa-solid fa-trophy" style="color: #1a1a1a;"></i>
+                <h3>No Active Leagues</h3>
+                <p style="font-size: 0.85rem;">Leagues you create will appear here.</p>
+            </div>
         </div>
     </template>
 
     <script src="league-engine.js"></script>
     <script>
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+        let currentUser = null;
+
         async function initPage() {
             const cached = localStorage.getItem('subsoccer-user');
             if (!cached) {
@@ -151,18 +158,64 @@
                 return;
             }
             
-            const user = JSON.parse(cached);
-            if (!user) {
+            currentUser = JSON.parse(cached);
+            if (!currentUser) {
                 window.location.href = 'login.html?redirect=pro-leagues.html';
                 return;
             }
 
-            // User is logged in. Render the dashboard.
+            loadLeaguesDashboard();
+        }
+
+        async function loadLeaguesDashboard() {
             const container = document.getElementById('main-content');
             container.innerHTML = '';
             
             const tpl = document.getElementById('tpl-league-dashboard').content.cloneNode(true);
             container.appendChild(tpl);
+
+            // Fetch active leagues for this user
+            const { data, error } = await sb.from('pro_leagues')
+                                            .select('*')
+                                            .eq('organizer_id', currentUser.id)
+                                            .order('created_at', { ascending: false });
+
+            const listContainer = document.getElementById('active-leagues-list');
+            if (data && data.length > 0) {
+                listContainer.innerHTML = '';
+                data.forEach(league => {
+                    listContainer.innerHTML += `
+                        <div class="panel" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <h3 style="margin:0; font-family:'Subsoccer', sans-serif;">${league.league_name}</h3>
+                                <div style="font-size:0.8rem; color:#888; margin-top:5px;">STATUS: ${league.status.toUpperCase()}</div>
+                            </div>
+                            <button class="btn-outline" style="width:auto; margin:0;" onclick="alert('Lobby UI coming soon!')">OPEN LOBBY</button>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        async function createNewLeague() {
+            const name = prompt("Enter a name for your new Pro League (e.g. Helsinki Open):");
+            if (!name) return;
+
+            // Use the isolated pro_leagues table
+            const { data, error } = await sb.from('pro_leagues').insert({
+                league_name: name,
+                organizer_id: currentUser.id,
+                status: 'enrolling',
+                group_size: 8
+            }).select().single();
+
+            if (error) {
+                alert("Failed to create league: " + error.message);
+                return;
+            }
+
+            alert(`League "${name}" created successfully!`);
+            loadLeaguesDashboard();
         }
 
         // Initialize
