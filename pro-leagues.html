@@ -310,20 +310,37 @@
             if (names.length === 0) return;
             
             input.disabled = true;
+            input.placeholder = `Adding ${names.length} players... Please wait...`;
 
+            let successCount = 0;
             for (let name of names) {
                 const { error } = await sb.from('league_participants').insert({
                     league_id: leagueId,
                     guest_name: name
                 });
 
-                if (error) {
+                if (!error) {
+                    successCount++;
+                } else {
                     console.error("Failed to add player: " + name, error);
                 }
             }
 
             input.disabled = false;
+            input.placeholder = 'Paste names separated by comma, tab, or new line...';
             input.value = ''; // clear field on success
+
+            // Force an explicit sync of the total count in case realtime missed rapid events
+            const { count } = await sb.from('league_participants')
+                                      .select('id', { count: 'exact', head: true })
+                                      .eq('league_id', leagueId);
+            
+            const countEl = document.getElementById('lobby-player-count');
+            if (countEl) countEl.innerText = count || 0;
+
+            if (successCount > 0) {
+                alert(`Successfully added ${successCount} players!`);
+            }
         }
 
         async function generateLeagueGroups(leagueId) {
