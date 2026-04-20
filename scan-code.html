@@ -231,6 +231,8 @@
             letter-spacing: 2px;
             color: #888;
             margin-bottom: 30px;
+            word-break: break-all;
+            padding: 0 20px;
         }
 
         .scan-result-btn {
@@ -458,11 +460,11 @@
                 action.innerText = 'WATCH LIVE';
             } else if (rawValue.includes('subsoccer')) {
                 displayTitle = 'SUBSOCCER LINK';
-                displayDesc = rawValue.replace(/https?:\/\//, '').substring(0, 40);
+                displayDesc = rawValue;
                 action.innerText = 'OPEN';
             } else {
                 displayTitle = 'QR CODE';
-                displayDesc = rawValue.substring(0, 50);
+                displayDesc = rawValue;
                 action.innerText = 'OPEN LINK';
             }
 
