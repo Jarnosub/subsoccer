@@ -319,7 +319,80 @@
         }
 
         async function generateLeagueGroups(leagueId) {
-            alert("Drafting groups... (Fetching registered players and sending to league-engine.js)");
+            const { data, error } = await sb.from('league_participants')
+                                        .select('id, guest_name, player_id, players(username)')
+                                        .eq('league_id', leagueId);
+            
+            if (error) {
+                alert("Failed to fetch players: " + error.message);
+                return;
+            }
+
+            if (!data || data.length < 2) {
+                alert("Not enough players! Add at least 2 players to draw groups.");
+                return;
+            }
+
+            // Extract names (mixing manually written guests and app-registered users)
+            const playerNames = data.map(row => {
+                if (row.guest_name) return row.guest_name;
+                if (row.players && row.players.username) return row.players.username;
+                return "Unknown Player";
+            });
+
+            // Use the League Engine to dynamically shuffle and bracket them
+            const maxPerGroup = 8;
+            const groups = window.LeagueEngine.assignGroups(playerNames, maxPerGroup);
+            
+            // Mark the league as officially in the group stage
+            await sb.from('pro_leagues').update({ status: 'group_stage' }).eq('id', leagueId);
+
+            renderLeagueGroups(leagueId, groups);
+        }
+
+        function renderLeagueGroups(leagueId, groups) {
+            const container = document.getElementById('main-content');
+            
+            if (window.activeLobbyChannel) {
+                sb.removeChannel(window.activeLobbyChannel);
+            }
+            
+            let groupsHtml = '';
+            groups.forEach(g => {
+                let pList = g.players.map(p => `
+                    <div style="padding: 12px; background: rgba(255,255,255,0.03); margin-bottom: 5px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-family: 'Resolve', sans-serif;">
+                        ${p}
+                    </div>`).join('');
+                    
+                groupsHtml += `
+                    <div class="panel" style="margin-bottom: 20px;">
+                        <h3 style="color: var(--sub-gold); margin-top: 0; font-family: 'Subsoccer', sans-serif; letter-spacing: 2px;">${g.groupName}</h3>
+                        ${pList}
+                        <button class="btn-outline" style="margin-top: 15px;" onclick="alert('Module to open an 8-player bracket for ${g.groupName} coming next!')">
+                            <i class="fa-solid fa-play" style="color: #fff; margin-right: 5px;"></i> PLAY GROUP BRACKET
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <button class="back-btn" onclick="loadLeaguesDashboard()">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h2 style="font-family: 'Subsoccer', sans-serif; letter-spacing: 2px; color: #fff; text-align: center; margin: 0; flex: 1;">GROUP STAGE DRAWN</h2>
+                    <div style="width: 24px;"></div>
+                </div>
+                
+                ${groupsHtml}
+                
+                <div style="text-align: center; margin-top: 40px; padding-bottom: 50px;">
+                    <button class="btn-gold" style="width: 100%; max-width: 400px; padding: 20px;" onclick="alert('Cross-Pairing Winners... Coming Next!')">
+                        <i class="fa-solid fa-trophy"></i> GENERATE FINAL PLAYOFFS
+                    </button>
+                    <div style="font-size: 0.75rem; color: #666; margin-top: 10px;">Requires all group stages to be completed</div>
+                </div>
+            `;
         }
 
         // Initialize
