@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer - Table Scoreboard</title>
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="the-forge.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { 
+            background-color: var(--sub-black); 
+            color: #fff; 
+            font-family: 'Subsoccer', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 15px;
+            background: #000;
+            border-bottom: 2px solid var(--sub-gold);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        #waiting-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #match-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .score-container {
+            display: flex;
+            flex: 1;
+        }
+
+        .player-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            text-align: center;
+            border-right: 1px solid #333;
+            transition: background 0.2s;
+        }
+        .player-side:last-child { border: none; }
+        .player-side:active { background: rgba(255,255,255,0.05); }
+
+        .player-name {
+            font-size: 2.5rem;
+            color: #aaa;
+            letter-spacing: 2px;
+            font-family: 'Resolve', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .score-number {
+            font-size: 15rem;
+            line-height: 1;
+            margin: auto 0;
+            cursor: pointer;
+            text-shadow: 0 0 20px rgba(0,0,0,0.5);
+            color: #fff;
+        }
+
+        .score-number.gold {
+            color: var(--sub-gold);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #0a0a0a;
+            border-top: 1px solid #222;
+        }
+
+        .btn-control {
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            font-family: 'Resolve', sans-serif;
+        }
+
+        .btn-finish {
+            background: linear-gradient(135deg, #FFD700, #D4AF37);
+            color: #000;
+            border: none;
+            font-weight: bold;
+            padding: 15px 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span id="table-label">TABLE ?</span>
+    </div>
+
+    <!-- Idle View -->
+    <div id="waiting-view">
+        <i class="fa-solid fa-hourglass-empty fa-spin-pulse" style="font-size: 4rem; color: #444; margin-bottom: 20px;"></i>
+        <h2 style="color: #666; letter-spacing: 2px;">WAITING FOR NEXT MATCH</h2>
+    </div>
+
+    <!-- Active Match View -->
+    <div id="match-view">
+        <div class="score-container">
+            <!-- Player 1 -->
+            <div class="player-side" onclick="changeScore(1, 1)">
+                <div class="player-name" id="p1-name">PLAYER 1</div>
+                <div class="score-number" id="p1-score">0</div>
+            </div>
+
+            <!-- Player 2 -->
+            <div class="player-side" onclick="changeScore(2, 1)">
+                <div class="player-name" id="p2-name">PLAYER 2</div>
+                <div class="score-number" id="p2-score">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-control" onclick="changeScore(1, -1)">- P1</button>
+            <button class="btn-control btn-finish" onclick="finishMatch()">FINISH MATCH</button>
+            <button class="btn-control" onclick="changeScore(2, -1)">- P2</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+        const params = new URLSearchParams(window.location.search);
+        const leagueId = params.get('league');
+        const tableNumber = parseInt(params.get('table') || '1');
+
+        document.getElementById('table-label').innerText = "TABLE " + tableNumber;
+
+        let currentSession = null;
+        let p1Score = 0;
+        let p2Score = 0;
+
+        async function init() {
+            if (!leagueId) {
+                document.getElementById('waiting-view').innerHTML = "<h2 style='color:red;'>Missing League ID</h2>";
+                return;
+            }
+
+            // Initial fetch
+            fetchCurrentMatch();
+
+            // Subscribe to realtime changes on this specific table!
+            sb.channel('table-updates')
+              .on('postgres_changes', { 
+                  event: '*', 
+                  schema: 'public', 
+                  table: 'pro_match_sessions',
+                  filter: `league_id=eq.${leagueId}`
+              }, payload => {
+                  const data = payload.new;
+                  if (data && data.table_number === tableNumber) {
+                      handleMatchData(data);
+                  }
+              })
+              .subscribe();
+        }
+
+        async function fetchCurrentMatch() {
+            const { data, error } = await sb.from('pro_match_sessions')
+                .select('*')
+                .eq('league_id', leagueId)
+                .eq('table_number', tableNumber)
+                .eq('status', 'active')
+                .maybeSingle();
+
+            if (data) {
+                handleMatchData(data);
+            } else {
+                showWaiting();
+            }
+        }
+
+        function handleMatchData(data) {
+            // If match is deleted or finished by someone else
+            if (!data || data.status !== 'active') {
+                showWaiting();
+                return;
+            }
+
+            currentSession = data;
+            p1Score = data.p1_score;
+            p2Score = data.p2_score;
+
+            document.getElementById('p1-name').innerText = data.p1_name;
+            document.getElementById('p2-name').innerText = data.p2_name;
+            
+            updateScoreUI();
+            
+            document.getElementById('waiting-view').style.display = 'none';
+            document.getElementById('match-view').style.display = 'flex';
+        }
+
+        function showWaiting() {
+            currentSession = null;
+            document.getElementById('match-view').style.display = 'none';
+            document.getElementById('waiting-view').style.display = 'flex';
+        }
+
+        async function changeScore(playerNum, delta) {
+            if (!currentSession) return;
+            if (navigator.vibrate) navigator.vibrate(50); // haptic
+
+            if (playerNum === 1) {
+                p1Score = Math.max(0, p1Score + delta);
+            } else {
+                p2Score = Math.max(0, p2Score + delta);
+            }
+
+            updateScoreUI();
+
+            // Sync to DB
+            await sb.from('pro_match_sessions')
+                .update({ p1_score: p1Score, p2_score: p2Score })
+                .eq('id', currentSession.id);
+        }
+
+        function updateScoreUI() {
+            document.getElementById('p1-score').innerText = p1Score;
+            document.getElementById('p2-score').innerText = p2Score;
+
+            // Highlight leader (Subsoccer Gold)
+            document.getElementById('p1-score').className = 'score-number' + (p1Score > p2Score ? ' gold' : '');
+            document.getElementById('p2-score').className = 'score-number' + (p2Score > p1Score ? ' gold' : '');
+        }
+
+        async function finishMatch() {
+            if (!currentSession) return;
+
+            let winner = 'draw';
+            if (p1Score > p2Score) winner = 'p1_won';
+            else if (p2Score > p1Score) winner = 'p2_won';
+            else {
+                alert("Match is a draw! Determine a winner before finishing.");
+                return;
+            }
+
+            const confirmFinish = confirm(`Complete match? ${p1Score > p2Score ? currentSession.p1_name : currentSession.p2_name} wins!`);
+            if (!confirmFinish) return;
+
+            // Set DB status
+            await sb.from('pro_match_sessions')
+                .update({ status: winner })
+                .eq('id', currentSession.id);
+
+            // Revert to waiting immediately
+            // The Realtime channel will also catch this and hide the view, but doing it proactively feels faster.
+            showWaiting();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
