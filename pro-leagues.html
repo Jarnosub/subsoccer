@@ -174,10 +174,13 @@
             const tpl = document.getElementById('tpl-league-dashboard').content.cloneNode(true);
             container.appendChild(tpl);
 
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) return;
+
             // Fetch active leagues for this user
             const { data, error } = await sb.from('pro_leagues')
                                             .select('*')
-                                            .eq('organizer_id', currentUser.id)
+                                            .eq('organizer_id', session.user.id)
                                             .order('created_at', { ascending: false });
 
             const listContainer = document.getElementById('active-leagues-list');
@@ -198,13 +201,19 @@
         }
 
         async function createNewLeague() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                alert("Session expired. Please log in again.");
+                return;
+            }
+
             const name = prompt("Enter a name for your new Pro League (e.g. Helsinki Open):");
             if (!name) return;
 
             // Use the isolated pro_leagues table
             const { data, error } = await sb.from('pro_leagues').insert({
                 league_name: name,
-                organizer_id: currentUser.id,
+                organizer_id: session.user.id,
                 status: 'enrolling',
                 group_size: 8
             }).select().single();
