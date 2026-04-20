@@ -375,15 +375,19 @@
             renderLeagueGroups(leagueId, groups);
         }
 
+        let currentLeagueId = null;
+
         function renderLeagueGroups(leagueId, groups) {
             const container = document.getElementById('main-content');
+            currentLeagueId = leagueId;
+            window.currentLeagueGroups = groups;
             
             if (window.activeLobbyChannel) {
                 sb.removeChannel(window.activeLobbyChannel);
             }
             
             let groupsHtml = '';
-            groups.forEach(g => {
+            groups.forEach((g, idx) => {
                 let pList = g.players.map(p => `
                     <div style="padding: 12px; background: rgba(255,255,255,0.03); margin-bottom: 5px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-family: 'Resolve', sans-serif;">
                         ${p}
@@ -393,7 +397,7 @@
                     <div class="panel" style="margin-bottom: 20px;">
                         <h3 style="color: var(--sub-gold); margin-top: 0; font-family: 'Subsoccer', sans-serif; letter-spacing: 2px;">${g.groupName}</h3>
                         ${pList}
-                        <button class="btn-outline" style="margin-top: 15px;" onclick="alert('Module to open an 8-player bracket for ${g.groupName} coming next!')">
+                        <button class="btn-outline" style="margin-top: 15px;" onclick="playGroupBracket(${idx})">
                             <i class="fa-solid fa-play" style="color: #fff; margin-right: 5px;"></i> PLAY GROUP BRACKET
                         </button>
                     </div>
@@ -418,6 +422,54 @@
                     <div style="font-size: 0.75rem; color: #666; margin-top: 10px;">Requires all group stages to be completed</div>
                 </div>
             `;
+        }
+
+        async function playGroupBracket(groupIndex) {
+            const group = window.currentLeagueGroups[groupIndex];
+            const players = group.players; 
+            
+            const container = document.getElementById('main-content');
+            container.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <button class="back-btn" onclick="renderLeagueGroups(currentLeagueId, window.currentLeagueGroups)">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h2 style="font-family: 'Subsoccer', sans-serif; letter-spacing: 2px; color: var(--sub-gold); text-align: center; margin: 0; flex: 1;">${group.groupName} TOURNAMENT</h2>
+                    <div style="width: 24px;"></div>
+                </div>
+                
+                <div id="pro-bracket-area" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 12px; min-height: 400px; border: 1px solid #333; overflow-x: auto;"></div>
+            `;
+
+            // Dynamically import the existing BracketEngine
+            try {
+                const module = await import('./bracket-engine.js');
+                const BracketEngine = module.BracketEngine;
+                
+                window.localEngine = new BracketEngine({
+                    containerId: 'pro-bracket-area',
+                    enableSaveButton: false, // We'll handle custom saving when the final match is won
+                    onMatchUpdate: (match, winner) => {
+                        // Check if this is the final match in the bracket
+                        const isFinal = !match.nextMatchId;
+                        if (isFinal && winner) {
+                            setTimeout(() => {
+                                const confirmWin = confirm(\`🏆 \${winner} has won \${group.groupName}! Save this result and advance them to the Playoffs?\`);
+                                if (confirmWin) {
+                                    alert("Saving " + winner + " as the playoff advancer! (DB sync coming next)");
+                                    renderLeagueGroups(currentLeagueId, window.currentLeagueGroups);
+                                }
+                            }, 500);
+                        }
+                    }
+                });
+                
+                window.localEngine.generateBracket(players, true); // true = shuffle seeds randomly
+                window.localEngine.render();
+            } catch(e) {
+                console.error("Failed to load BracketEngine", e);
+                alert("Failed to load Bracket Engine. See console.");
+            }
         }
 
         // Initialize
