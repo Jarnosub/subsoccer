@@ -247,9 +247,9 @@
                     <img src="${qrSrc}" style="width: 250px; height: 250px; border: 2px solid var(--sub-gold); border-radius: 12px; padding: 10px; background: #0a0a0a; margin-bottom: 20px;">
                     
                     <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                        <div style="font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">Or Add Manually</div>
+                        <div style="font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">Or Add List / Excel Manually</div>
                         <div style="display: flex; gap: 10px;">
-                            <input type="text" id="manual-player-name" placeholder="Enter player name" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; font-family: 'Resolve', sans-serif;">
+                            <textarea id="manual-player-name" placeholder="Paste names separated by comma, tab, or new line..." style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; font-family: 'Resolve', sans-serif; resize: vertical; min-height: 45px;"></textarea>
                             <button class="btn-gold" style="width: auto; padding: 0 20px;" onclick="addManualLeaguePlayer('${leagueId}')">
                                 <i class="fa-solid fa-plus"></i> ADD
                             </button>
@@ -301,20 +301,28 @@
 
         async function addManualLeaguePlayer(leagueId) {
             const input = document.getElementById('manual-player-name');
-            const name = input.value.trim();
-            if (!name) return;
+            const rawVal = input.value;
+            if (!rawVal.trim()) return;
 
-            // Notice we do not set player_id, we set guest_name.
-            const { error } = await sb.from('league_participants').insert({
-                league_id: leagueId,
-                guest_name: name
-            });
+            // Split by comma, semicolon, tab, and newline. Filter empty inputs.
+            const names = rawVal.split(/[,\;\t\n]+/).map(n => n.trim()).filter(n => n.length > 0);
+            
+            if (names.length === 0) return;
+            
+            input.disabled = true;
 
-            if (error) {
-                alert("Failed to add player. Ensure you ran the SQL update! Error: " + error.message);
-                return;
+            for (let name of names) {
+                const { error } = await sb.from('league_participants').insert({
+                    league_id: leagueId,
+                    guest_name: name
+                });
+
+                if (error) {
+                    console.error("Failed to add player: " + name, error);
+                }
             }
 
+            input.disabled = false;
             input.value = ''; // clear field on success
         }
 
