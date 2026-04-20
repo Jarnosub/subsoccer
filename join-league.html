@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer - Join Pro League</title>
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="the-forge.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: var(--sub-black); color: #fff; font-family: 'Resolve', sans-serif; text-align: center; display: flex; flex-direction: column; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+        .panel { background: #111; border: 1px solid #222; border-radius: 12px; padding: 30px 20px; width: 100%; max-width: 400px; margin: auto; }
+        .btn-gold { background: linear-gradient(135deg, #FFD700, #D4AF37); color: #000; border: none; padding: 15px 20px; border-radius: 8px; font-weight: bold; width: 100%; letter-spacing: 1px; margin-top: 20px; cursor: pointer; }
+        .input-text { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; font-size: 1rem; box-sizing: border-box; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="panel" id="main-panel">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--sub-gold);"></i>
+        <h3 style="margin-top: 20px;">Loading League...</h3>
+    </div>
+
+    <script>
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+        
+        let targetLeagueId = new URLSearchParams(window.location.search).get('id');
+        let sessionUser = null;
+
+        async function init() {
+            if (!targetLeagueId) {
+                document.getElementById('main-panel').innerHTML = "<h3>Error: No League ID</h3><p>Scan a valid QR code.</p>";
+                return;
+            }
+
+            // Fetch league info
+            const { data: league, error } = await sb.from('pro_leagues').select('league_name').eq('id', targetLeagueId).single();
+            if (error || !league) {
+                document.getElementById('main-panel').innerHTML = "<h3>League not found</h3><p>This league may have been deleted or closed.</p>";
+                return;
+            }
+
+            // Check Auth
+            const { data: { session } } = await sb.auth.getSession();
+            sessionUser = session ? session.user : null;
+
+            renderJoinScreen(league.league_name);
+        }
+
+        function renderJoinScreen(leagueName) {
+            const panel = document.getElementById('main-panel');
+            
+            if (sessionUser) {
+                // Logged in with PRO Card
+                const cachedProfile = JSON.parse(localStorage.getItem('subsoccer-user') || '{}');
+                const username = cachedProfile.username || 'PRO Player';
+                
+                panel.innerHTML = `
+                    <i class="fa-solid fa-crown" style="font-size: 4rem; color: var(--sub-gold); margin-bottom: 20px;"></i>
+                    <h2 style="font-family: 'Subsoccer', sans-serif; margin: 0; color: #fff; letter-spacing: 2px;">${leagueName}</h2>
+                    <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 30px;">Authenticating as <b>${username}</b></p>
+                    
+                    <button class="btn-gold" onclick="joinAsPro()">CONFIRM AND JOIN</button>
+                    <button onclick="window.location.href='login.html?redirect=join-league.html?id=${targetLeagueId}'" style="background: none; border: none; color: #888; margin-top: 20px; text-decoration: underline; cursor: pointer;">Not you? Switch account</button>
+                `;
+            } else {
+                // Guest
+                panel.innerHTML = `
+                    <i class="fa-solid fa-user-astronaut" style="font-size: 4rem; color: #fff; margin-bottom: 20px;"></i>
+                    <h2 style="font-family: 'Subsoccer', sans-serif; margin: 0; color: var(--sub-gold); letter-spacing: 2px;">${leagueName}</h2>
+                    <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 30px;">Enter your name to join event</p>
+                    
+                    <input type="text" id="guest-name" class="input-text" placeholder="Your Name" />
+                    <button class="btn-gold" onclick="joinAsGuest()">JOIN LEAGUE</button>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #222;">
+                        <p style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">Already have a player card?</p>
+                        <button onclick="window.location.href='login.html?redirect=join-league.html?id=${targetLeagueId}'" style="background: transparent; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer;">LOG IN TO JOIN</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function joinAsGuest() {
+            const name = document.getElementById('guest-name').value.trim();
+            if (!name) return;
+
+            // Notice we set guest_name instead of player_id
+            const { error } = await sb.from('league_participants').insert({
+                league_id: targetLeagueId,
+                guest_name: name
+            });
+
+            handleJoinResult(error);
+        }
+
+        async function joinAsPro() {
+            const { error } = await sb.from('league_participants').insert({
+                league_id: targetLeagueId,
+                player_id: sessionUser.id
+            });
+
+            handleJoinResult(error);
+        }
+
+        function handleJoinResult(error) {
+            const panel = document.getElementById('main-panel');
+            if (error) {
+                // If violation of unique constraint
+                if (error.code === '23505') {
+                    panel.innerHTML = `
+                        <i class="fa-solid fa-check-circle" style="font-size: 5rem; color: #4CAF50; margin-bottom: 20px;"></i>
+                        <h2>You're Already In!</h2>
+                        <p style="color: #bbb;">Look at the main screen for the draft draw.</p>
+                    `;
+                } else {
+                    panel.innerHTML = `
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size: 4rem; color: #f44336; margin-bottom: 20px;"></i>
+                        <h3>Error Joining</h3>
+                        <p style="color: #bbb;">${error.message}</p>
+                    `;
+                }
+            } else {
+                panel.innerHTML = `
+                    <i class="fa-solid fa-check-circle" style="font-size: 5rem; color: #4CAF50; margin-bottom: 20px;"></i>
+                    <h2 style="font-family: 'Subsoccer', sans-serif; letter-spacing: 2px;">JOINED!</h2>
+                    <p style="color: #bbb; line-height: 1.5;">Look at the main screen.<br>Waiting for the host to shuffle groups...</p>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
