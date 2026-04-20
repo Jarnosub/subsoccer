@@ -294,3 +294,25 @@ window.showOwnershipTransferDialog = showOwnershipTransferDialog;
 window.closeOwnershipTransferDialog = closeOwnershipTransferDialog;
 window.viewOwnershipRequests = viewOwnershipRequests;
 window.closeOwnershipRequestsModal = closeOwnershipRequestsModal;
+
+// Auto-fill product registration if URL parameters exist
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const presetModel = params.get('preset_model');
+    const presetSerial = params.get('preset_serial');
+    
+    if (presetModel || presetSerial) {
+        setTimeout(() => {
+            const nameInput = document.getElementById('game-name-input');
+            const serialInput = document.getElementById('game-serial-input');
+            
+            if (presetModel && nameInput) nameInput.value = presetModel;
+            if (presetSerial && serialInput) serialInput.value = presetSerial;
+            
+            // Switch to profile view if not already there
+            if (typeof window.switchTab === 'function') {
+                window.switchTab('profile');
+            }
+        }, 800); // Wait for auth/UI to settle
+    }
+});
