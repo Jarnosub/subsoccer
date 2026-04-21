@@ -609,8 +609,14 @@
                 return;
             }
 
-            alert(`${group.groupName} successfully dispatched to TABLE ${tableNumber}!\\n\\nTheir full bracket is now running on that iPad.`);
-            btn.closest('div').parentElement.parentElement.remove();
+            // Immediately re-render to lock the UI visually into "Playing on Table XY"
+            renderLeagueGroups(currentLeagueId, window.currentLeagueGroups);
+            
+            // Wait a tiny bit before putting up the alert to ensure the UI paints behind it
+            setTimeout(() => {
+                alert(`${group.groupName} successfully dispatched to TABLE ${tableNumber}!\\n\\nTheir full bracket is now running on that iPad.`);
+                btn.closest('div').parentElement.parentElement.remove();
+            }, 100);
         }
 
         async function saveGroupAdvance(leagueId, winnerName) {
