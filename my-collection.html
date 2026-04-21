@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer - My Collection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Open Sans', sans-serif; background: #0a0a0a; color: white; min-height: 100dvh; margin: 0; }
+        .page-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top, 20px)); background: #111; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .page-title { font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 2px; color: #fff; }
+        
+        .collection-grid { padding: 20px; display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 800px; margin: 0 auto; }
+        
+        .collection-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+        .collection-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #D4AF37;
+        }
+        
+        .card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .card-icon { width: 40px; height: 40px; border-radius: 8px; background: rgba(212, 175, 55, 0.1); display: flex; align-items: center; justify-content: center; color: #D4AF37; font-size: 1.2rem; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; margin-top: 20px; }
+        .empty-state i { font-size: 3rem; color: #333; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <button onclick="window.location.href='index.html'" style="background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; width: 30px; text-align: left;"><i class="fas fa-arrow-left"></i></button>
+        <div class="page-title">MY COLLECTION</div>
+        <div style="width: 30px;"></div>
+    </div>
+
+    <div class="collection-grid" id="collection-container">
+        <!-- Loader -->
+        <div style="text-align: center; margin-top: 50px; color: #888;">
+            <i class="fas fa-circle-notch fa-spin"></i> Loading assets...
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+        async function loadCollection() {
+            const cachedUser = localStorage.getItem('subsoccer-user');
+            if (!cachedUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const { data: { session } } = await sb.auth.getSession();
+            if(!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const container = document.getElementById('collection-container');
+
+            // Fetch hardware explicitly tied to this user (e.g., from 'games' table acting as hardware nodes)
+            const { data: hardware, error } = await sb.from('games').select('*').limit(5); // Adjust for real owner_id filtering
+
+            let html = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.7rem; color: #888; letter-spacing: 2px;">PHYSICAL ASSETS</div>
+                    <button onclick="window.location.href='register.html'" style="background: none; border: none; color: #D4AF37; font-size: 0.8rem; cursor: pointer; font-weight: bold;"><i class="fas fa-plus"></i> ADD NEW</button>
+                </div>
+            `;
+
+            if (hardware && hardware.length > 0) {
+                // In a real scenario, we'd filter by owner_id or user.id
+                // For MVP display purposes, we list them nicely
+                hardware.forEach(hw => {
+                    html += `
+                        <div class="collection-card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-table"></i></div>
+                                <div>
+                                    <div style="font-weight: bold; font-size: 1.1rem;">${hw.game_name}</div>
+                                    <div style="font-size: 0.8rem; color: #888; font-family: 'Open Sans', sans-serif;">Arcade Node • ${hw.location || 'Unknown Location'}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-top: 15px;">
+                                <button onclick="alert('Feature coming soon: Configure specific asset skins and settings.')" style="flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;">CONFIGURE</button>
+                                <button onclick="alert('Feature coming soon: View physical asset stats.')" style="background: transparent; border: 1px solid #333; color: #888; width: 40px; border-radius: 6px; font-size: 0.9rem; cursor: pointer;"><i class="fas fa-chart-bar"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <h3 style="margin-bottom: 10px;">No Physical Assets</h3>
+                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 20px;">You haven't registered any Subsoccer equipment to your collection yet.</p>
+                        <button onclick="window.location.href='register.html'" style="background: #D4AF37; color: #000; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; letter-spacing: 1px; font-size: 0.8rem;">REGISTER GEAR</button>
+                    </div>
+                `;
+            }
+
+            // Digital Assets Section MVP Placeholder
+            html += `
+                <div style="font-family: 'Resolve', sans-serif; font-size: 0.7rem; color: #888; letter-spacing: 2px; margin-top: 30px; margin-bottom: 10px;">DIGITAL ASSETS</div>
+                
+                <div class="collection-card" style="border-left: 4px solid #4a9eff;">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(74, 158, 255, 0.1); color: #4a9eff;"><i class="fas fa-id-card"></i></div>
+                        <div>
+                            <div style="font-weight: bold; font-size: 1.1rem;">Digital Pro Card</div>
+                            <div style="font-size: 0.8rem; color: #888;">Active Subscription</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 15px;">Your digital player identity. Grants access to Pro Leagues and ELO rankings.</div>
+                    <button onclick="window.location.href='player-card.html'" style="background: rgba(74, 158, 255, 0.1); border: 1px solid rgba(74, 158, 255, 0.3); color: #4a9eff; padding: 10px 15px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;">VIEW CARD</button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadCollection);
+    </script>
+</body>
+</html>

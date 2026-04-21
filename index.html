@@ -237,7 +237,7 @@
                 <a href="pro-leagues.html" id="menu-league-link" style="color: #D4AF37; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-crown" style="color: var(--sub-gold); width: 40px; text-align: center;"></i> PRO LEAGUES</a>
 
                 <!-- 2. Kokoelma ja Omistajuus (Assets) -->
-                <a href="owner-dashboard.html" id="menu-owner-link" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-layer-group" style="color: #fff; width: 40px; text-align: center;"></i> MY COLLECTION</a>
+                <a href="my-collection.html" id="menu-owner-link" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-layer-group" style="color: #fff; width: 40px; text-align: center;"></i> MY COLLECTION</a>
                 <a href="register.html" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center;"><i class="fa-solid fa-plus" style="color: #fff; width: 40px; text-align: center;"></i> ADD TO COLLECTION</a>
 
                 <!-- 3. Kauppa & Tuki (Secondary) -->
@@ -363,12 +363,25 @@
             
             // Menu toggles
             document.getElementById('menu-profile-link').style.display = 'flex';
-            document.getElementById('menu-league-link').style.display = 'flex';
             document.getElementById('menu-logout-link').style.display = 'flex';
             
-            if (player.is_owner || player.is_admin) {
-                document.getElementById('menu-owner-link').style.display = 'flex';
+            // My Collection is visible to every registered user
+            document.getElementById('menu-owner-link').style.display = 'flex';
+
+            // Pro Leagues - grayed out for standard users (only admins can click)
+            const leagueLink = document.getElementById('menu-league-link');
+            leagueLink.style.display = 'flex';
+            if (player.is_admin || player.is_owner) {
+                leagueLink.style.opacity = '1';
+                leagueLink.onclick = null;
+            } else {
+                leagueLink.style.opacity = '0.3';
+                leagueLink.onclick = (e) => { 
+                    e.preventDefault(); 
+                    alert("Pro Leagues is currently in closed beta. Only verified organizers can host tournaments."); 
+                };
             }
+            
             if (player.is_admin) {
                 document.getElementById('menu-mod-link').style.display = 'flex';
             }
