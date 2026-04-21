@@ -447,7 +447,8 @@
         async function fetchData() {
             document.getElementById('loading').style.display = 'flex';
             
-            const days = parseInt(document.getElementById('timeFilter').value) || 7;
+            const timeFilterEl = document.getElementById('timeFilter');
+            const days = timeFilterEl ? (parseInt(timeFilterEl.value) || 7) : 7;
             const isAllTime = (days >= 9999);
             const pastDate = new Date();
             pastDate.setDate(pastDate.getDate() - days);
@@ -480,7 +481,8 @@
                 let trackingQuery = client.from('public_tracking').select('*').order('client_time', { ascending: false }).limit(2000);
                 if (!isAllTime) trackingQuery = trackingQuery.gte('client_time', dateStr);
                 
-                const partnerFilter = document.getElementById('partnerFilter').value;
+                const partnerFilterEl = document.getElementById('partnerFilter');
+                const partnerFilter = partnerFilterEl ? partnerFilterEl.value : 'all';
                 if (partnerFilter !== 'all') {
                     // Match the source_partner substring to the filter choice
                     trackingQuery = trackingQuery.ilike('source_partner', `%${partnerFilter}%`);
@@ -597,7 +599,8 @@
             if (!data) return;
 
             // Suodatus event-tyypin mukaan
-            const eventFilter = document.getElementById('eventFilter').value;
+            const eventFilterEl = document.getElementById('eventFilter');
+            const eventFilter = eventFilterEl ? eventFilterEl.value : 'ALL';
             const filteredData = eventFilter === 'ALL' ? data : data.filter(d => d.event_type === eventFilter);
 
             // Populate Table
@@ -634,7 +637,8 @@
                 return;
             }
             
-            const eventFilter = document.getElementById('eventFilter').value;
+            const eventFilterEl = document.getElementById('eventFilter');
+            const eventFilter = eventFilterEl ? eventFilterEl.value : 'ALL';
             const filteredData = eventFilter === 'ALL' ? globalTrackingData : globalTrackingData.filter(d => d.event_type === eventFilter);
 
             const headers = ["Timestamp", "EventType", "UserType", "Score/Details", "Location"];
@@ -874,7 +878,8 @@
             
             try {
                 // Determine time filter to apply (reuse the dashboard's current filter)
-                const days = parseInt(document.getElementById('timeFilter').value);
+                const timeFilterEl = document.getElementById('timeFilter');
+                const days = timeFilterEl ? parseInt(timeFilterEl.value) : 7;
                 let query = client.from('feedback').select('*').order('created_at', { ascending: false });
                 
                 if (days < 9000) {
