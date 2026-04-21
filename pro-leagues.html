@@ -230,6 +230,15 @@
         async function openLeagueLobby(leagueId, leagueName) {
             const container = document.getElementById('main-content');
             
+            // First check the state of the league!
+            const { data: leagueInfo } = await sb.from('pro_leagues').select('*').eq('id', leagueId).single();
+            if (leagueInfo && (leagueInfo.status === 'group_stage' || leagueInfo.status === 'playoffs')) {
+                if (leagueInfo.groups_data) {
+                    renderLeagueGroups(leagueId, leagueInfo.groups_data);
+                    return;
+                }
+            }
+            
             // Cleanup previous listener
             if (window.activeLobbyChannel) {
                 sb.removeChannel(window.activeLobbyChannel);
@@ -369,8 +378,11 @@
             const maxPerGroup = 8;
             const groups = window.LeagueEngine.assignGroups(playerNames, maxPerGroup);
             
-            // Mark the league as officially in the group stage
-            await sb.from('pro_leagues').update({ status: 'group_stage' }).eq('id', leagueId);
+            // Mark the league as officially in the group stage AND save the group structure to the DB
+            await sb.from('pro_leagues').update({ 
+                status: 'group_stage',
+                groups_data: groups 
+            }).eq('id', leagueId);
 
             renderLeagueGroups(leagueId, groups);
         }

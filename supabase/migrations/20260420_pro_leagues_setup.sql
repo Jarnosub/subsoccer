@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS pro_leagues (
   organizer_id UUID REFERENCES players(id),
   status TEXT DEFAULT 'enrolling', -- enrolling, drawing, group_stage, playoffs, completed
   group_size INTEGER DEFAULT 8,
+  groups_data JSONB, -- stores the localized array of assigned groups/seedings
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
