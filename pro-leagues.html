@@ -376,14 +376,27 @@
         }
 
         let currentLeagueId = null;
+        let activeGroupSessionsListener = null;
 
-        function renderLeagueGroups(leagueId, groups) {
+        async function renderLeagueGroups(leagueId, groups) {
             const container = document.getElementById('main-content');
             currentLeagueId = leagueId;
             window.currentLeagueGroups = groups;
             
+            if (activeGroupSessionsListener) {
+                sb.removeChannel(activeGroupSessionsListener);
+            }
             if (window.activeLobbyChannel) {
                 sb.removeChannel(window.activeLobbyChannel);
+            }
+
+            // Fetch table sessions for this league to know which groups are dispatched/finished
+            const { data: tableSessions } = await sb.from('pro_table_sessions').select('*').eq('league_id', leagueId);
+            const sessionMap = {};
+            if (tableSessions) {
+                tableSessions.forEach(ts => {
+                    sessionMap[ts.group_name] = ts;
+                });
             }
             
             let groupsHtml = '';
@@ -392,17 +405,48 @@
                     <div style="padding: 12px; background: rgba(255,255,255,0.03); margin-bottom: 5px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-family: 'Resolve', sans-serif;">
                         ${p}
                     </div>`).join('');
+                
+                const session = sessionMap[g.groupName];
+                let controlsHtml = '';
+
+                if (session && session.status === 'completed') {
+                    // Lock in the winner to the master participants table
+                    saveGroupAdvance(leagueId, session.group_winner);
                     
-                groupsHtml += `
-                    <div class="panel" style="margin-bottom: 20px;">
-                        <h3 style="color: var(--sub-gold); margin-top: 0; font-family: 'Subsoccer', sans-serif; letter-spacing: 2px;">${g.groupName}</h3>
-                        ${pList}
+                    controlsHtml = `
+                        <div style="margin-top: 15px; background: rgba(76, 175, 80, 0.1); border: 1px solid #4CAF50; padding: 15px; border-radius: 8px;">
+                            <h4 style="color: #4CAF50; margin: 0 0 5px 0;"><i class="fa-solid fa-check-circle"></i> GROUP COMPLETED</h4>
+                            <div style="color: #fff;">Winner Advancing: <b style="color: var(--sub-gold);">${session.group_winner}</b></div>
+                        </div>
+                    `;
+                } else if (session) {
+                    controlsHtml = `
+                        <div style="margin-top: 15px; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px;">
+                            <div style="color: var(--sub-gold); margin-bottom: 10px;"><i class="fa-solid fa-tablet-screen-button"></i> Playing on Table ${session.table_number}...</div>
+                            <button class="btn-outline" style="border-color: #333;" onclick="playGroupBracket(${idx})">
+                                <i class="fa-solid fa-eye" style="color: #666; margin-right: 5px;"></i> MONITOR MANUAL BRACKET
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    controlsHtml = `
                         <button class="btn-outline" style="margin-top: 15px;" onclick="showGroupDispatchModal(${idx})">
                             <i class="fa-solid fa-gamepad" style="color: #fff; margin-right: 5px;"></i> DISPATCH GROUP TO TABLE
                         </button>
                         <button class="btn-outline" style="margin-top: 15px; border-color: #333; margin-left: 10px;" onclick="playGroupBracket(${idx})">
-                            <i class="fa-solid fa-eye" color: #666; margin-right: 5px;"></i> VIEW BRACKET
+                            <i class="fa-solid fa-eye" style="color: #666; margin-right: 5px;"></i> VIEW BRACKET
                         </button>
+                    `;
+                }
+                    
+                groupsHtml += `
+                    <div class="panel" style="margin-bottom: 20px;">
+                        <h3 style="color: var(--sub-gold); margin-top: 0; font-family: 'Subsoccer', sans-serif; letter-spacing: 2px;">${g.groupName}</h3>
+                        ${controlsHtml}
+                        <div style="margin-top: 15px;">
+                            <div style="font-size: 0.8rem; color: #666; margin-bottom: 10px; text-transform: uppercase;">Players in this Group</div>
+                            ${pList}
+                        </div>
                     </div>
                 `;
             });
@@ -412,7 +456,7 @@
                     <button class="back-btn" onclick="loadLeaguesDashboard()">
                         <i class="fa-solid fa-arrow-left"></i>
                     </button>
-                    <h2 style="font-family: 'Subsoccer', sans-serif; letter-spacing: 2px; color: #fff; text-align: center; margin: 0; flex: 1;">GROUP STAGE DRAWN</h2>
+                    <h2 style="font-family: 'Subsoccer', sans-serif; letter-spacing: 2px; color: #fff; text-align: center; margin: 0; flex: 1;">GROUP STAGE HUB</h2>
                     <div style="width: 24px;"></div>
                 </div>
                 
@@ -425,6 +469,22 @@
                     <div style="font-size: 0.75rem; color: #666; margin-top: 10px;">Requires all group stages to be completed</div>
                 </div>
             `;
+            
+            // Re-mount realtime listener for automatic UI updates
+            activeGroupSessionsListener = sb.channel('hub-sessions')
+              .on('postgres_changes', { 
+                  event: '*', 
+                  schema: 'public', 
+                  table: 'pro_table_sessions',
+                  filter: `league_id=eq.${leagueId}`
+              }, payload => {
+                  // Only re-render if we are still on the group view
+                  if (document.querySelector('h2') && document.querySelector('h2').innerText.includes('GROUP STAGE HUB')) {
+                      // Re-render entirely to reflect new statuses cleanly
+                      renderLeagueGroups(leagueId, window.currentLeagueGroups);
+                  }
+              })
+              .subscribe();
         }
 
         async function playGroupBracket(groupIndex) {
