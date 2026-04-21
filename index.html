@@ -232,21 +232,20 @@
             <img src="subsoccer_logo.svg" style="cursor: pointer; height: 40px; margin-top: 10px; margin-bottom: 50px; align-self: flex-start; pointer-events: none;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
 
             <div style="display: flex; flex-direction: column; gap: 20px; font-family: 'Resolve', sans-serif; font-size: 1.1rem; letter-spacing: 2px;">
-                
-                <a href="register.html" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center;"><i class="fa-solid fa-plus" style="color: #fff; width: 40px; text-align: center;"></i> ADD TO COLLECTION</a>
-
-                <a href="https://subsoccer.com" target="_blank" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center;"><i class="fa-solid fa-cart-shopping" style="color: #fff; width: 40px; text-align: center;"></i> BUY YOUR OWN SUBSOCCER</a>
-                
-                <a href="#" onclick="const fb = document.getElementById('beta-feedback-btn'); if(fb) fb.click(); else alert('Feedback service is temporarily unavailable.'); document.getElementById('main-nav-menu').style.display='none'; return false;" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center;"><i class="fa-solid fa-comment-dots" style="color: #fff; width: 40px; text-align: center;"></i> GIVE FEEDBACK</a>
-                
+                <!-- 1. Pelaaja ensin (Daily Use) -->
                 <a href="player-card.html" id="menu-profile-link" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-user" style="color: #fff; width: 40px; text-align: center;"></i> MY PROFILE</a>
-
                 <a href="pro-leagues.html" id="menu-league-link" style="color: #D4AF37; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-crown" style="color: var(--sub-gold); width: 40px; text-align: center;"></i> PRO LEAGUES</a>
 
+                <!-- 2. Kokoelma ja Omistajuus (Assets) -->
                 <a href="owner-dashboard.html" id="menu-owner-link" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-layer-group" style="color: #fff; width: 40px; text-align: center;"></i> MY COLLECTION</a>
+                <a href="register.html" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center;"><i class="fa-solid fa-plus" style="color: #fff; width: 40px; text-align: center;"></i> ADD TO COLLECTION</a>
 
+                <!-- 3. Kauppa & Tuki (Secondary) -->
+                <a href="https://subsoccer.com" target="_blank" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center;"><i class="fa-solid fa-cart-shopping" style="color: #fff; width: 40px; text-align: center;"></i> BUY YOUR OWN SUBSOCCER</a>
+                <a href="#" onclick="const fb = document.getElementById('beta-feedback-btn'); if(fb) fb.click(); else alert('Feedback service is temporarily unavailable.'); document.getElementById('main-nav-menu').style.display='none'; return false;" style="color: #fff; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: flex; align-items: center;"><i class="fa-solid fa-comment-dots" style="color: #fff; width: 40px; text-align: center;"></i> GIVE FEEDBACK</a>
+
+                <!-- 4. Järjestelmä (Bottom) -->
                 <a href="moderator.html" id="menu-mod-link" style="color: #D4AF37; text-decoration: none; border-bottom: 1px solid #222; padding-bottom: 15px; display: none; align-items: center;"><i class="fa-solid fa-shield-halved" style="color: #E30613; width: 40px; text-align: center;"></i> MODERATOR TOOLS</a>
-
                 <a href="#" id="menu-logout-link" onclick="hubLogout()" style="color: #E30613; text-decoration: none; padding-bottom: 15px; display: none; align-items: center; margin-top: 10px;"><i class="fa-solid fa-right-from-bracket" style="width: 40px; text-align: center;"></i> LOG OUT</a>
             </div>
         </div>
