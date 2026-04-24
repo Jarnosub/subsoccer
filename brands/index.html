@@ -12,15 +12,15 @@
     <style>
         @font-face {
             font-family: 'SubsoccerLogo';
-            src: url('../fonts/Subsoccer-2-Regular.woff2') format('woff2'), url('../fonts/Subsoccer-2-Regular.woff') format('woff'), url('../fonts/Subsoccer-2-Regular.otf') format('opentype');
+            src: url('/fonts/Subsoccer-2-Regular.woff2') format('woff2'), url('/fonts/Subsoccer-2-Regular.woff') format('woff'), url('/fonts/Subsoccer-2-Regular.otf') format('opentype');
         }
         @font-face {
             font-family: 'Resolve';
-            src: url('../fonts/Resolve-BoldNrw.otf') format('opentype');
+            src: url('/fonts/Resolve-BoldNrw.otf') format('opentype');
         }
         @font-face {
             font-family: 'ResolveRegular';
-            src: url('../fonts/Resolve-RegularCn.otf') format('opentype');
+            src: url('/fonts/Resolve-RegularCn.otf') format('opentype');
         }
         @font-face {
             font-family: 'Open Sans';
@@ -287,7 +287,7 @@
 
         <div class="top-header">
             <!-- Login button -->
-            <button id="hub-login-btn" style="display: flex; align-items: center; gap: 6px; background: rgba(8, 55, 75, 0.9); padding: 0 14px; height: 42px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(5px); cursor: pointer; margin-top: 4px;" onclick="window.location.href='../login.html?source=go&redirect=brands/'+brandSlug+'/'">
+            <button id="hub-login-btn" style="display: flex; align-items: center; gap: 6px; background: rgba(8, 55, 75, 0.9); padding: 0 14px; height: 42px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(5px); cursor: pointer; margin-top: 4px;" onclick="window.location.href='/login.html?source=go&redirect=brands/'+brandSlug+'/'">
                 <i class="fa-solid fa-right-to-bracket" style="color: #fff; font-size: 0.8rem; pointer-events: none;"></i>
                 <span style="color: #fff; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px; pointer-events: none;">LOG IN</span>
             </button>
@@ -322,7 +322,7 @@
             <!-- Powered by Subsoccer -->
             <a href="https://subsoccer.com" target="_blank" class="powered-by" style="text-decoration: none;">
                 <span>Powered by</span>
-                <img src="../subsoccer_logo.svg" alt="Subsoccer">
+                <img src='/subsoccer_logo.svg' alt="Subsoccer">
             </a>
         </div>
     </div>
@@ -375,7 +375,7 @@
             // Navigation
             const gameUrl = `../mobile-game.html?brand=${brandSlug}`;
             document.getElementById('btn-tournament').onclick = () => location.href = gameUrl;
-            document.getElementById('btn-scan').onclick = () => location.href = '../scan-code.html';
+            document.getElementById('btn-scan').onclick = () => location.href = '/scan-code.html';
 
             // Hide loading
             document.getElementById('brand-loading').classList.add('loaded');
