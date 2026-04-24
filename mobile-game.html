@@ -814,6 +814,19 @@
         }
     </script>
 
+    <!-- KIA BRANDING OVERRIDE (auto-detect subdomain) -->
+    <script>
+        if (location.hostname === 'kia.subsoccer.pro') {
+            document.querySelectorAll('img[src="subsoccer_logo.svg"]').forEach(img => {
+                img.src = 'kia/logo_kia_white-rbr.avif';
+                img.style.height = img.style.height ? img.style.height : '28px';
+            });
+            document.querySelectorAll('.setup-logo').forEach(img => {
+                img.src = 'kia/logo_kia_white-rbr.avif';
+            });
+        }
+    </script>
+
     <!-- GAME LOGIC -->
     <script type="module" src="mobile-game-logic.js?v=2"></script>
 
