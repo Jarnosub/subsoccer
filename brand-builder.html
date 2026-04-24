@@ -524,6 +524,16 @@
                 </div>
             </div>
 
+            <div class="control-group">
+                <label class="control-label">Game / Tournament Background (JPG, 1920×1080)</label>
+                <div class="upload-zone" id="game-hero-zone">
+                    <div class="upload-icon"><i class="fa-solid fa-gamepad"></i></div>
+                    <div class="upload-text">Click or drag to upload game background</div>
+                    <div class="upload-filename" id="game-hero-filename"></div>
+                    <input type="file" accept="image/*" onchange="handleGameHeroUpload(this)">
+                </div>
+            </div>
+
             <div class="divider"></div>
 
             <button class="btn-generate" onclick="generateBrand()">
@@ -595,6 +605,7 @@
 
         let logoFile = null;
         let heroFile = null;
+        let gameHeroFile = null;
         let logoDataUrl = null;
         let heroDataUrl = null;
         let _sb = null;
@@ -637,6 +648,13 @@
             reader.readAsDataURL(heroFile);
         }
 
+        function handleGameHeroUpload(input) {
+            if (!input.files[0]) return;
+            gameHeroFile = input.files[0];
+            document.getElementById('game-hero-filename').innerText = gameHeroFile.name;
+            document.getElementById('game-hero-zone').classList.add('has-file');
+        }
+
         async function generateBrand() {
             const name = document.getElementById('brand-name').value.trim();
             const slug = document.getElementById('brand-slug').value.trim();
@@ -676,6 +694,19 @@
                 const { data: logoData } = _sb.storage.from('brand-assets').getPublicUrl(logoPath);
                 const { data: heroData } = _sb.storage.from('brand-assets').getPublicUrl(heroPath);
 
+                // 3. Upload game hero (optional)
+                let gameHeroPublicUrl = null;
+                if (gameHeroFile) {
+                    const ghExt = gameHeroFile.name.split('.').pop();
+                    const ghPath = `${slug}/game-hero.${ghExt}`;
+                    const { error: ghErr } = await _sb.storage
+                        .from('brand-assets')
+                        .upload(ghPath, gameHeroFile, { upsert: true, contentType: gameHeroFile.type });
+                    if (ghErr) throw new Error('Game hero upload failed: ' + ghErr.message);
+                    const { data: ghData } = _sb.storage.from('brand-assets').getPublicUrl(ghPath);
+                    gameHeroPublicUrl = ghData.publicUrl;
+                }
+
                 // 4. Upsert brand record
                 const { data: session } = await _sb.auth.getSession();
                 const brandRecord = {
@@ -688,6 +719,7 @@
                     created_by: session.session.user.id,
                     is_active: true
                 };
+                if (gameHeroPublicUrl) brandRecord.game_hero_url = gameHeroPublicUrl;
 
                 // Try update first, then insert
                 const { data: existing } = await _sb
