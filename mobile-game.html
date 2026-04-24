@@ -814,17 +814,42 @@
         }
     </script>
 
-    <!-- KIA BRANDING OVERRIDE (auto-detect subdomain) -->
+    <!-- WHITE LABEL BRAND ENGINE (auto-detect from ?brand= param or subdomain) -->
     <script>
-        if (location.hostname === 'kia.subsoccer.pro') {
-            document.querySelectorAll('img[src="subsoccer_logo.svg"]').forEach(img => {
-                img.src = 'kia/logo_kia_white-rbr.avif';
-                img.style.height = img.style.height ? img.style.height : '28px';
-            });
-            document.querySelectorAll('.setup-logo').forEach(img => {
-                img.src = 'kia/logo_kia_white-rbr.avif';
-            });
-        }
+        (async function applyBranding() {
+            // Detect brand from URL param or subdomain
+            const params = new URLSearchParams(location.search);
+            let brandSlug = params.get('brand');
+
+            // Fallback: subdomain detection (kia.subsoccer.pro → kia)
+            if (!brandSlug) {
+                const host = location.hostname;
+                const sub = host.split('.')[0];
+                if (sub !== 'subsoccer' && sub !== 'www') brandSlug = sub;
+            }
+
+            if (!brandSlug) return; // No brand — default Subsoccer
+
+            try {
+                const res = await fetch(`/brands/${brandSlug}/brand.json?t=${Date.now()}`);
+                if (!res.ok) return;
+                const brand = await res.json();
+                const logoUrl = `/brands/${brandSlug}/${brand.logo}`;
+
+                // Swap all Subsoccer logos
+                document.querySelectorAll('img[src="subsoccer_logo.svg"]').forEach(img => {
+                    img.src = logoUrl;
+                });
+                document.querySelectorAll('.setup-logo').forEach(img => {
+                    img.src = logoUrl;
+                });
+
+                // Store brand slug for back-navigation
+                sessionStorage.setItem('active-brand', brandSlug);
+            } catch(e) {
+                console.log('Brand load skipped:', e);
+            }
+        })();
     </script>
 
     <!-- GAME LOGIC -->

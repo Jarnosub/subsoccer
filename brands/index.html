@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer GO - Brand Experience</title>
+    <meta name="robots" content="noindex, nofollow">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../style.css?v=3">
+    <link rel="stylesheet" href="../the-forge.css?v=3">
+
+    <style>
+        body, html {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            background-color: #0a0a0a;
+            font-family: var(--sub-name-font);
+        }
+
+        /* ============ PASSWORD GATE ============ */
+        #password-gate {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #0a0a0a;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        #password-gate.unlocked { display: none; }
+        #gate-logo { height: 50px; margin-bottom: 10px; }
+        #gate-subtitle {
+            color: #555;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+        #password-gate input {
+            width: 260px;
+            padding: 14px 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            background: #111;
+            color: #fff;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-align: center;
+            outline: none;
+        }
+        #password-gate input:focus { border-color: var(--sub-gold); }
+        #password-gate button {
+            width: 260px;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, var(--sub-red), #900000);
+            color: #fff;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .error-msg {
+            color: var(--sub-red);
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            height: 16px;
+        }
+
+        /* ============ HERO ============ */
+        .hero-background {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-size: cover;
+            background-position: center top;
+            z-index: 0;
+            filter: brightness(0.85) contrast(1.05);
+        }
+        .hero-vignette {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, transparent 30%, rgba(0,0,0,0.15) 60%, rgba(0,0,0,0.6) 100%);
+            z-index: 1;
+        }
+
+        /* ============ HEADER ============ */
+        .top-header {
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            padding: calc(20px + env(safe-area-inset-top, 20px)) 20px 20px;
+            box-sizing: border-box;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .brand-logo {
+            height: 40px;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
+        }
+
+        /* ============ HUB MENU ============ */
+        .hub-menu {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%;
+            padding: 20px 20px calc(30px + env(safe-area-inset-bottom, 20px));
+            box-sizing: border-box;
+            z-index: 10;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 16px;
+        }
+        .btn-play-now {
+            width: 100%; max-width: 400px;
+            background: linear-gradient(135deg, var(--sub-red), #900000);
+            color: #fff;
+            border: none;
+            padding: 25px;
+            border-radius: 16px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn-play-now:active { transform: scale(0.97); }
+
+        .btn-secondary {
+            width: 100%; max-width: 400px;
+            background: rgba(8, 55, 75, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.3s;
+        }
+        .btn-secondary:active { transform: scale(0.97); }
+
+        /* ============ POWERED BY ============ */
+        .powered-by {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        .powered-by:hover { opacity: 0.8; }
+        .powered-by span {
+            color: #888;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .powered-by img { height: 16px; }
+
+        /* ============ LOADING ============ */
+        #brand-loading {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #0a0a0a;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+        }
+        #brand-loading.loaded { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- LOADING (until brand.json is fetched) -->
+    <div id="brand-loading">LOADING...</div>
+
+    <!-- PASSWORD GATE -->
+    <div id="password-gate" style="display: none;">
+        <img id="gate-logo" src="" alt="Brand">
+        <div id="gate-subtitle"></div>
+        <input type="password" id="gate-password" placeholder="Enter password" autocomplete="off" onkeydown="if(event.key==='Enter') checkPassword()">
+        <button onclick="checkPassword()">ENTER</button>
+        <div class="error-msg" id="gate-error"></div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main-content" style="display: none;">
+        <div class="hero-background" id="hero-bg"></div>
+        <div class="hero-vignette"></div>
+
+        <div class="top-header">
+            <img id="header-logo" class="brand-logo" src="" alt="Brand">
+        </div>
+
+        <div class="hub-menu">
+            <button class="btn-play-now" id="btn-tournament">
+                <i class="fa-solid fa-trophy" style="font-size: 1.4rem; margin-bottom: 5px;"></i>
+                CREATE TOURNAMENT
+            </button>
+
+            <button class="btn-secondary" id="btn-scan">
+                <i class="fa-solid fa-qrcode"></i> SCAN TO JOIN
+            </button>
+
+            <!-- Powered by Subsoccer -->
+            <a href="https://subsoccer.com" target="_blank" class="powered-by" style="text-decoration: none;">
+                <span>Powered by</span>
+                <img src="../subsoccer_logo.svg" alt="Subsoccer">
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // BRAND ENGINE — Reads brand.json from the current folder
+        // ============================================================
+        let brandConfig = {};
+        const brandSlug = location.pathname.split('/brands/')[1]?.split('/')[0] || 'demo';
+        const brandBase = `/brands/${brandSlug}/`;
+
+        async function loadBrand() {
+            try {
+                const res = await fetch(brandBase + 'brand.json?t=' + Date.now());
+                if (!res.ok) throw new Error('brand.json not found');
+                brandConfig = await res.json();
+            } catch (e) {
+                console.error('Brand load failed:', e);
+                brandConfig = {
+                    name: 'Subsoccer GO',
+                    subtitle: 'Tournament Experience',
+                    password: '',
+                    logo: '../subsoccer_logo.svg',
+                    hero: '../Subsoccer_tournament_2.jpg'
+                };
+            }
+
+            // Apply brand
+            const logoUrl = brandConfig.logo.startsWith('http') || brandConfig.logo.startsWith('../')
+                ? brandConfig.logo
+                : brandBase + brandConfig.logo;
+            const heroUrl = brandConfig.hero.startsWith('http') || brandConfig.hero.startsWith('../')
+                ? brandConfig.hero
+                : brandBase + brandConfig.hero;
+
+            document.title = `${brandConfig.name} × Subsoccer GO`;
+
+            // Gate
+            document.getElementById('gate-logo').src = logoUrl;
+            document.getElementById('gate-subtitle').innerText = brandConfig.subtitle || '';
+
+            // Main
+            document.getElementById('hero-bg').style.backgroundImage = `url('${heroUrl}')`;
+            document.getElementById('header-logo').src = logoUrl;
+
+            // Navigation — point to shared mobile-game.html with brand param
+            const gameUrl = `../mobile-game.html?brand=${brandSlug}`;
+            document.getElementById('btn-tournament').onclick = () => location.href = gameUrl;
+            document.getElementById('btn-scan').onclick = () => location.href = '../scan-code.html';
+
+            // Hide loading
+            document.getElementById('brand-loading').classList.add('loaded');
+
+            // Show gate or content
+            if (brandConfig.password) {
+                const authKey = `brand-auth-${brandSlug}`;
+                if (sessionStorage.getItem(authKey) === 'true') {
+                    document.getElementById('main-content').style.display = 'block';
+                } else {
+                    document.getElementById('password-gate').style.display = 'flex';
+                }
+            } else {
+                // No password — show directly
+                document.getElementById('main-content').style.display = 'block';
+            }
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('gate-password');
+            if (input.value === brandConfig.password) {
+                const authKey = `brand-auth-${brandSlug}`;
+                sessionStorage.setItem(authKey, 'true');
+                document.getElementById('password-gate').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+            } else {
+                document.getElementById('gate-error').innerText = 'INCORRECT PASSWORD';
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        loadBrand();
+    </script>
+
+</body>
+</html>

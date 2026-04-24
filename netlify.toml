@@ -1,6 +1,20 @@
 [build]
   functions = "netlify/functions"
 
+# White Label Brands: /brands/SLUG/ → single brands/index.html
+# Assets (brand.json, images) pass through because they match real files
+[[redirects]]
+  from = "/brands/*/index.html"
+  to = "/brands/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/brands/*/"
+  to = "/brands/index.html"
+  status = 200
+  force = false
+
 [[redirects]]
   from = "/create-payment-intent"
   to = "/.netlify/functions/create-payment-intent"
