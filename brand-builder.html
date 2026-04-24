@@ -574,53 +574,30 @@
         </div>
     </div>
 
-    <!-- OUTPUT MODAL -->
+    <!-- SUCCESS MODAL -->
     <div class="modal-overlay" id="output-modal" onclick="if(event.target===this) this.classList.remove('open')">
         <div class="modal-box">
-            <div class="modal-title">✅ Brand Package Ready</div>
-            <div class="modal-subtitle">Follow these steps to deploy your brand:</div>
-
-            <div class="step-item">
-                <div class="step-num">1</div>
-                <div class="step-text">Create folder <code id="out-folder">brands/your-brand/</code> in the subsoccer project</div>
+            <div class="modal-title" id="modal-title">✅ Brand Published!</div>
+            <div class="modal-subtitle" id="modal-subtitle">Your brand page is now live at:</div>
+            <div class="code-block" id="out-url" style="color: var(--green); font-size: 1rem; text-align: center;">
+                <button class="copy-btn" onclick="copyLiveUrl()">Copy</button>
             </div>
-
-            <div class="step-item">
-                <div class="step-num">2</div>
-                <div class="step-text">Save this as <code>brand.json</code> in that folder:</div>
-            </div>
-            <div class="code-block" id="out-json">
-                <button class="copy-btn" onclick="copyCode('out-json')">Copy</button>
-            </div>
-
-            <div class="step-item">
-                <div class="step-num">3</div>
-                <div class="step-text">Copy your <strong>logo</strong> file into the folder as <code id="out-logo-name">logo.png</code></div>
-            </div>
-
-            <div class="step-item">
-                <div class="step-num">4</div>
-                <div class="step-text">Copy your <strong>hero image</strong> into the folder as <code id="out-hero-name">hero.jpg</code></div>
-            </div>
-
-            <div class="step-item">
-                <div class="step-num">5</div>
-                <div class="step-text">Commit & push to GitHub — your brand goes live at:</div>
-            </div>
-            <div class="code-block" id="out-url" style="color: var(--green);"></div>
-
-            <button class="btn-generate" onclick="downloadZip()" style="margin-bottom: 8px;">
-                <i class="fa-solid fa-download"></i> DOWNLOAD brand.json
-            </button>
+            <a id="out-link" href="#" target="_blank" class="btn-generate" style="text-decoration: none; text-align: center; margin-bottom: 8px;">
+                <i class="fa-solid fa-external-link-alt"></i> OPEN LIVE PAGE
+            </a>
             <button class="modal-close" onclick="document.getElementById('output-modal').classList.remove('open')">CLOSE</button>
         </div>
     </div>
 
     <script>
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+
         let logoFile = null;
         let heroFile = null;
         let logoDataUrl = null;
         let heroDataUrl = null;
+        let _sb = null;
 
         function updatePreview() {
             const name = document.getElementById('brand-name').value;
@@ -660,69 +637,108 @@
             reader.readAsDataURL(heroFile);
         }
 
-        function generateBrand() {
+        async function generateBrand() {
             const name = document.getElementById('brand-name').value.trim();
             const slug = document.getElementById('brand-slug').value.trim();
             const password = document.getElementById('brand-password').value.trim();
 
-            if (!name) return alert('Please enter a brand name');
-            if (!slug) return alert('Please enter a URL slug');
+            if (!name) return alert('Enter a brand name');
+            if (!slug) return alert('Enter a URL slug');
+            if (!logoFile) return alert('Upload a brand logo');
+            if (!heroFile) return alert('Upload a hero/cover image');
 
-            // Determine file extensions from uploaded files
-            const logoExt = logoFile ? logoFile.name.split('.').pop() : 'png';
-            const heroExt = heroFile ? heroFile.name.split('.').pop() : 'jpg';
-            const logoName = `logo.${logoExt}`;
-            const heroName = `hero.${heroExt}`;
+            const btn = document.querySelector('.btn-generate');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> PUBLISHING...';
+            btn.style.pointerEvents = 'none';
 
-            const brandJson = {
-                name: name,
-                subtitle: `${name} × Subsoccer`,
-                password: password || "",
-                logo: logoName,
-                hero: heroName
-            };
+            try {
+                // Init Supabase with current user session
+                if (!_sb) _sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-            const jsonStr = JSON.stringify(brandJson, null, 4);
+                // 1. Upload logo
+                const logoExt = logoFile.name.split('.').pop();
+                const logoPath = `${slug}/logo.${logoExt}`;
+                const { error: logoErr } = await _sb.storage
+                    .from('brand-assets')
+                    .upload(logoPath, logoFile, { upsert: true, contentType: logoFile.type });
+                if (logoErr) throw new Error('Logo upload failed: ' + logoErr.message);
 
-            // Fill modal
-            document.getElementById('out-folder').innerText = `brands/${slug}/`;
-            document.getElementById('out-json').innerHTML = `<button class="copy-btn" onclick="copyCode('out-json')">Copy</button>${jsonStr}`;
-            document.getElementById('out-logo-name').innerText = logoName;
-            document.getElementById('out-hero-name').innerText = heroName;
-            document.getElementById('out-url').innerText = `https://subsoccer.pro/brands/${slug}/`;
+                // 2. Upload hero
+                const heroExt = heroFile.name.split('.').pop();
+                const heroPath = `${slug}/hero.${heroExt}`;
+                const { error: heroErr } = await _sb.storage
+                    .from('brand-assets')
+                    .upload(heroPath, heroFile, { upsert: true, contentType: heroFile.type });
+                if (heroErr) throw new Error('Hero upload failed: ' + heroErr.message);
 
-            document.getElementById('output-modal').classList.add('open');
+                // 3. Get public URLs
+                const { data: logoData } = _sb.storage.from('brand-assets').getPublicUrl(logoPath);
+                const { data: heroData } = _sb.storage.from('brand-assets').getPublicUrl(heroPath);
+
+                // 4. Upsert brand record
+                const { data: session } = await _sb.auth.getSession();
+                const brandRecord = {
+                    slug: slug,
+                    name: name,
+                    subtitle: `${name} × Subsoccer`,
+                    password: password || '',
+                    logo_url: logoData.publicUrl,
+                    hero_url: heroData.publicUrl,
+                    created_by: session.session.user.id,
+                    is_active: true
+                };
+
+                // Try update first, then insert
+                const { data: existing } = await _sb
+                    .from('brands')
+                    .select('id')
+                    .eq('slug', slug)
+                    .maybeSingle();
+
+                if (existing) {
+                    const { error: updateErr } = await _sb
+                        .from('brands')
+                        .update(brandRecord)
+                        .eq('slug', slug);
+                    if (updateErr) throw new Error('Brand update failed: ' + updateErr.message);
+                } else {
+                    const { error: insertErr } = await _sb
+                        .from('brands')
+                        .insert(brandRecord);
+                    if (insertErr) throw new Error('Brand save failed: ' + insertErr.message);
+                }
+
+                // 5. Show success
+                const liveUrl = `https://subsoccer.pro/brands/${slug}/`;
+                document.getElementById('out-url').innerHTML = `<button class="copy-btn" onclick="copyLiveUrl()">Copy</button>${liveUrl}`;
+                document.getElementById('out-link').href = liveUrl;
+
+                if (existing) {
+                    document.getElementById('modal-title').innerText = '✅ Brand Updated!';
+                    document.getElementById('modal-subtitle').innerText = 'Your brand page has been updated:';
+                } else {
+                    document.getElementById('modal-title').innerText = '✅ Brand Published!';
+                    document.getElementById('modal-subtitle').innerText = 'Your brand page is now live at:';
+                }
+
+                document.getElementById('output-modal').classList.add('open');
+
+            } catch (e) {
+                alert('Error: ' + e.message);
+                console.error(e);
+            }
+
+            btn.innerHTML = originalText;
+            btn.style.pointerEvents = 'auto';
         }
 
-        function downloadZip() {
-            const name = document.getElementById('brand-name').value.trim();
+        function copyLiveUrl() {
             const slug = document.getElementById('brand-slug').value.trim();
-            const password = document.getElementById('brand-password').value.trim();
-            const logoExt = logoFile ? logoFile.name.split('.').pop() : 'png';
-            const heroExt = heroFile ? heroFile.name.split('.').pop() : 'jpg';
-
-            const brandJson = JSON.stringify({
-                name: name,
-                subtitle: `${name} × Subsoccer`,
-                password: password || "",
-                logo: `logo.${logoExt}`,
-                hero: `hero.${heroExt}`
-            }, null, 4);
-
-            // Download brand.json
-            const blob = new Blob([brandJson], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'brand.json';
-            a.click();
-        }
-
-        function copyCode(id) {
-            const el = document.getElementById(id);
-            const text = el.innerText.replace('Copy', '').trim();
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = el.querySelector('.copy-btn');
-                if (btn) { btn.innerText = 'Copied!'; setTimeout(() => btn.innerText = 'Copy', 1500); }
+            const url = `https://subsoccer.pro/brands/${slug}/`;
+            navigator.clipboard.writeText(url).then(() => {
+                const btns = document.querySelectorAll('#out-url .copy-btn');
+                btns.forEach(b => { b.innerText = 'Copied!'; setTimeout(() => b.innerText = 'Copy', 1500); });
             });
         }
 
