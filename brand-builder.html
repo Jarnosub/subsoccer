@@ -450,10 +450,30 @@
             text-transform: uppercase;
             margin-top: 10px;
         }
+
+        /* Auth wall */
+        #auth-wall {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Resolve', sans-serif;
+            color: #666;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            background: var(--bg);
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
+    <!-- Auth guard -->
+    <div id="auth-wall">
+        <i class="fas fa-circle-notch fa-spin" style="margin-right:10px;"></i> VERIFYING ACCESS...
+    </div>
+
+    <div id="app-content" style="display:none;">
     <header class="app-header">
         <div>
             <div class="app-title"><i class="fa-solid fa-palette"></i> Subsoccer GO — Brand Builder</div>
@@ -716,6 +736,30 @@
                 setTimeout(() => btn.innerHTML = '<i class="fa-solid fa-link"></i> COPY BRAND URL', 1500);
             });
         }
+    </script>
+
+    </div><!-- /app-content -->
+
+    <script>
+        (async function() {
+            const _sb = supabase.createClient(
+                'https://ujxmmrsmdwrgcwatdhvx.supabase.co',
+                'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t'
+            );
+            const { data } = await _sb.auth.getSession();
+            if (!data.session) {
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="login.html?source=go&redirect=brand-builder.html" style="color:#D4AF37; margin-left:8px;">LOG IN</a>';
+                return;
+            }
+            const { data: player } = await _sb.from('players').select('id, is_admin').eq('id', data.session.user.id).maybeSingle();
+            const SUPER_ADMIN_ID = '054f6378-95c5-4f5b-a678-745e585a01fc';
+            if (!player?.is_admin && data.session.user.id !== SUPER_ADMIN_ID) {
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="index.html" style="color:#D4AF37; margin-left:8px;">BACK</a>';
+                return;
+            }
+            document.getElementById('auth-wall').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+        })();
     </script>
 
 </body>
