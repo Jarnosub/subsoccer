@@ -1,14 +1,6 @@
 [build]
   functions = "netlify/functions"
 
-# KIA Demo: kia.subsoccer.pro → /kia/index.html
-[[redirects]]
-  from = "/"
-  to = "/kia/index.html"
-  status = 200
-  force = true
-  conditions = {Host = "kia.subsoccer.pro"}
-
 [[redirects]]
   from = "/create-payment-intent"
   to = "/.netlify/functions/create-payment-intent"
