@@ -375,7 +375,7 @@
             document.getElementById('header-logo').src = brandConfig.logo_url;
 
             // Navigation
-            const gameUrl = `../mobile-game.html?brand=${brandSlug}`;
+            const gameUrl = `/mobile-game.html?brand=${brandSlug}`;
             document.getElementById('btn-tournament').onclick = () => location.href = gameUrl;
             document.getElementById('btn-scan').onclick = () => location.href = '/scan-code.html';
 
