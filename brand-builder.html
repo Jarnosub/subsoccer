@@ -463,6 +463,71 @@
             font-size: 0.8rem;
             background: var(--bg);
         }
+
+        /* ============ BRAND LIST ============ */
+        .brand-list-panel {
+            padding: 24px 30px;
+            border-bottom: 1px solid var(--border);
+        }
+        .brand-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: border-color 0.2s;
+        }
+        .brand-card:hover { border-color: var(--accent); }
+        .brand-card-logo {
+            width: 44px; height: 44px;
+            background: #1a1a24;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .brand-card-logo img { max-width: 36px; max-height: 36px; object-fit: contain; }
+        .brand-card-info { flex: 1; min-width: 0; }
+        .brand-card-name {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            color: var(--text);
+            text-transform: uppercase;
+        }
+        .brand-card-url {
+            font-size: 0.65rem;
+            color: var(--text2);
+            font-family: monospace;
+            margin-top: 2px;
+        }
+        .brand-card-actions {
+            display: flex; gap: 8px; flex-shrink: 0;
+        }
+        .brand-card-actions button {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text2);
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .brand-card-actions button:hover { border-color: var(--accent); color: var(--accent); }
+        .brand-card-actions .btn-delete:hover { border-color: var(--red); color: var(--red); }
+        .brand-status {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            flex-shrink: 0;
+        }
+        .brand-status.inactive { background: #555; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -482,6 +547,23 @@
         <a href="index.html" style="color: var(--text2); font-size: 0.75rem; text-decoration: none;">← Back to Hub</a>
     </header>
 
+    <!-- BRAND LIST -->
+    <div class="brand-list-panel" id="brand-list-panel">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="font-family: 'Resolve', sans-serif; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text2);">
+                <i class="fa-solid fa-layer-group" style="color: var(--accent); margin-right: 8px;"></i> Published Brands
+            </div>
+            <button onclick="toggleEditor(true)" style="background: var(--accent); color: #000; border: none; padding: 8px 16px; border-radius: 6px; font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; text-transform: uppercase;">
+                <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> New Brand
+            </button>
+        </div>
+        <div id="brand-list" style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="color: var(--text2); font-size: 0.75rem; text-align: center; padding: 30px;"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>
+        </div>
+    </div>
+
+    <!-- EDITOR (hidden by default when brands exist) -->
+    <div id="editor-section" style="display: none;">
     <div class="main-grid">
         <!-- LEFT: CONTROLS -->
         <div class="controls">
@@ -583,6 +665,8 @@
             </div>
         </div>
     </div>
+
+    </div><!-- /editor-section -->
 
     <!-- SUCCESS MODAL -->
     <div class="modal-overlay" id="output-modal" onclick="if(event.target===this) this.classList.remove('open')">
@@ -755,6 +839,7 @@
                 }
 
                 document.getElementById('output-modal').classList.add('open');
+                loadBrandList();
 
             } catch (e) {
                 alert('Error: ' + e.message);
@@ -784,6 +869,85 @@
                 setTimeout(() => btn.innerHTML = '<i class="fa-solid fa-link"></i> COPY BRAND URL', 1500);
             });
         }
+
+        // ============ BRAND LIST MANAGEMENT ============
+
+        async function loadBrandList() {
+            const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+            const { data: brands, error } = await sb
+                .from('brands')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            const container = document.getElementById('brand-list');
+
+            if (error || !brands || brands.length === 0) {
+                container.innerHTML = '<div style="color: var(--text2); font-size: 0.75rem; text-align: center; padding: 30px;">No brands published yet. Click "+ New Brand" to create one.</div>';
+                toggleEditor(true);
+                return;
+            }
+
+            container.innerHTML = brands.map(b => `
+                <div class="brand-card">
+                    <div class="brand-card-logo">
+                        ${b.logo_url ? `<img src="${b.logo_url}" alt="${b.name}">` : '<i class="fa-solid fa-image" style="color:#333;"></i>'}
+                    </div>
+                    <div class="brand-card-info">
+                        <div class="brand-card-name">${b.name}</div>
+                        <div class="brand-card-url">subsoccer.pro/brands/${b.slug}/</div>
+                    </div>
+                    <div class="brand-status ${b.is_active ? '' : 'inactive'}" title="${b.is_active ? 'Active' : 'Inactive'}"></div>
+                    <div class="brand-card-actions">
+                        <button onclick="window.open('https://subsoccer.pro/brands/${b.slug}/', '_blank')"><i class="fa-solid fa-external-link-alt"></i> Open</button>
+                        <button onclick="editBrand('${b.slug}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                        <button class="btn-delete" onclick="deleteBrand('${b.slug}', '${b.name}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleEditor(show) {
+            document.getElementById('editor-section').style.display = show ? 'block' : 'none';
+            if (show) {
+                document.getElementById('editor-section').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        async function editBrand(slug) {
+            const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+            const { data: brands } = await sb.from('brands').select('*').eq('slug', slug).limit(1);
+            if (!brands || !brands.length) return alert('Brand not found');
+
+            const b = brands[0];
+            document.getElementById('brand-name').value = b.name;
+            document.getElementById('brand-slug').value = b.slug;
+            document.getElementById('brand-password').value = b.password || '';
+            updatePreview();
+
+            // Show logo preview
+            if (b.logo_url) {
+                document.getElementById('pv-logo').src = b.logo_url;
+                const thumb = document.getElementById('logo-preview-thumb');
+                thumb.src = b.logo_url;
+                thumb.style.display = 'block';
+            }
+            // Show hero preview
+            if (b.hero_url) {
+                document.getElementById('pv-hero').style.backgroundImage = `url('${b.hero_url}')`;
+            }
+
+            toggleEditor(true);
+        }
+
+        async function deleteBrand(slug, name) {
+            if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+
+            const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+            const { error } = await sb.from('brands').delete().eq('slug', slug);
+            if (error) return alert('Delete failed: ' + error.message);
+
+            loadBrandList();
+        }
     </script>
 
     </div><!-- /app-content -->
@@ -807,6 +971,7 @@
             }
             document.getElementById('auth-wall').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
+            loadBrandList();
         })();
     </script>
 
