@@ -1087,6 +1087,10 @@
                         const bagsStr = h.config_json.bags ? '1' : '0';
                         
                         salesLink = `https://subsoccer-studio.netlify.app/?brand=${slug}&model=${encodeURIComponent(h.model)}&color=${cleanColor}&panelS=${panelS}&chairS=${chairS}&mat=${matStr}&bags=${bagsStr}`;
+                        
+                        if (b.logo_url) {
+                            salesLink += `&logo=${encodeURIComponent(b.logo_url)}`;
+                        }
                     }
                     
                     html += `
