@@ -262,15 +262,20 @@
         .pv-login-btn {
             display: flex;
             align-items: center;
-            gap: 4px;
-            background: rgba(8, 55, 75, 0.9);
-            padding: 0 10px;
-            height: 30px;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 4px 10px;
             border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.25);
+            border: 1px solid rgba(212, 175, 55, 0.4);
         }
-        .pv-login-btn i { color: #fff; font-size: 0.5rem; }
-        .pv-login-btn span { color: #fff; font-family: 'Resolve', sans-serif; font-size: 0.45rem; letter-spacing: 1px; }
+        .pv-login-btn i { color: #D4AF37; font-size: 0.8rem; }
+        .pv-login-btn-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .pv-login-btn-name { color: #fff; font-family: 'Resolve', sans-serif; font-size: 0.45rem; letter-spacing: 1px; text-transform: uppercase; }
+        .pv-login-btn-elo { color: #D4AF37; font-family: 'Open Sans', sans-serif; font-size: 0.4rem; font-weight: 700; display: flex; align-items: center; gap: 3px; }
         .pv-logo {
             height: 35px;
         }
@@ -289,6 +294,10 @@
             flex-direction: column;
             align-items: center;
             gap: 10px;
+        }
+        .preview-frame.landscape .pv-menu {
+            width: 350px;
+            bottom: 30px;
         }
         .pv-btn-main {
             width: 100%;
@@ -647,8 +656,11 @@
                 <!-- Header: Login | Logo | Hamburger -->
                 <div class="pv-header">
                     <div class="pv-login-btn">
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                        <span>LOG IN</span>
+                        <i class="fa-solid fa-user"></i>
+                        <div class="pv-login-btn-info">
+                            <span class="pv-login-btn-name">JARNO</span>
+                            <span class="pv-login-btn-elo"><i class="fa-solid fa-bolt"></i> 1103</span>
+                        </div>
                     </div>
                     <img class="pv-logo" id="pv-logo" src="subsoccer_logo.svg" alt="Logo">
                     <div class="pv-hamburger"><i class="fa-solid fa-bars"></i></div>
