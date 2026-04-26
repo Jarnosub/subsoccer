@@ -211,8 +211,6 @@
             position: relative;
         }
         .preview-label {
-            position: absolute;
-            top: 20px; left: 24px;
             font-size: 0.8rem;
             font-weight: 500;
             color: var(--text-secondary);
@@ -228,6 +226,13 @@
             position: relative;
             background: #000;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .preview-frame.landscape {
+            width: 800px;
+            height: 450px;
+            border-radius: 12px;
+            border: 8px solid #222;
         }
 
         /* Preview internal styling */
@@ -626,8 +631,16 @@
 
         <!-- RIGHT: PREVIEW -->
         <div class="preview-panel">
-            <div class="preview-label"><i class="fa-solid fa-mobile-screen-button" style="margin-right: 6px;"></i> Live Preview</div>
-            <div class="preview-frame">
+            <div style="position: absolute; top: 20px; left: 24px; display: flex; align-items: center; gap: 20px;">
+                <div class="preview-label" id="preview-label-text"><i class="fa-solid fa-mobile-screen-button" style="margin-right: 6px;"></i> Live Preview</div>
+                
+                <div class="device-toggles" style="display: flex; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 2px;">
+                    <button class="device-toggle active" onclick="setPreviewDevice('mobile')" style="background: var(--border-color); color: var(--text-primary); border: none; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: 0.2s;"><i class="fa-solid fa-mobile-screen"></i></button>
+                    <button class="device-toggle" onclick="setPreviewDevice('tv')" style="background: transparent; color: var(--text-secondary); border: none; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: 0.2s;"><i class="fa-solid fa-tv"></i></button>
+                </div>
+            </div>
+
+            <div class="preview-frame" id="preview-frame">
                 <div class="pv-hero" id="pv-hero" style="background-image: url('Subsoccer_tournament_2.jpg');"></div>
                 <div class="pv-vignette"></div>
 
@@ -944,6 +957,28 @@
             if (error) return alert('Delete failed: ' + error.message);
 
             loadBrandList();
+        }
+
+        // Preview Device Toggle
+        function setPreviewDevice(device) {
+            const frame = document.getElementById('preview-frame');
+            const btns = document.querySelectorAll('.device-toggle');
+            btns[0].style.background = 'transparent';
+            btns[0].style.color = 'var(--text-secondary)';
+            btns[1].style.background = 'transparent';
+            btns[1].style.color = 'var(--text-secondary)';
+
+            if (device === 'mobile') {
+                frame.classList.remove('landscape');
+                btns[0].style.background = 'var(--border-color)';
+                btns[0].style.color = 'var(--text-primary)';
+                document.getElementById('preview-label-text').innerHTML = '<i class="fa-solid fa-mobile-screen-button" style="margin-right: 6px;"></i> Live Preview';
+            } else {
+                frame.classList.add('landscape');
+                btns[1].style.background = 'var(--border-color)';
+                btns[1].style.color = 'var(--text-primary)';
+                document.getElementById('preview-label-text').innerHTML = '<i class="fa-solid fa-tv" style="margin-right: 6px;"></i> Live Preview';
+            }
         }
     </script>
 
