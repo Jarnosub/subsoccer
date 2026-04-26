@@ -9,15 +9,15 @@
     <link rel="stylesheet" href="style.css?v=3">
     <style>
         :root {
-            --bg-base: #F3F4F6;
-            --bg-card: #FFFFFF;
-            --text-primary: #1F2937;
-            --text-secondary: #4B5563;
-            --accent-blue: #2563EB;
-            --accent-red: #DC2626;
-            --accent-green: #059669;
-            --accent-yellow: #D97706;
-            --border-color: #E5E7EB;
+            --bg-base: #202225;
+            --bg-card: #2B2D31;
+            --text-primary: #E8EAED;
+            --text-secondary: #A0A5AA;
+            --accent-blue: #8AB4F8;
+            --accent-red: #F28B82;
+            --accent-green: #81C995;
+            --accent-yellow: #FDE293;
+            --border-color: #3F4147;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -91,8 +91,8 @@
             outline: none;
             transition: border-color 0.2s;
         }
-        .control-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-        .control-input::placeholder { color: #9CA3AF; }
+        .control-input:focus { border-color: var(--accent-blue); }
+        .control-input::placeholder { color: #5F6368; }
 
         /* File upload zone */
         .upload-zone {
@@ -200,7 +200,7 @@
 
         /* ============ RIGHT: PREVIEW ============ */
         .preview-panel {
-            background: #E5E7EB;
+            background: #18191C;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -354,8 +354,7 @@
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.7);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -382,7 +381,7 @@
             margin-bottom: 20px;
         }
         .code-block {
-            background: #F9FAFB;
+            background: #18191C;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 16px;
@@ -479,7 +478,7 @@
         .brand-card:hover { border-color: var(--accent-blue); }
         .brand-card-logo {
             width: 44px; height: 44px;
-            background: #F3F4F6;
+            background: #18191C;
             border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
