@@ -1087,24 +1087,35 @@
                     let salesLink = 'https://subsoccer-studio.netlify.app/';
                     
                     if (h.config_json) {
-                        if (h.config_json.color) color = h.config_json.color;
-                        const cleanColor = color.replace('#', '');
-                        
-                        // Parse logo sizes if saved as "Table: 50%, Chair: 40%"
-                        let panelS = 50; let chairS = 40;
-                        if (h.config_json.logoSize) {
-                            const match = h.config_json.logoSize.match(/Table:\s*(\d+)%.*Chair:\s*(\d+)%/);
-                            if (match) {
-                                panelS = match[1]; chairS = match[2];
+                        if (h.config_json.quickBuilder === false) {
+                            color = "Custom Graphic Design (PDF)";
+                            if (h.config_json.proof_url) {
+                                salesLink = h.config_json.proof_url;
+                            } else {
+                                const matStr = h.config_json.mat ? '1' : '0';
+                                const bagsStr = h.config_json.bags ? '1' : '0';
+                                salesLink = `https://subsoccer-studio.netlify.app/?brand=${slug}&model=${encodeURIComponent(h.model)}&mat=${matStr}&bags=${bagsStr}`;
                             }
-                        }
-                        const matStr = h.config_json.mat ? '1' : '0';
-                        const bagsStr = h.config_json.bags ? '1' : '0';
-                        
-                        salesLink = `https://subsoccer-studio.netlify.app/?brand=${slug}&model=${encodeURIComponent(h.model)}&color=${cleanColor}&panelS=${panelS}&chairS=${chairS}&mat=${matStr}&bags=${bagsStr}`;
-                        
-                        if (b.logo_url) {
-                            salesLink += `&logo=${encodeURIComponent(b.logo_url)}`;
+                        } else {
+                            if (h.config_json.color) color = h.config_json.color;
+                            const cleanColor = color.replace('#', '');
+                            
+                            // Parse logo sizes if saved as "Table: 50%, Chair: 40%"
+                            let panelS = 50; let chairS = 40;
+                            if (h.config_json.logoSize) {
+                                const match = h.config_json.logoSize.match(/Table:\s*(\d+)%.*Chair:\s*(\d+)%/);
+                                if (match) {
+                                    panelS = match[1]; chairS = match[2];
+                                }
+                            }
+                            const matStr = h.config_json.mat ? '1' : '0';
+                            const bagsStr = h.config_json.bags ? '1' : '0';
+                            
+                            salesLink = `https://subsoccer-studio.netlify.app/?brand=${slug}&model=${encodeURIComponent(h.model)}&color=${cleanColor}&panelS=${panelS}&chairS=${chairS}&mat=${matStr}&bags=${bagsStr}`;
+                            
+                            if (b.logo_url) {
+                                salesLink += `&logo=${encodeURIComponent(b.logo_url)}`;
+                            }
                         }
                     }
                     
