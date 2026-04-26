@@ -603,7 +603,7 @@
             <div style="font-size: 0.9rem; font-weight: 500; text-transform: uppercase; color: var(--text-secondary);">
                 <i class="fa-solid fa-layer-group" style="color: var(--subsoccer-red); margin-right: 8px;"></i> Published Brands
             </div>
-            <button onclick="toggleEditor(true)" style="background: var(--subsoccer-red); color: #FFFFFF; border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--subsoccer-red-hover)'" onmouseout="this.style.backgroundColor='var(--subsoccer-red)'">
+            <button onclick="openNewConfig()" style="background: var(--subsoccer-red); color: #FFFFFF; border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--subsoccer-red-hover)'" onmouseout="this.style.backgroundColor='var(--subsoccer-red)'">
                 <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> New Config
             </button>
         </div>
@@ -982,6 +982,30 @@
             if (show) {
                 document.getElementById('editor-section').scrollIntoView({ behavior: 'smooth' });
             }
+        }
+
+        function openNewConfig() {
+            // Reset input values
+            document.getElementById('brand-name').value = '';
+            document.getElementById('brand-slug').value = '';
+            document.getElementById('brand-password').value = '';
+            
+            // Reset file states
+            logoFile = null; heroFile = null; gameHeroFile = null;
+            document.getElementById('logo-zone').classList.remove('has-file');
+            document.getElementById('hero-zone').classList.remove('has-file');
+            document.getElementById('game-hero-zone').classList.remove('has-file');
+            document.getElementById('logo-filename').innerText = '';
+            document.getElementById('hero-filename').innerText = '';
+            document.getElementById('game-hero-filename').innerText = '';
+            
+            // Reset preview
+            document.getElementById('pv-logo').src = 'subsoccer_logo.svg';
+            document.getElementById('logo-preview-thumb').style.display = 'none';
+            document.getElementById('pv-hero').style.backgroundImage = "url('Subsoccer_tournament_2.jpg')";
+            
+            updatePreview();
+            toggleEditor(true);
         }
 
         async function editBrand(slug) {
