@@ -578,6 +578,11 @@
     <div class="main-grid">
         <!-- LEFT: CONTROLS -->
         <div class="controls">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-size: 1rem; color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-sliders" style="color: var(--subsoccer-red);"></i> Config Editor</h2>
+                <button onclick="toggleEditor(false)" style="background: transparent; color: var(--text-secondary); border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'"><i class="fa-solid fa-xmark fa-lg"></i></button>
+            </div>
+
             <div class="control-group">
                 <label class="control-label">Brand Name</label>
                 <input class="control-input" id="brand-name" type="text" placeholder="Your brand name" oninput="updatePreview()">
