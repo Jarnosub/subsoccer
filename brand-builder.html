@@ -1069,7 +1069,25 @@
                 hardware.forEach(h => {
                     const dateStr = new Date(h.created_at).toLocaleDateString('fi-FI');
                     let color = 'Unknown';
-                    if (h.config_json && h.config_json.color) color = h.config_json.color;
+                    let salesLink = 'https://subsoccer-studio.netlify.app/';
+                    
+                    if (h.config_json) {
+                        if (h.config_json.color) color = h.config_json.color;
+                        const cleanColor = color.replace('#', '');
+                        
+                        // Parse logo sizes if saved as "Table: 50%, Chair: 40%"
+                        let panelS = 50; let chairS = 40;
+                        if (h.config_json.logoSize) {
+                            const match = h.config_json.logoSize.match(/Table:\s*(\d+)%.*Chair:\s*(\d+)%/);
+                            if (match) {
+                                panelS = match[1]; chairS = match[2];
+                            }
+                        }
+                        const matStr = h.config_json.mat ? '1' : '0';
+                        const bagsStr = h.config_json.bags ? '1' : '0';
+                        
+                        salesLink = `https://subsoccer-studio.netlify.app/?brand=${slug}&model=${encodeURIComponent(h.model)}&color=${cleanColor}&panelS=${panelS}&chairS=${chairS}&mat=${matStr}&bags=${bagsStr}`;
+                    }
                     
                     html += `
                         <div style="background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 4px; padding: 12px;">
@@ -1081,6 +1099,7 @@
                                 <div style="width: 10px; height: 10px; border-radius: 50%; background: ${color}; border: 1px solid #555;"></div> ${color}
                             </div>
                             <div style="margin-top: 10px; display: flex; gap: 8px;">
+                                <button onclick="window.open('${salesLink}', '_blank')" style="flex: 1; padding: 6px; background: var(--bg-base); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.75rem; cursor: pointer;"><i class="fa-solid fa-eye" style="margin-right:4px;"></i> PREVIEW DESIGN</button>
                                 <button onclick="alert('Order integration coming soon!')" style="flex: 1; padding: 6px; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.75rem; cursor: pointer;">ORDER NOW</button>
                             </div>
                         </div>
