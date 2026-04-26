@@ -790,6 +790,11 @@
 
         function handleLogoUpload(input) {
             if (!input.files[0]) return;
+            if (input.files[0].type === 'application/pdf' || input.files[0].name.toLowerCase().endsWith('.pdf')) {
+                alert('Brand Builder only accepts web images (PNG, SVG, JPG, WebP) for the digital hub. PDF files are not supported here.');
+                input.value = '';
+                return;
+            }
             logoFile = input.files[0];
             document.getElementById('logo-filename').innerText = logoFile.name;
             document.getElementById('logo-zone').classList.add('has-file');
@@ -807,6 +812,11 @@
 
         function handleHeroUpload(input) {
             if (!input.files[0]) return;
+            if (input.files[0].type === 'application/pdf' || input.files[0].name.toLowerCase().endsWith('.pdf')) {
+                alert('Please upload a web image (JPG, WebP, PNG) for the cover image. PDFs are not supported.');
+                input.value = '';
+                return;
+            }
             heroFile = input.files[0];
             document.getElementById('hero-filename').innerText = heroFile.name;
             document.getElementById('hero-zone').classList.add('has-file');
@@ -821,6 +831,11 @@
 
         function handleGameHeroUpload(input) {
             if (!input.files[0]) return;
+            if (input.files[0].type === 'application/pdf' || input.files[0].name.toLowerCase().endsWith('.pdf')) {
+                alert('Please upload a web image (JPG, WebP, PNG) for the game background.');
+                input.value = '';
+                return;
+            }
             gameHeroFile = input.files[0];
             document.getElementById('game-hero-filename').innerText = gameHeroFile.name;
             document.getElementById('game-hero-zone').classList.add('has-file');
