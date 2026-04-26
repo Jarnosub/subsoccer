@@ -676,6 +676,18 @@
                 </div>
             </details>
 
+            <details class="accordion">
+                <summary><i class="fa-solid fa-table-tennis-paddle-ball" style="margin-right: 8px; color: var(--subsoccer-red);"></i> Campaign Hardware <i class="fa-solid fa-chevron-down"></i></summary>
+                <div class="accordion-content">
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                        Design physical tables (S3, S7, Arcade) to match this digital campaign. Saved table designs and orders linked to this brand will appear here.
+                    </p>
+                    <button class="btn-copy-url" onclick="openStudioForBrand()" style="margin-top: 8px;">
+                        <i class="fa-solid fa-paintbrush"></i> DESIGN HARDWARE IN STUDIO
+                    </button>
+                </div>
+            </details>
+
             <div class="divider"></div>
 
             <button class="btn-generate" onclick="generateBrand()">
@@ -936,12 +948,21 @@
             const url = `https://subsoccer.pro/brands/${slug}/`;
             navigator.clipboard.writeText(url).then(() => {
                 const btn = event.target.closest('.btn-copy-url');
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
-                setTimeout(() => btn.innerHTML = '<i class="fa-solid fa-link"></i> COPY BRAND URL', 1500);
-            });
-        }
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            setTimeout(() => btn.innerHTML = '<i class="fa-solid fa-link"></i> COPY BRAND URL', 1500);
+        });
+    }
 
-        // ============ BRAND LIST MANAGEMENT ============
+    function openStudioForBrand() {
+        const slug = document.getElementById('brand-slug').value.trim();
+        if (!slug) {
+            return alert('Please enter a URL Slug first. This ensures your hardware design is linked to this specific campaign.');
+        }
+        // Open the Studio and pass the current brand slug as a query parameter
+        window.open(`https://subsoccer-studio.netlify.app/?brand=${encodeURIComponent(slug)}`, '_blank');
+    }
+
+    // ============ BRAND LIST MANAGEMENT ============
 
         async function loadBrandList() {
             const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
