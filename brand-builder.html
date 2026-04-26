@@ -14,6 +14,8 @@
             --text-primary: #E8EAED;
             --text-secondary: #A0A5AA;
             --accent-blue: #8AB4F8;
+            --subsoccer-red: #D02B2F;
+            --subsoccer-red-hover: #b02327;
             --accent-red: #F28B82;
             --accent-green: #81C995;
             --accent-yellow: #FDE293;
@@ -46,7 +48,7 @@
             align-items: center;
             gap: 10px;
         }
-        .app-title i { color: var(--accent-blue); }
+        .app-title i { color: var(--subsoccer-red); }
         .app-subtitle { color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px; }
 
         .main-grid {
@@ -91,7 +93,7 @@
             outline: none;
             transition: border-color 0.2s;
         }
-        .control-input:focus { border-color: var(--accent-blue); }
+        .control-input:focus { border-color: var(--subsoccer-red); box-shadow: 0 0 0 3px rgba(208, 43, 47, 0.1); }
         .control-input::placeholder { color: #5F6368; }
 
         /* File upload zone */
@@ -106,7 +108,7 @@
             position: relative;
             overflow: hidden;
         }
-        .upload-zone:hover { border-color: var(--accent-blue); background: rgba(138, 180, 248, 0.04); }
+        .upload-zone:hover { border-color: var(--subsoccer-red); background: rgba(208, 43, 47, 0.04); }
         .upload-zone.has-file { border-color: var(--accent-green); border-style: solid; background: rgba(129, 201, 149, 0.04); }
         .upload-zone input[type="file"] {
             position: absolute;
@@ -166,8 +168,8 @@
             padding: 12px;
             border: none;
             border-radius: 4px;
-            background-color: var(--accent-blue);
-            color: var(--bg-base);
+            background-color: var(--subsoccer-red);
+            color: #FFFFFF;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
@@ -177,7 +179,7 @@
             justify-content: center;
             gap: 8px;
         }
-        .btn-generate:hover { background-color: #aecbfa; }
+        .btn-generate:hover { background-color: var(--subsoccer-red-hover); }
         .btn-generate:active { transform: scale(0.98); }
 
         .btn-copy-url {
@@ -186,7 +188,7 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             background: var(--bg-card);
-            color: var(--accent-blue);
+            color: var(--subsoccer-red);
             font-size: 0.85rem;
             font-weight: 500;
             cursor: pointer;
@@ -196,7 +198,7 @@
             gap: 8px;
             transition: background-color 0.2s;
         }
-        .btn-copy-url:hover { background-color: rgba(138, 180, 248, 0.08); }
+        .btn-copy-url:hover { background-color: rgba(208, 43, 47, 0.08); }
 
         /* ============ RIGHT: PREVIEW ============ */
         .preview-panel {
@@ -404,7 +406,7 @@
             font-size: 0.75rem;
             cursor: pointer;
         }
-        .code-block .copy-btn:hover { color: var(--accent-blue); border-color: var(--accent-blue); }
+        .code-block .copy-btn:hover { color: var(--subsoccer-red); border-color: var(--subsoccer-red); }
         .step-item {
             display: flex;
             gap: 12px;
@@ -475,7 +477,7 @@
             border-radius: 8px;
             transition: border-color 0.2s;
         }
-        .brand-card:hover { border-color: var(--accent-blue); }
+        .brand-card:hover { border-color: var(--subsoccer-red); }
         .brand-card-logo {
             width: 44px; height: 44px;
             background: #18191C;
@@ -514,7 +516,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .brand-card-actions button:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .brand-card-actions button:hover { border-color: var(--subsoccer-red); color: var(--subsoccer-red); }
         .brand-card-actions .btn-delete:hover { border-color: var(--accent-red); color: var(--accent-red); }
         .brand-status {
             width: 8px; height: 8px;
@@ -546,9 +548,9 @@
     <div class="brand-list-panel" id="brand-list-panel">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
             <div style="font-size: 0.9rem; font-weight: 500; text-transform: uppercase; color: var(--text-secondary);">
-                <i class="fa-solid fa-layer-group" style="color: var(--accent-blue); margin-right: 8px;"></i> Published Brands
+                <i class="fa-solid fa-layer-group" style="color: var(--subsoccer-red); margin-right: 8px;"></i> Published Brands
             </div>
-            <button onclick="toggleEditor(true)" style="background: var(--accent-blue); color: var(--bg-base); border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#aecbfa'" onmouseout="this.style.backgroundColor='var(--accent-blue)'">
+            <button onclick="toggleEditor(true)" style="background: var(--subsoccer-red); color: #FFFFFF; border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--subsoccer-red-hover)'" onmouseout="this.style.backgroundColor='var(--subsoccer-red)'">
                 <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> New Config
             </button>
         </div>
