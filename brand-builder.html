@@ -9,21 +9,21 @@
     <link rel="stylesheet" href="style.css?v=3">
     <style>
         :root {
-            --bg: #0a0a0f;
-            --surface: #111118;
-            --surface2: #1a1a24;
-            --border: #2a2a35;
-            --text: #e8e8ef;
-            --text2: #888899;
-            --accent: #D4AF37;
-            --red: #E30613;
-            --green: #22c55e;
+            --bg-base: #101214;
+            --bg-card: #1E2023;
+            --text-primary: #E8EAED;
+            --text-secondary: #9AA0A6;
+            --accent-blue: #8AB4F8;
+            --accent-red: #F28B82;
+            --accent-green: #81C995;
+            --accent-yellow: #FDE293;
+            --border-color: #3C4043;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Resolve', sans-serif !important;
-            background: var(--bg) !important;
-            color: var(--text);
+            font-family: 'Roboto', 'Resolve', sans-serif !important;
+            background: var(--bg-base) !important;
+            color: var(--text-primary);
             min-height: 100vh;
             display: block !important;
             overflow: auto !important;
@@ -31,25 +31,23 @@
 
         /* ============ LAYOUT ============ */
         .app-header {
-            padding: 20px 30px;
-            border-bottom: 1px solid var(--border);
+            padding: 15px 24px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--surface);
+            background: var(--bg-card);
         }
         .app-title {
-            font-family: 'Resolve', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .app-title i { color: var(--accent); }
-        .app-subtitle { color: var(--text2); font-size: 0.7rem; letter-spacing: 1px; margin-top: 2px; font-family: 'Open Sans', sans-serif; }
+        .app-title i { color: var(--accent-blue); }
+        .app-subtitle { color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px; }
 
         .main-grid {
             display: grid;
@@ -63,11 +61,12 @@
         /* ============ LEFT: CONTROLS ============ */
         .controls {
             padding: 30px;
-            border-right: 1px solid var(--border);
+            border-right: 1px solid var(--border-color);
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 24px;
+            background: var(--bg-base);
         }
         .control-group {
             display: flex;
@@ -75,32 +74,31 @@
             gap: 8px;
         }
         .control-label {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text2);
-            letter-spacing: 2px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .control-input {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 2px;
-            padding: 12px 14px;
-            color: var(--text);
-            font-family: 'Resolve', sans-serif;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-family: 'Roboto', sans-serif;
             font-size: 0.9rem;
-            letter-spacing: 1px;
             outline: none;
             transition: border-color 0.2s;
         }
-        .control-input:focus { border-color: var(--accent); }
-        .control-input::placeholder { color: #555; }
+        .control-input:focus { border-color: var(--accent-blue); }
+        .control-input::placeholder { color: #5F6368; }
 
         /* File upload zone */
         .upload-zone {
-            border: 2px dashed var(--border);
-            border-radius: 10px;
+            border: 1px dashed var(--border-color);
+            background: var(--bg-card);
+            border-radius: 8px;
             padding: 20px;
             text-align: center;
             cursor: pointer;
@@ -108,8 +106,8 @@
             position: relative;
             overflow: hidden;
         }
-        .upload-zone:hover { border-color: var(--accent); background: rgba(212,175,55,0.03); }
-        .upload-zone.has-file { border-color: var(--green); border-style: solid; }
+        .upload-zone:hover { border-color: var(--accent-blue); background: rgba(138, 180, 248, 0.04); }
+        .upload-zone.has-file { border-color: var(--accent-green); border-style: solid; background: rgba(129, 201, 149, 0.04); }
         .upload-zone input[type="file"] {
             position: absolute;
             top: 0; left: 0;
@@ -117,9 +115,9 @@
             opacity: 0;
             cursor: pointer;
         }
-        .upload-icon { font-size: 1.5rem; color: var(--text2); margin-bottom: 8px; }
-        .upload-text { font-size: 0.7rem; color: var(--text2); font-family: 'Open Sans', sans-serif; letter-spacing: 0.5px; }
-        .upload-filename { color: var(--green); font-size: 0.75rem; font-weight: 500; margin-top: 6px; }
+        .upload-icon { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 8px; }
+        .upload-text { font-size: 0.8rem; color: var(--text-secondary); }
+        .upload-filename { color: var(--accent-green); font-size: 0.8rem; font-weight: 500; margin-top: 6px; }
         .upload-preview {
             max-height: 60px;
             max-width: 100%;
@@ -158,56 +156,51 @@
         /* Divider */
         .divider {
             height: 1px;
-            background: var(--border);
+            background: var(--border-color);
             margin: 4px 0;
         }
 
         /* Generate button */
         .btn-generate {
             width: 100%;
-            padding: 16px;
+            padding: 12px;
             border: none;
-            border-radius: 2px;
-            background: linear-gradient(135deg, var(--red), #900000);
-            color: #fff;
-            font-family: 'SubsoccerLogo', sans-serif;
-            font-size: 1.1rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
+            border-radius: 4px;
+            background-color: var(--accent-blue);
+            color: var(--bg-base);
+            font-size: 0.9rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.2s;
+            transition: background-color 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            box-shadow: 0 8px 25px rgba(227, 6, 19, 0.3);
         }
-        .btn-generate:hover { box-shadow: 0 8px 30px rgba(227, 6, 19, 0.5); }
+        .btn-generate:hover { background-color: #aecbfa; }
         .btn-generate:active { transform: scale(0.98); }
 
         .btn-copy-url {
             width: 100%;
             padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 2px;
-            background: var(--surface2);
-            color: var(--text);
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-card);
+            color: var(--accent-blue);
+            font-size: 0.85rem;
+            font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: border-color 0.2s;
+            transition: background-color 0.2s;
         }
-        .btn-copy-url:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-copy-url:hover { background-color: rgba(138, 180, 248, 0.08); }
 
         /* ============ RIGHT: PREVIEW ============ */
         .preview-panel {
-            background: #080810;
+            background: #0d0e10;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -217,12 +210,12 @@
         }
         .preview-label {
             position: absolute;
-            top: 16px; left: 24px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text2);
-            letter-spacing: 2px;
+            top: 20px; left: 24px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .preview-frame {
             width: 375px;
@@ -361,16 +354,16 @@
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
         .modal-overlay.open { display: flex; }
         .modal-box {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             padding: 30px;
             max-width: 600px;
             width: 90%;
@@ -389,12 +382,12 @@
         }
         .code-block {
             background: #0d0d15;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
             padding: 16px;
             font-family: 'SF Mono', 'Fira Code', monospace;
             font-size: 0.8rem;
-            color: var(--accent);
+            color: var(--accent-green);
             overflow-x: auto;
             white-space: pre;
             margin-bottom: 16px;
@@ -403,15 +396,15 @@
         .code-block .copy-btn {
             position: absolute;
             top: 8px; right: 8px;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            color: var(--text2);
-            border-radius: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 4px;
             padding: 4px 10px;
-            font-size: 0.65rem;
+            font-size: 0.75rem;
             cursor: pointer;
         }
-        .code-block .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+        .code-block .copy-btn:hover { color: var(--accent-blue); border-color: var(--accent-blue); }
         .step-item {
             display: flex;
             gap: 12px;
@@ -440,16 +433,18 @@
         .modal-close {
             width: 100%;
             padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 2px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
             background: transparent;
-            color: var(--text);
+            color: var(--text-primary);
             cursor: pointer;
-            font-family: 'Resolve', sans-serif;
-            letter-spacing: 2px;
+            font-size: 0.85rem;
+            font-weight: 500;
             text-transform: uppercase;
             margin-top: 10px;
+            transition: background-color 0.2s;
         }
+        .modal-close:hover { background-color: rgba(255,255,255,0.05); }
 
         /* Auth wall */
         #auth-wall {
@@ -466,20 +461,21 @@
 
         /* ============ BRAND LIST ============ */
         .brand-list-panel {
-            padding: 24px 30px;
-            border-bottom: 1px solid var(--border);
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-base);
         }
         .brand-card {
             display: flex;
             align-items: center;
             gap: 16px;
             padding: 14px 18px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             transition: border-color 0.2s;
         }
-        .brand-card:hover { border-color: var(--accent); }
+        .brand-card:hover { border-color: var(--accent-blue); }
         .brand-card-logo {
             width: 44px; height: 44px;
             background: #1a1a24;
@@ -508,23 +504,22 @@
         }
         .brand-card-actions button {
             padding: 6px 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
             background: transparent;
-            color: var(--text2);
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.6rem;
-            letter-spacing: 1px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 500;
             text-transform: uppercase;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .brand-card-actions button:hover { border-color: var(--accent); color: var(--accent); }
-        .brand-card-actions .btn-delete:hover { border-color: var(--red); color: var(--red); }
+        .brand-card-actions button:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .brand-card-actions .btn-delete:hover { border-color: var(--accent-red); color: var(--accent-red); }
         .brand-status {
             width: 8px; height: 8px;
             border-radius: 50%;
-            background: var(--green);
+            background: var(--accent-green);
             flex-shrink: 0;
         }
         .brand-status.inactive { background: #555; }
@@ -550,11 +545,11 @@
     <!-- BRAND LIST -->
     <div class="brand-list-panel" id="brand-list-panel">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <div style="font-family: 'Resolve', sans-serif; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text2);">
-                <i class="fa-solid fa-layer-group" style="color: var(--accent); margin-right: 8px;"></i> Published Brands
+            <div style="font-size: 0.9rem; font-weight: 500; text-transform: uppercase; color: var(--text-secondary);">
+                <i class="fa-solid fa-layer-group" style="color: var(--accent-blue); margin-right: 8px;"></i> Published Brands
             </div>
-            <button onclick="toggleEditor(true)" style="background: var(--accent); color: #000; border: none; padding: 8px 16px; border-radius: 6px; font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; text-transform: uppercase;">
-                <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> New Brand
+            <button onclick="toggleEditor(true)" style="background: var(--accent-blue); color: var(--bg-base); border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#aecbfa'" onmouseout="this.style.backgroundColor='var(--accent-blue)'">
+                <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> New Config
             </button>
         </div>
         <div id="brand-list" style="display: flex; flex-direction: column; gap: 8px;">
@@ -619,7 +614,7 @@
             <div class="divider"></div>
 
             <button class="btn-generate" onclick="generateBrand()">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> GENERATE BRAND PACKAGE
+                <i class="fa-solid fa-cloud-arrow-up"></i> DEPLOY BRAND CONFIG
             </button>
 
             <button class="btn-copy-url" onclick="copyBrandUrl()">
