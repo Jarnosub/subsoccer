@@ -686,6 +686,9 @@
                     <button class="btn-copy-url" onclick="openStudioForBrand()" style="margin-top: 8px;">
                         <i class="fa-solid fa-paintbrush"></i> DESIGN HARDWARE IN STUDIO
                     </button>
+                    <div id="hardware-list" style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Hardware designs rendered here -->
+                    </div>
                 </div>
             </details>
 
@@ -1052,6 +1055,38 @@
             // Show hero preview
             if (b.hero_url) {
                 document.getElementById('pv-hero').style.backgroundImage = `url('${b.hero_url}')`;
+            }
+
+            // Load hardware designs
+            document.getElementById('hardware-list').innerHTML = '<div style="color: var(--text-secondary); font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>';
+            const { data: hardware } = await sb.from('hardware_designs').select('*').eq('brand_slug', slug).order('created_at', { ascending: false });
+            
+            const hwList = document.getElementById('hardware-list');
+            if (!hardware || hardware.length === 0) {
+                hwList.innerHTML = '';
+            } else {
+                let html = '<div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px; font-weight: 600;">Saved Designs</div>';
+                hardware.forEach(h => {
+                    const dateStr = new Date(h.created_at).toLocaleDateString('fi-FI');
+                    let color = 'Unknown';
+                    if (h.config_json && h.config_json.color) color = h.config_json.color;
+                    
+                    html += `
+                        <div style="background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 4px; padding: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary);"><i class="fa-solid fa-box" style="margin-right: 6px; color: var(--text-secondary);"></i> ${h.model}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-secondary);">${dateStr}</div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background: ${color}; border: 1px solid #555;"></div> ${color}
+                            </div>
+                            <div style="margin-top: 10px; display: flex; gap: 8px;">
+                                <button onclick="alert('Order integration coming soon!')" style="flex: 1; padding: 6px; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.75rem; cursor: pointer;">ORDER NOW</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                hwList.innerHTML = html;
             }
 
             toggleEditor(true);
