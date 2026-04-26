@@ -54,7 +54,8 @@
         .main-grid {
             display: grid;
             grid-template-columns: 400px 1fr;
-            min-height: calc(100vh - 70px);
+            height: calc(100vh - 70px);
+            overflow: hidden;
         }
         @media (max-width: 900px) {
             .main-grid { grid-template-columns: 1fr; }
@@ -264,8 +265,8 @@
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .preview-frame.landscape {
-            width: 800px;
-            height: 450px;
+            width: 960px;
+            height: 540px;
             border-radius: 12px;
             border: 8px solid #222;
         }
@@ -331,7 +332,7 @@
             gap: 10px;
         }
         .preview-frame.landscape .pv-menu {
-            width: 350px;
+            width: 400px;
             bottom: 30px;
         }
         .pv-btn-main {
