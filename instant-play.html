@@ -681,74 +681,7 @@
 
 
 
-    <!-- Arcade Paywall Demo Overlay (Demo) -->
-    <div id="paywall-overlay"
-        style="display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(10,10,10,0.98); z-index: 2000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.5s;">
-        
-        <img src="subsoccer_logo.svg" style="cursor: pointer; width: 180px; margin-bottom: 30px;" onclick="window.location.href='https://subsoccer.com';">
-        
-        <div style="font-family: 'Oswald', sans-serif; font-size: 2.2rem; font-weight: 700; color: #fff; text-transform: uppercase; margin-bottom: 10px;">
-            Unlock Arcade
-        </div>
-        
-        <div style="font-family: 'Open Sans', sans-serif; font-size: 1.1rem; color: #aaa; text-align: center; max-width: 80%; margin-bottom: 40px; line-height: 1.5;">
-            Pay to start the physical table. The match begins immediately and lights will turn on.
-        </div>
-        
-        <div style="font-size: 3.5rem; font-weight: 700; font-family: 'Oswald', sans-serif; color: var(--sub-red); margin-bottom: 50px; text-shadow: 0 0 30px rgba(227,6,19,0.4);">
-            2.00 €
-        </div>
 
-        <button id="apple-pay-btn" onclick="processFakePayment()"
-            style="background: #111; color: white; border: 1px solid #333; padding: 20px 40px; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 85%; max-width: 320px; transition: all 0.2s; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <i class="fa-brands fa-apple" style="font-size: 1.6rem; margin-right: 12px;"></i> Pay
-        </button>
-        
-        <!-- Fake loading spinner -->
-        <div id="payment-spinner" style="display: none; align-items: center; justify-content: center; margin-top: 10px; height: 60px;">
-            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.8rem; color: var(--sub-gold);"></i>
-            <span style="font-family: 'Open Sans', sans-serif; color: var(--sub-gold); margin-left: 15px; font-size: 1.1rem; font-weight: 600;">Processing with Bank...</span>
-        </div>
-    </div>
-
-    <!-- Script to handle the fake Apple Pay terminal flow -->
-    <script>
-        function processFakePayment() {
-            document.getElementById('apple-pay-btn').style.display = 'none';
-            document.getElementById('payment-spinner').style.display = 'flex';
-            
-            // Similated 2-second bank processing delay for cinematic effect
-            setTimeout(() => {
-                document.getElementById('payment-spinner').innerHTML = '<i class="fa-solid fa-check-circle" style="color: #4caf50; font-size: 2rem;"></i><span style="font-family: \\\'Open Sans\\\', sans-serif; color: #4caf50; margin-left: 15px; font-size: 1.2rem; font-weight: 600;">Payment Successful!</span>';
-                
-                // Ignite the table
-                setTimeout(() => {
-                    const overlay = document.getElementById('paywall-overlay');
-                    overlay.style.opacity = '0';
-                    setTimeout(() => {
-                        overlay.style.display = 'none';
-                        // Ohitetaan suoraan rules overlay ja aukaistaan peli
-                        if(typeof enterFullscreenGame === 'function') enterFullscreenGame();
-                        
-                        // LÄHETETÄÄN 0-0 SIGNNALI VASTA KUN MAKSU ON HYVÄKSYTTY!
-                        // Tämä herättää Jättinäytön ja napsauttaa valot päälle!
-                        if (typeof BroadcastService !== 'undefined') {
-                            BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
-                        }
-                    }, 500);
-                }, 1200);
-            }, 2500);
-        }
-        
-        // Piilotetaan maksumuuri välittömästi Jättinäytöltä
-        window.addEventListener('load', () => {
-            const up = new URLSearchParams(window.location.search);
-            if (up.get('mode') === 'display') {
-                const po = document.getElementById('paywall-overlay');
-                if (po) po.style.display = 'none';
-            }
-        });
-    </script>
 
     <!-- Actual Rules Overlay shown before playing -->
     <div id="actual-rules-overlay" class="rules-overlay"
@@ -1248,11 +1181,9 @@
                 }
 
                 BroadcastService.startBroadcasting().then(() => {
-                    // DEMO: Alkuping (0-0) on poistettu, jotta Jättinäytön sähköt EIVÄT syty heti kun QR skannataan.
-                    // Maksumuuri on nyt ainoa asia, joka voi liipaista sähköt myöhemmin päälle.
+                    // Alkusignaali, jolla Jättinäyttö ja sähköt saadaan heräämään välittömästi!
                     if (urlParams.get('mode') !== 'display') {
-                        // Odottaa kiltisti maksua...
-                        console.log("Waiting for Arcade payment...");
+                        BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
                     } else {
                         // Käynnistä kellon valvonta Jättinäytöllä heti alusta asti
                         pingDisplayActivity();
@@ -1699,22 +1630,6 @@
             document.getElementById('winner-overlay').classList.remove('show');
             stopLasers();
 
-            // ARCADE PAYWALL LOGIC:
-            // JOS PUHELIN PAINAA UUSI PELI, NÄYTETÄÄN MAKSUMUURI UUDELLEEN!
-            // Emme lähetä tässä 0-0 signaalia, ettei TV turhaan herää ennen maksua.
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mode') !== 'display') {
-                const po = document.getElementById('paywall-overlay');
-                if (po) {
-                    po.style.display = 'flex';
-                    po.style.opacity = '1';
-                    document.getElementById('apple-pay-btn').style.display = 'flex';
-                    document.getElementById('payment-spinner').style.display = 'none';
-                    // Nollataan spinnerin sisältö takaisin alkuperäiseksi
-                    document.getElementById('payment-spinner').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.8rem; color: var(--sub-gold);"></i><span style="font-family: \\\'Open Sans\\\', sans-serif; color: var(--sub-gold); margin-left: 15px; font-size: 1.1rem; font-weight: 600;">Processing with Bank...</span>';
-                    return; // Keskeytetään tähän! Ei lähetetä 0-0 vielä.
-                }
-            }
 
             BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
         }
