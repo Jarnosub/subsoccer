@@ -1,0 +1,25 @@
+name: Nightly Triple Whale Sync
+
+on:
+  schedule:
+    # Ajaa ohjelman automaattisesti joka yö kello 00:05 (UTC), eli hieman puolenyön jälkeen
+    - cron: '5 0 * * *'
+  workflow_dispatch: # Mahdollistaa napin painamisen manuaalisesti GitHubin käyttöliittymästä
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Supabase Client
+        run: npm install @supabase/supabase-js
+
+      - name: Run sync script
+        run: node scripts/sync-triple-whale.js
