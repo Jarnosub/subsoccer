@@ -650,7 +650,7 @@ window.mobileAddPlayer = function(defaultName, userId) {
 
     const div = document.createElement('div');
     div.className = 'player-row';
-    div.style.cssText = 'display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: 1px solid #d0d0d0; margin-bottom: 8px;';
+    div.style.cssText = 'display: flex; align-items: center; background: #f4f4f4; padding: 6px; border-radius: 2px; border: 1px solid #d0d0d0; margin-bottom: 8px;';
     div.innerHTML = `
         <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#${num}</span>
         <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
