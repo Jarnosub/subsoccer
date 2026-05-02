@@ -658,7 +658,7 @@ window.mobileAddPlayer = function(defaultName, userId) {
                style="text-transform: uppercase; color: white; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 700; background: transparent; border: 1px dashed rgba(255,255,255,0.2); border-radius: 6px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
 
         <i class="fas fa-pencil-alt" style="color: rgba(255,255,255,0.2); font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
-        <button onclick="mobileRemovePlayer(this)" style="color: #E30613; padding: 8px 12px; background: none; border: none; cursor: pointer;">
+        <button onclick="mobileRemovePlayer(this)" style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
             <i class="fas fa-times"></i>
         </button>
     `;
@@ -752,21 +752,21 @@ window.openQrJoin = function() {
     overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.85)), url('Subsoccer_tournament_2.jpg') center/cover no-repeat; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(8px);`;
     
     overlay.innerHTML = `
-        <div style="background:rgba(0, 0, 0, 0.90); border:1px solid rgba(255,255,255,0.15); padding:40px 20px; border-radius:16px; max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.9); position: relative; overflow: hidden; backdrop-filter: blur(10px);">
+        <div style="background:rgba(0, 0, 0, 0.90); border:1px solid rgba(255,255,255,0.15); padding:40px 20px; border-radius:2px; max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.9); position: relative; overflow: hidden; backdrop-filter: blur(10px);">
             <!-- Inner glowing accent -->
-            <div style="position:absolute; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, transparent, #E30613, transparent);"></div>
-            <h2 style="color:white; margin-bottom:12px; font-size:1.8rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-qrcode" style="color:#E30613; margin-right:12px;"></i> JOIN TOURNAMENT</h2>
+            <div style="position:absolute; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, transparent, #c41e2a, transparent);"></div>
+            <h2 style="color:white; margin-bottom:12px; font-size:1.8rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-qrcode" style="color:#c41e2a; margin-right:12px;"></i> JOIN TOURNAMENT</h2>
             <p style="color:#aaa; font-size:0.9rem; margin-bottom:20px; font-family:'Inter',sans-serif; letter-spacing:1px; text-transform:uppercase;">Scan code with your phone camera</p>
             
-            <div style="background:white; margin: 0 auto 20px auto; padding:15px; border-radius:12px; border:4px solid #E30613; width: max-content; display: block;">
+            <div style="background:white; margin: 0 auto 20px auto; padding:15px; border-radius:2px; border:4px solid #c41e2a; width: max-content; display: block;">
                 <img src="${qrImageUrl}" alt="Join QR Code" style="width: 200px; height: 200px; display:block;">
             </div>
             
-            <div id="qr-joined-list" style="background: rgba(35, 35, 40, 0.9); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; min-height: 50px; max-height: 120px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; justify-content: center; align-content: flex-start;">
+            <div id="qr-joined-list" style="background: rgba(35, 35, 40, 0.9); border: 1px solid rgba(255,255,255,0.05); border-radius: 2px; min-height: 50px; max-height: 120px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; justify-content: center; align-content: flex-start;">
                 <!-- Lista injektoidaan -->
             </div>
             
-            <button onclick="window.closeQrJoin()" style="background: rgba(35, 35, 40, 0.9); color:#fff; border:1px solid rgba(255,255,255,0.1); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
+            <button onclick="window.closeQrJoin()" style="background: rgba(35, 35, 40, 0.9); color:#fff; border:1px solid rgba(255,255,255,0.1); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:2px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
                 <i class="fas fa-times" style="margin-right:8px;"></i> CLOSE
             </button>
         </div>
@@ -881,8 +881,8 @@ window.showCastModal = function(url) {
     overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(5px);';
     
     overlay.innerHTML = `
-        <div style="background:rgba(20,20,25,0.85); border:1px solid rgba(255,255,255,0.1); padding:24px; border-radius:12px; backdrop-filter:blur(10px); max-width:90%; width: 340px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
-            <h2 style="color:white; margin-bottom:8px; font-size:1.2rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-tv" style="color:#E30613; margin-right:8px;"></i> SPECTATOR MODE</h2>
+        <div style="background:rgba(20,20,25,0.85); border:1px solid rgba(255,255,255,0.1); padding:24px; border-radius:2px; backdrop-filter:blur(10px); max-width:90%; width: 340px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+            <h2 style="color:white; margin-bottom:8px; font-size:1.2rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-tv" style="color:#c41e2a; margin-right:8px;"></i> SPECTATOR MODE</h2>
             <p style="color:#888; font-size:0.8rem; margin-bottom:16px; font-family:'Resolve',sans-serif; letter-spacing:1px;">OPEN THIS LINK ON ANY SCREEN</p>
             
             <div style="background:rgba(0,0,0,0.5); color:#fff; padding:12px; border-radius:6px; word-break:break-all; font-family:monospace; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05); user-select:all; cursor:pointer;" id="cast-url-box">
@@ -890,7 +890,7 @@ window.showCastModal = function(url) {
             </div>
             
             <div style="display:flex; gap:8px; flex-direction:column;">
-                <button id="cast-copy-btn" style="background:transparent; color:#E30613; border:1px solid rgba(227,6,19,0.3); padding:12px; font-family:'Resolve',sans-serif; font-size:0.9rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
+                <button id="cast-copy-btn" style="background:transparent; color:#c41e2a; border:1px solid rgba(227,6,19,0.3); padding:12px; font-family:'Resolve',sans-serif; font-size:0.9rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
                     <i class="fas fa-copy" style="margin-right:8px;"></i> COPY LINK
                 </button>
                 <button onclick="document.getElementById('cast-modal-overlay').remove()" style="background:transparent; color:#666; border:none; padding:12px; font-family:'Resolve',sans-serif; font-size:0.8rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%;">
@@ -913,7 +913,7 @@ window.showCastModal = function(url) {
             copyBtn.style.borderColor = 'rgba(76, 175, 80, 0.3)';
             setTimeout(() => {
                 copyBtn.innerHTML = '<i class="fas fa-copy" style="margin-right:8px;"></i> COPY LINK';
-                copyBtn.style.color = '#E30613';
+                copyBtn.style.color = '#c41e2a';
                 copyBtn.style.borderColor = 'rgba(227,6,19,0.3)';
             }, 3000);
         } catch(e) {
