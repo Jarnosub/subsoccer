@@ -58,30 +58,30 @@
             margin: 0 auto;
             padding: 20px 20px 10px 20px;
             box-sizing: border-box;
-            text-align: left;
+            text-align: center; /* Center to align with buttons below */
+            white-space: nowrap; /* Prevent wrapping to next line */
         }
         
         .page-title-subsoccer {
-            font-family: 'SubsoccerLogo', sans-serif;
-            font-size: clamp(2.5rem, 11vw, 3.8rem);
+            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif !important;
+            font-size: clamp(2rem, 10vw, 3rem); /* Smaller so it fits on one line */
             color: #1a1a1a; /* 90% grey */
             letter-spacing: 2px;
             line-height: 0.9;
             margin: 0;
             text-transform: uppercase;
-            display: inline-block;
+            display: inline;
         }
 
         .page-title-go {
-            font-family: 'SubsoccerLogo', sans-serif;
-            font-size: clamp(2.5rem, 11vw, 3.8rem);
+            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif !important;
+            font-size: clamp(2rem, 10vw, 3rem);
             color: #c41e2a; /* Brand Red */
             letter-spacing: 2px;
             line-height: 0.9;
             margin: 0;
             text-transform: uppercase;
-            display: inline-block;
-            margin-left: 10px; /* Normal word space */
+            display: inline;
         }
 
         /* KUVABLOKKI */
@@ -192,7 +192,8 @@
 
     <!-- ISO OTSIKKO -->
     <div class="page-title-container">
-        <h1 class="page-title-subsoccer">SUBSOCCER <span class="page-title-go">GO</span></h1>
+        <h1 class="page-title-subsoccer">SUBSOCCER</h1>
+        <h1 class="page-title-go">&nbsp;GO</h1>
     </div>
 
     <!-- KUVABLOKKI -->
@@ -366,8 +367,7 @@
         });
 
         function showPlayerCard(player) {
-            document.getElementById('hub-player-name').innerText = player.username || 'PLAYER';
-            document.getElementById('hub-player-elo').innerHTML = '<i class="fa-solid fa-bolt"></i> ' + (player.elo || 1500);
+            // Updated UI doesn't have names, just shows the check icon
             document.getElementById('hub-login-btn').style.display = 'none';
             document.getElementById('hub-player-card').style.display = 'flex';
             
