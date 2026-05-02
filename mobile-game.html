@@ -181,9 +181,10 @@
         }
 
         .match-player-name {
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'Resolve', sans-serif;
             font-size: 2rem;
-            letter-spacing: 2px;
+            font-weight: 400;
+            letter-spacing: 1px;
             text-transform: uppercase;
             color: white;
         }
@@ -200,16 +201,19 @@
             width: 100%;
             max-width: 400px;
             background: #c41e2a;
-            color: white;
-            font-family: 'Subsoccer', sans-serif;
-            font-size: 1.3rem;
-            letter-spacing: 3px;
-            padding: 18px;
+            color: #ffffff;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            padding: 14px 20px;
             border: none;
             border-radius: 2px;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(196, 30, 42, 0.3);
-            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.15s, opacity 0.2s;
         }
         .match-start-btn:active { transform: scale(0.97); }
 
@@ -547,15 +551,15 @@
         .quit-btn {
             background: none;
             border: none;
-            color: #fff;
+            color: #aaaaaa;
             font-family: 'Resolve', sans-serif;
-            font-size: 0.6rem;
+            font-size: 0.7rem;
             letter-spacing: 2px;
             cursor: pointer;
             padding: 8px 16px;
             margin-top: 12px;
         }
-        .quit-btn:hover { color: #888; }
+        .quit-btn:hover { color: #ffffff; }
     </style>
 </head>
 <body>
@@ -631,8 +635,16 @@
     <!-- ==========================================
          LAYER 2: NEXT MATCH PREVIEW
          ========================================== -->
-    <div class="m-layer" id="m-layer-nextmatch" style="background: #0a0a0a;">
-        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('subsoccer-stadium.jpg') no-repeat center center / cover; filter: brightness(0.7) contrast(1.05); z-index: 0;"></div>
+    <div class="m-layer" id="m-layer-nextmatch" style="background: #1f1f1f; display: flex; flex-direction: column;">
+        <!-- YLÄPALKKI (Announcement Bar) -->
+        <div style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0; position: absolute; top: 0; left: 0; z-index: 10;">
+            Join players in over 80 countries
+        </div>
+
+        <!-- YLÄPALKKI / LOGO -->
+        <div style="width: 100%; background: #111111; display: flex; justify-content: center; align-items: center; padding: 15px 20px; border-bottom: 1px solid #222; flex-shrink: 0; position: absolute; top: 32px; left: 0; z-index: 9;">
+            <img src="subsoccer_logo.svg" style="height: 24px; cursor: pointer;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
+        </div>
 
         <div class="nextmatch-container" style="position: relative; z-index: 2;">
 
@@ -644,7 +656,7 @@
             </div>
 
             <button class="match-start-btn anim-in" onclick="mobileStartMatch()" style="animation-delay: 0.2s;">
-                START MATCH
+                <i class="fas fa-play"></i> Start Match
             </button>
 
             <!-- View bracket link -->
