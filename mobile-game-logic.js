@@ -749,7 +749,7 @@ window.openQrJoin = function() {
 
     const overlay = document.createElement('div');
     overlay.id = 'qr-join-overlay';
-    overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.15); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; text-align:center;`;
+    overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: #111; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; text-align:center;`;
     
     overlay.innerHTML = `
         <div style="background: rgba(20, 20, 25, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1); padding: 36px 28px; border-radius: 2px; max-width: 90%; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); position: relative;">
