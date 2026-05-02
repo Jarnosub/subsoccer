@@ -172,7 +172,7 @@
                         const inputField = document.getElementById('player-name');
                         inputField.value = fallbackName.toUpperCase();
                         window.verifiedUserId = parsed.user.id;
-                        document.getElementById('join-subtitle').innerHTML = `<span style="color:var(--sub-gold, #FFD700); font-weight:bold;"><i class="fas fa-trophy"></i> PRO CARD LINKED</span><br>Submit to join the active match.`;
+                        document.getElementById('join-subtitle').innerHTML = `<span style="color:#c41e2a; font-weight:bold;"><i class="fas fa-trophy"></i> PRO CARD LINKED</span><br>Submit to join the active match.`;
                         inputField.readOnly = true;
                         inputField.style.opacity = '0.8';
                     }
@@ -203,7 +203,7 @@
                         window.verifiedUserId = session.user.id;
                         
                         // Show visual PRO indicator
-                        document.getElementById('join-subtitle').innerHTML = `<span style="color:var(--sub-gold, #FFD700); font-weight:bold;"><i class="fas fa-trophy"></i> PRO CARD LINKED</span><br>Submit to join the active match.`;
+                        document.getElementById('join-subtitle').innerHTML = `<span style="color:#c41e2a; font-weight:bold;"><i class="fas fa-trophy"></i> PRO CARD LINKED</span><br>Submit to join the active match.`;
                         inputField.readOnly = true;
                         inputField.style.opacity = '0.8';
                     }
