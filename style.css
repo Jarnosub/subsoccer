@@ -386,11 +386,11 @@ header {
     z-index: 1000 !important;
 }
 
-/* Leaflet Zoom Controls - Dark Theme Override */
+/* Leaflet Zoom Controls - Light Theme */
 .leaflet-control-zoom a {
-    background-color: rgba(10, 10, 10, 0.9) !important;
-    color: #fff !important;
-    border: 1px solid #333 !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: #111 !important;
+    border: 1px solid #ccc !important;
     border-radius: 4px !important;
     width: 36px !important;
     height: 36px !important;
@@ -399,36 +399,36 @@ header {
 }
 
 .leaflet-control-zoom a:hover {
-    background-color: #222 !important;
-    color: var(--sub-gold) !important;
+    background-color: #f2f2f2 !important;
+    color: #c41e2a !important;
 }
 
-/* Leaflet Attribution Styling - Minimalist Dark */
+/* Leaflet Attribution Styling - Minimalist Light */
 .leaflet-container .leaflet-control-attribution {
-    background: rgba(0, 0, 0, 0.4) !important;
-    color: #555 !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    color: #666 !important;
     font-family: 'Open Sans', sans-serif !important;
     font-size: 0.6rem !important;
     padding: 0 5px !important;
 }
 
 .leaflet-container .leaflet-control-attribution a {
-    color: #666 !important;
+    color: #333 !important;
     text-decoration: none !important;
 }
 
 /* Leaflet Popup Styling - Pro Look */
 .leaflet-popup-content-wrapper {
-    background: #0a0a0a !important;
-    color: #fff !important;
-    border: 1px solid var(--sub-gold) !important;
-    border-radius: var(--sub-radius) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+    background: #ffffff !important;
+    color: #111 !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
     font-family: var(--sub-name-font) !important;
 }
 
 .leaflet-popup-tip {
-    background: var(--sub-gold) !important;
+    background: #ffffff !important;
 }
 
 .leaflet-popup-content {
