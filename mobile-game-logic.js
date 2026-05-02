@@ -650,14 +650,14 @@ window.mobileAddPlayer = function(defaultName, userId) {
 
     const div = document.createElement('div');
     div.className = 'player-row';
-    div.style.cssText = 'display: flex; align-items: center; background: #2a2a2a; padding: 6px; border-radius: 2px; border: 1px solid #444444; margin-bottom: 8px;';
+    div.style.cssText = 'display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: 1px solid #d0d0d0; margin-bottom: 8px;';
     div.innerHTML = `
-        <span class="player-num" style="color: #888888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#${num}</span>
+        <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#${num}</span>
         <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
                class="player-input" ${datasetAttr}
-               style="text-transform: uppercase; color: #ffffff; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 600; background: transparent; border: 1px dashed #555555; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
+               style="text-transform: uppercase; color: #000000; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 600; background: transparent; border: 1px dashed #d0d0d0; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
 
-        <i class="fas fa-pencil-alt" style="color: #666666; font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
+        <i class="fas fa-pencil-alt" style="color: #ccc; font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
         <button onclick="mobileRemovePlayer(this)" style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
             <i class="fas fa-times"></i>
         </button>
