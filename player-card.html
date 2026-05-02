@@ -25,7 +25,7 @@
 
         body {
             font-family: 'Open Sans', sans-serif;
-            background: #0a0a0a;
+            background: #1f1f1f;
             color: white;
             min-height: 100dvh;
             overflow-x: hidden;
@@ -39,48 +39,44 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            max-width: 320px;
-            margin: 0 auto;
-            padding: 16px 0;
-            padding-top: calc(16px + env(safe-area-inset-top, 20px));
+            background: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 15px 20px;
+            padding-top: calc(15px + env(safe-area-inset-top, 20px));
+            position: relative;
+            z-index: 99;
         }
-
+        
         .pc-back-btn {
             background: none;
-            border: 1px solid #333;
-            color: #888;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            border: none;
+            color: #000000;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
         }
 
         .pc-header-title {
             flex: 1;
-            text-align: center;
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 3px;
-            color: #666;
-            text-transform: uppercase;
+            display: flex;
+            justify-content: center;
         }
 
         .pc-settings-btn {
             background: none;
-            border: 1px solid #333;
-            color: #888;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            border: none;
+            color: #000000;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
         }
 
         /* ========================================
@@ -88,30 +84,18 @@
            ======================================== */
         .pc-showcase {
             width: 100%;
-            min-height: 420px;
+            min-height: 380px;
             display: flex;
             justify-content: center;
             align-items: center;
             perspective: 1000px;
             position: relative;
             padding: 30px 0;
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.9)), url('card-stadium.jpg') no-repeat center center;
-            background-size: cover;
+            background: transparent;
         }
 
         .pc-spotlight {
-            position: absolute;
-            width: 300px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(227,6,19,0.3) 0%, transparent 60%);
-            filter: blur(40px);
-            z-index: 0;
-            animation: pulse 4s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { opacity: 0.5; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1.05); }
+            display: none;
         }
 
         /* ========================================
@@ -131,9 +115,9 @@
         }
 
         .pc-stat-card {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 8px;
+            background: #f2f2f2;
+            border: none;
+            border-radius: 2px;
             padding: 16px;
             text-align: center;
         }
@@ -141,7 +125,7 @@
         .pc-stat-value {
             font-family: 'Subsoccer', sans-serif;
             font-size: 1.8rem;
-            color: white;
+            color: #000000;
             line-height: 1;
         }
 
@@ -169,29 +153,29 @@
         .pc-action-btn {
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 8px;
-            padding: 14px 16px;
-            color: white;
+            justify-content: center;
+            gap: 8px;
+            background: #c41e2a !important;
+            border: none !important;
+            border-radius: 2px;
+            padding: 14px 20px;
+            color: #ffffff !important;
             font-family: 'Resolve', sans-serif;
-            font-size: 0.8rem;
+            font-weight: 400;
+            font-size: 1.2rem;
             letter-spacing: 1px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: transform 0.15s, opacity 0.2s;
+            text-transform: capitalize;
         }
-        .pc-action-btn:hover { background: #1a1a1a; }
+        .pc-action-btn:active { transform: scale(0.97); }
         
         .pc-action-btn i {
-            width: 20px;
-            text-align: center;
-            color: #D4AF37;
+            color: #ffffff !important;
         }
 
         .pc-action-btn .pc-action-arrow {
-            margin-left: auto;
-            color: #444;
+            display: none;
         }
 
         /* Owner-only button */
@@ -384,12 +368,19 @@
 </head>
 <body>
 
+    <!-- TOP BLACK BANNER -->
+    <div style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; z-index: 100; position: relative;">
+        Join players in over 80 countries
+    </div>
+
     <!-- HEADER -->
     <div class="pc-header">
         <button class="pc-back-btn" onclick="window.location.href='index.html'">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <div class="pc-header-title">PLAYER PROFILE</div>
+        <div class="pc-header-title">
+            <img src="subsoccer_logo.svg" style="height: 24px; cursor: pointer;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
+        </div>
         <button class="pc-settings-btn" onclick="toggleEditPanel()">
             <i class="fas fa-cog"></i>
         </button>
@@ -497,15 +488,15 @@
 
     <!-- ACTION BUTTONS -->
     <div class="pc-actions">
-        <div class="pc-action-btn" id="btn-download-card" style="background: rgba(255, 255, 255, 0.05); color: #888; border: 1px solid rgba(255, 255, 255, 0.1); cursor: not-allowed; box-shadow: none;">
-            <i class="fas fa-print" style="color: #888;"></i>
-            ORDER PHYSICAL CARD <span style="font-size: 0.6rem; margin-left: auto;">(COMING SOON)</span>
+        <div class="pc-action-btn" id="btn-download-card">
+            <i class="fas fa-print"></i>
+            Order Physical Card
         </div>
 
         <!-- OWNER-ONLY: Dashboard link -->
         <div class="pc-action-btn owner-only" id="pc-owner-btn" style="display: none;" onclick="window.location.href='owner-dashboard.html'">
             <i class="fas fa-tools"></i>
-            MY TABLES / DASHBOARD
+            My Tables / Dashboard
             <i class="fas fa-chevron-right pc-action-arrow"></i>
         </div>
     </div>
