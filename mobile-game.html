@@ -27,9 +27,9 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Subsoccer', sans-serif;
-            background: #0a0a0a;
-            color: white;
+            font-family: 'Resolve', sans-serif;
+            background: #f4f4f4; /* Light grey background to match hub */
+            color: #000000;
             overflow: hidden;
             width: 100vw;
             height: 100dvh;
@@ -83,56 +83,53 @@
         .setup-title {
             font-family: 'Subsoccer', sans-serif;
             font-weight: normal;
-            font-size: 2.2rem;
+            font-size: 2.8rem;
             text-align: center;
             margin-bottom: 4px;
-            letter-spacing: 2px;
+            letter-spacing: 0px;
+            color: #1a1a1a;
         }
 
         .setup-subtitle {
-            font-family: 'Open Sans', sans-serif;
-            color: #ccc;
+            font-family: 'Resolve', sans-serif;
+            color: #666666;
             text-align: center;
-            font-size: 0.8rem;
-            margin-bottom: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
         }
 
         .setup-btn-add {
             width: 100%;
-            background: rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            color: #fff;
+            background: #ffffff;
+            color: #000000;
             font-weight: 600;
-            padding: 14px;
+            padding: 12px 16px;
             border-radius: 2px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 2px solid #000000;
             margin-top: 8px;
             cursor: pointer;
-            font-family: 'Inter', 'Open Sans', sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.1rem;
             transition: transform 0.15s, background 0.2s;
         }
-        .setup-btn-add:active { transform: scale(0.97); background: rgba(0, 0, 0, 0.6); }
+        .setup-btn-add:active { transform: scale(0.97); background: rgba(0,0,0,0.1); }
 
         .setup-price-bar {
-            display: none; /* Piilotettu, koska mobiili-hubin flow on aina ilmainen */
+            display: none;
         }
 
         .setup-start-btn {
             width: 100%;
             background: #c41e2a;
-            color: white;
-            font-weight: 700;
-            padding: 14px;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 14px 20px;
             border-radius: 2px;
             margin-top: 10px;
             border: none;
             cursor: pointer;
-            font-family: 'Inter', 'Open Sans', sans-serif;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.4rem !important; /* Match front page */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -565,34 +562,40 @@
     <!-- ==========================================
          LAYER 1: SETUP (Player names + Start)
          ========================================== -->
-    <div class="m-layer" id="m-layer-setup" style="display: flex; background: #0a0a0a; position: relative;">
-        <!-- Taustakuva + vignette kuten etusivulla -->
-        <button id="cast-btn" onclick="startTvCast()" style="display: none !important; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; background: transparent; border: none; color: rgba(255,255,255,0.2); font-size: 0.8rem; cursor: pointer; transition: 0.2s;"><i class="fas fa-tv mr-2"></i> CAST TV</button>
-        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('subsoccer-stadium.jpg') no-repeat 54% top / cover; filter: brightness(0.85) contrast(1.05); z-index: 0;"></div>
+    <div class="m-layer" id="m-layer-setup" style="display: flex; background: #f4f4f4; position: relative; padding-top: 0;">
+        
+        <!-- YLÄPALKKI (Announcement Bar) -->
+        <div style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0;">
+            Join players in over 80 countries
+        </div>
+
+        <!-- YLÄPALKKI / LOGO -->
+        <div style="width: 100%; background: #ffffff; display: flex; justify-content: center; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; margin-bottom: 20px;">
+            <img src="subsoccer_logo.svg" style="height: 24px; cursor: pointer;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
+        </div>
 
         <div class="setup-container">
-            <img src="subsoccer_logo.svg" class="setup-logo" alt="Subsoccer" style="cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
             <h1 class="setup-title">TOURNAMENT</h1>
             <p class="setup-subtitle">Add players to begin. Winner takes all.</p>
 
             <!-- SCROLLABLE PLAYER LIST ONLY -->
             <div id="m-players-list" style="flex: 0 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 5px; margin-bottom: 8px;">
-                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
-                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#1</span>
+                <div class="player-row" style="display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: 1px solid #d0d0d0; margin-bottom: 8px;">
+                    <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#1</span>
                     <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 1" 
                            class="player-input" 
-                           style="text-transform: uppercase; color: white; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 700; background: transparent; border: 1px dashed rgba(255,255,255,0.2); border-radius: 6px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
-                    <i class="fas fa-pencil-alt" style="color: rgba(255,255,255,0.2); font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
+                           style="text-transform: uppercase; color: #000000; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 600; background: transparent; border: 1px dashed #d0d0d0; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
+                    <i class="fas fa-pencil-alt" style="color: #ccc; font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
                     <button onclick="mobileRemovePlayer(this)" style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="player-row" style="display: flex; align-items: center; background: rgba(20, 20, 25, 0.85); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; backdrop-filter: blur(10px);">
-                    <span class="player-num" style="color: #888; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#2</span>
+                <div class="player-row" style="display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: 1px solid #d0d0d0; margin-bottom: 8px;">
+                    <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#2</span>
                     <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 2" 
                            class="player-input" 
-                           style="text-transform: uppercase; color: white; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 700; background: transparent; border: 1px dashed rgba(255,255,255,0.2); border-radius: 6px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 1px;">
-                    <i class="fas fa-pencil-alt" style="color: rgba(255,255,255,0.2); font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
+                           style="text-transform: uppercase; color: #000000; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 600; background: transparent; border: 1px dashed #d0d0d0; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
+                    <i class="fas fa-pencil-alt" style="color: #ccc; font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
                     <button onclick="mobileRemovePlayer(this)" style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
                         <i class="fas fa-times"></i>
                     </button>
