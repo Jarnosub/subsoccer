@@ -212,6 +212,38 @@
         .leaflet-left {
             left: 10px !important;
         }
+
+        /* ALATUNNISTE (Black Bar) */
+        .footer-bar {
+            width: 100%;
+            background-color: #000000;
+            padding: 25px 20px;
+            box-sizing: border-box;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-top: auto; /* Pushes it to the bottom if container is flex, otherwise just margin */
+        }
+
+        .footer-bar a {
+            color: #ffffff; /* Negative text */
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            font-family: 'Resolve', sans-serif;
+            transition: color 0.2s;
+        }
+
+        .footer-bar a:hover {
+            color: #c41e2a;
+        }
+
+        .footer-bar span {
+            color: #555555;
+            font-size: 0.75rem;
+        }
     </style>
 </head>
 
@@ -273,16 +305,13 @@
             Find Public Game
         </button>
 
-        <!-- LEGAL LINKS -->
-        <div style="display: flex; gap: 15px; margin-top: 15px; justify-content: center; width: 100%;">
-            <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank"
-                style="color: #666; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; text-decoration: none;">Privacy
-                Policy</a>
-            <span style="color: #ccc; font-size: 0.65rem;">|</span>
-            <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank"
-                style="color: #666; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; text-decoration: none;">Terms
-                of Service</a>
-        </div>
+    </div>
+
+    <!-- BLACK FOOTER BAR -->
+    <div class="footer-bar">
+        <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank">Privacy Policy</a>
+        <span>|</span>
+        <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank">Terms of Service</a>
     </div>
 
     <!-- MAIN HAMBURGER MENU OVERLAY -->
