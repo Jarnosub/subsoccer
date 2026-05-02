@@ -27,100 +27,106 @@
         body, html {
             margin: 0; padding: 0;
             width: 100vw; height: 100vh;
-            overflow: hidden;
-            background-color: var(--sub-black);
-            font-family: var(--sub-name-font);
+            overflow-x: hidden;
+            overflow-y: auto;
+            background-color: #ffffff;
+            color: #000000;
+            font-family: 'Inter', sans-serif;
         }
 
-        /* 1. KANNEKUVA / HERO BACKGROUND */
-        .hero-background {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background-image: url('Subsoccer_tournament_2.jpg');
-            background-size: cover;
-            background-position: center top;
-            z-index: 0;
-            filter: brightness(0.85) contrast(1.05);
-        }
-
-        /* GRADIENTTI ALHAALTA YLÖS, JOTTA NAPIT EROTTUVAT TÄYDELLISESTI */
-        .hero-vignette {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: transparent;
-            z-index: 1;
-        }
-
-        /* 3. LOGO YLHÄÄLLÄ KESKELLÄ */
+        /* YLÄPALKKI / LOGO */
         .top-header {
-            position: absolute;
-            top: 0; left: 0; width: 100%;
-            /* Lasketaan logoa tuomalla lisää ylä-paddingia */
-            padding: calc(20px + env(safe-area-inset-top, 20px)) 20px 20px;
+            position: relative;
+            width: 100%;
+            padding: calc(15px + env(safe-area-inset-top, 15px)) 20px 15px;
             box-sizing: border-box;
-            z-index: 10;
+            background: #ffffff;
+            z-index: 100;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
         }
 
         .main-logo {
-            height: 55px; /* Kasvatettu selvästi alkuperäisestä 35px tasosta */
+            height: 45px;
         }
 
-        /* 4. ALAREUNAN MASSIIVINEN NAVIGAATIO "HUB" */
+        /* HEADER TYPOGRAFIA (Subsoccer Experience) */
+        .page-title-container {
+            padding: 20px 20px 10px 20px;
+            text-align: left;
+        }
+        
+        .page-title-top {
+            font-family: 'Resolve', sans-serif;
+            font-size: 2.5rem;
+            color: #000000;
+            letter-spacing: 2px;
+            line-height: 1;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .page-title-bottom {
+            font-family: 'Resolve', sans-serif;
+            font-size: 2.5rem;
+            color: #c41e2a; /* Brand Red */
+            letter-spacing: 2px;
+            line-height: 1;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        /* KUVABLOKKI */
+        .content-image {
+            width: 100%;
+            height: 35vh;
+            min-height: 250px;
+            background-image: url('subsoccer-teams.jpg');
+            background-size: cover;
+            background-position: center 30%;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* ALAREUNAN MASSIIVINEN NAVIGAATIO "HUB" */
         .hub-menu {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            /* Pudotettu valikko aivan alas, jotta taustakuvassa olevat pelaajat näkyvät paremmin */
-            padding: 20px 20px calc(30px + env(safe-area-inset-bottom, 20px));
+            width: 100%;
+            padding: 10px 20px 40px;
             box-sizing: border-box;
-            z-index: 10;
-            display: flex; flex-direction: column;
-            align-items: center; gap: 16px;
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            gap: 12px;
         }
 
-        /* TOIMINTO 1: PÖYDÄN LUONA */
         .btn-play-now {
             width: 100%; max-width: 400px;
-            background: var(--sub-red);
+            background: #c41e2a;
             color: #fff;
             border: none;
-            padding: 22px;
+            padding: 20px;
             border-radius: 2px;
-            font-family: 'Subsoccer', sans-serif;
-            font-size: 1.8rem;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.2rem;
             letter-spacing: 3px;
             text-transform: uppercase;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
             cursor: pointer;
             transition: transform 0.15s, opacity 0.2s;
-            box-shadow: 0 4px 20px rgba(196, 30, 42, 0.3);
+            box-shadow: 0 4px 15px rgba(196, 30, 42, 0.2);
         }
-        .btn-play-now:active { transform: scale(0.97); opacity: 0.9; }
-        .btn-play-subtext {
-            font-family: 'Open Sans', sans-serif;
-            font-size: 0.75rem;
-            letter-spacing: 2px;
-            margin-top: 5px;
-            color: rgba(255,255,255,0.8);
-        }
+        .btn-play-now:active { transform: scale(0.97); }
 
-        /* TOIMINTO 2: ETSIMÄSSÄ PÖYTÄÄ */
         .btn-find-table {
             width: 100%; max-width: 400px;
-            background: rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #fff;
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
             padding: 16px;
             border-radius: 2px;
-            font-family: 'Inter', 'Open Sans', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 600;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.9rem;
             letter-spacing: 2px;
             text-transform: uppercase;
             display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -155,73 +161,66 @@
 </head>
 <body>
 
-    <!-- TAUSTA -->
-    <div class="hero-background"></div>
-    <div class="hero-vignette"></div>
-
-    <!-- Ei enää erillisiä kelluvia PNG kuvia -->
-
     <!-- YLÄPALKKI / LOGO JA PELAAJAKORTTI -->
     <div class="top-header">
         
-        <!-- LOGIN-nappi (vierailijat) -->
-        <button id="hub-login-btn" style="display: none; align-items: center; gap: 6px; background: rgba(8, 55, 75, 0.9); padding: 0 14px; height: 42px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(5px); cursor: pointer; margin-top: 4px;" onclick="window.location.href='login.html?source=go&redirect=index.html#login'">
-            <i class="fa-solid fa-right-to-bracket" style="color: #fff; font-size: 0.8rem; pointer-events: none;"></i>
-            <span style="color: #fff; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px; pointer-events: none;">LOG IN</span>
+        <!-- Hamburger Menu Button (Left) -->
+        <button onclick="document.getElementById('main-nav-menu').style.display='flex'" style="background: transparent; border: none; color: #000; cursor: pointer; height: 100%; display: flex; align-items: center;">
+            <i class="fa-solid fa-bars" style="font-size: 1.8rem;"></i>
         </button>
 
-        <!-- Pelaajakortti (kirjautuneet) - piilotettu oletuksena -->
-        <div id="hub-player-card" class="player-mini-card" style="display: none; align-items: center; gap: 6px; background: rgba(0,0,0,0.8); padding: 0 10px 0 10px; height: 42px; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(255,215,0,0.3); backdrop-filter: blur(5px); cursor: pointer; margin-top: 4px;" onclick="window.location.href='player-card.html'">
-            <i class="fa-solid fa-user" style="color: var(--sub-gold); font-size: 1.2rem;"></i>
-            <div style="display: flex; flex-direction: column; justify-content: center;">
-                <span id="hub-player-name" style="color: #fff; font-family: 'Subsoccer', sans-serif; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 2px;">PLAYER</span>
-                <span id="hub-player-elo" style="color: var(--sub-gold); font-family: 'Resolve', sans-serif; font-size: 0.55rem; letter-spacing: 1px;"><i class="fa-solid fa-bolt"></i> PRO 1500</span>
-            </div>
+        <!-- Keskitetty Logo -->
+        <div style="display: flex; justify-content: center; align-items: center; flex: 1;">
+            <img src="subsoccer_logo.svg" class="main-logo" alt="Subsoccer" style="cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
         </div>
 
-        <!-- Keskitetty Logo ja BETA Teksti -->
-        <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 10;">
-            <img src="subsoccer_logo.svg" class="main-logo" alt="Subsoccer" style="cursor: pointer; margin-bottom: 2px;" onclick="window.location.href='https://subsoccer.com';">
-            <span style="color: rgba(255,255,255,0.6); font-family: 'Inter', 'Open Sans', sans-serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 3px; margin-top: 4px; text-transform: uppercase;">THE PRO LEAGUE</span>
-        </div>
-        
-        <!-- Tyhjä div pitämään logo keskellä space-between asettelulla -->
-        <!-- Hamburger Menu Button -->
-        <div style="height: 42px; width: 100px; display: flex; align-items: center; justify-content: flex-end; z-index: 100; margin-top: 4px;">
-            <button onclick="document.getElementById('main-nav-menu').style.display='flex'" style="background: transparent; border: none; color: #fff; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8); height: 100%; display: flex; align-items: center;">
-                <i class="fa-solid fa-bars" style="font-size: 2.2rem; transform: scaleX(1.1); line-height: 1;"></i>
-            </button>
+        <!-- Oikea reuna placeholder (esim kirjautuminen iconilla) -->
+        <button id="hub-login-btn" style="background: transparent; border: none; color: #000; cursor: pointer; display: flex; align-items: center;" onclick="window.location.href='login.html?source=go&redirect=index.html#login'">
+            <i class="fa-solid fa-user" style="font-size: 1.4rem;"></i>
+        </button>
+        <div id="hub-player-card" style="display: none; align-items: center; cursor: pointer;" onclick="window.location.href='player-card.html'">
+            <i class="fa-solid fa-user-check" style="color: #c41e2a; font-size: 1.4rem;"></i>
         </div>
     </div>
+
+    <!-- ISO OTSIKKO -->
+    <div class="page-title-container">
+        <h1 class="page-title-top">SUBSOCCER</h1>
+        <h1 class="page-title-bottom">EXPERIENCE</h1>
+    </div>
+
+    <!-- KUVABLOKKI -->
+    <div class="content-image"></div>
 
     <!-- PÄÄVALIKKO / TARINAN VALINTA -->
     <div class="hub-menu">
         
-        <!-- YKKÖSVALINTA: LUO TURNAUS (itsenäinen mobiiliturnaus) -->
+        <div style="width: 100%; max-width: 400px; text-align: left; margin-bottom: 5px;">
+            <span style="font-family: 'Resolve', sans-serif; font-size: 0.7rem; color: #666; letter-spacing: 2px; text-transform: uppercase;">CHOOSE YOUR ARENA</span>
+        </div>
+
+        <!-- YKKÖSVALINTA: LUO TURNAUS -->
         <button class="btn-play-now" onclick="window.location.href='mobile-game.html'">
-            <i class="fa-solid fa-trophy" style="font-size: 1.4rem; margin-bottom: 5px;"></i>
+            <i class="fa-solid fa-trophy"></i>
             CREATE TOURNAMENT
         </button>
 
-        <!-- KAKKOSVALINTA: OLEN PÖYDÄN LUONA / LIITY -->
+        <!-- KAKKOSVALINTA: SKANNAA -->
         <button class="btn-find-table" onclick="window.location.href='scan-code.html'">
             <i class="fa-solid fa-qrcode"></i> SCAN TO JOIN
         </button>
 
-        <!-- KOLMOSVALINTA: ETSIN PÖYTÄÄ -->
-        <button class="btn-find-table" style="background: rgba(5, 40, 55, 0.9);" onclick="openMapOverlay()">
-            <i class="fa-solid fa-map-location-dot"></i> FIND A PUBLIC GAME
+        <!-- KOLMOSVALINTA: KARTTA -->
+        <button class="btn-find-table" onclick="openMapOverlay()">
+            <i class="fa-solid fa-map-location-dot"></i> FIND PUBLIC GAME
         </button>
-
-        <!-- SHOP/LEGAL LIITETTY MUUALLE / ALLA -->
 
         <!-- LEGAL LINKS -->
         <div style="display: flex; gap: 15px; margin-top: 15px; justify-content: center; width: 100%;">
-            <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank" style="color: rgba(255,255,255,0.4); font-size: 0.65rem; text-transform: uppercase; font-family: 'Open Sans', sans-serif; letter-spacing: 1px; text-decoration: none;">Privacy Policy</a>
-            <span style="color: rgba(255,255,255,0.2); font-size: 0.65rem;">|</span>
-            <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank" style="color: rgba(255,255,255,0.4); font-size: 0.65rem; text-transform: uppercase; font-family: 'Open Sans', sans-serif; letter-spacing: 1px; text-decoration: none;">Terms of Service</a>
+            <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank" style="color: #666; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; text-decoration: none;">Privacy Policy</a>
+            <span style="color: #ccc; font-size: 0.65rem;">|</span>
+            <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank" style="color: #666; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; text-decoration: none;">Terms of Service</a>
         </div>
-
     </div>
 
     <!-- MAIN HAMBURGER MENU OVERLAY -->
