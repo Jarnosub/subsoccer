@@ -58,29 +58,30 @@
             margin: 0 auto;
             padding: 20px 20px 10px 20px;
             box-sizing: border-box;
-            display: flex;
-            justify-content: space-between; /* This pushes GO to the right edge, making the text span the exact width */
-            align-items: baseline;
+            text-align: left;
         }
         
         .page-title-subsoccer {
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'SubsoccerLogo', sans-serif;
             font-size: clamp(2.5rem, 11vw, 3.2rem);
             color: #1a1a1a; /* 90% grey */
             letter-spacing: 2px;
             line-height: 0.9;
             margin: 0;
             text-transform: uppercase;
+            display: inline-block;
         }
 
         .page-title-go {
-            font-family: 'Subsoccer', sans-serif;
+            font-family: 'SubsoccerLogo', sans-serif;
             font-size: clamp(2.5rem, 11vw, 3.2rem);
             color: #c41e2a; /* Brand Red */
             letter-spacing: 2px;
             line-height: 0.9;
             margin: 0;
             text-transform: uppercase;
+            display: inline-block;
+            margin-left: 10px; /* Normal word space */
         }
 
         /* KUVABLOKKI */
@@ -191,8 +192,7 @@
 
     <!-- ISO OTSIKKO -->
     <div class="page-title-container">
-        <h1 class="page-title-subsoccer">SUBSOCCER</h1>
-        <h1 class="page-title-go">GO</h1>
+        <h1 class="page-title-subsoccer">SUBSOCCER <span class="page-title-go">GO</span></h1>
     </div>
 
     <!-- KUVABLOKKI -->
