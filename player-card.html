@@ -12,6 +12,12 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        /* Override global Resolve !important from style.css line 1259 */
+        .subsoccer-font {
+            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif !important;
+            font-weight: normal !important;
+        }
+
         body {
             font-family: 'Open Sans', sans-serif;
             background: #f2f2f2;
@@ -383,8 +389,8 @@
 
     <!-- CARD SHOWCASE -->
     <div class="pc-showcase">
-        <div style="font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif; font-weight: normal; font-size: 2.5rem; text-transform: uppercase; margin-bottom: 25px; letter-spacing: 2px; text-align: center; line-height: 1;">
-            <span style="color: #444;">PLAYER</span> <span style="color: #c41e2a;">CARD</span>
+        <div class="subsoccer-font" style="font-size: 2.5rem; text-transform: uppercase; margin-bottom: 25px; letter-spacing: 2px; text-align: center; line-height: 1;">
+            <span class="subsoccer-font" style="color: #444;">PLAYER</span> <span class="subsoccer-font" style="color: #c41e2a;">CARD</span>
         </div>
         <div class="pc-spotlight"></div>
         
