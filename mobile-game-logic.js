@@ -752,22 +752,24 @@ window.openQrJoin = function() {
     overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.85)), url('Subsoccer_tournament_2.jpg') center/cover no-repeat; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(8px);`;
     
     overlay.innerHTML = `
-        <div style="background:rgba(0, 0, 0, 0.90); border:1px solid rgba(255,255,255,0.15); padding:40px 20px; border-radius:2px; max-width:90%; width: 500px; box-shadow:0 10px 40px rgba(0,0,0,0.9); position: relative; overflow: hidden; backdrop-filter: blur(10px);">
-            <!-- Inner glowing accent -->
-            <div style="position:absolute; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, transparent, #c41e2a, transparent);"></div>
-            <h2 style="color:white; margin-bottom:12px; font-size:1.8rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-qrcode" style="color:#c41e2a; margin-right:12px;"></i> JOIN TOURNAMENT</h2>
-            <p style="color:#aaa; font-size:0.9rem; margin-bottom:20px; font-family:'Inter',sans-serif; letter-spacing:1px; text-transform:uppercase;">Scan code with your phone camera</p>
+        <div style="background: rgba(20, 20, 25, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1); padding: 36px 28px; border-radius: 2px; max-width: 90%; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); position: relative;">
             
-            <div style="background:white; margin: 0 auto 20px auto; padding:15px; border-radius:2px; border:4px solid #c41e2a; width: max-content; display: block;">
-                <img src="${qrImageUrl}" alt="Join QR Code" style="width: 200px; height: 200px; display:block;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;">
+                <i class="fas fa-qrcode" style="color: #c41e2a; font-size: 1.2rem;"></i>
+                <span style="color: #fff; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; font-family: 'Inter', sans-serif; text-transform: uppercase;">Join Tournament</span>
+            </div>
+            <p style="color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-bottom: 24px; font-family: 'Inter', sans-serif; letter-spacing: 1.5px; text-transform: uppercase;">Scan with your phone camera</p>
+            
+            <div style="background: #fff; margin: 0 auto 24px auto; padding: 12px; border-radius: 2px; width: max-content; display: block; border: 1px solid rgba(0,0,0,0.1);">
+                <img src="${qrImageUrl}" alt="Join QR Code" style="width: 180px; height: 180px; display:block;">
             </div>
             
-            <div id="qr-joined-list" style="background: rgba(35, 35, 40, 0.9); border: 1px solid rgba(255,255,255,0.05); border-radius: 2px; min-height: 50px; max-height: 120px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; justify-content: center; align-content: flex-start;">
+            <div id="qr-joined-list" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 2px; min-height: 44px; max-height: 100px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; justify-content: center; align-content: center;">
                 <!-- Lista injektoidaan -->
             </div>
             
-            <button onclick="window.closeQrJoin()" style="background: rgba(35, 35, 40, 0.9); color:#fff; border:1px solid rgba(255,255,255,0.1); padding:15px; font-family:'Resolve',sans-serif; font-size:1rem; border-radius:2px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
-                <i class="fas fa-times" style="margin-right:8px;"></i> CLOSE
+            <button onclick="window.closeQrJoin()" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.08); padding: 13px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; border-radius: 2px; cursor: pointer; letter-spacing: 2px; width: 100%; transition: all 0.2s; text-transform: uppercase;">
+                <i class="fas fa-times" style="margin-right: 8px; font-size: 0.7rem;"></i> CLOSE
             </button>
         </div>
     `;
