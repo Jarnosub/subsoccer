@@ -492,13 +492,6 @@
             <i class="fas fa-print"></i>
             Order Physical Card
         </div>
-
-        <!-- OWNER-ONLY: Dashboard link -->
-        <div class="pc-action-btn owner-only" id="pc-owner-btn" style="display: none;" onclick="window.location.href='owner-dashboard.html'">
-            <i class="fas fa-tools"></i>
-            My Tables / Dashboard
-            <i class="fas fa-chevron-right pc-action-arrow"></i>
-        </div>
     </div>
 
     <!-- EDIT PROFILE PANEL -->
@@ -587,7 +580,6 @@
             document.getElementById('pc-stat-ratio').innerText = ratio + '%';
 
             if (player.is_owner || player.is_admin) {
-                document.getElementById('pc-owner-btn').style.display = 'flex';
                 const modBtn = document.getElementById('pc-mod-btn');
                 if(modBtn) modBtn.style.display = 'block';
             }
