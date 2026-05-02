@@ -227,21 +227,24 @@ body.remote-mode {
 }
 
 .bracket-match {
-    background: #222;
-    border-radius: 6px;
+    background: rgba(20, 20, 25, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 2px;
     display: flex;
     flex-direction: column;
     width: 100%;
     max-width: 280px;
     min-width: 150px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
     font-size: clamp(0.75rem, 1.3vh, 1.2rem);
 }
 
 .match-player {
-    color: #ddd;
+    color: #fff;
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 1em;
@@ -251,16 +254,16 @@ body.remote-mode {
     display: flex;
     align-items: center;
     transition: all 0.3s ease;
-    background: #252525;
-    border-left: clamp(3px, 0.5vw, 5px) solid var(--subsoccer-red);
+    background: transparent;
+    border-left: clamp(3px, 0.5vw, 4px) solid var(--subsoccer-red);
 }
 
 .match-player:first-child {
-    border-bottom: 1px solid #1a1a1a;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .match-player:last-child {
-    border-top: 1px solid #333;
+    border-top: none;
 }
 
 .match-player.winner {
