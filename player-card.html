@@ -86,6 +86,7 @@
             width: 100%;
             min-height: 380px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             perspective: 1000px;
@@ -113,8 +114,8 @@
 
         .pc-stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 6px;
             margin-bottom: 15px;
         }
 
@@ -122,23 +123,23 @@
             background: #ffffff;
             border: none;
             border-radius: 2px;
-            padding: 16px;
+            padding: 10px 4px;
             text-align: center;
         }
 
         .pc-stat-value {
             font-family: 'Subsoccer', sans-serif;
-            font-size: 1.8rem;
+            font-size: 1.2rem;
             color: #000000;
             line-height: 1;
         }
 
         .pc-stat-label {
             font-family: 'Resolve', sans-serif;
-            font-size: 0.6rem;
+            font-size: 0.5rem;
             color: #666;
-            letter-spacing: 2px;
-            margin-top: 6px;
+            letter-spacing: 1px;
+            margin-top: 4px;
             text-transform: uppercase;
         }
 
@@ -392,6 +393,9 @@
 
     <!-- CARD SHOWCASE -->
     <div class="pc-showcase">
+        <div style="font-family: 'Subsoccer', sans-serif; font-size: 2.2rem; text-transform: uppercase; margin-bottom: 25px; letter-spacing: 2px; text-align: center;">
+            <span style="color: #444;">PLAYER</span> <span style="color: #c41e2a;">CARD</span>
+        </div>
         <div class="pc-spotlight"></div>
         
         <!-- Pro Card (uses existing CSS from style.css) -->
@@ -473,7 +477,7 @@
         <div class="pc-stats-grid">
             <div class="pc-stat-card">
                 <div class="pc-stat-value" id="pc-stat-elo">1500</div>
-                <div class="pc-stat-label">GLOBAL ELO</div>
+                <div class="pc-stat-label">ELO</div>
             </div>
             <div class="pc-stat-card">
                 <div class="pc-stat-value" id="pc-stat-matches">0</div>
