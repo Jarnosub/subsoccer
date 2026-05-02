@@ -27,7 +27,7 @@
 }
 
 :root {
-    --sub-red: #C1272D;
+    --sub-red: #c41e2a;
     --sub-black: #000000;
     --sub-charcoal: #111111;
     --sub-white: #FFFFFF;
@@ -2558,9 +2558,9 @@ body.live-mode {
 
 /* Initial States for Buttons (replacing inline styles) */
 #btn-quick-match-mode {
-    background: linear-gradient(135deg, #E30613 0%, #c00510 100%);
+    background: linear-gradient(135deg, #c41e2a 0%, #a01520 100%);
     color: #fff;
-    box-shadow: 0 4px 15px rgba(227, 6, 19, 0.3);
+    box-shadow: 0 4px 15px rgba(196, 30, 42, 0.3);
 }
 
 #btn-quick-match-mode:hover {
