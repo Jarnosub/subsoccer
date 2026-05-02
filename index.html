@@ -51,25 +51,31 @@
             height: 45px;
         }
 
-        /* HEADER TYPOGRAFIA (Subsoccer Experience) */
+        /* HEADER TYPOGRAFIA (Subsoccer GO) */
         .page-title-container {
+            width: 100%;
+            max-width: 440px; /* 400px buttons + 2x20px padding */
+            margin: 0 auto;
             padding: 20px 20px 10px 20px;
-            text-align: left;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between; /* This pushes GO to the right edge, making the text span the exact width */
+            align-items: baseline;
         }
         
-        .page-title-top {
+        .page-title-subsoccer {
             font-family: 'Subsoccer', sans-serif;
-            font-size: 3.5rem;
-            color: #000000;
+            font-size: clamp(2.5rem, 11vw, 3.2rem);
+            color: #1a1a1a; /* 90% grey */
             letter-spacing: 2px;
             line-height: 0.9;
             margin: 0;
             text-transform: uppercase;
         }
 
-        .page-title-bottom {
+        .page-title-go {
             font-family: 'Subsoccer', sans-serif;
-            font-size: 3.5rem;
+            font-size: clamp(2.5rem, 11vw, 3.2rem);
             color: #c41e2a; /* Brand Red */
             letter-spacing: 2px;
             line-height: 0.9;
@@ -185,8 +191,8 @@
 
     <!-- ISO OTSIKKO -->
     <div class="page-title-container">
-        <h1 class="page-title-top">SUBSOCCER</h1>
-        <h1 class="page-title-bottom">EXPERIENCE</h1>
+        <h1 class="page-title-subsoccer">SUBSOCCER</h1>
+        <h1 class="page-title-go">GO</h1>
     </div>
 
     <!-- KUVABLOKKI -->
