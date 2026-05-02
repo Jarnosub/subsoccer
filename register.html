@@ -13,48 +13,48 @@
     <style>
         @font-face { font-family: 'Subsoccer'; src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'); font-display: swap; }
         @font-face { font-family: 'Resolve'; src: url('fonts/Resolve-BoldNrw.otf') format('opentype'); font-display: swap; }
-        :root { --sub-red: #E30613; --sub-gold: #D4AF37; --sub-black: #0a0a0a; --sub-radius: 8px; }
+        :root { --sub-red: #c41e2a; --sub-accent: #c41e2a; --sub-black: #f5f5f5; --sub-radius: 4px; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Open Sans', sans-serif;
-            background: var(--sub-black);
-            color: white;
+            background: #f5f5f5;
+            color: #111;
             min-height: 100vh; min-height: 100dvh;
             display: flex; flex-direction: column; align-items: center;
             padding: 0 20px env(safe-area-inset-bottom, 40px) 20px;
         }
 
         .reg-header { text-align: center; padding: 40px 0 25px; width: 100%; max-width: 420px; }
-        .reg-header img { width: 100px; margin-bottom: 25px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-        .reg-header h1 { font-family: 'Subsoccer', sans-serif; font-size: 2.2rem; letter-spacing: 2px; color: #fff; margin-bottom: 10px; font-weight: normal; }
-        .reg-header p { font-family: 'Resolve', sans-serif; color: #888; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; line-height: 1.5; }
+        .reg-header img { width: 100px; margin-bottom: 25px; }
+        .reg-header h1 { font-family: 'Subsoccer', sans-serif; font-size: 2.2rem; letter-spacing: 2px; color: #111; margin-bottom: 10px; font-weight: normal; }
+        .reg-header p { font-family: 'Resolve', sans-serif; color: #666; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; line-height: 1.5; }
 
         .product-badge {
-            background: linear-gradient(135deg, #1a1500, #2a1f00);
-            border: 1px solid rgba(255, 215, 0, 0.4); border-radius: var(--sub-radius);
+            background: #ffffff;
+            border: 1px solid #e0e0e0; border-radius: var(--sub-radius);
             padding: 15px 20px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;
             width: 100%; max-width: 420px;
         }
-        .product-badge .badge-icon { font-size: 2rem; color: var(--sub-gold); }
-        .product-badge .badge-info h3 { font-family: 'Resolve', sans-serif; font-size: 1.1rem; color: #fff; letter-spacing: 1px; }
-        .product-badge .badge-info p { color: var(--sub-gold); font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+        .product-badge .badge-icon { font-size: 2rem; color: var(--sub-accent); }
+        .product-badge .badge-info h3 { font-family: 'Resolve', sans-serif; font-size: 1.1rem; color: #111; letter-spacing: 1px; }
+        .product-badge .badge-info p { color: var(--sub-accent); font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
 
         .step-indicator { display: flex; gap: 0; width: 100%; max-width: 420px; margin-bottom: 25px; }
-        .step { flex: 1; text-align: center; padding: 10px 5px; font-family: 'Resolve', sans-serif; font-size: 0.65rem; color: #555; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #333; }
-        .step.active { color: var(--sub-gold); border-bottom-color: var(--sub-gold); }
+        .step { flex: 1; text-align: center; padding: 10px 5px; font-family: 'Resolve', sans-serif; font-size: 0.65rem; color: #aaa; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #ccc; }
+        .step.active { color: var(--sub-accent); border-bottom-color: var(--sub-accent); }
         .step.done { color: #4caf50; border-bottom-color: #4caf50; }
 
         .reg-form { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
         .form-group { display: flex; flex-direction: column; gap: 5px; }
-        .form-group label { font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 2px; color: #888; text-transform: uppercase; }
+        .form-group label { font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 2px; color: #666; text-transform: uppercase; }
         .form-group input, .form-group select {
-            background: #111; border: 1px solid #333; color: #fff; padding: 14px 16px;
+            background: #ffffff; border: 1px solid #ccc; color: #111; padding: 14px 16px;
             border-radius: var(--sub-radius); font-size: 1rem; font-family: 'Open Sans', sans-serif;
             transition: border-color 0.3s; width: 100%;
         }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--sub-gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1); }
-        .form-group input::placeholder { color: #444; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--sub-accent); box-shadow: 0 0 0 3px rgba(196, 30, 42, 0.1); }
+        .form-group input::placeholder { color: #aaa; }
 
         .serial-input-wrapper { position: relative; display: flex; align-items: stretch; }
         .serial-input-wrapper input {
@@ -73,15 +73,15 @@
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .btn-gold {
-            background: #111; border: 1px solid var(--sub-gold); color: var(--sub-gold);
+            background: #ffffff; border: 1px solid var(--sub-accent); color: var(--sub-accent);
             padding: 18px; border-radius: var(--sub-radius); font-family: 'Resolve', sans-serif;
             font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
             text-transform: uppercase; margin-top: 5px;
         }
-        .btn-gold:hover { background: rgba(212, 175, 55, 0.1); }
+        .btn-gold:hover { background: rgba(196, 30, 42, 0.05); }
 
         .btn-secondary {
-            background: none; border: 1px solid #333; color: #888; padding: 14px 30px;
+            background: none; border: 1px solid #ccc; color: #666; padding: 14px 30px;
             border-radius: var(--sub-radius); font-size: 0.8rem; cursor: pointer;
             font-family: 'Open Sans', sans-serif; width: 100%; margin-top: 5px;
         }
@@ -101,21 +101,21 @@
         .auth-divider hr { flex: 1; border: none; border-top: 1px solid #222; }
 
         .success-card {
-            background: linear-gradient(135deg, #0a1a0a, #0a0a0a); border: 1px solid rgba(76, 175, 80, 0.3);
-            border-radius: 12px; padding: 30px; text-align: center; width: 100%; max-width: 420px;
+            background: #ffffff; border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 4px; padding: 30px; text-align: center; width: 100%; max-width: 420px;
         }
         .success-card .icon { font-size: 3rem; color: #4caf50; margin-bottom: 15px; }
-        .success-card h2 { font-family: 'Subsoccer', sans-serif; font-size: 1.5rem; color: var(--sub-gold); letter-spacing: 2px; margin-bottom: 10px; font-weight: normal; }
-        .success-card p { color: #aaa; font-size: 0.85rem; line-height: 1.6; }
-        .success-card strong { color: #fff; }
+        .success-card h2 { font-family: 'Subsoccer', sans-serif; font-size: 1.5rem; color: var(--sub-accent); letter-spacing: 2px; margin-bottom: 10px; font-weight: normal; }
+        .success-card p { color: #666; font-size: 0.85rem; line-height: 1.6; }
+        .success-card strong { color: #111; }
 
-        .reg-footer { margin-top: 40px; text-align: center; color: #333; font-size: 0.65rem; letter-spacing: 1px; padding-bottom: 20px; }
+        .reg-footer { margin-top: 40px; text-align: center; color: #aaa; font-size: 0.65rem; letter-spacing: 1px; padding-bottom: 20px; }
     </style>
 </head>
 <body>
 
     <!-- BACK BUTTON -->
-    <button onclick="window.location.href='index.html'" style="position: absolute; top: 25px; left: 25px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 1.2rem; cursor: pointer; z-index: 100; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+    <button onclick="window.location.href='index.html'" style="position: absolute; top: 25px; left: 25px; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px); border: 1px solid #ccc; color: #111; font-size: 1.2rem; cursor: pointer; z-index: 100; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <i class="fa-solid fa-arrow-left"></i>
     </button>
 
@@ -174,9 +174,9 @@
         <div class="reg-form" id="auth-form">
             <!-- Logged-in state -->
             <div id="logged-in-section" style="display:none;">
-                <div style="background:#111; border:1px solid #333; border-radius:var(--sub-radius); padding:15px; text-align:center; margin-bottom:15px;">
-                    <div style="font-family: 'Resolve', sans-serif; font-size:0.7rem; color:#888; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px;">Logged in as</div>
-                    <div style="font-family:'Resolve', sans-serif; font-size:1.1rem; color:var(--sub-gold); letter-spacing: 1px;" id="logged-in-name">PLAYER</div>
+                <div style="background:#ffffff; border:1px solid #e0e0e0; border-radius:var(--sub-radius); padding:15px; text-align:center; margin-bottom:15px;">
+                    <div style="font-family: 'Resolve', sans-serif; font-size:0.7rem; color:#666; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px;">Logged in as</div>
+                    <div style="font-family:'Resolve', sans-serif; font-size:1.1rem; color:var(--sub-accent); letter-spacing: 1px;" id="logged-in-name">PLAYER</div>
                 </div>
                 <div class="form-group">
                     <label>Give Your Product a Name</label>
@@ -497,7 +497,7 @@
                 // 3. Show success
                 document.getElementById('success-desc').innerHTML = `
                     <strong>${tableName}</strong><br>
-                    <span style="color:var(--sub-gold)">${realSerial}</span><br><br>
+                    <span style="color:var(--sub-accent)">${realSerial}</span><br><br>
                     Registered to <strong>${currentUser.username}</strong>.<br>
                     Your product is now part of the Subsoccer network!
                 `;

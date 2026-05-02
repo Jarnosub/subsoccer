@@ -7,21 +7,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
     <style>
-        body { font-family: 'Open Sans', sans-serif; background: #0a0a0a; color: white; min-height: 100dvh; margin: 0; }
-        .mod-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top, 20px)); background: #111; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .mod-title { font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 2px; color: #D4AF37; }
+        body { font-family: 'Open Sans', sans-serif; background: #f5f5f5; color: #111; min-height: 100dvh; margin: 0; }
+        .mod-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top, 20px)); background: #ffffff; border-bottom: 1px solid #e0e0e0; }
+        .mod-title { font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 2px; color: #c41e2a; }
         .mod-container { padding: 20px; max-width: 600px; margin: 0 auto; }
         
-        .mod-btn { width: 100%; text-align: left; background: #111; border: 1px solid #222; border-radius: 8px; padding: 16px 20px; color: #ccc; font-family: 'Resolve', sans-serif; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; transition: all 0.2s; }
-        .mod-btn:hover { background: #1a1a1a; color: #fff; border-color: #333; }
-        .mod-btn i { color: #D4AF37; width: 24px; text-align: center; font-size: 1.1rem; }
-        .mod-btn .arrow { margin-left: auto; color: #444; font-size: 0.8rem; }
+        .mod-btn { width: 100%; text-align: left; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 16px 20px; color: #333; font-family: 'Resolve', sans-serif; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; transition: all 0.2s; }
+        .mod-btn:hover { background: #f9f9f9; color: #111; border-color: #ccc; }
+        .mod-btn i { color: #c41e2a; width: 24px; text-align: center; font-size: 1.1rem; }
+        .mod-btn .arrow { margin-left: auto; color: #aaa; font-size: 0.8rem; }
 
         .mod-danger { color: #E30613; border-color: rgba(227,6,19,0.3); }
         .mod-danger i { color: #E30613; }
         .mod-danger:hover { background: rgba(227,6,19,0.1); border-color: #E30613; color: #ffaaaa; }
         
-        .section-title { font-family: 'Resolve', sans-serif; margin-top: 35px; margin-bottom: 15px; font-size: 0.7rem; color: #666; letter-spacing: 2px; text-transform: uppercase; }
+        .section-title { font-family: 'Resolve', sans-serif; margin-top: 35px; margin-bottom: 15px; font-size: 0.7rem; color: #999; letter-spacing: 2px; text-transform: uppercase; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -33,7 +33,7 @@
 
     <div id="mod-content" style="display:none;">
     <div class="mod-header">
-        <button onclick="window.location.href='index.html'" style="background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; width: 30px; text-align: left;"><i class="fas fa-arrow-left"></i></button>
+        <button onclick="window.location.href='index.html'" style="background: none; border: none; color: #111; font-size: 1.2rem; cursor: pointer; width: 30px; text-align: left;"><i class="fas fa-arrow-left"></i></button>
         <div class="mod-title">MODERATOR TOOLS</div>
         <div style="width: 30px;"></div>
     </div>
@@ -44,7 +44,7 @@
             <i class="fa-solid fa-satellite-dish"></i>
             <div>
                 <div style="font-weight: bold; margin-bottom: 4px;">CONTROL ROOM</div>
-                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #666; text-transform: none; letter-spacing: 0;">System administration for live screens</div>
+                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">System administration for live screens</div>
             </div>
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
@@ -54,7 +54,7 @@
             <i class="fa-solid fa-qrcode"></i>
             <div>
                 <div style="font-weight: bold; margin-bottom: 4px;">QR CAMPAIGN EXPORTER</div>
-                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #666; text-transform: none; letter-spacing: 0;">Generate batch EPS vectors</div>
+                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">Generate batch EPS vectors</div>
             </div>
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
@@ -64,7 +64,7 @@
             <i class="fa-solid fa-gamepad"></i>
             <div>
                 <div style="font-weight: bold; margin-bottom: 4px;">VENUE MANAGER</div>
-                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #666; text-transform: none; letter-spacing: 0;">Arcade fleet and Pay2Play configuration</div>
+                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">Arcade fleet and Pay2Play configuration</div>
             </div>
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
@@ -98,14 +98,14 @@
             );
             const { data } = await _sb.auth.getSession();
             if (!data.session) {
-                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="index.html" style="color:#D4AF37; margin-left:8px;">LOG IN</a>';
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="index.html" style="color:#c41e2a; margin-left:8px;">LOG IN</a>';
                 return;
             }
             // Verify admin status
             const { data: player } = await _sb.from('players').select('id, is_admin').eq('id', data.session.user.id).maybeSingle();
             const SUPER_ADMIN_ID = '054f6378-95c5-4f5b-a678-745e585a01fc';
             if (!player?.is_admin && data.session.user.id !== SUPER_ADMIN_ID) {
-                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="index.html" style="color:#D4AF37; margin-left:8px;">BACK</a>';
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="index.html" style="color:#c41e2a; margin-left:8px;">BACK</a>';
                 return;
             }
             // Auth passed - show content
