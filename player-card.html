@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Open Sans', sans-serif;
-            background: url('subsoccer-stadium-blur.jpg') no-repeat center center fixed;
+            background: var(--global-bg) no-repeat center center fixed;
             background-size: cover;
             color: #111111;
             min-height: 100dvh;
@@ -447,58 +447,54 @@
                     </div>
 
                     <!-- Tap to flip -->
-                    <div style="position: absolute; bottom: 8px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.6rem; font-weight: bold; letter-spacing: 1.5px; z-index: 2;">
-                        <i class="fa-solid fa-rotate" style="margin-right: 3px;"></i> TAP TO FLIP
+                    <div style="position: absolute; bottom: 12px; width: 100%; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.65rem; font-family:'Resolve', sans-serif; letter-spacing: 2px; z-index: 2; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">
+                        <i class="fa-solid fa-rotate" style="margin-right: 4px;"></i> FLIP CARD
                     </div>
                 </div>
 
                 <!-- BACK SIDE -->
                 <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
-                    <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:15px; padding:20px 20px 0 20px;">
+                    <div style="text-align:center; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:10px; padding:20px 20px 10px 20px; background: rgba(0,0,0,0.3);">
                         <h4 style="color:#c41e2a; font-family:'Subsoccer', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">
                             PLAYER DOSSIER</h4>
-                        <div id="pc-card-tier" style="color:#fff; font-size:0.75rem; font-family:'Open Sans', sans-serif; margin-top:5px; text-transform:uppercase;">
+                        <div id="pc-card-tier" style="color:#fff; font-size:0.75rem; font-family:'Resolve', sans-serif; margin-top:5px; text-transform:uppercase; letter-spacing: 1px;">
                             NEW RECRUIT</div>
                     </div>
-                    <div style="padding: 0 20px;">
-                        <div style="border-top: 1px solid #333; padding-top: 15px; text-align:center; margin-bottom: 15px;">
-                            <div style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.6rem; letter-spacing:2px; margin-bottom:8px;">MATCH HISTORY</div>
-                            <div id="pc-back-matches" style="color:#888; font-size: 0.8rem;">0 MATCHES PLAYED</div>
+                    <div style="padding: 10px 20px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">GLOBAL ELO</div>
+                                <div id="pc-back-elo" style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">1500</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">WIN RATIO</div>
+                                <div id="pc-back-ratio" style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">0%</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">MATCHES</div>
+                                <div id="pc-back-matches" style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">WINS</div>
+                                <div id="pc-back-wins" style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
+                            </div>
                         </div>
-                        <div style="border-top: 1px solid #333; padding-top: 15px; text-align:center;">
-                            <div style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.6rem; letter-spacing:2px; margin-bottom:8px;">TOURNAMENTS</div>
-                            <div id="pc-back-tourneys" style="color:#888; font-size: 0.8rem;">0 TOURNAMENTS WON</div>
+                        
+                        <div style="margin-top: 10px; text-align: center; background: rgba(196,30,42,0.1); border: 1px solid rgba(196,30,42,0.3); padding: 10px; border-radius: 4px;">
+                            <div style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.6rem; letter-spacing:2px; margin-bottom:4px;">TOURNAMENTS WON</div>
+                            <div id="pc-back-tourneys" style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
                         </div>
                     </div>
-                    <div style="position:absolute; bottom:8px; width:100%; left:0; text-align:center; color:rgba(255,255,255,0.3); font-size:0.6rem; font-weight:bold; letter-spacing:1.5px; z-index:2;">
-                        <i class="fa-solid fa-rotate-left" style="margin-right: 3px;"></i> TAP TO FLIP
+                    
+                    <div style="position:absolute; bottom:12px; width:100%; left:0; text-align:center; color:rgba(255,255,255,0.4); font-size:0.65rem; font-family:'Resolve', sans-serif; letter-spacing:2px; z-index:2;">
+                        <i class="fa-solid fa-rotate-left" style="margin-right: 4px;"></i> FLIP CARD
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- STATS GRID -->
-    <div class="pc-stats">
-        <div class="pc-stats-grid">
-            <div class="pc-stat-card">
-                <div class="pc-stat-value" id="pc-stat-elo">1500</div>
-                <div class="pc-stat-label">ELO</div>
-            </div>
-            <div class="pc-stat-card">
-                <div class="pc-stat-value" id="pc-stat-matches">0</div>
-                <div class="pc-stat-label">MATCHES</div>
-            </div>
-            <div class="pc-stat-card">
-                <div class="pc-stat-value" id="pc-stat-wins">0</div>
-                <div class="pc-stat-label">WINS</div>
-            </div>
-            <div class="pc-stat-card">
-                <div class="pc-stat-value" id="pc-stat-ratio">0%</div>
-                <div class="pc-stat-label">WIN RATIO</div>
-            </div>
-        </div>
-    </div>
+    <!-- STATS GRID REMOVED -->
 
     <!-- ACTION BUTTONS -->
     <div class="pc-actions">
@@ -582,16 +578,14 @@
                 document.getElementById('pc-card-location').innerText = player.country.toUpperCase();
             }
 
-            document.getElementById('pc-back-matches').innerText = matches + ' MATCHES PLAYED';
-            document.getElementById('pc-back-tourneys').innerText = (player.tournaments_won || 0) + ' TOURNAMENTS WON';
+            document.getElementById('pc-back-elo').innerText = elo;
+            document.getElementById('pc-back-ratio').innerText = ratio + '%';
+            document.getElementById('pc-back-matches').innerText = matches;
+            document.getElementById('pc-back-wins').innerText = wins;
+            document.getElementById('pc-back-tourneys').innerText = (player.tournaments_won || 0);
 
             const tier = elo >= 1800 ? 'LEGEND' : elo >= 1500 ? 'PRO PLAYER' : elo >= 1300 ? 'CHALLENGER' : 'ROOKIE';
             document.getElementById('pc-card-tier').innerText = tier;
-
-            document.getElementById('pc-stat-elo').innerText = elo;
-            document.getElementById('pc-stat-matches').innerText = matches;
-            document.getElementById('pc-stat-wins').innerText = wins;
-            document.getElementById('pc-stat-ratio').innerText = ratio + '%';
 
             if (player.is_owner || player.is_admin) {
                 const modBtn = document.getElementById('pc-mod-btn');

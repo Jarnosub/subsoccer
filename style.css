@@ -27,6 +27,7 @@
 }
 
 :root {
+    --global-bg: url('subsoccer-stadium-blur.jpg');
     --sub-red: #c41e2a;
     --sub-black: #000000;
     --sub-charcoal: #111111;
@@ -3674,7 +3675,7 @@ body.live-mode {
     transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform-style: preserve-3d;
     -webkit-transform-style: preserve-3d;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(212, 175, 55, 0.15);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(212, 175, 55, 0.1);
     border-radius: 2px;
     background: transparent;
 }

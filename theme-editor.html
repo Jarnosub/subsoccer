@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer - Global Theme Editor</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=4">
+    <style>
+        :root {
+            --bg-base: #202225;
+            --bg-card: #2B2D31;
+            --text-primary: #E8EAED;
+            --text-secondary: #A0A5AA;
+            --subsoccer-red: #D02B2F;
+            --subsoccer-red-hover: #b02327;
+            --border-color: #3F4147;
+            --accent-green: #81C995;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Roboto', 'Resolve', sans-serif !important;
+            background: var(--bg-base) !important;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            padding: 15px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card);
+        }
+        .app-title { font-size: 1.25rem; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .app-title i { color: var(--subsoccer-red); }
+        .app-subtitle { color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px; }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+        .controls {
+            padding: 30px;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            background: var(--bg-base);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .control-label { font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .theme-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .theme-btn:hover { border-color: var(--subsoccer-red); }
+        .theme-btn.active { border-color: var(--subsoccer-red); background: rgba(208, 43, 47, 0.1); }
+        
+        .color-picker {
+            width: 100%;
+            height: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            background: var(--bg-card);
+            padding: 2px;
+        }
+
+        .preview-panel {
+            background: #18191C;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .preview-frame {
+            width: 375px;
+            height: 667px;
+            border-radius: 30px;
+            border: 3px solid #333;
+            overflow: hidden;
+            position: relative;
+            background: var(--global-bg, #1a1a1a);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            transition: background 0.3s;
+        }
+
+        .code-box {
+            background: #111;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--accent-green);
+            white-space: pre-wrap;
+            border: 1px solid var(--border-color);
+            margin-top: 10px;
+        }
+        .copy-btn {
+            background: var(--subsoccer-red);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .pv-content {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 100%;
+        }
+        .pv-title { font-family: 'Resolve', sans-serif; font-size: 2.5rem; color: #fff; font-weight: 700; margin-bottom: 20px; }
+        .pv-button { background: #c41e2a; color: #fff; padding: 12px 24px; border-radius: 4px; font-family: 'Resolve', sans-serif; display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div>
+            <div class="app-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Global Theme Editor</div>
+            <div class="app-subtitle">Configure the default platform background for all players</div>
+        </div>
+        <a href="moderator.html" style="color: var(--text-secondary); font-size: 0.85rem; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Back to Mod Tools</a>
+    </header>
+
+    <div class="main-grid">
+        <div class="controls">
+            <div class="control-group">
+                <label class="control-label">Quick Themes</label>
+                <button class="theme-btn active" id="btn-stadium" onclick="setTheme('url(\'subsoccer-stadium-blur.jpg\')', this)">
+                    <i class="fa-solid fa-image"></i> Light Stadium (Original)
+                </button>
+                <button class="theme-btn" id="btn-dark" onclick="setTheme('#1a1a1a', this)">
+                    <i class="fa-solid fa-moon"></i> Dark Mode (Grey)
+                </button>
+                <button class="theme-btn" id="btn-black" onclick="setTheme('#000000', this)">
+                    <i class="fa-solid fa-circle-half-stroke"></i> Pure Black (OLED)
+                </button>
+            </div>
+
+            <div class="control-group" style="margin-top: 10px;">
+                <label class="control-label">Custom Background Color</label>
+                <input type="color" class="color-picker" id="custom-color" value="#1a1a1a" oninput="setCustomColor(this.value)">
+            </div>
+
+            <div style="height: 1px; background: var(--border-color); margin: 10px 0;"></div>
+
+            <div class="control-group">
+                <label class="control-label">Generate CSS</label>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">Copy this code into <strong>style.css</strong> and <strong>the-forge.css</strong> under the <code>:root</code> selector to apply globally.</p>
+                <div class="code-box" id="css-output">--global-bg: url('subsoccer-stadium-blur.jpg');</div>
+                <button class="copy-btn" onclick="copyCss()">
+                    <i class="fa-solid fa-copy"></i> COPY CSS
+                </button>
+            </div>
+        </div>
+
+        <div class="preview-panel">
+            <div style="position: absolute; top: 20px; left: 24px; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;"><i class="fa-solid fa-eye"></i> Live Preview</div>
+            <div class="preview-frame" id="preview-frame">
+                <div class="pv-content">
+                    <div class="pv-title">SUBSOCCER</div>
+                    <div class="pv-button">PLAY NOW</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = "url('subsoccer-stadium-blur.jpg')";
+
+        function setTheme(value, btn) {
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            
+            currentTheme = value;
+            document.getElementById('preview-frame').style.background = value + " no-repeat center center";
+            document.getElementById('preview-frame').style.backgroundSize = "cover";
+            updateOutput();
+        }
+
+        function setCustomColor(color) {
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            setTheme(color, null);
+        }
+
+        function updateOutput() {
+            document.getElementById('css-output').innerText = `--global-bg: ${currentTheme};`;
+        }
+
+        function copyCss() {
+            const text = document.getElementById('css-output').innerText;
+            navigator.clipboard.writeText(text);
+            const btn = document.querySelector('.copy-btn');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> COPIED!';
+            btn.style.background = 'var(--accent-green)';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-solid fa-copy"></i> COPY CSS';
+                btn.style.background = 'var(--subsoccer-red)';
+            }, 2000);
+        }
+
+        // Initialize
+        setTheme(currentTheme, document.getElementById('btn-stadium'));
+    </script>
+</body>
+</html>
