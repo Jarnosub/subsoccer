@@ -275,9 +275,17 @@
 
 <body>
 
-    <div style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: calc(8px + env(safe-area-inset-top, 0px)) 10px 8px; font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; z-index: 100; position: relative;">
-        Players in 80+ countries · Join the community
+    <div style="width: 100%; background-color: #000000; color: #ffffff; padding: calc(8px + env(safe-area-inset-top, 0px)) 0 8px; font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; z-index: 100; position: relative; overflow: hidden; white-space: nowrap;">
+        <div id="top-ticker" style="display: inline-block; white-space: nowrap; animation: marquee 30s linear infinite; padding-left: 100vw;">
+            Players in 80+ countries · Join the community <span id="ticker-cities" style="color: #c41e2a; margin-left: 10px;"></span>
+        </div>
     </div>
+    <style>
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
 
     <!-- YLÄPALKKI / LOGO JA PELAAJAKORTTI -->
     <div class="top-header">
@@ -667,6 +675,54 @@
             margin: 0 !important;
         }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+            const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+            
+            fetch(`${SUPABASE_URL}/rest/v1/games?select=location&is_public=eq.true&location=not.is.null&order=created_at.desc&limit=15`, {
+                headers: {
+                    'apikey': SUPABASE_ANON,
+                    'Authorization': `Bearer ${SUPABASE_ANON}`
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const cities = [...new Set(data.map(g => {
+                        if (!g.location) return null;
+                        const parts = g.location.split(',');
+                        let city = "";
+                        
+                        if (parts.length === 1) {
+                            city = parts[0];
+                        } else if (parts.length === 2) {
+                            // E.g. "Street 123, City" or "City, Country"
+                            if (/[0-9]/.test(parts[0])) {
+                                city = parts[1]; // First part is address
+                            } else {
+                                city = parts[0]; // First part is city
+                            }
+                        } else {
+                            // E.g. "Venue, Address, City, Country" -> City is usually second to last
+                            city = parts[parts.length - 2];
+                        }
+                        
+                        // Clean up zip codes and format
+                        return city.replace(/[0-9]/g, '').trim().toUpperCase();
+                    }).filter(c => c && c.length > 2))];
+                    
+                    if (cities.length > 0) {
+                        const tc = document.getElementById('ticker-cities');
+                        if (tc) {
+                            tc.innerHTML = `&nbsp;·&nbsp; RECENTLY JOINED ARENAS: <span style="color:#ffffff;">${cities.join(' &nbsp;·&nbsp; ')}</span>`;
+                        }
+                    }
+                }
+            })
+            .catch(e => console.error('Ticker data error:', e));
+        });
+    </script>
 </body>
 
 </html>
