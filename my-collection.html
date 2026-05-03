@@ -9,7 +9,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Open Sans', sans-serif; background: #f5f5f5; color: #111; min-height: 100dvh; margin: 0; }
+        body { 
+            font-family: 'Open Sans', sans-serif; 
+            background: linear-gradient(rgba(247, 247, 247, 0.85), rgba(247, 247, 247, 0.85)), url('subsoccer-stadium.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #111; 
+            min-height: 100dvh; 
+            margin: 0; 
+        }
         .page-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top, 20px)); background: #ffffff; border-bottom: 1px solid #e0e0e0; }
         .page-title { font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 2px; color: #111; }
         
@@ -85,9 +92,9 @@
                                     <div style="font-size: 0.8rem; color: #888; font-family: 'Open Sans', sans-serif;">Arcade Node • ${hw.location || 'Unknown Location'}</div>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-top: 15px;">
-                                <button onclick="alert('Feature coming soon: Configure specific asset skins and settings.')" style="flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;">CONFIGURE</button>
-                                <button onclick="alert('Feature coming soon: View physical asset stats.')" style="background: transparent; border: 1px solid #333; color: #888; width: 40px; border-radius: 6px; font-size: 0.9rem; cursor: pointer;"><i class="fas fa-chart-bar"></i></button>
+                            <div style="display: flex; gap: 10px; border-top: 1px solid #f0f0f0; padding-top: 15px; margin-top: 15px;">
+                                <button onclick="alert('Feature coming soon: Configure specific asset skins and settings.')" style="flex: 1; background: #f5f5f5; border: 1px solid #e0e0e0; color: #111; padding: 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;">CONFIGURE</button>
+                                <button onclick="alert('Feature coming soon: View physical asset stats.')" style="background: transparent; border: 1px solid #e0e0e0; color: #666; width: 40px; border-radius: 6px; font-size: 0.9rem; cursor: pointer;"><i class="fas fa-chart-bar"></i></button>
                             </div>
                         </div>
                     `;
@@ -115,7 +122,7 @@
                             <div style="font-size: 0.8rem; color: #888;">Active Subscription</div>
                         </div>
                     </div>
-                    <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 15px;">Your digital player identity. Grants access to Pro Leagues and ELO rankings.</div>
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Your digital player identity. Grants access to Pro Leagues and ELO rankings.</div>
                     <button onclick="window.location.href='player-card.html'" style="background: rgba(74, 158, 255, 0.1); border: 1px solid rgba(74, 158, 255, 0.3); color: #4a9eff; padding: 10px 15px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;">VIEW CARD</button>
                 </div>
             `;

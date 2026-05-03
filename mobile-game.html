@@ -36,7 +36,8 @@
 
         body {
             font-family: 'Resolve', sans-serif;
-            background: #f7f7f7;
+            background: linear-gradient(rgba(247, 247, 247, 0.85), rgba(247, 247, 247, 0.85)), url('subsoccer-stadium.jpg') no-repeat center center fixed;
+            background-size: cover;
             color: #111111;
             overflow: hidden;
             width: 100vw;
@@ -702,7 +703,7 @@
          LAYER 1: SETUP (Player names + Start)
          ========================================== -->
     <div class="m-layer" id="m-layer-setup"
-        style="display: flex; background: #f7f7f7; position: relative; padding-top: 0;">
+        style="display: flex; background: transparent; position: relative; padding-top: 0;">
 
         <!-- YLÄPALKKI (Announcement Bar) -->
         <div
@@ -788,7 +789,7 @@
     <!-- ==========================================
          LAYER 2: NEXT MATCH PREVIEW
          ========================================== -->
-    <div class="m-layer" id="m-layer-nextmatch" style="background: #f7f7f7; display: flex; flex-direction: column;">
+    <div class="m-layer" id="m-layer-nextmatch" style="background: transparent; display: flex; flex-direction: column;">
         <!-- YLÄPALKKI (Announcement Bar) -->
         <div
             style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0; position: absolute; top: 0; left: 0; z-index: 10;">
@@ -831,7 +832,7 @@
     <!-- ==========================================
          LAYER 2b: BRACKET VIEW (scrollable)
          ========================================== -->
-    <div class="m-layer" id="m-layer-bracket" style="background: #f7f7f7; display: flex; flex-direction: column;">
+    <div class="m-layer" id="m-layer-bracket" style="background: transparent; display: flex; flex-direction: column;">
         <!-- YLÄPALKKI (Announcement Bar) -->
         <div
             style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0; position: absolute; top: 0; left: 0; z-index: 10;">
@@ -969,15 +970,20 @@
                         dotsContainer.appendChild(dot);
                     });
 
-                    // Track scroll to update active dot
-                    area.onscroll = () => {
-                        const scrollLeft = area.scrollLeft;
-                        const cardWidth = area.scrollWidth / rounds.length;
-                        const activeIdx = Math.round(scrollLeft / cardWidth);
-                        dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
-                            d.classList.toggle('active', i === activeIdx);
+                    // Track scroll to update active dot using IntersectionObserver (bulletproof for RTL)
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const activeIdx = Array.from(rounds).indexOf(entry.target);
+                                if (activeIdx !== -1) {
+                                    dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
+                                        d.classList.toggle('active', i === activeIdx);
+                                    });
+                                }
+                            }
                         });
-                    };
+                    }, { root: area, threshold: 0.5 });
+                    rounds.forEach(r => observer.observe(r));
                 }
             }, 100);
 

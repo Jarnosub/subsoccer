@@ -35,7 +35,8 @@
             height: 100vh;
             overflow-x: hidden;
             overflow-y: auto;
-            background-color: #ffffff;
+            background: linear-gradient(rgba(247, 247, 247, 0.85), rgba(247, 247, 247, 0.85)), url('subsoccer-stadium.jpg') no-repeat center center fixed;
+            background-size: cover;
             color: #000000;
             font-family: 'Inter', sans-serif;
         }
@@ -46,6 +47,7 @@
             padding: calc(10px + env(safe-area-inset-top, 10px)) 20px 8px;
             box-sizing: border-box;
             background: #ffffff;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             z-index: 100;
             display: flex;
             justify-content: space-between;
@@ -104,30 +106,29 @@
         /* KUVABLOKKI */
         .content-image {
             width: 100%;
-            height: 28vh;
-            min-height: 160px;
+            max-width: 600px;
+            height: clamp(180px, 30vh, 350px);
             background-image: url('subsoccer-teams.jpg');
             background-size: cover;
-            background-position: center 30%;
-            margin-top: 6px;
-            margin-bottom: 0;
+            background-position: center 25%;
+            margin: 10px auto 25px;
             position: relative;
         }
 
-        .content-image::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(to top, #ffffff, transparent);
-            pointer-events: none;
+        @media (min-width: 600px) {
+            .content-image {
+                border-radius: 12px;
+            }
+            .content-image::after {
+                border-radius: 0 0 12px 12px;
+            }
         }
+
+        /* Gradient removed per user request */
 
         .hub-menu {
             width: 100%;
-            background-color: #ffffff;
+            background-color: transparent;
             padding: 20px 20px 20px;
             box-sizing: border-box;
             display: flex;
