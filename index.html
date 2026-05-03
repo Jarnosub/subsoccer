@@ -680,24 +680,22 @@
             const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
             const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
             
-            fetch(`${SUPABASE_URL}/rest/v1/games?select=latitude,longitude&is_public=eq.true&latitude=not.is.null&order=created_at.desc&limit=10`, {
+            fetch(`${SUPABASE_URL}/rest/v1/public_tracking?select=location&location=not.is.null&order=client_time.desc&limit=25`, {
                 headers: {
                     'apikey': SUPABASE_ANON,
                     'Authorization': `Bearer ${SUPABASE_ANON}`
                 }
             })
             .then(r => r.json())
-            .then(async (data) => {
+            .then(data => {
                 if (data && data.length > 0) {
-                    const cityPromises = data.map(g => 
-                        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${g.latitude}&longitude=${g.longitude}&localityLanguage=en`)
-                            .then(res => res.json())
-                            .then(loc => loc.city || loc.locality || loc.principalSubdivision)
-                            .catch(() => null)
-                    );
-                    
-                    let cities = await Promise.all(cityPromises);
-                    cities = [...new Set(cities.filter(Boolean).map(c => c.toUpperCase()))];
+                    const cities = [...new Set(data.map(ev => {
+                        if (!ev.location) return null;
+                        const parts = ev.location.split('/');
+                        let city = parts.length > 1 ? parts[parts.length - 1] : ev.location;
+                        // Timezone locations often have underscores, e.g., Los_Angeles
+                        return city.replace(/_/g, ' ').toUpperCase();
+                    }).filter(Boolean))];
                     
                     if (cities.length > 0) {
                         const tc = document.getElementById('ticker-cities');
