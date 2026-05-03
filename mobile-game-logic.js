@@ -7,6 +7,12 @@
 import { BracketEngine } from './bracket-engine.js';
 import { MatchService } from './match-service.js';
 
+// --- UTILS ---
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.toString().replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
+}
+
 // --- AUTH STATE ---
 let isLoggedIn = false;
 let currentUserId = null;
@@ -621,10 +627,11 @@ function showTournamentComplete() {
             border: 1px solid ${idx === 0 ? 'rgba(196,30,42,0.4)' : 'rgba(255,255,255,0.05)'};
             ${idx === 0 ? 'box-shadow: 0 0 15px rgba(196,30,42,0.2);' : ''}
         `;
+        const safeName = escapeHtml(name);
         row.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="color: ${idx === 0 ? '#c41e2a' : '#666'}; font-weight: 900; width: 24px;">#${idx + 1}</span>
-                <span style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">${name}</span>
+                <span style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">${safeName}</span>
             </div>
             <div style="font-family: 'Resolve', sans-serif; color: ${idx === 0 ? '#c41e2a' : '#888'}; font-size: 0.9rem;">${w} WINS</div>
         `;
@@ -653,7 +660,7 @@ window.mobileAddPlayer = function(defaultName, userId) {
     div.style.cssText = 'display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: none; margin-bottom: 6px; border-left: 3px solid #c41e2a;';
     div.innerHTML = `
         <span class="player-num" style="color: #999; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.8rem;">#${num}</span>
-        <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
+        <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${escapeHtml(defaultName) || ('PLAYER ' + num)}" 
                class="player-input" ${datasetAttr}
                style="text-transform: uppercase; color: #111; width: 100%; padding: 8px 10px; font-size: 0.95rem; font-weight: 600; background: transparent; border: none; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
 
@@ -725,7 +732,8 @@ window.openQrJoin = function() {
                     const name = input.value.trim();
                     if (name && !name.startsWith("PLAYER ")) {
                         existingCount++;
-                        existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${name.toUpperCase()}</div>`;
+                        const safeName = escapeHtml(name.toUpperCase());
+                        existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${safeName}</div>`;
                     }
                 });
                 const emptyHtml = `<div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>`;
