@@ -276,7 +276,7 @@
 <body>
 
     <div id="top-ticker-container">
-        <div id="top-ticker" style="display: block; width: max-content; animation: marquee 35s linear infinite; transform-style: preserve-3d; backface-visibility: hidden;">
+        <div id="top-ticker">
             Players in 80+ countries · Join the community <span id="ticker-cities" style="color: #c41e2a; margin-left: 10px;"></span>
         </div>
     </div>
@@ -296,6 +296,18 @@
             position: relative;
             overflow: hidden;
             white-space: nowrap;
+        }
+
+        #top-ticker {
+            display: block;
+            width: max-content;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            transform: translate3d(100vw, 0, 0); /* Start off-screen */
+        }
+
+        #top-ticker.animating {
+            animation: marquee 40s linear infinite;
         }
 
         @media (min-width: 768px) {
@@ -726,18 +738,17 @@
                         const tc = document.getElementById('ticker-cities');
                         if (tc) {
                             tc.innerHTML = `&nbsp;·&nbsp; RECENT GLOBAL ACTIVITY FEED: <span style="color:#ffffff;">${cities.join(' &nbsp;·&nbsp; ')}</span>`;
-                            // Force animation reset so iOS Safari recalculates the -100% width correctly
-                            const tickerNode = document.getElementById('top-ticker');
-                            if (tickerNode) {
-                                tickerNode.style.animation = 'none';
-                                tickerNode.offsetHeight; // trigger reflow
-                                tickerNode.style.animation = '';
-                            }
                         }
                     }
                 }
             })
-            .catch(e => console.error('Ticker data error:', e));
+            .catch(e => console.error('Ticker data error:', e))
+            .finally(() => {
+                const tickerNode = document.getElementById('top-ticker');
+                if (tickerNode) {
+                    tickerNode.classList.add('animating');
+                }
+            });
         });
     </script>
 </body>
