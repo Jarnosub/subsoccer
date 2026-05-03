@@ -40,11 +40,10 @@
             font-family: 'Inter', sans-serif;
         }
 
-        /* YLÄPALKKI / LOGO */
         .top-header {
             position: relative;
             width: 100%;
-            padding: calc(15px + env(safe-area-inset-top, 15px)) 20px 15px;
+            padding: calc(10px + env(safe-area-inset-top, 10px)) 20px 8px;
             box-sizing: border-box;
             background: #ffffff;
             z-index: 100;
@@ -93,6 +92,15 @@
             margin-left: 5px;
         }
 
+        .page-tagline {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 4px;
+            color: #999;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
         /* KUVABLOKKI */
         .content-image {
             width: 100%;
@@ -103,11 +111,23 @@
             background-position: center 30%;
             margin-top: 6px;
             margin-bottom: 0;
+            position: relative;
+        }
+
+        .content-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to top, #ffffff, transparent);
+            pointer-events: none;
         }
 
         .hub-menu {
             width: 100%;
-            background-color: #f4f4f4;
+            background-color: #ffffff;
             padding: 20px 20px 20px;
             box-sizing: border-box;
             display: flex;
@@ -253,9 +273,8 @@
 
 <body>
 
-    <!-- YLÄPALKKI (Announcement Bar) -->
     <div class="announcement-bar">
-        Join players in over 80 countries
+        Play · Compete · Connect
     </div>
 
     <!-- YLÄPALKKI / LOGO JA PELAAJAKORTTI -->
@@ -289,6 +308,7 @@
     <div class="page-title-container">
         <h1 class="page-title-subsoccer">SUBSOCCER</h1>
         <h1 class="page-title-go">GO</h1>
+        <div class="page-tagline">Create · Join · Compete</div>
     </div>
 
     <!-- KUVABLOKKI -->
@@ -301,26 +321,28 @@
 
         <!-- YKKÖSVALINTA: LUO TURNAUS -->
         <button class="btn-play-now" onclick="window.location.href='mobile-game.html'">
-            Create Tournament <i class="fa-solid fa-arrow-right" style="margin-left: 5px;"></i>
+            <i class="fa-solid fa-trophy"></i> Create Tournament <i class="fa-solid fa-arrow-right" style="margin-left: 2px; font-size: 0.85em;"></i>
         </button>
 
         <!-- KAKKOSVALINTA: SKANNAA -->
         <button class="btn-find-table" onclick="window.location.href='scan-code.html'">
-            Scan to Join
+            <i class="fa-solid fa-qrcode"></i> Scan to Join
         </button>
 
         <!-- KOLMOSVALINTA: KARTTA -->
         <button class="btn-find-table" onclick="openMapOverlay()">
-            Find Public Game
+            <i class="fa-solid fa-map-location-dot"></i> Find Public Game
         </button>
 
     </div>
 
     <!-- BLACK FOOTER BAR -->
     <div class="footer-bar">
-        <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank">Privacy Policy</a>
+        <span style="color: #888; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px;">© 2026 Subsoccer</span>
         <span>|</span>
-        <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank">Terms of Service</a>
+        <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank">Privacy</a>
+        <span>|</span>
+        <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank">Terms</a>
     </div>
 
     <!-- MAIN HAMBURGER MENU OVERLAY -->
