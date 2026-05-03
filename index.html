@@ -275,12 +275,37 @@
 
 <body>
 
-    <div style="width: 100%; background-color: #000000; color: #ffffff; padding: calc(8px + env(safe-area-inset-top, 0px)) 0 8px; font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; z-index: 100; position: relative; overflow: hidden; white-space: nowrap;">
+    <div id="top-ticker-container">
         <div id="top-ticker" style="display: block; width: max-content; animation: marquee 35s linear infinite; transform-style: preserve-3d; backface-visibility: hidden;">
             Players in 80+ countries · Join the community <span id="ticker-cities" style="color: #c41e2a; margin-left: 10px;"></span>
         </div>
     </div>
     <style>
+        #top-ticker-container {
+            width: 100%;
+            background-color: #000000;
+            color: #ffffff;
+            padding: calc(5px + env(safe-area-inset-top, 0px)) 0 5px;
+            font-family: 'Resolve', sans-serif;
+            font-weight: bold;
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-sizing: border-box;
+            z-index: 100;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        @media (min-width: 768px) {
+            #top-ticker-container {
+                padding: calc(8px + env(safe-area-inset-top, 0px)) 0 8px;
+                font-size: 0.75rem;
+                letter-spacing: 1.5px;
+            }
+        }
+
         @keyframes marquee {
             0% { transform: translate3d(100vw, 0, 0); }
             100% { transform: translate3d(-100%, 0, 0); }
