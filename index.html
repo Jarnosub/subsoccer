@@ -680,37 +680,24 @@
             const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
             const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
             
-            fetch(`${SUPABASE_URL}/rest/v1/games?select=location&is_public=eq.true&location=not.is.null&order=created_at.desc&limit=15`, {
+            fetch(`${SUPABASE_URL}/rest/v1/games?select=latitude,longitude&is_public=eq.true&latitude=not.is.null&order=created_at.desc&limit=10`, {
                 headers: {
                     'apikey': SUPABASE_ANON,
                     'Authorization': `Bearer ${SUPABASE_ANON}`
                 }
             })
             .then(r => r.json())
-            .then(data => {
+            .then(async (data) => {
                 if (data && data.length > 0) {
-                    const cities = [...new Set(data.map(g => {
-                        if (!g.location) return null;
-                        const parts = g.location.split(',');
-                        let city = "";
-                        
-                        if (parts.length === 1) {
-                            city = parts[0];
-                        } else if (parts.length === 2) {
-                            // E.g. "Street 123, City" or "City, Country"
-                            if (/[0-9]/.test(parts[0])) {
-                                city = parts[1]; // First part is address
-                            } else {
-                                city = parts[0]; // First part is city
-                            }
-                        } else {
-                            // E.g. "Venue, Address, City, Country" -> City is usually second to last
-                            city = parts[parts.length - 2];
-                        }
-                        
-                        // Clean up zip codes and format
-                        return city.replace(/[0-9]/g, '').trim().toUpperCase();
-                    }).filter(c => c && c.length > 2))];
+                    const cityPromises = data.map(g => 
+                        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${g.latitude}&longitude=${g.longitude}&localityLanguage=en`)
+                            .then(res => res.json())
+                            .then(loc => loc.city || loc.locality || loc.principalSubdivision)
+                            .catch(() => null)
+                    );
+                    
+                    let cities = await Promise.all(cityPromises);
+                    cities = [...new Set(cities.filter(Boolean).map(c => c.toUpperCase()))];
                     
                     if (cities.length > 0) {
                         const tc = document.getElementById('ticker-cities');
