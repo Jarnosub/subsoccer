@@ -16,15 +16,15 @@
 
     <style>
         :root {
-            --bg-base: #101214;
-            --bg-card: #1E2023;
+            --bg-base: #202225;
+            --bg-card: #2B2D31;
             --text-primary: #E8EAED;
-            --text-secondary: #9AA0A6;
+            --text-secondary: #A0A5AA;
             --accent-blue: #8AB4F8;
             --accent-red: #F28B82;
             --accent-green: #81C995;
             --accent-yellow: #FDE293;
-            --border-color: #3C4043;
+            --border-color: #3F4147;
         }
 
         body {
@@ -216,7 +216,7 @@
         .loading-overlay {
             position: fixed;
             top:0; left:0; width:100%; height:100%;
-            background: rgba(16, 18, 20, 0.9);
+            background: rgba(32, 34, 37, 0.9);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -265,11 +265,14 @@
         
         <div class="filters">
             <!-- Global Time Range -->
-            <select id="timeFilter" onchange="fetchData()">
+            <select id="timeFilter" onchange="document.getElementById('dateFilter').value=''; fetchData()">
                 <option value="7" selected>Last 7 Days</option>
                 <option value="30">Last 30 Days</option>
                 <option value="9999">All Time</option>
+                <option value="custom" style="display:none;">Specific Day</option>
             </select>
+            <!-- Specific Day Filter -->
+            <input type="date" id="dateFilter" onchange="document.getElementById('timeFilter').value='custom'; fetchData()" style="background-color: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); padding: 7px 12px; border-radius: 4px; font-size: 0.875rem; font-family: inherit; margin-left: 10px;">
             <!-- Partner Segment Filter -->
             <select id="partnerFilter" onchange="fetchData()" style="margin-left: 10px;">
                 <option value="all" selected>All Hubs / Segments</option>
@@ -381,7 +384,7 @@
         <!-- Global Map Row -->
         <div class="table-card">
             <h2>Live Global Match Map <i class="fas fa-satellite-dish" style="color: var(--accent-blue); margin-left:8px;"></i></h2>
-            <div id="map" style="height: 400px; width: 100%; background: #0a0a0a;"></div>
+            <div id="map" style="height: 400px; width: 100%; background: #1e1f22;"></div>
         </div>
 
         <!-- Data Tables Row -->
@@ -448,13 +451,26 @@
             document.getElementById('loading').style.display = 'flex';
             
             const timeFilterEl = document.getElementById('timeFilter');
-            const days = timeFilterEl ? (parseInt(timeFilterEl.value) || 7) : 7;
-            const isAllTime = (days >= 9999);
-            const pastDate = new Date();
-            pastDate.setDate(pastDate.getDate() - days);
-            const dateStr = pastDate.toISOString();
+            const dateFilterEl = document.getElementById('dateFilter');
             
-            document.getElementById('chart-title').innerText = isAllTime ? "Activity Trend (All Time)" : `Activity Trend (${days}d)`;
+            const isCustomDay = timeFilterEl.value === 'custom' && dateFilterEl.value;
+            let startDateStr = null;
+            let endDateStr = null;
+            
+            if (isCustomDay) {
+                // Specific Day from 00:00:00 to 23:59:59
+                const localDate = new Date(dateFilterEl.value);
+                startDateStr = new Date(localDate.setHours(0, 0, 0, 0)).toISOString();
+                endDateStr = new Date(localDate.setHours(23, 59, 59, 999)).toISOString();
+                document.getElementById('chart-title').innerText = `Activity for ${dateFilterEl.value}`;
+            } else {
+                const days = timeFilterEl ? (parseInt(timeFilterEl.value) || 7) : 7;
+                const isAllTime = (days >= 9999);
+                const pastDate = new Date();
+                pastDate.setDate(pastDate.getDate() - days);
+                startDateStr = isAllTime ? null : pastDate.toISOString();
+                document.getElementById('chart-title').innerText = isAllTime ? "Activity Trend (All Time)" : `Activity Trend (${days}d)`;
+            }
 
             try {
                 const { data: sessionData } = await client.auth.getSession();
@@ -479,7 +495,8 @@
 
                 // Build time-filtered queries
                 let trackingQuery = client.from('public_tracking').select('*').order('client_time', { ascending: false }).limit(2000);
-                if (!isAllTime) trackingQuery = trackingQuery.gte('client_time', dateStr);
+                if (startDateStr) trackingQuery = trackingQuery.gte('client_time', startDateStr);
+                if (endDateStr) trackingQuery = trackingQuery.lte('client_time', endDateStr);
                 
                 const partnerFilterEl = document.getElementById('partnerFilter');
                 const partnerFilter = partnerFilterEl ? partnerFilterEl.value : 'all';
@@ -489,10 +506,12 @@
                 }
 
                 let historyQuery = client.from('tournament_history').select('*', { count: 'exact' });
-                if (!isAllTime) historyQuery = historyQuery.gte('start_datetime', dateStr);
+                if (startDateStr) historyQuery = historyQuery.gte('start_datetime', startDateStr);
+                if (endDateStr) historyQuery = historyQuery.lte('start_datetime', endDateStr);
 
                 let matchesQuery = client.from('matches').select('id', { count: 'exact', head: true });
-                if (!isAllTime) matchesQuery = matchesQuery.gte('created_at', dateStr);
+                if (startDateStr) matchesQuery = matchesQuery.gte('created_at', startDateStr);
+                if (endDateStr) matchesQuery = matchesQuery.lte('created_at', endDateStr);
 
                 // Players count is always "all time" (total registrations)
                 const [trackingRes, usersRes, historyRes, matchesRes, topPlayersRes] = await Promise.all([

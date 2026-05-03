@@ -1059,21 +1059,54 @@
             if (!brandSlug) return; // No brand — default Subsoccer
 
             try {
-                const res = await fetch(`/brands/${brandSlug}/brand.json?t=${Date.now()}`);
-                if (!res.ok) return;
-                const brand = await res.json();
-                const logoUrl = `/brands/${brandSlug}/${brand.logo}`;
+                const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+                const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
 
-                // Swap all Subsoccer logos
-                document.querySelectorAll('img[src="subsoccer_logo.svg"]').forEach(img => {
-                    img.src = logoUrl;
+                const res = await fetch(
+                    `${SUPA_URL}/rest/v1/brands?slug=eq.${brandSlug}&is_active=eq.true&select=*&limit=1`,
+                    { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+                );
+                const brands = await res.json();
+                if (!brands || !brands.length) return;
+
+                const brand = brands[0];
+
+                // Swap all Subsoccer logos → brand logo
+                if (brand.logo_url) {
+                    document.querySelectorAll('img[src="subsoccer_logo.svg"]').forEach(img => {
+                        img.src = brand.logo_url;
+                    });
+                    document.querySelectorAll('.setup-logo').forEach(img => {
+                        img.src = brand.logo_url;
+                    });
+                }
+
+                // Swap background images → brand hero (or game_hero if available)
+                const bgUrl = brand.game_hero_url || brand.hero_url;
+                if (bgUrl) {
+                    document.querySelectorAll('[style*="subsoccer-teams.jpg"]').forEach(el => {
+                        el.style.backgroundImage = `url('${bgUrl}')`;
+                        el.style.filter = 'none';
+                    });
+                }
+
+                // Remove darkening overlays for branded pages
+                document.querySelectorAll('[style*="linear-gradient(to bottom"]').forEach(el => {
+                    // Only target vignette overlays (not other elements)
+                    if (el.style.zIndex === '1') {
+                        el.style.background = 'linear-gradient(to bottom, transparent 0%, transparent 50%, rgba(0,0,0,0.4) 85%, rgba(0,0,0,0.65) 100%)';
+                    }
                 });
-                document.querySelectorAll('.setup-logo').forEach(img => {
-                    img.src = logoUrl;
-                });
+
+                // Update page title
+                document.title = `${brand.name} - Tournament`;
 
                 // Store brand slug for back-navigation
                 sessionStorage.setItem('active-brand', brandSlug);
+                // Update "BACK TO HUB" links
+                document.querySelectorAll('a[href="/"], a[href="index.html"]').forEach(a => {
+                    a.href = `/brands/${brandSlug}/`;
+                });
             } catch (e) {
                 console.log('Brand load skipped:', e);
             }
