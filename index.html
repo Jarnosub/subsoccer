@@ -167,7 +167,7 @@
             max-width: 400px;
             background: #ffffff;
             color: #000000;
-            border: 2px solid #000000;
+            border: 1px solid #000000;
             padding: 10px 16px;
             border-radius: 2px;
             font-family: 'Resolve', sans-serif;
@@ -285,7 +285,11 @@
         <!-- Hamburger Menu Button (Left) -->
         <button onclick="document.getElementById('main-nav-menu').style.display='flex'"
             style="background: transparent; border: none; color: #000; cursor: pointer; height: 100%; display: flex; align-items: center;">
-            <i class="fa-solid fa-bars" style="font-size: 1.8rem;"></i>
+            <div style="display: flex; flex-direction: column; justify-content: space-between; width: 26px; height: 18px; opacity: 0.8;">
+                <div style="width: 100%; height: 1.5px; background-color: #000;"></div>
+                <div style="width: 100%; height: 1.5px; background-color: #000;"></div>
+                <div style="width: 100%; height: 1.5px; background-color: #000;"></div>
+            </div>
         </button>
 
         <!-- Keskitetty Logo -->
