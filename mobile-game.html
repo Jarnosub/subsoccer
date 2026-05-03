@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Subsoccer - Mobile Tournament</title>
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,18 +20,24 @@
             src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2');
             font-display: swap;
         }
+
         @font-face {
             font-family: 'Resolve';
             src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
             font-display: swap;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         body {
             font-family: 'Resolve', sans-serif;
-            background: #1f1f1f; /* Dark grey */
-            color: #ffffff;
+            background: #f7f7f7;
+            color: #111111;
             overflow: hidden;
             width: 100vw;
             height: 100dvh;
@@ -45,13 +53,16 @@
             width: 100vw;
             height: 100dvh;
             position: fixed;
-            top: 0; left: 0;
+            top: 0;
+            left: 0;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
-            pointer-events: none; /* prevent clicks during fade */
+            pointer-events: none;
+            /* prevent clicks during fade */
         }
+
         .m-layer.fade-in {
             opacity: 1;
             pointer-events: auto;
@@ -83,21 +94,21 @@
         .setup-title {
             font-family: 'Subsoccer', sans-serif;
             font-weight: 400 !important;
-            font-size: 3.5rem;
+            font-size: 3.2rem;
             text-align: center;
             margin-bottom: 6px;
             letter-spacing: 0px;
-            color: #ffffff;
+            color: #1a1a1a;
             -webkit-text-stroke: 0 !important;
         }
 
         .setup-subtitle {
             font-family: 'Resolve', sans-serif;
             font-weight: 300;
-            color: #aaaaaa;
+            color: #888888;
             text-align: center;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
         }
 
         .setup-btn-add {
@@ -114,7 +125,11 @@
             font-size: 1.1rem;
             transition: transform 0.15s, background 0.2s;
         }
-        .setup-btn-add:active { transform: scale(0.97); background: rgba(0,0,0,0.1); }
+
+        .setup-btn-add:active {
+            transform: scale(0.97);
+            background: rgba(0, 0, 0, 0.1);
+        }
 
         .setup-price-bar {
             display: none;
@@ -131,14 +146,19 @@
             border: none;
             cursor: pointer;
             font-family: 'Resolve', sans-serif;
-            font-size: 1.4rem !important; /* Match front page */
+            font-size: 1.4rem !important;
+            /* Match front page */
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             transition: transform 0.15s, opacity 0.2s;
         }
-        .setup-start-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+        .setup-start-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
 
         /* ========================================
            LAYER 2: NEXT MATCH PREVIEW
@@ -157,23 +177,24 @@
 
         .match-card {
             width: 100%;
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 2px;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
             padding: 30px 20px;
             text-align: center;
             margin-bottom: 20px;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s;
         }
+
         .match-card.glow {
-            box-shadow: 0 0 20px rgba(227, 6, 19, 0.4);
-            border-color: rgba(227, 6, 19, 0.8);
+            box-shadow: 0 0 20px rgba(196, 30, 42, 0.2);
+            border-color: rgba(196, 30, 42, 0.6);
             transform: scale(1.02);
         }
 
         .match-round-label {
             font-family: 'Resolve', sans-serif;
-            color: #888;
+            color: #999;
             font-size: 0.75rem;
             letter-spacing: 3px;
             text-transform: uppercase;
@@ -186,7 +207,7 @@
             font-weight: 400;
             letter-spacing: 1px;
             text-transform: uppercase;
-            color: white;
+            color: #1a1a1a;
         }
 
         .match-vs {
@@ -205,6 +226,8 @@
             font-family: 'Resolve', sans-serif;
             font-size: 1.4rem;
             font-weight: 400;
+            letter-spacing: 1px;
+            -webkit-text-stroke: 0;
             padding: 14px 20px;
             border: none;
             border-radius: 2px;
@@ -215,30 +238,35 @@
             gap: 8px;
             transition: transform 0.15s, opacity 0.2s;
         }
-        .match-start-btn:active { transform: scale(0.97); }
+
+        .match-start-btn:active {
+            transform: scale(0.97);
+        }
 
         /* ========================================
            LAYER 2b: BRACKET VIEW (SWIPABLE)
            ======================================== */
         .bracket-container {
             width: 100%;
-            height: 100%;
-            padding: 20px 0;
-            padding-top: calc(20px + env(safe-area-inset-top, 20px));
+            flex: 1;
+            min-height: 0;
+            padding: 10px 0;
             padding-bottom: 80px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         #mobile-bracket-area {
             width: 100%;
-            flex: 1;
+            flex: none;
             display: flex;
             flex-direction: row;
-            direction: rtl; /* Fixes Samsung / old Safari bug where row-reverse breaks scroll offset */
+            direction: rtl;
+            /* Fixes Samsung / old Safari bug where row-reverse breaks scroll offset */
             align-items: flex-start;
             justify-content: flex-start;
             padding: 0 5vw;
@@ -251,16 +279,19 @@
 
         /* Make each round a swipable card */
         #mobile-bracket-area .bracket-round {
-            direction: ltr; /* Reset text direction to normal */
+            direction: ltr;
+            /* Reset text direction to normal */
             min-width: 90vw;
             max-width: 90vw;
             scroll-snap-align: center;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-            gap: 20px;
+            gap: 16px;
             margin: 0;
             padding: 0 10px;
+            height: auto !important;
+            min-height: 0 !important;
         }
 
         #mobile-bracket-area .bracket-match {
@@ -268,19 +299,25 @@
             background: transparent !important;
             border: none !important;
             padding: 0 !important;
-            margin-bottom: 20px !important;
+            margin-bottom: 10px !important;
             gap: 2px !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
+
         #mobile-bracket-area .bracket-match:active {
             transform: scale(0.98);
         }
+
         #mobile-bracket-area .bracket-match.glow {
-            box-shadow: 0 0 20px rgba(227, 6, 19, 0.4);
+            box-shadow: none;
         }
+
         #mobile-bracket-area .match-player {
-            background: #f2f2f2 !important;
-            color: #000000 !important;
-            border: none !important;
+            background: #ffffff !important;
+            color: #111 !important;
+            border: 1px solid #e0e0e0 !important;
             border-radius: 2px !important;
             padding: 12px 16px !important;
             font-family: 'Resolve', sans-serif !important;
@@ -288,23 +325,61 @@
             font-size: 1rem !important;
             text-align: left !important;
             text-transform: uppercase !important;
+            box-shadow: none !important;
         }
+
         #mobile-bracket-area .match-player.winner {
             background: #ffffff !important;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+            border-left: 3px solid #c41e2a !important;
+            box-shadow: none !important;
         }
+
         #mobile-bracket-area .match-vs {
-            display: none !important; /* Hide VS text inside the flat bracket nodes */
+            display: none !important;
+            /* Hide VS text inside the flat bracket nodes */
         }
 
         @keyframes mFall {
-            to { transform: translateY(110vh) rotate(360deg); }
+            to {
+                transform: translateY(110vh) rotate(360deg);
+            }
         }
 
         #mobile-bracket-area .round-title {
             position: static !important;
-            margin-bottom: 20px !important;
+            margin-bottom: 12px !important;
             text-align: center;
+            color: #111 !important;
+            font-size: 1rem !important;
+            letter-spacing: 2px !important;
+            text-shadow: none !important;
+        }
+
+        /* Swipe indicator dots */
+        .bracket-swipe-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 0 0;
+        }
+
+        .bracket-swipe-dots .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            transition: background 0.3s, transform 0.3s;
+        }
+
+        .bracket-swipe-dots .dot.active {
+            background: #c41e2a;
+            transform: scale(1.3);
+        }
+
+        @media (min-width: 768px) {
+            .bracket-swipe-dots {
+                display: none;
+            }
         }
 
         /* Desktop & Landscape PC TV mirror styling (Side-by-side bracket Tree) */
@@ -320,11 +395,14 @@
                 overflow-y: visible;
                 scroll-snap-type: none;
             }
+
             #mobile-bracket-area .bracket-round {
                 min-width: 250px;
                 max-width: 300px;
                 scroll-snap-align: none;
                 margin: 0;
+                height: auto !important;
+                justify-content: flex-start !important;
             }
         }
 
@@ -333,9 +411,9 @@
             bottom: calc(20px + env(safe-area-inset-bottom, 10px));
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.9);
+            background: #c41e2a;
             color: #ffffff;
-            border: 1px solid #333;
+            border: none;
             padding: 12px 30px;
             border-radius: 2px;
             font-family: 'Resolve', sans-serif;
@@ -343,7 +421,6 @@
             letter-spacing: 2px;
             cursor: pointer;
             z-index: 100;
-            backdrop-filter: blur(10px);
         }
 
         /* ========================================
@@ -375,11 +452,15 @@
             border: 2px solid #222;
             transition: filter 0.1s;
         }
-        .game-side:active { filter: brightness(1.3); }
+
+        .game-side:active {
+            filter: brightness(1.3);
+        }
 
         .game-side.side-p1 {
             background: linear-gradient(135deg, #243647 0%, #121e2b 100%);
         }
+
         .game-side.side-p2 {
             background: linear-gradient(135deg, #c41e2a 0%, #900000 100%);
         }
@@ -392,14 +473,14 @@
             top: clamp(15px, 4vh, 30px);
             letter-spacing: 3px;
             text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(0,0,0,0.3);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
 
         .game-side .side-score {
             font-family: 'Subsoccer', sans-serif;
             font-size: clamp(8rem, 25vh, 16rem);
             color: #ffffff;
-            text-shadow: 0 0 40px rgba(255,255,255,0.2);
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
             line-height: 1;
             margin-top: clamp(20px, 5vh, 50px);
         }
@@ -408,6 +489,7 @@
             font-size: clamp(1.5rem, 4vh, 3rem);
             margin-top: clamp(6px, 1vh, 12px);
             letter-spacing: clamp(8px, 1.5vw, 16px);
+            color: #ffffff;
         }
 
         .game-center-divider {
@@ -455,11 +537,12 @@
 
         .victory-round {
             font-family: 'Resolve', sans-serif;
-            color: #c41e2a;
+            color: #ffffff;
             font-size: 0.75rem;
             letter-spacing: 4px;
             text-transform: uppercase;
             margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
         }
 
         .victory-name {
@@ -468,7 +551,8 @@
             letter-spacing: 3px;
             text-transform: uppercase;
             margin-bottom: 16px;
-            text-shadow: 0 0 30px rgba(255,255,255,0.1);
+            color: #ffffff;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
         }
 
         .victory-score {
@@ -476,18 +560,21 @@
             font-size: 2.5rem;
             font-weight: 900;
             letter-spacing: 6px;
+            color: #ffffff;
             background: linear-gradient(to right, #12222d 50%, #b70000 50%);
             padding: 16px 40px;
-            border-radius: 2px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            border: none;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
         }
 
         .victory-label {
             font-family: 'Resolve', sans-serif;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.65rem;
             letter-spacing: 3px;
             margin-top: 20px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
         }
 
         /* ========================================
@@ -510,23 +597,26 @@
             font-size: 2.5rem;
             letter-spacing: 2px;
             text-transform: uppercase;
-            color: #c41e2a;
+            color: #ffffff;
             margin-bottom: 4px;
-            text-shadow: 0 0 20px rgba(196, 30, 42, 0.3);
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
         }
 
         .leaderboard-subtitle {
             font-family: 'Resolve', sans-serif;
-            color: #888;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.7rem;
             letter-spacing: 3px;
             margin-bottom: 30px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
         }
 
         .leaderboard-card {
             width: 100%;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid rgba(196,30,42,0.3);
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 4px;
             padding: 20px;
             margin-bottom: 20px;
@@ -534,7 +624,7 @@
 
         .leaderboard-title {
             font-family: 'Resolve', sans-serif;
-            color: #c41e2a;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 0.65rem;
             letter-spacing: 3px;
             text-align: center;
@@ -563,15 +653,26 @@
             gap: 8px;
             transition: transform 0.15s;
         }
-        .restart-btn:active { transform: translateX(-50%) scale(0.97); }
+
+        .restart-btn:active {
+            transform: translateX(-50%) scale(0.97);
+        }
 
         /* ========================================
            ANIMATIONS
            ======================================== */
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .anim-in {
             animation: fadeInUp 0.5s ease forwards;
         }
@@ -588,25 +689,35 @@
             padding: 8px 16px;
             margin-top: 12px;
         }
-        .quit-btn:hover { color: #ffffff; }
+
+        .quit-btn:hover {
+            color: #ffffff;
+        }
     </style>
 </head>
+
 <body>
 
     <!-- ==========================================
          LAYER 1: SETUP (Player names + Start)
          ========================================== -->
-    <div class="m-layer" id="m-layer-setup" style="display: flex; background: #2a2a2a; position: relative; padding-top: 0;">
-        
+    <div class="m-layer" id="m-layer-setup"
+        style="display: flex; background: #f7f7f7; position: relative; padding-top: 0;">
+
         <!-- YLÄPALKKI (Announcement Bar) -->
-        <div style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0;">
-            Join players in over 80 countries
+        <div
+            style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0;">
+            Players in 80+ countries · Join the community
         </div>
 
         <!-- YLÄPALKKI / LOGO -->
-        <div style="width: 100%; background: #ffffff; display: flex; justify-content: center; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; margin-bottom: 20px; position: relative;">
-            <a href="index.html" style="position: absolute; left: 20px; color: #111; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
-            <img src="subsoccer_logo.svg" style="height: 24px; cursor: pointer;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
+        <div
+            style="width: 100%; background: #ffffff; display: flex; justify-content: center; align-items: center; padding: 12px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; margin-bottom: 16px; position: relative;">
+            <a href="index.html"
+                style="position: absolute; left: 20px; color: #111; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                    class="fa-solid fa-arrow-left"></i></a>
+            <img src="subsoccer_logo.svg" style="height: 22px; cursor: pointer;" alt="Subsoccer"
+                onclick="window.location.href='https://subsoccer.com';">
         </div>
 
         <div class="setup-container">
@@ -614,24 +725,37 @@
             <p class="setup-subtitle">Add players to begin. Winner takes all.</p>
 
             <!-- SCROLLABLE PLAYER LIST ONLY -->
-            <div id="m-players-list" style="flex: 0 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 5px; margin-bottom: 8px;">
-                <div class="player-row" style="display: flex; align-items: center; background: #f2f2f2; padding: 6px; border-radius: 2px; border: none; margin-bottom: 8px;">
-                    <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#1</span>
-                    <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 1" 
-                           class="player-input" 
-                           style="text-transform: uppercase; color: #000000; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 600; background: transparent; border: 1px dashed #d0d0d0; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
-                    <i class="fas fa-pencil-alt" style="color: #ccc; font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
-                    <button onclick="mobileRemovePlayer(this)" style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
+            <div id="m-players-list"
+                style="flex: 0 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 5px; margin-bottom: 8px;">
+                <div class="player-row"
+                    style="display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: none; margin-bottom: 6px; border-left: 3px solid #c41e2a;">
+                    <span class="player-num"
+                        style="color: #999; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.8rem;">#1</span>
+                    <input type="text" autocomplete="off" autocapitalize="characters"
+                        onfocus="setTimeout(() => this.select(), 50)"
+                        onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();"
+                        value="PLAYER 1" class="player-input"
+                        style="text-transform: uppercase; color: #111; width: 100%; padding: 8px 10px; font-size: 0.95rem; font-weight: 600; background: transparent; border: none; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
+                    <i class="fas fa-pencil-alt"
+                        style="color: #ccc; font-size: 0.75rem; margin-left: 10px; pointer-events: none;"></i>
+                    <button onclick="mobileRemovePlayer(this)"
+                        style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="player-row" style="display: flex; align-items: center; background: #f2f2f2; padding: 6px; border-radius: 2px; border: none; margin-bottom: 8px;">
-                    <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#2</span>
-                    <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="PLAYER 2" 
-                           class="player-input" 
-                           style="text-transform: uppercase; color: #000000; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 600; background: transparent; border: 1px dashed #d0d0d0; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
-                    <i class="fas fa-pencil-alt" style="color: #ccc; font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
-                    <button onclick="mobileRemovePlayer(this)" style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
+                <div class="player-row"
+                    style="display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: none; margin-bottom: 6px; border-left: 3px solid #c41e2a;">
+                    <span class="player-num"
+                        style="color: #999; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.8rem;">#2</span>
+                    <input type="text" autocomplete="off" autocapitalize="characters"
+                        onfocus="setTimeout(() => this.select(), 50)"
+                        onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();"
+                        value="PLAYER 2" class="player-input"
+                        style="text-transform: uppercase; color: #111; width: 100%; padding: 8px 10px; font-size: 0.95rem; font-weight: 600; background: transparent; border: none; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
+                    <i class="fas fa-pencil-alt"
+                        style="color: #ccc; font-size: 0.75rem; margin-left: 10px; pointer-events: none;"></i>
+                    <button onclick="mobileRemovePlayer(this)"
+                        style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -639,8 +763,12 @@
 
             <!-- ADD BUTTONS (NEVER SCROLL) -->
             <div id="m-add-buttons-container" style="flex-shrink: 0; display: flex; gap: 8px; width: 100%;">
-                <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()" style="flex: 1; margin-top: 0;">+ ADD PLAYER</button>
-                <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()" style="flex: 1; margin-top: 0;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR JOIN</button>
+                <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()"
+                    style="flex: 1; margin-top: 0; background: #ffffff; color: #111; border: 2px solid #111;">+ ADD
+                    PLAYER</button>
+                <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()"
+                    style="flex: 1; margin-top: 0;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR
+                    JOIN</button>
             </div>
 
             <!-- FLEX SPACER TO PUSH START MATCH DOWN INITIALLY -->
@@ -660,16 +788,21 @@
     <!-- ==========================================
          LAYER 2: NEXT MATCH PREVIEW
          ========================================== -->
-    <div class="m-layer" id="m-layer-nextmatch" style="background: #1f1f1f; display: flex; flex-direction: column;">
+    <div class="m-layer" id="m-layer-nextmatch" style="background: #f7f7f7; display: flex; flex-direction: column;">
         <!-- YLÄPALKKI (Announcement Bar) -->
-        <div style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0; position: absolute; top: 0; left: 0; z-index: 10;">
-            Join players in over 80 countries
+        <div
+            style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0; position: absolute; top: 0; left: 0; z-index: 10;">
+            Players in 80+ countries · Join the community
         </div>
 
         <!-- YLÄPALKKI / LOGO -->
-        <div style="width: 100%; background: #ffffff; display: flex; justify-content: center; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; position: absolute; top: 32px; left: 0; z-index: 9; position: relative;">
-            <a href="index.html" style="position: absolute; left: 20px; color: #111; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
-            <img src="subsoccer_logo.svg" style="height: 24px; cursor: pointer;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
+        <div
+            style="width: 100%; background: #ffffff; display: flex; justify-content: center; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; position: absolute; top: 32px; left: 0; z-index: 9; position: relative;">
+            <a href="index.html"
+                style="position: absolute; left: 20px; color: #111; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                    class="fa-solid fa-arrow-left"></i></a>
+            <img src="subsoccer_logo.svg" style="height: 24px; cursor: pointer;" alt="Subsoccer"
+                onclick="window.location.href='https://subsoccer.com';">
         </div>
 
         <div class="nextmatch-container" style="position: relative; z-index: 2;">
@@ -686,35 +819,44 @@
             </button>
 
             <!-- View bracket link -->
-            <button onclick="showBracketView()" style="margin-top: 16px; background: none; border: none; color: #fff; font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;">
+            <button onclick="showBracketView()"
+                style="margin-top: 16px; background: none; border: none; color: #111; font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;">
                 VIEW BRACKET
             </button>
-            <button class="quit-btn" onclick="quitTournament()"><i class="fas fa-sign-out-alt" style="margin-right: 4px;"></i> QUIT TOURNAMENT</button>
+            <button class="quit-btn" onclick="quitTournament()" style="color: #999;"><i class="fas fa-sign-out-alt"
+                    style="margin-right: 4px;"></i> QUIT TOURNAMENT</button>
         </div>
     </div>
 
     <!-- ==========================================
          LAYER 2b: BRACKET VIEW (scrollable)
          ========================================== -->
-    <div class="m-layer" id="m-layer-bracket" style="background: #1f1f1f; display: flex; flex-direction: column;">
+    <div class="m-layer" id="m-layer-bracket" style="background: #f7f7f7; display: flex; flex-direction: column;">
         <!-- YLÄPALKKI (Announcement Bar) -->
-        <div style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0; position: absolute; top: 0; left: 0; z-index: 10;">
-            Join players in over 80 countries
+        <div
+            style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0; position: absolute; top: 0; left: 0; z-index: 10;">
+            Players in 80+ countries · Join the community
         </div>
 
         <!-- YLÄPALKKI / LOGO -->
-        <div style="width: 100%; background: #ffffff; display: flex; justify-content: center; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; position: absolute; top: 32px; left: 0; z-index: 9; position: relative;">
-            <a href="index.html" style="position: absolute; left: 20px; color: #111; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
-            <img src="subsoccer_logo.svg" style="height: 24px; cursor: pointer;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
+        <div
+            style="width: 100%; background: #ffffff; display: flex; justify-content: center; align-items: center; padding: 12px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; position: absolute; top: 32px; left: 0; z-index: 9; position: relative;">
+            <a href="index.html"
+                style="position: absolute; left: 20px; color: #111; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                    class="fa-solid fa-arrow-left"></i></a>
+            <img src="subsoccer_logo.svg" style="height: 22px; cursor: pointer;" alt="Subsoccer"
+                onclick="window.location.href='https://subsoccer.com';">
         </div>
 
-        <div class="bracket-container" style="position: relative; z-index: 2; padding-top: calc(130px + env(safe-area-inset-top, 20px));">
+        <div class="bracket-container" style="position: relative; z-index: 2; padding-top: 10px;">
             <div id="mobile-bracket-area"></div>
+            <div class="bracket-swipe-dots" id="bracket-dots"></div>
         </div>
-        <button class="bracket-back-btn" onclick="hideBracketView()" style="background: #111111; color: #ffffff; border: 1px solid #333333; font-family: 'Resolve', sans-serif; font-size: 0.85rem; letter-spacing: 1px; font-weight: 400; border-radius: 2px;">
+        <button class="bracket-back-btn" onclick="hideBracketView()">
             <i class="fas fa-arrow-left" style="margin-right: 6px;"></i> Back to Match
         </button>
-        <button class="quit-btn" onclick="quitTournament()" style="position:fixed; top: calc(16px + env(safe-area-inset-top, 10px)); right: 16px; z-index:100; color:#aaaaaa;">
+        <button class="quit-btn" onclick="quitTournament()"
+            style="position:fixed; top: calc(16px + env(safe-area-inset-top, 10px)); right: 16px; z-index:100; color:#999;">
             <i class="fas fa-sign-out-alt"></i> QUIT
         </button>
     </div>
@@ -746,7 +888,8 @@
             <div class="game-walkovers">
                 <button class="walkover-btn" onclick="mobileSkipMatch(1)">WALKOUT: P1 WINS</button>
                 <button class="walkover-btn" onclick="mobileSkipMatch(2)">WALKOUT: P2 WINS</button>
-                <button class="walkover-btn" style="color: #c41e2a; border-color: rgba(227,6,19,0.3);" onclick="quitTournament()"><i class="fas fa-sign-out-alt"></i> QUIT</button>
+                <button class="walkover-btn" style="color: #c41e2a; border-color: rgba(227,6,19,0.3);"
+                    onclick="quitTournament()"><i class="fas fa-sign-out-alt"></i> QUIT</button>
             </div>
         </div>
     </div>
@@ -755,7 +898,8 @@
          LAYER 4: MATCH VICTORY
          ========================================== -->
     <div class="m-layer" id="m-layer-victory" style="background: #000;">
-        <video autoplay muted loop playsinline style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.85;">
+        <video autoplay muted loop playsinline
+            style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.85;">
             <source src="Trophy.mp4" type="video/mp4">
         </video>
 
@@ -771,14 +915,18 @@
          LAYER 5: TOURNAMENT LEADERBOARD
          ========================================== -->
     <div class="m-layer" id="m-layer-leaderboard" style="background: #000;">
-        <video autoplay muted loop playsinline style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.85;">
+        <video autoplay muted loop playsinline
+            style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.85;">
             <source src="Trophy.mp4" type="video/mp4">
         </video>
 
         <div class="leaderboard-container" style="position: relative; z-index: 2;">
-            <img src="subsoccer_logo.svg" style="cursor: pointer; height: 34px; margin-bottom: 20px;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
-            
-            <div style="font-family: 'Resolve', sans-serif; color: #c41e2a; font-size: 0.65rem; letter-spacing: 4px; margin-bottom: 4px;">TOURNAMENT CHAMPION</div>
+            <img src="subsoccer_logo.svg" style="cursor: pointer; height: 34px; margin-bottom: 20px;" alt="Subsoccer"
+                onclick="window.location.href='https://subsoccer.com';">
+
+            <div
+                style="font-family: 'Resolve', sans-serif; color: rgba(255,255,255,0.7); font-size: 0.65rem; letter-spacing: 4px; margin-bottom: 4px; text-shadow: 0 2px 8px rgba(0,0,0,0.6);">
+                TOURNAMENT CHAMPION</div>
             <div class="leaderboard-champion" id="m-champion-name">PLAYER</div>
             <div class="leaderboard-subtitle">🏆 WINNER</div>
 
@@ -807,6 +955,32 @@
             bracket.style.display = 'flex';
             void bracket.offsetWidth; // force reflow
             bracket.classList.add('fade-in');
+
+            // Build swipe indicator dots
+            setTimeout(() => {
+                const area = document.getElementById('mobile-bracket-area');
+                const dotsContainer = document.getElementById('bracket-dots');
+                if (area && dotsContainer) {
+                    const rounds = area.querySelectorAll('.bracket-round');
+                    dotsContainer.innerHTML = '';
+                    rounds.forEach((_, i) => {
+                        const dot = document.createElement('span');
+                        dot.className = 'dot' + (i === 0 ? ' active' : '');
+                        dotsContainer.appendChild(dot);
+                    });
+
+                    // Track scroll to update active dot
+                    area.onscroll = () => {
+                        const scrollLeft = area.scrollLeft;
+                        const cardWidth = area.scrollWidth / rounds.length;
+                        const activeIdx = Math.round(scrollLeft / cardWidth);
+                        dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
+                            d.classList.toggle('active', i === activeIdx);
+                        });
+                    };
+                }
+            }, 100);
+
             if (window.broadcastTvState) window.broadcastTvState();
         }
         function hideBracketView() {
@@ -858,7 +1032,7 @@
                         });
                     }
                     sessionStorage.removeItem('tempMobilePlayers');
-                } catch(e) { console.warn("Failed to restore players", e); }
+                } catch (e) { console.warn("Failed to restore players", e); }
             }
         }
     </script>
@@ -895,7 +1069,7 @@
 
                 // Store brand slug for back-navigation
                 sessionStorage.setItem('active-brand', brandSlug);
-            } catch(e) {
+            } catch (e) {
                 console.log('Brand load skipped:', e);
             }
         })();
@@ -905,4 +1079,5 @@
     <script type="module" src="mobile-game-logic.js?v=2"></script>
 
 </body>
+
 </html>

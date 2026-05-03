@@ -616,17 +616,17 @@ function showTournamentComplete() {
         const row = document.createElement('div');
         row.style.cssText = `
             display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
-            background: ${idx === 0 ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)'};
-            border: 1px solid ${idx === 0 ? 'rgba(212,175,55,0.4)' : 'rgba(255,255,255,0.05)'};
-            ${idx === 0 ? 'box-shadow: 0 0 15px rgba(212,175,55,0.3);' : ''}
+            padding: 12px 16px; border-radius: 2px; margin-bottom: 8px;
+            background: ${idx === 0 ? 'rgba(196,30,42,0.1)' : 'rgba(255,255,255,0.03)'};
+            border: 1px solid ${idx === 0 ? 'rgba(196,30,42,0.4)' : 'rgba(255,255,255,0.05)'};
+            ${idx === 0 ? 'box-shadow: 0 0 15px rgba(196,30,42,0.2);' : ''}
         `;
         row.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="color: ${idx === 0 ? '#D4AF37' : '#666'}; font-weight: 900; width: 24px;">#${idx + 1}</span>
+                <span style="color: ${idx === 0 ? '#c41e2a' : '#666'}; font-weight: 900; width: 24px;">#${idx + 1}</span>
                 <span style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">${name}</span>
             </div>
-            <div style="font-family: 'Resolve', sans-serif; color: ${idx === 0 ? '#D4AF37' : '#888'}; font-size: 0.9rem;">${w} WINS</div>
+            <div style="font-family: 'Resolve', sans-serif; color: ${idx === 0 ? '#c41e2a' : '#888'}; font-size: 0.9rem;">${w} WINS</div>
         `;
         leaderboardEl.appendChild(row);
     });
@@ -650,14 +650,14 @@ window.mobileAddPlayer = function(defaultName, userId) {
 
     const div = document.createElement('div');
     div.className = 'player-row';
-    div.style.cssText = 'display: flex; align-items: center; background: #f2f2f2; padding: 6px; border-radius: 2px; border: none; margin-bottom: 8px;';
+    div.style.cssText = 'display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: none; margin-bottom: 6px; border-left: 3px solid #c41e2a;';
     div.innerHTML = `
-        <span class="player-num" style="color: #666; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.9rem;">#${num}</span>
+        <span class="player-num" style="color: #999; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.8rem;">#${num}</span>
         <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${defaultName || ('PLAYER ' + num)}" 
                class="player-input" ${datasetAttr}
-               style="text-transform: uppercase; color: #000000; width: 100%; padding: 8px 10px; font-size: 1rem; font-weight: 600; background: transparent; border: 1px dashed #d0d0d0; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
+               style="text-transform: uppercase; color: #111; width: 100%; padding: 8px 10px; font-size: 0.95rem; font-weight: 600; background: transparent; border: none; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
 
-        <i class="fas fa-pencil-alt" style="color: #ccc; font-size: 0.85rem; margin-left: 10px; pointer-events: none;"></i>
+        <i class="fas fa-pencil-alt" style="color: #ccc; font-size: 0.75rem; margin-left: 10px; pointer-events: none;"></i>
         <button onclick="mobileRemovePlayer(this)" style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
             <i class="fas fa-times"></i>
         </button>
@@ -752,23 +752,23 @@ window.openQrJoin = function() {
     overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.15)), url('subsoccer-stadium.jpg') center top / cover no-repeat; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; text-align:center;`;
     
     overlay.innerHTML = `
-        <div style="background: rgba(20, 20, 25, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1); padding: 36px 28px; border-radius: 2px; max-width: 90%; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); position: relative;">
+        <div style="background: #ffffff; border: 1px solid #e0e0e0; padding: 36px 28px; border-radius: 4px; max-width: 90%; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); position: relative;">
             
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;">
                 <i class="fas fa-qrcode" style="color: #c41e2a; font-size: 1.2rem;"></i>
-                <span style="color: #fff; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; font-family: 'Inter', sans-serif; text-transform: uppercase;">Join Tournament</span>
+                <span style="color: #111; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; font-family: 'Resolve', sans-serif; text-transform: uppercase;">Join Tournament</span>
             </div>
-            <p style="color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-bottom: 24px; font-family: 'Inter', sans-serif; letter-spacing: 1.5px; text-transform: uppercase;">Scan with your phone camera</p>
+            <p style="color: #999; font-size: 0.7rem; margin-bottom: 24px; font-family: 'Resolve', sans-serif; letter-spacing: 1.5px; text-transform: uppercase;">Scan with your phone camera</p>
             
-            <div style="background: #fff; margin: 0 auto 24px auto; padding: 12px; border-radius: 2px; width: max-content; display: block; border: 1px solid rgba(0,0,0,0.1);">
+            <div style="background: #f9f9f9; margin: 0 auto 24px auto; padding: 16px; border-radius: 4px; width: max-content; display: block; border: 1px solid #e0e0e0;">
                 <img src="${qrImageUrl}" alt="Join QR Code" style="width: 180px; height: 180px; display:block;">
             </div>
             
-            <div id="qr-joined-list" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 2px; min-height: 44px; max-height: 100px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; justify-content: center; align-content: center;">
+            <div id="qr-joined-list" style="background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 44px; max-height: 100px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; justify-content: center; align-content: center;">
                 <!-- Lista injektoidaan -->
             </div>
             
-            <button onclick="window.closeQrJoin()" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.08); padding: 13px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; border-radius: 2px; cursor: pointer; letter-spacing: 2px; width: 100%; transition: all 0.2s; text-transform: uppercase;">
+            <button onclick="window.closeQrJoin()" style="background: #111; color: #fff; border: none; padding: 13px; font-family: 'Resolve', sans-serif; font-size: 0.85rem; font-weight: 600; border-radius: 2px; cursor: pointer; letter-spacing: 2px; width: 100%; transition: all 0.2s; text-transform: uppercase;">
                 <i class="fas fa-times" style="margin-right: 8px; font-size: 0.7rem;"></i> CLOSE
             </button>
         </div>
