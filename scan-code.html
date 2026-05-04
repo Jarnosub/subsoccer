@@ -313,9 +313,29 @@
         }
 
         .scan-error.active { display: flex; }
+
+        /* ========================================
+           DARK MODE OVERRIDES
+           ======================================== */
+        body.dark-mode .scan-header { background: rgba(17,17,17,0.95); border-bottom-color: #333; }
+        body.dark-mode .scan-back-btn { color: #ffffff; }
+        body.dark-mode .scan-title img { filter: brightness(0) invert(1); }
+        body.dark-mode .scan-instruction,
+        body.dark-mode .scan-instruction-sub { background: rgba(17,17,17,0.85); color: #ffffff; }
+        body.dark-mode .scan-status { background: linear-gradient(to top, rgba(17,17,17,0.9), rgba(17,17,17,0)); }
+        body.dark-mode .scan-result { background: rgba(26,26,26,0.95); }
+        body.dark-mode .scan-result-title { color: #ffffff; }
+        body.dark-mode .scan-result-desc { color: #aaaaaa; }
+        body.dark-mode .scan-error { background: #1a1a1a; color: #ffffff; }
+        body.dark-mode .scan-error div[style*="color: #666"] { color: #aaaaaa !important; }
     </style>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem('subsoccer-dark-mode') === '1') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
 
     <!-- CAMERA FEED -->
     <video id="camera-video" autoplay playsinline muted></video>
