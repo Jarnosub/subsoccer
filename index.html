@@ -97,9 +97,9 @@
 
         .page-tagline {
             font-family: 'Resolve', sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 5px;
-            color: #777;
+            font-size: 0.6rem;
+            letter-spacing: 4px;
+            color: #999;
             text-transform: uppercase;
             margin-top: 8px;
         }
@@ -112,7 +112,7 @@
             background-image: url('subsoccer-teams.jpg');
             background-size: cover;
             background-position: center 25%;
-            margin: 10px auto 0;
+            margin: 10px auto 25px;
             position: relative;
         }
 
@@ -131,7 +131,7 @@
         .hub-menu {
             width: 100%;
             background-color: transparent;
-            padding: 14px 20px 20px;
+            padding: 20px 20px 20px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -187,72 +187,7 @@
         }
 
         .btn-find-table:hover {
-            background: rgba(0, 0, 0, 0.65);
-        }
-
-        .btn-scan-join {
-            width: 100%;
-            max-width: 400px;
-            background: transparent;
-            color: #c41e2a;
-            border: 2px solid #c41e2a;
-            padding: 10px 16px;
-            border-radius: 2px;
-            font-family: 'Resolve', sans-serif;
-            font-size: 1rem !important;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: transform 0.15s, background 0.2s, color 0.2s;
-        }
-
-        .btn-scan-join:active {
-            transform: scale(0.97);
-        }
-
-        .btn-scan-join:hover {
-            background: #c41e2a;
-            color: #fff;
-        }
-
-        /* SOCIAL PROOF OVERLAY (on image) */
-        .social-proof-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 8px 20px;
-            box-sizing: border-box;
-        }
-
-        .social-proof-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .social-proof-number {
-            font-family: 'Resolve', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #ffffff;
-            line-height: 1;
-        }
-
-        .social-proof-label {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.5rem;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 2px;
+            background: rgba(0, 0, 0, 0.6);
         }
 
         /* TOIMINTO 3: KAUPPA */
@@ -439,22 +374,7 @@
     </div>
 
     <!-- KUVABLOKKI -->
-    <div class="content-image">
-        <div class="social-proof-overlay">
-            <div class="social-proof-item">
-                <span class="social-proof-number">80+</span>
-                <span class="social-proof-label">Countries</span>
-            </div>
-            <div class="social-proof-item">
-                <span class="social-proof-number">10K+</span>
-                <span class="social-proof-label">Games</span>
-            </div>
-            <div class="social-proof-item">
-                <span class="social-proof-number">3B+</span>
-                <span class="social-proof-label">Views</span>
-            </div>
-        </div>
-    </div>
+    <div class="content-image"></div>
 
     <!-- PÄÄVALIKKO / TARINAN VALINTA -->
     <div class="hub-menu">
@@ -468,7 +388,7 @@
         </button>
 
         <!-- KAKKOSVALINTA: SKANNAA -->
-        <button class="btn-scan-join" onclick="window.location.href='scan-code.html'">
+        <button class="btn-find-table" onclick="window.location.href='scan-code.html'">
             <i class="fa-solid fa-qrcode"></i> Scan to Join
         </button>
 
@@ -476,8 +396,8 @@
         <button class="btn-find-table" onclick="openMapOverlay()">
             <i class="fa-solid fa-map-location-dot"></i> Find Public Game
         </button>
-    </div>
 
+    </div>
 
     <!-- BLACK FOOTER BAR -->
     <div class="footer-bar">
