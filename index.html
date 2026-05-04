@@ -154,14 +154,6 @@
 
         body.dark-mode #main-nav-menu #menu-league-link,
         body.dark-mode #main-nav-menu #menu-league-link i {
-            color: #c41e2a !important;
-        }
-
-        /* Dark mode: Map dimming (gentle dim, no invert) */
-        body.dark-mode #public-game-map {
-            filter: brightness(0.7) contrast(1.1) saturate(0.9) !important;
-        }
-
         /* Dark mode: header + icons */
         body.dark-mode .top-header {
             background: #111111 !important;
@@ -873,7 +865,13 @@
             // Init Leaflet map
             hubMap = L.map('public-game-map').setView([60.1699, 24.9384], 5);
             hubMap.attributionControl.setPrefix(false);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            
+            const isDark = document.body.classList.contains('dark-mode');
+            const tileUrl = isDark 
+                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+            L.tileLayer(tileUrl, {
                 attribution: '&copy; CARTO',
                 subdomains: 'abcd',
                 maxZoom: 19
