@@ -757,7 +757,7 @@ window.openQrJoin = function() {
 
     const overlay = document.createElement('div');
     overlay.id = 'qr-join-overlay';
-    overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: var(--global-bg) center top / cover no-repeat fixed; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; text-align:center;`;
+    overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: var(--page-bg); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; text-align:center;`;
     
     overlay.innerHTML = `
         <div id="qr-modal-content" style="background: #ffffff; border: 1px solid #e0e0e0; padding: 36px 28px; border-radius: 4px; max-width: 90%; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); position: relative;">
