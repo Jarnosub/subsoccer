@@ -27,7 +27,7 @@
 }
 
 :root {
-    --global-bg: url('subsoccer-stadium-blur.jpg');
+    --global-bg: #f0f0f0;
     --sub-red: #c41e2a;
     --sub-black: #000000;
     --sub-charcoal: #111111;
