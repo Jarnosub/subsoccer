@@ -22,10 +22,27 @@
         .mod-danger:hover { background: rgba(227,6,19,0.1); border-color: #E30613; color: #ffaaaa; }
         
         .section-title { font-family: 'Resolve', sans-serif; margin-top: 35px; margin-bottom: 15px; font-size: 0.7rem; color: #999; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* Dark mode overrides */
+        body.dark-mode { background: #1a1a1a; color: #ffffff; }
+        body.dark-mode .mod-header { background: #111111; border-bottom-color: #333333; }
+        body.dark-mode .mod-header button { color: #ffffff !important; }
+        body.dark-mode .mod-btn { background: #222222; border-color: #333333; color: #ffffff; }
+        body.dark-mode .mod-btn:hover { background: #333333; border-color: #555555; }
+        body.dark-mode .mod-btn div[style*="color: #999"], 
+        body.dark-mode .mod-btn div[style*="color: #666"] { color: #aaaaaa !important; }
+        body.dark-mode .section-title { color: #aaaaaa; }
+        body.dark-mode .mod-danger { border-color: rgba(227,6,19,0.4); }
+        body.dark-mode .mod-danger:hover { background: rgba(227,6,19,0.2); }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem('subsoccer-dark-mode') === '1') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
     <!-- Auth guard: hide everything until verified -->
     <div id="auth-wall" style="display:flex; justify-content:center; align-items:center; min-height:100dvh; font-family:'Resolve',sans-serif; color:#666; letter-spacing:1px; font-size:0.8rem;">
         <i class="fas fa-circle-notch fa-spin" style="margin-right:10px;"></i> VERIFYING ACCESS...
