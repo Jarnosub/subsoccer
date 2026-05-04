@@ -856,6 +856,7 @@
         }
 
         let hubMap = null;
+        let hubTileLayer = null;
 
         function openMapOverlay() {
             document.getElementById('map-overlay').style.display = 'block';
@@ -874,11 +875,12 @@
                 ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
                 : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
-            L.tileLayer(tileUrl, {
+            hubTileLayer = L.tileLayer(tileUrl, {
                 attribution: '&copy; CARTO',
                 subdomains: 'abcd',
                 maxZoom: 19
-            }).addTo(hubMap);
+            });
+            hubTileLayer.addTo(hubMap);
 
             // Red icon for tables
             const redIcon = L.divIcon({
@@ -1001,6 +1003,14 @@
             const icon = document.querySelector('#theme-toggle i');
             if (icon) {
                 icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+
+            // Update map tiles dynamically if map is open
+            if (typeof hubTileLayer !== 'undefined' && hubTileLayer) {
+                hubTileLayer.setUrl(isDark 
+                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+                );
             }
         }
 
