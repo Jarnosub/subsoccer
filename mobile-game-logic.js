@@ -760,15 +760,15 @@ window.openQrJoin = function() {
     overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: var(--global-bg) center top / cover no-repeat fixed; z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; text-align:center;`;
     
     overlay.innerHTML = `
-        <div style="background: #ffffff; border: 1px solid #e0e0e0; padding: 36px 28px; border-radius: 4px; max-width: 90%; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); position: relative;">
+        <div id="qr-modal-content" style="background: #ffffff; border: 1px solid #e0e0e0; padding: 36px 28px; border-radius: 4px; max-width: 90%; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); position: relative;">
             
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;">
                 <i class="fas fa-qrcode" style="color: #c41e2a; font-size: 1.2rem;"></i>
-                <span style="color: #111; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; font-family: 'Resolve', sans-serif; text-transform: uppercase;">Join Tournament</span>
+                <span id="qr-modal-title" style="color: #111; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; font-family: 'Resolve', sans-serif; text-transform: uppercase;">Join Tournament</span>
             </div>
             <p style="color: #999; font-size: 0.7rem; margin-bottom: 24px; font-family: 'Resolve', sans-serif; letter-spacing: 1.5px; text-transform: uppercase;">Scan with your phone camera</p>
             
-            <div style="background: #f9f9f9; margin: 0 auto 24px auto; padding: 16px; border-radius: 4px; width: max-content; display: block; border: 1px solid #e0e0e0;">
+            <div id="qr-modal-img-container" style="background: #f9f9f9; margin: 0 auto 24px auto; padding: 16px; border-radius: 4px; width: max-content; display: block; border: 1px solid #e0e0e0;">
                 <img src="${qrImageUrl}" alt="Join QR Code" style="width: 180px; height: 180px; display:block;">
             </div>
             
