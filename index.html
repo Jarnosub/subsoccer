@@ -218,17 +218,18 @@
             color: #fff;
         }
 
-        /* SOCIAL PROOF BAR */
-        .social-proof {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px 20px 10px;
-            box-sizing: border-box;
+        /* SOCIAL PROOF OVERLAY (on image) */
+        .social-proof-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: space-around;
             align-items: center;
-            text-align: center;
+            padding: 8px 20px;
+            box-sizing: border-box;
         }
 
         .social-proof-item {
@@ -239,19 +240,19 @@
 
         .social-proof-number {
             font-family: 'Resolve', sans-serif;
-            font-size: 1.4rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            color: #1a1a1a;
+            color: #ffffff;
             line-height: 1;
         }
 
         .social-proof-label {
             font-family: 'Resolve', sans-serif;
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             letter-spacing: 1.5px;
             text-transform: uppercase;
-            color: #999;
-            margin-top: 4px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 2px;
         }
 
         /* TOIMINTO 3: KAUPPA */
@@ -438,7 +439,22 @@
     </div>
 
     <!-- KUVABLOKKI -->
-    <div class="content-image"></div>
+    <div class="content-image">
+        <div class="social-proof-overlay">
+            <div class="social-proof-item">
+                <span class="social-proof-number">80+</span>
+                <span class="social-proof-label">Countries</span>
+            </div>
+            <div class="social-proof-item">
+                <span class="social-proof-number">10K+</span>
+                <span class="social-proof-label">Games</span>
+            </div>
+            <div class="social-proof-item">
+                <span class="social-proof-number">3B+</span>
+                <span class="social-proof-label">Views</span>
+            </div>
+        </div>
+    </div>
 
     <!-- PÄÄVALIKKO / TARINAN VALINTA -->
     <div class="hub-menu">
@@ -462,21 +478,6 @@
         </button>
     </div>
 
-    <!-- SOCIAL PROOF -->
-    <div class="social-proof">
-        <div class="social-proof-item">
-            <span class="social-proof-number">80+</span>
-            <span class="social-proof-label">Countries</span>
-        </div>
-        <div class="social-proof-item">
-            <span class="social-proof-number">10K+</span>
-            <span class="social-proof-label">Games</span>
-        </div>
-        <div class="social-proof-item">
-            <span class="social-proof-number">3B+</span>
-            <span class="social-proof-label">Views</span>
-        </div>
-    </div>
 
     <!-- BLACK FOOTER BAR -->
     <div class="footer-bar">
