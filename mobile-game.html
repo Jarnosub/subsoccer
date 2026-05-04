@@ -34,11 +34,36 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        :root {
+            --page-bg: #f0f0f0;
+            --page-text: #111111;
+            --card-bg: #ffffff;
+            --card-border: #e0e0e0;
+            --header-bg: #ffffff;
+            --subtitle-color: #666666;
+            --title-color: #1a1a1a;
+            --input-bg: transparent;
+            --input-text: #111;
+            --banner-bg: #000000;
+        }
+
+        body.dark-mode {
+            --page-bg: #1a1a1a;
+            --page-text: #ffffff;
+            --card-bg: #2a2a2a;
+            --card-border: #333333;
+            --header-bg: #111111;
+            --subtitle-color: #999999;
+            --title-color: #ffffff;
+            --input-bg: transparent;
+            --input-text: #ffffff;
+            --banner-bg: #000000;
+        }
+
         body {
             font-family: 'Resolve', sans-serif;
-            background: var(--global-bg) no-repeat center center fixed;
-            background-size: cover;
-            color: #111111;
+            background: var(--page-bg);
+            color: var(--page-text);
             overflow: hidden;
             width: 100vw;
             height: 100dvh;
@@ -99,14 +124,14 @@
             text-align: center;
             margin-bottom: 6px;
             letter-spacing: 0px;
-            color: #1a1a1a;
+            color: var(--title-color);
             -webkit-text-stroke: 0 !important;
         }
 
         .setup-subtitle {
             font-family: 'Resolve', sans-serif;
             font-weight: 300;
-            color: #666666;
+            color: var(--subtitle-color);
             text-align: center;
             font-size: 0.9rem;
             margin-bottom: 16px;
@@ -562,11 +587,31 @@
             font-weight: 900;
             letter-spacing: 6px;
             color: #ffffff;
-            background: linear-gradient(to right, #12222d 50%, #b70000 50%);
-            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border-radius: 4px;
             border: none;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .victory-score-half {
+            padding: 16px 24px;
+        }
+
+        .victory-score-left {
+            background: #12222d;
+        }
+
+        .victory-score-dash {
+            padding: 16px 8px;
+            background: linear-gradient(to right, #12222d 50%, #b70000 50%);
+            letter-spacing: 0;
+        }
+
+        .victory-score-right {
+            background: #b70000;
         }
 
         .victory-label {
@@ -694,10 +739,127 @@
         .quit-btn:hover {
             color: #ffffff;
         }
+        /* ========================================
+           DARK MODE OVERRIDES
+           ======================================== */
+        body.dark-mode .setup-container [style*="background: #ffffff"],
+        body.dark-mode .setup-container [style*="background:#ffffff"] {
+            background: var(--card-bg) !important;
+        }
+
+        body.dark-mode [style*="background: #ffffff"] {
+            background: var(--card-bg) !important;
+        }
+
+        body.dark-mode [style*="border-bottom: 1px solid #e0e0e0"] {
+            border-bottom-color: var(--card-border) !important;
+        }
+
+        body.dark-mode [style*="color: #111"] {
+            color: var(--page-text) !important;
+        }
+
+        body.dark-mode .player-input {
+            color: var(--input-text) !important;
+        }
+
+        body.dark-mode .setup-title {
+            color: var(--title-color) !important;
+        }
+
+        body.dark-mode .setup-subtitle {
+            color: var(--subtitle-color) !important;
+        }
+
+        /* Bracket round titles (QUARTER-FINALS, SEMI-FINALS, FINALS) */
+        body.dark-mode #mobile-bracket-area .round-title {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .match-round-label {
+            color: #ffffff !important;
+        }
+
+        /* Bracket match boxes */
+        body.dark-mode .bracket-match {
+            background: var(--card-bg) !important;
+            border-color: var(--card-border) !important;
+        }
+
+        body.dark-mode .bracket-match div {
+            color: var(--page-text) !important;
+        }
+
+        /* Next match card + player names */
+        body.dark-mode .match-card {
+            background: var(--card-bg) !important;
+            border-color: var(--card-border) !important;
+        }
+
+        body.dark-mode .match-player-name {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .match-round-label {
+            color: #aaaaaa !important;
+        }
+
+        /* Player rows in setup */
+        body.dark-mode .player-row {
+            background: var(--card-bg) !important;
+            border-color: var(--card-border) !important;
+        }
+
+        body.dark-mode .player-row .player-input {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .player-row .player-num {
+            color: #888 !important;
+        }
+
+        /* ADD PLAYER / QR JOIN buttons */
+        body.dark-mode .add-player-container button {
+            border-color: var(--card-border) !important;
+        }
+
+        /* Dark mode toggle button */
+        .theme-toggle {
+            position: fixed;
+            bottom: 12px;
+            right: 12px;
+            z-index: 9990;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(128,128,128,0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #888;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            color: #fff;
+            background: rgba(128,128,128,0.4);
+        }
+
+        body.dark-mode .theme-toggle {
+            color: #ccc;
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleDarkMode()" title="Toggle dark/light mode">
+        <i class="fa-solid fa-moon"></i>
+    </button>
 
     <!-- ==========================================
          LAYER 1: SETUP (Player names + Start)
@@ -906,7 +1068,7 @@
         <div class="victory-container anim-in" style="position: relative; z-index: 2;">
             <div class="victory-round" id="m-victory-round">MATCH CONCLUDED</div>
             <div class="victory-name" id="m-winner-name">PLAYER</div>
-            <div class="victory-score" id="m-victory-score">0 - 0</div>
+            <div class="victory-score" id="m-victory-score"><span class="victory-score-half victory-score-left">0</span><span class="victory-score-dash">-</span><span class="victory-score-half victory-score-right">0</span></div>
             <div class="victory-label">NEXT MATCH LOADING...</div>
         </div>
     </div>
@@ -1115,6 +1277,30 @@
 
     <!-- GAME LOGIC -->
     <script type="module" src="mobile-game-logic.js?v=2"></script>
+
+    <!-- DARK MODE TOGGLE -->
+    <script>
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('subsoccer-dark-mode', isDark ? '1' : '0');
+            const icon = document.querySelector('#theme-toggle i');
+            if (icon) icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        // Auto-activate dark mode from URL param or localStorage
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl = params.get('dark') === '1';
+            const fromStorage = localStorage.getItem('subsoccer-dark-mode') === '1';
+            
+            if (fromUrl || fromStorage) {
+                document.body.classList.add('dark-mode');
+                const icon = document.querySelector('#theme-toggle i');
+                if (icon) icon.className = 'fa-solid fa-sun';
+                if (fromUrl) localStorage.setItem('subsoccer-dark-mode', '1');
+            }
+        })();
+    </script>
 
 </body>
 

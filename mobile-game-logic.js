@@ -489,7 +489,7 @@ function finishMatch(winnerName, winnerIndex) {
 
     // Show victory screen
     document.getElementById('m-winner-name').innerText = winnerName;
-    document.getElementById('m-victory-score').innerText = `${gameState.p1Score} - ${gameState.p2Score}`;
+    document.getElementById('m-victory-score').innerHTML = `<span class="victory-score-half victory-score-left">${gameState.p1Score}</span><span class="victory-score-dash">-</span><span class="victory-score-half victory-score-right">${gameState.p2Score}</span>`;
     document.getElementById('m-victory-round').innerText = 
         currentPendingMatch ? currentPendingMatch.roundName : 'MATCH CONCLUDED';
     

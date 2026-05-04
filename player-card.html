@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Subsoccer - Player Card</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -20,8 +20,8 @@
 
         body {
             font-family: 'Open Sans', sans-serif;
-            background: var(--global-bg) no-repeat center center fixed;
-            background-size: cover;
+            background: #f0f0f0;
+            
             color: #111111;
             min-height: 100dvh;
             overflow-x: hidden;
@@ -93,6 +93,10 @@
 
         .pc-spotlight {
             display: none;
+        }
+
+        .pc-title-player {
+            color: #1a1a1a;
         }
 
         .pro-card-flipper {
@@ -375,6 +379,79 @@
             margin-top: 8px;
             min-height: 18px;
         }
+
+        /* ========================================
+           DARK MODE OVERRIDES
+           ======================================== */
+        body.dark-mode {
+            background: #111111;
+            color: #ffffff;
+        }
+
+        body.dark-mode .pc-title-player {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .pc-header {
+            background: #111111;
+            border-bottom-color: #333333;
+        }
+
+        body.dark-mode .pc-back-btn,
+        body.dark-mode .pc-settings-btn {
+            color: #ffffff;
+        }
+
+        body.dark-mode .pc-stat-card {
+            background: #222222;
+        }
+
+        body.dark-mode .pc-stat-value {
+            color: #ffffff;
+        }
+
+        body.dark-mode .pc-stat-label {
+            color: #aaaaaa;
+        }
+
+        body.dark-mode .pc-login-subtitle {
+            color: #aaaaaa;
+        }
+
+        body.dark-mode .pc-guest-link {
+            color: #aaaaaa;
+        }
+
+        body.dark-mode .pc-edit-card {
+            background: #222222;
+            border-color: #444444;
+        }
+
+        body.dark-mode .pc-edit-input,
+        body.dark-mode .pc-edit-select {
+            background: #111111;
+            border-color: #444444;
+            color: #ffffff;
+        }
+
+        body.dark-mode .pc-edit-file-label {
+            background: #111111;
+            border-color: #444444;
+            color: #aaaaaa;
+        }
+
+        body.dark-mode .pc-logout-btn {
+            color: #ffffff;
+            border-color: #444444;
+        }
+
+        body.dark-mode .pc-logout-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-mode .pc-edit-label {
+            color: #aaaaaa;
+        }
     </style>
 </head>
 <body>
@@ -400,7 +477,7 @@
     <!-- CARD SHOWCASE -->
     <div class="pc-showcase">
         <div class="subsoccer-font" style="font-size: 3.2rem; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0; text-align: center; line-height: 1;">
-            <span class="subsoccer-font" style="color: #1a1a1a;">PLAYER</span> <span class="subsoccer-font" style="color: #c41e2a;">CARD</span>
+            <span class="subsoccer-font pc-title-player">PLAYER</span> <span class="subsoccer-font" style="color: #c41e2a;">CARD</span>
         </div>
         <div class="pc-spotlight"></div>
         
@@ -783,6 +860,17 @@
                 alert("Generation failed. Please try on a desktop browser.");
             }
         }
+
+        // Initialize Dark Mode based on storage/url
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl = params.get('dark') === '1';
+            const fromStorage = localStorage.getItem('subsoccer-dark-mode') === '1';
+            if (fromUrl || fromStorage) {
+                document.body.classList.add('dark-mode');
+                if (fromUrl) localStorage.setItem('subsoccer-dark-mode', '1');
+            }
+        })();
     </script>
 
 </body>
