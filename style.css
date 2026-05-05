@@ -27,6 +27,7 @@
 }
 
 :root {
+    color-scheme: light dark;
     --global-bg: #f0f0f0;
     --sub-red: #c41e2a;
     --sub-black: #000000;
