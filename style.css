@@ -2184,6 +2184,14 @@ body.live-mode {
     }
 }
 
+body, html {
+    margin: 0;
+    padding: 0;
+    background-image: linear-gradient(var(--global-bg), var(--global-bg));
+    color: var(--sub-black);
+    font-family: 'Inter', sans-serif;
+}
+
 .sub-gold-text {
     color: var(--sub-gold);
     font-family: var(--sub-name-font);

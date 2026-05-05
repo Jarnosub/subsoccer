@@ -50,14 +50,16 @@
             height: 100vh;
             overflow-x: hidden;
             overflow-y: auto;
-            background: var(--page-bg);
+            background-image: linear-gradient(var(--page-bg), var(--page-bg));
+            background-color: var(--page-bg);
             color: var(--page-text);
             font-family: 'Inter', sans-serif;
         }
 
         /* Dark mode overrides for index page */
         body.dark-mode .content-card {
-            background: var(--card-bg) !important;
+            background-image: linear-gradient(var(--card-bg), var(--card-bg)) !important;
+            background-color: var(--card-bg) !important;
             border-color: var(--card-border) !important;
         }
 
