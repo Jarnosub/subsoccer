@@ -109,7 +109,10 @@
         style="display: none; background: #000; align-items: center; justify-content: center; flex-direction: column; overflow: hidden;">
         
         <!-- Cinematic Background -->
-        <img src="Subsoccer_tournament_2.jpg" class="absolute inset-0 w-full h-full object-cover ken-burns z-0">
+        <picture>
+            <source srcset="Subsoccer_tournament_2.webp" type="image/webp">
+            <img src="Subsoccer_tournament_2.jpg" class="absolute inset-0 w-full h-full object-cover ken-burns z-0" alt="Tournament" loading="eager" fetchpriority="high">
+        </picture>
         <div class="absolute inset-0 bg-[#000] opacity-50 z-0"></div>
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,_#000_100%)] z-0 pointer-events-none opacity-80"></div>
 
