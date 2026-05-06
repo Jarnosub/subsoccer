@@ -821,8 +821,15 @@ input {
 }
 
 input::placeholder {
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: rgba(255, 255, 255, 0.6);
     text-transform: uppercase;
+}
+
+input[style*="background: #f9f9f9"]::placeholder,
+input[style*="background:#f9f9f9"]::placeholder,
+input[style*="background: #ffffff"]::placeholder,
+.pc-edit-input::placeholder {
+    color: #888 !important;
 }
 
 input,
