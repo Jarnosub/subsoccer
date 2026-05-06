@@ -854,8 +854,12 @@
                 const sb = supabase.createClient('https://ujxmmrsmdwrgcwatdhvx.supabase.co', 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t');
                 await sb.auth.signOut();
             } catch (e) { }
-            localStorage.removeItem('subsoccer-user');
-            location.reload();
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sb-') || key.includes('supabase') || key === 'subsoccer-user') {
+                    localStorage.removeItem(key);
+                }
+            });
+            window.location.replace('index.html');
         }
 
         let hubMap = null;

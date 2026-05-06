@@ -791,7 +791,11 @@
                 const sb = getSb();
                 await sb.auth.signOut();
             } catch(e) {}
-            localStorage.removeItem('subsoccer-user');
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sb-') || key.includes('supabase') || key === 'subsoccer-user') {
+                    localStorage.removeItem(key);
+                }
+            });
             window.location.href = 'index.html';
         }
 
