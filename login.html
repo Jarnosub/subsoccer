@@ -148,33 +148,38 @@
         </div>
 
         <!-- EXISTING LOGIN FORM (Hidden by default now) -->
-        <div id="login-form" class="container auth-container" style="display:none; position: relative; z-index: 1; margin-top: 25vh; background: #ffffff; border: 1px solid #e0e0e0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 8px;">
+        <div id="login-form" class="container auth-container" style="display:none; position: relative; z-index: 1; margin-top: 25vh; background: #0a0a0a; border: 1px solid #222; box-shadow: 0 10px 40px rgba(0,0,0,0.6); border-radius: 8px; padding: 30px 20px;">
             <div id="tour-auth-message"
                 style="display:none; text-align:center; padding: 20px 10px; margin-bottom: 20px; background: rgba(196, 30, 42, 0.05); border: 1px solid rgba(196, 30, 42, 0.3); border-radius: 8px;">
                 <i class="fa-solid fa-trophy"
                     style="color: #c41e2a; font-size: 2.5rem; margin-bottom: 10px; display: block;"></i>
-                <div style="font-family: 'Russo One', sans-serif; font-size: 1.2rem; margin-bottom: 5px; color: #111;">HOST A
+                <div style="font-family: 'Russo One', sans-serif; font-size: 1.2rem; margin-bottom: 5px; color: #fff;">HOST A
                     TOURNAMENT</div>
-                <div style="font-family: 'Open Sans', sans-serif; font-size: 0.9rem; color: #666; margin-bottom: 15px;">
+                <div style="font-family: 'Open Sans', sans-serif; font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">
                     Create an account or
                     log in to host brackets and save statistics. (Guests cannot host)</div>
                 <button onclick="window.location.href='flick-game.html'"
-                    style="background: transparent; border: 1px solid #ccc; color: #666; padding: 8px 15px; border-radius: 20px; font-family: 'Resolve', sans-serif; font-size: 0.8rem; cursor: pointer; letter-spacing: 1px;">
+                    style="background: transparent; border: 1px solid #444; color: #aaa; padding: 8px 15px; border-radius: 20px; font-family: 'Resolve', sans-serif; font-size: 0.8rem; cursor: pointer; letter-spacing: 1px;">
                     <i class="fa-solid fa-arrow-left" style="margin-right: 5px;"></i> BACK TO INSTANT PLAY
                 </button>
             </div>
             <button onclick="window.history.back();"
-                style="position: fixed; top: 25px; left: 25px; background: none; border: none; color: #111; font-size: 1.2rem; cursor: pointer; z-index: 1000; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                style="position: fixed; top: 25px; left: 25px; background: rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.1); color: #111; font-size: 1.2rem; cursor: pointer; z-index: 1000; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
-            <h2 class="auth-title" style="color: #111;">PLAYER LOGIN</h2>
+            
+            <div style="margin-bottom: 20px; text-align: center;">
+                <img src="subsoccer_logo.svg" alt="Subsoccer" style="height: 38px; cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
+            </div>
+            
+            <h2 class="auth-title" style="color: #ffffff; letter-spacing: 2px; font-size: 1.2rem; margin-bottom: 20px;">PLAYER LOGIN</h2>
             <form id="auth-form-wrapper">
-                <input type="text" id="auth-user" placeholder="Username" autocomplete="username" style="background: #f9f9f9; border: 1px solid #ccc; color: #111;">
-                <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password" style="background: #f9f9f9; border: 1px solid #ccc; color: #111;">
-                <button id="btn-login" class="btn-red" type="submit" style="background: #c41e2a; color: #ffffff;">LOG IN</button>
+                <input type="text" id="auth-user" placeholder="Username" autocomplete="username" style="background: #111; border: 1px solid #333; color: #fff; padding: 14px; font-family: 'Open Sans', sans-serif; font-size: 0.95rem;">
+                <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password" style="background: #111; border: 1px solid #333; color: #fff; padding: 14px; font-family: 'Open Sans', sans-serif; font-size: 0.95rem;">
+                <button id="btn-login" class="btn-red" type="submit" style="background: #c41e2a; color: #ffffff; padding: 14px; font-size: 1.05rem; letter-spacing: 1px; margin-top: 5px; box-shadow: 0 4px 15px rgba(196, 30, 42, 0.3);">LOG IN</button>
                 <div style="margin-top: 15px;">
                     <button id="btn-show-signup" type="button" class="btn-create-account"
-                        onclick="showAuthPage('signup')" style="background: transparent; border: 1px solid #ccc; color: #111;">CREATE ACCOUNT</button>
+                        onclick="showAuthPage('signup')" style="background: transparent; border: 1px solid #333; color: #888; padding: 14px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#555';" onmouseout="this.style.color='#888'; this.style.borderColor='#333';">CREATE ACCOUNT</button>
                 </div>
             </form>
         </div>
