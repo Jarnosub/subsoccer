@@ -349,7 +349,16 @@
                     <div class="kpi-trend" style="color: #888;"><i class="fas fa-info-circle"></i> Instant Match length</div>
                 </div>
 
-                <div class="kpi-card" style="grid-column: span 2;">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>GLOBAL REACH</span>
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-cities"><i class="fas fa-spinner fa-spin" style="font-size: 1rem;"></i></div>
+                    <div class="kpi-trend" style="color: #888;"><i class="fas fa-map-marker-alt"></i> Unique cities played</div>
+                </div>
+
+                <div class="kpi-card">
                     <div class="kpi-header">
                         <span>DEVICE BREAKDOWN</span>
                     </div>
@@ -514,18 +523,20 @@
                 if (endDateStr) matchesQuery = matchesQuery.lte('created_at', endDateStr);
 
                 // Players count is always "all time" (total registrations)
-                const [trackingRes, usersRes, historyRes, matchesRes, topPlayersRes] = await Promise.all([
+                const [trackingRes, usersRes, historyRes, matchesRes, topPlayersRes, allCitiesRes] = await Promise.all([
                     trackingQuery,
                     client.from('players').select('id', { count: 'exact' }),
                     historyQuery,
                     matchesQuery,
-                    client.from('players').select('username, elo, wins, losses').order('elo', { ascending: false }).limit(10)
+                    client.from('players').select('username, elo, wins, losses').order('elo', { ascending: false }).limit(10),
+                    client.from('public_tracking').select('location').not('location', 'is', null).limit(10000)
                 ]);
 
                 if (trackingRes.error) console.error("Tracking Error:", trackingRes.error);
                 if (historyRes.error) console.error("History Error:", historyRes.error);
                 if (matchesRes.error) console.error("Matches Error:", matchesRes.error);
                 if (topPlayersRes.error) console.error("Leaderboard Error:", topPlayersRes.error);
+                if (allCitiesRes.error) console.error("Cities Error:", allCitiesRes.error);
 
                 // Real data — no hardcoded fallbacks
                 const trackingData = trackingRes.data || [];
@@ -571,12 +582,24 @@
                     durationTxt = `${mins}m ${secs}s`;
                 }
 
+                // Calculate Unique Cities
+                let uniqueCitiesCount = 0;
+                if (allCitiesRes && allCitiesRes.data) {
+                    const uniqueCities = new Set(allCitiesRes.data.map(d => {
+                        const parts = d.location.split('/');
+                        let city = parts.length > 1 ? parts[parts.length - 1] : d.location;
+                        return city.replace(/_/g, ' ').toUpperCase();
+                    }));
+                    uniqueCitiesCount = uniqueCities.size;
+                }
+
                 document.getElementById('kpi-sessions').textContent = sessionCount;
                 document.getElementById('kpi-tournaments').textContent = totalTournaments;
                 document.getElementById('kpi-users').textContent = totalUsers;
                 document.getElementById('kpi-matches').textContent = playEventCount; // use exact live tracking finishes for 1v1
                 document.getElementById('kpi-bounce').textContent = bounceRate + '%';
                 document.getElementById('kpi-duration').textContent = durationTxt;
+                document.getElementById('kpi-cities').textContent = uniqueCitiesCount;
                 document.getElementById('kpi-device').textContent = `iOS ${iosP}% | And ${andP}% | Oth ${othP}%`;
 
                 // Populate Top Players List
