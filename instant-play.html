@@ -903,19 +903,19 @@
             <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
 
                 <button class="claim-victory-btn w-btn-claim"
-                    style="background: linear-gradient(135deg, var(--sub-red) 0%, #a00 100%); color: #fff; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4); border: none;"
+                    style="background: var(--sub-red); color: #fff; border: none; font-family: 'Subsoccer', sans-serif; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.3);"
                     onclick="playAgain()">
                     <i class="fa-solid fa-rotate-right" style="margin-right:10px;"></i> NEW GAME GUESTS
                 </button>
 
                 <button id="claim-victory-btn" class="claim-victory-btn w-btn-claim"
-                    style="background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%); color: #000; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);"
+                    style="background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); font-family: 'Subsoccer', sans-serif; backdrop-filter: blur(10px); box-shadow: none;"
                     onclick="claimVictory()">
-                    <i class="fa-solid fa-trophy" style="margin-right:10px;"></i> HOST A TOURNAMENT
+                    <i class="fa-solid fa-trophy" style="margin-right:10px; color: var(--sub-gold);"></i> HOST A TOURNAMENT
                 </button>
 
                 <button id="end-game-btn" class="play-again-btn"
-                    style="background: transparent; border: 1px solid rgba(255,255,255,0.1); width: 250px; font-size: 0.8rem; padding: 12px 0; margin-top: 5px;"
+                    style="background: transparent; color: #888; border: none; width: 250px; font-size: 0.8rem; padding: 12px 0; margin-top: 5px; font-family: 'Open Sans', sans-serif; box-shadow: none;"
                     onclick="window.location.href='./'">EXIT MATCH</button>
             </div>
         </div>
