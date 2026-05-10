@@ -71,7 +71,7 @@ export function showPage(p) {
  * Manages authentication page states and app content visibility.
  * @param {string} mode - 'landing', 'login', 'signup' or 'app'
  */
-export function showAuthPage(mode = 'landing') {
+export function showAuthPage(mode = 'login') {
     const authPage = document.getElementById('auth-page');
     const appContent = document.getElementById('app-content');
     const navTabs = document.getElementById('nav-tabs');
@@ -94,20 +94,13 @@ export function showAuthPage(mode = 'landing') {
     const header = document.querySelector('header');
     if (header) header.style.display = 'none';
 
-    const landingHero = document.getElementById('landing-hero');
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
 
-    if (mode === 'landing') {
-        if (landingHero) landingHero.style.display = 'flex';
-        if (loginForm) loginForm.style.display = 'none';
-        if (signupForm) signupForm.style.display = 'none';
-    } else if (mode === 'signup') {
-        if (landingHero) landingHero.style.display = 'none';
+    if (mode === 'signup') {
         if (loginForm) loginForm.style.display = 'none';
         if (signupForm) signupForm.style.display = 'block';
-    } else { // 'login'
-        if (landingHero) landingHero.style.display = 'none';
+    } else { // 'login' or anything else
         if (loginForm) loginForm.style.display = 'block';
         if (signupForm) signupForm.style.display = 'none';
     }

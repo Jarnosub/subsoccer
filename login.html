@@ -106,49 +106,10 @@
             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; background-size: cover;"></div>
         </div>
 
-        <!-- NEW FRONT PAGE (Landing Hero) -->
-        <div id="landing-hero" class="container"
-            style="position: relative; z-index: 1; display:flex; flex-direction:column; align-items:center; text-align:center; background: transparent; box-shadow: none; border: none; padding-top: 5vh; min-height: 80vh; justify-content: center;">
-            <div style="margin-bottom: 12px;">
-                <img src="subsoccer_logo.svg" alt="Subsoccer Logo"
-                    style="cursor: pointer; height: 40px;"
-                    onerror="this.src=''; this.style.display='none';" onclick="window.location.href='https://subsoccer.com';">
-            </div>
 
-            <h1
-                style="font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif; font-weight: normal; font-size: 3.2rem; margin: 0 0 8px 0; text-transform: uppercase; line-height: 1.1; color: #fff; letter-spacing: 1px;">
-                SUBSOCCER <span style="color: #c41e2a;">GO</span></h1>
-            <p
-                style="font-family: 'Resolve', 'Open Sans', sans-serif; font-size: 0.65rem; color: #666; margin-bottom: 25px; max-width: 400px; line-height: 1.6; letter-spacing: 1.5px; text-transform: uppercase;">
-                Create your player card, track your stats, and climb the global rankings.
-            </p>
 
-            <button onclick="showAuthPage('signup')" class="btn-red"
-                style="padding: 16px 40px; font-size: 1rem; margin-bottom: 12px; border-radius: 2px; width: 100%; max-width: 300px; font-family: 'SubsoccerLogo', sans-serif; letter-spacing: 1px;">CREATE
-                PLAYER CARD</button>
-            <button onclick="showAuthPage('login')"
-                style="background: transparent; color: #888; border: 1px solid #333; border-radius: 2px; font-family: 'SubsoccerLogo', sans-serif; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; padding: 14px 40px; width: 100%; max-width: 300px; transition: all 0.2s; letter-spacing: 2px;" onmouseover="this.style.borderColor='#555'; this.style.color='#fff';" onmouseout="this.style.borderColor='#333'; this.style.color='#888';">LOG
-                IN</button>
-            
-            <script>
-                // Skip the redundant landing page if user specifically clicked a "LOG IN" button
-                const urlParams = new URLSearchParams(window.location.search);
-                if (window.location.hash.includes('login') || urlParams.get('redirect')) {
-                    document.getElementById('landing-hero').style.display = 'none';
-                    document.addEventListener('DOMContentLoaded', () => {
-                        if(typeof window.showAuthPage === 'function') {
-                            window.showAuthPage('login');
-                        } else {
-                            const lf = document.getElementById('login-form');
-                            if(lf) lf.style.display = 'block';
-                        }
-                    });
-                }
-            </script>
-        </div>
-
-        <!-- EXISTING LOGIN FORM (Hidden by default now) -->
-        <div id="login-form" class="container auth-container" style="display:none; position: relative; z-index: 1; margin-top: 10vh; background: transparent; border: none; box-shadow: none; border-radius: 0; padding: 0 25px; max-width: 340px;">
+        <!-- EXISTING LOGIN FORM (Default) -->
+        <div id="login-form" class="container auth-container" style="display:block; position: relative; z-index: 1; margin-top: 10vh; background: transparent; border: none; box-shadow: none; border-radius: 0; padding: 0 25px; max-width: 340px;">
             <div id="tour-auth-message"
                 style="display:none; text-align:center; padding: 15px 10px; margin-bottom: 15px; background: rgba(196, 30, 42, 0.05); border: 1px solid rgba(196, 30, 42, 0.3); border-radius: 6px;">
                 <i class="fa-solid fa-trophy"
