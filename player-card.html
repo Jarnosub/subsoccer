@@ -1292,7 +1292,7 @@
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], {type: 'image/png'});
 
-                    const uploadRes = await fetch(`${SUPA_URL}/storage/v1/object/avatars/${path}`, {
+                    const uploadRes = await fetch(`${SUPA_URL}/storage/v1/object/event-images/${path}`, {
                         method: 'POST',
                         headers: {
                             'apikey': SUPA_KEY,
@@ -1302,7 +1302,7 @@
                         body: blob
                     });
                     if (!uploadRes.ok) throw new Error('Upload failed: ' + await uploadRes.text());
-                    updates.avatar_url = `${SUPA_URL}/storage/v1/object/public/avatars/${path}?v=${Date.now()}`;
+                    updates.avatar_url = `${SUPA_URL}/storage/v1/object/public/event-images/${path}?v=${Date.now()}`;
                 } else if (avatarUrl && avatarUrl !== 'ai-custom' && avatarUrl !== _currentPlayer?.avatar_url) {
                     if (avatarUrl.startsWith('avatar-')) {
                         updates.avatar_url = window.location.origin + '/' + avatarUrl;
