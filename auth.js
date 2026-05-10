@@ -12,7 +12,24 @@ export async function initApp() {
         setupAuthListeners();
 
         // PAKOTETTU TARKISTUS: Haetaan istunto heti, jotta ei tarvita refreshia
-        const { data: { session }, error } = await _supabase.auth.getSession();
+        // Race against 5s timeout to prevent infinite hang from stale tokens
+        let session = null, error = null;
+        try {
+            const result = await Promise.race([
+                _supabase.auth.getSession(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
+            ]);
+            session = result?.data?.session;
+            error = result?.error;
+        } catch(e) {
+            console.warn('getSession timed out (5s) — stale auth token likely. Clearing...');
+            // Clear stale tokens that cause the hang
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sb-') || key.includes('supabase')) {
+                    localStorage.removeItem(key);
+                }
+            });
+        }
 
         if (error) {
             console.warn("Supabase auth warning (usually safe to ignore):", error.message);
@@ -385,7 +402,11 @@ export async function handleAuth(event) {
             localStorage.removeItem(key);
         }
     });
-    await _supabase.auth.signOut().catch(() => { });
+    // Race signOut against 3s timeout — prevent hanging
+    await Promise.race([
+        _supabase.auth.signOut().catch(() => {}),
+        new Promise(resolve => setTimeout(resolve, 3000))
+    ]);
 
     resetFullState(); // Vaihe A: Puhdistetaan vanha tila ja välimuisti
 
@@ -557,7 +578,10 @@ export async function handleLogout() {
     }
     if (_supabase) {
         try {
-            await _supabase.auth.signOut();
+            await Promise.race([
+                _supabase.auth.signOut(),
+                new Promise(resolve => setTimeout(resolve, 3000))
+            ]);
         } catch (error) {
             console.error('Error logging out:', error);
         }
