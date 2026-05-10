@@ -894,8 +894,37 @@
         let _selectedAvatarFile = null;
 
         function getSb() {
-            if (!_sb) _sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+            if (!_sb) {
+                _sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
+                    auth: { autoRefreshToken: false, persistSession: false }
+                });
+            }
             return _sb;
+        }
+
+        // Direct REST API helper — bypasses Supabase JS client's auth layer
+        async function directQuery(method, table, params = {}, body = null) {
+            const url = new URL(`${SUPA_URL}/rest/v1/${table}`);
+            Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+            
+            const opts = {
+                method: method,
+                headers: {
+                    'apikey': SUPA_KEY,
+                    'Authorization': `Bearer ${SUPA_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': method === 'PATCH' ? 'return=minimal' : 'return=representation'
+                }
+            };
+            if (body) opts.body = JSON.stringify(body);
+            
+            const res = await fetch(url.toString(), opts);
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`DB ${method} failed (${res.status}): ${errText}`);
+            }
+            if (method === 'PATCH') return { ok: true };
+            return await res.json();
         }
 
         function applyPlayerData(player) {
@@ -1195,26 +1224,11 @@
             msg.innerText = '';
 
             try {
-                const sb = getSb();
-                
-                // Use _currentPlayer first (already loaded by loadProfile)
+                // Get user ID from _currentPlayer (set by loadProfile)
                 let userId = _currentPlayer?.id;
                 console.log('Save: _currentPlayer =', _currentPlayer ? JSON.stringify({id: _currentPlayer.id, username: _currentPlayer.username}) : 'null');
                 
-                // Fallback 1: try session with timeout (skip if we already have userId)
-                if (!userId) {
-                    try {
-                        const sessionResult = await Promise.race([
-                            sb.auth.getSession(),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
-                        ]);
-                        userId = sessionResult?.data?.session?.user?.id;
-                    } catch(sessEx) {
-                        console.warn('Session fallback failed:', sessEx.message);
-                    }
-                }
-                
-                // Fallback 2: localStorage
+                // Fallback: localStorage
                 if (!userId) {
                     try {
                         const cached = localStorage.getItem('subsoccer-user');
@@ -1222,22 +1236,21 @@
                     } catch(e) {}
                 }
 
-                // Fallback 3: look up by username in DB
+                // Fallback: username lookup via direct REST (no auth needed)
                 if (!userId && _currentPlayer?.username) {
-                    console.log('Trying username lookup for:', _currentPlayer.username);
+                    console.log('Looking up ID for username:', _currentPlayer.username);
                     try {
-                        const lookupResult = await Promise.race([
-                            sb.from('players').select('id').ilike('username', _currentPlayer.username).single(),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('LOOKUP_TIMEOUT')), 5000))
-                        ]);
-                        if (lookupResult?.data?.id) {
-                            userId = lookupResult.data.id;
-                            // Cache it for next time
+                        const results = await directQuery('GET', 'players', {
+                            'username': `ilike.${_currentPlayer.username}`,
+                            'select': 'id'
+                        });
+                        if (results && results[0]?.id) {
+                            userId = results[0].id;
                             _currentPlayer.id = userId;
-                            console.log('Found userId via username lookup:', userId);
+                            console.log('Found userId:', userId);
                         }
-                    } catch(luErr) {
-                        console.warn('Username lookup failed:', luErr.message);
+                    } catch(e) {
+                        console.warn('Username lookup failed:', e.message);
                     }
                 }
 
@@ -1269,9 +1282,8 @@
                 const avatarB64 = document.getElementById('selected-avatar-b64').value;
 
                 if (avatarB64) {
-                    // AI-generated avatar: upload to Supabase Storage
+                    // AI-generated avatar: upload via direct fetch to Supabase Storage
                     const path = `avatars/${userId}_ai_${Date.now()}.png`;
-                    
                     const byteCharacters = atob(avatarB64);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
@@ -1280,17 +1292,18 @@
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], {type: 'image/png'});
 
-                    const uploadResult = await Promise.race([
-                        sb.storage.from('avatars').upload(path, blob, { upsert: true }),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('UPLOAD_TIMEOUT')), 10000))
-                    ]);
-                    if (uploadResult.error) {
-                        throw new Error('Upload failed: ' + uploadResult.error.message);
-                    }
-                    const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
-                    updates.avatar_url = urlData.publicUrl + '?v=' + Date.now();
+                    const uploadRes = await fetch(`${SUPA_URL}/storage/v1/object/avatars/${path}`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPA_KEY,
+                            'Authorization': `Bearer ${SUPA_KEY}`,
+                            'x-upsert': 'true'
+                        },
+                        body: blob
+                    });
+                    if (!uploadRes.ok) throw new Error('Upload failed: ' + await uploadRes.text());
+                    updates.avatar_url = `${SUPA_URL}/storage/v1/object/public/avatars/${path}?v=${Date.now()}`;
                 } else if (avatarUrl && avatarUrl !== 'ai-custom' && avatarUrl !== _currentPlayer?.avatar_url) {
-                    // Preset avatar: convert relative filename to full URL
                     if (avatarUrl.startsWith('avatar-')) {
                         updates.avatar_url = window.location.origin + '/' + avatarUrl;
                     } else {
@@ -1306,43 +1319,25 @@
                     return;
                 }
 
-                console.log('Saving updates for user', userId, ':', JSON.stringify(updates));
+                console.log('Saving:', JSON.stringify(updates));
                 
-                const dbResult = await Promise.race([
-                    sb.from('players').update(updates).eq('id', userId),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 8000))
-                ]);
-                
-                if (dbResult.error) {
-                    console.error('DB save error:', JSON.stringify(dbResult.error));
-                    throw new Error(dbResult.error.message || 'Database error');
-                }
+                // Direct REST API update — bypasses Supabase client entirely
+                await directQuery('PATCH', 'players', { 'id': `eq.${userId}` }, updates);
 
-                // Update localStorage
-                try {
-                    const cached = localStorage.getItem('subsoccer-user');
-                    if (cached) {
-                        const user = JSON.parse(cached);
-                        Object.assign(user, updates);
-                        localStorage.setItem('subsoccer-user', JSON.stringify(user));
-                    }
-                } catch(lsErr) { console.warn('localStorage update failed:', lsErr); }
+                // Update localStorage & _currentPlayer
+                Object.assign(_currentPlayer, updates);
+                localStorage.setItem('subsoccer-user', JSON.stringify(_currentPlayer));
 
                 msg.style.color = '#4CAF50';
                 msg.innerText = '✓ SAVED SUCCESSFULLY';
                 btn.disabled = false;
                 btn.innerText = 'SAVE AVATAR';
 
-                // Refresh card
                 setTimeout(() => location.reload(), 800);
             } catch(e) {
-                console.error('Save profile error:', e);
+                console.error('Save error:', e);
                 msg.style.color = '#E30613';
-                const errMsg = e.message === 'SESSION_TIMEOUT' ? 'SESSION EXPIRED — LOG IN AGAIN'
-                             : e.message === 'DB_TIMEOUT' ? 'DATABASE TIMEOUT — TRY AGAIN'
-                             : e.message === 'UPLOAD_TIMEOUT' ? 'UPLOAD TIMEOUT — TRY AGAIN'
-                             : (e.message || 'SAVE FAILED');
-                msg.innerText = errMsg;
+                msg.innerText = e.message || 'SAVE FAILED';
                 btn.disabled = false;
                 btn.innerText = 'SAVE AVATAR';
             }
@@ -1365,72 +1360,85 @@
 
         // Load profile
         (async function loadProfile() {
-            const sb = getSb();
-            
-            // 1. Try Supabase session with timeout
-            try {
-                const sessionResult = await Promise.race([
-                    sb.auth.getSession(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
-                ]);
-                
-                const session = sessionResult?.data?.session;
-                if (session && session.user) {
-                    const dbResult = await Promise.race([
-                        sb.from('players')
-                            .select('*, team_data:teams!players_team_id_fkey(*)')
-                            .eq('id', session.user.id)
-                            .single(),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 8000))
-                    ]);
-                    
-                    if (dbResult?.data) {
-                        applyPlayerData(dbResult.data);
-                        loadCountries();
-                        console.log('✅ Profile loaded via session:', dbResult.data.username);
-                        return;
-                    }
-                }
-            } catch(e) {
-                console.warn('Session/DB load failed:', e.message, '— trying localStorage');
-            }
-
-            // 2. Fallback: localStorage cache
+            // 1. Try localStorage first (instant, no network)
             const cached = localStorage.getItem('subsoccer-user');
+            let cachedUser = null;
             if (cached) {
                 try {
-                    const userData = JSON.parse(cached);
-                    applyPlayerData(userData);
+                    cachedUser = JSON.parse(cached);
+                    applyPlayerData(cachedUser);
                     loadCountries();
-                    console.log('✅ Profile loaded from localStorage:', userData.username);
-                    return;
+                    console.log('✅ Profile loaded from localStorage:', cachedUser.username);
                 } catch(e) {}
             }
             
-            // 3. Last resort: check URL params for user ID
+            // 2. If we have an ID, refresh from DB via direct REST (no auth hanging)
+            const userId = cachedUser?.id;
+            if (userId) {
+                try {
+                    const players = await directQuery('GET', 'players', {
+                        'id': `eq.${userId}`,
+                        'select': '*'
+                    });
+                    if (players && players[0]) {
+                        applyPlayerData(players[0]);
+                        localStorage.setItem('subsoccer-user', JSON.stringify(players[0]));
+                        console.log('✅ Profile refreshed from DB:', players[0].username);
+                    }
+                } catch(e) {
+                    console.warn('DB refresh failed (using cache):', e.message);
+                }
+                return;
+            }
+
+            // 3. If no cached ID, try URL params
             const params = new URLSearchParams(window.location.search);
             const uid = params.get('uid');
             if (uid) {
                 try {
-                    const { data: player } = await Promise.race([
-                        sb.from('players')
-                            .select('*, team_data:teams!players_team_id_fkey(*)')
-                            .eq('id', uid)
-                            .single(),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 8000))
-                    ]);
-                    if (player) {
-                        applyPlayerData(player);
+                    const players = await directQuery('GET', 'players', {
+                        'id': `eq.${uid}`,
+                        'select': '*'
+                    });
+                    if (players && players[0]) {
+                        applyPlayerData(players[0]);
+                        localStorage.setItem('subsoccer-user', JSON.stringify(players[0]));
                         loadCountries();
-                        console.log('✅ Profile loaded via URL uid:', player.username);
+                        console.log('✅ Profile loaded via URL uid:', players[0].username);
                         return;
                     }
                 } catch(e) {
                     console.warn('URL uid load failed:', e.message);
                 }
             }
-
-            console.warn('⚠️ No profile data available — showing default card');
+            
+            // 4. Last resort: try Supabase session (may hang, but cache already loaded)
+            if (!cachedUser) {
+                try {
+                    const sb = getSb();
+                    const sessionResult = await Promise.race([
+                        sb.auth.getSession(),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
+                    ]);
+                    const session = sessionResult?.data?.session;
+                    if (session?.user?.id) {
+                        const players = await directQuery('GET', 'players', {
+                            'id': `eq.${session.user.id}`,
+                            'select': '*'
+                        });
+                        if (players && players[0]) {
+                            applyPlayerData(players[0]);
+                            localStorage.setItem('subsoccer-user', JSON.stringify(players[0]));
+                            loadCountries();
+                            console.log('✅ Profile loaded via session:', players[0].username);
+                            return;
+                        }
+                    }
+                } catch(e) {
+                    console.warn('Session load failed:', e.message);
+                }
+                console.warn('⚠️ No profile data available — showing default card');
+            }
         })();
 
         async function exportPrintableCard() {
