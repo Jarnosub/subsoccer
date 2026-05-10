@@ -306,7 +306,7 @@
                 <!-- MASCOT SELECTION -->
                 <div style="max-width: 400px; margin: 0 auto;">
                 <div style="font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-paw"></i> CHOOSE YOUR MASCOT
+                    <i class="fa-solid fa-user"></i> CHOOSE YOUR CHARACTER
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
                     <button id="signup-avatar-prev" onclick="signupCarouselStep(-1)" disabled
@@ -340,7 +340,7 @@
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>
                 </div>
-                <input type="hidden" id="signup-selected-avatar" value="avatar-wolf.png">
+                <input type="hidden" id="signup-selected-avatar" value="avatar-human-1.png">
                 </div>
 
                 <!-- Divider -->
@@ -470,7 +470,7 @@
                         });
                     }
 
-                    // Auto-select wolf avatar on load to show preview
+                    // Auto-select first avatar on load to show preview
                     const firstAvatar = document.querySelector('.signup-avatar-opt.selected');
                     if (firstAvatar) selectSignupAvatar(firstAvatar);
                 }, 500);
