@@ -30,95 +30,79 @@ exports.handler = async function (event, context) {
         const base64Data = image_b64.replace(/^data:image\/\w+;base64,/, "");
         const imageBuffer = Buffer.from(base64Data, "base64");
 
-        // Build multipart/form-data
-        const boundary = "----SubsoccerBoundary" + Date.now();
-
-        const prompt = `Comic book illustration of this person as a soccer mascot. Preserve their face, age, gender, hair and facial features exactly.
-
-Style: Bold outlines, vibrant cel-shaded comic art. Navy blue soccer jersey with white trim. Sitting on a bench in a soccer stadium. Blue sky, green grass, golden sunset on horizon, stadium floodlights. Colorful — no red/orange color wash.`;
-
-        // Construct multipart body
-        const formParts = [];
-
-        // -- image
-        formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="image"; filename="selfie.png"\r\nContent-Type: image/png\r\n\r\n`, "utf-8"
-        ));
-        formParts.push(imageBuffer);
-        formParts.push(Buffer.from("\r\n", "utf-8"));
-
-        // -- prompt
-        formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="prompt"\r\n\r\n${prompt}\r\n`, "utf-8"
-        ));
-
-        // -- model
-        formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\ngpt-image-1\r\n`, "utf-8"
-        ));
-
-        // -- size (auto for fastest generation)
-        formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="size"\r\n\r\nauto\r\n`, "utf-8"
-        ));
-
-        // -- closing
-        formParts.push(Buffer.from(`--${boundary}--\r\n`, "utf-8"));
-
-        const body = Buffer.concat(formParts);
-
-        console.log("Sending image to gpt-image-1 edit API... (" + (imageBuffer.length / 1024).toFixed(0) + " KB image)");
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s for detailed images
-
-        const response = await fetch("https://api.openai.com/v1/images/edits", {
+        console.log("Analyzing selfie with gpt-4o-mini...");
+        
+        // Step 1: Analyze the image with GPT-4o-mini
+        const visionResponse = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": `multipart/form-data; boundary=${boundary}`
+                "Content-Type": "application/json"
             },
-            body: body,
-            signal: controller.signal
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                    {
+                        role: "user",
+                        content: [
+                            { type: "text", text: "Describe the person in this image concisely: age, gender, hair color and style, skin tone, and distinguishing facial features. Keep it under 30 words." },
+                            { type: "image_url", image_url: { url: `data:image/png;base64,${base64Data}`, detail: "low" } }
+                        ]
+                    }
+                ],
+                max_tokens: 50
+            })
         });
 
-        clearTimeout(timeoutId);
+        const visionData = await visionResponse.json();
+        if (visionData.error) throw new Error(visionData.error.message);
+        
+        const description = visionData.choices[0].message.content;
+        console.log("Description:", description);
 
-        const data = await response.json();
+        // Step 2: Generate avatar with DALL-E
+        console.log("Generating avatar with DALL-E 3...");
+        const dalleResponse = await fetch("https://api.openai.com/v1/images/generations", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "dall-e-3",
+                prompt: `Comic book illustration of a soccer player. ${description} Style: Bold outlines, vibrant cel-shaded comic art. Navy blue soccer jersey with white trim. Sitting on a bench in a soccer stadium. Blue sky, green grass. Colorful — no red/orange color wash.`,
+                n: 1,
+                size: "1024x1024",
+                response_format: "b64_json"
+            })
+        });
 
-        if (data.error) {
-            console.error("OpenAI API error:", JSON.stringify(data.error));
-            if (data.error.code === 'content_policy_violation' || (data.error.message && data.error.message.toLowerCase().includes('safety'))) {
+        const dalleData = await dalleResponse.json();
+
+        if (dalleData.error) {
+            console.error("OpenAI API error:", JSON.stringify(dalleData.error));
+            if (dalleData.error.code === 'content_policy_violation' || (dalleData.error.message && dalleData.error.message.toLowerCase().includes('safety'))) {
                 return {
                     statusCode: 400,
                     body: JSON.stringify({ error: "POLICY_VIOLATION" })
                 };
             }
-            throw new Error(data.error.message);
+            throw new Error(dalleData.error.message);
         }
 
         console.log("Image generated successfully!");
 
-        // gpt-image-1 returns b64_json by default
-        if (data.data[0].b64_json) {
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ image_b64: data.data[0].b64_json })
-            };
-        }
-
-        // If URL was returned, fetch and convert to b64
-        if (data.data[0].url) {
-            const imgResp = await fetch(data.data[0].url);
-            const imgBuf = await imgResp.arrayBuffer();
-            const b64 = Buffer.from(imgBuf).toString("base64");
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ image_b64: b64 })
-            };
-        }
-
-        throw new Error("No image data in response");
+        return {
+            statusCode: 200,
+            headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            },
+            body: JSON.stringify({
+                success: true,
+                image_b64: dalleData.data[0].b64_json
+            })
+        };
 
     } catch (error) {
         console.error("Avatar generation error:", error.message);
