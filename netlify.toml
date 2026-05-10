@@ -1,8 +1,6 @@
 [build]
   functions = "netlify/functions"
 
-[functions]
-  timeout = 30
 [dev]
   functions = "netlify/functions"
   staticServerPort = 3999
