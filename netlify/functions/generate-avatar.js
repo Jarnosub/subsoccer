@@ -10,7 +10,10 @@ exports.handler = async function (event, context) {
 
     try {
         const { image_b64 } = JSON.parse(event.body);
-        const apiKey = process.env.OPENAI_API_KEY;
+        let apiKey = process.env.MY_OPENAI_KEY || process.env.OPENAI_API_KEY;
+        if (apiKey && apiKey.startsWith("eyJ")) {
+            apiKey = process.env.MY_OPENAI_KEY; // Ignore Netlify JWT overrides
+        }
 
         if (!apiKey) {
             return { statusCode: 500, body: JSON.stringify({ error: "Missing API Key" }) };
@@ -31,7 +34,8 @@ exports.handler = async function (event, context) {
         const imageBuffer = Buffer.from(base64Data, "base64");
 
         console.log("Analyzing selfie with gpt-4o-mini...");
-        
+        console.log("API KEY length:", apiKey ? apiKey.length : 0);
+        console.log("API KEY prefix:", apiKey ? apiKey.substring(0, 7) : "none");
         // Step 1: Analyze the image with GPT-4o-mini
         const visionResponse = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
@@ -55,6 +59,8 @@ exports.handler = async function (event, context) {
         });
 
         const visionData = await visionResponse.json();
+        console.log("Vision API status:", visionResponse.status);
+        console.log("Vision API response:", JSON.stringify(visionData));
         if (visionData.error) throw new Error(visionData.error.message);
         
         const description = visionData.choices[0].message.content;
