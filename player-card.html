@@ -1197,34 +1197,31 @@
             try {
                 const sb = getSb();
                 
-                // Race getSession against a 5s timeout — prevents infinite hang
-                let session = null;
-                try {
-                    const sessionResult = await Promise.race([
-                        sb.auth.getSession(),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
-                    ]);
-                    session = sessionResult?.data?.session;
-                } catch(sessEx) {
-                    if (sessEx.message === 'SESSION_TIMEOUT') {
-                        console.warn('getSession() timed out after 5s — trying localStorage fallback');
-                    } else {
-                        console.error('Session error:', sessEx);
+                // Use _currentPlayer first (already loaded by loadProfile)
+                let userId = _currentPlayer?.id;
+                
+                // Fallback 1: try session with timeout
+                if (!userId) {
+                    try {
+                        const sessionResult = await Promise.race([
+                            sb.auth.getSession(),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
+                        ]);
+                        userId = sessionResult?.data?.session?.user?.id;
+                    } catch(sessEx) {
+                        console.warn('Session fallback failed:', sessEx.message);
                     }
                 }
                 
-                // Fallback: try to get user ID from localStorage
-                let userId = session?.user?.id;
+                // Fallback 2: localStorage
                 if (!userId) {
                     try {
                         const cached = localStorage.getItem('subsoccer-user');
-                        if (cached) {
-                            const cachedUser = JSON.parse(cached);
-                            userId = cachedUser?.id;
-                            console.log('Using cached user ID:', userId);
-                        }
+                        if (cached) userId = JSON.parse(cached)?.id;
                     } catch(e) {}
                 }
+
+                console.log('Save: using userId =', userId);
 
                 if (!userId || userId === 'guest' || userId === 'spectator') {
                     msg.style.color = '#E30613';
@@ -1348,34 +1345,72 @@
 
         // Load profile
         (async function loadProfile() {
+            const sb = getSb();
+            
+            // 1. Try Supabase session with timeout
             try {
-                const sb = getSb();
-                const { data: { session } } = await sb.auth.getSession();
+                const sessionResult = await Promise.race([
+                    sb.auth.getSession(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
+                ]);
                 
+                const session = sessionResult?.data?.session;
                 if (session && session.user) {
-                    const { data: player } = await sb
-                        .from('players')
-                        .select('*, team_data:teams!players_team_id_fkey(*)')
-                        .eq('id', session.user.id)
-                        .single();
+                    const dbResult = await Promise.race([
+                        sb.from('players')
+                            .select('*, team_data:teams!players_team_id_fkey(*)')
+                            .eq('id', session.user.id)
+                            .single(),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 8000))
+                    ]);
                     
-                    if (player) {
-                        applyPlayerData(player);
+                    if (dbResult?.data) {
+                        applyPlayerData(dbResult.data);
                         loadCountries();
+                        console.log('✅ Profile loaded via session:', dbResult.data.username);
                         return;
                     }
                 }
             } catch(e) {
-                console.log('Supabase fetch:', e.message);
+                console.warn('Session/DB load failed:', e.message, '— trying localStorage');
             }
 
+            // 2. Fallback: localStorage cache
             const cached = localStorage.getItem('subsoccer-user');
             if (cached) {
                 try {
-                    applyPlayerData(JSON.parse(cached));
+                    const userData = JSON.parse(cached);
+                    applyPlayerData(userData);
                     loadCountries();
+                    console.log('✅ Profile loaded from localStorage:', userData.username);
+                    return;
                 } catch(e) {}
             }
+            
+            // 3. Last resort: check URL params for user ID
+            const params = new URLSearchParams(window.location.search);
+            const uid = params.get('uid');
+            if (uid) {
+                try {
+                    const { data: player } = await Promise.race([
+                        sb.from('players')
+                            .select('*, team_data:teams!players_team_id_fkey(*)')
+                            .eq('id', uid)
+                            .single(),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 8000))
+                    ]);
+                    if (player) {
+                        applyPlayerData(player);
+                        loadCountries();
+                        console.log('✅ Profile loaded via URL uid:', player.username);
+                        return;
+                    }
+                } catch(e) {
+                    console.warn('URL uid load failed:', e.message);
+                }
+            }
+
+            console.warn('⚠️ No profile data available — showing default card');
         })();
 
         async function exportPrintableCard() {
