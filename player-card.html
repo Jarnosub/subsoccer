@@ -1194,29 +1194,39 @@
             btn.innerText = 'SAVING...';
             msg.innerText = '';
 
-            // Timeout wrapper — never hang more than 15s
-            const saveTimeout = setTimeout(() => {
-                console.error('Save timed out after 15s');
-                msg.style.color = '#E30613';
-                msg.innerText = 'TIMEOUT — CHECK YOUR CONNECTION';
-                btn.disabled = false;
-                btn.innerText = 'SAVE AVATAR';
-            }, 15000);
-
             try {
                 const sb = getSb();
                 
+                // Race getSession against a 5s timeout — prevents infinite hang
                 let session = null;
                 try {
-                    const { data, error: sessErr } = await sb.auth.getSession();
-                    if (sessErr) console.error('Session error:', sessErr);
-                    session = data?.session;
+                    const sessionResult = await Promise.race([
+                        sb.auth.getSession(),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
+                    ]);
+                    session = sessionResult?.data?.session;
                 } catch(sessEx) {
-                    console.error('Session exception:', sessEx);
+                    if (sessEx.message === 'SESSION_TIMEOUT') {
+                        console.warn('getSession() timed out after 5s — trying localStorage fallback');
+                    } else {
+                        console.error('Session error:', sessEx);
+                    }
                 }
                 
-                if (!session) {
-                    clearTimeout(saveTimeout);
+                // Fallback: try to get user ID from localStorage
+                let userId = session?.user?.id;
+                if (!userId) {
+                    try {
+                        const cached = localStorage.getItem('subsoccer-user');
+                        if (cached) {
+                            const cachedUser = JSON.parse(cached);
+                            userId = cachedUser?.id;
+                            console.log('Using cached user ID:', userId);
+                        }
+                    } catch(e) {}
+                }
+
+                if (!userId || userId === 'guest' || userId === 'spectator') {
                     msg.style.color = '#E30613';
                     msg.innerText = 'NOT LOGGED IN — PLEASE LOG IN AGAIN';
                     btn.disabled = false;
@@ -1243,7 +1253,7 @@
 
                 if (avatarB64) {
                     // AI-generated avatar: upload to Supabase Storage
-                    const path = `avatars/${session.user.id}_ai_${Date.now()}.png`;
+                    const path = `avatars/${userId}_ai_${Date.now()}.png`;
                     
                     const byteCharacters = atob(avatarB64);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -1253,10 +1263,12 @@
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], {type: 'image/png'});
 
-                    const { error: upErr } = await sb.storage.from('avatars').upload(path, blob, { upsert: true });
-                    if (upErr) {
-                        console.error('Upload error:', upErr);
-                        throw new Error('Upload failed: ' + upErr.message);
+                    const uploadResult = await Promise.race([
+                        sb.storage.from('avatars').upload(path, blob, { upsert: true }),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('UPLOAD_TIMEOUT')), 10000))
+                    ]);
+                    if (uploadResult.error) {
+                        throw new Error('Upload failed: ' + uploadResult.error.message);
                     }
                     const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
                     updates.avatar_url = urlData.publicUrl + '?v=' + Date.now();
@@ -1270,21 +1282,23 @@
                 }
 
                 if (Object.keys(updates).length === 0) {
-                    clearTimeout(saveTimeout);
                     msg.style.color = '#888';
-                    msg.innerText = 'NO CHANGES';
+                    msg.innerText = 'NO CHANGES DETECTED';
                     btn.disabled = false;
                     btn.innerText = 'SAVE AVATAR';
                     return;
                 }
 
-                console.log('Saving updates:', JSON.stringify(updates));
-                const { error } = await sb.from('players').update(updates).eq('id', session.user.id);
-                clearTimeout(saveTimeout);
+                console.log('Saving updates for user', userId, ':', JSON.stringify(updates));
                 
-                if (error) {
-                    console.error('DB save error:', JSON.stringify(error));
-                    throw new Error(error.message || 'Database error');
+                const dbResult = await Promise.race([
+                    sb.from('players').update(updates).eq('id', userId),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 8000))
+                ]);
+                
+                if (dbResult.error) {
+                    console.error('DB save error:', JSON.stringify(dbResult.error));
+                    throw new Error(dbResult.error.message || 'Database error');
                 }
 
                 // Update localStorage
@@ -1305,10 +1319,13 @@
                 // Refresh card
                 setTimeout(() => location.reload(), 800);
             } catch(e) {
-                clearTimeout(saveTimeout);
                 console.error('Save profile error:', e);
                 msg.style.color = '#E30613';
-                msg.innerText = e.message || 'SAVE FAILED';
+                const errMsg = e.message === 'SESSION_TIMEOUT' ? 'SESSION EXPIRED — LOG IN AGAIN'
+                             : e.message === 'DB_TIMEOUT' ? 'DATABASE TIMEOUT — TRY AGAIN'
+                             : e.message === 'UPLOAD_TIMEOUT' ? 'UPLOAD TIMEOUT — TRY AGAIN'
+                             : (e.message || 'SAVE FAILED');
+                msg.innerText = errMsg;
                 btn.disabled = false;
                 btn.innerText = 'SAVE AVATAR';
             }
