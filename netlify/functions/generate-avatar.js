@@ -60,9 +60,9 @@ Style: Bold outlines, vibrant cel-shaded comic art, flat colors. Cool street foo
             `--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\ngpt-image-1\r\n`, "utf-8"
         ));
 
-        // -- size (auto for fastest generation)
+        // -- size (512x512 for much faster generation)
         formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="size"\r\n\r\nauto\r\n`, "utf-8"
+            `--${boundary}\r\nContent-Disposition: form-data; name="size"\r\n\r\n512x512\r\n`, "utf-8"
         ));
 
         // -- closing
