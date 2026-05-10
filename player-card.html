@@ -1190,8 +1190,9 @@
 
             try {
                 const sb = getSb();
-                const { data: { session } } = await sb.auth.getSession();
-                if (!session) throw new Error('Not logged in');
+                const { data: { session }, error: sessErr } = await sb.auth.getSession();
+                if (sessErr) console.error('Session error:', sessErr);
+                if (!session) throw new Error('Not logged in. Please log in again.');
 
                 const updates = {};
                 const newName = document.getElementById('pc-edit-name').value.trim().toUpperCase();
@@ -1206,6 +1207,7 @@
                 const avatarB64 = document.getElementById('selected-avatar-b64').value;
 
                 if (avatarB64) {
+                    // AI-generated avatar: upload to Supabase Storage
                     const ext = 'png';
                     const path = `avatars/${session.user.id}_ai_${Date.now()}.${ext}`;
                     
@@ -1218,12 +1220,19 @@
                     const blob = new Blob([byteArray], {type: 'image/png'});
 
                     const { error: upErr } = await sb.storage.from('avatars').upload(path, blob, { upsert: true });
-                    if (!upErr) {
-                        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
-                        updates.avatar_url = urlData.publicUrl + '?v=' + Date.now();
+                    if (upErr) {
+                        console.error('Upload error:', upErr);
+                        throw new Error('Failed to upload avatar: ' + upErr.message);
                     }
+                    const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+                    updates.avatar_url = urlData.publicUrl + '?v=' + Date.now();
                 } else if (avatarUrl && avatarUrl !== 'ai-custom' && avatarUrl !== _currentPlayer?.avatar_url) {
-                    updates.avatar_url = avatarUrl;
+                    // Preset avatar: convert relative filename to full URL
+                    if (avatarUrl.startsWith('avatar-')) {
+                        updates.avatar_url = window.location.origin + '/' + avatarUrl;
+                    } else {
+                        updates.avatar_url = avatarUrl;
+                    }
                 }
 
                 if (Object.keys(updates).length === 0) {
@@ -1234,8 +1243,12 @@
                     return;
                 }
 
+                console.log('Saving updates:', updates);
                 const { error } = await sb.from('players').update(updates).eq('id', session.user.id);
-                if (error) throw error;
+                if (error) {
+                    console.error('DB save error:', error);
+                    throw new Error(error.message || 'Database save failed');
+                }
 
                 // Update localStorage
                 const cached = localStorage.getItem('subsoccer-user');
@@ -1247,13 +1260,15 @@
 
                 msg.style.color = '#4CAF50';
                 msg.innerText = '✓ SAVED SUCCESSFULLY';
+                btn.disabled = false;
+                btn.innerText = 'SAVE CHANGES';
 
                 // Refresh card
                 setTimeout(() => location.reload(), 800);
             } catch(e) {
+                console.error('Save profile error:', e);
                 msg.style.color = '#E30613';
                 msg.innerText = e.message || 'SAVE FAILED';
-            } finally {
                 btn.disabled = false;
                 btn.innerText = 'SAVE CHANGES';
             }
