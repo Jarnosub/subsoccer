@@ -11,7 +11,16 @@ export const FLAGS = {
 // Varmista Supabase-asiakkaan alustus ympäristöstä riippuen
 let supabaseClient;
 if (typeof window !== 'undefined' && window.supabase) {
-    supabaseClient = window.supabase.createClient(_URL, _KEY);
+    // CRITICAL FIX: Disable autoRefreshToken to prevent the client from
+    // trying to refresh stale/expired tokens, which blocks ALL requests
+    // (auth, DB queries, storage) and makes the entire app hang.
+    supabaseClient = window.supabase.createClient(_URL, _KEY, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: true,
+            detectSessionInUrl: true
+        }
+    });
 } else {
     // Mock tai tyhjä objekti testejä varten jos supabase-js ei ole ladattu
     supabaseClient = {
