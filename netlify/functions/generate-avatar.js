@@ -70,7 +70,7 @@ exports.handler = async function (event, context) {
             },
             body: JSON.stringify({
                 model: "dall-e-3",
-                prompt: `Comic book illustration of a soccer player. ${description} Style: Bold outlines, vibrant cel-shaded comic art. Navy blue soccer jersey with white trim. Sitting on a bench in a soccer stadium. Blue sky, green grass. Colorful — no red/orange color wash.`,
+                prompt: `A stylized 2D mobile game character portrait of a soccer player. ${description} Flat colors, cel-shaded vector art style, matte finish, not glossy. Distinctive original cartoon style, expressive features, semi-realistic proportions. Wearing a cool street football jersey. Background: Urban street football court with a Subsoccer table game being played in the background, out of focus. Close-up portrait.`,
                 n: 1,
                 size: "1024x1024",
                 response_format: "b64_json"
