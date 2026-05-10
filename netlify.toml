@@ -1,6 +1,11 @@
 [build]
   functions = "netlify/functions"
 
+[dev]
+  functions = "netlify/functions"
+  staticServerPort = 3999
+  port = 8787
+
 # White Label Brands: /brands/SLUG/ → single brands/index.html
 # Assets (brand.json, images) pass through because they match real files
 [[redirects]]

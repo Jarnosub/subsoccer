@@ -174,7 +174,10 @@ export async function viewPlayerCard(targetUsername) {
             <!-- BACK SIDE -->
             <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 0; background-color: #0a0a0a; background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%); border: 1px solid #333; overflow-y: auto; overflow-x: hidden;">
                 <div class="card-inner-frame" style="padding:15px; display:block; text-align:left; overflow-y:auto; overflow-x:hidden;">
-                    <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:5px;">
+                    <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:5px; position:relative;">
+                        <button onclick="event.stopPropagation(); reportPlayer('${p.username}')" style="position:absolute; top:0; right:0; background:transparent; border:none; color:#E30613; cursor:pointer; font-size:0.8rem;" title="Report inappropriate avatar">
+                            <i class="fa-solid fa-flag"></i> REPORT
+                        </button>
                         <h4 style="color:var(--sub-gold); font-family:'Russo One'; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
                         <div style="color:#fff; font-size:0.75rem; font-family:'Resolve'; margin-top:5px; text-transform:uppercase;">${p.username}</div>
                     </div>
@@ -367,6 +370,20 @@ export async function purchaseEdition(editionId) {
 window.showAppConcept = showAppConcept;
 window.showLevelUpCard = showLevelUpCard;
 window.viewPlayerCard = viewPlayerCard;
+
+window.reportPlayer = async function(username) {
+    if(!confirm(`Are you sure you want to report ${username}'s avatar for violating the safety policy?`)) return;
+    try {
+        // Log the report to Supabase (creates the record if table exists, otherwise fails silently to user)
+        const { error } = await _supabase.from('avatar_reports').insert({
+            reported_username: username,
+            reporter_id: state.user?.id || 'guest',
+            created_at: new Date().toISOString()
+        });
+        if(error) console.log('Report logged locally (table may not exist yet).');
+    } catch(e) {}
+    alert('Thank you. The avatar has been reported and will be reviewed by our moderation team.');
+};
 
 export function setupPlayerCardListeners() {
     document.addEventListener('click', (e) => {

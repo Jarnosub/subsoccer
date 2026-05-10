@@ -452,6 +452,209 @@
         body.dark-mode .pc-edit-label {
             color: #aaaaaa;
         }
+
+        /* Avatar Studio Sections */
+        .studio-section {
+            padding: 20px 20px 0;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .studio-section-label {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* Avatar Carousel */
+        .avatar-carousel-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .avatar-carousel-track-outer {
+            flex: 1;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        .avatar-carousel-track {
+            display: flex;
+            gap: 12px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .avatar-option {
+            flex: 0 0 calc((100% - 24px) / 3);
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+            background: #111;
+        }
+        .avatar-option img {
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
+        }
+        .avatar-option.selected {
+            border-color: #c41e2a;
+            box-shadow: 0 0 20px rgba(196, 30, 42, 0.3);
+            transform: scale(1.02);
+        }
+        .avatar-carousel-btn {
+            flex-shrink: 0;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            border: 1px solid #333;
+            background: #111;
+            color: #aaa;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .avatar-carousel-btn:hover { background: #222; color: #fff; }
+        .avatar-carousel-btn:disabled { opacity: 0; pointer-events: none; }
+
+        /* AI Selfie Block */
+        .ai-hero {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+        .ai-hero-top {
+            background: linear-gradient(135deg, #1f0307 0%, #0a0a0a 100%);
+            border-bottom: 1px dashed rgba(196,30,42,0.3);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .ai-hero-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            background: #c41e2a;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: #fff;
+            flex-shrink: 0;
+        }
+        .ai-hero-title {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem; font-weight: bold; color: #fff;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        .ai-hero-sub {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.55rem; color: #888; margin-top: 4px;
+        }
+        .ai-hero-body {
+            padding: 20px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .ai-upload-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: #111; border: 1px dashed #444; border-radius: 2px;
+            padding: 16px; cursor: pointer;
+            font-family: 'Resolve', sans-serif; font-size: 0.75rem; font-weight: bold;
+            color: #aaa; letter-spacing: 2px; text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .ai-upload-btn:hover { border-color: #777; color: #fff; }
+
+        /* Accordion Profile Details */
+        .profile-accordion {
+            max-width: 420px;
+            margin: 0 auto 30px;
+            border-top: 1px solid #222;
+        }
+        .profile-accordion-btn {
+            width: 100%; background: transparent; border: none;
+            padding: 20px; display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; color: #888;
+            font-family: 'Resolve', sans-serif; font-size: 0.85rem; font-weight: bold;
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+        .profile-accordion-btn .chevron { transition: transform 0.3s; }
+        .profile-accordion-btn.open .chevron { transform: rotate(180deg); }
+        .profile-accordion-body {
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
+            background: transparent;
+        }
+        .profile-accordion-body.open { max-height: 500px; }
+        .profile-accordion-inner {
+            padding: 0 20px 20px; display: flex; flex-direction: column; gap: 10px;
+        }
+
+        /* AI Generation Overlay */
+        .ai-gen-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .ai-gen-overlay.active { display: flex; }
+        .ai-gen-icon {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c41e2a, #ff4757);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; color: #fff;
+            animation: ai-gen-pulse 2s ease-in-out infinite;
+        }
+        @keyframes ai-gen-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 30, 42, 0.4); }
+            50% { transform: scale(1.08); box-shadow: 0 0 30px 10px rgba(196, 30, 42, 0.2); }
+        }
+        .ai-gen-title {
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.1rem; font-weight: bold; color: #fff;
+            letter-spacing: 3px; text-transform: uppercase;
+        }
+        .ai-gen-status {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem; color: #888;
+            letter-spacing: 2px; text-transform: uppercase;
+            min-height: 20px;
+            transition: opacity 0.3s;
+        }
+        .ai-gen-progress-wrap {
+            width: 260px; height: 4px;
+            background: #222; border-radius: 2px;
+            overflow: hidden;
+        }
+        .ai-gen-progress-bar {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #c41e2a, #ff4757, #c41e2a);
+            background-size: 200% 100%;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+            animation: ai-gen-shimmer 1.5s linear infinite;
+        }
+        @keyframes ai-gen-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .ai-gen-timer {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem; color: #555;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
@@ -540,7 +743,7 @@
                     <div style="padding: 10px 20px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                             <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">GLOBAL ELO</div>
+                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">GLOBAL RATING</div>
                                 <div id="pc-back-elo" style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">1500</div>
                             </div>
                             <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
@@ -571,52 +774,110 @@
         </div>
     </div>
 
-    <!-- STATS GRID REMOVED -->
-
-    <!-- ACTION BUTTONS -->
-    <div class="pc-actions">
-        <div class="pc-action-btn" id="btn-download-card">
-            <i class="fas fa-print"></i>
-            Order Physical Card
-        </div>
-        <div style="text-align: center; font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: #999; letter-spacing: 1.5px; text-transform: uppercase; margin-top: -4px;">
-            Premium NFC card · Coming Soon
-        </div>
-    </div>
-
-    <!-- EDIT PROFILE PANEL -->
-    <div class="pc-edit-panel" id="pc-edit-panel">
-        <div class="pc-edit-card">
-            <div class="pc-edit-label">USERNAME</div>
-            <input type="text" class="pc-edit-input" id="pc-edit-name" placeholder="YOUR NAME" maxlength="20" autocomplete="off">
-
-            <div class="pc-edit-label">PROFILE PHOTO</div>
-            <label class="pc-edit-file-label" id="pc-file-label">
-                <i class="fas fa-camera" style="font-size: 1rem;"></i>
-                <span id="pc-file-name">CHOOSE PHOTO...</span>
-                <input type="file" accept="image/*" id="pc-edit-avatar" style="display: none;" onchange="handleAvatarSelect(this)">
-            </label>
-
-            <div class="pc-edit-label">COUNTRY</div>
-            <select class="pc-edit-select" id="pc-edit-country">
-                <option value="" disabled selected>SELECT COUNTRY</option>
-            </select>
-
-            <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()">SAVE CHANGES</button>
-            <div class="pc-edit-msg" id="pc-edit-msg"></div>
-
-            <button id="pc-mod-btn" class="pc-save-btn" style="display: none; background: transparent; color: #c41e2a; border: 1px solid rgba(196,30,42,0.4); margin-top: 15px; font-size: 0.8rem;" onclick="window.location.href='moderator.html'">
-                <i class="fa-solid fa-shield-halved" style="margin-right: 8px;"></i> MODERATOR TOOLS
+    <!-- AVATAR STUDIO CONTROLS -->
+    
+    <!-- SECTION: CHOOSE YOUR MASCOT -->
+    <div class="studio-section">
+        <div class="studio-section-label"><i class="fa-solid fa-paw"></i> CHOOSE YOUR MASCOT</div>
+        <div class="avatar-carousel-wrap">
+            <button class="avatar-carousel-btn" id="avatar-prev" onclick="avatarCarouselStep(-1)" disabled>
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div class="avatar-carousel-track-outer">
+                <div class="avatar-carousel-track" id="avatar-selection">
+                    <div class="avatar-option selected" data-avatar="avatar-wolf.png" onclick="selectAvatar(this)">
+                        <img src="avatar-wolf.png" alt="Wolf">
+                    </div>
+                    <div class="avatar-option" data-avatar="avatar-lion.png" onclick="selectAvatar(this)">
+                        <img src="avatar-lion.png" alt="Lion">
+                    </div>
+                    <div class="avatar-option" data-avatar="avatar-eagle.png" onclick="selectAvatar(this)">
+                        <img src="avatar-eagle.png" alt="Eagle">
+                    </div>
+                    <div class="avatar-option" data-avatar="avatar-bear.png" onclick="selectAvatar(this)">
+                        <img src="avatar-bear.png" alt="Bear">
+                    </div>
+                    <div class="avatar-option" data-avatar="avatar-panther.png" onclick="selectAvatar(this)">
+                        <img src="avatar-panther.png" alt="Panther">
+                    </div>
+                    <div class="avatar-option" data-avatar="avatar-hawk.png" onclick="selectAvatar(this)">
+                        <img src="avatar-hawk.png" alt="Hawk">
+                    </div>
+                </div>
+            </div>
+            <button class="avatar-carousel-btn" id="avatar-next" onclick="avatarCarouselStep(1)">
+                <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
-
-        <button class="pc-logout-btn" onclick="logoutPlayer()">
-            <i class="fas fa-sign-out-alt" style="margin-right: 6px;"></i> LOG OUT
-        </button>
     </div>
+
+    <!-- SECTION: AI SELFIE STYLIZER -->
+    <div class="studio-section">
+        <div class="studio-section-label"><i class="fa-solid fa-wand-magic-sparkles"></i> OR CREATE YOUR AI PORTRAIT</div>
+        <div class="ai-hero">
+            <div class="ai-hero-top">
+                <div class="ai-hero-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <div>
+                    <div class="ai-hero-title">AI SELFIE STYLIZER</div>
+                    <div class="ai-hero-sub">Upload your photo → get an arcade avatar</div>
+                </div>
+            </div>
+            <div class="ai-hero-body">
+                <label class="ai-upload-btn" id="ai-upload-label">
+                    <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
+                    <span id="ai-selfie-label">TAKE SELFIE</span>
+                    <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
+                </label>
+                <button class="pc-save-btn" id="btn-generate-ai" onclick="generateAIAvatar(event)">
+                    <i class="fa-solid fa-bolt" style="margin-right:8px;"></i>GENERATE AVATAR
+                </button>
+                <div id="pc-edit-msg" style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#888; margin-top:5px; min-height:15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE DETAILS ACCORDION -->
+    <div class="profile-accordion">
+        <button class="profile-accordion-btn" id="profile-accordion-btn" onclick="toggleProfileAccordion()">
+            EDIT PROFILE DETAILS
+            <i class="fa-solid fa-chevron-down chevron"></i>
+        </button>
+        <div class="profile-accordion-body" id="profile-accordion-body">
+            <div class="profile-accordion-inner">
+                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-top:5px; margin-bottom: -5px;">USERNAME</div>
+                <input type="text" class="pc-edit-input" id="pc-edit-name" placeholder="YOUR NAME" maxlength="20" autocomplete="off" style="width:100%;">
+                
+                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-bottom: -5px;">COUNTRY</div>
+                <select class="pc-edit-select" id="pc-edit-country" style="width:100%; margin-bottom: 5px;">
+                    <option value="" disabled selected>SELECT COUNTRY</option>
+                </select>
+
+                <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()">SAVE CHANGES</button>
+                <button class="pc-logout-btn" onclick="logoutPlayer()"><i class="fa-solid fa-sign-out-alt" style="margin-right:8px;"></i> LOG OUT</button>
+                
+                <button id="pc-mod-btn" class="pc-save-btn" style="display:none; background:transparent; border:1px solid rgba(196,30,42,0.4); color:#c41e2a; margin-top:5px;" onclick="window.location.href='moderator.html'">
+                    <i class="fa-solid fa-shield-halved" style="margin-right:8px;"></i> MODERATOR TOOLS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="selected-avatar-url" value="avatar-wolf.png">
+    <input type="hidden" id="selected-avatar-b64" value="">
 
     <!-- BOTTOM PADDING -->
     <div style="height: calc(40px + env(safe-area-inset-bottom, 20px));"></div>
+
+    <!-- AI GENERATION OVERLAY -->
+    <div class="ai-gen-overlay" id="ai-gen-overlay">
+        <div class="ai-gen-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div class="ai-gen-title">CREATING YOUR AVATAR</div>
+        <div class="ai-gen-status" id="ai-gen-status">Analyzing your photo...</div>
+        <div class="ai-gen-progress-wrap">
+            <div class="ai-gen-progress-bar" id="ai-gen-progress"></div>
+        </div>
+        <div class="ai-gen-timer" id="ai-gen-timer">0s</div>
+    </div>
 
     <script>
         const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
@@ -650,6 +911,15 @@
                 photo.src = player.avatar_url;
                 photo.style.display = 'block';
                 document.getElementById('pc-card-icon').style.display = 'none';
+
+                document.querySelectorAll('.avatar-option').forEach(el => {
+                    if (el.getAttribute('data-avatar') === player.avatar_url) {
+                        el.classList.add('selected');
+                        document.getElementById('selected-avatar-url').value = player.avatar_url;
+                    } else {
+                        el.classList.remove('selected');
+                    }
+                });
             }
 
             if (player.team_data && player.team_data.name) {
@@ -682,14 +952,60 @@
             }
         }
 
-        // Toggle edit panel
-        function toggleEditPanel() {
-            const panel = document.getElementById('pc-edit-panel');
-            panel.classList.toggle('open');
-            if (panel.classList.contains('open')) {
-                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Toggle accordion
+        function toggleProfileAccordion() {
+            const btn = document.getElementById('profile-accordion-btn');
+            const body = document.getElementById('profile-accordion-body');
+            btn.classList.toggle('open');
+            body.classList.toggle('open');
+            if(body.classList.contains('open')) {
+                setTimeout(() => body.scrollIntoView({behavior: 'smooth', block: 'end'}), 200);
             }
         }
+
+        // Avatar carousel logic
+        let _carouselIndex = 0;
+        function avatarCarouselStep(dir) {
+            const track = document.getElementById('avatar-selection');
+            const items = track.querySelectorAll('.avatar-option');
+            const total = items.length;
+            const visible = 3;
+            const max = total - visible;
+            _carouselIndex = Math.max(0, Math.min(_carouselIndex + dir, max));
+
+            const itemW = items[0].offsetWidth + 12; // 12px gap
+            track.style.transform = `translateX(-${_carouselIndex * itemW}px)`;
+
+            document.getElementById('avatar-prev').disabled = _carouselIndex === 0;
+            document.getElementById('avatar-next').disabled = _carouselIndex >= max;
+        }
+
+        // Avatar selection
+        function selectAvatar(element) {
+            document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            const newSrc = element.getAttribute('data-avatar');
+            document.getElementById('selected-avatar-url').value = newSrc;
+            document.getElementById('selected-avatar-b64').value = '';
+
+            const photo = document.getElementById('pc-card-photo');
+            const icon = document.getElementById('pc-card-icon');
+            icon.style.display = 'none';
+            photo.style.display = 'block';
+
+            if (newSrc === 'ai-custom') {
+                const img = element.querySelector('img');
+                if (img) photo.src = img.src;
+            } else {
+                photo.src = newSrc;
+            }
+        }
+
+        // Sync name live
+        document.getElementById('pc-edit-name').addEventListener('input', function(e) {
+            const val = e.target.value.trim().toUpperCase() || 'PLAYER';
+            document.getElementById('pc-card-name').innerText = val;
+        });
 
         // Load countries
         async function loadCountries() {
@@ -708,13 +1024,159 @@
             } catch(e) { console.log('Countries:', e.message); }
         }
 
-        // Avatar file select
-        function handleAvatarSelect(input) {
+        let _aiSelfieB64 = null;
+
+        function handleSelfieSelect(input) {
             if (input.files && input.files[0]) {
-                _selectedAvatarFile = input.files[0];
-                document.getElementById('pc-file-name').innerText = input.files[0].name;
-                document.getElementById('pc-file-label').style.borderColor = '#c41e2a';
-                document.getElementById('pc-file-label').style.color = '#c41e2a';
+                const file = input.files[0];
+                const lbl = document.getElementById('ai-selfie-label');
+                const btn = document.getElementById('ai-upload-label');
+                
+                lbl.innerText = 'SELFIE READY';
+                btn.style.borderColor = '#c41e2a';
+                btn.style.color = '#c41e2a';
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const MAX_DIM = 512;
+
+                        if (width > height) {
+                            if (width > MAX_DIM) {
+                                height *= MAX_DIM / width;
+                                width = MAX_DIM;
+                            }
+                        } else {
+                            if (height > MAX_DIM) {
+                                width *= MAX_DIM / height;
+                                height = MAX_DIM;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        _aiSelfieB64 = dataUrl.split(',')[1];
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function generateAIAvatar(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-generate-ai');
+            const msg = document.getElementById('pc-edit-msg');
+            
+            if (!_aiSelfieB64) {
+                msg.style.color = '#E30613';
+                msg.innerText = 'TAKE A SELFIE FIRST!';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> GENERATING...';
+            msg.innerText = '';
+
+            // Show overlay with progress
+            const overlay = document.getElementById('ai-gen-overlay');
+            const statusEl = document.getElementById('ai-gen-status');
+            const progressBar = document.getElementById('ai-gen-progress');
+            const timerEl = document.getElementById('ai-gen-timer');
+            overlay.classList.add('active');
+            progressBar.style.width = '0%';
+
+            const stages = [
+                { at: 0, text: 'Analyzing your photo...', pct: 5 },
+                { at: 3, text: 'Detecting facial features...', pct: 15 },
+                { at: 7, text: 'Applying mascot art style...', pct: 25 },
+                { at: 12, text: 'Rendering jersey & outfit...', pct: 35 },
+                { at: 18, text: 'Building stadium background...', pct: 50 },
+                { at: 25, text: 'Adding lighting & details...', pct: 65 },
+                { at: 35, text: 'Polishing final render...', pct: 78 },
+                { at: 50, text: 'Almost there...', pct: 88 },
+                { at: 70, text: 'Finalizing your avatar...', pct: 94 },
+            ];
+            let elapsed = 0;
+            const timerInterval = setInterval(() => {
+                elapsed++;
+                timerEl.innerText = elapsed + 's';
+                const stage = [...stages].reverse().find(s => elapsed >= s.at);
+                if (stage) {
+                    statusEl.innerText = stage.text;
+                    progressBar.style.width = stage.pct + '%';
+                }
+            }, 1000);
+
+            try {
+                const clientTimeout = new AbortController();
+                const clientTimer = setTimeout(() => clientTimeout.abort(), 130000); // 130s
+                
+                const res = await fetch('/.netlify/functions/generate-avatar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_b64: _aiSelfieB64 }),
+                    signal: clientTimeout.signal
+                });
+                
+                clearTimeout(clientTimer);
+                
+                let data;
+                try {
+                    data = await res.json();
+                } catch (parseErr) {
+                    throw new Error('Generation timed out. Please try again.');
+                }
+                if (!res.ok) throw new Error(data.error || 'Failed to generate');
+                
+                const b64Url = 'data:image/png;base64,' + data.image_b64;
+                const track = document.getElementById('avatar-selection');
+                const newOpt = document.createElement('div');
+                newOpt.className = 'avatar-option selected';
+                newOpt.innerHTML = `<img src="${b64Url}" alt="Custom AI">`;
+                newOpt.setAttribute('data-avatar', 'ai-custom');
+                newOpt.onclick = function() { selectAvatar(this); document.getElementById('selected-avatar-b64').value = data.image_b64; };
+                
+                document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                track.prepend(newOpt);
+
+                _carouselIndex = 0;
+                track.style.transform = 'translateX(0)';
+                document.getElementById('avatar-prev').disabled = true;
+                const total = track.querySelectorAll('.avatar-option').length;
+                document.getElementById('avatar-next').disabled = total <= 3;
+                
+                document.getElementById('selected-avatar-url').value = 'ai-custom';
+                document.getElementById('selected-avatar-b64').value = data.image_b64;
+                
+                // Update live preview
+                const photo = document.getElementById('pc-card-photo');
+                document.getElementById('pc-card-icon').style.display = 'none';
+                photo.src = b64Url;
+                photo.style.display = 'block';
+
+                msg.style.color = '#c41e2a';
+                msg.innerText = 'AI AVATAR CREATED! REMEMBER TO SAVE.';
+            } catch (err) {
+                msg.style.color = '#E30613';
+                if (err.message === 'POLICY_VIOLATION') {
+                    msg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> IMAGE REJECTED: SAFETY POLICY VIOLATION';
+                } else {
+                    msg.innerText = err.message;
+                }
+            } finally {
+                clearInterval(timerInterval);
+                overlay.classList.remove('active');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-bolt" style="margin-right:8px;"></i>GENERATE AVATAR';
             }
         }
 
@@ -740,15 +1202,28 @@
                 const country = document.getElementById('pc-edit-country').value;
                 if (country) updates.country = country;
 
-                // Upload avatar
-                if (_selectedAvatarFile) {
-                    const ext = _selectedAvatarFile.name.split('.').pop();
-                    const path = `avatars/${session.user.id}.${ext}`;
-                    const { error: upErr } = await sb.storage.from('avatars').upload(path, _selectedAvatarFile, { upsert: true });
+                const avatarUrl = document.getElementById('selected-avatar-url').value;
+                const avatarB64 = document.getElementById('selected-avatar-b64').value;
+
+                if (avatarB64) {
+                    const ext = 'png';
+                    const path = `avatars/${session.user.id}_ai_${Date.now()}.${ext}`;
+                    
+                    const byteCharacters = atob(avatarB64);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], {type: 'image/png'});
+
+                    const { error: upErr } = await sb.storage.from('avatars').upload(path, blob, { upsert: true });
                     if (!upErr) {
                         const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
                         updates.avatar_url = urlData.publicUrl + '?v=' + Date.now();
                     }
+                } else if (avatarUrl && avatarUrl !== 'ai-custom' && avatarUrl !== _currentPlayer?.avatar_url) {
+                    updates.avatar_url = avatarUrl;
                 }
 
                 if (Object.keys(updates).length === 0) {

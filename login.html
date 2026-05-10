@@ -36,7 +36,7 @@
 
         <div class="victory-card">
             <div class="victory-label">NEW ELO RATING</div>
-            <div id="victory-elo-count">1500</div>
+            <div id="victory-elo-count">1300</div>
             <div id="victory-elo-gain" class="victory-gain">+24 POINTS</div>
         </div>
 
@@ -116,18 +116,18 @@
             </div>
 
             <h1
-                style="font-family: 'SubsoccerLogo', sans-serif; font-size: 3.2rem; margin: 0 0 8px 0; text-transform: uppercase; line-height: 1.1; color: #fff; letter-spacing: 1px;">
+                style="font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif; font-size: 3.2rem; margin: 0 0 8px 0; text-transform: uppercase; line-height: 1.1; color: #fff; letter-spacing: 1px;">
                 SUBSOCCER <span style="color: #c41e2a;">GO</span></h1>
             <p
-                style="font-family: 'Inter', 'Open Sans', sans-serif; font-size: 0.95rem; color: #aaa; margin-bottom: 25px; max-width: 400px; line-height: 1.5;">
-                Create your player card, track your stats, challenge others, and climb the global rankings.
+                style="font-family: 'Resolve', 'Open Sans', sans-serif; font-size: 0.65rem; color: #666; margin-bottom: 25px; max-width: 400px; line-height: 1.6; letter-spacing: 1.5px; text-transform: uppercase;">
+                Create your player card, track your stats, and climb the global rankings.
             </p>
 
             <button onclick="showAuthPage('signup')" class="btn-red"
-                style="padding: 18px 40px; font-size: 1.1rem; margin-bottom: 15px; border-radius: 2px; width: 100%; max-width: 320px; font-family: 'Inter', 'Open Sans', sans-serif; font-weight: 700; letter-spacing: 1px;">CREATE
+                style="padding: 16px 40px; font-size: 1rem; margin-bottom: 12px; border-radius: 2px; width: 100%; max-width: 300px; font-family: 'SubsoccerLogo', sans-serif; letter-spacing: 1px;">CREATE
                 PLAYER CARD</button>
             <button onclick="showAuthPage('login')"
-                style="background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; font-family: 'Inter', 'Open Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-transform: uppercase; padding: 15px 40px; width: 100%; max-width: 320px; transition: all 0.2s; letter-spacing: 2px;" onmouseover="this.style.borderColor='rgba(255,255,255,0.7)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.3)'">LOG
+                style="background: transparent; color: #888; border: 1px solid #333; border-radius: 2px; font-family: 'SubsoccerLogo', sans-serif; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; padding: 14px 40px; width: 100%; max-width: 300px; transition: all 0.2s; letter-spacing: 2px;" onmouseover="this.style.borderColor='#555'; this.style.color='#fff';" onmouseout="this.style.borderColor='#333'; this.style.color='#888';">LOG
                 IN</button>
             
             <script>
@@ -148,40 +148,67 @@
         </div>
 
         <!-- EXISTING LOGIN FORM (Hidden by default now) -->
-        <div id="login-form" class="container auth-container" style="display:none; position: relative; z-index: 1; margin-top: 25vh; background: #1a1a1a; border: 1px solid #333; box-shadow: none; border-radius: 8px; padding: 30px 20px;">
+        <div id="login-form" class="container auth-container" style="display:none; position: relative; z-index: 1; margin-top: 20vh; background: transparent; border: none; box-shadow: none; border-radius: 0; padding: 0 25px; max-width: 340px;">
             <div id="tour-auth-message"
-                style="display:none; text-align:center; padding: 20px 10px; margin-bottom: 20px; background: rgba(196, 30, 42, 0.05); border: 1px solid rgba(196, 30, 42, 0.3); border-radius: 8px;">
+                style="display:none; text-align:center; padding: 15px 10px; margin-bottom: 15px; background: rgba(196, 30, 42, 0.05); border: 1px solid rgba(196, 30, 42, 0.3); border-radius: 6px;">
                 <i class="fa-solid fa-trophy"
-                    style="color: #c41e2a; font-size: 2.5rem; margin-bottom: 10px; display: block;"></i>
-                <div style="font-family: 'Russo One', sans-serif; font-size: 1.2rem; margin-bottom: 5px; color: #fff;">HOST A
+                    style="color: #c41e2a; font-size: 2rem; margin-bottom: 8px; display: block;"></i>
+                <div style="font-family: 'Russo One', sans-serif; font-size: 1rem; margin-bottom: 5px; color: #fff;">HOST A
                     TOURNAMENT</div>
-                <div style="font-family: 'Open Sans', sans-serif; font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">
+                <div style="font-family: 'Open Sans', sans-serif; font-size: 0.8rem; color: #aaa; margin-bottom: 12px;">
                     Create an account or
-                    log in to host brackets and save statistics. (Guests cannot host)</div>
+                    log in to host brackets and save statistics.</div>
                 <button onclick="window.location.href='flick-game.html'"
-                    style="background: transparent; border: 1px solid #444; color: #aaa; padding: 8px 15px; border-radius: 20px; font-family: 'Resolve', sans-serif; font-size: 0.8rem; cursor: pointer; letter-spacing: 1px;">
+                    style="background: transparent; border: 1px solid #444; color: #aaa; padding: 6px 12px; border-radius: 20px; font-family: 'Resolve', sans-serif; font-size: 0.7rem; cursor: pointer; letter-spacing: 1px;">
                     <i class="fa-solid fa-arrow-left" style="margin-right: 5px;"></i> BACK TO INSTANT PLAY
                 </button>
             </div>
             <button onclick="window.history.back();"
-                style="position: fixed; top: 25px; left: 25px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 1.2rem; cursor: pointer; z-index: 1000; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                style="position: fixed; top: 25px; left: 25px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: #fff; font-size: 1rem; cursor: pointer; z-index: 1000; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
-            
-            <div style="margin-bottom: 20px; text-align: center;">
-                <img src="subsoccer_logo.svg" alt="Subsoccer" style="height: 38px; cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
+
+            <!-- Logo -->
+            <div style="margin-bottom: 5px; text-align: center;">
+                <img src="subsoccer_logo.svg" alt="Subsoccer" style="height: 28px; cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
+            </div>
+
+            <!-- Tagline -->
+            <div style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.5rem; color:#444; letter-spacing:2px; text-transform:uppercase; margin-bottom:20px;">
+                Track stats · Climb rankings · Join tournaments
             </div>
             
-            <h2 class="auth-title" style="color: #ffffff; letter-spacing: 2px; font-size: 1.2rem; margin-bottom: 20px;">PLAYER LOGIN</h2>
-            <form id="auth-form-wrapper">
-                <input type="text" id="auth-user" placeholder="Username" autocomplete="username" style="background: #111; border: 1px solid #333; color: #fff; padding: 14px; font-family: 'Open Sans', sans-serif; font-size: 0.95rem;">
-                <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password" style="background: #111; border: 1px solid #333; color: #fff; padding: 14px; font-family: 'Open Sans', sans-serif; font-size: 0.95rem;">
-                <button id="btn-login" class="btn-red" type="submit" style="background: #c41e2a; color: #ffffff; padding: 14px; font-size: 1.05rem; letter-spacing: 1px; margin-top: 5px; box-shadow: 0 4px 15px rgba(196, 30, 42, 0.3);">LOG IN</button>
-                <div style="margin-top: 15px;">
-                    <button id="btn-show-signup" type="button" class="btn-create-account"
-                        onclick="showAuthPage('signup')" style="background: transparent; border: 1px solid #333; color: #888; padding: 14px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#555';" onmouseout="this.style.color='#888'; this.style.borderColor='#333';">CREATE ACCOUNT</button>
+            <!-- Login form card -->
+            <div style="background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; padding: 20px 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.5);">
+                <div style="color: #666; letter-spacing: 2px; font-size: 0.6rem; margin-bottom: 14px; font-family:'Resolve',sans-serif; text-align:center;">PLAYER LOGIN</div>
+                <form id="auth-form-wrapper" style="gap: 8px;">
+                    <input type="text" id="auth-user" placeholder="Username" autocomplete="username" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
+                    <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
+                    <button id="btn-login" class="btn-red" type="submit" style="background: #c41e2a; color: #ffffff; padding: 12px; font-size: 0.9rem; letter-spacing: 1px; margin-top: 2px; box-shadow: 0 3px 15px rgba(196, 30, 42, 0.2); border-radius: 3px; font-family:'SubsoccerLogo',sans-serif;">LOG IN</button>
+                    <div style="margin-top: 8px;">
+                        <button id="btn-show-signup" type="button" class="btn-create-account"
+                            onclick="showAuthPage('signup')" style="background: transparent; border: 1px solid #2a2a2a; color: #666; padding: 10px; transition: all 0.2s; border-radius: 3px; font-size: 0.75rem;" onmouseover="this.style.color='#fff'; this.style.borderColor='#555';" onmouseout="this.style.color='#666'; this.style.borderColor='#2a2a2a';">CREATE ACCOUNT</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Social proof -->
+            <div style="display:flex; justify-content:center; gap:18px; margin-top:18px;">
+                <div style="text-align:center;">
+                    <div style="font-family:'SubsoccerLogo',sans-serif; font-size:0.95rem; color:#888;">80+</div>
+                    <div style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Countries</div>
                 </div>
-            </form>
+                <div style="width:1px; background:#1e1e1e; align-self:stretch;"></div>
+                <div style="text-align:center;">
+                    <div style="font-family:'SubsoccerLogo',sans-serif; font-size:0.95rem; color:#888;">2K+</div>
+                    <div style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Players</div>
+                </div>
+                <div style="width:1px; background:#1e1e1e; align-self:stretch;"></div>
+                <div style="text-align:center;">
+                    <div style="font-family:'SubsoccerLogo',sans-serif; font-size:0.95rem; color:#888;">500+</div>
+                    <div style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Tournaments</div>
+                </div>
+            </div>
         </div>
         <div id="signup-form"
             style="display:none; position: fixed; top: 0; left: 0; bottom: 0; right: 0; z-index: 2500; width: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; background: #0a0a0a; background-size: cover; margin: 0; padding: 0;">
@@ -198,7 +225,7 @@
 
             <!-- 3D CARD SHOWCASE -->
             <div class="showcase" id="card-showcase"
-                style="width: 100%; min-height: 420px; height: 50vh; display: flex; justify-content: center; align-items: center; perspective: 1000px; position: relative; padding: 20px 0;">
+                style="width: 100%; min-height: 380px; height: 45vh; display: flex; justify-content: center; align-items: center; perspective: 1000px; position: relative; padding: 15px 0;">
                 <div class="spotlight"
                     style="position: absolute; width: 300px; height: 400px; background: radial-gradient(circle, rgba(227, 6, 19, 0.4) 0%, transparent 60%); filter: blur(40px); z-index: 0; animation: pulse 4s infinite alternate;">
                 </div>
@@ -244,12 +271,12 @@
                                     style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; transition: transform 0.1s;">
                                     PLAYER</div>
 
-                                <!-- ELO box and Win Ratio -->
+                                <!-- Rating box and Win Ratio -->
                                 <div
                                     style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
                                     <div
                                         style="background: #c41e2a; color: #000; padding: 4px 10px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
-                                        00 ELO
+                                        1300
                                     </div>
                                     <div style="text-align: right;">
                                         <div
@@ -280,8 +307,8 @@
                             <div style="padding: 10px 20px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                     <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                        <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">GLOBAL ELO</div>
-                                        <div style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">1500</div>
+                                        <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">GLOBAL RATING</div>
+                                        <div style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">1300</div>
                                     </div>
                                     <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
                                         <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">WIN RATIO</div>
@@ -311,25 +338,84 @@
                 </div>
             </div>
 
-            <!-- FORGE CONTROLS -->
+            <!-- AVATAR & SIGNUP CONTROLS -->
             <div
-                style="background: #111111; padding: 25px 20px 160px 20px; border-top: 1px solid #222; box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8); z-index: 10;">
-                <div
-                    style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.7rem; color: #ffffff; margin-bottom: 25px; text-align: center; text-transform: uppercase; letter-spacing: 2px; text-shadow: none;">
-                    FORGE YOUR LEGACY</div>
+                style="background: #111111; padding: 20px 20px 120px 20px; border-top: 1px solid #222; box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8); z-index: 10;">
+                
+                <!-- MASCOT SELECTION -->
+                <div style="max-width: 400px; margin: 0 auto;">
+                <div style="font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-paw"></i> CHOOSE YOUR MASCOT
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
+                    <button id="signup-avatar-prev" onclick="signupCarouselStep(-1)" disabled
+                        style="flex-shrink:0; width:30px; height:30px; border-radius:50%; border:1px solid #333; background:transparent; color:#555; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div style="flex:1; overflow:hidden; border-radius:8px;">
+                        <div id="signup-avatar-track" style="display:flex; gap:10px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+                            <div class="signup-avatar-opt selected" data-avatar="avatar-wolf.png" onclick="selectSignupAvatar(this)" style="flex:0 0 calc((100% - 20px)/3); aspect-ratio:1; border-radius:10px; overflow:hidden; border:2px solid #c41e2a; cursor:pointer; background:#111; box-shadow: 0 0 15px rgba(196,30,42,0.25);">
+                                <img src="avatar-wolf.png" alt="Wolf" style="width:100%; height:100%; object-fit:cover; display:block;">
+                            </div>
+                            <div class="signup-avatar-opt" data-avatar="avatar-lion.png" onclick="selectSignupAvatar(this)" style="flex:0 0 calc((100% - 20px)/3); aspect-ratio:1; border-radius:10px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#111;">
+                                <img src="avatar-lion.png" alt="Lion" style="width:100%; height:100%; object-fit:cover; display:block;">
+                            </div>
+                            <div class="signup-avatar-opt" data-avatar="avatar-eagle.png" onclick="selectSignupAvatar(this)" style="flex:0 0 calc((100% - 20px)/3); aspect-ratio:1; border-radius:10px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#111;">
+                                <img src="avatar-eagle.png" alt="Eagle" style="width:100%; height:100%; object-fit:cover; display:block;">
+                            </div>
+                            <div class="signup-avatar-opt" data-avatar="avatar-bear.png" onclick="selectSignupAvatar(this)" style="flex:0 0 calc((100% - 20px)/3); aspect-ratio:1; border-radius:10px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#111;">
+                                <img src="avatar-bear.png" alt="Bear" style="width:100%; height:100%; object-fit:cover; display:block;">
+                            </div>
+                            <div class="signup-avatar-opt" data-avatar="avatar-panther.png" onclick="selectSignupAvatar(this)" style="flex:0 0 calc((100% - 20px)/3); aspect-ratio:1; border-radius:10px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#111;">
+                                <img src="avatar-panther.png" alt="Panther" style="width:100%; height:100%; object-fit:cover; display:block;">
+                            </div>
+                            <div class="signup-avatar-opt" data-avatar="avatar-hawk.png" onclick="selectSignupAvatar(this)" style="flex:0 0 calc((100% - 20px)/3); aspect-ratio:1; border-radius:10px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#111;">
+                                <img src="avatar-hawk.png" alt="Hawk" style="width:100%; height:100%; object-fit:cover; display:block;">
+                            </div>
+                        </div>
+                    </div>
+                    <button id="signup-avatar-next" onclick="signupCarouselStep(1)"
+                        style="flex-shrink:0; width:30px; height:30px; border-radius:50%; border:1px solid #333; background:transparent; color:#555; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                <input type="hidden" id="signup-selected-avatar" value="avatar-wolf.png">
+                </div>
+
+                <!-- Divider -->
+                <div style="max-width: 400px; margin: 14px auto; height: 1px; background: linear-gradient(90deg, transparent, #333, transparent);"></div>
+
+                <!-- AI SELFIE STYLIZER (1 free try before signup) -->
+                <div style="max-width: 400px; margin: 0 auto 16px;">
+                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> OR CREATE AI PORTRAIT
+                        <span id="signup-ai-badge" style="margin-left:auto; background:rgba(196,30,42,0.15); color:#c41e2a; padding:2px 8px; border-radius:10px; font-size:0.5rem; letter-spacing:1px;">1 FREE TRY</span>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:stretch;">
+                        <label id="signup-ai-upload-label" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 8px; border:1px dashed #333; border-radius:4px; color:#666; font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; cursor:pointer; transition: all 0.2s;">
+                            <i class="fa-solid fa-camera" style="font-size:0.85rem"></i>
+                            <span id="signup-ai-selfie-label">TAKE SELFIE</span>
+                            <input type="file" accept="image/*" id="signup-ai-selfie-input" style="display:none;" onchange="handleSignupSelfie(this)">
+                        </label>
+                        <button id="signup-btn-generate-ai" onclick="generateSignupAvatar()" style="flex:1; padding:9px 8px; background:#c41e2a; color:#fff; border:none; border-radius:4px; font-family:'Resolve',sans-serif; font-size:0.6rem; font-weight:bold; letter-spacing:1px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition: all 0.2s;">
+                            <i class="fa-solid fa-bolt"></i> GENERATE
+                        </button>
+                    </div>
+                    <div id="signup-ai-msg" style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.5rem; letter-spacing:1px; color:#888; margin-top:5px; min-height:12px;"></div>
+                </div>
+
+                <!-- Divider -->
+                <div style="max-width: 400px; margin: 0 auto 14px; height: 1px; background: linear-gradient(90deg, transparent, #333, transparent);"></div>
+
+                <!-- SIGNUP FIELDS -->
                 <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: 0 auto;">
 
                     <input type="text" id="reg-user" placeholder="Enter Player Name..." maxlength="12"
                         autocomplete="username"
                         style="width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 2px; color: #fff; font-family: 'Open Sans', sans-serif; font-size: 0.95rem; outline: none; transition: all 0.3s ease; box-sizing: border-box;">
 
-                    <label for="signup-avatar-file"
-                        style="background: #1a1a1a; border: 1px dashed #444; color: #aaa; padding: 12px; text-align: center; border-radius: 2px; cursor: pointer; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; display: block; transition: border-color 0.3s, color 0.3s;">
-                        <i class="fa-solid fa-camera" style="margin-right:8px;"></i> Upload Player Photo
-                        <input type="file" id="signup-avatar-file" accept="image/jpeg,image/png,image/webp"
-                            style="display:none;">
-                    </label>
-                    <!-- Small element just in case main.js modifies the text content of #signup-avatar-filename -->
+                    <!-- Hidden file input preserved for compatibility -->
+                    <input type="file" id="signup-avatar-file" accept="image/jpeg,image/png,image/webp" style="display:none;">
                     <div id="signup-avatar-filename" style="display: none;"></div>
 
                     <div style="display:flex; gap:10px;">
@@ -340,20 +426,77 @@
                     </div>
 
                     <button id="btn-register" class="btn-red"
-                        style="background: var(--sub-red); color: #fff; border: none; padding: 16px; border-radius: 2px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.1rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; width: 100%; margin-top: 5px; transition: transform 0.2s, background 0.2s;">
-                        UNLOCK PRO CARD
+                        style="background: var(--sub-red); color: #fff; border: none; padding: 14px; border-radius: 2px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.05rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; width: 100%; margin-top: 3px; transition: transform 0.2s, background 0.2s;">
+                        CREATE PRO CARD
                     </button>
 
-                    <div style="margin-top: 15px; text-align: center;">
+                    <div style="margin-top: 10px; text-align: center;">
                         <span id="link-back-to-login" class="link-back" onclick="showAuthPage('login')"
-                            style="color: #c41e2a; font-size: 0.75rem; letter-spacing: 1px; cursor: pointer; font-weight: bold;">Back to Login</span>
+                            style="color: #c41e2a; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; font-weight: bold;">Back to Login</span>
                     </div>
+                </div>
+            </div>
+
+    <!-- AI GENERATION OVERLAY (outside form for clean z-index) -->
+    <div id="signup-ai-gen-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:9999; flex-direction:column; align-items:center; justify-content:center; gap:20px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
+        <div style="width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#c41e2a,#ff4757); display:flex; align-items:center; justify-content:center; font-size:2rem; color:#fff; animation: signupPulse 2s ease-in-out infinite;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <div style="font-family:'Resolve',sans-serif; font-size:1.1rem; font-weight:bold; color:#fff; letter-spacing:3px; text-transform:uppercase;">CREATING YOUR AVATAR</div>
+        <div id="signup-ai-gen-status" style="font-family:'Resolve',sans-serif; font-size:0.7rem; color:#888; letter-spacing:2px; text-transform:uppercase; min-height:20px;">Analyzing your photo...</div>
+        <div style="width:260px; height:4px; background:#222; border-radius:2px; overflow:hidden;">
+            <div id="signup-ai-gen-progress" style="height:100%; width:0%; background:linear-gradient(90deg,#c41e2a,#ff4757,#c41e2a); background-size:200% 100%; border-radius:2px; transition:width 0.5s ease; animation: signupShimmer 1.5s linear infinite;"></div>
+        </div>
+        <div id="signup-ai-gen-timer" style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#555; letter-spacing:1px;">0s</div>
+    </div>
+    <style>
+        @keyframes signupPulse { 0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(196,30,42,0.4); } 50% { transform:scale(1.08); box-shadow:0 0 30px 10px rgba(196,30,42,0.2); } }
+        @keyframes signupShimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+    </style>
                 </div>
             </div>
 
             <!-- Interactivity script -->
             <script>
-                // Need to ensure script only attaches once, or runs effectively
+                // Signup avatar carousel
+                let _signupCarouselIndex = 0;
+                function signupCarouselStep(dir) {
+                    const track = document.getElementById('signup-avatar-track');
+                    const items = track.querySelectorAll('.signup-avatar-opt');
+                    const total = items.length;
+                    const visible = 3;
+                    const max = total - visible;
+                    _signupCarouselIndex = Math.max(0, Math.min(_signupCarouselIndex + dir, max));
+                    const itemW = items[0].offsetWidth + 12;
+                    track.style.transform = `translateX(-${_signupCarouselIndex * itemW}px)`;
+                    document.getElementById('signup-avatar-prev').disabled = _signupCarouselIndex === 0;
+                    document.getElementById('signup-avatar-next').disabled = _signupCarouselIndex >= max;
+                }
+
+                function selectSignupAvatar(el) {
+                    document.querySelectorAll('.signup-avatar-opt').forEach(opt => {
+                        opt.style.borderColor = 'transparent';
+                        opt.style.boxShadow = 'none';
+                        opt.classList.remove('selected');
+                    });
+                    el.style.borderColor = '#c41e2a';
+                    el.style.boxShadow = '0 0 20px rgba(196,30,42,0.3)';
+                    el.classList.add('selected');
+
+                    const src = el.getAttribute('data-avatar');
+                    document.getElementById('signup-selected-avatar').value = src;
+
+                    // Update card preview
+                    const preview = document.getElementById('signup-avatar-preview');
+                    const placeholder = document.getElementById('signup-placeholder-icon');
+                    if (preview) {
+                        preview.src = src;
+                        preview.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                    }
+                }
+
+                // Name live sync
                 setTimeout(() => {
                     const regUser = document.getElementById('reg-user');
                     const nameDisp = document.getElementById('signup-card-name-display');
@@ -366,26 +509,146 @@
                         });
                     }
 
-                    const regPhoto = document.getElementById('signup-avatar-file');
-                    const photoDisp = document.getElementById('signup-avatar-preview');
-                    const placehold = document.getElementById('signup-placeholder-icon');
-                    if (regPhoto && photoDisp) {
-                        regPhoto.addEventListener('change', (e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                                const reader = new FileReader();
-                                reader.onload = (e) => {
-                                    photoDisp.src = e.target.result;
-                                    photoDisp.style.display = 'block';
-                                    if (placehold) placehold.style.display = 'none';
-                                    photoDisp.style.opacity = '0';
-                                    setTimeout(() => { photoDisp.style.opacity = '1'; }, 50);
-                                };
-                                reader.readAsDataURL(file);
-                            }
-                        });
-                    }
+                    // Auto-select wolf avatar on load to show preview
+                    const firstAvatar = document.querySelector('.signup-avatar-opt.selected');
+                    if (firstAvatar) selectSignupAvatar(firstAvatar);
                 }, 500);
+
+                // --- AI SELFIE STYLIZER (signup) ---
+                let _signupSelfieB64 = null;
+                let _signupAiUsed = false;
+                let _signupAiAvatarB64 = null; // Store generated avatar for registration
+
+                function handleSignupSelfie(input) {
+                    if (input.files && input.files[0]) {
+                        const file = input.files[0];
+                        document.getElementById('signup-ai-selfie-label').innerText = 'SELFIE READY';
+                        const lbl = document.getElementById('signup-ai-upload-label');
+                        lbl.style.borderColor = '#c41e2a';
+                        lbl.style.color = '#c41e2a';
+
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const img = new Image();
+                            img.onload = function() {
+                                const canvas = document.createElement('canvas');
+                                let w = img.width, h = img.height;
+                                const MAX = 512;
+                                if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
+                                else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+                                canvas.width = w; canvas.height = h;
+                                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                                _signupSelfieB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                            };
+                            img.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+
+                async function generateSignupAvatar() {
+                    const msg = document.getElementById('signup-ai-msg');
+                    const btn = document.getElementById('signup-btn-generate-ai');
+
+                    if (_signupAiUsed) {
+                        msg.style.color = '#c41e2a';
+                        msg.innerText = 'CREATE AN ACCOUNT TO GENERATE MORE!';
+                        return;
+                    }
+                    if (!_signupSelfieB64) {
+                        msg.style.color = '#c41e2a';
+                        msg.innerText = 'TAKE A SELFIE FIRST!';
+                        return;
+                    }
+
+                    btn.disabled = true;
+                    msg.innerText = '';
+
+                    // Show overlay
+                    const overlay = document.getElementById('signup-ai-gen-overlay');
+                    const statusEl = document.getElementById('signup-ai-gen-status');
+                    const progressBar = document.getElementById('signup-ai-gen-progress');
+                    const timerEl = document.getElementById('signup-ai-gen-timer');
+                    overlay.style.display = 'flex';
+                    progressBar.style.width = '0%';
+
+                    const stages = [
+                        { at: 0, text: 'Analyzing your photo...', pct: 5 },
+                        { at: 3, text: 'Detecting facial features...', pct: 15 },
+                        { at: 7, text: 'Applying mascot art style...', pct: 25 },
+                        { at: 12, text: 'Rendering jersey & outfit...', pct: 35 },
+                        { at: 18, text: 'Building stadium background...', pct: 50 },
+                        { at: 25, text: 'Adding lighting & details...', pct: 65 },
+                        { at: 35, text: 'Polishing final render...', pct: 78 },
+                        { at: 50, text: 'Almost there...', pct: 88 },
+                        { at: 70, text: 'Finalizing your avatar...', pct: 94 },
+                    ];
+                    let elapsed = 0;
+                    const timerInterval = setInterval(() => {
+                        elapsed++;
+                        timerEl.innerText = elapsed + 's';
+                        const stage = [...stages].reverse().find(s => elapsed >= s.at);
+                        if (stage) {
+                            statusEl.innerText = stage.text;
+                            progressBar.style.width = stage.pct + '%';
+                        }
+                    }, 1000);
+
+                    try {
+                        const clientTimeout = new AbortController();
+                        const clientTimer = setTimeout(() => clientTimeout.abort(), 130000);
+
+                        const res = await fetch('/.netlify/functions/generate-avatar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ image_b64: _signupSelfieB64 }),
+                            signal: clientTimeout.signal
+                        });
+                        clearTimeout(clientTimer);
+
+                        let data;
+                        try { data = await res.json(); } catch (e) { throw new Error('Generation timed out. Please try again.'); }
+                        if (!res.ok) throw new Error(data.error || 'Generation failed');
+
+                        _signupAiUsed = true;
+                        _signupAiAvatarB64 = data.image_b64;
+
+                        // Show on card preview
+                        const preview = document.getElementById('signup-avatar-preview');
+                        const placeholder = document.getElementById('signup-placeholder-icon');
+                        if (preview) {
+                            preview.src = 'data:image/png;base64,' + data.image_b64;
+                            preview.style.display = 'block';
+                            if (placeholder) placeholder.style.display = 'none';
+                        }
+
+                        // Deselect mascot options
+                        document.querySelectorAll('.signup-avatar-opt').forEach(opt => {
+                            opt.style.borderColor = 'transparent';
+                            opt.style.boxShadow = 'none';
+                            opt.classList.remove('selected');
+                        });
+                        document.getElementById('signup-selected-avatar').value = 'ai-custom';
+
+                        // Update badge
+                        document.getElementById('signup-ai-badge').innerText = 'USED';
+                        document.getElementById('signup-ai-badge').style.background = 'rgba(255,255,255,0.05)';
+                        document.getElementById('signup-ai-badge').style.color = '#555';
+
+                        msg.style.color = '#4CAF50';
+                        msg.innerText = '✓ AI AVATAR CREATED! SIGN UP TO SAVE IT.';
+                    } catch (err) {
+                        msg.style.color = '#c41e2a';
+                        msg.innerText = err.message;
+                    } finally {
+                        clearInterval(timerInterval);
+                        overlay.style.display = 'none';
+                        btn.disabled = false;
+                    }
+                }
+
+                // Expose _signupAiAvatarB64 globally for main.js registration
+                window.getSignupAiAvatar = function() { return _signupAiAvatarB64; };
             </script>
         </div>
     </div>
