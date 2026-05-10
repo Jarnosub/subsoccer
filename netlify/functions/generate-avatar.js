@@ -49,7 +49,7 @@ exports.handler = async function (event, context) {
                     {
                         role: "user",
                         content: [
-                            { type: "text", text: "Describe the person in this image concisely: age, gender, hair color and style, skin tone, and distinguishing facial features. Keep it under 30 words." },
+                            { type: "text", text: "Describe the person in this image concisely but accurately: age, gender, hair color and style, facial hair (if any), accessories (like glasses/sunglasses), and skin tone. Focus strictly on their physical features. Keep it under 30 words." },
                             { type: "image_url", image_url: { url: `data:image/png;base64,${base64Data}`, detail: "low" } }
                         ]
                     }
@@ -76,7 +76,7 @@ exports.handler = async function (event, context) {
             },
             body: JSON.stringify({
                 model: "dall-e-3",
-                prompt: `A stylized 2D mobile game character portrait of a soccer player. ${description} Flat colors, cel-shaded vector art style, matte finish, not glossy. Distinctive original cartoon style, expressive features, semi-realistic proportions. Wearing a cool street football jersey. Background: Urban street football court, out of focus. Close-up portrait.`,
+                prompt: `A stylized 2D comic book vector illustration of a soccer player. The character MUST EXACTLY MATCH this description: ${description}. Flat colors, cel-shaded, bold outlines, NO 3D, NO gradients, NO glossy textures. GTA loading screen art style. Wearing a cool street football jersey. Background: Urban street football court, flat comic style. Close-up portrait.`,
                 n: 1,
                 size: "1024x1024",
                 response_format: "b64_json"
