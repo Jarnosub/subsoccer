@@ -432,10 +432,10 @@ export async function handleAuth(event) {
         // 1. Yritetään ensin kirjautua sähköpostilla (uusi tapa)
         if (input.includes('@')) {
             console.log("📧 Attempting email login via Supabase Auth...");
-            const { data: authData, error } = await _supabase.auth.signInWithPassword({
-                email: input,
-                password: p
-            });
+            const { data: authData, error } = await Promise.race([
+                _supabase.auth.signInWithPassword({ email: input, password: p }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Login timed out. Please try again.')), 8000))
+            ]);
 
             if (!error) {
                 console.log("✅ Email login successful");
@@ -445,10 +445,10 @@ export async function handleAuth(event) {
             console.log("Supabase Auth login failed:", error.message);
 
             // Tarkistetaan löytyykö sähköposti players-taulusta (migraatiotuki)
-            const { data: emailMatches, error: emailErr } = await _supabase
-                .from('players')
-                .select('*')
-                .ilike('email', input);
+            const { data: emailMatches, error: emailErr } = await Promise.race([
+                _supabase.from('players').select('*').ilike('email', input),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 5000))
+            ]);
 
             if (!emailErr && emailMatches && emailMatches.length > 0) {
                 const hashed = await hashPassword(p);
@@ -476,8 +476,10 @@ export async function handleAuth(event) {
         console.log("🔍 Searching players table by username...");
 
         // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
-        let { data: nameMatches, error: nameErr } = await _supabase
-            .from('players').select('*').ilike('username', input);
+        let { data: nameMatches, error: nameErr } = await Promise.race([
+            _supabase.from('players').select('*').ilike('username', input),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 5000))
+        ]);
 
         console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
 
@@ -490,10 +492,10 @@ export async function handleAuth(event) {
         if (!nameMatches || nameMatches.length === 0) {
             console.log("Direct search failed, trying fuzzy search...");
             const fuzzyInput = input.replace(/\s+/g, '%');
-            const { data: fuzzyMatches } = await _supabase
-                .from('players')
-                .select('*')
-                .ilike('username', fuzzyInput);
+            const { data: fuzzyMatches } = await Promise.race([
+                _supabase.from('players').select('*').ilike('username', fuzzyInput),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 5000))
+            ]);
             nameMatches = fuzzyMatches || [];
         }
 
@@ -505,10 +507,10 @@ export async function handleAuth(event) {
             const migratedMatch = nameMatches.find(m => isUuid(m.id) && m.email);
             if (migratedMatch) {
                 console.log("Migrated record found, attempting Auth login for:", migratedMatch.email);
-                const { data: authData, error: authErr } = await _supabase.auth.signInWithPassword({
-                    email: migratedMatch.email,
-                    password: p
-                });
+                const { data: authData, error: authErr } = await Promise.race([
+                    _supabase.auth.signInWithPassword({ email: migratedMatch.email, password: p }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Login timed out. Please try again.')), 8000))
+                ]);
                 if (!authErr) {
                     console.log("Auth login successful for:", migratedMatch.email);
                     showNotification("Welcome back!", "success");
