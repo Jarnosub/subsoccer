@@ -1199,8 +1199,9 @@
                 
                 // Use _currentPlayer first (already loaded by loadProfile)
                 let userId = _currentPlayer?.id;
+                console.log('Save: _currentPlayer =', _currentPlayer ? JSON.stringify({id: _currentPlayer.id, username: _currentPlayer.username}) : 'null');
                 
-                // Fallback 1: try session with timeout
+                // Fallback 1: try session with timeout (skip if we already have userId)
                 if (!userId) {
                     try {
                         const sessionResult = await Promise.race([
@@ -1219,6 +1220,25 @@
                         const cached = localStorage.getItem('subsoccer-user');
                         if (cached) userId = JSON.parse(cached)?.id;
                     } catch(e) {}
+                }
+
+                // Fallback 3: look up by username in DB
+                if (!userId && _currentPlayer?.username) {
+                    console.log('Trying username lookup for:', _currentPlayer.username);
+                    try {
+                        const lookupResult = await Promise.race([
+                            sb.from('players').select('id').ilike('username', _currentPlayer.username).single(),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('LOOKUP_TIMEOUT')), 5000))
+                        ]);
+                        if (lookupResult?.data?.id) {
+                            userId = lookupResult.data.id;
+                            // Cache it for next time
+                            _currentPlayer.id = userId;
+                            console.log('Found userId via username lookup:', userId);
+                        }
+                    } catch(luErr) {
+                        console.warn('Username lookup failed:', luErr.message);
+                    }
                 }
 
                 console.log('Save: using userId =', userId);
