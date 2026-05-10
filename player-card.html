@@ -836,6 +836,12 @@
         </div>
     </div>
 
+    <!-- SAVE AVATAR BUTTON (always visible) -->
+    <div style="max-width: 420px; margin: 0 auto; padding: 10px 20px 0;">
+        <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%;">SAVE AVATAR</button>
+        <div id="pc-edit-msg" style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#888; margin-top:8px; min-height:15px;"></div>
+    </div>
+
     <!-- PROFILE DETAILS ACCORDION -->
     <div class="profile-accordion">
         <button class="profile-accordion-btn" id="profile-accordion-btn" onclick="toggleProfileAccordion()">
@@ -852,7 +858,7 @@
                     <option value="" disabled selected>SELECT COUNTRY</option>
                 </select>
 
-                <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()">SAVE CHANGES</button>
+                <button class="pc-save-btn" onclick="saveProfile()" style="width:100%;">SAVE CHANGES</button>
                 <button class="pc-logout-btn" onclick="logoutPlayer()"><i class="fa-solid fa-sign-out-alt" style="margin-right:8px;"></i> LOG OUT</button>
                 
                 <button id="pc-mod-btn" class="pc-save-btn" style="display:none; background:transparent; border:1px solid rgba(196,30,42,0.4); color:#c41e2a; margin-top:5px;" onclick="window.location.href='moderator.html'">
@@ -1188,28 +1194,56 @@
             btn.innerText = 'SAVING...';
             msg.innerText = '';
 
+            // Timeout wrapper — never hang more than 15s
+            const saveTimeout = setTimeout(() => {
+                console.error('Save timed out after 15s');
+                msg.style.color = '#E30613';
+                msg.innerText = 'TIMEOUT — CHECK YOUR CONNECTION';
+                btn.disabled = false;
+                btn.innerText = 'SAVE AVATAR';
+            }, 15000);
+
             try {
                 const sb = getSb();
-                const { data: { session }, error: sessErr } = await sb.auth.getSession();
-                if (sessErr) console.error('Session error:', sessErr);
-                if (!session) throw new Error('Not logged in. Please log in again.');
-
-                const updates = {};
-                const newName = document.getElementById('pc-edit-name').value.trim().toUpperCase();
-                if (newName && newName !== _currentPlayer?.username) {
-                    updates.username = newName;
+                
+                let session = null;
+                try {
+                    const { data, error: sessErr } = await sb.auth.getSession();
+                    if (sessErr) console.error('Session error:', sessErr);
+                    session = data?.session;
+                } catch(sessEx) {
+                    console.error('Session exception:', sessEx);
+                }
+                
+                if (!session) {
+                    clearTimeout(saveTimeout);
+                    msg.style.color = '#E30613';
+                    msg.innerText = 'NOT LOGGED IN — PLEASE LOG IN AGAIN';
+                    btn.disabled = false;
+                    btn.innerText = 'SAVE AVATAR';
+                    return;
                 }
 
-                const country = document.getElementById('pc-edit-country').value;
-                if (country) updates.country = country;
+                const updates = {};
+                const nameInput = document.getElementById('pc-edit-name');
+                if (nameInput) {
+                    const newName = nameInput.value.trim().toUpperCase();
+                    if (newName && newName !== _currentPlayer?.username) {
+                        updates.username = newName;
+                    }
+                }
+
+                const countrySelect = document.getElementById('pc-edit-country');
+                if (countrySelect && countrySelect.value) {
+                    updates.country = countrySelect.value;
+                }
 
                 const avatarUrl = document.getElementById('selected-avatar-url').value;
                 const avatarB64 = document.getElementById('selected-avatar-b64').value;
 
                 if (avatarB64) {
                     // AI-generated avatar: upload to Supabase Storage
-                    const ext = 'png';
-                    const path = `avatars/${session.user.id}_ai_${Date.now()}.${ext}`;
+                    const path = `avatars/${session.user.id}_ai_${Date.now()}.png`;
                     
                     const byteCharacters = atob(avatarB64);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -1222,7 +1256,7 @@
                     const { error: upErr } = await sb.storage.from('avatars').upload(path, blob, { upsert: true });
                     if (upErr) {
                         console.error('Upload error:', upErr);
-                        throw new Error('Failed to upload avatar: ' + upErr.message);
+                        throw new Error('Upload failed: ' + upErr.message);
                     }
                     const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
                     updates.avatar_url = urlData.publicUrl + '?v=' + Date.now();
@@ -1236,41 +1270,47 @@
                 }
 
                 if (Object.keys(updates).length === 0) {
+                    clearTimeout(saveTimeout);
                     msg.style.color = '#888';
                     msg.innerText = 'NO CHANGES';
                     btn.disabled = false;
-                    btn.innerText = 'SAVE CHANGES';
+                    btn.innerText = 'SAVE AVATAR';
                     return;
                 }
 
-                console.log('Saving updates:', updates);
+                console.log('Saving updates:', JSON.stringify(updates));
                 const { error } = await sb.from('players').update(updates).eq('id', session.user.id);
+                clearTimeout(saveTimeout);
+                
                 if (error) {
-                    console.error('DB save error:', error);
-                    throw new Error(error.message || 'Database save failed');
+                    console.error('DB save error:', JSON.stringify(error));
+                    throw new Error(error.message || 'Database error');
                 }
 
                 // Update localStorage
-                const cached = localStorage.getItem('subsoccer-user');
-                if (cached) {
-                    const user = JSON.parse(cached);
-                    Object.assign(user, updates);
-                    localStorage.setItem('subsoccer-user', JSON.stringify(user));
-                }
+                try {
+                    const cached = localStorage.getItem('subsoccer-user');
+                    if (cached) {
+                        const user = JSON.parse(cached);
+                        Object.assign(user, updates);
+                        localStorage.setItem('subsoccer-user', JSON.stringify(user));
+                    }
+                } catch(lsErr) { console.warn('localStorage update failed:', lsErr); }
 
                 msg.style.color = '#4CAF50';
                 msg.innerText = '✓ SAVED SUCCESSFULLY';
                 btn.disabled = false;
-                btn.innerText = 'SAVE CHANGES';
+                btn.innerText = 'SAVE AVATAR';
 
                 // Refresh card
                 setTimeout(() => location.reload(), 800);
             } catch(e) {
+                clearTimeout(saveTimeout);
                 console.error('Save profile error:', e);
                 msg.style.color = '#E30613';
                 msg.innerText = e.message || 'SAVE FAILED';
                 btn.disabled = false;
-                btn.innerText = 'SAVE CHANGES';
+                btn.innerText = 'SAVE AVATAR';
             }
         }
 
