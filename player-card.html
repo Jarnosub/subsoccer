@@ -1398,8 +1398,30 @@
                 } catch(e) {}
             }
             
-            // 2. If we have an ID, refresh from DB via direct REST (no auth hanging)
-            const userId = cachedUser?.id;
+            // 2. Refresh from DB via direct REST
+            let userId = cachedUser?.id;
+            
+            // 2a. If no ID but we have username, look up by username first
+            if (!userId && cachedUser?.username) {
+                try {
+                    console.log('No cached ID, looking up by username:', cachedUser.username);
+                    const lookup = await directQuery('GET', 'players', {
+                        'username': `ilike.${cachedUser.username}`,
+                        'select': '*'
+                    });
+                    if (lookup && lookup[0]) {
+                        userId = lookup[0].id;
+                        applyPlayerData(lookup[0]);
+                        localStorage.setItem('subsoccer-user', JSON.stringify(lookup[0]));
+                        console.log('✅ Profile refreshed from DB (by username):', lookup[0].username);
+                        return;
+                    }
+                } catch(e) {
+                    console.warn('Username lookup failed:', e.message);
+                }
+            }
+            
+            // 2b. Refresh by ID
             if (userId) {
                 try {
                     const players = await directQuery('GET', 'players', {
