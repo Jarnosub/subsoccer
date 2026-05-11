@@ -324,12 +324,55 @@ export async function handleSignUp() {
             // NEW USER: Luodaan kokonaan uusi pelaaja
             // Ladataan mahdollinen valittu avatar
             let finalAvatarUrl = null;
-            const avatarInput = document.getElementById('signup-avatar-file');
-            if (avatarInput && avatarInput.files && avatarInput.files[0]) {
+            
+            // Priority 1: AI-generated avatar (base64)
+            const aiAvatarB64 = window.getSignupAiAvatar ? window.getSignupAiAvatar() : null;
+            if (aiAvatarB64) {
                 try {
-                    finalAvatarUrl = await uploadPlayerAvatar(avatarInput.files[0], authData.user.id);
+                    console.log('Uploading AI avatar for new user...');
+                    const byteCharacters = atob(aiAvatarB64);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const blob = new Blob([new Uint8Array(byteNumbers)], {type: 'image/png'});
+                    const path = `avatars/${authData.user.id}_ai_${Date.now()}.png`;
+                    
+                    const { error: uploadErr } = await _supabase.storage
+                        .from('event-images')
+                        .upload(path, blob, { cacheControl: '3600', upsert: true });
+                    
+                    if (!uploadErr) {
+                        const { data: { publicUrl } } = _supabase.storage
+                            .from('event-images')
+                            .getPublicUrl(path);
+                        finalAvatarUrl = publicUrl + '?v=' + Date.now();
+                        console.log('✅ AI avatar uploaded:', finalAvatarUrl);
+                    } else {
+                        console.error('AI avatar upload failed:', uploadErr);
+                    }
                 } catch (err) {
-                    console.error('Failed to upload avatar during signup:', err);
+                    console.error('Failed to upload AI avatar during signup:', err);
+                }
+            }
+            
+            // Priority 2: File upload
+            if (!finalAvatarUrl) {
+                const avatarInput = document.getElementById('signup-avatar-file');
+                if (avatarInput && avatarInput.files && avatarInput.files[0]) {
+                    try {
+                        finalAvatarUrl = await uploadPlayerAvatar(avatarInput.files[0], authData.user.id);
+                    } catch (err) {
+                        console.error('Failed to upload avatar during signup:', err);
+                    }
+                }
+            }
+            
+            // Priority 3: Preset avatar selection
+            if (!finalAvatarUrl) {
+                const selectedAvatar = document.getElementById('signup-selected-avatar')?.value;
+                if (selectedAvatar && selectedAvatar !== 'ai-custom' && selectedAvatar.startsWith('avatar-')) {
+                    finalAvatarUrl = window.location.origin + '/' + selectedAvatar;
                 }
             }
 
