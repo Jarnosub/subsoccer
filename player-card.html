@@ -1310,17 +1310,21 @@
                 let userId = _currentPlayer?.id;
                 console.log('Save: _currentPlayer =', _currentPlayer ? JSON.stringify({id: _currentPlayer.id, username: _currentPlayer.username}) : 'null');
                 
+                // UUID format check
+                const isUUID = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+                
                 // Fallback: localStorage
-                if (!userId) {
+                if (!userId || !isUUID(userId)) {
                     try {
                         const cached = localStorage.getItem('subsoccer-user');
-                        if (cached) userId = JSON.parse(cached)?.id;
+                        const cachedId = cached ? JSON.parse(cached)?.id : null;
+                        if (cachedId && isUUID(cachedId)) userId = cachedId;
                     } catch(e) {}
                 }
 
-                // Fallback: username lookup via direct REST (no auth needed)
-                if (!userId && _currentPlayer?.username) {
-                    console.log('Looking up ID for username:', _currentPlayer.username);
+                // Fallback: username lookup via direct REST (always if userId is not a valid UUID)
+                if ((!userId || !isUUID(userId)) && _currentPlayer?.username) {
+                    console.log('Looking up UUID for username:', _currentPlayer.username);
                     try {
                         const results = await directQuery('GET', 'players', {
                             'username': `ilike.${_currentPlayer.username}`,
@@ -1329,14 +1333,14 @@
                         if (results && results[0]?.id) {
                             userId = results[0].id;
                             _currentPlayer.id = userId;
-                            console.log('Found userId:', userId);
+                            console.log('Found UUID:', userId);
                         }
                     } catch(e) {
                         console.warn('Username lookup failed:', e.message);
                     }
                 }
 
-                console.log('Save: using userId =', userId);
+                console.log('Save: using userId =', userId, isUUID(userId) ? '(valid UUID)' : '(NOT a UUID!)');
 
                 if (!userId || userId === 'guest' || userId === 'spectator') {
                     msg.style.color = '#E30613';
