@@ -902,18 +902,34 @@
             return _sb;
         }
 
+        // Get user's JWT token from localStorage (stored by main app's Supabase client)
+        function getUserToken() {
+            try {
+                // Supabase stores session under sb-{project-ref}-auth-token
+                const keys = Object.keys(localStorage).filter(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+                for (const key of keys) {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    if (data?.access_token) return data.access_token;
+                }
+            } catch(e) {}
+            return null;
+        }
+
         // Direct REST API helper — bypasses Supabase JS client's auth layer
         async function directQuery(method, table, params = {}, body = null) {
             const url = new URL(`${SUPA_URL}/rest/v1/${table}`);
             Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
             
+            // Use JWT for write operations (PATCH/POST), anon key for reads
+            const token = (method !== 'GET') ? (getUserToken() || SUPA_KEY) : SUPA_KEY;
+            
             const opts = {
                 method: method,
                 headers: {
                     'apikey': SUPA_KEY,
-                    'Authorization': `Bearer ${SUPA_KEY}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
-                    'Prefer': method === 'PATCH' ? 'return=minimal' : 'return=representation'
+                    'Prefer': 'return=representation'
                 }
             };
             if (body) opts.body = JSON.stringify(body);
@@ -923,7 +939,6 @@
                 const errText = await res.text();
                 throw new Error(`DB ${method} failed (${res.status}): ${errText}`);
             }
-            if (method === 'PATCH') return { ok: true };
             return await res.json();
         }
 
@@ -1292,11 +1307,12 @@
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], {type: 'image/png'});
 
+                    const uploadToken = getUserToken() || SUPA_KEY;
                     const uploadRes = await fetch(`${SUPA_URL}/storage/v1/object/event-images/${path}`, {
                         method: 'POST',
                         headers: {
                             'apikey': SUPA_KEY,
-                            'Authorization': `Bearer ${SUPA_KEY}`,
+                            'Authorization': `Bearer ${uploadToken}`,
                             'x-upsert': 'true'
                         },
                         body: blob
@@ -1320,12 +1336,22 @@
                 }
 
                 console.log('Saving:', JSON.stringify(updates));
+                const token = getUserToken();
+                console.log('Using JWT:', token ? 'YES (user token)' : 'NO (anon key)');
                 
                 // Direct REST API update — bypasses Supabase client entirely
-                await directQuery('PATCH', 'players', { 'id': `eq.${userId}` }, updates);
+                const result = await directQuery('PATCH', 'players', { 'id': `eq.${userId}` }, updates);
+                
+                // Verify the update actually applied (RLS might silently block it)
+                if (!result || (Array.isArray(result) && result.length === 0)) {
+                    throw new Error('Update blocked — session may have expired. Please log in again.');
+                }
+                
+                console.log('✅ DB update confirmed:', JSON.stringify(result));
 
-                // Update localStorage & _currentPlayer
-                Object.assign(_currentPlayer, updates);
+                // Update localStorage & _currentPlayer with DB-confirmed data
+                const confirmed = Array.isArray(result) ? result[0] : result;
+                Object.assign(_currentPlayer, confirmed);
                 localStorage.setItem('subsoccer-user', JSON.stringify(_currentPlayer));
 
                 msg.style.color = '#4CAF50';
