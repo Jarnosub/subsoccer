@@ -1,5 +1,5 @@
-const _URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
-const _KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+export const _URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+export const _KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
 
 export const FLAGS = {
     ENABLE_TEAMS: true,        // Show Teams MVP

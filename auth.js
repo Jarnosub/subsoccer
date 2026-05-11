@@ -1,4 +1,4 @@
-import { _supabase, state, resetFullState, KIOSK_MODE } from './config.js';
+import { _supabase, _URL, _KEY, state, resetFullState, KIOSK_MODE } from './config.js';
 import { showNotification } from './ui-utils.js';
 import { fetchAllGames } from './game-service.js';
 import { startQuickMatch } from './quick-match.js';
@@ -329,7 +329,7 @@ export async function handleSignUp() {
             const aiAvatarB64 = window.getSignupAiAvatar ? window.getSignupAiAvatar() : null;
             if (aiAvatarB64) {
                 try {
-                    console.log('Uploading AI avatar for new user...');
+                    console.log('📸 Uploading AI avatar for new user...');
                     const byteCharacters = atob(aiAvatarB64);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
@@ -338,18 +338,23 @@ export async function handleSignUp() {
                     const blob = new Blob([new Uint8Array(byteNumbers)], {type: 'image/png'});
                     const path = `avatars/${authData.user.id}_ai_${Date.now()}.png`;
                     
-                    const { error: uploadErr } = await _supabase.storage
-                        .from('event-images')
-                        .upload(path, blob, { cacheControl: '3600', upsert: true });
+                    // Use fresh JWT from signup response for upload auth
+                    const uploadToken = authData.session?.access_token || _KEY;
+                    const uploadRes = await fetch(`${_URL}/storage/v1/object/event-images/${path}`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': _KEY,
+                            'Authorization': `Bearer ${uploadToken}`,
+                            'x-upsert': 'true'
+                        },
+                        body: blob
+                    });
                     
-                    if (!uploadErr) {
-                        const { data: { publicUrl } } = _supabase.storage
-                            .from('event-images')
-                            .getPublicUrl(path);
-                        finalAvatarUrl = publicUrl + '?v=' + Date.now();
+                    if (uploadRes.ok) {
+                        finalAvatarUrl = `${_URL}/storage/v1/object/public/event-images/${path}?v=${Date.now()}`;
                         console.log('✅ AI avatar uploaded:', finalAvatarUrl);
                     } else {
-                        console.error('AI avatar upload failed:', uploadErr);
+                        console.error('AI avatar upload failed:', uploadRes.status, await uploadRes.text());
                     }
                 } catch (err) {
                     console.error('Failed to upload AI avatar during signup:', err);

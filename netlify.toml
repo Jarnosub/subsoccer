@@ -57,13 +57,19 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# CSS and JS — shorter cache (can change with versioning)
+# CSS and JS — short cache during development (5 min)
 [[headers]]
   for = "/*.css"
   [headers.values]
-    Cache-Control = "public, max-age=86400"
+    Cache-Control = "public, max-age=300"
 
 [[headers]]
   for = "/*.js"
   [headers.values]
-    Cache-Control = "public, max-age=86400"
+    Cache-Control = "public, max-age=300"
+
+# HTML — no cache (always fresh)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
