@@ -962,14 +962,42 @@
                 photo.style.display = 'block';
                 document.getElementById('pc-card-icon').style.display = 'none';
 
-                document.querySelectorAll('.avatar-option').forEach(el => {
-                    if (el.getAttribute('data-avatar') === player.avatar_url) {
-                        el.classList.add('selected');
-                        document.getElementById('selected-avatar-url').value = player.avatar_url;
-                    } else {
-                        el.classList.remove('selected');
+                // Check if current avatar is a preset or custom
+                const isPreset = player.avatar_url.includes('avatar-human-');
+                const track = document.getElementById('avatar-selection');
+                
+                if (!isPreset && track) {
+                    // Inject custom avatar as first item in carousel
+                    const existing = track.querySelector('.avatar-option[data-avatar="custom-current"]');
+                    if (!existing) {
+                        const customEl = document.createElement('div');
+                        customEl.className = 'avatar-option selected';
+                        customEl.setAttribute('data-avatar', player.avatar_url);
+                        customEl.setAttribute('onclick', 'selectAvatar(this)');
+                        customEl.innerHTML = `<img src="${player.avatar_url}" alt="My Avatar" style="border-radius:8px;">`;
+                        customEl.setAttribute('data-avatar', 'custom-current');
+                        track.insertBefore(customEl, track.firstChild);
                     }
-                });
+                    // Deselect all presets
+                    track.querySelectorAll('.avatar-option').forEach(el => {
+                        if (el.getAttribute('data-avatar') === 'custom-current') {
+                            el.classList.add('selected');
+                        } else {
+                            el.classList.remove('selected');
+                        }
+                    });
+                    document.getElementById('selected-avatar-url').value = player.avatar_url;
+                } else {
+                    // Preset avatar — select matching option
+                    document.querySelectorAll('.avatar-option').forEach(el => {
+                        if (player.avatar_url.includes(el.getAttribute('data-avatar'))) {
+                            el.classList.add('selected');
+                            document.getElementById('selected-avatar-url').value = el.getAttribute('data-avatar');
+                        } else {
+                            el.classList.remove('selected');
+                        }
+                    });
+                }
             }
 
             if (player.team_data && player.team_data.name) {
@@ -1043,9 +1071,13 @@
             icon.style.display = 'none';
             photo.style.display = 'block';
 
-            if (newSrc === 'ai-custom') {
+            if (newSrc === 'ai-custom' || newSrc === 'custom-current') {
                 const img = element.querySelector('img');
                 if (img) photo.src = img.src;
+                // For custom-current, set the actual URL for saving
+                if (newSrc === 'custom-current') {
+                    document.getElementById('selected-avatar-url').value = _currentPlayer?.avatar_url || '';
+                }
             } else {
                 photo.src = newSrc;
             }
