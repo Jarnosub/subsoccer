@@ -809,6 +809,11 @@
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
+        <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:8px;">
+            <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.55rem; letter-spacing:1px; color:#666; text-decoration:none; transition:color 0.2s;">
+                <i class="fa-solid fa-xmark" style="margin-right:4px;"></i>REMOVE AVATAR
+            </a>
+        </div>
     </div>
 
     <!-- SECTION: AI SELFIE STYLIZER -->
@@ -1000,6 +1005,10 @@
                 }
             }
 
+            // Show/hide remove avatar link
+            const removeWrap = document.getElementById('remove-avatar-wrap');
+            if (removeWrap) removeWrap.style.display = player.avatar_url ? 'block' : 'none';
+
             if (player.team_data && player.team_data.name) {
                 document.getElementById('pc-card-location').innerText = player.team_data.name;
             } else if (player.country) {
@@ -1081,6 +1090,32 @@
             } else {
                 photo.src = newSrc;
             }
+        }
+
+        function removeAvatar(e) {
+            if (e) e.preventDefault();
+            if (!confirm('Remove your avatar?')) return;
+            
+            // Reset card to default silhouette
+            const photo = document.getElementById('pc-card-photo');
+            const icon = document.getElementById('pc-card-icon');
+            photo.style.display = 'none';
+            photo.src = '';
+            icon.style.display = 'block';
+            
+            // Deselect all carousel items
+            document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+            
+            // Remove injected custom avatar from carousel
+            const custom = document.querySelector('.avatar-option[data-avatar="custom-current"]');
+            if (custom) custom.remove();
+            
+            // Set hidden fields for save
+            document.getElementById('selected-avatar-url').value = '__remove__';
+            document.getElementById('selected-avatar-b64').value = '';
+            
+            // Hide remove button
+            document.getElementById('remove-avatar-wrap').style.display = 'none';
         }
 
         // Sync name live
@@ -1351,6 +1386,9 @@
                     });
                     if (!uploadRes.ok) throw new Error('Upload failed: ' + await uploadRes.text());
                     updates.avatar_url = `${SUPA_URL}/storage/v1/object/public/event-images/${path}?v=${Date.now()}`;
+                } else if (avatarUrl === '__remove__') {
+                    // User clicked "Remove avatar"
+                    updates.avatar_url = null;
                 } else if (avatarUrl && avatarUrl !== 'ai-custom' && avatarUrl !== _currentPlayer?.avatar_url) {
                     if (avatarUrl.startsWith('avatar-')) {
                         updates.avatar_url = window.location.origin + '/' + avatarUrl;
