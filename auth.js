@@ -11,43 +11,8 @@ export async function initApp() {
     try {
         setupAuthListeners();
 
-        // Get session with 5s timeout — getSession() can hang indefinitely
-        // in some browser environments (extensions, DNS issues, stale state).
-        let session = null, error = null;
-        try {
-            const result = await Promise.race([
-                _supabase.auth.getSession(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
-            ]);
-            session = result?.data?.session;
-            error = result?.error;
-        } catch(e) {
-            console.warn('getSession timed out (5s) — attempting manual session recovery...');
-            // Try to read session directly from localStorage as fallback
-            try {
-                const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-                if (storageKey) {
-                    const stored = JSON.parse(localStorage.getItem(storageKey));
-                    if (stored?.access_token && stored?.user) {
-                        console.log('📦 Found stored session, validating...');
-                        // Validate the token with a lightweight API call using fresh client
-                        const testClient = window.supabase.createClient(_URL, _KEY, {
-                            auth: { persistSession: false, autoRefreshToken: false }
-                        });
-                        const { data: testData } = await Promise.race([
-                            testClient.auth.getUser(stored.access_token),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('VALIDATE_TIMEOUT')), 5000))
-                        ]);
-                        if (testData?.user) {
-                            session = { user: testData.user, access_token: stored.access_token };
-                            console.log('✅ Manual session recovery successful for:', testData.user.email);
-                        }
-                    }
-                }
-            } catch(recoveryErr) {
-                console.warn('Manual session recovery failed:', recoveryErr.message);
-            }
-        }
+        // PAKOTETTU TARKISTUS: Haetaan istunto heti, jotta ei tarvita refreshia
+        const { data: { session }, error } = await _supabase.auth.getSession();
 
         if (error) {
             console.warn("Supabase auth warning (usually safe to ignore):", error.message);
@@ -463,6 +428,15 @@ export async function handleSignUp() {
 export async function handleAuth(event) {
     if (event && event.preventDefault) event.preventDefault();
 
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+            localStorage.removeItem(key);
+        }
+    });
+    await _supabase.auth.signOut().catch(() => { });
+
+    resetFullState(); // Vaihe A: Puhdistetaan vanha tila ja välimuisti
+
     const btn = document.getElementById('btn-login');
     if (btn && btn.disabled) {
         console.warn("⚠️ Login already in progress, ignoring duplicate attempt.");
@@ -470,14 +444,6 @@ export async function handleAuth(event) {
     }
 
     const originalText = btn ? btn.textContent : 'LOG IN';
-
-    // Create a fresh, lightweight Supabase client for login queries.
-    // The main _supabase client may be stuck waiting for getSession() to resolve
-    // (called by initApp on page load), which queues ALL subsequent DB requests.
-    // This dedicated client bypasses that bottleneck entirely.
-    const loginClient = window.supabase.createClient(_URL, _KEY, {
-        auth: { persistSession: false, autoRefreshToken: false }
-    });
 
     try {
         if (btn) { btn.disabled = true; btn.textContent = 'LOGGING IN...'; }
@@ -501,14 +467,15 @@ export async function handleAuth(event) {
             if (!error) {
                 console.log("✅ Email login successful");
                 showNotification("Welcome back!", "success");
-                setTimeout(() => { window.location.href = 'index.html'; }, 500);
                 return;
             }
             console.log("Supabase Auth login failed:", error.message);
 
             // Tarkistetaan löytyykö sähköposti players-taulusta (migraatiotuki)
-            const { data: emailMatches, error: emailErr } = await loginClient
-                .from('players').select('*').ilike('email', input);
+            const { data: emailMatches, error: emailErr } = await _supabase
+                .from('players')
+                .select('*')
+                .ilike('email', input);
 
             if (!emailErr && emailMatches && emailMatches.length > 0) {
                 const hashed = await hashPassword(p);
@@ -535,7 +502,8 @@ export async function handleAuth(event) {
         // 2. Tarkistetaan players-taulu (käyttäjänimellä)
         console.log("🔍 Searching players table by username...");
 
-        let { data: nameMatches, error: nameErr } = await loginClient
+        // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
+        let { data: nameMatches, error: nameErr } = await _supabase
             .from('players').select('*').ilike('username', input);
 
         console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
@@ -549,7 +517,7 @@ export async function handleAuth(event) {
         if (!nameMatches || nameMatches.length === 0) {
             console.log("Direct search failed, trying fuzzy search...");
             const fuzzyInput = input.replace(/\s+/g, '%');
-            const { data: fuzzyMatches } = await loginClient
+            const { data: fuzzyMatches } = await _supabase
                 .from('players')
                 .select('*')
                 .ilike('username', fuzzyInput);
@@ -571,7 +539,6 @@ export async function handleAuth(event) {
                 if (!authErr) {
                     console.log("Auth login successful for:", migratedMatch.email);
                     showNotification("Welcome back!", "success");
-                    setTimeout(() => { window.location.href = 'index.html'; }, 500);
                     return;
                 }
                 console.log("Auth login failed:", authErr.message);
@@ -638,10 +605,7 @@ export async function handleLogout() {
     }
     if (_supabase) {
         try {
-            await Promise.race([
-                _supabase.auth.signOut(),
-                new Promise(resolve => setTimeout(resolve, 3000))
-            ]);
+            await _supabase.auth.signOut();
         } catch (error) {
             console.error('Error logging out:', error);
         }

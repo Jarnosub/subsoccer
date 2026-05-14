@@ -100,13 +100,7 @@ export const resetFullState = () => {
     state.currentPage = 'tournament';
     state.victoryData = null;
 
-    // Selective cleanup — preserve Supabase auth tokens (sb-*) so the client can
-    // still communicate with the backend during login flow.
-    Object.keys(localStorage).forEach(key => {
-        if (!key.startsWith('sb-') && !key.includes('supabase')) {
-            localStorage.removeItem(key);
-        }
-    });
+    localStorage.clear(); // Vaihe C: Tyhjennä välimuisti
     sessionStorage.clear(); // Vaihe C: Tyhjennä istuntodata
 };
 
