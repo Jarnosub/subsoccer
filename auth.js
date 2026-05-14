@@ -11,8 +11,43 @@ export async function initApp() {
     try {
         setupAuthListeners();
 
-        // PAKOTETTU TARKISTUS: Haetaan istunto heti, jotta ei tarvita refreshia
-        const { data: { session }, error } = await _supabase.auth.getSession();
+        // Get session with 5s timeout — getSession() can hang indefinitely
+        // in some browser environments (extensions, DNS issues, stale state).
+        let session = null, error = null;
+        try {
+            const result = await Promise.race([
+                _supabase.auth.getSession(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
+            ]);
+            session = result?.data?.session;
+            error = result?.error;
+        } catch(e) {
+            console.warn('getSession timed out (5s) — attempting manual session recovery...');
+            // Try to read session directly from localStorage as fallback
+            try {
+                const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+                if (storageKey) {
+                    const stored = JSON.parse(localStorage.getItem(storageKey));
+                    if (stored?.access_token && stored?.user) {
+                        console.log('📦 Found stored session, validating...');
+                        // Validate the token with a lightweight API call using fresh client
+                        const testClient = window.supabase.createClient(_URL, _KEY, {
+                            auth: { persistSession: false, autoRefreshToken: false }
+                        });
+                        const { data: testData } = await Promise.race([
+                            testClient.auth.getUser(stored.access_token),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('VALIDATE_TIMEOUT')), 5000))
+                        ]);
+                        if (testData?.user) {
+                            session = { user: testData.user, access_token: stored.access_token };
+                            console.log('✅ Manual session recovery successful for:', testData.user.email);
+                        }
+                    }
+                }
+            } catch(recoveryErr) {
+                console.warn('Manual session recovery failed:', recoveryErr.message);
+            }
+        }
 
         if (error) {
             console.warn("Supabase auth warning (usually safe to ignore):", error.message);
