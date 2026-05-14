@@ -853,10 +853,10 @@
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
-        <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:4px;">
-            <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#555; text-decoration:none; transition:color 0.2s;">
-                <i class="fa-solid fa-xmark" style="margin-right:4px;"></i>REMOVE AVATAR
-            </a>
+        <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:12px;">
+            <button id="remove-avatar-btn" onclick="removeAvatar(event)" style="background:rgba(196,30,42,0.1); border:1px solid #c41e2a; color:#c41e2a; padding:8px 16px; font-family:'SubsoccerLogo',sans-serif; font-size:0.8rem; letter-spacing:1px; cursor:pointer; border-radius:3px; transition:all 0.2s; width:100%;" onmouseover="this.style.background='rgba(196,30,42,0.2)'" onmouseout="this.style.background='rgba(196,30,42,0.1)'">
+                <i class="fa-solid fa-trash-can" style="margin-right:6px;"></i>DELETE AVATAR
+            </button>
         </div>
       </div>
     </div>
@@ -1276,9 +1276,31 @@
             }
         }
 
-        function removeAvatar(e) {
+        async function removeAvatar(e) {
             if (e) e.preventDefault();
-            if (!confirm('Remove your avatar?')) return;
+            if (!confirm('Delete this avatar completely?')) return;
+            
+            const selectedOpt = document.querySelector('.avatar-option.selected');
+            if (selectedOpt) {
+                const src = selectedOpt.getAttribute('data-avatar');
+                const isCustom = selectedOpt.getAttribute('data-custom') === 'true';
+                
+                if (isCustom && src.startsWith('http')) {
+                    try {
+                        const urlObj = new URL(src);
+                        const parts = urlObj.pathname.split('/');
+                        const filename = parts[parts.length - 1];
+                        if (filename) {
+                            const sb = getSb();
+                            await sb.storage.from('event-images').remove([`avatars/${filename}`]);
+                        }
+                    } catch(err) { console.error('Failed to delete from storage', err); }
+                }
+                
+                if (isCustom) {
+                    selectedOpt.remove();
+                }
+            }
             
             // Reset card to default silhouette
             const photo = document.getElementById('pc-card-photo');
@@ -1289,9 +1311,6 @@
             
             // Deselect all carousel items
             document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-            
-            // Remove ALL injected custom avatars from carousel
-            document.querySelectorAll('.avatar-option[data-custom="true"]').forEach(el => el.remove());
             
             // Set hidden fields for save
             document.getElementById('selected-avatar-url').value = '__remove__';
