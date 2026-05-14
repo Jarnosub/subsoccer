@@ -49,7 +49,7 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: "gpt-image-2",
+                model: "gpt-image-1.5",
                 prompt: prompt,
                 n: 1,
                 size: "1024x1024"
@@ -72,7 +72,7 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
             throw new Error(data.error.message);
         }
 
-        console.log("Image generated successfully with GPT Image 2!");
+        console.log("Image generated successfully with GPT Image 1.5!");
 
         if (data.data && data.data[0] && data.data[0].b64_json) {
             return {
