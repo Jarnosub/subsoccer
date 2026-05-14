@@ -323,23 +323,23 @@ export async function handleSignUp() {
                     const blob = new Blob([new Uint8Array(byteNumbers)], {type: 'image/png'});
                     const path = `avatars/${authData.user.id}_ai_${Date.now()}.png`;
                     
-                    // Use fresh JWT from signup response for upload auth
-                    const uploadToken = authData.session?.access_token || _KEY;
-                    const uploadRes = await fetch(`${_URL}/storage/v1/object/event-images/${path}`, {
-                        method: 'POST',
-                        headers: {
-                            'apikey': _KEY,
-                            'Authorization': `Bearer ${uploadToken}`,
-                            'x-upsert': 'true'
-                        },
-                        body: blob
-                    });
+                    const { error: uploadError } = await _supabase.storage
+                        .from('event-images')
+                        .upload(path, blob, {
+                            cacheControl: '3600',
+                            upsert: true,
+                            contentType: 'image/png'
+                        });
                     
-                    if (uploadRes.ok) {
-                        finalAvatarUrl = `${_URL}/storage/v1/object/public/event-images/${path}?v=${Date.now()}`;
+                    if (!uploadError) {
+                        const { data: urlData } = _supabase.storage
+                            .from('event-images')
+                            .getPublicUrl(path);
+                            
+                        finalAvatarUrl = urlData.publicUrl;
                         console.log('✅ AI avatar uploaded:', finalAvatarUrl);
                     } else {
-                        console.error('AI avatar upload failed:', uploadRes.status, await uploadRes.text());
+                        console.error('AI avatar upload failed:', uploadError);
                     }
                 } catch (err) {
                     console.error('Failed to upload AI avatar during signup:', err);
@@ -382,9 +382,10 @@ export async function handleSignUp() {
                 state.user = { ...state.user, ...upsertPayload };
                 localStorage.setItem('subsoccer-user', JSON.stringify(state.user));
 
-                if (avatarInput) {
+                const avatarFileInput = document.getElementById('signup-avatar-file');
+                if (avatarFileInput) {
                     // Clear the input after success
-                    avatarInput.value = '';
+                    avatarFileInput.value = '';
                     const previewImg = document.getElementById('signup-avatar-preview');
                     const nameDiv = document.getElementById('signup-avatar-filename');
                     if (previewImg) previewImg.src = 'placeholder-silhouette-5-wide.png';
