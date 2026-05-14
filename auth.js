@@ -22,13 +22,10 @@ export async function initApp() {
             session = result?.data?.session;
             error = result?.error;
         } catch(e) {
-            console.warn('getSession timed out (5s) — stale auth token likely. Clearing...');
-            // Clear stale tokens that cause the hang
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('sb-') || key.includes('supabase')) {
-                    localStorage.removeItem(key);
-                }
-            });
+            console.warn('getSession timed out (5s) — proceeding without session.');
+            // DO NOT clear sb-* tokens here! That corrupts the Supabase client's
+            // internal state and causes ALL subsequent DB queries to fail with timeout.
+            // Just proceed without a session — the login flow will work independently.
         }
 
         if (error) {
