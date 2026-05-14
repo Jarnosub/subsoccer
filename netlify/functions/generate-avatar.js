@@ -36,9 +36,19 @@ exports.handler = async function (event, context) {
         // Build multipart/form-data
         const boundary = "----SubsoccerBoundary" + Date.now();
 
-        const prompt = `Comic book illustration of this person as a street football player. Preserve their face, age, gender, facial hair, and glasses exactly.
+        const prompt = `Stylized sports portrait of this person as an elite street football player.
 
-Style: Bold outlines, vibrant cel-shaded comic art, flat colors. Cool street football jersey. Background: Urban street football court. NO UI elements, NO text, NO panels.`;
+IDENTITY: Preserve their exact facial features, skin tone, hair, glasses, and facial hair. This must look like THEM — just upgraded.
+
+STYLE: Semi-realistic digital art inspired by FIFA Ultimate Team and NBA2K player cards. Slight illustrated texture, enhanced lighting, confident expression. NOT a cartoon, NOT a photo — premium AAA game artwork.
+
+OUTFIT: Modern street football jersey with bold design. No specific brand logos.
+
+LIGHTING: Cinematic stadium lighting with subtle neon accents and shallow depth of field. Dark atmospheric background.
+
+COMPOSITION: Portrait from chest up, facing camera, centered, clean silhouette.
+
+ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra objects, other people.`;
 
         // Construct multipart body
         const formParts = [];
