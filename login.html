@@ -555,6 +555,10 @@
                         const clientTimeout = new AbortController();
                         const clientTimer = setTimeout(() => clientTimeout.abort(), 130000);
 
+                        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+                        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+                        const _tempSb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
                         const taskId = 'task_' + Date.now() + '_' + Math.random().toString(36).substring(7);
                         
                         // Call background function (returns immediately)
@@ -575,7 +579,7 @@
                         let imageReady = false;
                         let data = { image_b64: null };
                         
-                        const channel = window.supabaseClient.channel(`avatar-${taskId}`);
+                        const channel = _tempSb.channel(`avatar-${taskId}`);
                         channel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
                             data.image_b64 = payload.payload.image_b64;
                             imageReady = true;
@@ -588,7 +592,7 @@
                             await new Promise(r => setTimeout(r, 3000));
                         }
                         
-                        window.supabaseClient.removeChannel(channel);
+                        _tempSb.removeChannel(channel);
                         
                         clearTimeout(clientTimer);
                         

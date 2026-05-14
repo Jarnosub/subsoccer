@@ -1441,7 +1441,7 @@
                 let imageReady = false;
                 let data = { image_b64: null };
                 
-                const channel = window.supabaseClient.channel(`avatar-${taskId}`);
+                const channel = _sb.channel(`avatar-${taskId}`);
                 channel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
                     data.image_b64 = payload.payload.image_b64;
                     imageReady = true;
@@ -1454,7 +1454,7 @@
                     await new Promise(r => setTimeout(r, 3000));
                 }
                 
-                window.supabaseClient.removeChannel(channel);
+                _sb.removeChannel(channel);
                 
                 clearTimeout(clientTimer);
                 
