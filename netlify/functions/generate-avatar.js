@@ -9,7 +9,7 @@ exports.handler = async function (event, context) {
     }
 
     try {
-        const { image_b64 } = JSON.parse(event.body);
+        const { description } = JSON.parse(event.body);
         let apiKey = process.env.MY_OPENAI_KEY || process.env.OPENAI_API_KEY;
         if (apiKey && apiKey.startsWith("eyJ")) {
             apiKey = process.env.MY_OPENAI_KEY; // Ignore Netlify JWT overrides
@@ -19,26 +19,15 @@ exports.handler = async function (event, context) {
             return { statusCode: 500, body: JSON.stringify({ error: "Missing API Key" }) };
         }
 
-        if (!image_b64) {
-            return { statusCode: 400, body: JSON.stringify({ error: "No image provided" }) };
+        if (!description) {
+            return { statusCode: 400, body: JSON.stringify({ error: "No description provided" }) };
         }
 
-        // ──────────────────────────────────────────────────────────
-        // Use gpt-image-1 via the Images Edit API.
-        // This model actually SEES the uploaded photo and can
-        // preserve the person's likeness while applying a style.
-        // ──────────────────────────────────────────────────────────
+        console.log("Generating avatar with dall-e-3 based on description...");
 
-        // Convert base64 data URL to raw binary for multipart upload
-        const base64Data = image_b64.replace(/^data:image\/\w+;base64,/, "");
-        const imageBuffer = Buffer.from(base64Data, "base64");
+        const prompt = `A stylized sports portrait of a person matching this exact physical description: ${description}
 
-        // Build multipart/form-data
-        const boundary = "----SubsoccerBoundary" + Date.now();
-
-        const prompt = `Stylized sports portrait of this person as an elite street football player.
-
-IDENTITY: Preserve their exact facial features, skin tone, hair, glasses, and facial hair. This must look like THEM — just upgraded.
+They are an elite street football player.
 
 STYLE: Semi-realistic digital art inspired by FIFA Ultimate Team and NBA2K player cards. Slight illustrated texture, enhanced lighting, confident expression. NOT a cartoon, NOT a photo — premium AAA game artwork.
 
@@ -50,57 +39,30 @@ COMPOSITION: Portrait from chest up, facing camera, centered, clean silhouette.
 
 ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra objects, other people.`;
 
-        // Construct multipart body
-        const formParts = [];
-
-        // -- image
-        formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="image"; filename="selfie.png"\r\nContent-Type: image/png\r\n\r\n`, "utf-8"
-        ));
-        formParts.push(imageBuffer);
-        formParts.push(Buffer.from("\r\n", "utf-8"));
-
-        // -- prompt
-        formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="prompt"\r\n\r\n${prompt}\r\n`, "utf-8"
-        ));
-
-        // -- model
-        formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\ngpt-image-1.5\r\n`, "utf-8"
-        ));
-
-        // -- size (1024x1024 is the smallest supported by gpt-image-1.5)
-        formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="size"\r\n\r\n1024x1024\r\n`, "utf-8"
-        ));
-
-        // -- closing
-        formParts.push(Buffer.from(`--${boundary}--\r\n`, "utf-8"));
-
-        const body = Buffer.concat(formParts);
-
-        console.log("Sending image to gpt-image-1.5 edit API... (" + (imageBuffer.length / 1024).toFixed(0) + " KB image)");
-
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s for detailed images
+        const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-        const response = await fetch("https://api.openai.com/v1/images/edits", {
+        const dalleResponse = await fetch("https://api.openai.com/v1/images/generations", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": `multipart/form-data; boundary=${boundary}`
+                "Content-Type": "application/json"
             },
-            body: body,
+            body: JSON.stringify({
+                model: "gpt-image-2",
+                prompt: prompt,
+                n: 1,
+                size: "1024x1024"
+            }),
             signal: controller.signal
         });
 
         clearTimeout(timeoutId);
 
-        const data = await response.json();
+        const data = await dalleResponse.json();
 
         if (data.error) {
-            console.error("OpenAI API error:", JSON.stringify(data.error));
+            console.error("GPT Image 2 error:", JSON.stringify(data.error));
             if (data.error.code === 'content_policy_violation' || (data.error.message && data.error.message.toLowerCase().includes('safety'))) {
                 return {
                     statusCode: 400,
@@ -110,9 +72,8 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
             throw new Error(data.error.message);
         }
 
-        console.log("Image generated successfully!");
+        console.log("Image generated successfully with GPT Image 2!");
 
-        // gpt-image-1 returns b64_json by default
         if (data.data && data.data[0] && data.data[0].b64_json) {
             return {
                 statusCode: 200,
@@ -124,7 +85,6 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
             };
         }
 
-        // If URL was returned, fetch and convert to b64
         if (data.data && data.data[0] && data.data[0].url) {
             const imgResp = await fetch(data.data[0].url);
             const imgBuf = await imgResp.arrayBuffer();

@@ -1421,10 +1421,27 @@
                 const clientTimeout = new AbortController();
                 const clientTimer = setTimeout(() => clientTimeout.abort(), 130000); // 130s
                 
-                const res = await fetch('/.netlify/functions/generate-avatar', {
+                // Step 1: Analyze face
+                const analyzeRes = await fetch('/.netlify/functions/analyze-face', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ image_b64: _aiSelfieB64 }),
+                    signal: clientTimeout.signal
+                });
+                
+                let analyzeData;
+                try {
+                    analyzeData = await analyzeRes.json();
+                } catch (parseErr) {
+                    throw new Error('Analysis timed out. Please try again.');
+                }
+                if (!analyzeRes.ok) throw new Error(analyzeData.error || 'Failed to analyze face');
+
+                // Step 2: Generate art
+                const res = await fetch('/.netlify/functions/generate-avatar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description: analyzeData.description }),
                     signal: clientTimeout.signal
                 });
                 
