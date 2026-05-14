@@ -22,10 +22,20 @@ export async function initApp() {
             session = result?.data?.session;
             error = result?.error;
         } catch(e) {
-            console.warn('getSession timed out (5s) — proceeding without session.');
-            // DO NOT clear sb-* tokens here! That corrupts the Supabase client's
-            // internal state and causes ALL subsequent DB queries to fail with timeout.
-            // Just proceed without a session — the login flow will work independently.
+            console.warn('getSession timed out (5s) — clearing stale session...');
+            // Two-step cleanup: clear stored tokens AND reset the client's internal
+            // auth state. Without signOut, the client remains stuck with stale
+            // in-memory credentials and ALL subsequent queries hang.
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sb-') || key.includes('supabase')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            // Local-only signOut resets the client WITHOUT making a network call
+            await Promise.race([
+                _supabase.auth.signOut({ scope: 'local' }).catch(() => {}),
+                new Promise(resolve => setTimeout(resolve, 2000))
+            ]);
         }
 
         if (error) {
