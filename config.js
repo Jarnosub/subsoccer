@@ -11,12 +11,12 @@ export const FLAGS = {
 // Varmista Supabase-asiakkaan alustus ympäristöstä riippuen
 let supabaseClient;
 if (typeof window !== 'undefined' && window.supabase) {
-    // CRITICAL FIX: Disable autoRefreshToken to prevent the client from
-    // trying to refresh stale/expired tokens, which blocks ALL requests
-    // (auth, DB queries, storage) and makes the entire app hang.
+    // Supabase client with default auth settings.
+    // autoRefreshToken MUST be true (default) — disabling it causes the client
+    // to get permanently stuck with expired tokens, blocking ALL requests.
     supabaseClient = window.supabase.createClient(_URL, _KEY, {
         auth: {
-            autoRefreshToken: false,
+            autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: true
         }
