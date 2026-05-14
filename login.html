@@ -349,12 +349,12 @@
                         <span id="signup-ai-badge" style="margin-left:auto; background:rgba(196,30,42,0.15); color:#c41e2a; padding:2px 8px; border-radius:10px; font-size:0.5rem; letter-spacing:1px;">1 FREE TRY</span>
                     </div>
                     <div style="display:flex; gap:8px; align-items:stretch;">
-                        <label id="signup-ai-upload-label" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 8px; border:1px dashed #333; border-radius:4px; color:#666; font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; cursor:pointer; transition: all 0.2s;">
+                        <label id="signup-ai-upload-label" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 8px; background: #c41e2a; border:1px solid #c41e2a; border-radius:2px; color:#fff; font-family:'Resolve',sans-serif; font-size:0.6rem; font-weight:bold; letter-spacing:1px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(196, 30, 42, 0.2);" onmouseover="this.style.background='#a01520'" onmouseout="this.style.background='#c41e2a'">
                             <i class="fa-solid fa-camera" style="font-size:0.85rem"></i>
                             <span id="signup-ai-selfie-label">TAKE SELFIE</span>
                             <input type="file" accept="image/*" id="signup-ai-selfie-input" style="display:none;" onchange="handleSignupSelfie(this)">
                         </label>
-                        <button id="signup-btn-generate-ai" onclick="generateSignupAvatar()" style="flex:1; padding:9px 8px; background:#c41e2a; color:#fff; border:none; border-radius:4px; font-family:'Resolve',sans-serif; font-size:0.6rem; font-weight:bold; letter-spacing:1px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition: all 0.2s;">
+                        <button id="signup-btn-generate-ai" onclick="generateSignupAvatar()" style="flex:1; padding:9px 8px; background:rgba(255,255,255,0.05); color:#666; border:1px solid rgba(255,255,255,0.1); border-radius:2px; font-family:'Resolve',sans-serif; font-size:0.6rem; font-weight:bold; letter-spacing:1px; cursor:default; display:flex; align-items:center; justify-content:center; gap:5px; transition: all 0.2s; pointer-events:none;">
                             <i class="fa-solid fa-bolt"></i> GENERATE
                         </button>
                     </div>
@@ -481,8 +481,22 @@
                         const file = input.files[0];
                         document.getElementById('signup-ai-selfie-label').innerText = 'SELFIE READY';
                         const lbl = document.getElementById('signup-ai-upload-label');
-                        lbl.style.borderColor = '#c41e2a';
-                        lbl.style.color = '#c41e2a';
+                        lbl.style.background = 'rgba(255,255,255,0.05)';
+                        lbl.style.borderColor = 'rgba(255,255,255,0.1)';
+                        lbl.style.color = '#888';
+                        lbl.style.boxShadow = 'none';
+                        lbl.onmouseover = null;
+                        lbl.onmouseout = null;
+
+                        const genBtn = document.getElementById('signup-btn-generate-ai');
+                        genBtn.style.background = '#c41e2a';
+                        genBtn.style.color = '#fff';
+                        genBtn.style.borderColor = '#c41e2a';
+                        genBtn.style.cursor = 'pointer';
+                        genBtn.style.pointerEvents = 'auto';
+                        genBtn.style.boxShadow = '0 4px 15px rgba(196, 30, 42, 0.2)';
+                        genBtn.onmouseover = function() { this.style.background='#a01520'; };
+                        genBtn.onmouseout = function() { this.style.background='#c41e2a'; };
 
                         const reader = new FileReader();
                         reader.onload = function(e) {

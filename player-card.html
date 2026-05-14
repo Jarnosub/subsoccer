@@ -575,32 +575,41 @@
         }
         .ai-upload-btn {
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: #c41e2a;
+            border: 1px solid #c41e2a;
             border-radius: 2px;
             padding: 16px; cursor: pointer;
             font-family: 'Resolve', sans-serif; font-size: 0.7rem; font-weight: bold;
-            color: #aaa; letter-spacing: 2px; text-transform: uppercase;
+            color: #fff; letter-spacing: 2px; text-transform: uppercase;
             transition: all 0.25s;
+            box-shadow: 0 4px 15px rgba(196, 30, 42, 0.2);
         }
-        .ai-upload-btn:hover { border-color: rgba(196,30,42,0.4); color: #fff; background: rgba(196,30,42,0.05); }
+        .ai-upload-btn:hover { background: #a01520; }
         .ai-upload-btn.ready {
-            border-color: rgba(76,175,80,0.5);
-            color: #4CAF50;
-            background: rgba(76,175,80,0.05);
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.1);
+            color: #888;
+            box-shadow: none;
         }
         .ai-generate-btn {
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            background: linear-gradient(135deg, #c41e2a 0%, #a01520 100%);
-            border: none;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 2px;
             padding: 16px;
-            color: #fff;
+            color: #666;
             font-family: 'Resolve', sans-serif; font-size: 0.85rem; font-weight: bold;
             letter-spacing: 2px; text-transform: uppercase;
+            cursor: default; transition: all 0.25s;
+            pointer-events: none;
+        }
+        .ai-generate-btn.ready {
+            background: linear-gradient(135deg, #c41e2a 0%, #a01520 100%);
+            border: none;
+            color: #fff;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(196, 30, 42, 0.25);
+            pointer-events: auto;
+            box-shadow: 0 4px 15px rgba(196, 30, 42, 0.2);
         }
         .ai-generate-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(196, 30, 42, 0.35); }
         .ai-generate-btn:active { transform: scale(0.98); }
@@ -1351,9 +1360,11 @@
             if (input.files && input.files[0]) {
                 const file = input.files[0];
                 const lbl = document.getElementById('ai-selfie-label');
-                const btn = document.getElementById('ai-upload-label');
+                const uploadBtn = document.getElementById('ai-upload-label');
+                const btn = document.getElementById('btn-generate-ai');
                 
                 lbl.innerText = 'SELFIE READY';
+                uploadBtn.classList.add('ready');
                 btn.classList.add('ready');
 
                 const reader = new FileReader();
