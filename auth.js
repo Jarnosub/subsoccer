@@ -436,6 +436,14 @@ export async function handleAuth(event) {
 
     const originalText = btn ? btn.textContent : 'LOG IN';
 
+    // Create a fresh, lightweight Supabase client for login queries.
+    // The main _supabase client may be stuck waiting for getSession() to resolve
+    // (called by initApp on page load), which queues ALL subsequent DB requests.
+    // This dedicated client bypasses that bottleneck entirely.
+    const loginClient = window.supabase.createClient(_URL, _KEY, {
+        auth: { persistSession: false, autoRefreshToken: false }
+    });
+
     try {
         if (btn) { btn.disabled = true; btn.textContent = 'LOGGING IN...'; }
 
@@ -463,7 +471,7 @@ export async function handleAuth(event) {
             console.log("Supabase Auth login failed:", error.message);
 
             // Tarkistetaan löytyykö sähköposti players-taulusta (migraatiotuki)
-            const { data: emailMatches, error: emailErr } = await _supabase
+            const { data: emailMatches, error: emailErr } = await loginClient
                 .from('players').select('*').ilike('email', input);
 
             if (!emailErr && emailMatches && emailMatches.length > 0) {
@@ -491,8 +499,7 @@ export async function handleAuth(event) {
         // 2. Tarkistetaan players-taulu (käyttäjänimellä)
         console.log("🔍 Searching players table by username...");
 
-        // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
-        let { data: nameMatches, error: nameErr } = await _supabase
+        let { data: nameMatches, error: nameErr } = await loginClient
             .from('players').select('*').ilike('username', input);
 
         console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
@@ -506,7 +513,7 @@ export async function handleAuth(event) {
         if (!nameMatches || nameMatches.length === 0) {
             console.log("Direct search failed, trying fuzzy search...");
             const fuzzyInput = input.replace(/\s+/g, '%');
-            const { data: fuzzyMatches } = await _supabase
+            const { data: fuzzyMatches } = await loginClient
                 .from('players')
                 .select('*')
                 .ilike('username', fuzzyInput);
