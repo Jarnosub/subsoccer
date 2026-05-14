@@ -555,30 +555,46 @@
                         const clientTimeout = new AbortController();
                         const clientTimer = setTimeout(() => clientTimeout.abort(), 130000);
 
-                        // Step 1: Analyze face
-                        const analyzeRes = await fetch('/.netlify/functions/analyze-face', {
+                        const taskId = 'task_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                        
+                        // Call background function (returns immediately)
+                        const bgRes = await fetch('/.netlify/functions/generate-avatar-background', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ image_b64: _signupSelfieB64 }),
-                            signal: clientTimeout.signal
+                            body: JSON.stringify({ 
+                                image_b64: _signupSelfieB64, 
+                                taskId: taskId,
+                                supabaseUrl: SUPA_URL,
+                                supabaseKey: SUPA_KEY
+                            })
                         });
                         
-                        let analyzeData;
-                        try { analyzeData = await analyzeRes.json(); } catch (e) { throw new Error('Analysis timed out. Please try again.'); }
-                        if (!analyzeRes.ok) throw new Error(analyzeData.error || 'Failed to analyze face');
+                        if (!bgRes.ok) throw new Error('Failed to start generation task');
 
-                        // Step 2: Generate art
-                        const res = await fetch('/.netlify/functions/generate-avatar', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ description: analyzeData.description }),
-                            signal: clientTimeout.signal
+                        // Listen via Supabase Realtime Broadcast
+                        let imageReady = false;
+                        let data = { image_b64: null };
+                        
+                        const channel = window.supabaseClient.channel(`avatar-${taskId}`);
+                        channel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
+                            data.image_b64 = payload.payload.image_b64;
+                            imageReady = true;
                         });
+                        await channel.subscribe();
+                        
+                        // Wait for up to 120 seconds
+                        for (let i = 0; i < 40; i++) {
+                            if (imageReady) break;
+                            await new Promise(r => setTimeout(r, 3000));
+                        }
+                        
+                        window.supabaseClient.removeChannel(channel);
+                        
                         clearTimeout(clientTimer);
-
-                        let data;
-                        try { data = await res.json(); } catch (e) { throw new Error('Generation timed out. Please try again.'); }
-                        if (!res.ok) throw new Error(data.error || 'Generation failed');
+                        
+                        if (!imageReady) {
+                            throw new Error('Generation timed out or failed. Please try again.');
+                        }
 
                         _signupAiUsed = true;
                         _signupAiAvatarB64 = data.image_b64;
