@@ -45,65 +45,46 @@ exports.handler = async function (event, context) {
         const base64Data = image_b64.replace(/^data:image\/\w+;base64,/, "");
         const imageBuffer = Buffer.from(base64Data, "base64");
 
-        console.log(`[${taskId}] Step 1: Getting description from GPT-4o...`);
+        const boundary = "----SubsoccerBoundary" + Date.now();
 
-        // 1. Analyze selfie with GPT-4o
-        const visionResp = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "gpt-4o",
-                messages: [
-                    {
-                        role: "user",
-                        content: [
-                            { type: "text", text: "Describe the physical appearance of the person in this image in one concise paragraph. Focus ONLY on their face, hair color/style, eye color, skin tone, facial hair, glasses, or distinct facial features. Do not describe the background or clothing." },
-                            { type: "image_url", image_url: { url: `data:image/png;base64,${base64Data}` } }
-                        ]
-                    }
-                ],
-                max_tokens: 150
-            })
-        });
+        const prompt = `Stylized sports portrait of this person as an elite street football player.
 
-        const visionData = await visionResp.json();
-        if (visionData.error) throw new Error("Vision API error: " + visionData.error.message);
-        
-        const description = visionData.choices[0].message.content;
-        console.log(`[${taskId}] Description:`, description);
-
-        const prompt = `A stylized sports portrait of a person matching this exact physical description: ${description}
-
-They are an elite street football player.
+IDENTITY: Preserve their exact facial features, skin tone, hair, glasses, and facial hair. This must look like THEM — just upgraded.
 
 STYLE: Semi-realistic digital art inspired by FIFA Ultimate Team and NBA2K player cards. Slight illustrated texture, enhanced lighting, confident expression. NOT a cartoon, NOT a photo — premium AAA game artwork.
+
 OUTFIT: Modern street football jersey with bold design. No specific brand logos.
+
 LIGHTING: Cinematic stadium lighting with subtle neon accents and shallow depth of field. Dark atmospheric background.
+
 COMPOSITION: Portrait from chest up, facing camera, centered, clean silhouette.
+
 ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra objects, other people.`;
 
-        console.log(`[${taskId}] Step 2: Generating avatar with dall-e-3...`);
+        const formParts = [];
+        formParts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="image"; filename="selfie.png"\r\nContent-Type: image/png\r\n\r\n`, "utf-8"));
+        formParts.push(imageBuffer);
+        formParts.push(Buffer.from("\r\n", "utf-8"));
+        formParts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="prompt"\r\n\r\n${prompt}\r\n`, "utf-8"));
+        formParts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\ngpt-image-2\r\n`, "utf-8"));
+        formParts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="size"\r\n\r\n1024x1024\r\n`, "utf-8"));
+        formParts.push(Buffer.from(`--${boundary}--\r\n`, "utf-8"));
 
-        // 2. Generate with DALL-E 3
-        const dalleResp = await fetch("https://api.openai.com/v1/images/generations", {
+        const body = Buffer.concat(formParts);
+
+        console.log(`[${taskId}] Sending image to gpt-image-2 edit API...`);
+
+        // No timeout for background functions! Let it take as long as it needs.
+        const response = await fetch("https://api.openai.com/v1/images/edits", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
+                "Content-Type": `multipart/form-data; boundary=${boundary}`
             },
-            body: JSON.stringify({
-                model: "dall-e-3",
-                prompt: prompt,
-                n: 1,
-                size: "1024x1024",
-                response_format: "b64_json"
-            })
+            body: body
         });
 
-        const data = await dalleResp.json();
+        const data = await response.json();
 
         if (data.error) {
             console.error(`[${taskId}] OpenAI error:`, JSON.stringify(data.error));
