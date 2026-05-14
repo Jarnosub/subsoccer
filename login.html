@@ -575,7 +575,30 @@
 
                         const taskId = 'task_' + Date.now() + '_' + Math.random().toString(36).substring(7);
                         
-                        // Call background function (returns immediately)
+                        // 1. Listen via Supabase Realtime Broadcast FIRST!
+                        let imageReady = false;
+                        let errorMessage = null;
+                        let data = { image_b64: null };
+                        
+                        const channel = _tempSb.channel(`avatar-${taskId}`);
+                        channel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
+                            data.image_b64 = payload.payload.image_b64;
+                            imageReady = true;
+                        });
+                        channel.on('broadcast', { event: 'avatar-error' }, (payload) => {
+                            errorMessage = payload.payload.error || 'Generation failed';
+                            imageReady = true;
+                        });
+                        
+                        // Wait until fully subscribed before triggering the background generation!
+                        await new Promise((resolve, reject) => {
+                            channel.subscribe((status, err) => {
+                                if (status === 'SUBSCRIBED') resolve();
+                                if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR') reject(err || new Error('Realtime connection failed'));
+                            });
+                        });
+
+                        // 2. Call background function (returns immediately)
                         const bgRes = await fetch('/.netlify/functions/generate-avatar-background', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -590,21 +613,6 @@
                             const errText = await bgRes.text();
                             throw new Error(`Failed to start generation task (${bgRes.status}): ${errText}`);
                         }
-                        // Listen via Supabase Realtime Broadcast
-                        let imageReady = false;
-                        let errorMessage = null;
-                        let data = { image_b64: null };
-                        
-                        const channel = _tempSb.channel(`avatar-${taskId}`);
-                        channel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
-                            data.image_b64 = payload.payload.image_b64;
-                            imageReady = true;
-                        });
-                        channel.on('broadcast', { event: 'avatar-error' }, (payload) => {
-                            errorMessage = payload.payload.error || 'Generation failed';
-                            imageReady = true;
-                        });
-                        await channel.subscribe();
                         
                         // Wait for up to 120 seconds
                         for (let i = 0; i < 40; i++) {

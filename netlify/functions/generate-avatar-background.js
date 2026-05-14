@@ -72,11 +72,17 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
         if (data.error) {
             console.error(`[${taskId}] OpenAI error:`, JSON.stringify(data.error));
             const channel = supabase.channel(`avatar-${taskId}`);
-            await channel.subscribe();
-            await channel.send({
-                type: 'broadcast',
-                event: 'avatar-error',
-                payload: { error: data.error.message || "OpenAI API Error" }
+            await new Promise((resolve) => {
+                channel.subscribe(async (status) => {
+                    if (status === 'SUBSCRIBED') {
+                        await channel.send({
+                            type: 'broadcast',
+                            event: 'avatar-error',
+                            payload: { error: data.error.message || "OpenAI API Error" }
+                        });
+                        resolve();
+                    }
+                });
             });
             await new Promise(r => setTimeout(r, 1000));
             return { statusCode: 500, body: "Error" };
@@ -93,11 +99,17 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
         if (!finalImageBuffer) {
             console.error(`[${taskId}] No image data received`);
             const channel = supabase.channel(`avatar-${taskId}`);
-            await channel.subscribe();
-            await channel.send({
-                type: 'broadcast',
-                event: 'avatar-error',
-                payload: { error: "No image data received from API" }
+            await new Promise((resolve) => {
+                channel.subscribe(async (status) => {
+                    if (status === 'SUBSCRIBED') {
+                        await channel.send({
+                            type: 'broadcast',
+                            event: 'avatar-error',
+                            payload: { error: "No image data received from API" }
+                        });
+                        resolve();
+                    }
+                });
             });
             await new Promise(r => setTimeout(r, 1000));
             return { statusCode: 500, body: "Error" };
@@ -134,11 +146,17 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
             if (taskId && supabaseUrl && supabaseKey) {
                 const supabase = createClient(supabaseUrl, supabaseKey);
                 const channel = supabase.channel(`avatar-${taskId}`);
-                await channel.subscribe();
-                await channel.send({
-                    type: 'broadcast',
-                    event: 'avatar-error',
-                    payload: { error: "Internal server error during background task" }
+                await new Promise((resolve) => {
+                    channel.subscribe(async (status) => {
+                        if (status === 'SUBSCRIBED') {
+                            await channel.send({
+                                type: 'broadcast',
+                                event: 'avatar-error',
+                                payload: { error: "Internal server error during background task" }
+                            });
+                            resolve();
+                        }
+                    });
                 });
                 await new Promise(r => setTimeout(r, 1000));
             }
