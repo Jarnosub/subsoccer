@@ -1371,17 +1371,15 @@
         </div>
     </div>
 
-    <!-- Prevent main.js from showing tour-auth-message on login unless ?page=tournament -->
+    <!-- Always hide tour-auth-message on login page — it adds no value here -->
     <script>
-        if (!new URLSearchParams(window.location.search).get('page')?.includes('tournament')) {
-            // MutationObserver to keep tour-auth-message hidden
+        {
             const obs = new MutationObserver(() => {
                 const el = document.getElementById('tour-auth-message');
                 if (el && el.style.display !== 'none') el.style.display = 'none';
             });
             obs.observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['style'] });
-            // Auto-disconnect after 5s (init phase complete by then)
-            setTimeout(() => obs.disconnect(), 5000);
+            setTimeout(() => obs.disconnect(), 8000);
         }
     </script>
     <script type="module" src="main.js?v=card_fix_3"></script>

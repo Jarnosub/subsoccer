@@ -445,18 +445,10 @@ export async function handleSignUp() {
 export async function handleAuth(event) {
     if (event && event.preventDefault) event.preventDefault();
 
-    Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('sb-') || key.includes('supabase')) {
-            localStorage.removeItem(key);
-        }
-    });
-    // Race signOut against 3s timeout — prevent hanging
-    await Promise.race([
-        _supabase.auth.signOut().catch(() => {}),
-        new Promise(resolve => setTimeout(resolve, 3000))
-    ]);
-
-    resetFullState(); // Vaihe A: Puhdistetaan vanha tila ja välimuisti
+    // Lightweight cleanup — do NOT destroy Supabase tokens before login attempt
+    // The old approach of purging all sb-* keys + signOut was destroying the
+    // Supabase client's internal state, causing subsequent DB queries to timeout.
+    resetFullState(); // Puhdistetaan vanha tila ja välimuisti
 
     const btn = document.getElementById('btn-login');
     if (btn && btn.disabled) {
@@ -526,7 +518,7 @@ export async function handleAuth(event) {
         // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
         let { data: nameMatches, error: nameErr } = await Promise.race([
             _supabase.from('players').select('*').ilike('username', input),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 5000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 12000))
         ]);
 
         console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
@@ -542,7 +534,7 @@ export async function handleAuth(event) {
             const fuzzyInput = input.replace(/\s+/g, '%');
             const { data: fuzzyMatches } = await Promise.race([
                 _supabase.from('players').select('*').ilike('username', fuzzyInput),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 5000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 12000))
             ]);
             nameMatches = fuzzyMatches || [];
         }
@@ -580,7 +572,8 @@ export async function handleAuth(event) {
         throw new Error("Invalid login credentials. If you recently upgraded, your secure password might be different from your old one.");
     } catch (e) {
         console.error("Login error:", e);
-        const msg = e.message || "An error occurred during login.";
+        let msg = e.message || "An error occurred during login.";
+        if (msg === 'DB_TIMEOUT') msg = 'Connection timed out. Please try again.';
         showNotification(msg.includes("Invalid login credentials") ? "Invalid email or password." : msg, "error");
     } finally {
         if (btn) { btn.disabled = false; btn.textContent = originalText; }
