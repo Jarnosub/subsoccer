@@ -39,8 +39,10 @@
 </head>
 <body>
     <script>
-        if (localStorage.getItem('subsoccer-dark-mode') === '1') {
+        const storageVal = localStorage.getItem('subsoccer-dark-mode');
+        if (storageVal === '1' || storageVal === null) {
             document.body.classList.add('dark-mode');
+            if (storageVal === null) localStorage.setItem('subsoccer-dark-mode', '1');
         }
     </script>
     <!-- Auth guard: hide everything until verified -->

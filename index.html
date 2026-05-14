@@ -1060,12 +1060,13 @@
         (function() {
             const params = new URLSearchParams(window.location.search);
             const fromUrl = params.get('dark') === '1';
-            const fromStorage = localStorage.getItem('subsoccer-dark-mode') === '1';
+            const storageVal = localStorage.getItem('subsoccer-dark-mode');
+            const fromStorage = storageVal === '1' || storageVal === null;
             if (fromUrl || fromStorage) {
                 document.body.classList.add('dark-mode');
                 const icon = document.querySelector('#theme-toggle i');
                 if (icon) icon.className = 'fa-solid fa-sun';
-                if (fromUrl) localStorage.setItem('subsoccer-dark-mode', '1');
+                if (fromUrl || storageVal === null) localStorage.setItem('subsoccer-dark-mode', '1');
             }
         })();
     </script>
