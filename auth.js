@@ -12,31 +12,7 @@ export async function initApp() {
         setupAuthListeners();
 
         // PAKOTETTU TARKISTUS: Haetaan istunto heti, jotta ei tarvita refreshia
-        // Race against 5s timeout to prevent infinite hang from stale tokens
-        let session = null, error = null;
-        try {
-            const result = await Promise.race([
-                _supabase.auth.getSession(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 5000))
-            ]);
-            session = result?.data?.session;
-            error = result?.error;
-        } catch(e) {
-            console.warn('getSession timed out (5s) — clearing stale session...');
-            // Two-step cleanup: clear stored tokens AND reset the client's internal
-            // auth state. Without signOut, the client remains stuck with stale
-            // in-memory credentials and ALL subsequent queries hang.
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('sb-') || key.includes('supabase')) {
-                    localStorage.removeItem(key);
-                }
-            });
-            // Local-only signOut resets the client WITHOUT making a network call
-            await Promise.race([
-                _supabase.auth.signOut({ scope: 'local' }).catch(() => {}),
-                new Promise(resolve => setTimeout(resolve, 2000))
-            ]);
-        }
+        const { data: { session }, error } = await _supabase.auth.getSession();
 
         if (error) {
             console.warn("Supabase auth warning (usually safe to ignore):", error.message);
@@ -452,11 +428,6 @@ export async function handleSignUp() {
 export async function handleAuth(event) {
     if (event && event.preventDefault) event.preventDefault();
 
-    // Lightweight cleanup — do NOT destroy Supabase tokens before login attempt
-    // The old approach of purging all sb-* keys + signOut was destroying the
-    // Supabase client's internal state, causing subsequent DB queries to timeout.
-    resetFullState(); // Puhdistetaan vanha tila ja välimuisti
-
     const btn = document.getElementById('btn-login');
     if (btn && btn.disabled) {
         console.warn("⚠️ Login already in progress, ignoring duplicate attempt.");
@@ -479,10 +450,10 @@ export async function handleAuth(event) {
         // 1. Yritetään ensin kirjautua sähköpostilla (uusi tapa)
         if (input.includes('@')) {
             console.log("📧 Attempting email login via Supabase Auth...");
-            const { data: authData, error } = await Promise.race([
-                _supabase.auth.signInWithPassword({ email: input, password: p }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Login timed out. Please try again.')), 8000))
-            ]);
+            const { data: authData, error } = await _supabase.auth.signInWithPassword({
+                email: input,
+                password: p
+            });
 
             if (!error) {
                 console.log("✅ Email login successful");
@@ -492,10 +463,8 @@ export async function handleAuth(event) {
             console.log("Supabase Auth login failed:", error.message);
 
             // Tarkistetaan löytyykö sähköposti players-taulusta (migraatiotuki)
-            const { data: emailMatches, error: emailErr } = await Promise.race([
-                _supabase.from('players').select('*').ilike('email', input),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 5000))
-            ]);
+            const { data: emailMatches, error: emailErr } = await _supabase
+                .from('players').select('*').ilike('email', input);
 
             if (!emailErr && emailMatches && emailMatches.length > 0) {
                 const hashed = await hashPassword(p);
@@ -523,10 +492,8 @@ export async function handleAuth(event) {
         console.log("🔍 Searching players table by username...");
 
         // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
-        let { data: nameMatches, error: nameErr } = await Promise.race([
-            _supabase.from('players').select('*').ilike('username', input),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 12000))
-        ]);
+        let { data: nameMatches, error: nameErr } = await _supabase
+            .from('players').select('*').ilike('username', input);
 
         console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
 
@@ -539,10 +506,10 @@ export async function handleAuth(event) {
         if (!nameMatches || nameMatches.length === 0) {
             console.log("Direct search failed, trying fuzzy search...");
             const fuzzyInput = input.replace(/\s+/g, '%');
-            const { data: fuzzyMatches } = await Promise.race([
-                _supabase.from('players').select('*').ilike('username', fuzzyInput),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 12000))
-            ]);
+            const { data: fuzzyMatches } = await _supabase
+                .from('players')
+                .select('*')
+                .ilike('username', fuzzyInput);
             nameMatches = fuzzyMatches || [];
         }
 
@@ -554,10 +521,10 @@ export async function handleAuth(event) {
             const migratedMatch = nameMatches.find(m => isUuid(m.id) && m.email);
             if (migratedMatch) {
                 console.log("Migrated record found, attempting Auth login for:", migratedMatch.email);
-                const { data: authData, error: authErr } = await Promise.race([
-                    _supabase.auth.signInWithPassword({ email: migratedMatch.email, password: p }),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Login timed out. Please try again.')), 8000))
-                ]);
+                const { data: authData, error: authErr } = await _supabase.auth.signInWithPassword({
+                    email: migratedMatch.email,
+                    password: p
+                });
                 if (!authErr) {
                     console.log("Auth login successful for:", migratedMatch.email);
                     showNotification("Welcome back!", "success");
@@ -579,8 +546,7 @@ export async function handleAuth(event) {
         throw new Error("Invalid login credentials. If you recently upgraded, your secure password might be different from your old one.");
     } catch (e) {
         console.error("Login error:", e);
-        let msg = e.message || "An error occurred during login.";
-        if (msg === 'DB_TIMEOUT') msg = 'Connection timed out. Please try again.';
+        const msg = e.message || "An error occurred during login.";
         showNotification(msg.includes("Invalid login credentials") ? "Invalid email or password." : msg, "error");
     } finally {
         if (btn) { btn.disabled = false; btn.textContent = originalText; }

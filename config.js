@@ -11,16 +11,7 @@ export const FLAGS = {
 // Varmista Supabase-asiakkaan alustus ympäristöstä riippuen
 let supabaseClient;
 if (typeof window !== 'undefined' && window.supabase) {
-    // Supabase client with default auth settings.
-    // autoRefreshToken MUST be true (default) — disabling it causes the client
-    // to get permanently stuck with expired tokens, blocking ALL requests.
-    supabaseClient = window.supabase.createClient(_URL, _KEY, {
-        auth: {
-            autoRefreshToken: true,
-            persistSession: true,
-            detectSessionInUrl: true
-        }
-    });
+    supabaseClient = window.supabase.createClient(_URL, _KEY);
 } else {
     // Mock tai tyhjä objekti testejä varten jos supabase-js ei ole ladattu
     supabaseClient = {
