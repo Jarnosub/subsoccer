@@ -19,6 +19,23 @@ exports.handler = async function (event, context) {
 
         if (!apiKey || !image_b64 || !taskId || !supabaseUrl || !supabaseKey) {
             console.error("Missing required parameters for background generation");
+            if (taskId && supabaseUrl && supabaseKey) {
+                const supabase = createClient(supabaseUrl, supabaseKey);
+                const channel = supabase.channel(`avatar-${taskId}`);
+                await new Promise((resolve) => {
+                    channel.subscribe(async (status) => {
+                        if (status === 'SUBSCRIBED') {
+                            await channel.send({
+                                type: 'broadcast',
+                                event: 'avatar-error',
+                                payload: { error: "Server configuration missing (API Key)" }
+                            });
+                            resolve();
+                        }
+                    });
+                });
+                await new Promise(r => setTimeout(r, 1000));
+            }
             return { statusCode: 400, body: "Bad Request" };
         }
 
@@ -49,7 +66,7 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
         formParts.push(imageBuffer);
         formParts.push(Buffer.from("\r\n", "utf-8"));
         formParts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="prompt"\r\n\r\n${prompt}\r\n`, "utf-8"));
-        formParts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\ngpt-image-2\r\n`, "utf-8"));
+        formParts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\ndall-e-2\r\n`, "utf-8"));
         formParts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="size"\r\n\r\n1024x1024\r\n`, "utf-8"));
         formParts.push(Buffer.from(`--${boundary}--\r\n`, "utf-8"));
 
