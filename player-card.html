@@ -665,11 +665,7 @@
         }
         .ai-gen-overlay.active { display: flex; }
         .ai-gen-icon {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: #1a1a1a;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
             animation: ai-gen-pulse 2s ease-in-out infinite;
         }
         @keyframes ai-gen-pulse {
@@ -926,7 +922,7 @@
 
     <!-- AI GENERATION OVERLAY -->
     <div class="ai-gen-overlay" id="ai-gen-overlay">
-        <div class="ai-gen-icon"><img src="artist.png" alt="AI Artist" style="width:100%; height:100%; object-fit:cover;"></div>
+        <div class="ai-gen-icon"><img src="artist.png" alt="AI Artist" style="width:140px; height:auto; object-fit:contain;"></div>
         <div class="ai-gen-title">CREATING YOUR AVATAR</div>
         <div class="ai-gen-status" id="ai-gen-status">Analyzing your photo...</div>
         <div class="ai-gen-progress-wrap">
