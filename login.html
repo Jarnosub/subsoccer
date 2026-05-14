@@ -143,8 +143,8 @@
             <div style="background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; padding: 20px 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.5);">
                 <div style="color: #666; letter-spacing: 2px; font-size: 0.6rem; margin-bottom: 14px; font-family:'Resolve',sans-serif; text-align:center;">PLAYER LOGIN</div>
                 <form id="auth-form-wrapper" style="gap: 8px;">
-                    <input type="text" id="auth-user" placeholder="Username" autocomplete="username" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
-                    <input type="password" id="auth-pass" placeholder="Password" autocomplete="current-password" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
+                    <input type="text" id="auth-user" name="username" placeholder="Username" autocomplete="username" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
+                    <input type="password" id="auth-pass" name="password" placeholder="Password" autocomplete="current-password" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
                     <button id="btn-login" class="btn-red" type="submit" style="background: #c41e2a; color: #ffffff; padding: 12px; font-size: 0.9rem; letter-spacing: 1px; margin-top: 2px; box-shadow: 0 3px 15px rgba(196, 30, 42, 0.2); border-radius: 3px; font-family:'SubsoccerLogo',sans-serif;">LOG IN</button>
                     <div style="margin-top: 8px;">
                         <button id="btn-show-signup" type="button" class="btn-create-account"
@@ -371,7 +371,7 @@
                 <!-- SIGNUP FIELDS -->
                 <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: 0 auto;">
 
-                    <input type="text" id="reg-user" placeholder="Enter Player Name..." maxlength="12"
+                    <input type="text" id="reg-user" name="username" placeholder="Enter Player Name..." maxlength="12"
                         autocomplete="username"
                         style="width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 2px; color: #fff; font-family: 'Open Sans', sans-serif; font-size: 0.95rem; outline: none; transition: all 0.3s ease; box-sizing: border-box;">
 
@@ -380,9 +380,9 @@
                     <div id="signup-avatar-filename" style="display: none;"></div>
 
                     <div style="display:flex; gap:10px;">
-                        <input type="email" id="reg-email" placeholder="Email Address" autocomplete="email"
+                        <input type="email" id="reg-email" name="email" placeholder="Email Address" autocomplete="email"
                             style="flex:1; padding: 12px; font-size:0.85rem; background: #1a1a1a; border: 1px solid #333; border-radius: 2px; color: #fff; font-family: 'Open Sans', sans-serif; outline: none; box-sizing: border-box;">
-                        <input type="password" id="reg-pass" placeholder="Password" autocomplete="new-password"
+                        <input type="password" id="reg-pass" name="password" placeholder="Password" autocomplete="new-password"
                             style="flex:1; padding: 12px; font-size:0.85rem; background: #1a1a1a; border: 1px solid #333; border-radius: 2px; color: #fff; font-family: 'Open Sans', sans-serif; outline: none; box-sizing: border-box;">
                     </div>
 
@@ -1311,6 +1311,19 @@
         </div>
     </div>
 
+    <!-- Prevent main.js from showing tour-auth-message on login unless ?page=tournament -->
+    <script>
+        if (!new URLSearchParams(window.location.search).get('page')?.includes('tournament')) {
+            // MutationObserver to keep tour-auth-message hidden
+            const obs = new MutationObserver(() => {
+                const el = document.getElementById('tour-auth-message');
+                if (el && el.style.display !== 'none') el.style.display = 'none';
+            });
+            obs.observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['style'] });
+            // Auto-disconnect after 5s (init phase complete by then)
+            setTimeout(() => obs.disconnect(), 5000);
+        }
+    </script>
     <script type="module" src="main.js?v=card_fix_3"></script>
     <div class="app-version">v.1.0.4</div>
 
