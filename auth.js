@@ -43,9 +43,11 @@ export async function initApp() {
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
                 if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-                    // Always redirect to Hub after login
-                    // login.html is only for authentication, not for the app
                     if (window.location.pathname.includes('login')) {
+                        // Varmistetaan että profiili on välimuistissa ennen redirectiä
+                        if (!state.user || state.user.id !== session.user.id) {
+                            await refreshUserProfile(session.user.id);
+                        }
                         window.location.replace('index.html');
                         return;
                     }
