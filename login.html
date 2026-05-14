@@ -577,11 +577,16 @@
 
                         // Listen via Supabase Realtime Broadcast
                         let imageReady = false;
+                        let errorMessage = null;
                         let data = { image_b64: null };
                         
                         const channel = _tempSb.channel(`avatar-${taskId}`);
                         channel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
                             data.image_b64 = payload.payload.image_b64;
+                            imageReady = true;
+                        });
+                        channel.on('broadcast', { event: 'avatar-error' }, (payload) => {
+                            errorMessage = payload.payload.error || 'Generation failed';
                             imageReady = true;
                         });
                         await channel.subscribe();
@@ -593,10 +598,13 @@
                         }
                         
                         _tempSb.removeChannel(channel);
-                        
                         clearTimeout(clientTimer);
                         
-                        if (!imageReady) {
+                        if (errorMessage) {
+                            throw new Error(errorMessage);
+                        }
+                        
+                        if (!data.image_b64) {
                             throw new Error('Generation timed out or failed. Please try again.');
                         }
 

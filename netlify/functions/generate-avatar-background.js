@@ -71,6 +71,14 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
 
         if (data.error) {
             console.error(`[${taskId}] OpenAI error:`, JSON.stringify(data.error));
+            const channel = supabase.channel(`avatar-${taskId}`);
+            await channel.subscribe();
+            await channel.send({
+                type: 'broadcast',
+                event: 'avatar-error',
+                payload: { error: data.error.message || "OpenAI API Error" }
+            });
+            await new Promise(r => setTimeout(r, 1000));
             return { statusCode: 500, body: "Error" };
         }
 
@@ -84,6 +92,14 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
 
         if (!finalImageBuffer) {
             console.error(`[${taskId}] No image data received`);
+            const channel = supabase.channel(`avatar-${taskId}`);
+            await channel.subscribe();
+            await channel.send({
+                type: 'broadcast',
+                event: 'avatar-error',
+                payload: { error: "No image data received from API" }
+            });
+            await new Promise(r => setTimeout(r, 1000));
             return { statusCode: 500, body: "Error" };
         }
 
@@ -112,6 +128,22 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
 
     } catch (error) {
         console.error("Background task error:", error.message);
+        
+        try {
+            const { taskId, supabaseUrl, supabaseKey } = JSON.parse(event.body);
+            if (taskId && supabaseUrl && supabaseKey) {
+                const supabase = createClient(supabaseUrl, supabaseKey);
+                const channel = supabase.channel(`avatar-${taskId}`);
+                await channel.subscribe();
+                await channel.send({
+                    type: 'broadcast',
+                    event: 'avatar-error',
+                    payload: { error: "Internal server error during background task" }
+                });
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        } catch (e) {}
+        
         return { statusCode: 500, body: "Error" };
     }
 };
