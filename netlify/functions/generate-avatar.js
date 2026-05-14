@@ -67,10 +67,10 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
 
         // -- model
         formParts.push(Buffer.from(
-            `--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\ngpt-image-1\r\n`, "utf-8"
+            `--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\ngpt-image-2\r\n`, "utf-8"
         ));
 
-        // -- size (1024x1024 is the smallest supported by gpt-image-1)
+        // -- size (1024x1024 is the smallest supported by gpt-image-2)
         formParts.push(Buffer.from(
             `--${boundary}\r\nContent-Disposition: form-data; name="size"\r\n\r\n1024x1024\r\n`, "utf-8"
         ));
@@ -80,7 +80,7 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
 
         const body = Buffer.concat(formParts);
 
-        console.log("Sending image to gpt-image-1 edit API... (" + (imageBuffer.length / 1024).toFixed(0) + " KB image)");
+        console.log("Sending image to gpt-image-2 edit API... (" + (imageBuffer.length / 1024).toFixed(0) + " KB image)");
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s for detailed images
