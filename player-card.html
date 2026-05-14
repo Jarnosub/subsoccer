@@ -1082,8 +1082,10 @@
         }
 
         // Load all custom avatars from Supabase Storage for the user
+        let _avatarHistoryLoaded = false;
         async function loadCustomAvatarHistory(player) {
             if (!player?.id) return;
+            if (_avatarHistoryLoaded) return; // Already loaded, skip
             const track = document.getElementById('avatar-selection');
             if (!track) return;
 
@@ -1091,11 +1093,18 @@
             track.querySelectorAll('.avatar-option[data-custom="true"]').forEach(el => el.remove());
 
             const currentAvatarBase = player.avatar_url ? player.avatar_url.split('?')[0] : '';
-            let avatarUrls = []; // Will hold all custom avatar URLs (newest first)
+            
+            // 1. INSTANT: show from localStorage gallery first (no network wait)
+            let avatarUrls = loadAvatarGallery(player.id);
+            if (avatarUrls.length > 0) {
+                injectAvatarUrls(avatarUrls, currentAvatarBase, track);
+                _avatarHistoryLoaded = true;
+            }
 
+            // 2. BACKGROUND: refresh from Storage API (may add new entries)
             try {
-                // List all files in avatars/ folder matching this user's ID
-                const token = await getFreshToken() || SUPA_KEY;
+                // List all files in avatars/ folder matching this user's ID (read-only, anon key is enough)
+                const token = SUPA_KEY;
                 const listRes = await fetch(`${SUPA_URL}/storage/v1/object/list/event-images`, {
                     method: 'POST',
                     headers: {
@@ -1115,35 +1124,41 @@
                 if (listRes.ok) {
                     const files = await listRes.json();
                     if (files && files.length > 0) {
-                        avatarUrls = files.map(f => `${SUPA_URL}/storage/v1/object/public/event-images/avatars/${f.name}`);
-                        // Save to localStorage as backup
-                        saveAvatarGallery(player.id, avatarUrls);
+                        const storageUrls = files.map(f => `${SUPA_URL}/storage/v1/object/public/event-images/avatars/${f.name}`);
+                        saveAvatarGallery(player.id, storageUrls);
+                        
+                        // Only re-inject if Storage has different/more items than localStorage
+                        if (storageUrls.length !== avatarUrls.length) {
+                            track.querySelectorAll('.avatar-option[data-custom="true"]').forEach(el => el.remove());
+                            avatarUrls = storageUrls;
+                            injectAvatarUrls(avatarUrls, currentAvatarBase, track);
+                        }
                     }
                 }
             } catch(e) {
                 console.warn('Storage list error:', e.message);
             }
 
-            // If Storage returned nothing, try localStorage fallback
-            if (avatarUrls.length === 0) {
-                avatarUrls = loadAvatarGallery(player.id);
-            }
-
-            // If still nothing, just show current avatar
-            if (avatarUrls.length === 0 && player.avatar_url && !player.avatar_url.includes('avatar-human-')) {
+            // If nothing loaded yet, show current avatar as single item
+            if (!_avatarHistoryLoaded && player.avatar_url && !player.avatar_url.includes('avatar-human-')) {
                 avatarUrls = [player.avatar_url.split('?')[0]];
+                injectAvatarUrls(avatarUrls, currentAvatarBase, track);
             }
+            _avatarHistoryLoaded = true;
+        }
 
+        // Inject avatar URLs into carousel
+        function injectAvatarUrls(urls, currentAvatarBase, track) {
             // Ensure current avatar is in the list
-            if (player.avatar_url && !player.avatar_url.includes('avatar-human-')) {
-                const currentBase = player.avatar_url.split('?')[0];
-                if (!avatarUrls.some(u => u.includes(currentBase) || currentBase.includes(u))) {
-                    avatarUrls.unshift(currentBase);
+            if (currentAvatarBase) {
+                const hasCurrentBase = urls.some(u => u.includes(currentAvatarBase) || currentAvatarBase.includes(u));
+                if (!hasCurrentBase) {
+                    urls = [currentAvatarBase, ...urls];
                 }
             }
 
-            // Inject into carousel — reverse so prepend gives newest-first
-            const reversedUrls = [...avatarUrls].reverse();
+            // Reverse so prepend gives newest-first
+            const reversedUrls = [...urls].reverse();
             reversedUrls.forEach(url => {
                 const isSelected = currentAvatarBase && (url.includes(currentAvatarBase) || currentAvatarBase.includes(url));
                 const opt = document.createElement('div');
