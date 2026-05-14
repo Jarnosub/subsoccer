@@ -509,7 +509,7 @@
                                 else { if (h > MAX) { w *= MAX / h; h = MAX; } }
                                 canvas.width = w; canvas.height = h;
                                 canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                                _signupSelfieB64 = canvas.toDataURL('image/png').split(',')[1];
+                                _signupSelfieB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
                             };
                             img.src = e.target.result;
                         };
@@ -586,9 +586,10 @@
                                 supabaseKey: SUPA_KEY
                             })
                         });
-                        
-                        if (!bgRes.ok) throw new Error('Failed to start generation task');
-
+                        if (!bgRes.ok) {
+                            const errText = await bgRes.text();
+                            throw new Error(`Failed to start generation task (${bgRes.status}): ${errText}`);
+                        }
                         // Listen via Supabase Realtime Broadcast
                         let imageReady = false;
                         let errorMessage = null;

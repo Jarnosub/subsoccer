@@ -1464,9 +1464,10 @@
                         supabaseKey: SUPA_KEY
                     })
                 });
-                
-                if (!bgRes.ok) throw new Error('Failed to start generation task');
-
+                if (!bgRes.ok) {
+                    const errText = await bgRes.text();
+                    throw new Error(`Failed to start generation task (${bgRes.status}): ${errText}`);
+                }
                 // Listen via Supabase Realtime Broadcast
                 let imageReady = false;
                 let errorMessage = null;
