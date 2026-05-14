@@ -8,6 +8,7 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Subsoccer Pro - The Hub</title>
     <meta name="color-scheme" content="light dark">
+    <link rel="icon" type="image/svg+xml" href="subsoccer_logo.svg">
 
     <!-- Open Graph / Social Media Cover Meta Tags -->
     <meta property="og:type" content="website">
@@ -757,13 +758,21 @@
                 // 2. Setup Supabase listener for authoritative state and sync
                 const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
                 const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
-                const sb = window.supabase ? supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+                // Single shared Supabase instance to avoid GoTrueClient duplicate warning
+                if (!window._hubSb) {
+                    window._hubSb = window.supabase ? supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+                }
+                const sb = window._hubSb;
 
                 let hasCachedUser = false;
                 if (cached) {
                     try {
                         const user = JSON.parse(cached);
-                        if (user && user.username) hasCachedUser = true;
+                        if (user && user.username) {
+                            hasCachedUser = true;
+                            // Show card IMMEDIATELY from cache (includes moderator link)
+                            showPlayerCard(user);
+                        }
                     } catch (e) { }
                 }
 
@@ -771,7 +780,7 @@
                     // Check explicitly and await it on load (solves async bfcache bugs)
                     const { data: { session } } = await sb.auth.getSession();
                     if (session && session.user) {
-                        const { data: player } = await sb.from('players').select('username, elo, is_admin').eq('id', session.user.id).single();
+                        const { data: player } = await sb.from('players').select('username, elo, is_admin, is_owner').eq('id', session.user.id).single();
                         if (player) {
                             showPlayerCard(player);
                             localStorage.setItem('subsoccer-user', JSON.stringify(player));
@@ -785,7 +794,7 @@
                     // Background listener for future sign out / parallel sign in
                     sb.auth.onAuthStateChange(async (event, currentSession) => {
                         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && currentSession && currentSession.user) {
-                            const { data: p } = await sb.from('players').select('username, elo, is_admin').eq('id', currentSession.user.id).single();
+                            const { data: p } = await sb.from('players').select('username, elo, is_admin, is_owner').eq('id', currentSession.user.id).single();
                             if (p) {
                                 showPlayerCard(p);
                                 localStorage.setItem('subsoccer-user', JSON.stringify(p));
@@ -855,44 +864,60 @@
 
         async function hubLogout() {
             if (!confirm('Log out?')) return;
-            try {
-                const sb = supabase.createClient('https://ujxmmrsmdwrgcwatdhvx.supabase.co', 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t');
-                await sb.auth.signOut();
-            } catch (e) { }
+            // Clear storage FIRST (ensures we log out even if signOut hangs)
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('sb-') || key.includes('supabase') || key === 'subsoccer-user') {
                     localStorage.removeItem(key);
                 }
             });
-            window.location.replace('index.html');
+            try {
+                const sb = window._hubSb || (window.supabase ? supabase.createClient(
+                    'https://ujxmmrsmdwrgcwatdhvx.supabase.co',
+                    'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t'
+                ) : null);
+                if (sb) {
+                    // Race: if signOut takes > 2s, redirect anyway
+                    await Promise.race([
+                        sb.auth.signOut(),
+                        new Promise(r => setTimeout(r, 2000))
+                    ]);
+                }
+            } catch (e) { console.warn('signOut error:', e); }
+            // Force full reload to bypass Safari BFCache
+            window.location.href = 'index.html?t=' + Date.now();
         }
 
         let hubMap = null;
         let hubTileLayer = null;
 
         function openMapOverlay() {
-            document.getElementById('map-overlay').style.display = 'block';
+            const overlay = document.getElementById('map-overlay');
+            overlay.style.display = 'block';
 
             if (hubMap) {
+                // Multiple invalidateSize calls to ensure tiles load properly
                 setTimeout(() => hubMap.invalidateSize(), 100);
+                setTimeout(() => hubMap.invalidateSize(), 500);
                 return;
             }
 
-            // Init Leaflet map
-            hubMap = L.map('public-game-map').setView([60.1699, 24.9384], 5);
-            hubMap.attributionControl.setPrefix(false);
-            
-            const isDark = document.body.classList.contains('dark-mode');
-            const tileUrl = isDark 
-                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-                : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            // Short delay to ensure the overlay is visible before Leaflet measures container
+            setTimeout(() => {
+                // Init Leaflet map
+                hubMap = L.map('public-game-map').setView([60.1699, 24.9384], 5);
+                hubMap.attributionControl.setPrefix(false);
+                
+                const isDark = document.body.classList.contains('dark-mode');
+                const tileUrl = isDark 
+                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
-            hubTileLayer = L.tileLayer(tileUrl, {
-                attribution: '&copy; CARTO',
-                subdomains: 'abcd',
-                maxZoom: 19
-            });
-            hubTileLayer.addTo(hubMap);
+                hubTileLayer = L.tileLayer(tileUrl, {
+                    attribution: '&copy; CARTO',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                });
+                hubTileLayer.addTo(hubMap);
 
             // Red icon for tables
             const redIcon = L.divIcon({
@@ -944,7 +969,10 @@
                 }, () => { }, { timeout: 5000 });
             }
 
-            setTimeout(() => hubMap.invalidateSize(), 200);
+                // Multiple invalidateSize calls for reliable rendering
+                setTimeout(() => hubMap.invalidateSize(), 200);
+                setTimeout(() => hubMap.invalidateSize(), 600);
+            }, 50); // end of setTimeout wrapper
         }
 
         function closeMapOverlay() {

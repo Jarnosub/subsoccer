@@ -900,17 +900,26 @@
 
         function getSb() {
             if (!_sb) {
-                _sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
-                    auth: { autoRefreshToken: false, persistSession: false }
-                });
+                _sb = supabase.createClient(SUPA_URL, SUPA_KEY);
             }
             return _sb;
         }
 
-        // Get user's JWT token from localStorage (stored by main app's Supabase client)
-        function getUserToken() {
+        // Get fresh JWT token via Supabase client (auto-refreshes)
+        async function getFreshToken() {
             try {
-                // Supabase stores session under sb-{project-ref}-auth-token
+                const sb = getSb();
+                const { data: { session } } = await sb.auth.getSession();
+                if (session?.access_token) return session.access_token;
+            } catch(e) {
+                console.warn('getFreshToken error:', e.message);
+            }
+            return getUserTokenFromStorage();
+        }
+
+        // Read token from localStorage without refreshing (sync helper)
+        function getUserTokenFromStorage() {
+            try {
                 const keys = Object.keys(localStorage).filter(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
                 for (const key of keys) {
                     const data = JSON.parse(localStorage.getItem(key));
@@ -920,13 +929,18 @@
             return null;
         }
 
+        // Legacy sync alias (used by loadCustomAvatarHistory etc)
+        function getUserToken() {
+            return getUserTokenFromStorage();
+        }
+
         // Direct REST API helper — bypasses Supabase JS client's auth layer
         async function directQuery(method, table, params = {}, body = null) {
             const url = new URL(`${SUPA_URL}/rest/v1/${table}`);
             Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
             
-            // Use JWT for write operations (PATCH/POST), anon key for reads
-            const token = (method !== 'GET') ? (getUserToken() || SUPA_KEY) : SUPA_KEY;
+            // Use fresh JWT for write operations (PATCH/POST), anon key for reads
+            const token = (method !== 'GET') ? (await getFreshToken() || SUPA_KEY) : SUPA_KEY;
             
             const opts = {
                 method: method,
@@ -972,24 +986,15 @@
                 const track = document.getElementById('avatar-selection');
                 
                 if (!isPreset && track) {
-                    // Inject custom avatar as first item in carousel
-                    const existing = track.querySelector('.avatar-option[data-avatar="custom-current"]');
-                    if (!existing) {
-                        const customEl = document.createElement('div');
-                        customEl.className = 'avatar-option selected';
-                        customEl.setAttribute('data-avatar', player.avatar_url);
-                        customEl.setAttribute('onclick', 'selectAvatar(this)');
-                        customEl.innerHTML = `<img src="${player.avatar_url}" alt="My Avatar" style="border-radius:8px;">`;
-                        customEl.setAttribute('data-avatar', 'custom-current');
-                        track.insertBefore(customEl, track.firstChild);
-                    }
-                    // Deselect all presets
-                    track.querySelectorAll('.avatar-option').forEach(el => {
-                        if (el.getAttribute('data-avatar') === 'custom-current') {
-                            el.classList.add('selected');
-                        } else {
-                            el.classList.remove('selected');
+                    // Load ALL custom avatars from Storage (async, non-blocking)
+                    loadCustomAvatarHistory(player).then(() => {
+                        // Ensure current avatar is selected after history loads
+                        const currentOpt = track.querySelector(`.avatar-option[data-avatar-url="${player.avatar_url.split('?')[0]}"]`);
+                        if (currentOpt) {
+                            track.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                            currentOpt.classList.add('selected');
                         }
+                        updateCarouselButtons();
                     });
                     document.getElementById('selected-avatar-url').value = player.avatar_url;
                 } else {
@@ -1057,14 +1062,140 @@
             const items = track.querySelectorAll('.avatar-option');
             const total = items.length;
             const visible = 3;
-            const max = total - visible;
+            const max = Math.max(0, total - visible);
             _carouselIndex = Math.max(0, Math.min(_carouselIndex + dir, max));
 
             const itemW = items[0].offsetWidth + 12; // 12px gap
             track.style.transform = `translateX(-${_carouselIndex * itemW}px)`;
 
+            updateCarouselButtons();
+        }
+
+        function updateCarouselButtons() {
+            const track = document.getElementById('avatar-selection');
+            const items = track.querySelectorAll('.avatar-option');
+            const total = items.length;
+            const visible = 3;
+            const max = Math.max(0, total - visible);
             document.getElementById('avatar-prev').disabled = _carouselIndex === 0;
             document.getElementById('avatar-next').disabled = _carouselIndex >= max;
+        }
+
+        // Load all custom avatars from Supabase Storage for the user
+        async function loadCustomAvatarHistory(player) {
+            if (!player?.id) return;
+            const track = document.getElementById('avatar-selection');
+            if (!track) return;
+
+            // Remove any previously injected custom items
+            track.querySelectorAll('.avatar-option[data-custom="true"]').forEach(el => el.remove());
+
+            const currentAvatarBase = player.avatar_url ? player.avatar_url.split('?')[0] : '';
+            let avatarUrls = []; // Will hold all custom avatar URLs (newest first)
+
+            try {
+                // List all files in avatars/ folder matching this user's ID
+                const token = await getFreshToken() || SUPA_KEY;
+                const listRes = await fetch(`${SUPA_URL}/storage/v1/object/list/event-images`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPA_KEY,
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prefix: 'avatars/',
+                        search: `${player.id}_ai_`,
+                        limit: 20,
+                        offset: 0,
+                        sortBy: { column: 'created_at', order: 'desc' }
+                    })
+                });
+
+                if (listRes.ok) {
+                    const files = await listRes.json();
+                    if (files && files.length > 0) {
+                        avatarUrls = files.map(f => `${SUPA_URL}/storage/v1/object/public/event-images/avatars/${f.name}`);
+                        // Save to localStorage as backup
+                        saveAvatarGallery(player.id, avatarUrls);
+                    }
+                }
+            } catch(e) {
+                console.warn('Storage list error:', e.message);
+            }
+
+            // If Storage returned nothing, try localStorage fallback
+            if (avatarUrls.length === 0) {
+                avatarUrls = loadAvatarGallery(player.id);
+            }
+
+            // If still nothing, just show current avatar
+            if (avatarUrls.length === 0 && player.avatar_url && !player.avatar_url.includes('avatar-human-')) {
+                avatarUrls = [player.avatar_url.split('?')[0]];
+            }
+
+            // Ensure current avatar is in the list
+            if (player.avatar_url && !player.avatar_url.includes('avatar-human-')) {
+                const currentBase = player.avatar_url.split('?')[0];
+                if (!avatarUrls.some(u => u.includes(currentBase) || currentBase.includes(u))) {
+                    avatarUrls.unshift(currentBase);
+                }
+            }
+
+            // Inject into carousel — reverse so prepend gives newest-first
+            const reversedUrls = [...avatarUrls].reverse();
+            reversedUrls.forEach(url => {
+                const isSelected = currentAvatarBase && (url.includes(currentAvatarBase) || currentAvatarBase.includes(url));
+                const opt = document.createElement('div');
+                opt.className = 'avatar-option' + (isSelected ? ' selected' : '');
+                opt.setAttribute('data-avatar', url);
+                opt.setAttribute('data-avatar-url', url);
+                opt.setAttribute('data-custom', 'true');
+                opt.onclick = function() { selectAvatar(this); };
+                opt.innerHTML = `<img src="${url}?v=${Date.now()}" alt="Custom Avatar" style="border-radius:8px;">`;
+                track.insertBefore(opt, track.firstChild);
+            });
+
+            // Deselect all presets
+            track.querySelectorAll('.avatar-option:not([data-custom])').forEach(el => el.classList.remove('selected'));
+        }
+
+        // localStorage avatar gallery helpers
+        function saveAvatarGallery(userId, urls) {
+            try {
+                localStorage.setItem(`subsoccer_avatar_gallery_${userId}`, JSON.stringify(urls));
+            } catch(e) {}
+        }
+        function loadAvatarGallery(userId) {
+            try {
+                return JSON.parse(localStorage.getItem(`subsoccer_avatar_gallery_${userId}`)) || [];
+            } catch(e) { return []; }
+        }
+        function addToAvatarGallery(userId, newUrl) {
+            const gallery = loadAvatarGallery(userId);
+            const cleanUrl = newUrl.split('?')[0];
+            if (!gallery.some(u => u.includes(cleanUrl) || cleanUrl.includes(u))) {
+                gallery.unshift(cleanUrl);
+                saveAvatarGallery(userId, gallery);
+            }
+        }
+
+        function injectSingleCustomAvatar(avatarUrl, track) {
+            if (!avatarUrl || !track) return;
+            const existing = track.querySelector('.avatar-option[data-custom="true"]');
+            if (existing) return; // Already have one
+
+            const opt = document.createElement('div');
+            opt.className = 'avatar-option selected';
+            opt.setAttribute('data-avatar', avatarUrl);
+            opt.setAttribute('data-avatar-url', avatarUrl.split('?')[0]);
+            opt.setAttribute('data-custom', 'true');
+            opt.onclick = function() { selectAvatar(this); };
+            opt.innerHTML = `<img src="${avatarUrl}" alt="My Avatar" style="border-radius:8px;">`;
+            track.insertBefore(opt, track.firstChild);
+
+            // Deselect presets
+            track.querySelectorAll('.avatar-option:not([data-custom])').forEach(el => el.classList.remove('selected'));
         }
 
         // Avatar selection
@@ -1072,6 +1203,7 @@
             document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
             element.classList.add('selected');
             const newSrc = element.getAttribute('data-avatar');
+            const isCustom = element.getAttribute('data-custom') === 'true';
             document.getElementById('selected-avatar-url').value = newSrc;
             document.getElementById('selected-avatar-b64').value = '';
 
@@ -1080,14 +1212,15 @@
             icon.style.display = 'none';
             photo.style.display = 'block';
 
-            if (newSrc === 'ai-custom' || newSrc === 'custom-current') {
+            if (newSrc === 'ai-custom') {
+                // Newly generated AI avatar (not yet saved)
                 const img = element.querySelector('img');
                 if (img) photo.src = img.src;
-                // For custom-current, set the actual URL for saving
-                if (newSrc === 'custom-current') {
-                    document.getElementById('selected-avatar-url').value = _currentPlayer?.avatar_url || '';
-                }
+            } else if (isCustom || newSrc.startsWith('http')) {
+                // Custom avatar from Storage history — use full URL
+                photo.src = newSrc;
             } else {
+                // Preset avatar
                 photo.src = newSrc;
             }
         }
@@ -1106,9 +1239,8 @@
             // Deselect all carousel items
             document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
             
-            // Remove injected custom avatar from carousel
-            const custom = document.querySelector('.avatar-option[data-avatar="custom-current"]');
-            if (custom) custom.remove();
+            // Remove ALL injected custom avatars from carousel
+            document.querySelectorAll('.avatar-option[data-custom="true"]').forEach(el => el.remove());
             
             // Set hidden fields for save
             document.getElementById('selected-avatar-url').value = '__remove__';
@@ -1116,6 +1248,8 @@
             
             // Hide remove button
             document.getElementById('remove-avatar-wrap').style.display = 'none';
+            
+            updateCarouselButtons();
         }
 
         // Sync name live
@@ -1368,7 +1502,7 @@
                 const avatarB64 = document.getElementById('selected-avatar-b64').value;
 
                 if (avatarB64) {
-                    // AI-generated avatar: upload via direct fetch to Supabase Storage
+                    // AI-generated avatar: upload via Supabase JS client (handles auth automatically)
                     const path = `avatars/${userId}_ai_${Date.now()}.png`;
                     const byteCharacters = atob(avatarB64);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -1378,26 +1512,28 @@
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], {type: 'image/png'});
 
-                    const uploadToken = getUserToken() || SUPA_KEY;
-                    const uploadRes = await fetch(`${SUPA_URL}/storage/v1/object/event-images/${path}`, {
-                        method: 'POST',
-                        headers: {
-                            'apikey': SUPA_KEY,
-                            'Authorization': `Bearer ${uploadToken}`,
-                            'x-upsert': 'true'
-                        },
-                        body: blob
+                    const sb = getSb();
+                    const { error: uploadErr } = await sb.storage.from('event-images').upload(path, blob, {
+                        cacheControl: '3600',
+                        upsert: true
                     });
-                    if (!uploadRes.ok) throw new Error('Upload failed: ' + await uploadRes.text());
-                    updates.avatar_url = `${SUPA_URL}/storage/v1/object/public/event-images/${path}?v=${Date.now()}`;
+                    if (uploadErr) throw new Error('Upload failed: ' + uploadErr.message);
+                    
+                    const { data: urlData } = sb.storage.from('event-images').getPublicUrl(path);
+                    updates.avatar_url = urlData.publicUrl + '?v=' + Date.now();
                 } else if (avatarUrl === '__remove__') {
                     // User clicked "Remove avatar"
                     updates.avatar_url = null;
-                } else if (avatarUrl && avatarUrl !== 'ai-custom' && avatarUrl !== _currentPlayer?.avatar_url) {
-                    if (avatarUrl.startsWith('avatar-')) {
-                        updates.avatar_url = window.location.origin + '/' + avatarUrl;
-                    } else {
-                        updates.avatar_url = avatarUrl;
+                } else if (avatarUrl && avatarUrl !== 'ai-custom') {
+                    // Check if it's actually different from current (strip query params for comparison)
+                    const currentBase = (_currentPlayer?.avatar_url || '').split('?')[0];
+                    const newBase = avatarUrl.split('?')[0];
+                    if (newBase !== currentBase) {
+                        if (avatarUrl.startsWith('avatar-')) {
+                            updates.avatar_url = window.location.origin + '/' + avatarUrl;
+                        } else {
+                            updates.avatar_url = avatarUrl;
+                        }
                     }
                 }
 
@@ -1409,15 +1545,14 @@
                     return;
                 }
 
-                console.log('Saving:', JSON.stringify(updates));
-                const token = getUserToken();
-                console.log('Using JWT:', token ? 'YES (user token)' : 'NO (anon key)');
+                console.log('Saving via Supabase client:', JSON.stringify(updates));
                 
-                // Direct REST API update — bypasses Supabase client entirely
-                const result = await directQuery('PATCH', 'players', { 'id': `eq.${userId}` }, updates);
+                // Use Supabase JS client for DB update (handles auth automatically)
+                const sb = getSb();
+                const { data: result, error: dbErr } = await sb.from('players').update(updates).eq('id', userId).select();
                 
-                // Verify the update actually applied (RLS might silently block it)
-                if (!result || (Array.isArray(result) && result.length === 0)) {
+                if (dbErr) throw new Error('Save failed: ' + dbErr.message);
+                if (!result || result.length === 0) {
                     throw new Error('Update blocked — session may have expired. Please log in again.');
                 }
                 
@@ -1427,6 +1562,11 @@
                 const confirmed = Array.isArray(result) ? result[0] : result;
                 Object.assign(_currentPlayer, confirmed);
                 localStorage.setItem('subsoccer-user', JSON.stringify(_currentPlayer));
+
+                // Add to avatar gallery localStorage
+                if (updates.avatar_url && updates.avatar_url !== null) {
+                    addToAvatarGallery(userId, updates.avatar_url);
+                }
 
                 msg.style.color = '#4CAF50';
                 msg.innerText = '✓ SAVED SUCCESSFULLY';
