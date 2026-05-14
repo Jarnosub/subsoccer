@@ -466,7 +466,7 @@ export async function handleAuth(event) {
             if (!error) {
                 console.log("✅ Email login successful");
                 showNotification("Welcome back!", "success");
-                setTimeout(() => { window.location.href = 'login.html'; }, 500);
+                setTimeout(() => { window.location.href = 'index.html'; }, 500);
                 return;
             }
             console.log("Supabase Auth login failed:", error.message);
@@ -536,7 +536,7 @@ export async function handleAuth(event) {
                 if (!authErr) {
                     console.log("Auth login successful for:", migratedMatch.email);
                     showNotification("Welcome back!", "success");
-                    setTimeout(() => { window.location.href = 'login.html'; }, 500);
+                    setTimeout(() => { window.location.href = 'index.html'; }, 500);
                     return;
                 }
                 console.log("Auth login failed:", authErr.message);
