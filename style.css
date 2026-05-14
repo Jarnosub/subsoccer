@@ -3739,7 +3739,8 @@ body, html {
     left: -100%;
     width: 300%;
     height: 300%;
-    background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+    background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.15) 50%, transparent 60%);
     pointer-events: none;
     z-index: 10;
+    mix-blend-mode: overlay;
 }
