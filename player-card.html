@@ -338,20 +338,33 @@
 
         .pc-save-btn {
             width: 100%;
-            background: #c41e2a;
+            background: linear-gradient(135deg, #c41e2a 0%, #a01520 100%);
             color: #ffffff;
             border: none;
-            padding: 14px;
-            border-radius: 2px;
+            padding: 16px;
+            border-radius: 10px;
             font-family: 'Resolve', sans-serif;
-            font-size: 1rem;
+            font-size: 0.9rem;
             letter-spacing: 2px;
             cursor: pointer;
             font-weight: 700;
-            transition: opacity 0.2s, transform 0.1s;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(196, 30, 42, 0.3);
         }
+        .pc-save-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(196, 30, 42, 0.4); }
         .pc-save-btn:active { transform: scale(0.98); }
-        .pc-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pc-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .pc-save-status {
+            text-align: center;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            min-height: 16px;
+            color: #888;
+            transition: color 0.3s;
+        }
 
         .pc-logout-btn {
             width: 100%;
@@ -455,20 +468,31 @@
 
         /* Avatar Studio Sections */
         .studio-section {
-            padding: 20px 20px 0;
+            padding: 0 20px;
             max-width: 420px;
             margin: 0 auto;
+        }
+        .studio-section-card {
+            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
         }
         .studio-section-label {
             font-family: 'Resolve', sans-serif;
             font-size: 0.6rem;
-            color: #888;
+            color: #aaa;
             letter-spacing: 2px;
             text-transform: uppercase;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+        }
+        .studio-section-label i {
+            color: #c41e2a;
+            font-size: 0.7rem;
         }
         
         /* Avatar Carousel */
@@ -477,7 +501,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .avatar-carousel-track-outer {
             flex: 1;
@@ -486,112 +510,134 @@
         }
         .avatar-carousel-track {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .avatar-option {
-            flex: 0 0 calc((100% - 24px) / 3);
+            flex: 0 0 calc((100% - 20px) / 3);
             aspect-ratio: 1;
             border-radius: 12px;
-            overflow: hidden;
-            border: 2px solid transparent;
+            overflow: visible;
+            border: 3px solid transparent;
             cursor: pointer;
-            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
-            background: #111;
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+            background: #1a1a1a;
+            position: relative;
         }
         .avatar-option img {
             width: 100%; height: 100%;
             object-fit: cover; display: block;
+            border-radius: 9px;
         }
         .avatar-option.selected {
             border-color: #c41e2a;
-            box-shadow: 0 0 20px rgba(196, 30, 42, 0.3);
-            transform: scale(1.02);
+            box-shadow: 0 0 16px rgba(196, 30, 42, 0.4), 0 0 40px rgba(196, 30, 42, 0.15);
+            transform: scale(1.05);
+        }
+        .avatar-option.selected::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            bottom: -4px; right: -4px;
+            width: 22px; height: 22px;
+            background: #c41e2a;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.55rem;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #111;
+            z-index: 5;
+            animation: checkPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes checkPop {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
         }
         .avatar-carousel-btn {
             flex-shrink: 0;
-            width: 32px; height: 32px;
+            width: 34px; height: 34px;
             border-radius: 50%;
             border: 1px solid #333;
-            background: #111;
-            color: #aaa;
-            font-size: 0.8rem;
+            background: rgba(255,255,255,0.04);
+            color: #888;
+            font-size: 0.75rem;
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.2s;
         }
-        .avatar-carousel-btn:hover { background: #222; color: #fff; }
-        .avatar-carousel-btn:disabled { opacity: 0; pointer-events: none; }
+        .avatar-carousel-btn:hover { background: rgba(196,30,42,0.15); color: #fff; border-color: rgba(196,30,42,0.3); }
+        .avatar-carousel-btn:disabled { opacity: 0.2; pointer-events: none; }
 
         /* AI Selfie Block */
         .ai-hero {
-            background: #0a0a0a;
-            border: 1px solid #222;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 25px;
-        }
-        .ai-hero-top {
-            background: linear-gradient(135deg, #1f0307 0%, #0a0a0a 100%);
-            border-bottom: 1px dashed rgba(196,30,42,0.3);
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .ai-hero-icon {
-            width: 44px; height: 44px;
-            border-radius: 10px;
-            background: #c41e2a;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; color: #fff;
-            flex-shrink: 0;
-        }
-        .ai-hero-title {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.85rem; font-weight: bold; color: #fff;
-            letter-spacing: 1px; text-transform: uppercase;
-        }
-        .ai-hero-sub {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.55rem; color: #888; margin-top: 4px;
-        }
-        .ai-hero-body {
-            padding: 20px;
-            display: flex; flex-direction: column; gap: 12px;
+            display: flex; flex-direction: column; gap: 10px;
         }
         .ai-upload-btn {
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            background: #111; border: 1px dashed #444; border-radius: 2px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
             padding: 16px; cursor: pointer;
-            font-family: 'Resolve', sans-serif; font-size: 0.75rem; font-weight: bold;
+            font-family: 'Resolve', sans-serif; font-size: 0.7rem; font-weight: bold;
             color: #aaa; letter-spacing: 2px; text-transform: uppercase;
-            transition: all 0.2s;
+            transition: all 0.25s;
         }
-        .ai-upload-btn:hover { border-color: #777; color: #fff; }
+        .ai-upload-btn:hover { border-color: rgba(196,30,42,0.4); color: #fff; background: rgba(196,30,42,0.05); }
+        .ai-upload-btn.ready {
+            border-color: rgba(76,175,80,0.5);
+            color: #4CAF50;
+            background: rgba(76,175,80,0.05);
+        }
+        .ai-generate-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: linear-gradient(135deg, #c41e2a 0%, #a01520 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 16px;
+            color: #fff;
+            font-family: 'Resolve', sans-serif; font-size: 0.85rem; font-weight: bold;
+            letter-spacing: 2px; text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(196, 30, 42, 0.25);
+        }
+        .ai-generate-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(196, 30, 42, 0.35); }
+        .ai-generate-btn:active { transform: scale(0.98); }
+        .ai-generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
         /* Accordion Profile Details */
         .profile-accordion {
             max-width: 420px;
             margin: 0 auto 30px;
-            border-top: 1px solid #222;
+            padding: 0 20px;
         }
         .profile-accordion-btn {
-            width: 100%; background: transparent; border: none;
-            padding: 20px; display: flex; align-items: center; justify-content: space-between;
+            width: 100%; background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
             cursor: pointer; color: #888;
-            font-family: 'Resolve', sans-serif; font-size: 0.85rem; font-weight: bold;
+            font-family: 'Resolve', sans-serif; font-size: 0.75rem; font-weight: bold;
             letter-spacing: 2px; text-transform: uppercase;
+            transition: all 0.2s;
         }
-        .profile-accordion-btn .chevron { transition: transform 0.3s; }
+        .profile-accordion-btn:hover { border-color: rgba(255,255,255,0.12); color: #aaa; }
+        .profile-accordion-btn .chevron { transition: transform 0.3s; color: #c41e2a; }
         .profile-accordion-btn.open .chevron { transform: rotate(180deg); }
+        .profile-accordion-btn.open { border-radius: 12px 12px 0 0; border-bottom-color: transparent; }
         .profile-accordion-body {
             max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
-            background: transparent;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            opacity: 0;
+            transition: max-height 0.4s ease, opacity 0.3s ease;
         }
-        .profile-accordion-body.open { max-height: 500px; }
+        .profile-accordion-body.open { max-height: 500px; opacity: 1; }
         .profile-accordion-inner {
-            padding: 0 20px 20px; display: flex; flex-direction: column; gap: 10px;
+            padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 10px;
         }
 
         /* AI Generation Overlay */
@@ -659,10 +705,7 @@
 </head>
 <body>
 
-    <!-- TOP BLACK BANNER -->
-    <div style="width: 100%; background-color: #0a0a0a; color: #888; text-align: center; padding: 8px 10px; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; z-index: 100; position: relative;">
-        Players in 80+ countries · Join the community
-    </div>
+
 
     <!-- HEADER -->
     <div class="pc-header">
@@ -715,7 +758,7 @@
                             PLAYER</div>
 
                         <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
-                            <div id="pc-card-elo" style="background: #c41e2a; color: #fff; padding: 4px 10px; font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif; font-weight: normal; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
+                            <div id="pc-card-elo" style="background: #c41e2a; color: #fff; padding: 4px 10px; font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif; font-weight: normal; font-size: 1.4rem; border-radius: 6px; line-height: 1; margin-bottom: 2px;">
                                 1500</div>
                             <div style="text-align: right;">
                                 <div style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
@@ -727,7 +770,7 @@
                     </div>
 
                     <!-- Tap to flip -->
-                    <div style="position: absolute; bottom: 12px; width: 100%; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.65rem; font-family:'Resolve', sans-serif; letter-spacing: 2px; z-index: 2; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">
+                    <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); padding: 4px 14px; border-radius: 20px; color: rgba(255,255,255,0.6); font-size: 0.6rem; font-family:'Resolve', sans-serif; letter-spacing: 2px; z-index: 2; white-space: nowrap;">
                         <i class="fa-solid fa-rotate" style="margin-right: 4px;"></i> FLIP CARD
                     </div>
                 </div>
@@ -776,9 +819,10 @@
 
     <!-- AVATAR STUDIO CONTROLS -->
     
-    <!-- SECTION: CHOOSE YOUR MASCOT -->
+    <!-- SECTION: CHOOSE AVATAR -->
     <div class="studio-section">
-        <div class="studio-section-label"><i class="fa-solid fa-user"></i> CHOOSE YOUR CHARACTER</div>
+      <div class="studio-section-card">
+        <div class="studio-section-label"><i class="fa-solid fa-palette"></i> YOUR AVATARS</div>
         <div class="avatar-carousel-wrap">
             <button class="avatar-carousel-btn" id="avatar-prev" onclick="avatarCarouselStep(-1)" disabled>
                 <i class="fa-solid fa-chevron-left"></i>
@@ -809,42 +853,38 @@
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
-        <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:8px;">
-            <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.55rem; letter-spacing:1px; color:#666; text-decoration:none; transition:color 0.2s;">
+        <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:4px;">
+            <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#555; text-decoration:none; transition:color 0.2s;">
                 <i class="fa-solid fa-xmark" style="margin-right:4px;"></i>REMOVE AVATAR
             </a>
         </div>
+      </div>
     </div>
 
-    <!-- SECTION: AI SELFIE STYLIZER -->
+    <!-- SECTION: AI PORTRAIT STUDIO -->
     <div class="studio-section">
-        <div class="studio-section-label"><i class="fa-solid fa-wand-magic-sparkles"></i> OR CREATE YOUR AI PORTRAIT</div>
+      <div class="studio-section-card">
+        <div class="studio-section-label"><i class="fa-solid fa-wand-magic-sparkles"></i> AI PORTRAIT STUDIO</div>
         <div class="ai-hero">
-            <div class="ai-hero-top">
-                <div class="ai-hero-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-                <div>
-                    <div class="ai-hero-title">AI SELFIE STYLIZER</div>
-                    <div class="ai-hero-sub">Upload your photo → get an arcade avatar</div>
-                </div>
-            </div>
-            <div class="ai-hero-body">
-                <label class="ai-upload-btn" id="ai-upload-label">
-                    <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
-                    <span id="ai-selfie-label">TAKE SELFIE</span>
-                    <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
-                </label>
-                <button class="pc-save-btn" id="btn-generate-ai" onclick="generateAIAvatar(event)">
-                    <i class="fa-solid fa-bolt" style="margin-right:8px;"></i>GENERATE AVATAR
-                </button>
-                <div id="pc-edit-msg" style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#888; margin-top:5px; min-height:15px;"></div>
-            </div>
+            <label class="ai-upload-btn" id="ai-upload-label">
+                <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
+                <span id="ai-selfie-label">TAKE SELFIE</span>
+                <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
+            </label>
+            <button class="ai-generate-btn" id="btn-generate-ai" onclick="generateAIAvatar(event)">
+                <i class="fa-solid fa-bolt"></i> GENERATE AVATAR
+            </button>
+            <div id="pc-ai-msg" class="pc-save-status"></div>
         </div>
+      </div>
     </div>
 
-    <!-- SAVE AVATAR BUTTON (always visible) -->
-    <div style="max-width: 420px; margin: 0 auto; padding: 10px 20px 0;">
-        <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%;">SAVE AVATAR</button>
-        <div id="pc-edit-msg" style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#888; margin-top:8px; min-height:15px;"></div>
+    <!-- SAVE AVATAR BUTTON -->
+    <div style="max-width: 420px; margin: 0 auto; padding: 0 20px 8px;">
+        <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%;">
+            <i class="fa-solid fa-check" style="margin-right:8px;"></i>SAVE AVATAR
+        </button>
+        <div id="pc-edit-msg" class="pc-save-status"></div>
     </div>
 
     <!-- PROFILE DETAILS ACCORDION -->
@@ -1299,8 +1339,7 @@
                 const btn = document.getElementById('ai-upload-label');
                 
                 lbl.innerText = 'SELFIE READY';
-                btn.style.borderColor = '#c41e2a';
-                btn.style.color = '#c41e2a';
+                btn.classList.add('ready');
 
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -1340,7 +1379,7 @@
         async function generateAIAvatar(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-generate-ai');
-            const msg = document.getElementById('pc-edit-msg');
+            const msg = document.getElementById('pc-ai-msg');
             
             if (!_aiSelfieB64) {
                 msg.style.color = '#E30613';
