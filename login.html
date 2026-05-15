@@ -656,6 +656,18 @@
                         document.getElementById('signup-ai-badge').style.background = 'rgba(255,255,255,0.05)';
                         document.getElementById('signup-ai-badge').style.color = '#555';
 
+                        // Track avatar generation
+                        try {
+                            _tempSb.from('public_tracking').insert({
+                                event_type: 'avatar_generated',
+                                game_code: 'AI-STUDIO',
+                                source_partner: 'signup-flow',
+                                user_agent: navigator.userAgent
+                            }).then(() => console.log('Tracked avatar generation.'));
+                        } catch (e) {
+                            console.error('Tracking error:', e);
+                        }
+
                         msg.style.color = '#4CAF50';
                         msg.innerText = '✓ AI AVATAR CREATED! SIGN UP TO SAVE IT.';
                     } catch (err) {
@@ -987,6 +999,11 @@
                 <h3
                     style="font-family:'Resolve'; text-transform:uppercase; color:#c41e2a; letter-spacing:2px; margin-bottom: 20px;">
                     📊 Global Analytics</h3>
+
+                <h4
+                    style="color:#aaa; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:15px; font-family:'Resolve';">
+                    AI Studio Activity</h4>
+                <div id="analytics-avatar-stats" style="margin-bottom: 30px; font-size: 1.5rem; color: #fff; font-family:'SubsoccerLogo', sans-serif;">Loading...</div>
 
                 <h4
                     style="color:#aaa; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:15px; font-family:'Resolve';">

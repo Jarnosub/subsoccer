@@ -402,6 +402,17 @@ export async function loadAnalytics() {
         const { data: tourData } = await _supabase.from('tournament_history').select('*, events(event_name)').order('created_at', { ascending: false }).limit(20);
         const { data: matchData } = await _supabase.from('matches').select('*').order('created_at', { ascending: false }).limit(50);
 
+        // AI Avatar generation stats
+        try {
+            const { count: avatarCount } = await _supabase.from('public_tracking').select('*', { count: 'exact', head: true }).eq('event_type', 'avatar_generated');
+            const avatarStats = document.getElementById('analytics-avatar-stats');
+            if (avatarStats) {
+                avatarStats.innerHTML = `<span style="color:#c41e2a">${avatarCount || 0}</span> <span style="font-size:0.8rem; color:#888;">AI AVATARS GENERATED SO FAR</span>`;
+            }
+        } catch(e) {
+            console.error("Failed to load avatar stats", e);
+        }
+
         // Group standalone matches (Arcade mode, Quick matches)
         const standaloneMatches = matchData ? matchData.filter(m => !m.tournament_id) : [];
         if (standaloneMatches.length > 0) {
