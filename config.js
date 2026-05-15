@@ -11,7 +11,13 @@ export const FLAGS = {
 // Varmista Supabase-asiakkaan alustus ympäristöstä riippuen
 let supabaseClient;
 if (typeof window !== 'undefined' && window.supabase) {
-    supabaseClient = window.supabase.createClient(_URL, _KEY);
+    supabaseClient = window.supabase.createClient(_URL, _KEY, {
+        auth: {
+            persistSession: true,
+            storage: window.localStorage,
+            flowType: 'implicit'
+        }
+    });
 } else {
     // Mock tai tyhjä objekti testejä varten jos supabase-js ei ole ladattu
     supabaseClient = {
