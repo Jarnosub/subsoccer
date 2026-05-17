@@ -1495,52 +1495,49 @@
                 const losses = _currentPlayer.losses || 0;
                 const matches = wins + losses;
                 const ratio = matches > 0 ? Math.round((wins / matches) * 100) : 0;
-
-                // Position from bottom (like web card: margin-top: auto, padding-bottom: 5px)
-                const bottomRowY = H - Math.round(55 * S);
-
-                // ELO badge — align bottom edge with Win Ratio % bottom
-                const eloW = Math.round(10 * S * 5.5);
-                const eloH = Math.round(28 * S);
-                const winRatioLabelH = Math.round(0.65 * S * 16); // "WIN RATIO" label height
-                const winRatioGap = Math.round(14 * S);           // gap before number
-                const winRatioNumH = Math.round(1.4 * S * 16);    // number font height
-                const winRatioTotalH = winRatioLabelH + winRatioGap + winRatioNumH;
-                const eloOffsetY = bottomRowY + (winRatioTotalH - eloH);
-                roundRect(ctx, infoPad, eloOffsetY, eloW, eloH, Math.round(6 * S), '#c41e2a');
-                ctx.fillStyle = '#fff';
-                ctx.font = `${Math.round(1.4 * S * 16)}px "SubsoccerLogo", sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(elo.toString(), infoPad + eloW / 2, eloOffsetY + eloH / 2 + 2);
-
-                // Win Ratio (right-aligned)
-                ctx.textAlign = 'right';
-                ctx.fillStyle = '#888';
-                ctx.font = `bold ${Math.round(0.65 * S * 16)}px "Resolve", sans-serif`;
-                ctx.textBaseline = 'top';
-                ctx.fillText('WIN RATIO', W - infoPad, bottomRowY);
-                ctx.fillStyle = '#fff';
-                ctx.font = `${Math.round(1.4 * S * 16)}px "SubsoccerLogo", sans-serif`;
-                ctx.fillText(ratio + '%', W - infoPad, bottomRowY + Math.round(14 * S));
-                ctx.textAlign = 'left';
-
-                // --- FLIP CARD pill (centered at bottom, like web) ---
-                const pillY = H - Math.round(22 * S);
-                const pillW = Math.round(130 * S);
+                // --- BOTTOM ROW: All elements share the same bottom edge ---
+                // FLIP CARD pill defines the anchor
+                const pillCenterY = H - Math.round(22 * S);
                 const pillH = Math.round(18 * S);
+                const bottomEdge = pillCenterY + pillH / 2; // shared bottom line
+
+                // FLIP CARD pill (centered)
+                const pillW = Math.round(130 * S);
                 const pillX = (W - pillW) / 2;
-
-                // Pill background
                 ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                roundRect(ctx, pillX, pillY - pillH / 2, pillW, pillH, pillH / 2);
+                roundRect(ctx, pillX, bottomEdge - pillH, pillW, pillH, pillH / 2);
                 ctx.fill();
-
                 ctx.fillStyle = 'rgba(255,255,255,0.6)';
                 ctx.font = `${Math.round(0.6 * S * 16)}px "Resolve", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText('↻  FLIP CARD', W / 2, pillY);
+                ctx.fillText('↻  FLIP CARD', W / 2, bottomEdge - pillH / 2);
+
+                // ELO badge (left) — bottom aligned with bottomEdge
+                const eloW = Math.round(10 * S * 5.5);
+                const eloH = Math.round(28 * S);
+                const eloY = bottomEdge - eloH;
+                roundRect(ctx, infoPad, eloY, eloW, eloH, Math.round(6 * S), '#c41e2a');
+                ctx.fillStyle = '#fff';
+                ctx.font = `${Math.round(1.4 * S * 16)}px "SubsoccerLogo", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(elo.toString(), infoPad + eloW / 2, eloY + eloH / 2 + 2);
+
+                // Win Ratio (right) — "45%" bottom aligned with bottomEdge
+                const winRatioNumFontSize = Math.round(1.4 * S * 16);
+                const winRatioLabelFontSize = Math.round(0.65 * S * 16);
+                const winRatioNumY = bottomEdge - winRatioNumFontSize; // number top
+                const winRatioLabelY = winRatioNumY - Math.round(4 * S) - winRatioLabelFontSize; // label top
+
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#888';
+                ctx.font = `bold ${winRatioLabelFontSize}px "Resolve", sans-serif`;
+                ctx.textBaseline = 'top';
+                ctx.fillText('WIN RATIO', W - infoPad, winRatioLabelY);
+                ctx.fillStyle = '#fff';
+                ctx.font = `${winRatioNumFontSize}px "SubsoccerLogo", sans-serif`;
+                ctx.fillText(ratio + '%', W - infoPad, winRatioNumY);
                 ctx.textAlign = 'left';
 
                 // --- DOWNLOAD ---
