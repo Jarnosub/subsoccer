@@ -1571,26 +1571,50 @@
                 roundRect(ctx, borderW / 2, borderW / 2, W - borderW, H - borderW, Math.round(2 * S));
                 ctx.stroke();
 
-                // Dossier Header
-                const dossierY = Math.round(30 * S);
-                ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                ctx.fillRect(infoPad, dossierY, W - infoPad * 2, Math.round(80 * S));
+                // Dossier Header (Top)
+                const dossierPadY = Math.round(20 * S);
+                const dossierTitleFontSize = Math.round(1.1 * S * 16);
+                const dossierTierFontSize = Math.round(0.75 * S * 16);
                 
+                // We'll draw the header box at the top
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                const headerH = dossierPadY + dossierTitleFontSize + Math.round(5 * S) + dossierTierFontSize + Math.round(15 * S);
+                ctx.fillRect(infoPad, infoPad, W - infoPad * 2, headerH);
+                
+                // Bottom border of header
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(infoPad, infoPad + headerH);
+                ctx.lineTo(W - infoPad, infoPad + headerH);
+                ctx.stroke();
+
                 ctx.fillStyle = '#c41e2a';
-                ctx.font = `${Math.round(1.1 * S * 16)}px "SubsoccerLogo", sans-serif`;
+                ctx.font = `${dossierTitleFontSize}px "SubsoccerLogo", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
-                ctx.fillText('PLAYER DOSSIER', W / 2, dossierY + Math.round(20 * S));
+                ctx.fillText('PLAYER DOSSIER', W / 2, infoPad + dossierPadY);
                 
                 ctx.fillStyle = '#fff';
-                ctx.font = `${Math.round(0.75 * S * 16)}px "Resolve", sans-serif`;
-                ctx.fillText('NEW RECRUIT', W / 2, dossierY + Math.round(50 * S));
+                ctx.font = `${dossierTierFontSize}px "Resolve", sans-serif`;
+                ctx.fillText('NEW RECRUIT', W / 2, infoPad + dossierPadY + dossierTitleFontSize + Math.round(5 * S));
+
+                // Center the rest of the stats vertically in the remaining space
+                const remainingSpaceY = infoPad + headerH;
+                const remainingSpaceH = H - remainingSpaceY - Math.round(40 * S); // Leave room for FLIP CARD
+                
+                // Calculate grid total height
+                const cellH = Math.round(70 * S);
+                const gap = Math.round(10 * S);
+                const totalStatsH = cellH * 2 + gap + cellH + Math.round(10 * S); // 2 rows + 1 row for tourneys
+                
+                // Start Y to vertically center the stats block
+                const statsStartY = remainingSpaceY + (remainingSpaceH - totalStatsH) / 2;
 
                 // 2x2 Grid
-                const gridY = dossierY + Math.round(80 * S) + Math.round(20 * S);
+                const gridY = statsStartY;
                 const gridW = W - infoPad * 2;
-                const cellW = (gridW - Math.round(10 * S)) / 2;
-                const cellH = Math.round(80 * S);
+                const cellW = (gridW - gap) / 2;
 
                 const renderCell = (x, y, label, val, isSubsoccerFont) => {
                     ctx.fillStyle = 'rgba(255,255,255,0.03)';
@@ -1603,7 +1627,7 @@
                     ctx.font = `${Math.round(0.6 * S * 16)}px "Resolve", sans-serif`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'top';
-                    ctx.fillText(label, x + cellW / 2, y + Math.round(15 * S));
+                    ctx.fillText(label, x + cellW / 2, y + Math.round(12 * S));
 
                     ctx.fillStyle = '#fff';
                     if (isSubsoccerFont) {
@@ -1611,16 +1635,16 @@
                     } else {
                         ctx.font = `bold ${Math.round(1.2 * S * 16)}px "Resolve", sans-serif`;
                     }
-                    ctx.fillText(val, x + cellW / 2, y + Math.round(40 * S));
+                    ctx.fillText(val, x + cellW / 2, y + Math.round(34 * S));
                 };
 
                 renderCell(infoPad, gridY, 'GLOBAL RATING', elo.toString(), true);
-                renderCell(infoPad + cellW + Math.round(10 * S), gridY, 'WIN RATIO', ratio + '%', true);
-                renderCell(infoPad, gridY + cellH + Math.round(10 * S), 'MATCHES', matches.toString(), false);
-                renderCell(infoPad + cellW + Math.round(10 * S), gridY + cellH + Math.round(10 * S), 'WINS', wins.toString(), false);
+                renderCell(infoPad + cellW + gap, gridY, 'WIN RATIO', ratio + '%', true);
+                renderCell(infoPad, gridY + cellH + gap, 'MATCHES', matches.toString(), false);
+                renderCell(infoPad + cellW + gap, gridY + cellH + gap, 'WINS', wins.toString(), false);
 
                 // Tournaments Won Box
-                const tournY = gridY + cellH * 2 + Math.round(20 * S);
+                const tournY = gridY + (cellH + gap) * 2;
                 ctx.fillStyle = 'rgba(196,30,42,0.1)';
                 roundRect(ctx, infoPad, tournY, gridW, cellH, Math.round(4 * S));
                 ctx.fill();
@@ -1629,18 +1653,18 @@
 
                 ctx.fillStyle = '#c41e2a';
                 ctx.font = `${Math.round(0.6 * S * 16)}px "Resolve", sans-serif`;
-                ctx.fillText('TOURNAMENTS WON', W / 2, tournY + Math.round(15 * S));
+                ctx.fillText('TOURNAMENTS WON', W / 2, tournY + Math.round(12 * S));
                 ctx.fillStyle = '#fff';
                 ctx.font = `bold ${Math.round(1.2 * S * 16)}px "Resolve", sans-serif`;
                 const tourneys = _currentPlayer.tournaments_won || 0;
-                ctx.fillText(tourneys.toString(), W / 2, tournY + Math.round(40 * S));
+                ctx.fillText(tourneys.toString(), W / 2, tournY + Math.round(34 * S));
 
-                // Flip Card Text
+                // Flip Card Text (anchored to bottom)
                 ctx.fillStyle = 'rgba(255,255,255,0.4)';
                 ctx.font = `${Math.round(0.65 * S * 16)}px "Resolve", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
-                ctx.fillText('↻  FLIP CARD', W / 2, H - Math.round(12 * S));
+                ctx.fillText('↻  FLIP CARD', W / 2, H - Math.round(15 * S));
 
                 // --- DOWNLOAD BACK SIDE (-2.png) ---
                 await new Promise(resolve => {
