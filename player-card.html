@@ -1309,6 +1309,14 @@
                 // Preset avatar
                 photo.src = newSrc;
             }
+
+            // Auto-save when an avatar is selected (if user is loaded)
+            if (_currentPlayer && _currentPlayer.id) {
+                // Small delay to allow UI to update (like the selected ring)
+                setTimeout(() => {
+                    saveProfile();
+                }, 50);
+            }
         }
 
         // ===== PRINT CARD GENERATOR (Topps 2.5" × 3.5" @ 300 DPI = 750×1050px) =====
