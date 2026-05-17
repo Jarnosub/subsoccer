@@ -1303,6 +1303,14 @@
                             await sb.storage.from('event-images').remove([`avatars/${filename}`]);
                         }
                     } catch(err) { console.error('Failed to delete from storage', err); }
+
+                    // Remove from local gallery cache
+                    if (_currentPlayer?.id) {
+                        const gallery = loadAvatarGallery(_currentPlayer.id);
+                        const cleanSrc = src.split('?')[0];
+                        const filtered = gallery.filter(u => !u.includes(cleanSrc) && !cleanSrc.includes(u));
+                        saveAvatarGallery(_currentPlayer.id, filtered);
+                    }
                 }
                 
                 if (isCustom) {
@@ -1310,24 +1318,47 @@
                 }
             }
             
-            // Reset card to default silhouette
-            const photo = document.getElementById('pc-card-photo');
-            const icon = document.getElementById('pc-card-icon');
-            photo.style.display = 'none';
-            photo.src = '';
-            icon.style.display = 'block';
+            // Auto-select the next available avatar instead of leaving blank
+            const remaining = document.querySelectorAll('.avatar-option');
+            let newAvatarUrl = null;
             
-            // Deselect all carousel items
-            document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-            
-            // Set hidden fields for save
-            document.getElementById('selected-avatar-url').value = '__remove__';
+            if (remaining.length > 0) {
+                // Pick first remaining avatar
+                remaining[0].classList.add('selected');
+                newAvatarUrl = remaining[0].getAttribute('data-avatar');
+                
+                const photo = document.getElementById('pc-card-photo');
+                const icon = document.getElementById('pc-card-icon');
+                photo.src = newAvatarUrl.startsWith('http') ? newAvatarUrl : newAvatarUrl;
+                photo.style.display = 'block';
+                icon.style.display = 'none';
+                
+                document.getElementById('selected-avatar-url').value = newAvatarUrl;
+            } else {
+                // No avatars left — show default silhouette
+                const photo = document.getElementById('pc-card-photo');
+                const icon = document.getElementById('pc-card-icon');
+                photo.style.display = 'none';
+                photo.src = '';
+                icon.style.display = 'block';
+                document.getElementById('selected-avatar-url').value = '__remove__';
+            }
             document.getElementById('selected-avatar-b64').value = '';
             
-            // Hide remove button
-            document.getElementById('remove-avatar-wrap').style.display = 'none';
-            
             updateCarouselButtons();
+            
+            // Auto-save to DB immediately (prevents broken avatar if user navigates away)
+            try {
+                if (_currentPlayer?.id) {
+                    const updatePayload = newAvatarUrl ? { avatar_url: newAvatarUrl } : { avatar_url: null };
+                    await directQuery('PATCH', 'players', { id: `eq.${_currentPlayer.id}` }, updatePayload);
+                    _currentPlayer.avatar_url = newAvatarUrl || null;
+                    localStorage.setItem('subsoccer-user', JSON.stringify(_currentPlayer));
+                    console.log('✅ Avatar updated in DB after deletion');
+                }
+            } catch(err) {
+                console.error('Failed to auto-save avatar after deletion:', err);
+            }
         }
 
         // Sync name live
