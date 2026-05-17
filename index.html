@@ -710,7 +710,7 @@
                     style="color: #c41e2a; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
                         class="fa-solid fa-shield-halved" style="color: #c41e2a; width: 40px; text-align: center;"></i>
                     MODERATOR TOOLS</a>
-                <a href="#" id="menu-logout-link" onclick="hubLogout()"
+                <a href="#" id="menu-logout-link"
                     style="color: #c41e2a; text-decoration: none; padding-bottom: 15px; display: none; align-items: center; margin-top: 10px;"><i
                         class="fa-solid fa-right-from-bracket"
                         style="color: #c41e2a; width: 40px; text-align: center;"></i> LOG OUT</a>
@@ -855,6 +855,15 @@
         setTimeout(revealPage, 3000);
 
         initAuth().finally(revealPage);
+
+        // Bind logout via addEventListener (CSP-safe, prevents href="#" jump)
+        const logoutLink = document.getElementById('menu-logout-link');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                hubLogout();
+            });
+        }
 
         // Handle Safari/Mobile BFCache restores
         window.addEventListener('pageshow', (event) => {
