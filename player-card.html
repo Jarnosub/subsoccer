@@ -919,8 +919,21 @@
 
     <input type="hidden" id="selected-avatar-url" value="avatar-human-1.png">
     <input type="hidden" id="selected-avatar-b64" value="">
-
     <!-- BOTTOM PADDING -->
+    <div style="height: 12px;"></div>
+
+    <!-- PRINT CARD DOWNLOAD -->
+    <div class="studio-section">
+      <div class="studio-section-card">
+        <div class="studio-section-label"><i class="fa-solid fa-print"></i> PRINT CARD</div>
+        <p style="font-size:0.7rem; color:#666; margin:0 0 12px 0; line-height:1.4;">Download a print-ready PNG at standard trading card size (2.5" × 3.5" / 63.5 × 88.9mm, 300 DPI).</p>
+        <button class="pc-save-btn" id="btn-print-card" onclick="generatePrintCard()" style="width:100%; background:linear-gradient(135deg, #1a1a1a, #2a2a2a); border:1px solid rgba(255,255,255,0.1);">
+            <i class="fa-solid fa-download" style="margin-right:8px;"></i>DOWNLOAD PRINT CARD
+        </button>
+        <div id="print-card-status" style="text-align:center; font-size:0.65rem; color:#888; font-family:'Resolve',sans-serif; letter-spacing:1px; margin-top:8px; min-height:18px;"></div>
+      </div>
+    </div>
+
     <div style="height: calc(40px + env(safe-area-inset-bottom, 20px));"></div>
 
     <!-- AI GENERATION OVERLAY -->
@@ -1282,6 +1295,222 @@
                 // Preset avatar
                 photo.src = newSrc;
             }
+        }
+
+        // ===== PRINT CARD GENERATOR (Topps 2.5" × 3.5" @ 300 DPI = 750×1050px) =====
+        async function generatePrintCard() {
+            const btn = document.getElementById('btn-print-card');
+            const status = document.getElementById('print-card-status');
+            if (!_currentPlayer) { status.textContent = 'No player data loaded'; return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i>GENERATING...';
+            status.textContent = 'Rendering print-quality card...';
+
+            try {
+                const W = 750, H = 1050; // 2.5" × 3.5" at 300 DPI
+                const canvas = document.createElement('canvas');
+                canvas.width = W;
+                canvas.height = H;
+                const ctx = canvas.getContext('2d');
+
+                // --- BACKGROUND ---
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fillRect(0, 0, W, H);
+
+                // Dot pattern
+                ctx.fillStyle = 'rgba(255,255,255,0.03)';
+                for (let y = 0; y < H; y += 12) {
+                    for (let x = 0; x < W; x += 12) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // Inner border
+                const pad = 18;
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(pad, pad, W - pad * 2, H - pad * 2);
+
+                // --- TOP BAR ---
+                ctx.fillStyle = '#c41e2a';
+                ctx.font = 'bold 16px "Resolve", sans-serif';
+                ctx.textBaseline = 'top';
+                ctx.fillText('PRO CARD // 2026', pad + 12, pad + 12);
+
+                // Crown icon (circle)
+                const crownX = W - pad - 36, crownY = pad + 10;
+                ctx.fillStyle = '#111';
+                ctx.beginPath();
+                ctx.arc(crownX, crownY + 10, 14, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#c41e2a';
+                ctx.font = '14px "Font Awesome 6 Free"';
+                ctx.textAlign = 'center';
+                ctx.fillText('\uf521', crownX, crownY + 4);
+                ctx.textAlign = 'left';
+
+                // --- AVATAR PHOTO ---
+                const photoY = pad + 38;
+                const photoH = Math.round(H * 0.45);
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(pad, photoY, W - pad * 2, photoH);
+
+                // Load and draw avatar
+                const avatarUrl = _currentPlayer.avatar_url;
+                if (avatarUrl) {
+                    try {
+                        const img = await loadImageCORS(avatarUrl);
+                        const imgRatio = img.width / img.height;
+                        const drawW = W - pad * 2;
+                        const drawH = photoH;
+                        let sx = 0, sy = 0, sw = img.width, sh = img.height;
+                        // Cover fit (crop from center-top)
+                        if (imgRatio > drawW / drawH) {
+                            sw = img.height * (drawW / drawH);
+                            sx = (img.width - sw) / 2;
+                        } else {
+                            sh = img.width * (drawH / drawW);
+                        }
+                        ctx.drawImage(img, sx, sy, sw, sh, pad, photoY, drawW, drawH);
+                    } catch(e) {
+                        console.warn('Avatar load failed for print card:', e);
+                    }
+                }
+
+                // Bottom gradient over photo
+                const grad = ctx.createLinearGradient(0, photoY + photoH - 100, 0, photoY + photoH);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(1, 'rgba(0,0,0,0.85)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(pad, photoY + photoH - 100, W - pad * 2, 100);
+
+                // Photo top/bottom borders
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(pad, photoY); ctx.lineTo(W - pad, photoY);
+                ctx.moveTo(pad, photoY + photoH); ctx.lineTo(W - pad, photoY + photoH);
+                ctx.stroke();
+
+                // --- BOTTOM INFO AREA ---
+                const infoY = photoY + photoH;
+                const infoH = H - infoY - pad;
+                ctx.fillStyle = '#111';
+                ctx.fillRect(pad, infoY, W - pad * 2, infoH);
+
+                // Location
+                const location = _currentPlayer.team_data?.name || (_currentPlayer.country || 'LOCAL ARENA').toUpperCase();
+                ctx.fillStyle = '#c41e2a';
+                ctx.font = 'bold 18px "Resolve", sans-serif';
+                ctx.textBaseline = 'top';
+                ctx.fillText('📍 ' + location, pad + 18, infoY + 16);
+
+                // Logo (draw text-based)
+                ctx.fillStyle = '#c41e2a';
+                ctx.font = 'bold 14px "Resolve", sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText('SUBSOCCER', W - pad - 18, infoY + 18);
+                ctx.textAlign = 'left';
+
+                // Player name
+                const playerName = (_currentPlayer.username || 'PLAYER').toUpperCase();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '72px "Subsoccer", "Jockey One", sans-serif';
+                ctx.textBaseline = 'top';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetY = 4;
+                ctx.fillText(playerName, pad + 18, infoY + 42, W - pad * 2 - 36);
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetY = 0;
+
+                // ELO badge
+                const elo = _currentPlayer.elo || 1500;
+                const eloY = H - pad - 70;
+                const eloW = 100, eloH = 42;
+                roundRect(ctx, pad + 18, eloY, eloW, eloH, 8, '#c41e2a');
+                ctx.fillStyle = '#fff';
+                ctx.font = '32px "Subsoccer", "Jockey One", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(elo.toString(), pad + 18 + eloW / 2, eloY + eloH / 2 + 2);
+                ctx.textAlign = 'left';
+
+                // Win ratio
+                const wins = _currentPlayer.wins || 0;
+                const losses = _currentPlayer.losses || 0;
+                const matches = wins + losses;
+                const ratio = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#888';
+                ctx.font = 'bold 16px "Resolve", sans-serif';
+                ctx.textBaseline = 'top';
+                ctx.fillText('WIN RATIO', W - pad - 18, eloY);
+                ctx.fillStyle = '#fff';
+                ctx.font = '38px "Subsoccer", "Jockey One", sans-serif';
+                ctx.fillText(ratio + '%', W - pad - 18, eloY + 16);
+                ctx.textAlign = 'left';
+
+                // Flip card hint
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.font = '13px "Resolve", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('⟳ FLIP CARD', W / 2, H - pad - 14);
+                ctx.textAlign = 'left';
+
+                // --- DOWNLOAD ---
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `subsoccer-pro-card-${playerName.toLowerCase()}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    status.textContent = '✅ Card downloaded!';
+                    setTimeout(() => { status.textContent = ''; }, 3000);
+                }, 'image/png');
+
+            } catch(err) {
+                console.error('Print card generation failed:', err);
+                status.textContent = '❌ Generation failed: ' + err.message;
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-download" style="margin-right:8px;"></i>DOWNLOAD PRINT CARD';
+        }
+
+        // Helper: load image with CORS
+        function loadImageCORS(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                // Add cache buster for CORS
+                const separator = url.includes('?') ? '&' : '?';
+                img.src = url + separator + 'v=' + Date.now();
+            });
+        }
+
+        // Helper: rounded rectangle
+        function roundRect(ctx, x, y, w, h, r, fill) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            if (fill) { ctx.fillStyle = fill; ctx.fill(); }
         }
 
         async function removeAvatar(e) {
