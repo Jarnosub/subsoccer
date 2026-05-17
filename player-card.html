@@ -1318,149 +1318,213 @@
                 ctx.fillStyle = '#0a0a0a';
                 ctx.fillRect(0, 0, W, H);
 
-                // Dot pattern
-                ctx.fillStyle = 'rgba(255,255,255,0.03)';
-                for (let y = 0; y < H; y += 12) {
-                    for (let x = 0; x < W; x += 12) {
+                // Subtle dot pattern
+                ctx.fillStyle = 'rgba(255,255,255,0.025)';
+                for (let y = 0; y < H; y += 10) {
+                    for (let x = 0; x < W; x += 10) {
                         ctx.beginPath();
-                        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                        ctx.arc(x, y, 1, 0, Math.PI * 2);
                         ctx.fill();
                     }
                 }
 
                 // Inner border
-                const pad = 18;
-                ctx.strokeStyle = '#333';
+                const pad = 16;
+                ctx.strokeStyle = '#444';
                 ctx.lineWidth = 1;
                 ctx.strokeRect(pad, pad, W - pad * 2, H - pad * 2);
 
-                // --- TOP BAR ---
-                ctx.fillStyle = '#c41e2a';
-                ctx.font = 'bold 16px "Resolve", sans-serif';
-                ctx.textBaseline = 'top';
-                ctx.fillText('PRO CARD // 2026', pad + 12, pad + 12);
+                // --- TOP BAR (inside border) ---
+                const topBarH = 36;
+                ctx.fillStyle = '#0e0e0e';
+                ctx.fillRect(pad + 1, pad + 1, W - pad * 2 - 2, topBarH);
 
-                // Crown icon (circle)
-                const crownX = W - pad - 36, crownY = pad + 10;
-                ctx.fillStyle = '#111';
-                ctx.beginPath();
-                ctx.arc(crownX, crownY + 10, 14, 0, Math.PI * 2);
-                ctx.fill();
                 ctx.fillStyle = '#c41e2a';
-                ctx.font = '14px "Font Awesome 6 Free"';
-                ctx.textAlign = 'center';
-                ctx.fillText('\uf521', crownX, crownY + 4);
-                ctx.textAlign = 'left';
+                ctx.font = 'bold 15px "Resolve", sans-serif';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('PRO CARD // 2026', pad + 14, pad + topBarH / 2);
 
-                // --- AVATAR PHOTO ---
-                const photoY = pad + 38;
-                const photoH = Math.round(H * 0.45);
+                // Crown icon (hand-drawn)
+                const crownX = W - pad - 30;
+                const crownCY = pad + topBarH / 2;
                 ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(pad, photoY, W - pad * 2, photoH);
+                ctx.beginPath();
+                ctx.arc(crownX, crownCY, 13, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#c41e2a';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                // Draw crown shape
+                ctx.fillStyle = '#c41e2a';
+                ctx.beginPath();
+                ctx.moveTo(crownX - 7, crownCY + 4);
+                ctx.lineTo(crownX - 5, crownCY - 3);
+                ctx.lineTo(crownX - 1, crownCY + 1);
+                ctx.lineTo(crownX, crownCY - 6);
+                ctx.lineTo(crownX + 1, crownCY + 1);
+                ctx.lineTo(crownX + 5, crownCY - 3);
+                ctx.lineTo(crownX + 7, crownCY + 4);
+                ctx.closePath();
+                ctx.fill();
+
+                // --- AVATAR PHOTO (60% of card height) ---
+                const photoY = pad + topBarH;
+                const photoH = Math.round(H * 0.58);
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(pad + 1, photoY, W - pad * 2 - 2, photoH);
 
                 // Load and draw avatar
                 const avatarUrl = _currentPlayer.avatar_url;
                 if (avatarUrl) {
                     try {
                         const img = await loadImageCORS(avatarUrl);
-                        const imgRatio = img.width / img.height;
-                        const drawW = W - pad * 2;
+                        const drawW = W - pad * 2 - 2;
                         const drawH = photoH;
                         let sx = 0, sy = 0, sw = img.width, sh = img.height;
-                        // Cover fit (crop from center-top)
-                        if (imgRatio > drawW / drawH) {
-                            sw = img.height * (drawW / drawH);
+                        const imgRatio = img.width / img.height;
+                        const boxRatio = drawW / drawH;
+                        if (imgRatio > boxRatio) {
+                            sw = img.height * boxRatio;
                             sx = (img.width - sw) / 2;
                         } else {
-                            sh = img.width * (drawH / drawW);
+                            sh = img.width / boxRatio;
                         }
-                        ctx.drawImage(img, sx, sy, sw, sh, pad, photoY, drawW, drawH);
+                        ctx.drawImage(img, sx, sy, sw, sh, pad + 1, photoY, drawW, drawH);
                     } catch(e) {
                         console.warn('Avatar load failed for print card:', e);
                     }
                 }
 
-                // Bottom gradient over photo
-                const grad = ctx.createLinearGradient(0, photoY + photoH - 100, 0, photoY + photoH);
+                // Gradient overlay at bottom of photo
+                const grad = ctx.createLinearGradient(0, photoY + photoH - 120, 0, photoY + photoH);
                 grad.addColorStop(0, 'rgba(0,0,0,0)');
-                grad.addColorStop(1, 'rgba(0,0,0,0.85)');
+                grad.addColorStop(0.6, 'rgba(0,0,0,0.6)');
+                grad.addColorStop(1, 'rgba(0,0,0,0.95)');
                 ctx.fillStyle = grad;
-                ctx.fillRect(pad, photoY + photoH - 100, W - pad * 2, 100);
+                ctx.fillRect(pad + 1, photoY + photoH - 120, W - pad * 2 - 2, 120);
 
-                // Photo top/bottom borders
-                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(pad, photoY); ctx.lineTo(W - pad, photoY);
-                ctx.moveTo(pad, photoY + photoH); ctx.lineTo(W - pad, photoY + photoH);
-                ctx.stroke();
+                // Red accent line below photo
+                ctx.fillStyle = '#c41e2a';
+                ctx.fillRect(pad + 1, photoY + photoH - 2, W - pad * 2 - 2, 3);
 
                 // --- BOTTOM INFO AREA ---
                 const infoY = photoY + photoH;
                 const infoH = H - infoY - pad;
-                ctx.fillStyle = '#111';
-                ctx.fillRect(pad, infoY, W - pad * 2, infoH);
+                ctx.fillStyle = '#0e0e0e';
+                ctx.fillRect(pad + 1, infoY, W - pad * 2 - 2, infoH - 1);
 
-                // Location
+                const contentX = pad + 20;
+                const contentW = W - pad * 2 - 40;
+
+                // Location + Subsoccer brand (top row)
+                const locY = infoY + 14;
                 const location = _currentPlayer.team_data?.name || (_currentPlayer.country || 'LOCAL ARENA').toUpperCase();
                 ctx.fillStyle = '#c41e2a';
-                ctx.font = 'bold 18px "Resolve", sans-serif';
+                ctx.font = 'bold 15px "Resolve", sans-serif';
                 ctx.textBaseline = 'top';
-                ctx.fillText('📍 ' + location, pad + 18, infoY + 16);
+                ctx.textAlign = 'left';
+                ctx.fillText('📍 ' + location, contentX, locY);
 
-                // Logo (draw text-based)
-                ctx.fillStyle = '#c41e2a';
-                ctx.font = 'bold 14px "Resolve", sans-serif';
-                ctx.textAlign = 'right';
-                ctx.fillText('SUBSOCCER', W - pad - 18, infoY + 18);
+                // Try to load and draw logo, fallback to text
+                try {
+                    const logoImg = await loadImageCORS(window.location.origin + '/subsoccer_logo.svg');
+                    ctx.drawImage(logoImg, W - pad - 20 - 90, locY - 1, 90, 22);
+                } catch(e) {
+                    ctx.fillStyle = '#c41e2a';
+                    ctx.font = 'bold 13px "Resolve", sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText('SUBSOCCER', W - pad - 20, locY + 2);
+                }
                 ctx.textAlign = 'left';
 
                 // Player name
                 const playerName = (_currentPlayer.username || 'PLAYER').toUpperCase();
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '72px "Subsoccer", "Jockey One", sans-serif';
+                ctx.font = '68px "Subsoccer", "Jockey One", sans-serif';
                 ctx.textBaseline = 'top';
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                ctx.shadowBlur = 8;
-                ctx.shadowOffsetY = 4;
-                ctx.fillText(playerName, pad + 18, infoY + 42, W - pad * 2 - 36);
+                ctx.shadowBlur = 6;
+                ctx.shadowOffsetY = 3;
+                ctx.fillText(playerName, contentX, locY + 24, contentW);
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
                 ctx.shadowOffsetY = 0;
 
-                // ELO badge
+                // Thin separator line
+                const sepY = locY + 100;
+                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(contentX, sepY);
+                ctx.lineTo(contentX + contentW, sepY);
+                ctx.stroke();
+
+                // --- STATS ROW ---
+                const statsY = sepY + 12;
+
+                // ELO badge (left)
                 const elo = _currentPlayer.elo || 1500;
-                const eloY = H - pad - 70;
-                const eloW = 100, eloH = 42;
-                roundRect(ctx, pad + 18, eloY, eloW, eloH, 8, '#c41e2a');
+                const eloW = 96, eloH = 40;
+                roundRect(ctx, contentX, statsY, eloW, eloH, 6, '#c41e2a');
                 ctx.fillStyle = '#fff';
-                ctx.font = '32px "Subsoccer", "Jockey One", sans-serif';
+                ctx.font = '30px "Subsoccer", "Jockey One", sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(elo.toString(), pad + 18 + eloW / 2, eloY + eloH / 2 + 2);
+                ctx.fillText(elo.toString(), contentX + eloW / 2, statsY + eloH / 2 + 2);
                 ctx.textAlign = 'left';
 
-                // Win ratio
+                // Win ratio (right)
                 const wins = _currentPlayer.wins || 0;
                 const losses = _currentPlayer.losses || 0;
                 const matches = wins + losses;
                 const ratio = matches > 0 ? Math.round((wins / matches) * 100) : 0;
 
                 ctx.textAlign = 'right';
-                ctx.fillStyle = '#888';
-                ctx.font = 'bold 16px "Resolve", sans-serif';
+                ctx.fillStyle = '#666';
+                ctx.font = 'bold 13px "Resolve", sans-serif';
                 ctx.textBaseline = 'top';
-                ctx.fillText('WIN RATIO', W - pad - 18, eloY);
+                ctx.fillText('WIN RATIO', contentX + contentW, statsY);
                 ctx.fillStyle = '#fff';
-                ctx.font = '38px "Subsoccer", "Jockey One", sans-serif';
-                ctx.fillText(ratio + '%', W - pad - 18, eloY + 16);
+                ctx.font = '34px "Subsoccer", "Jockey One", sans-serif';
+                ctx.fillText(ratio + '%', contentX + contentW, statsY + 12);
                 ctx.textAlign = 'left';
 
-                // Flip card hint
-                ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                ctx.font = '13px "Resolve", sans-serif';
+                // --- STATS GRID (4 boxes) ---
+                const gridY = statsY + eloH + 14;
+                const boxW = Math.floor((contentW - 12) / 4);
+                const boxH = 52;
+                const gridData = [
+                    { label: 'MATCHES', value: matches.toString() },
+                    { label: 'WINS', value: wins.toString() },
+                    { label: 'LOSSES', value: losses.toString() },
+                    { label: 'TOURNEYS', value: (_currentPlayer.tournaments_won || 0).toString() }
+                ];
+
+                gridData.forEach((item, i) => {
+                    const bx = contentX + i * (boxW + 4);
+                    roundRect(ctx, bx, gridY, boxW, boxH, 4, 'rgba(255,255,255,0.04)');
+                    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(bx, gridY, boxW, boxH);
+
+                    ctx.fillStyle = '#555';
+                    ctx.font = 'bold 9px "Resolve", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(item.label, bx + boxW / 2, gridY + 8);
+
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '22px "Subsoccer", "Jockey One", sans-serif';
+                    ctx.fillText(item.value, bx + boxW / 2, gridY + 24);
+                });
+                ctx.textAlign = 'left';
+
+                // --- BOTTOM BRANDING ---
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.font = '11px "Resolve", sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('⟳ FLIP CARD', W / 2, H - pad - 14);
+                ctx.textBaseline = 'bottom';
+                ctx.fillText('SUBSOCCER.COM', W / 2, H - pad - 8);
                 ctx.textAlign = 'left';
 
                 // --- DOWNLOAD ---
