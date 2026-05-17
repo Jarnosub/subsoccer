@@ -1499,15 +1499,20 @@
                 // Position from bottom (like web card: margin-top: auto, padding-bottom: 5px)
                 const bottomRowY = H - Math.round(55 * S);
 
-                // ELO badge
+                // ELO badge — align bottom edge with Win Ratio % bottom
                 const eloW = Math.round(10 * S * 5.5);
                 const eloH = Math.round(28 * S);
-                roundRect(ctx, infoPad, bottomRowY, eloW, eloH, Math.round(6 * S), '#c41e2a');
+                const winRatioLabelH = Math.round(0.65 * S * 16); // "WIN RATIO" label height
+                const winRatioGap = Math.round(14 * S);           // gap before number
+                const winRatioNumH = Math.round(1.4 * S * 16);    // number font height
+                const winRatioTotalH = winRatioLabelH + winRatioGap + winRatioNumH;
+                const eloOffsetY = bottomRowY + (winRatioTotalH - eloH);
+                roundRect(ctx, infoPad, eloOffsetY, eloW, eloH, Math.round(6 * S), '#c41e2a');
                 ctx.fillStyle = '#fff';
                 ctx.font = `${Math.round(1.4 * S * 16)}px "SubsoccerLogo", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(elo.toString(), infoPad + eloW / 2, bottomRowY + eloH / 2 + 2);
+                ctx.fillText(elo.toString(), infoPad + eloW / 2, eloOffsetY + eloH / 2 + 2);
 
                 // Win Ratio (right-aligned)
                 ctx.textAlign = 'right';
