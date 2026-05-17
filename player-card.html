@@ -828,14 +828,18 @@
     <!-- AVATAR STUDIO CONTROLS -->
     
     <!-- SECTION: CHOOSE AVATAR -->
-    <div class="studio-section">
-      <div class="studio-section-card">
-        <div class="studio-section-label"><i class="fa-solid fa-palette"></i> YOUR AVATARS</div>
-        <div class="avatar-carousel-wrap">
+    <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; padding: 0 10px;">
+        <!-- Title aligned to the 280px card width -->
+        <div style="width: 280px; max-width: 100%;">
+            <div class="studio-section-label" style="margin-bottom: 8px;"><i class="fa-solid fa-palette"></i> YOUR AVATARS</div>
+        </div>
+        
+        <!-- Carousel wrap: Arrows outside, track inside (280px max) -->
+        <div class="avatar-carousel-wrap" style="width: 100%; max-width: 380px; justify-content: center; gap: 12px; margin-bottom: 0;">
             <button class="avatar-carousel-btn" id="avatar-prev" onclick="avatarCarouselStep(-1)" disabled>
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
-            <div class="avatar-carousel-track-outer">
+            <div class="avatar-carousel-track-outer" style="flex: 0 0 280px; max-width: calc(100% - 92px);">
                 <div class="avatar-carousel-track" id="avatar-selection">
                     <div class="avatar-option selected" data-avatar="avatar-human-1.png" onclick="selectAvatar(this)">
                         <img src="avatar-human-1.png" alt="Character 1">
@@ -861,12 +865,13 @@
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
+
+        <!-- Delete text -->
         <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:8px;">
             <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#555; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#c41e2a'" onmouseout="this.style.color='#555'">
                 <i class="fa-solid fa-trash-can" style="margin-right:4px;"></i>DELETE AVATAR
             </a>
         </div>
-      </div>
     </div>
 
     <!-- SECTION: AI PORTRAIT STUDIO -->
