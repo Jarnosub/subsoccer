@@ -740,10 +740,8 @@
                     <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 15px 6px; z-index: 2;">
                         <div style="font-size: 0.65rem; color: #c41e2a; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
                             PRO CARD // 2026</div>
-                        <div style="display: flex; gap: 5px;">
-                            <div style="background: #111; color: #c41e2a; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
-                                <i class="fa-solid fa-crown"></i>
-                            </div>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <i class="fa-solid fa-crown" style="color: #c41e2a; font-size: 1.1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8);"></i>
                         </div>
                     </div>
 
@@ -1383,35 +1381,37 @@
                 ctx.letterSpacing = '1px';
                 ctx.fillText('PRO CARD // 2026', topSidePad, topPad);
 
-                // Crown circle + icon (right side)
+                // Crown icon (right side)
                 const crownSize = Math.round(22 * S);
                 const crownR = crownSize / 2;
                 const crownCX = W - topSidePad - crownR;
                 const crownCY = topPad + Math.round(0.65 * S * 16) / 2;
-                ctx.fillStyle = '#111';
-                ctx.beginPath();
-                ctx.arc(crownCX, crownCY, crownR, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = Math.round(5 * S);
+                
+                // Draw crown shape directly on background
+                const cs = crownR * 0.7;
+                ctx.fillStyle = '#c41e2a';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = Math.round(4 * S);
                 ctx.shadowOffsetY = Math.round(2 * S);
+                
+                // Base line
+                ctx.fillRect(crownCX - cs * 0.8, crownCY + cs * 0.5, cs * 1.6, cs * 0.2);
+
+                // Spikes
+                ctx.beginPath();
+                ctx.moveTo(crownCX - cs * 0.8, crownCY + cs * 0.3); // base left
+                ctx.lineTo(crownCX + cs * 0.8, crownCY + cs * 0.3); // base right
+                ctx.lineTo(crownCX + cs * 1.0, crownCY - cs * 0.5); // right spike
+                ctx.lineTo(crownCX + cs * 0.4, crownCY - cs * 0.1); // inner right
+                ctx.lineTo(crownCX, crownCY - cs * 0.8);            // middle spike
+                ctx.lineTo(crownCX - cs * 0.4, crownCY - cs * 0.1); // inner left
+                ctx.lineTo(crownCX - cs * 1.0, crownCY - cs * 0.5); // left spike
+                ctx.closePath();
                 ctx.fill();
+                
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
                 ctx.shadowOffsetY = 0;
-                // Draw crown shape
-                const cs = crownR * 0.55;
-                ctx.fillStyle = '#c41e2a';
-                ctx.beginPath();
-                ctx.moveTo(crownCX - cs, crownCY + cs * 0.6);
-                ctx.lineTo(crownCX - cs * 0.7, crownCY - cs * 0.4);
-                ctx.lineTo(crownCX - cs * 0.15, crownCY + cs * 0.15);
-                ctx.lineTo(crownCX, crownCY - cs * 0.85);
-                ctx.lineTo(crownCX + cs * 0.15, crownCY + cs * 0.15);
-                ctx.lineTo(crownCX + cs * 0.7, crownCY - cs * 0.4);
-                ctx.lineTo(crownCX + cs, crownCY + cs * 0.6);
-                ctx.closePath();
-                ctx.fill();
 
                 // --- AVATAR PHOTO AREA ---
                 // Web card: 225px of 392px height = ~57.4%
