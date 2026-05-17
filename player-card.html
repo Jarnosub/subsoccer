@@ -874,39 +874,42 @@
         </div>
     </div>
 
-    <!-- SECTION: AI PORTRAIT STUDIO -->
-    <div class="studio-section">
-      <div class="studio-section-card">
-        <div class="studio-section-label"><i class="fa-solid fa-wand-magic-sparkles"></i> AI PORTRAIT STUDIO</div>
-        <div class="ai-hero">
-            <label class="ai-upload-btn" id="ai-upload-label">
-                <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
-                <span id="ai-selfie-label">TAKE SELFIE</span>
-                <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
-            </label>
-            <button class="ai-generate-btn" id="btn-generate-ai" onclick="generateAIAvatar(event)">
-                <i class="fa-solid fa-bolt"></i> GENERATE AVATAR
-            </button>
-            <div id="pc-ai-msg" class="pc-save-status"></div>
+    <!-- SECTION: AI PORTRAIT STUDIO ACCORDION -->
+    <div class="profile-accordion" style="margin-bottom: 24px;">
+        <button class="profile-accordion-btn" id="studio-accordion-btn" onclick="toggleStudioAccordion()">
+            <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI PORTRAIT STUDIO</span>
+            <i class="fa-solid fa-chevron-down chevron"></i>
+        </button>
+        <div class="profile-accordion-body" id="studio-accordion-body">
+            <div class="profile-accordion-inner">
+                <div class="ai-hero">
+                    <label class="ai-upload-btn" id="ai-upload-label" style="width:100%;">
+                        <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
+                        <span id="ai-selfie-label">TAKE SELFIE</span>
+                        <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
+                    </label>
+                    <button class="ai-generate-btn" id="btn-generate-ai" onclick="generateAIAvatar(event)" style="width:100%;">
+                        <i class="fa-solid fa-bolt"></i> GENERATE AVATAR
+                    </button>
+                    <div id="pc-ai-msg" class="pc-save-status"></div>
+                </div>
+
+                <div style="width:100%; margin-top:10px;">
+                    <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%;">
+                        <i class="fa-solid fa-check" style="margin-right:8px;"></i>SAVE AVATAR
+                    </button>
+                    <div id="pc-edit-msg" class="pc-save-status"></div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- SAVE AVATAR BUTTON -->
-    <div style="max-width: 420px; margin: 0 auto; padding: 0 20px 8px; display: flex; flex-direction: column; gap: 12px;">
-        <div>
-            <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%;">
-                <i class="fa-solid fa-check" style="margin-right:8px;"></i>SAVE AVATAR
-            </button>
-            <div id="pc-edit-msg" class="pc-save-status"></div>
-        </div>
-        
-        <div>
-            <button class="pc-save-btn" id="btn-print-card" onclick="generatePrintCard()" style="width:100%;">
-                <i class="fa-solid fa-download" style="margin-right:8px;"></i>DOWNLOAD PRINT CARD
-            </button>
-            <div id="print-card-status" class="pc-save-status"></div>
-        </div>
+    <!-- DOWNLOAD PRINT CARD -->
+    <div style="max-width: 420px; margin: 0 auto; padding: 0 20px 8px;">
+        <button class="pc-save-btn" id="btn-print-card" onclick="generatePrintCard()" style="width:100%;">
+            <i class="fa-solid fa-download" style="margin-right:8px;"></i>DOWNLOAD PRINT CARD
+        </button>
+        <div id="print-card-status" class="pc-save-status"></div>
     </div>
 
     <!-- PROFILE DETAILS ACCORDION -->
@@ -1100,10 +1103,20 @@
             }
         }
 
-        // Toggle accordion
+        // Toggle accordions
         function toggleProfileAccordion() {
             const btn = document.getElementById('profile-accordion-btn');
             const body = document.getElementById('profile-accordion-body');
+            btn.classList.toggle('open');
+            body.classList.toggle('open');
+            if(body.classList.contains('open')) {
+                setTimeout(() => body.scrollIntoView({behavior: 'smooth', block: 'end'}), 200);
+            }
+        }
+
+        function toggleStudioAccordion() {
+            const btn = document.getElementById('studio-accordion-btn');
+            const body = document.getElementById('studio-accordion-body');
             btn.classList.toggle('open');
             body.classList.toggle('open');
             if(body.classList.contains('open')) {
