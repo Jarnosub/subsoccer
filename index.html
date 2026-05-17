@@ -57,6 +57,15 @@
             font-family: 'Inter', sans-serif;
         }
 
+        /* Prevent flash of unstyled content during auth check */
+        body.auth-loading {
+            opacity: 0;
+        }
+        body.auth-ready {
+            opacity: 1;
+            transition: opacity 0.2s ease-in;
+        }
+
         /* Dark mode overrides for index page */
         body.dark-mode .content-card {
             background-image: linear-gradient(var(--card-bg), var(--card-bg)) !important;
@@ -477,7 +486,7 @@
     </style>
 </head>
 
-<body>
+<body class="auth-loading">
 
     <div id="top-ticker-container">
         <div id="top-ticker" class="ticker-wrapper">
@@ -822,7 +831,10 @@
             }
         }
 
-        initAuth(); // Run immediately on load
+        initAuth().finally(() => {
+            document.body.classList.remove('auth-loading');
+            document.body.classList.add('auth-ready');
+        });
 
         // Handle Safari/Mobile BFCache restores
         window.addEventListener('pageshow', (event) => {
