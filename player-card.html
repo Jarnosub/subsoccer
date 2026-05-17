@@ -1309,6 +1309,9 @@
             status.textContent = 'Rendering print-quality card...';
 
             try {
+                // Ensure custom fonts are loaded before canvas rendering
+                await document.fonts.ready;
+
                 const W = 750, H = 1050; // 2.5" × 3.5" at 300 DPI
                 const canvas = document.createElement('canvas');
                 canvas.width = W;
@@ -1475,7 +1478,7 @@
                 const nameY = row1Y + Math.round(18 * S);
                 ctx.fillStyle = '#ffffff';
                 // Web card: 2.6rem at 280px = proportionally smaller to avoid overlap
-                ctx.font = `${Math.round(2.2 * S * 16)}px "Subsoccer", "Jockey One", sans-serif`;
+                ctx.font = `${Math.round(2.2 * S * 16)}px "SubsoccerLogo", sans-serif`;
                 ctx.textBaseline = 'top';
                 ctx.textAlign = 'left';
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
@@ -1501,7 +1504,7 @@
                 const eloH = Math.round(28 * S);
                 roundRect(ctx, infoPad, bottomRowY, eloW, eloH, Math.round(6 * S), '#c41e2a');
                 ctx.fillStyle = '#fff';
-                ctx.font = `${Math.round(1.4 * S * 16)}px "Subsoccer", "Jockey One", sans-serif`;
+                ctx.font = `${Math.round(1.4 * S * 16)}px "SubsoccerLogo", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(elo.toString(), infoPad + eloW / 2, bottomRowY + eloH / 2 + 2);
@@ -1513,7 +1516,7 @@
                 ctx.textBaseline = 'top';
                 ctx.fillText('WIN RATIO', W - infoPad, bottomRowY);
                 ctx.fillStyle = '#fff';
-                ctx.font = `${Math.round(1.4 * S * 16)}px "Subsoccer", "Jockey One", sans-serif`;
+                ctx.font = `${Math.round(1.4 * S * 16)}px "SubsoccerLogo", sans-serif`;
                 ctx.fillText(ratio + '%', W - infoPad, bottomRowY + Math.round(14 * S));
                 ctx.textAlign = 'left';
 
