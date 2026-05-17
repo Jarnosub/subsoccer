@@ -1472,9 +1472,10 @@
 
                 // --- Row 2: Player Name (big) ---
                 const playerName = (_currentPlayer.username || 'PLAYER').toUpperCase();
-                const nameY = row1Y + Math.round(22 * S);
+                const nameY = row1Y + Math.round(18 * S);
                 ctx.fillStyle = '#ffffff';
-                ctx.font = `${Math.round(2.6 * S * 16)}px "Subsoccer", "Jockey One", sans-serif`;
+                // Web card: 2.6rem at 280px = proportionally smaller to avoid overlap
+                ctx.font = `${Math.round(2.2 * S * 16)}px "Subsoccer", "Jockey One", sans-serif`;
                 ctx.textBaseline = 'top';
                 ctx.textAlign = 'left';
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
@@ -1493,7 +1494,7 @@
                 const ratio = matches > 0 ? Math.round((wins / matches) * 100) : 0;
 
                 // Position from bottom (like web card: margin-top: auto, padding-bottom: 5px)
-                const bottomRowY = H - Math.round(70 * S);
+                const bottomRowY = H - Math.round(55 * S);
 
                 // ELO badge
                 const eloW = Math.round(10 * S * 5.5);
