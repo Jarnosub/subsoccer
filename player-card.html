@@ -1534,17 +1534,129 @@
                 ctx.fillText(ratio + '%', W - infoPad, winRatioNumY);
                 ctx.textAlign = 'left';
 
-                // --- DOWNLOAD ---
-                canvas.toBlob(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `subsoccer-pro-card-${playerName.toLowerCase()}.png`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    status.textContent = '✅ Card downloaded!';
-                    setTimeout(() => { status.textContent = ''; }, 3000);
-                }, 'image/png');
+                // --- DOWNLOAD FRONT SIDE (-1.png) ---
+                await new Promise(resolve => {
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `subsoccer-pro-card-${playerName.toLowerCase()}-1.png`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        resolve();
+                    }, 'image/png');
+                });
+
+                status.textContent = 'Rendering back side...';
+
+                // --- GENERATE BACK SIDE (-2.png) ---
+                ctx.clearRect(0, 0, W, H);
+                
+                // Background
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fillRect(0, 0, W, H);
+
+                // Carbon fiber crosshatch pattern
+                ctx.fillStyle = 'rgba(26,26,26,0.8)';
+                for (let y = 0; y < H; y += Math.round(4 * S)) {
+                    for (let x = 0; x < W; x += Math.round(4 * S)) {
+                        const offset = (Math.floor(y / (4 * S)) % 2) * Math.round(2 * S);
+                        ctx.fillRect(x + offset, y, Math.round(2 * S), Math.round(2 * S));
+                    }
+                }
+
+                // Gold border
+                ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+                ctx.lineWidth = borderW;
+                roundRect(ctx, borderW / 2, borderW / 2, W - borderW, H - borderW, Math.round(2 * S));
+                ctx.stroke();
+
+                // Dossier Header
+                const dossierY = Math.round(30 * S);
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(infoPad, dossierY, W - infoPad * 2, Math.round(80 * S));
+                
+                ctx.fillStyle = '#c41e2a';
+                ctx.font = `${Math.round(1.1 * S * 16)}px "SubsoccerLogo", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText('PLAYER DOSSIER', W / 2, dossierY + Math.round(20 * S));
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = `${Math.round(0.75 * S * 16)}px "Resolve", sans-serif`;
+                ctx.fillText('NEW RECRUIT', W / 2, dossierY + Math.round(50 * S));
+
+                // 2x2 Grid
+                const gridY = dossierY + Math.round(80 * S) + Math.round(20 * S);
+                const gridW = W - infoPad * 2;
+                const cellW = (gridW - Math.round(10 * S)) / 2;
+                const cellH = Math.round(80 * S);
+
+                const renderCell = (x, y, label, val, isSubsoccerFont) => {
+                    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+                    roundRect(ctx, x, y, cellW, cellH, Math.round(4 * S));
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#888';
+                    ctx.font = `${Math.round(0.6 * S * 16)}px "Resolve", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(label, x + cellW / 2, y + Math.round(15 * S));
+
+                    ctx.fillStyle = '#fff';
+                    if (isSubsoccerFont) {
+                        ctx.font = `${Math.round(1.4 * S * 16)}px "SubsoccerLogo", sans-serif`;
+                    } else {
+                        ctx.font = `bold ${Math.round(1.2 * S * 16)}px "Resolve", sans-serif`;
+                    }
+                    ctx.fillText(val, x + cellW / 2, y + Math.round(40 * S));
+                };
+
+                renderCell(infoPad, gridY, 'GLOBAL RATING', elo.toString(), true);
+                renderCell(infoPad + cellW + Math.round(10 * S), gridY, 'WIN RATIO', ratio + '%', true);
+                renderCell(infoPad, gridY + cellH + Math.round(10 * S), 'MATCHES', matches.toString(), false);
+                renderCell(infoPad + cellW + Math.round(10 * S), gridY + cellH + Math.round(10 * S), 'WINS', wins.toString(), false);
+
+                // Tournaments Won Box
+                const tournY = gridY + cellH * 2 + Math.round(20 * S);
+                ctx.fillStyle = 'rgba(196,30,42,0.1)';
+                roundRect(ctx, infoPad, tournY, gridW, cellH, Math.round(4 * S));
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(196,30,42,0.3)';
+                ctx.stroke();
+
+                ctx.fillStyle = '#c41e2a';
+                ctx.font = `${Math.round(0.6 * S * 16)}px "Resolve", sans-serif`;
+                ctx.fillText('TOURNAMENTS WON', W / 2, tournY + Math.round(15 * S));
+                ctx.fillStyle = '#fff';
+                ctx.font = `bold ${Math.round(1.2 * S * 16)}px "Resolve", sans-serif`;
+                const tourneys = _currentPlayer.tournaments_won || 0;
+                ctx.fillText(tourneys.toString(), W / 2, tournY + Math.round(40 * S));
+
+                // Flip Card Text
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.font = `${Math.round(0.65 * S * 16)}px "Resolve", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText('↻  FLIP CARD', W / 2, H - Math.round(12 * S));
+
+                // --- DOWNLOAD BACK SIDE (-2.png) ---
+                await new Promise(resolve => {
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `subsoccer-pro-card-${playerName.toLowerCase()}-2.png`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        resolve();
+                    }, 'image/png');
+                });
+
+                status.textContent = '✅ Both sides downloaded!';
+                setTimeout(() => { status.textContent = ''; }, 3000);
 
             } catch(err) {
                 console.error('Print card generation failed:', err);
