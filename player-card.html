@@ -875,45 +875,39 @@
     </div>
 
     <!-- SECTION: AI PORTRAIT STUDIO ACCORDION -->
-    <div class="profile-accordion" style="margin-bottom: 24px;">
+    <div class="profile-accordion" style="margin-bottom: 12px;">
         <button class="profile-accordion-btn" id="studio-accordion-btn" onclick="toggleStudioAccordion()">
             <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI PORTRAIT STUDIO</span>
             <i class="fa-solid fa-chevron-down chevron"></i>
         </button>
         <div class="profile-accordion-body" id="studio-accordion-body">
             <div class="profile-accordion-inner">
-                <div class="ai-hero">
-                    <label class="ai-upload-btn" id="ai-upload-label" style="width:100%;">
+                <div class="ai-hero" style="gap: 12px;">
+                    <label class="ai-upload-btn" id="ai-upload-label" style="width:100%; margin:0;">
                         <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
                         <span id="ai-selfie-label">TAKE SELFIE</span>
                         <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
                     </label>
-                    <button class="ai-generate-btn" id="btn-generate-ai" onclick="generateAIAvatar(event)" style="width:100%;">
+                    
+                    <button class="ai-generate-btn" id="btn-generate-ai" onclick="generateAIAvatar(event)" style="width:100%; margin:0;">
                         <i class="fa-solid fa-bolt"></i> GENERATE AVATAR
                     </button>
-                    <div id="pc-ai-msg" class="pc-save-status"></div>
-                </div>
+                    
+                    <hr style="border:0; height:1px; background:rgba(255,255,255,0.05); margin: 2px 0;">
 
-                <div style="width:100%; margin-top:10px;">
-                    <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%;">
+                    <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%; margin:0;">
                         <i class="fa-solid fa-check" style="margin-right:8px;"></i>SAVE AVATAR
                     </button>
-                    <div id="pc-edit-msg" class="pc-save-status"></div>
+
+                    <div id="pc-ai-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
+                    <div id="pc-edit-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- DOWNLOAD PRINT CARD -->
-    <div style="max-width: 420px; margin: 0 auto; padding: 0 20px 8px;">
-        <button class="pc-save-btn" id="btn-print-card" onclick="generatePrintCard()" style="width:100%;">
-            <i class="fa-solid fa-download" style="margin-right:8px;"></i>DOWNLOAD PRINT CARD
-        </button>
-        <div id="print-card-status" class="pc-save-status"></div>
-    </div>
-
     <!-- PROFILE DETAILS ACCORDION -->
-    <div class="profile-accordion">
+    <div class="profile-accordion" style="margin-bottom: 24px;">
         <button class="profile-accordion-btn" id="profile-accordion-btn" onclick="toggleProfileAccordion()">
             EDIT PROFILE DETAILS
             <i class="fa-solid fa-chevron-down chevron"></i>
@@ -932,6 +926,14 @@
                 <button class="pc-logout-btn" onclick="logoutPlayer()"><i class="fa-solid fa-sign-out-alt" style="margin-right:8px;"></i> LOG OUT</button>
             </div>
         </div>
+    </div>
+
+    <!-- DOWNLOAD PRINT CARD -->
+    <div style="max-width: 420px; margin: 0 auto; padding: 0 20px 8px;">
+        <button class="pc-save-btn" id="btn-print-card" onclick="generatePrintCard()" style="width:100%; background:linear-gradient(135deg, #1a1a1a, #2a2a2a); border:1px solid rgba(255,255,255,0.1); color: #ccc; box-shadow: none;">
+            <i class="fa-solid fa-print" style="margin-right:8px;"></i>DOWNLOAD PRINT CARD
+        </button>
+        <div id="print-card-status" class="pc-save-status" style="margin-top: 4px; min-height: 12px; font-size: 0.55rem;"></div>
     </div>
 
     <input type="hidden" id="selected-avatar-url" value="avatar-human-1.png">
