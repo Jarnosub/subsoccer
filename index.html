@@ -843,12 +843,18 @@
             }
         }
 
-        initAuth().finally(() => {
+        function revealPage() {
+            if (document.body.classList.contains('auth-ready')) return;
             const splash = document.getElementById('auth-splash');
             if (splash) splash.remove();
             document.body.classList.remove('auth-loading');
             document.body.classList.add('auth-ready');
-        });
+        }
+
+        // Failsafe: always show page within 3s even if auth hangs
+        setTimeout(revealPage, 3000);
+
+        initAuth().finally(revealPage);
 
         // Handle Safari/Mobile BFCache restores
         window.addEventListener('pageshow', (event) => {
