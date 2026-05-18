@@ -1575,10 +1575,11 @@
                     }, 'image/png');
                 });
 
-                // Check if mobile device
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+                // Temporarily disable back side download for all devices.
+                // This logic is kept here for when we implement the physical printed card order flow.
+                const downloadBackSide = false;
 
-                if (isMobile) {
+                if (!downloadBackSide) {
                     status.textContent = '✅ Print card downloaded!';
                     setTimeout(() => { status.textContent = ''; }, 3000);
                 } else {
@@ -1716,7 +1717,7 @@
 
                 status.textContent = '✅ Both sides downloaded!';
                 setTimeout(() => { status.textContent = ''; }, 3000);
-                } // end if(!isMobile)
+                } // end if(downloadBackSide)
 
             } catch(err) {
                 console.error('Print card generation failed:', err);
