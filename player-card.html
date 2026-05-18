@@ -1950,9 +1950,13 @@
                 }
             }, 1000);
 
+            // Declare outside try so finally can always clean up
+            let _genChannel = null;
+            let _genClientTimer = null;
+
             try {
                 const clientTimeout = new AbortController();
-                const clientTimer = setTimeout(() => clientTimeout.abort(), 130000); // 130s
+                _genClientTimer = setTimeout(() => clientTimeout.abort(), 130000); // 130s
                 
                 const taskId = 'task_' + Date.now() + '_' + Math.random().toString(36).substring(7);
                 
@@ -1961,19 +1965,19 @@
                 let errorMessage = null;
                 let data = { image_b64: null };
                 
-                const channel = _sb.channel(`avatar-${taskId}`);
-                channel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
+                _genChannel = _sb.channel(`avatar-${taskId}`);
+                _genChannel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
                     data.image_b64 = payload.payload.image_b64;
                     imageReady = true;
                 });
-                channel.on('broadcast', { event: 'avatar-error' }, (payload) => {
+                _genChannel.on('broadcast', { event: 'avatar-error' }, (payload) => {
                     errorMessage = payload.payload.error || 'Generation failed';
                     imageReady = true;
                 });
                 
                 // Wait until fully subscribed before triggering the background generation!
                 await new Promise((resolve, reject) => {
-                    channel.subscribe((status, err) => {
+                    _genChannel.subscribe((status, err) => {
                         if (status === 'SUBSCRIBED') resolve();
                         if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR') reject(err || new Error('Realtime connection failed'));
                     });
@@ -2000,9 +2004,6 @@
                     if (imageReady) break;
                     await new Promise(r => setTimeout(r, 3000));
                 }
-                
-                _sb.removeChannel(channel);
-                clearTimeout(clientTimer);
                 
                 if (errorMessage) {
                     throw new Error(errorMessage);
@@ -2063,6 +2064,13 @@
                     msg.innerText = err.message;
                 }
             } finally {
+                // Always clean up Supabase channel and timer to prevent zombie channels
+                if (_genChannel) {
+                    try { _sb.removeChannel(_genChannel); } catch(e) {}
+                }
+                if (_genClientTimer) {
+                    clearTimeout(_genClientTimer);
+                }
                 clearInterval(timerInterval);
                 overlay.classList.remove('active');
                 btn.disabled = false;
