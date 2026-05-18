@@ -1575,9 +1575,16 @@
                     }, 'image/png');
                 });
 
-                status.textContent = 'Rendering back side...';
+                // Check if mobile device
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
-                // --- GENERATE BACK SIDE (-2.png) ---
+                if (isMobile) {
+                    status.textContent = '✅ Print card downloaded!';
+                    setTimeout(() => { status.textContent = ''; }, 3000);
+                } else {
+                    status.textContent = 'Rendering back side...';
+
+                    // --- GENERATE BACK SIDE (-2.png) ---
                 ctx.clearRect(0, 0, W, H);
                 
                 // Background
@@ -1709,6 +1716,7 @@
 
                 status.textContent = '✅ Both sides downloaded!';
                 setTimeout(() => { status.textContent = ''; }, 3000);
+                } // end if(!isMobile)
 
             } catch(err) {
                 console.error('Print card generation failed:', err);
