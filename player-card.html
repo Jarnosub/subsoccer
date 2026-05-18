@@ -1963,11 +1963,11 @@
                 // 1. Listen via Supabase Realtime Broadcast FIRST!
                 let imageReady = false;
                 let errorMessage = null;
-                let data = { image_b64: null };
+                let data = { image_url: null };
                 
                 _genChannel = _sb.channel(`avatar-${taskId}`);
                 _genChannel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
-                    data.image_b64 = payload.payload.image_b64;
+                    data.image_url = payload.payload.image_url;
                     imageReady = true;
                 });
                 _genChannel.on('broadcast', { event: 'avatar-error' }, (payload) => {
@@ -2009,17 +2009,17 @@
                     throw new Error(errorMessage);
                 }
                 
-                if (!data.image_b64) {
+                if (!data.image_url) {
                     throw new Error('Generation timed out or failed. Please try again.');
                 }
                 
-                const b64Url = 'data:image/png;base64,' + data.image_b64;
+                const imgUrl = data.image_url;
                 const track = document.getElementById('avatar-selection');
                 const newOpt = document.createElement('div');
                 newOpt.className = 'avatar-option selected';
-                newOpt.innerHTML = `<img src="${b64Url}" alt="Custom AI">`;
-                newOpt.setAttribute('data-avatar', 'ai-custom');
-                newOpt.onclick = function() { selectAvatar(this); document.getElementById('selected-avatar-b64').value = data.image_b64; };
+                newOpt.innerHTML = `<img src="${imgUrl}" alt="Custom AI">`;
+                newOpt.setAttribute('data-avatar', imgUrl);
+                newOpt.onclick = function() { selectAvatar(this); document.getElementById('selected-avatar-url').value = imgUrl; };
                 
                 document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
                 track.prepend(newOpt);
@@ -2030,13 +2030,13 @@
                 const total = track.querySelectorAll('.avatar-option').length;
                 document.getElementById('avatar-next').disabled = total <= 3;
                 
-                document.getElementById('selected-avatar-url').value = 'ai-custom';
-                document.getElementById('selected-avatar-b64').value = data.image_b64;
+                document.getElementById('selected-avatar-url').value = imgUrl;
+                document.getElementById('selected-avatar-b64').value = '';
                 
                 // Update live preview
                 const photo = document.getElementById('pc-card-photo');
                 document.getElementById('pc-card-icon').style.display = 'none';
-                photo.src = b64Url;
+                photo.src = imgUrl;
                 photo.style.display = 'block';
 
                 // Track avatar generation

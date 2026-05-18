@@ -132,8 +132,38 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
             return { statusCode: 500, body: "Error" };
         }
 
+        // Upload image to Supabase Storage to avoid Realtime payload size limits
+        console.log(`[${taskId}] Uploading generated image to Supabase Storage...`);
+        const filePath = `avatars/tmp_${taskId}.png`;
+        const { error: uploadErr } = await supabase.storage.from('event-images').upload(filePath, finalImageBuffer, {
+            contentType: 'image/png',
+            upsert: true
+        });
+
+        if (uploadErr) {
+            console.error(`[${taskId}] Storage upload failed:`, uploadErr);
+            const channel = supabase.channel(`avatar-${taskId}`);
+            await new Promise((resolve) => {
+                channel.subscribe(async (status) => {
+                    if (status === 'SUBSCRIBED') {
+                        await channel.send({
+                            type: 'broadcast',
+                            event: 'avatar-error',
+                            payload: { error: "Failed to upload image to storage" }
+                        });
+                        resolve();
+                    }
+                });
+            });
+            await new Promise(r => setTimeout(r, 1000));
+            return { statusCode: 500, body: "Error" };
+        }
+
+        const { data: urlData } = supabase.storage.from('event-images').getPublicUrl(filePath);
+        const imageUrl = urlData.publicUrl + '?v=' + Date.now();
+
         // Send back via Supabase Realtime Broadcast
-        console.log(`[${taskId}] Broadcasting generated image back to client...`);
+        console.log(`[${taskId}] Broadcasting generated image URL back to client...`);
         const channel = supabase.channel(`avatar-${taskId}`);
         await new Promise((resolve) => {
             channel.subscribe(async (status) => {
@@ -141,9 +171,9 @@ ABSOLUTELY NO: text, logos, badges, stats, overlays, frames, watermarks, extra o
                     await channel.send({
                         type: 'broadcast',
                         event: 'avatar-ready',
-                        payload: { image_b64: finalImageBuffer.toString('base64') }
+                        payload: { image_url: imageUrl }
                     });
-                    console.log(`[${taskId}] Successfully broadcasted!`);
+                    console.log(`[${taskId}] Successfully broadcasted URL!`);
                     resolve();
                 }
             });
