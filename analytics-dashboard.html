@@ -281,6 +281,9 @@
                 <option value="olearys">O'Learys</option>
                 <option value="event">Private Events</option>
             </select>
+            <label style="margin-left: 10px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--accent-red); font-size: 0.875rem; border: 1px solid var(--border-color); padding: 0 12px; border-radius: 4px; background: rgba(242, 139, 130, 0.05);">
+                <input type="checkbox" id="excludeFiFilter" onchange="fetchData()"> Exclude FI
+            </label>
             <button class="btn-primary" onclick="fetchData()" style="margin-left: 10px;">
                 <i class="fas fa-sync-alt"></i> Refresh Data
             </button>
@@ -539,7 +542,15 @@
                 if (allCitiesRes.error) console.error("Cities Error:", allCitiesRes.error);
 
                 // Real data — no hardcoded fallbacks
-                const trackingData = trackingRes.data || [];
+                let trackingData = trackingRes.data || [];
+                const excludeFiEl = document.getElementById('excludeFiFilter');
+                if (excludeFiEl && excludeFiEl.checked) {
+                    trackingData = trackingData.filter(d => {
+                        const loc = (d.location || '').toUpperCase();
+                        return !loc.includes('HELSINKI') && !loc.includes('FINLAND') && !loc.includes('TAMPERE') && !loc.includes('ESPOO');
+                    });
+                }
+
                 const totalUsers = usersRes.count || 0;
                 const trackingTournaments = trackingData.filter(d => d.event_type === 'tournament_finished').length;
                 const dbTournaments = historyRes.count || 0;
