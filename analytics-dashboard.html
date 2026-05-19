@@ -596,7 +596,14 @@
                 // Calculate Unique Cities
                 let uniqueCitiesCount = 0;
                 if (allCitiesRes && allCitiesRes.data) {
-                    const uniqueCities = new Set(allCitiesRes.data.map(d => {
+                    let citiesData = allCitiesRes.data;
+                    if (excludeFiEl && excludeFiEl.checked) {
+                        citiesData = citiesData.filter(d => {
+                            const loc = (d.location || '').toUpperCase();
+                            return !loc.includes('HELSINKI') && !loc.includes('FINLAND') && !loc.includes('TAMPERE') && !loc.includes('ESPOO');
+                        });
+                    }
+                    const uniqueCities = new Set(citiesData.map(d => {
                         const parts = d.location.split('/');
                         let city = parts.length > 1 ? parts[parts.length - 1] : d.location;
                         return city.replace(/_/g, ' ').toUpperCase();
@@ -634,7 +641,7 @@
                 }
 
                 // Kirjoitetaan datamuuttujaan
-                globalTrackingData = trackingRes.data || [];
+                globalTrackingData = trackingData;
                 
                 // Renderöi
                 renderData();
