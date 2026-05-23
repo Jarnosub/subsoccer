@@ -58,9 +58,13 @@ self.addEventListener('fetch', (event) => {
             if (cachedResponse) {
                 // Haetaan taustalla uusin versio verkosta (Stale-while-revalidate pattern)
                 fetch(event.request).then((networkResponse) => {
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, networkResponse.clone());
-                    });
+                    if (networkResponse.status !== 206 && networkResponse.ok) {
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, networkResponse.clone()).catch(err => {
+                                console.warn('[Service Worker] Cache put failed in bg:', err.message);
+                            });
+                        }).catch(() => {});
+                    }
                 }).catch(() => { /* Vain ohitetaan, ollaan offline */ });
                 
                 return cachedResponse;
@@ -68,12 +72,16 @@ self.addEventListener('fetch', (event) => {
 
             // Muuten haetaan verkosta
             return fetch(event.request).then((networkResponse) => {
-                return caches.open(CACHE_NAME).then((cache) => {
-                    cache.put(event.request, networkResponse.clone());
-                    return networkResponse;
-                });
-            }).catch(() => {
-                // Tähän voisi palauttaa fallback-sivun, jos ollaan täysin offline eikä sivua ole välimuistissa
+                if (networkResponse.status !== 206 && networkResponse.ok) {
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, networkResponse.clone()).catch(err => {
+                            console.warn('[Service Worker] Cache put failed:', err.message);
+                        });
+                    }).catch(() => {});
+                }
+                return networkResponse;
+            }).catch((err) => {
+                console.error('[Service Worker] Fetch failed:', err);
             });
         })
     );
