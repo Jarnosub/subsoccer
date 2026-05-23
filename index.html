@@ -30,6 +30,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Supabase tietokanta -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="translations.js"></script>
 
     <style>
         :root {
@@ -196,6 +197,16 @@
         body.dark-mode .btn-find-table:hover {
             background: rgba(255, 255, 255, 0.14) !important;
             border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        body.dark-mode .lang-selector-container {
+            border-top-color: var(--card-border) !important;
+        }
+
+        body.dark-mode #lang-select {
+            background: #222222 !important;
+            border-color: var(--card-border) !important;
+            color: #ffffff !important;
         }
 
         /* 3. LOGO YLHÄÄLLÄ KESKELLÄ */
@@ -506,10 +517,10 @@
     <div id="top-ticker-container">
         <div id="top-ticker" class="ticker-wrapper">
             <div class="ticker-content">
-                Players in 80+ countries · Join the community <span class="ticker-cities" style="color: #c41e2a; margin-left: 10px;"></span>
+                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities" style="color: #c41e2a; margin-left: 10px;"></span>
             </div>
             <div class="ticker-content" aria-hidden="true">
-                Players in 80+ countries · Join the community <span class="ticker-cities" style="color: #c41e2a; margin-left: 10px;"></span>
+                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities" style="color: #c41e2a; margin-left: 10px;"></span>
             </div>
         </div>
     </div>
@@ -676,47 +687,55 @@
                 alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
 
             <div
-                style="display: flex; flex-direction: column; gap: 20px; font-family: 'Resolve', sans-serif; font-size: 1.1rem; letter-spacing: 2px;">
+                style="display: flex; flex-direction: column; gap: 20px; font-family: 'Resolve', sans-serif; font-size: 1.1rem; letter-spacing: 2px; height: 100%;">
                 <!-- 1. Pelaaja ensin (Daily Use) -->
                 <a href="player-card.html" id="menu-profile-link"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
-                        class="fa-solid fa-user" style="color: #666; width: 40px; text-align: center;"></i> MY
-                    PROFILE</a>
+                        class="fa-solid fa-user" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="my_profile">MY PROFILE</span></a>
                 <a href="pro-leagues.html" id="menu-league-link"
                     style="color: #c41e2a; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
-                        class="fa-solid fa-crown" style="color: #c41e2a; width: 40px; text-align: center;"></i>
-                    PRO LEAGUES</a>
+                        class="fa-solid fa-crown" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="pro_leagues">PRO LEAGUES</span></a>
 
                 <!-- 2. Kokoelma ja Omistajuus (Assets) -->
                 <a href="my-collection.html" id="menu-owner-link"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
-                        class="fa-solid fa-layer-group" style="color: #666; width: 40px; text-align: center;"></i> MY
-                    GAMES</a>
+                        class="fa-solid fa-layer-group" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="my_games">MY GAMES</span></a>
                 <a href="register.html"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
-                        class="fa-solid fa-plus" style="color: #666; width: 40px; text-align: center;"></i> REGISTER A
-                    GAME</a>
+                        class="fa-solid fa-plus" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="register_a_game">REGISTER A GAME</span></a>
 
                 <!-- 3. Kauppa & Tuki (Secondary) -->
                 <a href="https://subsoccer.com" target="_blank"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
-                        class="fa-solid fa-cart-shopping" style="color: #666; width: 40px; text-align: center;"></i> BUY
-                    YOUR OWN SUBSOCCER</a>
+                        class="fa-solid fa-cart-shopping" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="buy_your_own">BUY YOUR OWN SUBSOCCER</span></a>
                 <a href="#"
                     onclick="triggerFeedbackPrompt(); document.getElementById('main-nav-menu').style.display='none'; return false;"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
-                        class="fa-solid fa-comment-dots" style="color: #666; width: 40px; text-align: center;"></i> GIVE
-                    FEEDBACK</a>
+                        class="fa-solid fa-comment-dots" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="give_feedback">GIVE FEEDBACK</span></a>
 
                 <!-- 4. Järjestelmä (Bottom) -->
                 <a href="moderator/index.html" id="menu-mod-link"
                     style="color: #c41e2a; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
-                        class="fa-solid fa-shield-halved" style="color: #c41e2a; width: 40px; text-align: center;"></i>
-                    MODERATOR TOOLS</a>
+                        class="fa-solid fa-shield-halved" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="moderator_tools">MODERATOR TOOLS</span></a>
                 <a href="#" id="menu-logout-link"
                     style="color: #c41e2a; text-decoration: none; padding-bottom: 15px; display: none; align-items: center; margin-top: 10px;"><i
                         class="fa-solid fa-right-from-bracket"
-                        style="color: #c41e2a; width: 40px; text-align: center;"></i> LOG OUT</a>
+                        style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="log_out">LOG OUT</span></a>
+
+                <!-- Kielivalitsin (Language Selector) -->
+                <div class="lang-selector-container" style="margin-top: auto; padding-top: 20px; display: flex; flex-direction: column; gap: 8px; font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 1px; border-top: 1px solid #eee;">
+                    <label for="lang-select" style="color: #666; font-weight: bold;" data-i18n="select_language">LANGUAGE</label>
+                    <div style="position: relative;">
+                        <select id="lang-select" onchange="setLanguage(this.value)" style="width: 100%; padding: 12px; background: #f5f5f5; border: 1px solid #e0e0e0; color: #111; border-radius: 4px; font-family: 'Open Sans', sans-serif; font-size: 0.9rem; cursor: pointer; -webkit-appearance: none; -moz-appearance: none; appearance: none; font-weight: 600;">
+                            <option value="en">English (ENG)</option>
+                            <option value="fr">Français (FRA)</option>
+                            <option value="es">Español (ESP)</option>
+                            <option value="de">Deutsch (GER)</option>
+                            <option value="pt">Português (POR)</option>
+                        </select>
+                        <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #666; font-size: 0.8rem;"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -742,10 +761,10 @@
             style="position: absolute; top: calc(70px + env(safe-area-inset-top, 0px)); left: 0; width: 100%; z-index: 2100; text-align: center; pointer-events: none;">
             <div style="white-space: nowrap;">
                 <span class="page-title-subsoccer" style="font-size: 3.2rem;">SUBSOCCER</span>
-                <span class="page-title-go" style="font-size: 3.2rem;">MAP</span>
+                <span class="page-title-go" style="font-size: 3.2rem;" data-i18n="map_title">MAP</span>
             </div>
             <div
-                style="font-family: 'Resolve', sans-serif; font-weight: 300; color: #888; font-size: 0.85rem; letter-spacing: 1px; margin-top: 2px;">
+                style="font-family: 'Resolve', sans-serif; font-weight: 300; color: #888; font-size: 0.85rem; letter-spacing: 1px; margin-top: 2px;" data-i18n="map_tagline">
                 Find · Play · Connect</div>
         </div>
 
@@ -754,7 +773,7 @@
             style="position: absolute; bottom: calc(20px + env(safe-area-inset-bottom, 10px)); left: 50%; transform: translateX(-50%); z-index: 2100; width: 90%; max-width: 350px;">
             <button onclick="window.location.href='register.html'"
                 style="width: 100%; padding: 12px; background: #c41e2a; border: none; color: #ffffff; border-radius: 4px; font-family: 'Resolve', sans-serif; font-size: 0.9rem; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <i class="fa-solid fa-hammer" style="color: #ffffff;"></i> REGISTER YOUR GAME
+                <i class="fa-solid fa-hammer" style="color: #ffffff;"></i> <span data-i18n="register_your_game_btn">REGISTER YOUR GAME</span>
             </button>
         </div>
     </div>

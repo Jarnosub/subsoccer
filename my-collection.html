@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=2">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="translations.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { 
@@ -109,14 +110,14 @@
 
     <div class="page-header">
         <button onclick="window.location.href='index.html'" class="back-btn"><i class="fas fa-arrow-left"></i></button>
-        <div class="page-title">MY GAMES</div>
+        <div class="page-title" data-i18n="my_games">MY GAMES</div>
         <div style="width: 30px;"></div>
     </div>
 
     <div class="collection-grid" id="collection-container">
         <!-- Loader -->
         <div style="text-align: center; margin-top: 50px; color: #888;">
-            <i class="fas fa-circle-notch fa-spin"></i> Loading assets...
+            <i class="fas fa-circle-notch fa-spin"></i> <span data-i18n="loading_assets">Loading assets...</span>
         </div>
     </div>
 
@@ -145,8 +146,8 @@
 
             let html = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.7rem; color: #888; letter-spacing: 2px;">PHYSICAL GAMES</div>
-                    <button onclick="window.location.href='register.html'" style="background: none; border: none; color: #c41e2a; font-size: 0.8rem; cursor: pointer; font-weight: bold;"><i class="fas fa-plus"></i> ADD NEW</button>
+                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.7rem; color: #888; letter-spacing: 2px;">${t('physical_games')}</div>
+                    <button onclick="window.location.href='register.html'" style="background: none; border: none; color: #c41e2a; font-size: 0.8rem; cursor: pointer; font-weight: bold;"><i class="fas fa-plus"></i> ${t('add_new')}</button>
                 </div>
             `;
 
@@ -164,7 +165,7 @@
                                 </div>
                             </div>
                             <div class="card-footer">
-                                <button onclick="alert('Feature coming soon: Configure specific asset skins and settings.')" class="btn-configure">CONFIGURE</button>
+                                <button onclick="alert('Feature coming soon: Configure specific asset skins and settings.')" class="btn-configure">${t('configure')}</button>
                                 <button onclick="alert('Feature coming soon: View physical asset stats.')" class="btn-stats"><i class="fas fa-chart-bar"></i></button>
                             </div>
                         </div>
@@ -174,27 +175,27 @@
                 html += `
                     <div class="empty-state">
                         <i class="fas fa-box-open"></i>
-                        <h3 style="margin-bottom: 10px;">No Registered Games</h3>
-                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 20px;">You haven't registered any Subsoccer games yet.</p>
-                        <button onclick="window.location.href='register.html'" style="background: #c41e2a; color: #fff; border: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; cursor: pointer; letter-spacing: 1px; font-size: 0.8rem;">REGISTER A GAME</button>
+                        <h3 style="margin-bottom: 10px;">${t('empty_no_games_title')}</h3>
+                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 20px;">${t('empty_no_games_desc')}</p>
+                        <button onclick="window.location.href='register.html'" style="background: #c41e2a; color: #fff; border: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; cursor: pointer; letter-spacing: 1px; font-size: 0.8rem;">${t('register_gear_btn')}</button>
                     </div>
                 `;
             }
 
             // Digital Assets Section MVP Placeholder
             html += `
-                <div style="font-family: 'Resolve', sans-serif; font-size: 0.7rem; color: #888; letter-spacing: 2px; margin-top: 30px; margin-bottom: 10px;">DIGITAL ASSETS</div>
+                <div style="font-family: 'Resolve', sans-serif; font-size: 0.7rem; color: #888; letter-spacing: 2px; margin-top: 30px; margin-bottom: 10px;">${t('digital_assets')}</div>
                 
                 <div class="collection-card" style="border-left: 4px solid #4a9eff;">
                     <div class="card-header">
                         <div class="card-icon" style="background: rgba(74, 158, 255, 0.1); color: #4a9eff;"><i class="fas fa-id-card"></i></div>
                         <div>
-                            <div style="font-weight: bold; font-size: 1.1rem;">Digital Pro Card</div>
-                            <div style="font-size: 0.8rem; color: #888;">Active Subscription</div>
+                            <div style="font-weight: bold; font-size: 1.1rem;">${t('digital_pro_card')}</div>
+                            <div style="font-size: 0.8rem; color: #888;">${t('active_subscription')}</div>
                         </div>
                     </div>
-                    <div class="card-description">Your digital player identity. Grants access to Pro Leagues and ELO rankings.</div>
-                    <button onclick="window.location.href='player-card.html'" class="btn-view-card">VIEW CARD</button>
+                    <div class="card-description">${t('digital_card_desc')}</div>
+                    <button onclick="window.location.href='player-card.html'" class="btn-view-card">${t('view_card')}</button>
                 </div>
             `;
 

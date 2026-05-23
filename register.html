@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="translations.js"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <style>
         @font-face { font-family: 'Subsoccer'; src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'); font-display: swap; }
@@ -122,8 +123,8 @@
 
     <div class="reg-header">
         <img src="subsoccer_logo.svg" alt="Subsoccer" style="cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
-        <h1>REGISTER YOUR PRODUCT</h1>
-        <p>Enter the serial number from your product sticker to activate your warranty and digital features.</p>
+        <h1 data-i18n="register_your_product">REGISTER YOUR PRODUCT</h1>
+        <p data-i18n="register_product_desc">Enter the serial number from your product sticker to activate your warranty and digital features.</p>
     </div>
 
     <!-- Product Badge (shown after serial validated) -->
@@ -138,26 +139,26 @@
     <!-- VIEW 1: ENTER SERIAL NUMBER -->
     <div class="view active" id="view-serial">
         <div class="step-indicator">
-            <div class="step active">1. Enter code</div>
-            <div class="step">2. Your details</div>
-            <div class="step">3. Done!</div>
+            <div class="step active" data-i18n="step_enter_code">1. Enter code</div>
+            <div class="step" data-i18n="step_details">2. Your details</div>
+            <div class="step" data-i18n="step_done">3. Done!</div>
         </div>
 
         <div class="reg-form">
             <div class="form-group">
-                <label>Serial Number</label>
+                <label data-i18n="serial_number_label">Serial Number</label>
                 <div class="serial-input-wrapper">
-                    <input type="text" id="reg-serial" placeholder="SS3-V02-25PO111-XXXX" maxlength="30"
+                    <input type="text" id="reg-serial" data-i18n="serial_placeholder" placeholder="SS3-V02-25PO111-XXXX" maxlength="30"
                            inputmode="text" autocapitalize="characters" autocomplete="off" autofocus>
                 </div>
                 <div class="form-hint">
                     <i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>
-                    Found on the sticker underneath your product
+                    <span data-i18n="found_under_product">Found on the sticker underneath your product</span>
                 </div>
             </div>
 
             <button class="btn-primary" id="btn-validate" onclick="validateSerial()">
-                <i class="fa-solid fa-arrow-right" style="margin-right: 8px;"></i>CONTINUE
+                <i class="fa-solid fa-arrow-right" style="margin-right: 8px;"></i><span data-i18n="continue_button">CONTINUE</span>
             </button>
 
             <div class="status-msg" id="serial-status"></div>
@@ -167,9 +168,9 @@
     <!-- VIEW 2: ACCOUNT / DETAILS -->
     <div class="view" id="view-account">
         <div class="step-indicator">
-            <div class="step done">1. Enter code ✓</div>
-            <div class="step active">2. Your details</div>
-            <div class="step">3. Done!</div>
+            <div class="step done" data-i18n="step_enter_code_done">1. Enter code ✓</div>
+            <div class="step active" data-i18n="step_details">2. Your details</div>
+            <div class="step" data-i18n="step_done">3. Done!</div>
         </div>
 
         <div class="reg-form" id="auth-form">
@@ -254,20 +255,20 @@
     <!-- VIEW 3: SUCCESS -->
     <div class="view" id="view-success">
         <div class="step-indicator">
-            <div class="step done">1. Enter code ✓</div>
-            <div class="step done">2. Your details ✓</div>
-            <div class="step active">3. Done!</div>
+            <div class="step done" data-i18n="step_enter_code_done">1. Enter code ✓</div>
+            <div class="step done" data-i18n="step_details_done">2. Your details ✓</div>
+            <div class="step active" data-i18n="step_done">3. Done!</div>
         </div>
         <div class="success-card">
             <div class="icon"><i class="fa-solid fa-circle-check"></i></div>
-            <h2>PRODUCT REGISTERED!</h2>
-            <p id="success-desc">Your product is now part of the Subsoccer network.</p>
+            <h2 data-i18n="product_registered">PRODUCT REGISTERED!</h2>
+            <p id="success-desc" data-i18n="product_registered_desc">Your product is now part of the Subsoccer network.</p>
         </div>
         <button class="btn-gold" style="width:100%; max-width:420px; margin-top: 20px;" onclick="window.location.href='login.html'">
-            <i class="fa-solid fa-gamepad" style="margin-right: 8px;"></i>OPEN THE APP
+            <i class="fa-solid fa-gamepad" style="margin-right: 8px;"></i><span data-i18n="open_app">OPEN THE APP</span>
         </button>
         <button class="btn-secondary" style="max-width:420px;" id="btn-play-now">
-            <i class="fa-solid fa-bolt" style="margin-right: 6px;"></i>Start playing now
+            <i class="fa-solid fa-bolt" style="margin-right: 6px;"></i><span data-i18n="start_playing">Start playing now</span>
         </button>
     </div>
 
