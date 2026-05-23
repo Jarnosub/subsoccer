@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="the-forge.css?v=2">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="translations.js"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -889,7 +890,7 @@
 
         <div
             style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: calc(8px + env(safe-area-inset-top, 0px)) 10px 8px; font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0;">
-            Players in 80+ countries · Join the community
+            <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span>
         </div>
 
         <!-- YLÄPALKKI / LOGO -->
@@ -903,8 +904,8 @@
         </div>
 
         <div class="setup-container">
-            <div class="setup-title">TOURNAMENT</div>
-            <p class="setup-subtitle">Add players to begin. Winner takes all.</p>
+            <div class="setup-title" data-i18n="tournament">TOURNAMENT</div>
+            <p class="setup-subtitle" data-i18n="add_players_to_begin">Add players to begin. Winner takes all.</p>
 
             <!-- SCROLLABLE PLAYER LIST ONLY -->
             <div id="m-players-list"
@@ -946,11 +947,9 @@
             <!-- ADD BUTTONS (NEVER SCROLL) -->
             <div id="m-add-buttons-container" style="flex-shrink: 0; display: flex; gap: 8px; width: 100%;">
                 <button id="m-add-player-btn" class="setup-btn-add" onclick="mobileAddPlayer()"
-                    style="flex: 1; margin-top: 0;">+ ADD
-                    PLAYER</button>
+                    style="flex: 1; margin-top: 0;" data-i18n="add_player">+ ADD PLAYER</button>
                 <button class="setup-btn-add" onclick="if(window.openQrJoin) window.openQrJoin()"
-                    style="flex: 1; margin-top: 0; background: rgba(0, 0, 0, 0.8); color: #ffffff;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> QR
-                    JOIN</button>
+                    style="flex: 1; margin-top: 0; background: rgba(0, 0, 0, 0.8); color: #ffffff;"><i class="fas fa-qrcode" style="margin-right: 6px;"></i> <span data-i18n="qr_join">QR JOIN</span></button>
             </div>
 
             <!-- SMALL SPACER -->
@@ -959,10 +958,8 @@
             <!-- START MATCH FIXED TO BOTTOM -->
             <div style="flex-shrink: 0; padding-bottom: calc(20px + env(safe-area-inset-bottom, 10px));">
                 <button class="setup-start-btn" onclick="mobileStartTournament()">
-                    <i class="fas fa-play"></i> Start Match
+                    <i class="fas fa-play"></i> <span data-i18n="start_match">Start Match</span>
                 </button>
-
-
             </div>
         </div>
     </div>
@@ -997,16 +994,17 @@
             </div>
 
             <button class="match-start-btn anim-in" onclick="mobileStartMatch()" style="animation-delay: 0.2s;">
-                <i class="fas fa-play"></i> Start Match
+                <i class="fas fa-play"></i> <span data-i18n="start_match">Start Match</span>
             </button>
 
             <!-- View bracket link -->
             <button onclick="showBracketView()"
-                style="margin-top: 16px; background: none; border: none; color: #111; font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;">
+                style="margin-top: 16px; background: none; border: none; color: #111; font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;"
+                data-i18n="view_bracket">
                 VIEW BRACKET
             </button>
             <button class="quit-btn" onclick="quitTournament()" style="color: #999;"><i class="fas fa-sign-out-alt"
-                    style="margin-right: 4px;"></i> QUIT TOURNAMENT</button>
+                    style="margin-right: 4px;"></i> <span data-i18n="quit_tournament">QUIT TOURNAMENT</span></button>
         </div>
     </div>
 
@@ -1017,7 +1015,7 @@
         <!-- YLÄPALKKI (Announcement Bar) -->
         <div
             style="width: 100%; background-color: #000000; color: #ffffff; text-align: center; padding: calc(8px + env(safe-area-inset-top, 0px)) 10px 8px; font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; box-sizing: border-box; flex-shrink: 0; position: absolute; top: 0; left: 0; z-index: 10;">
-            Players in 80+ countries · Join the community
+            <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span>
         </div>
 
         <!-- YLÄPALKKI / LOGO -->
@@ -1035,11 +1033,11 @@
             <div class="bracket-swipe-dots" id="bracket-dots"></div>
         </div>
         <button class="bracket-back-btn" onclick="hideBracketView()">
-            <i class="fas fa-arrow-left" style="margin-right: 6px;"></i> Back to Match
+            <i class="fas fa-arrow-left" style="margin-right: 6px;"></i> <span data-i18n="back_to_match">Back to Match</span>
         </button>
         <button class="quit-btn" onclick="quitTournament()"
             style="position:fixed; top: calc(16px + env(safe-area-inset-top, 10px)); right: 16px; z-index:100; color:#999;">
-            <i class="fas fa-sign-out-alt"></i> QUIT
+            <i class="fas fa-sign-out-alt"></i> <span data-i18n="quit">QUIT</span>
         </button>
     </div>
 
@@ -1068,10 +1066,10 @@
             </div>
 
             <div class="game-walkovers">
-                <button class="walkover-btn" onclick="mobileSkipMatch(1)">WALKOUT: P1 WINS</button>
-                <button class="walkover-btn" onclick="mobileSkipMatch(2)">WALKOUT: P2 WINS</button>
+                <button class="walkover-btn" onclick="mobileSkipMatch(1)" data-i18n="walkout_p1">WALKOUT: P1 WINS</button>
+                <button class="walkover-btn" onclick="mobileSkipMatch(2)" data-i18n="walkout_p2">WALKOUT: P2 WINS</button>
                 <button class="walkover-btn" style="color: #c41e2a; border-color: rgba(227,6,19,0.3);"
-                    onclick="quitTournament()"><i class="fas fa-sign-out-alt"></i> QUIT</button>
+                    onclick="quitTournament()"><i class="fas fa-sign-out-alt"></i> <span data-i18n="quit">QUIT</span></button>
             </div>
         </div>
     </div>
@@ -1086,10 +1084,10 @@
         </video>
 
         <div class="victory-container anim-in" style="position: relative; z-index: 2;">
-            <div class="victory-round" id="m-victory-round">MATCH CONCLUDED</div>
+            <div class="victory-round" id="m-victory-round" data-i18n="match_concluded">MATCH CONCLUDED</div>
             <div class="victory-name" id="m-winner-name">PLAYER</div>
             <div class="victory-score" id="m-victory-score"><span class="victory-score-half victory-score-left">0</span><span class="victory-score-dash">-</span><span class="victory-score-half victory-score-right">0</span></div>
-            <div class="victory-label">NEXT MATCH LOADING...</div>
+            <div class="victory-label" data-i18n="next_match_loading">NEXT MATCH LOADING...</div>
         </div>
     </div>
 
@@ -1107,13 +1105,14 @@
                 onclick="window.location.href='https://subsoccer.com';">
 
             <div
-                style="font-family: 'Resolve', sans-serif; color: rgba(255,255,255,0.7); font-size: 0.65rem; letter-spacing: 4px; margin-bottom: 4px; text-shadow: 0 2px 8px rgba(0,0,0,0.6);">
+                style="font-family: 'Resolve', sans-serif; color: rgba(255,255,255,0.7); font-size: 0.65rem; letter-spacing: 4px; margin-bottom: 4px; text-shadow: 0 2px 8px rgba(0,0,0,0.6);"
+                data-i18n="tournament_champion">
                 TOURNAMENT CHAMPION</div>
             <div class="leaderboard-champion" id="m-champion-name">PLAYER</div>
-            <div class="leaderboard-subtitle">🏆 WINNER</div>
+            <div class="leaderboard-subtitle">🏆 <span data-i18n="winner_label">WINNER</span></div>
 
             <div class="leaderboard-card">
-                <div class="leaderboard-title">FINAL STANDINGS</div>
+                <div class="leaderboard-title" data-i18n="final_standings">FINAL STANDINGS</div>
                 <div id="m-leaderboard-list">
                     <!-- Filled by JS -->
                 </div>
@@ -1122,10 +1121,10 @@
 
         <div class="end-actions" style="position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 20px)); left: 50%; transform: translateX(-50%); width: 100%; max-width: 400px; padding: 0 20px; z-index: 2; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box;">
             <button class="restart-btn" style="position: relative; transform: none; bottom: auto; left: auto; max-width: 100%; margin: 0; width: 100%;" onclick="mobileRestart()">
-                <i class="fas fa-redo"></i> New Tournament
+                <i class="fas fa-redo"></i> <span data-i18n="new_tournament">New Tournament</span>
             </button>
             <button class="restart-btn" style="position: relative; transform: none; bottom: auto; left: auto; max-width: 100%; margin: 0; width: 100%; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.2); font-size: 1.1rem; padding: 12px 20px; color: #fff;" onclick="window.location.href='index.html'">
-                <i class="fas fa-home"></i> Return to Hub
+                <i class="fas fa-home"></i> <span data-i18n="return_to_hub">Return to Hub</span>
             </button>
         </div>
     </div>
@@ -1186,7 +1185,8 @@
             if (window.broadcastTvState) window.broadcastTvState();
         }
         function quitTournament() {
-            if (confirm('Quit this tournament? All progress will be lost.')) {
+            const msg = window.t ? window.t('quit_confirmation') : 'Quit this tournament? All progress will be lost.';
+            if (confirm(msg)) {
                 localStorage.removeItem('subsoccer_mobile_tourny');
                 window.location.href = 'index.html';
             }

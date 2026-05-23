@@ -276,7 +276,7 @@ window.mobileStartTournament = function() {
     });
 
     if (players.length < 2 || players.length > 8) {
-        alert("Tournament requires 2 to 8 players.");
+        alert(window.t ? window.t('tournament_requires_players') : "Tournament requires 2 to 8 players.");
         return;
     }
 
@@ -515,7 +515,7 @@ function finishMatch(winnerName, winnerIndex) {
     document.getElementById('m-winner-name').innerText = winnerName;
     document.getElementById('m-victory-score').innerHTML = `<span class="victory-score-half victory-score-left">${gameState.p1Score}</span><span class="victory-score-dash">-</span><span class="victory-score-half victory-score-right">${gameState.p2Score}</span>`;
     document.getElementById('m-victory-round').innerText = 
-        currentPendingMatch ? currentPendingMatch.roundName : 'MATCH CONCLUDED';
+        currentPendingMatch ? currentPendingMatch.roundName : (window.t ? window.t('match_concluded') : 'MATCH CONCLUDED');
     
     showLayer('m-layer-victory');
     broadcastTvState();

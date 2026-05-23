@@ -627,7 +627,7 @@
     <div class="page-title-container">
         <h1 class="page-title-subsoccer">SUBSOCCER</h1>
         <h1 class="page-title-go">GO</h1>
-        <div class="page-tagline">Create · Join · Compete</div>
+        <div class="page-tagline" data-i18n="tagline">Create · Join · Compete</div>
     </div>
 
     <!-- KUVABLOKKI -->
@@ -640,18 +640,18 @@
 
         <!-- YKKÖSVALINTA: LUO TURNAUS -->
         <button class="btn-play-now" onclick="window.location.href='mobile-game.html'">
-            <i class="fa-solid fa-trophy"></i> Create Tournament <i class="fa-solid fa-arrow-right"
+            <i class="fa-solid fa-trophy"></i> <span data-i18n="create_tournament">Create Tournament</span> <i class="fa-solid fa-arrow-right"
                 style="margin-left: 2px; font-size: 0.85em;"></i>
         </button>
 
         <!-- KAKKOSVALINTA: SKANNAA -->
         <button class="btn-scan-join" onclick="window.location.href='scan-code.html'">
-            <i class="fa-solid fa-qrcode"></i> Scan to Join
+            <i class="fa-solid fa-qrcode"></i> <span data-i18n="scan_to_join">Scan to Join</span>
         </button>
 
         <!-- KOLMOSVALINTA: KARTTA -->
         <button class="btn-find-table" onclick="openMapOverlay()">
-            <i class="fa-solid fa-map-location-dot"></i> Find Public Game
+            <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="find_public_game">Find Public Game</span>
         </button>
 
     </div>
@@ -660,15 +660,15 @@
     <div class="social-proof">
         <div class="social-proof-item">
             <span class="social-proof-number">80+</span>
-            <span class="social-proof-label">Countries</span>
+            <span class="social-proof-label" data-i18n="countries">Countries</span>
         </div>
         <div class="social-proof-item">
             <span class="social-proof-number">10K+</span>
-            <span class="social-proof-label">Games</span>
+            <span class="social-proof-label" data-i18n="games">Games</span>
         </div>
         <div class="social-proof-item">
             <span class="social-proof-number">3B+</span>
-            <span class="social-proof-label">Views</span>
+            <span class="social-proof-label" data-i18n="views">Views</span>
         </div>
     </div>
 
@@ -677,9 +677,9 @@
         <span style="color: #888; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px;">© 2026
             Subsoccer</span>
         <span>|</span>
-        <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank">Privacy</a>
+        <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank" data-i18n="privacy">Privacy</a>
         <span>|</span>
-        <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank">Terms</a>
+        <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank" data-i18n="terms">Terms</a>
         <span>|</span>
         <button class="theme-toggle" id="theme-toggle" onclick="toggleDarkMode()" title="Toggle dark/light mode">
             <i class="fa-solid fa-moon"></i>

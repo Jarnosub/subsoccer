@@ -211,6 +211,12 @@ export class BracketEngine {
     }
 
     getRoundName(index, totalRounds) {
+        if (window.t && typeof window.t === 'function') {
+            if (index === totalRounds - 1) return "🏆 " + window.t('finals');
+            if (index === totalRounds - 2) return window.t('semifinals');
+            if (index === totalRounds - 3) return window.t('quarterfinals');
+            return window.t('round') + " " + (index + 1);
+        }
         if (index === totalRounds - 1) return "🏆 FINALS";
         if (index === totalRounds - 2) return "SEMI-FINALS";
         if (index === totalRounds - 3) return "QUARTER-FINALS";
