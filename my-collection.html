@@ -20,6 +20,8 @@
         .page-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top, 20px)); background: #ffffff; border-bottom: 1px solid #e0e0e0; }
         .page-title { font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 2px; color: #111; }
         
+        .back-btn { background: none; border: none; color: #111; font-size: 1.2rem; cursor: pointer; width: 30px; text-align: left; }
+        
         .collection-grid { padding: 20px; display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 800px; margin: 0 auto; }
         
         .collection-card { background: #ffffff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 20px; position: relative; overflow: hidden; }
@@ -30,14 +32,83 @@
         .card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .card-icon { width: 40px; height: 40px; border-radius: 8px; background: rgba(196, 30, 42, 0.08); display: flex; align-items: center; justify-content: center; color: #c41e2a; font-size: 1.2rem; }
         
+        .card-footer { display: flex; gap: 10px; border-top: 1px solid #f0f0f0; padding-top: 15px; margin-top: 15px; }
+        .btn-configure { flex: 1; background: #f5f5f5; border: 1px solid #e0e0e0; color: #111; padding: 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+        .btn-stats { background: transparent; border: 1px solid #e0e0e0; color: #666; width: 40px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; }
+        .card-description { font-size: 0.85rem; color: #666; margin-bottom: 15px; }
+        .btn-view-card { background: rgba(74, 158, 255, 0.1); border: 1px solid rgba(74, 158, 255, 0.3); color: #4a9eff; padding: 10px 15px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+        
         .empty-state { text-align: center; padding: 40px 20px; border: 1px dashed #ccc; border-radius: 4px; margin-top: 20px; }
         .empty-state i { font-size: 3rem; color: #ccc; margin-bottom: 15px; }
+
+        /* Dark mode overrides */
+        body.dark-mode { 
+            background: #111111 !important; 
+            color: #ffffff !important; 
+        }
+        body.dark-mode .page-header {
+            background: #111111 !important;
+            border-bottom: 1px solid #222222 !important;
+        }
+        body.dark-mode .back-btn {
+            color: #ffffff !important;
+        }
+        body.dark-mode .page-title {
+            color: #ffffff !important;
+        }
+        body.dark-mode .collection-card {
+            background: #1a1a1a !important;
+            border-color: #2a2a2a !important;
+            color: #ffffff !important;
+        }
+        body.dark-mode .card-footer {
+            border-top: 1px solid #2a2a2a !important;
+        }
+        body.dark-mode .btn-configure {
+            background: #262626 !important;
+            border: 1px solid #333333 !important;
+            color: #ffffff !important;
+        }
+        body.dark-mode .btn-configure:hover {
+            background: #333333 !important;
+        }
+        body.dark-mode .btn-stats {
+            border: 1px solid #333333 !important;
+            color: #aaaaaa !important;
+        }
+        body.dark-mode .btn-stats:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #ffffff !important;
+        }
+        body.dark-mode .card-description {
+            color: #aaaaaa !important;
+        }
+        body.dark-mode .empty-state {
+            border-color: #444444 !important;
+        }
+        body.dark-mode .empty-state i {
+            color: #444444 !important;
+        }
+        body.dark-mode .empty-state h3 {
+            color: #ffffff !important;
+        }
+        body.dark-mode .empty-state p {
+            color: #888888 !important;
+        }
     </style>
 </head>
 <body>
+    <script>
+        (function() {
+            const storageVal = localStorage.getItem('subsoccer-dark-mode');
+            if (storageVal === '1' || storageVal === null) {
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
 
     <div class="page-header">
-        <button onclick="window.location.href='index.html'" style="background: none; border: none; color: #111; font-size: 1.2rem; cursor: pointer; width: 30px; text-align: left;"><i class="fas fa-arrow-left"></i></button>
+        <button onclick="window.location.href='index.html'" class="back-btn"><i class="fas fa-arrow-left"></i></button>
         <div class="page-title">MY GAMES</div>
         <div style="width: 30px;"></div>
     </div>
@@ -92,9 +163,9 @@
                                     <div style="font-size: 0.8rem; color: #888; font-family: 'Open Sans', sans-serif;">Arcade Node • ${hw.location || 'Unknown Location'}</div>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 10px; border-top: 1px solid #f0f0f0; padding-top: 15px; margin-top: 15px;">
-                                <button onclick="alert('Feature coming soon: Configure specific asset skins and settings.')" style="flex: 1; background: #f5f5f5; border: 1px solid #e0e0e0; color: #111; padding: 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;">CONFIGURE</button>
-                                <button onclick="alert('Feature coming soon: View physical asset stats.')" style="background: transparent; border: 1px solid #e0e0e0; color: #666; width: 40px; border-radius: 6px; font-size: 0.9rem; cursor: pointer;"><i class="fas fa-chart-bar"></i></button>
+                            <div class="card-footer">
+                                <button onclick="alert('Feature coming soon: Configure specific asset skins and settings.')" class="btn-configure">CONFIGURE</button>
+                                <button onclick="alert('Feature coming soon: View physical asset stats.')" class="btn-stats"><i class="fas fa-chart-bar"></i></button>
                             </div>
                         </div>
                     `;
@@ -122,8 +193,8 @@
                             <div style="font-size: 0.8rem; color: #888;">Active Subscription</div>
                         </div>
                     </div>
-                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Your digital player identity. Grants access to Pro Leagues and ELO rankings.</div>
-                    <button onclick="window.location.href='player-card.html'" style="background: rgba(74, 158, 255, 0.1); border: 1px solid rgba(74, 158, 255, 0.3); color: #4a9eff; padding: 10px 15px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;">VIEW CARD</button>
+                    <div class="card-description">Your digital player identity. Grants access to Pro Leagues and ELO rankings.</div>
+                    <button onclick="window.location.href='player-card.html'" class="btn-view-card">VIEW CARD</button>
                 </div>
             `;
 
