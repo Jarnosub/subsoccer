@@ -363,39 +363,48 @@ export async function handleSignUp() {
             // Ladataan mahdollinen valittu avatar
             let finalAvatarUrl = null;
             
-            // Priority 1: AI-generated avatar (base64)
-            const aiAvatarB64 = window.getSignupAiAvatar ? window.getSignupAiAvatar() : null;
-            if (aiAvatarB64) {
-                try {
-                    console.log('📸 Uploading AI avatar for new user...');
-                    const byteCharacters = atob(aiAvatarB64);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const blob = new Blob([new Uint8Array(byteNumbers)], {type: 'image/png'});
-                    const path = `avatars/${authData.user.id}_ai_${Date.now()}.png`;
-                    
-                    const { error: uploadError } = await _supabase.storage
-                        .from('event-images')
-                        .upload(path, blob, {
-                            cacheControl: '3600',
-                            upsert: true,
-                            contentType: 'image/png'
-                        });
-                    
-                    if (!uploadError) {
-                        const { data: urlData } = _supabase.storage
+            // Priority 1: AI-generated avatar URL (already in Storage, no re-upload needed)
+            const aiAvatarUrl = window.getSignupAiAvatarUrl ? window.getSignupAiAvatarUrl() : null;
+            if (aiAvatarUrl) {
+                console.log('📸 Using AI avatar URL from Storage:', aiAvatarUrl);
+                finalAvatarUrl = aiAvatarUrl;
+            }
+            
+            // Priority 2: AI-generated avatar (base64, legacy fallback)
+            if (!finalAvatarUrl) {
+                const aiAvatarB64 = window.getSignupAiAvatar ? window.getSignupAiAvatar() : null;
+                if (aiAvatarB64) {
+                    try {
+                        console.log('📸 Uploading AI avatar (base64) for new user...');
+                        const byteCharacters = atob(aiAvatarB64);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const blob = new Blob([new Uint8Array(byteNumbers)], {type: 'image/png'});
+                        const path = `avatars/${authData.user.id}_ai_${Date.now()}.png`;
+                        
+                        const { error: uploadError } = await _supabase.storage
                             .from('event-images')
-                            .getPublicUrl(path);
-                            
-                        finalAvatarUrl = urlData.publicUrl;
-                        console.log('✅ AI avatar uploaded:', finalAvatarUrl);
-                    } else {
-                        console.error('AI avatar upload failed:', uploadError);
+                            .upload(path, blob, {
+                                cacheControl: '3600',
+                                upsert: true,
+                                contentType: 'image/png'
+                            });
+                        
+                        if (!uploadError) {
+                            const { data: urlData } = _supabase.storage
+                                .from('event-images')
+                                .getPublicUrl(path);
+                                
+                            finalAvatarUrl = urlData.publicUrl;
+                            console.log('✅ AI avatar uploaded:', finalAvatarUrl);
+                        } else {
+                            console.error('AI avatar upload failed:', uploadError);
+                        }
+                    } catch (err) {
+                        console.error('Failed to upload AI avatar during signup:', err);
                     }
-                } catch (err) {
-                    console.error('Failed to upload AI avatar during signup:', err);
                 }
             }
             

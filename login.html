@@ -547,6 +547,7 @@
                 let _signupSelfieB64 = null;
                 let _signupAiUsed = false;
                 let _signupAiAvatarB64 = null; // Store generated avatar for registration
+                let _signupAiAvatarUrl = null; // Store generated avatar URL (from Storage)
 
                 function handleSignupSelfie(input) {
                     if (input.files && input.files[0]) {
@@ -650,11 +651,11 @@
                         // 1. Listen via Supabase Realtime Broadcast FIRST!
                         let imageReady = false;
                         let errorMessage = null;
-                        let data = { image_b64: null };
+                        let data = { image_url: null };
                         
                         const channel = _tempSb.channel(`avatar-${taskId}`);
                         channel.on('broadcast', { event: 'avatar-ready' }, (payload) => {
-                            data.image_b64 = payload.payload.image_b64;
+                            data.image_url = payload.payload.image_url;
                             imageReady = true;
                         });
                         channel.on('broadcast', { event: 'avatar-error' }, (payload) => {
@@ -699,18 +700,19 @@
                             throw new Error(errorMessage);
                         }
                         
-                        if (!data.image_b64) {
+                        if (!data.image_url) {
                             throw new Error('Generation timed out or failed. Please try again.');
                         }
 
                         _signupAiUsed = true;
-                        _signupAiAvatarB64 = data.image_b64;
+                        _signupAiAvatarUrl = data.image_url;
+                        _signupAiAvatarB64 = null; // URL-based now, no longer base64
 
                         // Show on card preview
                         const preview = document.getElementById('signup-avatar-preview');
                         const placeholder = document.getElementById('signup-placeholder-icon');
                         if (preview) {
-                            preview.src = 'data:image/png;base64,' + data.image_b64;
+                            preview.src = data.image_url;
                             preview.style.display = 'block';
                             if (placeholder) placeholder.style.display = 'none';
                         }
@@ -752,8 +754,9 @@
                     }
                 }
 
-                // Expose _signupAiAvatarB64 globally for main.js registration
+                // Expose avatar globally for main.js registration (URL preferred, B64 fallback)
                 window.getSignupAiAvatar = function() { return _signupAiAvatarB64; };
+                window.getSignupAiAvatarUrl = function() { return _signupAiAvatarUrl; };
             </script>
         </div>
     </div>
