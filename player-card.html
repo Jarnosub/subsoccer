@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style.css?v=4">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="version.js"></script>
+    <script src="translations.js"></script>
     <script src="https://js-de.sentry-cdn.com/a53cdae04c9280e2611fe75c4b793913.min.js" crossorigin="anonymous"></script>
     <script src="sentry.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -731,7 +732,7 @@
     <!-- CARD SHOWCASE -->
     <div class="pc-showcase">
         <div class="subsoccer-font" style="font-size: 3.2rem; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0; text-align: center; line-height: 1;">
-            <span class="subsoccer-font pc-title-player">PLAYER</span> <span class="subsoccer-font" style="color: #c41e2a;">CARD</span>
+            <span class="subsoccer-font pc-title-player" data-i18n="pc_title_player">PLAYER</span> <span class="subsoccer-font" style="color: #c41e2a;" data-i18n="pc_title_card">CARD</span>
         </div>
         <div class="pc-spotlight"></div>
         
@@ -758,7 +759,7 @@
                     <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
                         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 2px;">
                             <div style="display: flex; align-items: center; gap: 6px; color: #c41e2a; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                                <i class="fa-solid fa-location-dot"></i> <span id="pc-card-location">LOCAL ARENA</span>
+                                <i class="fa-solid fa-location-dot"></i> <span id="pc-card-location" data-i18n="pc_local_arena">LOCAL ARENA</span>
                             </div>
                             <img src="subsoccer_logo.svg" style="height: 18px; opacity: 1;" alt="Subsoccer">
                         </div>
@@ -770,7 +771,7 @@
                             <div id="pc-card-elo" style="background: #c41e2a; color: #fff; padding: 4px 10px; font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif; font-weight: normal; font-size: 1.4rem; border-radius: 6px; line-height: 1; margin-bottom: 2px;">
                                 1500</div>
                             <div style="text-align: right;">
-                                <div style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
+                                <div style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;" data-i18n="pc_win_ratio">
                                     WIN RATIO</div>
                                 <div id="pc-card-winratio" style="font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif; font-weight: normal; font-size: 1.4rem; color: #fff; line-height: 1;">
                                     0%</div>
@@ -780,7 +781,7 @@
 
                     <!-- Tap to flip -->
                     <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); padding: 4px 14px; border-radius: 20px; color: rgba(255,255,255,0.6); font-size: 0.6rem; font-family:'Resolve', sans-serif; letter-spacing: 2px; z-index: 2; white-space: nowrap;">
-                        <i class="fa-solid fa-rotate" style="margin-right: 4px;"></i> FLIP CARD
+                        <i class="fa-solid fa-rotate" style="margin-right: 4px;"></i><span data-i18n="pc_flip_card">FLIP CARD</span>
                     </div>
                 </div>
 
@@ -788,38 +789,38 @@
                 <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
                     <div style="text-align:center; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:10px; padding:20px 20px 10px 20px; background: rgba(0,0,0,0.3);">
                         <h4 style="color:#c41e2a; font-family:'Subsoccer', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">
-                            PLAYER DOSSIER</h4>
+                            <span data-i18n="pc_player_dossier">PLAYER DOSSIER</span></h4>
                         <div id="pc-card-tier" style="color:#fff; font-size:0.75rem; font-family:'Resolve', sans-serif; margin-top:5px; text-transform:uppercase; letter-spacing: 1px;">
-                            NEW RECRUIT</div>
+                            <span data-i18n="pc_new_recruit">NEW RECRUIT</span></div>
                     </div>
                     <div style="padding: 10px 20px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                             <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">GLOBAL RATING</div>
+                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;" data-i18n="pc_global_rating">GLOBAL RATING</div>
                                 <div id="pc-back-elo" style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">1500</div>
                             </div>
                             <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">WIN RATIO</div>
+                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;" data-i18n="pc_win_ratio">WIN RATIO</div>
                                 <div id="pc-back-ratio" style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">0%</div>
                             </div>
                             <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">MATCHES</div>
+                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;" data-i18n="pc_matches">MATCHES</div>
                                 <div id="pc-back-matches" style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
                             </div>
                             <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">WINS</div>
+                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;" data-i18n="pc_wins">WINS</div>
                                 <div id="pc-back-wins" style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
                             </div>
                         </div>
                         
                         <div style="margin-top: 10px; text-align: center; background: rgba(196,30,42,0.1); border: 1px solid rgba(196,30,42,0.3); padding: 10px; border-radius: 4px;">
-                            <div style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.6rem; letter-spacing:2px; margin-bottom:4px;">TOURNAMENTS WON</div>
+                            <div style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.6rem; letter-spacing:2px; margin-bottom:4px;" data-i18n="pc_tournaments_won">TOURNAMENTS WON</div>
                             <div id="pc-back-tourneys" style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
                         </div>
                     </div>
                     
                     <div style="position:absolute; bottom:12px; width:100%; left:0; text-align:center; color:rgba(255,255,255,0.4); font-size:0.65rem; font-family:'Resolve', sans-serif; letter-spacing:2px; z-index:2;">
-                        <i class="fa-solid fa-rotate-left" style="margin-right: 4px;"></i> FLIP CARD
+                        <i class="fa-solid fa-rotate-left" style="margin-right: 4px;"></i><span data-i18n="pc_flip_card">FLIP CARD</span>
                     </div>
                 </div>
             </div>
@@ -832,7 +833,7 @@
     <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; padding: 0 10px;">
         <!-- Title aligned to the 280px card width -->
         <div style="width: 280px; max-width: 100%;">
-            <div class="studio-section-label" style="margin-bottom: 8px;"><i class="fa-solid fa-palette"></i> YOUR AVATARS</div>
+            <div class="studio-section-label" style="margin-bottom: 8px;"><i class="fa-solid fa-palette"></i> <span data-i18n="pc_your_avatars">YOUR AVATARS</span></div>
         </div>
         
         <!-- Carousel wrap: Arrows outside, track inside (280px max) -->
@@ -870,7 +871,7 @@
         <!-- Delete text -->
         <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:8px;">
             <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#555; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#c41e2a'" onmouseout="this.style.color='#555'">
-                <i class="fa-solid fa-trash-can" style="margin-right:4px;"></i>DELETE AVATAR
+                <i class="fa-solid fa-trash-can" style="margin-right:4px;"></i><span data-i18n="pc_delete_avatar">DELETE AVATAR</span>
             </a>
         </div>
     </div>
@@ -878,7 +879,7 @@
     <!-- SECTION: AI PORTRAIT STUDIO ACCORDION -->
     <div class="profile-accordion" style="margin-bottom: 12px;">
         <button class="profile-accordion-btn" id="studio-accordion-btn" onclick="toggleStudioAccordion()">
-            <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI PORTRAIT STUDIO</span>
+            <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="pc_ai_portrait_studio">AI PORTRAIT STUDIO</span></span>
             <i class="fa-solid fa-chevron-down chevron"></i>
         </button>
         <div class="profile-accordion-body" id="studio-accordion-body">
@@ -886,18 +887,18 @@
                 <div class="ai-hero" style="gap: 12px;">
                     <label class="ai-upload-btn" id="ai-upload-label" style="width:100%; margin:0;">
                         <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
-                        <span id="ai-selfie-label">TAKE SELFIE</span>
+                        <span id="ai-selfie-label" data-i18n="pc_take_selfie">TAKE SELFIE</span>
                         <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
                     </label>
                     
                     <button class="ai-generate-btn" id="btn-generate-ai" onclick="generateAIAvatar(event)" style="width:100%; margin:0;">
-                        <i class="fa-solid fa-bolt"></i> GENERATE AVATAR
+                        <i class="fa-solid fa-bolt"></i> <span data-i18n="pc_generate_avatar">GENERATE AVATAR</span>
                     </button>
                     
                     <hr style="border:0; height:1px; background:rgba(255,255,255,0.05); margin: 2px 0;">
 
                     <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%; margin:0;">
-                        <i class="fa-solid fa-check" style="margin-right:8px;"></i>SAVE AVATAR
+                        <i class="fa-solid fa-check" style="margin-right:8px;"></i><span data-i18n="pc_save_avatar">SAVE AVATAR</span>
                     </button>
 
                     <div id="pc-ai-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
@@ -910,21 +911,21 @@
     <!-- PROFILE DETAILS ACCORDION -->
     <div class="profile-accordion" style="margin-bottom: 24px;">
         <button class="profile-accordion-btn" id="profile-accordion-btn" onclick="toggleProfileAccordion()">
-            EDIT PROFILE DETAILS
+            <span data-i18n="pc_edit_profile">EDIT PROFILE DETAILS</span>
             <i class="fa-solid fa-chevron-down chevron"></i>
         </button>
         <div class="profile-accordion-body" id="profile-accordion-body">
             <div class="profile-accordion-inner">
-                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-top:5px; margin-bottom: -5px;">USERNAME</div>
+                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-top:5px; margin-bottom: -5px;" data-i18n="pc_username">USERNAME</div>
                 <input type="text" class="pc-edit-input" id="pc-edit-name" placeholder="YOUR NAME" maxlength="20" autocomplete="off" style="width:100%;">
                 
-                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-bottom: -5px;">COUNTRY</div>
+                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-bottom: -5px;" data-i18n="pc_country">COUNTRY</div>
                 <select class="pc-edit-select" id="pc-edit-country" style="width:100%; margin-bottom: 5px;">
-                    <option value="" disabled selected>SELECT COUNTRY</option>
+                    <option value="" disabled selected data-i18n="pc_select_country">SELECT COUNTRY</option>
                 </select>
 
-                <button class="pc-save-btn" onclick="saveProfile()" style="width:100%;">SAVE CHANGES</button>
-                <button class="pc-logout-btn" onclick="logoutPlayer()"><i class="fa-solid fa-sign-out-alt" style="margin-right:8px;"></i> LOG OUT</button>
+                <button class="pc-save-btn" onclick="saveProfile()" style="width:100%;" data-i18n="pc_save_changes">SAVE CHANGES</button>
+                <button class="pc-logout-btn" onclick="logoutPlayer()"><i class="fa-solid fa-sign-out-alt" style="margin-right:8px;"></i><span data-i18n="log_out">LOG OUT</span></button>
             </div>
         </div>
     </div>
@@ -932,7 +933,7 @@
     <!-- DOWNLOAD PRINT CARD -->
     <div style="max-width: 420px; margin: 0 auto; padding: 0 20px 8px;">
         <button class="pc-save-btn" id="btn-print-card" onclick="generatePrintCard()" style="width:100%; background:linear-gradient(135deg, #1a1a1a, #2a2a2a); border:1px solid rgba(255,255,255,0.1); color: #ccc; box-shadow: none;">
-            <i class="fa-solid fa-print" style="margin-right:8px;"></i>DOWNLOAD PRINT CARD
+            <i class="fa-solid fa-print" style="margin-right:8px;"></i><span data-i18n="pc_download_print">DOWNLOAD PRINT CARD</span>
         </button>
         <div id="print-card-status" class="pc-save-status" style="margin-top: 4px; min-height: 12px; font-size: 0.55rem;"></div>
     </div>
@@ -944,7 +945,7 @@
     <!-- AI GENERATION OVERLAY -->
     <div class="ai-gen-overlay" id="ai-gen-overlay">
         <div class="ai-gen-icon"><img src="artist.png" alt="AI Artist" style="width:180px; height:auto; object-fit:contain;"></div>
-        <div class="ai-gen-title">CREATING YOUR AVATAR</div>
+        <div class="ai-gen-title" data-i18n="pc_creating_avatar">CREATING YOUR AVATAR</div>
         <div class="ai-gen-status" id="ai-gen-status">Analyzing your photo...</div>
         <div class="ai-gen-progress-wrap">
             <div class="ai-gen-progress-bar" id="ai-gen-progress"></div>
