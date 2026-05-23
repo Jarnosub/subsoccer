@@ -703,7 +703,7 @@
                         class="fa-solid fa-cart-shopping" style="color: #666; width: 40px; text-align: center;"></i> BUY
                     YOUR OWN SUBSOCCER</a>
                 <a href="#"
-                    onclick="const fb = document.getElementById('beta-feedback-btn'); if(fb) fb.click(); else alert('Feedback service is temporarily unavailable.'); document.getElementById('main-nav-menu').style.display='none'; return false;"
+                    onclick="triggerFeedbackPrompt(); document.getElementById('main-nav-menu').style.display='none'; return false;"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
                         class="fa-solid fa-comment-dots" style="color: #666; width: 40px; text-align: center;"></i> GIVE
                     FEEDBACK</a>
@@ -903,6 +903,67 @@
 
             if (player.is_admin) {
                 document.getElementById('menu-mod-link').style.display = 'flex';
+            }
+        }
+
+        async function triggerFeedbackPrompt() {
+            const msg = prompt("Describe the issue or suggestion:");
+            if (!msg) return;
+
+            function showToast(text, type = 'success') {
+                let container = document.getElementById('notification-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'notification-container';
+                    document.body.appendChild(container);
+                }
+                const toast = document.createElement('div');
+                toast.className = 'toast-notification ' + (type === 'error' ? 'error' : 'success');
+                toast.innerText = text;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            }
+
+            try {
+                showToast("Sending...", "success");
+
+                const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+                const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+                if (!window._hubSb) {
+                    window._hubSb = window.supabase ? supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+                }
+                const sb = window._hubSb;
+                if (!sb) {
+                    throw new Error("Supabase client not initialized.");
+                }
+
+                let userId = 'guest';
+                const cached = localStorage.getItem('subsoccer-user');
+                if (cached) {
+                    try {
+                        const user = JSON.parse(cached);
+                        if (user && user.id) userId = user.id;
+                        else if (user && user.username) {
+                            const { data: { session } } = await sb.auth.getSession();
+                            if (session && session.user) userId = session.user.id;
+                        }
+                    } catch (e) {}
+                } else {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (session && session.user) userId = session.user.id;
+                }
+
+                const { error } = await sb.from('feedback').insert([{
+                    message: msg,
+                    user_id: userId,
+                    page: 'hub'
+                }]);
+
+                if (error) throw error;
+                showToast("Thanks for your feedback!", "success");
+            } catch (e) {
+                console.error(e);
+                showToast("Error sending feedback", "error");
             }
         }
 
