@@ -1169,26 +1169,57 @@
                         });
                     }, { root: area, threshold: 0.5 });
                     rounds.forEach(r => observer.observe(r));
+                }
+            }, 200);
 
-                    // Scroll to the active round (first round with pending matches)
-                    // bracket-engine renders: Finals first in DOM, then Semi, ..., Round 1 last
-                    // With direction:rtl, Round 1 is on the far left
-                    if (window.bracketEngine) {
-                        const activeRoundIdx = window.bracketEngine.getActiveRoundIndex();
-                        const targetRound = document.getElementById(`bracket-round-${activeRoundIdx}`);
-                        if (targetRound) {
-                            targetRound.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'center' });
-                            // Update dots to reflect scrolled position
-                            const domIdx = Array.from(rounds).indexOf(targetRound);
-                            if (domIdx !== -1) {
-                                dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
-                                    d.classList.toggle('active', i === domIdx);
-                                });
-                            }
+            // Scroll to the active round AFTER the bracket is fully visible and laid out
+            setTimeout(() => {
+                const area = document.getElementById('mobile-bracket-area');
+                if (!area) return;
+                const rounds = area.querySelectorAll('.bracket-round');
+                if (rounds.length === 0) return;
+
+                // Find active round: scan from last DOM child (Round 1) upward
+                let targetRound = null;
+                for (let i = rounds.length - 1; i >= 0; i--) {
+                    const matches = rounds[i].querySelectorAll('.bracket-match');
+                    let hasPending = false;
+                    matches.forEach(match => {
+                        const players = match.querySelectorAll('.match-player');
+                        const hasRealPlayers = Array.from(players).every(p => 
+                            !p.classList.contains('empty') && 
+                            !p.classList.contains('bye')
+                        );
+                        const hasWinner = match.querySelector('.match-player.winner');
+                        if (hasRealPlayers && !hasWinner && players.length >= 2) {
+                            hasPending = true;
                         }
+                    });
+                    if (hasPending) { targetRound = rounds[i]; break; }
+                }
+                if (!targetRound) targetRound = rounds[rounds.length - 1];
+
+                // Temporarily disable scroll-snap so we can position freely
+                area.style.scrollSnapType = 'none';
+                targetRound.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'center' });
+                // Re-enable snap after scroll completes
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        area.style.scrollSnapType = 'x mandatory';
+                    });
+                });
+
+                // Update dots
+                const dotsContainer = document.getElementById('bracket-dots');
+                if (dotsContainer) {
+                    const domIdx = Array.from(rounds).indexOf(targetRound);
+                    if (domIdx !== -1) {
+                        dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
+                            d.classList.toggle('active', i === domIdx);
+                        });
                     }
                 }
-            }, 100);
+            }, 250);
 
             if (window.broadcastTvState) window.broadcastTvState();
         }
