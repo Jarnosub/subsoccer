@@ -75,7 +75,8 @@ const TRANSLATIONS = {
         walkout_p1: "WALKOUT: P1 WINS",
         walkout_p2: "WALKOUT: P2 WINS",
         tournament_requires_players: "Tournament requires 2 to 8 players.",
-        quit_confirmation: "Quit this tournament? All progress will be lost."
+        quit_confirmation: "Quit this tournament? All progress will be lost.",
+        player_prefix: "PLAYER"
     },
     fr: {
         my_profile: "MON PROFIL",
@@ -151,7 +152,8 @@ const TRANSLATIONS = {
         walkout_p1: "FORFAIT : VICTOIRE P1",
         walkout_p2: "FORFAIT : VICTOIRE P2",
         tournament_requires_players: "Le tournoi nécessite de 2 à 8 joueurs.",
-        quit_confirmation: "Quitter ce tournoi ? Toute la progression sera perdue."
+        quit_confirmation: "Quitter ce tournoi ? Toute la progression sera perdue.",
+        player_prefix: "JOUEUR"
     },
     es: {
         my_profile: "MI PERFIL",
@@ -227,7 +229,8 @@ const TRANSLATIONS = {
         walkout_p1: "RETIRADA: GANA P1",
         walkout_p2: "RETIRADA: GANA P2",
         tournament_requires_players: "El torneo requiere de 2 a 8 jugadores.",
-        quit_confirmation: "¿Abandonar este torneo? Se perderá todo el progreso."
+        quit_confirmation: "¿Abandonar este torneo? Se perderá todo el progreso.",
+        player_prefix: "JUGADOR"
     },
     de: {
         my_profile: "MEIN PROFIL",
@@ -303,7 +306,8 @@ const TRANSLATIONS = {
         walkout_p1: "AUFGABE: P1 GEWINNT",
         walkout_p2: "AUFGABE: P2 GEWINNT",
         tournament_requires_players: "Das Turnier erfordert 2 bis 8 Spieler.",
-        quit_confirmation: "Dieses Turnier beenden? Alle Fortschritte gehen verloren."
+        quit_confirmation: "Dieses Turnier beenden? Alle Fortschritte gehen verloren.",
+        player_prefix: "SPIELER"
     },
     pt: {
         my_profile: "MEU PERFIL",
@@ -379,7 +383,8 @@ const TRANSLATIONS = {
         walkout_p1: "W.O.: P1 VENCE",
         walkout_p2: "W.O.: P2 VENCE",
         tournament_requires_players: "O torneio requer de 2 a 8 jogadores.",
-        quit_confirmation: "Sair deste torneio? Todo o progresso será perdido."
+        quit_confirmation: "Sair deste torneio? Todo o progresso será perdido.",
+        player_prefix: "JOGADOR"
     }
 };
 
@@ -406,6 +411,23 @@ function setLanguage(lang) {
     }
 }
 
+function translateDefaultPlayerNames() {
+    const prefixes = ["PLAYER", "JOUEUR", "JUGADOR", "SPIELER", "JOGADOR"];
+    const currentPrefix = t('player_prefix').toUpperCase();
+    
+    document.querySelectorAll('.player-input').forEach(input => {
+        const value = input.value.trim().toUpperCase();
+        const match = value.match(/^([A-Z]+)\s*(\d+)$/);
+        if (match) {
+            const prefix = match[1];
+            const num = match[2];
+            if (prefixes.includes(prefix)) {
+                input.value = `${currentPrefix} ${num}`;
+            }
+        }
+    });
+}
+
 function translateDOM(root = document) {
     root.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -422,6 +444,9 @@ function translateDOM(root = document) {
     if (select) {
         select.value = currentLang;
     }
+
+    // Auto-translate default player names on tournament setup screen if present
+    translateDefaultPlayerNames();
 }
 
 // Initial auto-translation on load

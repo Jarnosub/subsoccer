@@ -681,12 +681,15 @@ window.mobileAddPlayer = function(defaultName, userId) {
 
     const datasetAttr = userId ? `data-user-id="${userId}"` : '';
 
+    const playerPrefix = (window.t ? window.t('player_prefix') : 'PLAYER').toUpperCase();
+    const defaultVal = defaultName || (`${playerPrefix} ${num}`);
+
     const div = document.createElement('div');
     div.className = 'player-row';
     div.style.cssText = 'display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: none; margin-bottom: 6px; border-left: 3px solid #c41e2a;';
     div.innerHTML = `
         <span class="player-num" style="color: #999; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.8rem;">#${num}</span>
-        <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${escapeHtml(defaultName) || ('PLAYER ' + num)}" 
+        <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${escapeHtml(defaultVal)}" 
                class="player-input" ${datasetAttr}
                style="text-transform: uppercase; color: #111; width: 100%; padding: 8px 10px; font-size: 0.95rem; font-weight: 600; background: transparent; border: none; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
 
