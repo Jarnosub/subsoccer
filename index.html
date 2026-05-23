@@ -1141,6 +1141,20 @@
         document.addEventListener('DOMContentLoaded', () => {
             const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
             const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+            let activeCities = [];
+
+            function updateTicker() {
+                if (activeCities.length > 0) {
+                    const spans = document.querySelectorAll('.ticker-cities');
+                    const label = typeof t === 'function' ? t('recent_global_activity').toUpperCase() : 'RECENT GLOBAL ACTIVITY FEED';
+                    spans.forEach(tc => {
+                        tc.innerHTML = `&nbsp;·&nbsp; ${label}: <span style="color:#ffffff;">${activeCities.join(' &nbsp;·&nbsp; ')}</span>`;
+                    });
+                }
+            }
+
+            // Listen for language changes to update the ticker live!
+            window.addEventListener('subsoccer-language-changed', updateTicker);
 
             fetch(`${SUPABASE_URL}/rest/v1/public_tracking?select=location&location=not.is.null&order=client_time.desc&limit=100`, {
                 headers: {
@@ -1161,13 +1175,8 @@
 
                         // Otetaan 10 viimeisintä uniikkia kaupunkia
                         cities = cities.slice(0, 10);
-
-                        if (cities.length > 0) {
-                            const spans = document.querySelectorAll('.ticker-cities');
-                            spans.forEach(tc => {
-                                tc.innerHTML = `&nbsp;·&nbsp; RECENT GLOBAL ACTIVITY FEED: <span style="color:#ffffff;">${cities.join(' &nbsp;·&nbsp; ')}</span>`;
-                            });
-                        }
+                        activeCities = cities;
+                        updateTicker();
                     }
                 })
                 .catch(e => console.error('Ticker data error:', e))

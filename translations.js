@@ -103,7 +103,8 @@ const TRANSLATIONS = {
         pc_select_country: "SELECT COUNTRY",
         pc_save_changes: "SAVE CHANGES",
         pc_download_print: "DOWNLOAD PRINT CARD",
-        pc_creating_avatar: "CREATING YOUR AVATAR"
+        pc_creating_avatar: "CREATING YOUR AVATAR",
+        recent_global_activity: "RECENT GLOBAL ACTIVITY FEED"
     },
     fr: {
         my_profile: "MON PROFIL",
@@ -204,7 +205,8 @@ const TRANSLATIONS = {
         pc_select_country: "CHOISIR UN PAYS",
         pc_save_changes: "ENREGISTRER",
         pc_download_print: "TÉLÉCHARGER LA CARTE",
-        pc_creating_avatar: "CRÉATION DE VOTRE AVATAR"
+        pc_creating_avatar: "CRÉATION DE VOTRE AVATAR",
+        recent_global_activity: "FIL D'ACTIVITÉ GLOBALE RÉCENTE"
     },
     es: {
         my_profile: "MI PERFIL",
@@ -305,7 +307,8 @@ const TRANSLATIONS = {
         pc_select_country: "SELECCIONAR PAÍS",
         pc_save_changes: "GUARDAR CAMBIOS",
         pc_download_print: "DESCARGAR TARJETA",
-        pc_creating_avatar: "CREANDO TU AVATAR"
+        pc_creating_avatar: "CREANDO TU AVATAR",
+        recent_global_activity: "FEED DE ACTIVIDAD GLOBAL RECIENTE"
     },
     de: {
         my_profile: "MEIN PROFIL",
@@ -406,7 +409,8 @@ const TRANSLATIONS = {
         pc_select_country: "LAND WÄHLEN",
         pc_save_changes: "ÄNDERUNGEN SPEICHERN",
         pc_download_print: "KARTE HERUNTERLADEN",
-        pc_creating_avatar: "AVATAR WIRD ERSTELLT"
+        pc_creating_avatar: "AVATAR WIRD ERSTELLT",
+        recent_global_activity: "AKTUELLE GLOBALE AKTIVITÄTEN"
     },
     pt: {
         my_profile: "MEU PERFIL",
@@ -507,7 +511,8 @@ const TRANSLATIONS = {
         pc_select_country: "SELECIONAR PAÍS",
         pc_save_changes: "SALVAR ALTERAÇÕES",
         pc_download_print: "BAIXAR CARTÃO",
-        pc_creating_avatar: "CRIANDO SEU AVATAR"
+        pc_creating_avatar: "CRIANDO SEU AVATAR",
+        recent_global_activity: "FEED DE ATIVIDADE GLOBAL RECENTE"
     },
     fi: {
         my_profile: "OMA PROFIILI",
@@ -608,7 +613,8 @@ const TRANSLATIONS = {
         pc_select_country: "VALITSE MAA",
         pc_save_changes: "TALLENNA MUUTOKSET",
         pc_download_print: "LATAA TULOSTUSKORTTI",
-        pc_creating_avatar: "LUODAAN AVATARIASI"
+        pc_creating_avatar: "LUODAAN AVATARIASI",
+        recent_global_activity: "VIIMEISIN GLOBAALI AKTIIVISUUS"
     }
 };
 
