@@ -104,18 +104,28 @@ async function refreshUserProfile(userId) {
     lastRefreshedId = userId;
 
     try {
-        const { data, error } = await _supabase
+        // Yritetään ensin teams-joinilla, ja jos se epäonnistuu (406), haetaan ilman joinia
+        let data, error;
+        ({ data, error } = await _supabase
             .from('players')
             .select('*, team_data:teams!players_team_id_fkey(*)')
-            .eq('id', userId);
-
-        const profile = data?.[0]; // Otetaan manuaalisesti ensimmäinen tulos
+            .eq('id', userId));
 
         if (error) {
             if (error.message?.includes('AbortError')) return;
-            console.error("Tietokantavirhe profiilia haettaessa (406?):", error);
-            return;
+            console.warn("Teams join failed (406?), retrying without join:", error.message);
+            // Fallback: haetaan ilman teams-joinia
+            ({ data, error } = await _supabase
+                .from('players')
+                .select('*')
+                .eq('id', userId));
+            if (error) {
+                if (error.message?.includes('AbortError')) return;
+                console.error("Tietokantavirhe profiilia haettaessa:", error);
+            }
         }
+
+        const profile = data?.[0]; // Otetaan manuaalisesti ensimmäinen tulos
 
         if (profile) {
             state.user = profile;
