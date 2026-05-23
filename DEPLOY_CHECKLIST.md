@@ -11,7 +11,7 @@ Ennen jokaista tuotantopäivitystä (staging → main), käy läpi nämä:
 - [ ] Avaa selaimen konsoli — **ei punaisia virheitä**
 - [ ] Kirjaudu sisään (username + Google)
 - [ ] Avaa profiilisivu — latautuuko data
-- [ ] Bumppaa `version.js` → `APP_VERSION` (esim. '1.0.0' → '1.0.1')
+- [ ] Tarkista, että `version.js` päivittyy automaattisesti (git commit hoitaa tämän)
 
 ## Merge
 
