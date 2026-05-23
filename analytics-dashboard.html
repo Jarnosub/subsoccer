@@ -404,14 +404,12 @@
             <div class="table-card" style="margin-bottom: 0;">
                 <h2>Recent Global Activity Feed</h2>
                 <div style="overflow-x: auto;">
-                    <table>
+                    <table class="activity-feed">
                         <thead>
                             <tr>
-                                <th>Timestamp</th>
-                                <th>City</th>
+                                <th>When / Where</th>
                                 <th>Event</th>
-                                <th>Score</th>
-                                <th>Ago</th>
+                                <th style="text-align:right;">Score</th>
                             </tr>
                         </thead>
                         <tbody id="activity-table-body">
@@ -663,11 +661,13 @@
             const eventFilter = eventFilterEl ? eventFilterEl.value : 'ALL';
             const filteredData = eventFilter === 'ALL' ? data : data.filter(d => d.event_type === eventFilter);
 
-            // Populate Table
+            // Populate Table — show only game events (skip app_opened)
             const tbody = document.getElementById('activity-table-body');
             tbody.innerHTML = '';
             
-            filteredData.slice(0, 50).forEach(row => {
+            const gameEvents = filteredData.filter(r => r.event_type !== 'app_opened');
+            
+            gameEvents.slice(0, 50).forEach(row => {
                 const tr = document.createElement('tr');
                 const dateObj = new Date(row.client_time || new Date());
                 
@@ -682,23 +682,36 @@
                 const diffHrs = Math.floor(diffMs / 3600000);
                 const diffDays = Math.floor(diffMs / 86400000);
                 let ago = '';
-                if (diffMins < 1) ago = 'just now';
-                else if (diffMins < 60) ago = diffMins + 'm';
-                else if (diffHrs < 24) ago = diffHrs + 'h';
-                else ago = diffDays + 'd';
+                if (diffMins < 1) ago = 'now';
+                else if (diffMins < 60) ago = diffMins + 'm ago';
+                else if (diffHrs < 24) ago = diffHrs + 'h ago';
+                else ago = diffDays + 'd ago';
+                
+                // Event type icon + short label
+                const et = row.event_type || '';
+                let icon = '⚽', label = et.replaceAll('_', ' ').toUpperCase();
+                if (et === 'game_finished') { icon = '⚽'; label = 'MATCH'; }
+                else if (et === 'game_start') { icon = '🟢'; label = 'LIVE'; }
+                else if (et === 'tournament_finished') { icon = '🏆'; label = 'TOURNEY'; }
+                else if (et === 'tournament_match_finished') { icon = '🥊'; label = 'T-MATCH'; }
+                else if (et === 'avatar_generated') { icon = '🎨'; label = 'AVATAR'; }
+                
+                const score = row.match_score || '-';
+                const isLive = et === 'game_start';
                 
                 tr.innerHTML = `
-                    <td style="white-space:nowrap;">${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-                    <td><strong>${city}</strong></td>
-                    <td>${(row.event_type || 'UNKNOWN').replaceAll('_', ' ').toUpperCase()}</td>
-                    <td>${row.match_score || '-'}</td>
-                    <td style="color: var(--text-secondary);">${ago}</td>
+                    <td>
+                        <div style="font-weight:600; color:#fff;">${city}</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary);">${ago}</div>
+                    </td>
+                    <td><span style="${isLive ? 'color:var(--accent-green);font-weight:bold;' : ''}">${icon} ${label}</span></td>
+                    <td style="text-align:right; font-weight:bold; font-size:1rem; ${score !== '-' ? 'color:#fff;' : 'color:#555;'}">${score}</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#666;">No recent activity matches filters.</td></tr>';
+            if (gameEvents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:#666;">No recent games.</td></tr>';
             }
 
             initCharts(filteredData);
