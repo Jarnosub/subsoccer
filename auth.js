@@ -136,11 +136,54 @@ async function refreshUserProfile(userId) {
             // Luodaan profiili automaattisesti käyttäen Auth-metadatan tietoja.
             console.log("Profiili puuttuu, luodaan automaattisesti ID:lle:", userId);
             const { data: { user } } = await _supabase.auth.getUser();
+            const userEmail = user?.email;
 
+            // Tarkistetaan ensin, onko tällä sähköpostilla jo legacy-profiili taulussa
+            if (userEmail) {
+                const { data: emailMatch } = await _supabase
+                    .from('players')
+                    .select('*')
+                    .ilike('email', userEmail);
+
+                const legacyProfile = emailMatch?.[0];
+                if (legacyProfile && legacyProfile.id !== userId) {
+                    console.log("🔄 Legacy profile found by email, migrating:", legacyProfile.id, "→", userId);
+                    // Päivitetään vanhan profiilin ID uuteen Google OAuth UUID:hen
+                    const { id: oldId, ...profileData } = legacyProfile;
+                    
+                    // Luodaan uusi rivi uudella UUID:llä ja vanhoilla tiedoilla
+                    const { data: migrated, error: migrateErr } = await _supabase
+                        .from('players')
+                        .upsert({ ...profileData, id: userId, email: userEmail }, { onConflict: 'id' })
+                        .select()
+                        .maybeSingle();
+                    
+                    if (!migrateErr && migrated) {
+                        // Poistetaan vanha legacy-rivi
+                        await _supabase.from('players').delete().eq('id', oldId);
+                        state.user = migrated;
+                        localStorage.setItem('subsoccer-user', JSON.stringify(migrated));
+                        console.log("✅ Legacy profile migrated successfully to Google OAuth UUID");
+                    } else {
+                        console.error("Legacy migration failed:", migrateErr);
+                        // Fallback: käytetään vanhaa profiilia suoraan
+                        state.user = legacyProfile;
+                        localStorage.setItem('subsoccer-user', JSON.stringify(legacyProfile));
+                    }
+                    return; // Profiilin migraatio tehty, ei tarvitse luoda uutta
+                } else if (legacyProfile && legacyProfile.id === userId) {
+                    // Profiili on jo oikealla UUID:llä (ehkä aiempi haku epäonnistui joinilla)
+                    state.user = legacyProfile;
+                    localStorage.setItem('subsoccer-user', JSON.stringify(legacyProfile));
+                    return;
+                }
+            }
+
+            // Ei löytynyt legacy-profiilia — luodaan kokonaan uusi
             const newProfile = {
                 id: userId,
-                username: user?.user_metadata?.username || user?.email?.split('@')[0].toUpperCase() || 'PLAYER',
-                email: user?.email,
+                username: user?.user_metadata?.full_name?.toUpperCase() || user?.user_metadata?.username || userEmail?.split('@')[0].toUpperCase() || 'PLAYER',
+                email: userEmail,
                 elo: 1300,
                 wins: 0,
                 losses: 0,
