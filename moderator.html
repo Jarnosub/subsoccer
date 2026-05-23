@@ -36,6 +36,9 @@
         body.dark-mode .mod-danger:hover { background: rgba(227,6,19,0.2); }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="version.js"></script>
+    <script src="https://js-de.sentry-cdn.com/a53cdae04c9280e2611fe75c4b793913.min.js" crossorigin="anonymous"></script>
+    <script src="sentry.js"></script>
 </head>
 <body>
     <script>
@@ -114,6 +117,16 @@
         <button class="mod-btn" onclick="window.location.href='analytics-dashboard.html'">
             <i class="fa-solid fa-chart-simple"></i>
             <span style="font-weight: bold;">GLOBAL METRICS & ANALYTICS</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </button>
+
+        <!-- Sentry Error Monitoring -->
+        <button class="mod-btn" onclick="window.open('https://sentry.io/', '_blank')">
+            <i class="fa-solid fa-bug"></i>
+            <div>
+                <div style="font-weight: bold; margin-bottom: 4px;">SENTRY ERROR MONITORING</div>
+                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">Track real-time errors and application health</div>
+            </div>
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
 
