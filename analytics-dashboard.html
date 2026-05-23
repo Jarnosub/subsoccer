@@ -552,15 +552,20 @@
                 const totalUsers = usersRes.count || 0;
                 const trackingTournaments = trackingData.filter(d => d.event_type === 'tournament_finished').length;
                 const dbTournaments = historyRes.count || 0;
-                const totalTournaments = dbTournaments + trackingTournaments;
-                const totalMatches = matchesRes.count || 0;
+                // Käytetään DB-lukua ensisijaisesti, tracking vain jos DB:ssä ei ole dataa
+                const totalTournaments = dbTournaments > 0 ? dbTournaments : trackingTournaments;
 
                 // Update KPIs
                 const sessionCount = trackingData.filter(d => d.event_type === 'app_opened').length;
-                const playEventCount = trackingData.filter(d => ['game_finished', 'tournament_finished', 'game_start', 'tournament_match_finished'].includes(d.event_type)).length;
+                const gamesFinished = trackingData.filter(d => d.event_type === 'game_finished').length;
+                const gamesStarted = trackingData.filter(d => d.event_type === 'game_start').length;
+                const instantMatches = gamesFinished; // Vain oikeat 1v1-pelit
+                
+                // Bounce rate: kuinka moni avasi appin mutta EI aloittanut peliä
                 let bounceRate = 0;
                 if (sessionCount > 0) {
-                    bounceRate = Math.max(0, 100 - Math.round((playEventCount / sessionCount) * 100)); // Rough estimate
+                    const engagedSessions = gamesStarted + gamesFinished + trackingTournaments;
+                    bounceRate = Math.max(0, Math.round(100 - (engagedSessions / sessionCount) * 100));
                 }
 
                 let ios = 0, android = 0, other = 0;
