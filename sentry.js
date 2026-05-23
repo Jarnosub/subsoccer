@@ -9,6 +9,7 @@ if (typeof Sentry !== 'undefined' && Sentry.onLoad) {
                        : window.location.hostname.includes('localhost') ? 'development' 
                        : 'production',
             release: 'subsoccer-pro@' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : 'unknown'),
+            sendDefaultPii: true,
             
             // Don't send from localhost
             beforeSend(event) {
