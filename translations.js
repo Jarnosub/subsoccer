@@ -521,7 +521,7 @@ const TRANSLATIONS = {
         physical_games: "FYYSISET PELIT",
         add_new: "LISÄÄ",
         configure: "ASETUKSET",
-        digital_assets: "DIGITAALINEN",
+        digital_assets: "DIGITAALISET SISÄLLÖT",
         digital_pro_card: "Digitaalinen Pro-kortti",
         active_subscription: "Aktiivinen tilaus",
         digital_card_desc: "Digitaalinen pelaajaidentiteettisi. Pääsy Pro-liigoihin ja ELO-rankingiin.",
