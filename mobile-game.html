@@ -1169,6 +1169,24 @@
                         });
                     }, { root: area, threshold: 0.5 });
                     rounds.forEach(r => observer.observe(r));
+
+                    // Scroll to the active round (first round with pending matches)
+                    // bracket-engine renders: Finals first in DOM, then Semi, ..., Round 1 last
+                    // With direction:rtl, Round 1 is on the far left
+                    if (window.bracketEngine) {
+                        const activeRoundIdx = window.bracketEngine.getActiveRoundIndex();
+                        const targetRound = document.getElementById(`bracket-round-${activeRoundIdx}`);
+                        if (targetRound) {
+                            targetRound.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'center' });
+                            // Update dots to reflect scrolled position
+                            const domIdx = Array.from(rounds).indexOf(targetRound);
+                            if (domIdx !== -1) {
+                                dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
+                                    d.classList.toggle('active', i === domIdx);
+                                });
+                            }
+                        }
+                    }
                 }
             }, 100);
 
