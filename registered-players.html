@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer Admin - Registered Players</title>
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Open+Sans:wght@300;400;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css?v=2">
+
+    <!-- Sentry Error Monitoring -->
+    <script src="version.js"></script>
+    <script src="https://js-de.sentry-cdn.com/a53cdae04c9280e2611fe75c4b793913.min.js" crossorigin="anonymous"></script>
+    <script src="sentry.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #1a1c1e;
+            --bg-card: #242629;
+            --text-primary: #f0f2f5;
+            --text-secondary: #9aa0a6;
+            --accent-red: #c41e2a;
+            --accent-red-hover: #e30613;
+            --accent-blue: #8ab4f8;
+            --accent-green: #81c995;
+            --border-color: #35373a;
+            --table-hover: #2d3034;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            min-height: 100dvh;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 24px;
+            padding-top: calc(15px + env(safe-area-inset-top, 20px));
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--accent-red);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            color: var(--accent-red);
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* KPI Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .stats-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stats-icon {
+            font-size: 2rem;
+            color: var(--accent-red);
+            width: 50px;
+            height: 50px;
+            background: rgba(196, 30, 42, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats-icon.blue {
+            color: var(--accent-blue);
+            background: rgba(138, 180, 248, 0.1);
+        }
+
+        .stats-icon.green {
+            color: var(--accent-green);
+            background: rgba(129, 201, 149, 0.1);
+        }
+
+        .stats-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stats-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stats-value {
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.5rem;
+            margin-top: 4px;
+        }
+
+        /* Search & Filter Panel */
+        .control-panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .search-input {
+            width: 100%;
+            box-sizing: border-box;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 12px 10px 38px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .select-filter {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .select-filter:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* Player Table */
+        .table-responsive {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .player-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .player-table th {
+            background-color: rgba(0, 0, 0, 0.15);
+            padding: 14px 16px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .player-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .player-table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .player-table tbody tr:hover {
+            background-color: var(--table-hover);
+        }
+
+        /* User elements */
+        .avatar-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            background: #111;
+        }
+
+        .username-badge {
+            font-family: 'Russo One', sans-serif;
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+
+        .username-badge:hover {
+            color: var(--accent-blue);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .status-badge.has-avatar {
+            background-color: rgba(129, 201, 149, 0.15);
+            color: var(--accent-green);
+        }
+
+        .status-badge.no-avatar {
+            background-color: rgba(242, 139, 130, 0.15);
+            color: var(--accent-red);
+        }
+
+        .flag-img {
+            border: 1px solid #444;
+            border-radius: 2px;
+            vertical-align: middle;
+        }
+
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .pagination-info {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pagination-btn {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background-color: rgba(138, 180, 248, 0.08);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Loading / Error States */
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .error-message {
+            background-color: rgba(242, 139, 130, 0.1);
+            border: 1px solid rgba(242, 139, 130, 0.2);
+            color: #f28b82;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Auth Wall styling */
+        #auth-wall {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100dvh;
+            font-family: 'Russo One', sans-serif;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            font-size: 0.95rem;
+            gap: 15px;
+        }
+        
+        #auth-wall a {
+            color: var(--accent-red);
+            text-decoration: none;
+            border: 1px solid var(--accent-red);
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        #auth-wall a:hover {
+            background-color: var(--accent-red);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Auth guard: hide content until verified -->
+    <div id="auth-wall">
+        <i class="fas fa-circle-notch fa-spin" style="font-size: 1.5rem; color: var(--accent-red);"></i> VERIFYING ADMIN ACCESS...
+    </div>
+
+    <!-- Main Dashboard Content -->
+    <div id="dashboard-content" style="display: none;">
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn" onclick="window.location.href='moderator.html'" title="Back to Moderator Tools">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1>REGISTERED PLAYERS</h1>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); font-family: 'Russo One'; letter-spacing: 1px;" id="version-label">
+                ADMIN PORTAL
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- stats summary cards -->
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stats-info">
+                        <span class="stats-label">Total Registered</span>
+                        <span class="stats-value" id="stat-total-players">-</span>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="stats-icon green">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="stats-info">
+                        <span class="stats-label">Custom Avatar</span>
+                        <span class="stats-value" id="stat-custom-avatars">-</span>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="stats-icon blue">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stats-info">
+                        <span class="stats-label">Avg ELO Rating</span>
+                        <span class="stats-value" id="stat-avg-elo">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error alert if any -->
+            <div id="error-container" style="display: none;"></div>
+
+            <!-- Search and filters -->
+            <div class="control-panel">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" class="search-input" placeholder="Search by username...">
+                </div>
+
+                <div class="filter-group">
+                    <span class="filter-label">Avatar:</span>
+                    <select id="filter-avatar" class="select-filter">
+                        <option value="all">All Players</option>
+                        <option value="has_avatar">With Custom Avatar</option>
+                        <option value="no_avatar">Without Custom Avatar</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <span class="filter-label">Sort:</span>
+                    <select id="sort-by" class="select-filter">
+                        <option value="elo_desc">ELO (Highest first)</option>
+                        <option value="elo_asc">ELO (Lowest first)</option>
+                        <option value="wins_desc">Wins (Highest first)</option>
+                        <option value="losses_desc">Losses (Highest first)</option>
+                        <option value="username_asc">Username (A-Z)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table of players -->
+            <div class="table-responsive">
+                <div id="table-loading" class="loading-spinner">
+                    <i class="fas fa-circle-notch fa-spin"></i> Loading players database...
+                </div>
+                <table class="player-table" id="players-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px; text-align: center;">#</th>
+                            <th style="width: 60px; text-align: center;">Avatar</th>
+                            <th>Username</th>
+                            <th style="width: 100px;">ELO</th>
+                            <th style="width: 120px;">Wins</th>
+                            <th style="width: 120px;">Losses</th>
+                            <th style="width: 100px; text-align: center;">Country</th>
+                            <th style="width: 150px; text-align: center;">Avatar Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="players-tbody">
+                        <!-- Filled dynamically -->
+                    </tbody>
+                </table>
+
+                <!-- Pagination footer -->
+                <div class="pagination-container">
+                    <div class="pagination-info" id="pagination-info">
+                        Showing 0-0 of 0 players
+                    </div>
+                    <div class="pagination-buttons">
+                        <button class="pagination-btn" id="btn-prev" disabled>
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                        <button class="pagination-btn" id="btn-next" disabled>
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification container for toast messages -->
+    <div id="notification-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <!-- Import Config/Client and hook up module script -->
+    <script type="module">
+        import { _supabase } from './config.js';
+        import { viewPlayerCard, setupPlayerCardListeners } from './player-card-ui.js';
+
+        // Page State
+        let currentPage = 1;
+        const limit = 20;
+        let totalCount = 0;
+        let searchTimeout = null;
+        
+        // Form states
+        const searchInput = document.getElementById('search-input');
+        const filterAvatar = document.getElementById('filter-avatar');
+        const sortBy = document.getElementById('sort-by');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        // Check Admin Auth
+        (async function init() {
+            try {
+                const { data } = await _supabase.auth.getSession();
+                if (!data.session) {
+                    document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:var(--accent-red);"></i> ACCESS DENIED — <a href="index.html">LOG IN</a>';
+                    return;
+                }
+                
+                // Verify admin status
+                const { data: player } = await _supabase.from('players').select('id, is_admin').eq('id', data.session.user.id).maybeSingle();
+                const SUPER_ADMIN_ID = '054f6378-95c5-4f5b-a678-745e585a01fc';
+                if (!player?.is_admin && data.session.user.id !== SUPER_ADMIN_ID) {
+                    document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:var(--accent-red);"></i> ADMIN ONLY — <a href="index.html">BACK</a>';
+                    return;
+                }
+
+                // Auth passed - initialize dashboard
+                document.getElementById('auth-wall').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+
+                // Setup player card trigger click listeners
+                setupPlayerCardListeners();
+
+                // Load initial KPI summary statistics
+                await loadKPIs();
+
+                // Fetch players list
+                await fetchPlayers();
+
+                // Setup event listeners
+                setupListeners();
+
+            } catch (err) {
+                console.error("Init Error:", err);
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right:10px; color:var(--accent-red);"></i> FAILED TO LOAD INTERFACE';
+            }
+        })();
+
+        // Load KPI Card stats
+        async function loadKPIs() {
+            try {
+                // Total Registered
+                const { count: total, error: errTotal } = await _supabase
+                    .from('players')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (errTotal) throw errTotal;
+                document.getElementById('stat-total-players').textContent = total || 0;
+
+                // With custom avatar
+                const { count: withAvatar, error: errAvatar } = await _supabase
+                    .from('players')
+                    .select('*', { count: 'exact', head: true })
+                    .not('avatar_url', 'is', null)
+                    .neq('avatar_url', '');
+                
+                if (errAvatar) throw errAvatar;
+                document.getElementById('stat-custom-avatars').textContent = withAvatar || 0;
+
+                // Average ELO rating
+                // We'll calculate it using RPC or fetch a small batch, or query from players.
+                // Since there is no average aggregation RPC pre-built, we can fetch ratings of top 100 or compute simple ELO stats.
+                // Let's do a simple count/select on elo or just query ELO from players table.
+                const { data: elos, error: errElos } = await _supabase
+                    .from('players')
+                    .select('elo');
+                
+                if (!errElos && elos && elos.length > 0) {
+                    const avg = Math.round(elos.reduce((sum, p) => sum + (p.elo || 1500), 0) / elos.length);
+                    document.getElementById('stat-avg-elo').textContent = avg;
+                } else {
+                    document.getElementById('stat-avg-elo').textContent = '1500';
+                }
+
+            } catch (err) {
+                console.error("KPI Error:", err);
+            }
+        }
+
+        // Fetch players based on filters and pagination
+        async function fetchPlayers() {
+            const tableLoading = document.getElementById('table-loading');
+            const playersTable = document.getElementById('players-table');
+            const tbody = document.getElementById('players-tbody');
+            const errorContainer = document.getElementById('error-container');
+
+            tableLoading.style.display = 'block';
+            playersTable.style.display = 'none';
+            errorContainer.style.display = 'none';
+
+            try {
+                const search = searchInput.value.trim();
+                const avatar = filterAvatar.value;
+                const sort = sortBy.value;
+
+                // Base query
+                let query = _supabase
+                    .from('players')
+                    .select('*', { count: 'exact' });
+
+                // Search filter
+                if (search) {
+                    query = query.ilike('username', `%${search}%`);
+                }
+
+                // Avatar filter
+                if (avatar === 'has_avatar') {
+                    query = query.not('avatar_url', 'is', null).neq('avatar_url', '');
+                } else if (avatar === 'no_avatar') {
+                    // Filter where avatar_url is null or empty
+                    query = query.or('avatar_url.is.null,avatar_url.eq.""');
+                }
+
+                // Sorting
+                if (sort === 'elo_desc') {
+                    query = query.order('elo', { ascending: false });
+                } else if (sort === 'elo_asc') {
+                    query = query.order('elo', { ascending: true });
+                } else if (sort === 'wins_desc') {
+                    query = query.order('wins', { ascending: false });
+                } else if (sort === 'losses_desc') {
+                    query = query.order('losses', { ascending: false });
+                } else if (sort === 'username_asc') {
+                    query = query.order('username', { ascending: true });
+                }
+
+                // Range calculation for pagination
+                const start = (currentPage - 1) * limit;
+                const end = start + limit - 1;
+                query = query.range(start, end);
+
+                const { data, count, error } = await query;
+
+                if (error) throw error;
+
+                totalCount = count || 0;
+                tbody.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach((p, idx) => {
+                        const tr = document.createElement('tr');
+                        const globalIndex = start + idx + 1;
+                        const avatarUrl = (p.avatar_url && p.avatar_url.trim() !== '') ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
+                        const hasAvatar = (p.avatar_url && p.avatar_url.trim() !== '');
+
+                        const statusBadge = hasAvatar 
+                            ? `<span class="status-badge has-avatar"><i class="fas fa-check"></i> Custom</span>`
+                            : `<span class="status-badge no-avatar"><i class="fas fa-times"></i> Default</span>`;
+
+                        const flag = p.country 
+                            ? `<img class="flag-img" src="https://flagcdn.com/w20/${p.country.toLowerCase()}.png" width="20" alt="${p.country}" onerror="this.style.display='none'">`
+                            : `<span style="color:var(--text-secondary)">-</span>`;
+
+                        tr.innerHTML = `
+                            <td style="text-align: center; color: var(--text-secondary); font-weight: bold;">${globalIndex}</td>
+                            <td style="text-align: center;">
+                                <img src="${avatarUrl}" class="avatar-thumb" referrerpolicy="no-referrer" onerror="this.src='placeholder-silhouette-5-wide.png'">
+                            </td>
+                            <td>
+                                <a class="username-badge" data-username="${p.username}">${p.username.toUpperCase()}</a>
+                            </td>
+                            <td style="font-weight: bold; color: var(--accent-blue);">${p.elo || 1500}</td>
+                            <td>${p.wins || 0}</td>
+                            <td>${p.losses || 0}</td>
+                            <td style="text-align: center;">${flag}</td>
+                            <td style="text-align: center;">${statusBadge}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--text-secondary);">No players found matching current filters.</td></tr>`;
+                }
+
+                // Update pagination controls
+                updatePaginationControls(start, data ? data.length : 0);
+
+                tableLoading.style.display = 'none';
+                playersTable.style.display = 'table';
+
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                errorContainer.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i> Failed to query database: ${err.message || err}</div>`;
+                errorContainer.style.display = 'block';
+                tableLoading.style.display = 'none';
+            }
+        }
+
+        // Update UI page counts & disabled states
+        function updatePaginationControls(start, batchLength) {
+            const rangeStart = totalCount > 0 ? start + 1 : 0;
+            const rangeEnd = start + batchLength;
+            
+            document.getElementById('pagination-info').textContent = 
+                `Showing ${rangeStart}-${rangeEnd} of ${totalCount} players`;
+
+            btnPrev.disabled = currentPage === 1;
+            btnNext.disabled = rangeEnd >= totalCount;
+        }
+
+        // Listeners for inputs, page clicks, filters
+        function setupListeners() {
+            // Search Input with Debounce (300ms)
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentPage = 1;
+                    fetchPlayers();
+                }, 300);
+            });
+
+            // Filter changes reset to page 1
+            filterAvatar.addEventListener('change', () => {
+                currentPage = 1;
+                fetchPlayers();
+            });
+
+            sortBy.addEventListener('change', () => {
+                currentPage = 1;
+                fetchPlayers();
+            });
+
+            // Prev / Next click
+            btnPrev.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    fetchPlayers();
+                }
+            });
+
+            btnNext.addEventListener('click', () => {
+                const maxRangeLoaded = currentPage * limit;
+                if (maxRangeLoaded < totalCount) {
+                    currentPage++;
+                    fetchPlayers();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
