@@ -1,7 +1,9 @@
-const CACHE_NAME = 'subsoccer-pro-v3';
+importScripts('version.js');
+const CACHE_NAME = 'subsoccer-pro-' + APP_VERSION;
 const ASSETS = [
     '/',
     '/index.html',
+    '/version.js',
     '/style.css',
     '/the-forge.css',
     '/config.js',

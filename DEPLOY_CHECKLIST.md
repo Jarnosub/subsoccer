@@ -11,7 +11,7 @@ Ennen jokaista tuotantopäivitystä (staging → main), käy läpi nämä:
 - [ ] Avaa selaimen konsoli — **ei punaisia virheitä**
 - [ ] Kirjaudu sisään (username + Google)
 - [ ] Avaa profiilisivu — latautuuko data
-- [ ] Bumppaa `sw.js` CACHE_NAME versio (v3 → v4 jne.)
+- [ ] Bumppaa `version.js` → `APP_VERSION` (esim. '1.0.0' → '1.0.1')
 
 ## Merge
 
