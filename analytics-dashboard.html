@@ -439,6 +439,19 @@
             </div>
         </div>
 
+        <!-- Registered Players -->
+        <div class="table-card">
+            <h2 style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <span>Registered Players <span id="players-count" style="color:var(--text-secondary); font-weight:400; font-size:0.85rem;"></span></span>
+                <input type="text" id="player-search" placeholder="Search players..." 
+                    style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; width:200px;"
+                    oninput="filterPlayers(this.value)">
+            </h2>
+            <div id="players-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; padding:20px; max-height:600px; overflow-y:auto;">
+                <div style="text-align:center; padding:40px; color:#666; grid-column:1/-1;"><i class="fas fa-spinner fa-spin"></i> Loading players...</div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -957,9 +970,70 @@
                 }
             }
         }
+        // ── Registered Players ──
+        let _allPlayers = [];
+
+        async function loadPlayers() {
+            try {
+                const { data, error } = await client
+                    .from('players')
+                    .select('id, username, avatar_url, elo, country, created_at, wins, losses')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                _allPlayers = data || [];
+                document.getElementById('players-count').textContent = `(${_allPlayers.length})`;
+                renderPlayers(_allPlayers);
+            } catch (e) {
+                console.error('Failed to load players:', e);
+                document.getElementById('players-grid').innerHTML = '<div style="color:var(--accent-red); padding:20px; grid-column:1/-1;">Failed to load players</div>';
+            }
+        }
+
+        function renderPlayers(players) {
+            const grid = document.getElementById('players-grid');
+            if (players.length === 0) {
+                grid.innerHTML = '<div style="text-align:center; padding:40px; color:#666; grid-column:1/-1;">No players found</div>';
+                return;
+            }
+
+            grid.innerHTML = players.map(p => {
+                const hasAvatar = p.avatar_url && p.avatar_url.length > 5;
+                const name = (p.username || 'UNKNOWN').toUpperCase();
+                const elo = p.elo || 1300;
+                const matches = (p.wins || 0) + (p.losses || 0);
+                const country = p.country ? p.country.toUpperCase() : '';
+                const joined = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+
+                return `
+                    <div style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--bg-base); border:1px solid var(--border-color); border-radius:8px; transition:0.2s;" onmouseover="this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                        ${hasAvatar 
+                            ? `<img src="${p.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; flex-shrink:0; border:2px solid var(--border-color);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                               <div style="display:none; width:40px; height:40px; border-radius:50%; background:rgba(242,139,130,0.15); align-items:center; justify-content:center; flex-shrink:0; color:var(--accent-red); font-size:0.8rem;"><i class="fas fa-image-slash"></i></div>`
+                            : `<div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#555; font-size:0.9rem;"><i class="fas fa-user"></i></div>`
+                        }
+                        <div style="min-width:0; flex:1;">
+                            <div style="font-weight:600; font-size:0.8rem; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name} ${country ? '<span style="font-size:0.7rem; color:var(--text-secondary);">' + country + '</span>' : ''}</div>
+                            <div style="font-size:0.7rem; color:var(--text-secondary); display:flex; gap:8px; margin-top:2px;">
+                                <span style="color:var(--accent-blue);">${elo} ELO</span>
+                                <span>${matches} games</span>
+                                ${!hasAvatar ? '<span style="color:var(--accent-red);">no avatar</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterPlayers(query) {
+            const q = query.trim().toLowerCase();
+            if (!q) { renderPlayers(_allPlayers); return; }
+            renderPlayers(_allPlayers.filter(p => (p.username || '').toLowerCase().includes(q) || (p.country || '').toLowerCase().includes(q)));
+        }
 
         // Initialize
         fetchData();
+        loadPlayers();
         setInterval(fetchData, 60000); // 1 minuutti
 
         // Feedback Logic
