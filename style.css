@@ -983,7 +983,9 @@ button {
 }
 
 .toast-notification.success {
-    border-left-color: var(--sub-gold) !important;
+    background: var(--sub-red) !important;
+    border-left-color: #ffffff !important;
+    color: #ffffff !important;
 }
 
 @keyframes toastSlideUp {
