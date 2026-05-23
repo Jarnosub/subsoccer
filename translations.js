@@ -77,6 +77,9 @@ const TRANSLATIONS = {
         tournament_requires_players: "Tournament requires 2 to 8 players.",
         quit_confirmation: "Quit this tournament? All progress will be lost.",
         player_prefix: "PLAYER",
+        // NOTE: In FR/ES/PT the pc_title_player and pc_title_card values are swapped
+        // because these languages put "Card" before "Player" (e.g. "CARTE JOUEUR").
+        // The HTML renders: <span data-i18n="pc_title_player"> <span data-i18n="pc_title_card">
         pc_title_player: "PLAYER",
         pc_title_card: "CARD",
         pc_local_arena: "LOCAL ARENA",
@@ -283,7 +286,7 @@ const TRANSLATIONS = {
         pc_title_card: "JUGADOR",
         pc_local_arena: "ARENA LOCAL",
         pc_win_ratio: "RATIO VICTORIAS",
-        pc_flip_card: "GIRAR CARTA",
+        pc_flip_card: "GIRAR TARJETA",
         pc_player_dossier: "DOSSIER JUGADOR",
         pc_new_recruit: "NUEVO RECLUTA",
         pc_global_rating: "CLASIFICACIÓN GLOBAL",
@@ -497,13 +500,13 @@ const TRANSLATIONS = {
         pc_ai_portrait_studio: "ESTÚDIO IA",
         pc_take_selfie: "TIRAR SELFIE",
         pc_generate_avatar: "GERAR AVATAR",
-        pc_save_avatar: "GUARDAR AVATAR",
+        pc_save_avatar: "SALVAR AVATAR",
         pc_edit_profile: "EDITAR PERFIL",
-        pc_username: "NOME DE UTILIZADOR",
+        pc_username: "NOME DE USUÁRIO",
         pc_country: "PAÍS",
         pc_select_country: "SELECIONAR PAÍS",
-        pc_save_changes: "GUARDAR ALTERAÇÕES",
-        pc_download_print: "DESCARREGAR CARTÃO",
+        pc_save_changes: "SALVAR ALTERAÇÕES",
+        pc_download_print: "BAIXAR CARTÃO",
         pc_creating_avatar: "CRIANDO SEU AVATAR"
     },
     fi: {
@@ -554,7 +557,7 @@ const TRANSLATIONS = {
         find_public_game: "Etsi julkinen peli",
         countries: "Maata",
         games: "Peliä",
-        views: "Katselua",
+        views: "Katselukertaa",
         privacy: "Tietosuoja",
         terms: "Ehdot",
         finals: "FINAALI",
