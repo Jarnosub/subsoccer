@@ -596,15 +596,30 @@
                 onclick="window.location.href='https://subsoccer.com';">
         </div>
 
-        <!-- Oikea reuna placeholder (esim kirjautuminen iconilla) -->
-        <button id="hub-login-btn"
-            style="background: transparent; border: none; color: #000; cursor: pointer; display: flex; align-items: center;"
-            onclick="window.location.href='login.html#login'">
-            <i class="fa-solid fa-user" style="font-size: 1.4rem;"></i>
-        </button>
-        <div id="hub-player-card" style="display: none; align-items: center; cursor: pointer;"
-            onclick="window.location.href='player-card.html'">
-            <i class="fa-solid fa-user-check" style="color: #c41e2a; font-size: 1.4rem;"></i>
+        <!-- Oikea reuna: Kielivalitsin lippuna + kirjautuminen -->
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <!-- Lippupainike -->
+            <div id="header-lang-selector" style="position: relative; display: flex; align-items: center; cursor: pointer;">
+                <span id="current-flag-emoji" style="font-size: 1.3rem;">🇬🇧</span>
+                <!-- Invisible select overlaid on top to handle clicks natively and beautifully -->
+                <select id="header-lang-select" onchange="setLanguage(this.value)" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none;">
+                    <option value="en">🇬🇧 English</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="pt">🇵🇹 Português</option>
+                </select>
+            </div>
+
+            <button id="hub-login-btn"
+                style="background: transparent; border: none; color: #000; cursor: pointer; display: flex; align-items: center;"
+                onclick="window.location.href='login.html#login'">
+                <i class="fa-solid fa-user" style="font-size: 1.4rem;"></i>
+            </button>
+            <div id="hub-player-card" style="display: none; align-items: center; cursor: pointer;"
+                onclick="window.location.href='player-card.html'">
+                <i class="fa-solid fa-user-check" style="color: #c41e2a; font-size: 1.4rem;"></i>
+            </div>
         </div>
     </div>
 

@@ -266,3 +266,35 @@ if (document.readyState === 'loading') {
     translateDOM();
 }
 document.documentElement.lang = currentLang;
+
+// ─── Header Flag Sync Logic ───
+const FLAG_MAP = {
+    en: '🇬🇧',
+    fr: '🇫🇷',
+    es: '🇪🇸',
+    de: '🇩🇪',
+    pt: '🇵🇹'
+};
+
+function updateHeaderFlag(lang) {
+    const flagEl = document.getElementById('current-flag-emoji');
+    if (flagEl && FLAG_MAP[lang]) {
+        flagEl.textContent = FLAG_MAP[lang];
+    }
+    const selectEl = document.getElementById('header-lang-select');
+    if (selectEl) {
+        selectEl.value = lang;
+    }
+}
+
+// Listen for changes to keep header flags in sync
+window.addEventListener('subsoccer-language-changed', (e) => {
+    updateHeaderFlag(e.detail);
+});
+
+// Run initially when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => updateHeaderFlag(currentLang));
+} else {
+    updateHeaderFlag(currentLang);
+}
