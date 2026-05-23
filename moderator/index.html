@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Subsoccer - Moderator Tools</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="../style.css?v=2">
     <style>
         body { font-family: 'Open Sans', sans-serif; background: #f5f5f5; color: #111; min-height: 100dvh; margin: 0; }
         .mod-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top, 20px)); background: #ffffff; border-bottom: 1px solid #e0e0e0; }
@@ -36,9 +36,9 @@
         body.dark-mode .mod-danger:hover { background: rgba(227,6,19,0.2); }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="version.js"></script>
+    <script src="../version.js"></script>
     <script src="https://js-de.sentry-cdn.com/a53cdae04c9280e2611fe75c4b793913.min.js" crossorigin="anonymous"></script>
-    <script src="sentry.js"></script>
+    <script src="../sentry.js"></script>
 </head>
 <body>
     <script>
@@ -55,7 +55,7 @@
 
     <div id="mod-content" style="display:none;">
     <div class="mod-header">
-        <button onclick="window.location.href='index.html'" style="background: none; border: none; color: #111; font-size: 1.2rem; cursor: pointer; width: 30px; text-align: left;"><i class="fas fa-arrow-left"></i></button>
+        <button onclick="window.location.href='../index.html'" style="background: none; border: none; color: #111; font-size: 1.2rem; cursor: pointer; width: 30px; text-align: left;"><i class="fas fa-arrow-left"></i></button>
         <div class="mod-title">MODERATOR TOOLS</div>
         <div style="width: 30px;"></div>
     </div>
@@ -72,7 +72,7 @@
         </button>
 
         <!-- QR Campaign Exporter -->
-        <button class="mod-btn" onclick="window.open('qr-batch-exporter.html', '_blank')">
+        <button class="mod-btn" onclick="window.open('../qr-batch-exporter.html', '_blank')">
             <i class="fa-solid fa-qrcode"></i>
             <div>
                 <div style="font-weight: bold; margin-bottom: 4px;">QR CAMPAIGN EXPORTER</div>
@@ -82,7 +82,7 @@
         </button>
 
         <!-- Arcade Venue Manager -->
-        <button class="mod-btn" onclick="window.location.href='owner-dashboard.html'">
+        <button class="mod-btn" onclick="window.location.href='../owner-dashboard.html'">
             <i class="fa-solid fa-gamepad"></i>
             <div>
                 <div style="font-weight: bold; margin-bottom: 4px;">VENUE MANAGER</div>
@@ -92,7 +92,7 @@
         </button>
 
         <!-- Brand Builder -->
-        <button class="mod-btn" onclick="window.location.href='brand-builder.html'">
+        <button class="mod-btn" onclick="window.location.href='../brand-builder.html'">
             <i class="fa-solid fa-palette"></i>
             <div>
                 <div style="font-weight: bold; margin-bottom: 4px;">BRAND BUILDER</div>
@@ -102,7 +102,7 @@
         </button>
 
         <!-- Global Theme Editor -->
-        <button class="mod-btn" onclick="window.location.href='theme-editor.html'">
+        <button class="mod-btn" onclick="window.location.href='../theme-editor.html'">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
             <div>
                 <div style="font-weight: bold; margin-bottom: 4px;">GLOBAL THEME EDITOR</div>
@@ -114,7 +114,7 @@
         <!-- Analytics Engine -->
         <div class="section-title">ANALYTICS ENGINE</div>
         
-        <button class="mod-btn" onclick="window.location.href='analytics-dashboard.html'">
+        <button class="mod-btn" onclick="window.location.href='../analytics-dashboard.html'">
             <i class="fa-solid fa-chart-simple"></i>
             <span style="font-weight: bold;">GLOBAL METRICS & ANALYTICS</span>
             <i class="fa-solid fa-chevron-right arrow"></i>
@@ -160,14 +160,14 @@
             );
             const { data } = await _sb.auth.getSession();
             if (!data.session) {
-                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="index.html" style="color:#c41e2a; margin-left:8px;">LOG IN</a>';
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="../index.html" style="color:#c41e2a; margin-left:8px;">LOG IN</a>';
                 return;
             }
             // Verify admin status
             const { data: player } = await _sb.from('players').select('id, is_admin').eq('id', data.session.user.id).maybeSingle();
             const SUPER_ADMIN_ID = '054f6378-95c5-4f5b-a678-745e585a01fc';
             if (!player?.is_admin && data.session.user.id !== SUPER_ADMIN_ID) {
-                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="index.html" style="color:#c41e2a; margin-left:8px;">BACK</a>';
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="../index.html" style="color:#c41e2a; margin-left:8px;">BACK</a>';
                 return;
             }
             // Auth passed - show content
