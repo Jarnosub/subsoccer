@@ -30,6 +30,28 @@ window.isTvMode = false;
 let userLat = null;
 let userLng = null;
 
+const locationPromise = (async function() {
+    let loc = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+    try {
+        const res = await fetch('/.netlify/functions/geo');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.city) {
+                const formattedCity = data.city.trim().replace(/\s+/g, '_');
+                const parts = loc.split('/');
+                if (parts.length > 1) {
+                    loc = `${parts[0]}/${formattedCity}`;
+                } else {
+                    loc = `Europe/${formattedCity}`;
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Geo lookup failed, using timezone:", e);
+    }
+    return loc;
+})();
+
 function captureGeolocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -451,16 +473,18 @@ function finishMatch(winnerName, winnerIndex) {
     // Explicit anonymous tracking for the individual tournament match
     if (_sb) {
         const isRet = !!localStorage.getItem('subsoccer-user');
-        _sb.from('public_tracking').insert({
-            event_type: 'tournament_match_finished',
-            game_code: 'MOBILE-TOURNAMENT',
-            match_score: `${gameState.p1Score}-${gameState.p2Score}`,
-            source_partner: isLoggedIn ? 'registered' : 'guest',
-            user_agent: navigator.userAgent,
-            browser_lang: navigator.language || 'Unknown',
-            location: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
-            is_returning: isRet
-        }).then(() => {}).catch(() => {});
+        locationPromise.then(userLoc => {
+            _sb.from('public_tracking').insert({
+                event_type: 'tournament_match_finished',
+                game_code: 'MOBILE-TOURNAMENT',
+                match_score: `${gameState.p1Score}-${gameState.p2Score}`,
+                source_partner: isLoggedIn ? 'registered' : 'guest',
+                user_agent: navigator.userAgent,
+                browser_lang: navigator.language || 'Unknown',
+                location: userLoc,
+                is_returning: isRet
+            }).then(() => {}).catch(() => {});
+        });
     }
 
     // Record the match in the global backend for ELO & Stats (silently, no loading overlay)
@@ -528,6 +552,8 @@ async function trackTournamentAnonymously(results) {
             duration = Math.floor((Date.now() - gameState.tournamentStartTime) / 1000);
         }
 
+        const userLoc = await locationPromise;
+
         await _sb.from('public_tracking').insert({
             event_type: 'tournament_finished',
             game_code: 'MOBILE-TOURNAMENT',
@@ -535,7 +561,7 @@ async function trackTournamentAnonymously(results) {
             source_partner: isLoggedIn ? 'registered' : 'guest',
             user_agent: navigator.userAgent,
             browser_lang: navigator.language || 'Unknown',
-            location: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+            location: userLoc,
             is_returning: isRet,
             session_duration: duration
         });

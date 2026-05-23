@@ -924,6 +924,28 @@
         import { BroadcastService } from './broadcast-service.js';
         import { _supabase } from './config.js';
 
+        const locationPromise = (async function() {
+            let loc = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+            try {
+                const res = await fetch('/.netlify/functions/geo');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.city) {
+                        const formattedCity = data.city.trim().replace(/\s+/g, '_');
+                        const parts = loc.split('/');
+                        if (parts.length > 1) {
+                            loc = `${parts[0]}/${formattedCity}`;
+                        } else {
+                            loc = `Europe/${formattedCity}`;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Geo lookup failed, using timezone:", e);
+            }
+            return loc;
+        })();
+
         async function logTrackingEvent(eventType, matchScore = null) {
             try {
                 if (!_supabase) return;
@@ -931,7 +953,7 @@
                 const partner = urlParams.get('partner') || 'social';
                 const gId = urlParams.get('sn') || urlParams.get('game_id') || 'PUBLIC-APP';
 
-                const userLoc = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+                const userLoc = await locationPromise;
                 const lang = navigator.language || navigator.userLanguage || 'Unknown';
                 const isReturning = !!localStorage.getItem('subsoccer-user');
                 
