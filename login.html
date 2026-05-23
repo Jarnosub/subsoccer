@@ -142,6 +142,18 @@
                     <input type="text" id="auth-user" name="username" placeholder="Username" autocomplete="username" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
                     <input type="password" id="auth-pass" name="password" placeholder="Password" autocomplete="current-password" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
                     <button id="btn-login" class="btn-red" type="submit" style="background: #c41e2a; color: #ffffff; padding: 12px; font-size: 0.9rem; letter-spacing: 1px; margin-top: 2px; box-shadow: 0 3px 15px rgba(196, 30, 42, 0.2); border-radius: 3px; font-family:'SubsoccerLogo',sans-serif;">LOG IN</button>
+                    
+                    <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: #555; font-size: 0.7rem; font-family: 'Resolve', sans-serif;">
+                        <div style="flex: 1; height: 1px; background: #222;"></div>
+                        <span style="padding: 0 8px; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.55rem; font-weight: bold;">OR</span>
+                        <div style="flex: 1; height: 1px; background: #222;"></div>
+                    </div>
+                    
+                    <button id="btn-google-login" type="button" style="background: #ffffff; color: #000000; padding: 11px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 3px; font-family: 'Resolve', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer; transition: all 0.2s; width: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.25); letter-spacing: 1px; text-transform: uppercase;" onmouseover="this.style.background='#e5e5e5';" onmouseout="this.style.background='#ffffff';">
+                        <i class="fa-brands fa-google" style="color: #4285F4; font-size: 0.95rem;"></i>
+                        Sign in with Google
+                    </button>
+
                     <div style="margin-top: 8px;">
                         <button id="btn-show-signup" type="button" class="btn-create-account"
                             onclick="showAuthPage('signup')" style="background: transparent; border: 1px solid #2a2a2a; color: #666; padding: 10px; transition: all 0.2s; border-radius: 3px; font-size: 0.75rem;" onmouseover="this.style.color='#fff'; this.style.borderColor='#555';" onmouseout="this.style.color='#666'; this.style.borderColor='#2a2a2a';">CREATE ACCOUNT</button>

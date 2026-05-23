@@ -838,6 +838,21 @@ export async function saveProfile(e) {
     }
 }
 
+export async function signInWithGoogle() {
+    try {
+        const { error } = await _supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + '/login.html'
+            }
+        });
+        if (error) throw error;
+    } catch (e) {
+        console.error("Google login failed:", e);
+        showNotification(e.message || "Google login failed", "error");
+    }
+}
+
 /**
  * Programmatic event listeners. 
  * Removes the need for 'window.xxx' and inline 'onclick' in HTML.
@@ -860,6 +875,7 @@ export function setupAuthListeners() {
     document.getElementById('btn-register')?.addEventListener('click', handleSignUp);
     document.getElementById('link-back-to-login')?.addEventListener('click', () => toggleAuth(false));
     document.getElementById('btn-guest-login')?.addEventListener('click', handleGuest);
+    document.getElementById('btn-google-login')?.addEventListener('click', signInWithGoogle);
 
     // Kytketään kaikki uloskirjautumispainikkeet
     document.querySelectorAll('.logout-item, #btn-logout').forEach(el => {
