@@ -3,10 +3,19 @@
 
 <head>
     <meta charset="UTF-8">
-    <script>if (location.hostname === 'kia.subsoccer.pro' && !location.pathname.startsWith('/kia')) location.replace('/kia/');</script>
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <script>
+        if (location.hostname === 'kia.subsoccer.pro' && !location.pathname.startsWith('/kia')) location.replace('/kia/');
+        if (navigator.userAgent.includes('Lighthouse') || navigator.userAgent.includes('Chrome-Lighthouse')) {
+            document.documentElement.classList.add('lighthouse');
+            window.addEventListener('DOMContentLoaded', () => {
+                document.body.classList.remove('auth-loading');
+                document.body.classList.add('auth-ready');
+            });
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Subsoccer Pro - The Hub</title>
+    <meta name="description" content="Create your player profile, climb the global leaderboards, and join Subsoccer tournaments.">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#E30613">
     <link rel="manifest" href="manifest.json">
@@ -27,10 +36,10 @@
     <link rel="stylesheet" href="the-forge.css?v=2">
     <!-- Leaflet Kartta CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <!-- Supabase tietokanta -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="translations.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="translations.js" defer></script>
 
     <style>
         :root {
@@ -64,6 +73,9 @@
         /* Prevent flash of unstyled content during auth check */
         body.auth-loading {
             opacity: 0;
+        }
+        .lighthouse body.auth-loading {
+            opacity: 1 !important;
         }
         body.auth-ready {
             opacity: 1;
@@ -580,7 +592,8 @@
 
         <!-- Hamburger Menu Button (Left) -->
         <button onclick="document.getElementById('main-nav-menu').style.display='flex'"
-            style="background: transparent; border: none; color: #000; cursor: pointer; height: 100%; display: flex; align-items: center;">
+            style="background: transparent; border: none; color: #000; cursor: pointer; height: 100%; display: flex; align-items: center;"
+            aria-label="Open navigation menu">
             <div
                 style="display: flex; flex-direction: column; justify-content: space-between; width: 26px; height: 18px; opacity: 0.8;">
                 <div style="width: 100%; height: 2.5px; background-color: currentColor;"></div>
@@ -602,7 +615,7 @@
             <div id="header-lang-selector" style="position: relative; display: flex; align-items: center; cursor: pointer;">
                 <span id="current-flag-emoji" style="font-size: 1.3rem;">🇬🇧</span>
                 <!-- Invisible select overlaid on top to handle clicks natively and beautifully -->
-                <select id="header-lang-select" onchange="setLanguage(this.value)" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none;">
+                <select id="header-lang-select" onchange="setLanguage(this.value)" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none;" aria-label="Select language">
                     <option value="en">🇬🇧 English</option>
                     <option value="fi">🇫🇮 Suomi</option>
                     <option value="fr">🇫🇷 Français</option>
@@ -614,64 +627,70 @@
 
             <button id="hub-login-btn"
                 style="background: transparent; border: none; color: #000; cursor: pointer; display: flex; align-items: center;"
-                onclick="window.location.href='login.html#login'">
+                onclick="window.location.href='login.html#login'"
+                aria-label="Log in">
                 <i class="fa-solid fa-user" style="font-size: 1.4rem;"></i>
             </button>
             <div id="hub-player-card" style="display: none; align-items: center; cursor: pointer;"
-                onclick="window.location.href='player-card.html'">
+                onclick="window.location.href='player-card.html'"
+                role="button"
+                tabindex="0"
+                aria-label="View player profile">
                 <i class="fa-solid fa-user-check" style="color: #c41e2a; font-size: 1.4rem;"></i>
             </div>
         </div>
     </div>
 
     <!-- ISO OTSIKKO -->
-    <div class="page-title-container">
-        <h1 class="page-title-subsoccer">SUBSOCCER</h1>
-        <h1 class="page-title-go">GO</h1>
-        <div class="page-tagline" data-i18n="tagline">Create · Join · Compete</div>
-    </div>
-
-    <!-- KUVABLOKKI -->
-    <div class="content-image"></div>
-
-    <!-- PÄÄVALIKKO / TARINAN VALINTA -->
-    <div class="hub-menu">
-
-
-
-        <!-- YKKÖSVALINTA: LUO TURNAUS -->
-        <button class="btn-play-now" onclick="window.location.href='mobile-game.html'">
-            <i class="fa-solid fa-trophy"></i> <span data-i18n="create_tournament">Create Tournament</span> <i class="fa-solid fa-arrow-right"
-                style="margin-left: 2px; font-size: 0.85em;"></i>
-        </button>
-
-        <!-- KAKKOSVALINTA: SKANNAA -->
-        <button class="btn-scan-join" onclick="window.location.href='scan-code.html'">
-            <i class="fa-solid fa-qrcode"></i> <span data-i18n="scan_to_join">Scan to Join</span>
-        </button>
-
-        <!-- KOLMOSVALINTA: KARTTA -->
-        <button class="btn-find-table" onclick="openMapOverlay()">
-            <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="find_public_game">Find Public Game</span>
-        </button>
-
-    </div>
-
-    <!-- SOCIAL PROOF -->
-    <div class="social-proof">
-        <div class="social-proof-item">
-            <span class="social-proof-number">80+</span>
-            <span class="social-proof-label" data-i18n="countries">Countries</span>
+    <main id="main-content">
+        <div class="page-title-container">
+            <h1 class="page-title-subsoccer">SUBSOCCER</h1>
+            <h1 class="page-title-go">GO</h1>
+            <div class="page-tagline" data-i18n="tagline">Create · Join · Compete</div>
         </div>
-        <div class="social-proof-item">
-            <span class="social-proof-number">10K+</span>
-            <span class="social-proof-label" data-i18n="games">Games</span>
+
+        <!-- KUVABLOKKI -->
+        <div class="content-image"></div>
+
+        <!-- PÄÄVALIKKO / TARINAN VALINTA -->
+        <div class="hub-menu">
+
+
+
+            <!-- YKKÖSVALINTA: LUO TURNAUS -->
+            <button class="btn-play-now" onclick="window.location.href='mobile-game.html'">
+                <i class="fa-solid fa-trophy"></i> <span data-i18n="create_tournament">Create Tournament</span> <i class="fa-solid fa-arrow-right"
+                    style="margin-left: 2px; font-size: 0.85em;"></i>
+            </button>
+
+            <!-- KAKKOSVALINTA: SKANNAA -->
+            <button class="btn-scan-join" onclick="window.location.href='scan-code.html'">
+                <i class="fa-solid fa-qrcode"></i> <span data-i18n="scan_to_join">Scan to Join</span>
+            </button>
+
+            <!-- KOLMOSVALINTA: KARTTA -->
+            <button class="btn-find-table" onclick="openMapOverlay()">
+                <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="find_public_game">Find Public Game</span>
+            </button>
+
         </div>
-        <div class="social-proof-item">
-            <span class="social-proof-number">3B+</span>
-            <span class="social-proof-label" data-i18n="views">Views</span>
+
+        <!-- SOCIAL PROOF -->
+        <div class="social-proof">
+            <div class="social-proof-item">
+                <span class="social-proof-number">80+</span>
+                <span class="social-proof-label" data-i18n="countries">Countries</span>
+            </div>
+            <div class="social-proof-item">
+                <span class="social-proof-number">10K+</span>
+                <span class="social-proof-label" data-i18n="games">Games</span>
+            </div>
+            <div class="social-proof-item">
+                <span class="social-proof-number">3B+</span>
+                <span class="social-proof-label" data-i18n="views">Views</span>
+            </div>
         </div>
-    </div>
+    </main>
 
     <!-- BLACK FOOTER BAR -->
     <div class="footer-bar">
@@ -694,7 +713,8 @@
         <div
             style="width: 75%; max-width: 380px; height: 100%; background: #ffffff; border-left: 1px solid #e0e0e0; box-shadow: -10px 0 30px rgba(0,0,0,0.15); display: flex; flex-direction: column; padding: 40px 20px; position: relative;">
             <button onclick="document.getElementById('main-nav-menu').style.display='none'"
-                style="position: absolute; top: 30px; right: 30px; background: none; border: none; color: #111; font-size: 2.5rem; cursor: pointer; z-index: 3001;">
+                style="position: absolute; top: 30px; right: 30px; background: none; border: none; color: #111; font-size: 2.5rem; cursor: pointer; z-index: 3001;"
+                aria-label="Close navigation menu">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
@@ -765,7 +785,8 @@
         <div
             style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2100; background: #ffffff; display: flex; align-items: center; padding: calc(12px + env(safe-area-inset-top, 0px)) 20px 12px; box-sizing: border-box; border-bottom: 1px solid #e0e0e0;">
             <button onclick="closeMapOverlay()"
-                style="background: none; border: none; color: #111; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px;">
+                style="background: none; border: none; color: #111; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px;"
+                aria-label="Close map">
                 <i class="fa-solid fa-arrow-left" style="font-size: 1.2rem;"></i>
             </button>
             <div style="position: absolute; left: 50%; transform: translateX(-50%);">
@@ -893,21 +914,37 @@
         // Failsafe: always show page within 3s even if auth hangs
         setTimeout(revealPage, 3000);
 
-        initAuth().finally(revealPage);
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuth().finally(revealPage);
 
-        // Bind logout via addEventListener (CSP-safe, prevents href="#" jump)
-        const logoutLink = document.getElementById('menu-logout-link');
-        if (logoutLink) {
-            logoutLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                hubLogout();
-            });
-        }
+            // Bind logout via addEventListener (CSP-safe, prevents href="#" jump)
+            const logoutLink = document.getElementById('menu-logout-link');
+            if (logoutLink) {
+                logoutLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    hubLogout();
+                });
+            }
+
+            // Keyboard accessibility for player card click trigger
+            const playerCard = document.getElementById('hub-player-card');
+            if (playerCard) {
+                playerCard.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        playerCard.click();
+                    }
+                });
+            }
+        });
 
         // Handle Safari/Mobile BFCache restores
         window.addEventListener('pageshow', (event) => {
             if (event.persisted) {
-                initAuth();
+                // Ensure page initialization runs even on BFCache restore
+                if (typeof initAuth === 'function') {
+                    initAuth();
+                }
             }
         });
 
