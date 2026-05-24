@@ -97,7 +97,7 @@ function triggerVictory(playerWon) {
                 match_score: `${playerGoals}-${oppGoals}`,
                 source_partner: 'promo-qr',
                 user_agent: navigator.userAgent,
-                browser_lang: navigator.language || 'Unknown'
+                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase()
             }).then(() => console.log('Tracked minigame finish.'));
         }
     } catch(e) {}

@@ -954,7 +954,7 @@
                 const gId = urlParams.get('sn') || urlParams.get('game_id') || 'PUBLIC-APP';
 
                 const userLoc = await locationPromise;
-                const lang = navigator.language || navigator.userLanguage || 'Unknown';
+                const lang = localStorage.getItem('subsoccer-lang') || (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
                 const isReturning = !!localStorage.getItem('subsoccer-user');
                 
                 let duration = null;

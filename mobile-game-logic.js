@@ -480,7 +480,7 @@ function finishMatch(winnerName, winnerIndex) {
                 match_score: `${gameState.p1Score}-${gameState.p2Score}`,
                 source_partner: isLoggedIn ? 'registered' : 'guest',
                 user_agent: navigator.userAgent,
-                browser_lang: navigator.language || 'Unknown',
+                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
                 location: userLoc,
                 is_returning: isRet
             }).then(() => {}).catch(() => {});
@@ -560,7 +560,7 @@ async function trackTournamentAnonymously(results) {
             match_score: `${participants.length}p`,
             source_partner: isLoggedIn ? 'registered' : 'guest',
             user_agent: navigator.userAgent,
-            browser_lang: navigator.language || 'Unknown',
+            browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
             location: userLoc,
             is_returning: isRet,
             session_duration: duration
