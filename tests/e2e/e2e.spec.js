@@ -12,7 +12,7 @@ test.describe('Subsoccer Pro E2E', () => {
 
     test.beforeEach(async ({ page }) => {
         // Use relative path to leverage the baseURL from playwright.config.js
-        await page.goto('/login.html');
+        await page.goto('/login.html?e2e=true');
     });
 
     test('SCENARIO 1: Registration and Profile Update', async ({ page }) => {

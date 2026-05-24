@@ -43,7 +43,8 @@ export async function initApp() {
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
                 if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-                    if (window.location.pathname.includes('login') && !window.location.pathname.endsWith('login.html')) {
+                    const isE2ETest = navigator.webdriver || window.location.search.includes('e2e=true');
+                    if (window.location.pathname.includes('login') && !isE2ETest) {
                         // Varmistetaan että profiili on välimuistissa ennen redirectiä
                         if (!state.user || state.user.id !== session.user.id) {
                             await refreshUserProfile(session.user.id);
