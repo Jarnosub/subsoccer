@@ -3,6 +3,13 @@ import { showNotification, safeHTML } from './ui-utils.js';
 import { MatchService } from './match-service.js';
 import { BroadcastService } from './broadcast-service.js';
 
+// Debounce-apuri pelaajahaulle (estää liian tiheät DB-kyselyt)
+let _searchTimeout = null;
+function debouncedSearch(fn, delay = 300) {
+    clearTimeout(_searchTimeout);
+    _searchTimeout = setTimeout(fn, delay);
+}
+
 /**
  * ============================================================
  * QUICK MATCH & PRO MODE LOGIC
@@ -676,8 +683,8 @@ window.copyVipLink = copyVipLink;                 // exposed mainly for consiste
 
 export function setupQuickMatchListeners() {
     // Quick Match Section
-    document.getElementById('p1-quick-search')?.addEventListener('input', (e) => handleQuickSearch(e.target, 'p1'));
-    document.getElementById('p2-quick-search')?.addEventListener('input', (e) => handleQuickSearch(e.target, 'p2'));
+    document.getElementById('p1-quick-search')?.addEventListener('input', (e) => debouncedSearch(() => handleQuickSearch(e.target, 'p1')));
+    document.getElementById('p2-quick-search')?.addEventListener('input', (e) => debouncedSearch(() => handleQuickSearch(e.target, 'p2')));
     document.getElementById('btn-clear-quick-players')?.addEventListener('click', () => clearQuickMatchPlayers());
     document.getElementById('start-quick-match')?.addEventListener('click', () => startQuickMatch());
 
@@ -721,7 +728,7 @@ export function setupQuickMatchListeners() {
 
     document.addEventListener('input', (e) => {
         if (e.target.id === 'claim-opponent-search') {
-            handleQuickSearch(e.target, 'claim');
+            debouncedSearch(() => handleQuickSearch(e.target, 'claim'));
         }
     });
 }

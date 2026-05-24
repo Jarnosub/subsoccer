@@ -6,6 +6,16 @@ import { showNotification, showLoading, hideLoading, showModal } from './ui-util
  */
 const isUuid = (val) => val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
 
+// Timeout-apuri Supabase-kutsuille (estää ikuisen latauksen)
+function withTimeout(promise, ms = 10000) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), ms))
+    ]);
+}
+
+let _isRecording = false;
+
 export const MatchService = {
     /**
      * Laskee uudet ELO-pisteet kahdelle pelaajalle.
@@ -38,6 +48,13 @@ export const MatchService = {
      * Includes Anti-Cheat / B2B logic: Non-verified/Private tables are capped at 1600 ELO.
      */
     async recordMatch({ player1Name, player2Name, player1Id = null, player2Id = null, winnerName, p1Score = null, p2Score = null, tournamentId = null, tournamentName = null, gameId = null }) {
+        // Estetään tuplalähetys (mutex)
+        if (_isRecording) {
+            console.warn('MatchService: Recording already in progress, ignoring duplicate call');
+            return { success: false, error: 'duplicate' };
+        }
+        _isRecording = true;
+
         try {
             showLoading('Recording match...');
 
@@ -120,7 +137,7 @@ export const MatchService = {
             const p2EloFinal = (winnerName === player2Name) ? newElo : (p2.isGuest ? 1300 : newEloB);
 
             // 3. Save to database
-            const { error: rpcError } = await _supabase.rpc('record_quick_match_v1', {
+            const { error: rpcError } = await withTimeout(_supabase.rpc('record_quick_match_v1', {
                 p1_id: (p1.isGuest || !isUuid(p1.id)) ? null : p1.id,
                 p2_id: (p2.isGuest || !isUuid(p2.id)) ? null : p2.id,
                 p1_new_elo: p1EloFinal,
@@ -137,7 +154,7 @@ export const MatchService = {
                     is_verified_table: isVerifiedTable,
                     elo_capped: wasCapped
                 }
-            });
+            }));
 
             if (rpcError) throw rpcError;
 
@@ -180,6 +197,7 @@ export const MatchService = {
             showNotification('Failed to record match', 'error');
             return { success: false, error };
         } finally {
+            _isRecording = false;
             hideLoading();
         }
     }

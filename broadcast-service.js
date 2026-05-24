@@ -34,6 +34,21 @@ export const BroadcastService = {
         currentChannel.subscribe((status) => {
             if (status === 'SUBSCRIBED') {
                 console.log(`📡 Broadcast started on room: ${currentRoomId}`);
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                console.warn(`⚠️ Broadcast channel ${status}. Reconnecting in 3s...`);
+                setTimeout(() => {
+                    if (currentChannel) {
+                        _supabase.removeChannel(currentChannel);
+                        currentChannel = null;
+                        BroadcastService.startBroadcasting();
+                    }
+                }, 3000);
+            } else if (status === 'CLOSED') {
+                console.warn('📡 Broadcast channel closed. Reconnecting in 5s...');
+                setTimeout(() => {
+                    currentChannel = null;
+                    BroadcastService.startBroadcasting();
+                }, 5000);
             }
         });
 

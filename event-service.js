@@ -144,6 +144,19 @@ export async function registerForTournament(eventId, tournamentId) {
     }
 
     try {
+        // Tarkistetaan onko käyttäjä jo ilmoittautunut (estää tuplarekisteröinti)
+        const { data: existing } = await _supabase.from('event_registrations')
+            .select('id')
+            .eq('event_id', eventId)
+            .eq('tournament_id', tournamentId)
+            .eq('player_id', state.user.id)
+            .maybeSingle();
+
+        if (existing) {
+            showNotification('Already registered!', 'info');
+            return;
+        }
+
         const { error } = await _supabase.from('event_registrations').insert({ event_id: eventId, tournament_id: tournamentId, player_id: state.user.id, status: 'registered' });
         if (error) throw error;
         showNotification('Registered!', 'success');

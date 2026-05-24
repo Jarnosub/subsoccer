@@ -31,6 +31,8 @@ export async function viewTournamentBracket(tournamentId, tournamentName, eventI
         }
 
         if (tournament?.status === 'scheduled') {
+            const startConfirmed = confirm('Start this tournament? Status will change from Scheduled to Ongoing.');
+            if (!startConfirmed) return;
             await _supabase.from('tournament_history').update({ status: 'ongoing' }).eq('id', tournamentId);
         }
 

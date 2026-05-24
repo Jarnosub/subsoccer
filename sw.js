@@ -82,6 +82,11 @@ self.addEventListener('fetch', (event) => {
                 return networkResponse;
             }).catch((err) => {
                 console.error('[Service Worker] Fetch failed:', err);
+                // Palautetaan offline-vastaus, jotta käyttäjä ei näe tyhjää sivua
+                return new Response(
+                    '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Subsoccer Offline</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0a0a0a;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}.c{max-width:400px}h1{font-size:2rem;margin-bottom:15px;color:#c41e2a}p{color:#888;margin-bottom:20px;line-height:1.5}button{background:#c41e2a;color:#fff;border:none;padding:14px 30px;border-radius:4px;font-size:1rem;cursor:pointer;font-weight:bold;letter-spacing:1px}</style></head><body><div class="c"><h1>📡 OFFLINE</h1><p>Connection lost. Check your WiFi and try again.</p><button onclick="location.reload()">RETRY</button></div></body></html>',
+                    { headers: { 'Content-Type': 'text/html' }, status: 503 }
+                );
             });
         })
     );

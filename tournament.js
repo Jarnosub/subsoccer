@@ -88,18 +88,27 @@ export async function saveTour() {
         let finalNewElo = 0;
 
         for (const m of matches) {
-            const res = await MatchService.recordMatch({
-                player1Name: m.p1,
-                player2Name: m.p2,
-                winnerName: m.winner,
-                tournamentName: currentTournamentName,
-                tournamentId: tournamentId
-            });
+            try {
+                const res = await MatchService.recordMatch({
+                    player1Name: m.p1,
+                    player2Name: m.p2,
+                    winnerName: m.winner,
+                    tournamentName: currentTournamentName,
+                    tournamentId: tournamentId
+                });
 
-            // Capture the winner's stats from the final match
-            if (m.winner === results.winner && !m.isBronze) {
-                finalEloGain = res.gain;
-                finalNewElo = res.newElo;
+                if (res.success) {
+                    // Capture the winner's stats from the final match
+                    if (m.winner === results.winner && !m.isBronze) {
+                        finalEloGain = res.gain;
+                        finalNewElo = res.newElo;
+                    }
+                } else {
+                    console.warn(`Match ${m.p1} vs ${m.p2} recording returned non-success:`, res.error);
+                }
+            } catch (matchError) {
+                console.error(`Failed to record match ${m.p1} vs ${m.p2}:`, matchError);
+                showNotification(`Failed to save: ${m.p1} vs ${m.p2}`, 'error');
             }
         }
 

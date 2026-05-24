@@ -117,14 +117,16 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
 
         if (tournamentsError) throw tournamentsError;
 
-        // Fetch participant counts for each tournament separately to be safe
         if (tournaments && tournaments.length > 0) {
+            // Haetaan kaikkien turnausten osallistujamäärät yhdellä kyselyllä (N+1 → 1)
+            const tournamentIds = tournaments.map(t => t.id);
+            const { data: allRegs } = await _supabase
+                .from('event_registrations')
+                .select('tournament_id')
+                .in('tournament_id', tournamentIds);
+
             for (let t of tournaments) {
-                const { count } = await _supabase
-                    .from('event_registrations')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('tournament_id', t.id);
-                t.computed_participant_count = count || 0;
+                t.computed_participant_count = (allRegs || []).filter(r => r.tournament_id === t.id).length;
             }
 
             // Fetch matches for each tournament to build the live bracket
@@ -180,7 +182,7 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
                 return;
             }
             viewLiveEvent(eventId, true);
-        }, 10000);
+        }, 30000);
 
     } catch (e) {
         console.error('Failed to load live event:', e);
