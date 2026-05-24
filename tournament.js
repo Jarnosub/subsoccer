@@ -18,7 +18,8 @@ export function startTournament() {
     currentTournamentName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : `Tournament ${new Date().toLocaleDateString()}`;
 
     if (window.bracketEngine) {
-        window.bracketEngine.generateBracket(state.pool);
+        const isE2E = window.location.search.includes('e2e=true');
+        window.bracketEngine.generateBracket(state.pool, !isE2E);
     } else {
         console.error("BracketEngine not loaded");
         showNotification("System error: Bracket Engine missing", "error");
