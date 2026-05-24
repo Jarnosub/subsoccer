@@ -619,10 +619,18 @@
 
                 // Players count is always "all time" (total registrations)
                 const [usersRes, historyRes, matchesRes, topPlayersRes] = await Promise.all([
-                    client.from('players').select('id', { count: 'exact' }),
+                    client.from('players').select('id', { count: 'exact' })
+                        .not('username', 'ilike', 'AUTOTEST%')
+                        .not('username', 'ilike', 'TOURTEST%')
+                        .not('username', 'ilike', 'REDIRECTTEST%'),
                     historyQuery,
                     matchesQuery,
-                    client.from('players').select('username, elo, wins, losses').order('elo', { ascending: false }).limit(10)
+                    client.from('players').select('username, elo, wins, losses')
+                        .not('username', 'ilike', 'AUTOTEST%')
+                        .not('username', 'ilike', 'TOURTEST%')
+                        .not('username', 'ilike', 'REDIRECTTEST%')
+                        .order('elo', { ascending: false })
+                        .limit(10)
                 ]);
 
                 if (historyRes.error) console.error("History Error:", historyRes.error);
@@ -1172,6 +1180,9 @@
                 const { data, error } = await client
                     .from('players')
                     .select('id, username, avatar_url, elo, country, created_at, wins, losses')
+                    .not('username', 'ilike', 'AUTOTEST%')
+                    .not('username', 'ilike', 'TOURTEST%')
+                    .not('username', 'ilike', 'REDIRECTTEST%')
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
