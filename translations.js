@@ -556,7 +556,7 @@ const TRANSLATIONS = {
         start_playing: "Aloita pelaaminen heti",
         product_registered: "TUOTE REKISTERÖITY!",
         product_registered_desc: "Tuotteesi on nyt osa Subsoccer-verkostoa.",
-        tagline: "Luo · Liity · Kilpaile",
+        tagline: "Luo · Liity · Haasta",
         create_tournament: "Luo turnaus",
         scan_to_join: "Skannaa liittyäksesi",
         find_public_game: "Etsi julkinen peli",
