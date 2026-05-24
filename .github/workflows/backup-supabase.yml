@@ -1,0 +1,39 @@
+name: Nightly Supabase Data Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Aja joka yö klo 02:00 UTC (klo 05:00 Suomen aikaa)
+  workflow_dispatch: # Mahdollistaa manuaalisen käynnistyksen GitHubin kautta
+
+permissions:
+  contents: write # Vaaditaan jotta toiminto voi kommitoida ja pushata backup-tiedostot takaisin repoon
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Supabase Client
+        run: npm install @supabase/supabase-js
+
+      - name: Run backup script
+        run: node scripts/backup-supabase.js
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add backups/
+          if git diff-index --quiet HEAD --; then
+            echo "No changes in data since last backup."
+          else
+            git commit -m "chore(backup): automated Supabase data update [skip ci]"
+            git push origin staging
+          fi
