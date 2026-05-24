@@ -530,16 +530,39 @@
                 document.getElementById('auth-wall').style.display = 'none';
                 document.getElementById('mod-content').style.display = 'block';
 
-                // Build time-filtered queries
-                let trackingQuery = client.from('public_tracking').select('*').order('client_time', { ascending: false }).limit(10000);
-                if (startDateStr) trackingQuery = trackingQuery.gte('client_time', startDateStr);
-                if (endDateStr) trackingQuery = trackingQuery.lte('client_time', endDateStr);
-                
                 const partnerFilterEl = document.getElementById('partnerFilter');
                 const partnerFilter = partnerFilterEl ? partnerFilterEl.value : 'all';
-                if (partnerFilter !== 'all') {
-                    // Match the source_partner substring to the filter choice
-                    trackingQuery = trackingQuery.ilike('source_partner', `%${partnerFilter}%`);
+
+                // Fetch tracking data in pages of 1000 to bypass Supabase PostgREST default max_rows limit
+                let trackingData = [];
+                let page = 0;
+                const pageSize = 1000;
+                while (true) {
+                    let pageQuery = client
+                        .from('public_tracking')
+                        .select('*')
+                        .order('client_time', { ascending: false })
+                        .range(page * pageSize, (page + 1) * pageSize - 1);
+                    
+                    if (startDateStr) pageQuery = pageQuery.gte('client_time', startDateStr);
+                    if (endDateStr) pageQuery = pageQuery.lte('client_time', endDateStr);
+                    if (partnerFilter !== 'all') {
+                        pageQuery = pageQuery.ilike('source_partner', `%${partnerFilter}%`);
+                    }
+
+                    const { data: pageData, error: pageError } = await pageQuery;
+                    if (pageError) {
+                        console.error(`Tracking Page ${page} Error:`, pageError);
+                        throw pageError;
+                    }
+                    if (!pageData || pageData.length === 0) break;
+                    trackingData.push(...pageData);
+                    
+                    if (pageData.length < pageSize) break;
+                    page++;
+                    
+                    // Safety break
+                    if (page > 30) break;
                 }
 
                 let historyQuery = client.from('tournament_history').select('*', { count: 'exact' });
@@ -551,23 +574,18 @@
                 if (endDateStr) matchesQuery = matchesQuery.lte('created_at', endDateStr);
 
                 // Players count is always "all time" (total registrations)
-                const [trackingRes, usersRes, historyRes, matchesRes, topPlayersRes, allCitiesRes] = await Promise.all([
-                    trackingQuery,
+                const [usersRes, historyRes, matchesRes, topPlayersRes] = await Promise.all([
                     client.from('players').select('id', { count: 'exact' }),
                     historyQuery,
                     matchesQuery,
-                    client.from('players').select('username, elo, wins, losses').order('elo', { ascending: false }).limit(10),
-                    client.from('public_tracking').select('location').not('location', 'is', null).limit(10000)
+                    client.from('players').select('username, elo, wins, losses').order('elo', { ascending: false }).limit(10)
                 ]);
 
-                if (trackingRes.error) console.error("Tracking Error:", trackingRes.error);
                 if (historyRes.error) console.error("History Error:", historyRes.error);
                 if (matchesRes.error) console.error("Matches Error:", matchesRes.error);
                 if (topPlayersRes.error) console.error("Leaderboard Error:", topPlayersRes.error);
-                if (allCitiesRes.error) console.error("Cities Error:", allCitiesRes.error);
 
                 // Real data — no hardcoded fallbacks
-                let trackingData = trackingRes.data || [];
                 const excludeFiEl = document.getElementById('excludeFiFilter');
                 if (excludeFiEl && excludeFiEl.checked) {
                     trackingData = trackingData.filter(d => {
@@ -627,16 +645,10 @@
                     durationTxt = `${mins}m ${secs}s`;
                 }
 
-                // Calculate Unique Cities
+                // Calculate Unique Cities from tracking data
                 let uniqueCitiesCount = 0;
-                if (allCitiesRes && allCitiesRes.data) {
-                    let citiesData = allCitiesRes.data;
-                    if (excludeFiEl && excludeFiEl.checked) {
-                        citiesData = citiesData.filter(d => {
-                            const loc = (d.location || '').toUpperCase();
-                            return !loc.includes('HELSINKI') && !loc.includes('FINLAND') && !loc.includes('TAMPERE') && !loc.includes('ESPOO');
-                        });
-                    }
+                if (trackingData && trackingData.length > 0) {
+                    let citiesData = trackingData.filter(d => d.location && d.location !== 'Unknown');
                     const uniqueCities = new Set(citiesData.map(d => {
                         const parts = d.location.split('/');
                         let city = parts.length > 1 ? parts[parts.length - 1] : d.location;
