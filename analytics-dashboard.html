@@ -311,16 +311,21 @@
 
     <div class="dashboard-container">
         
-        <div class="filters">
+        <div class="filters" style="display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
             <!-- Global Time Range -->
-            <select id="timeFilter" onchange="document.getElementById('dateFilter').value=''; fetchData()">
+            <select id="timeFilter" onchange="resetDateFilters(); fetchData()" style="background-color: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 4px; font-size: 0.875rem; font-family: inherit; cursor:pointer;">
                 <option value="7" selected>Last 7 Days</option>
                 <option value="30">Last 30 Days</option>
                 <option value="9999">All Time</option>
-                <option value="custom" style="display:none;">Specific Day</option>
+                <option value="custom" style="display:none;">Custom Range</option>
             </select>
-            <!-- Specific Day Filter -->
-            <input type="date" id="dateFilter" onchange="document.getElementById('timeFilter').value='custom'; fetchData()" style="background-color: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); padding: 7px 12px; border-radius: 4px; font-size: 0.875rem; font-family: inherit; margin-left: 10px;">
+            <!-- Custom Date Range Filter -->
+            <div style="display:flex; align-items:center; gap:6px; margin-left: 10px;">
+                <span style="font-size:0.875rem; color:var(--text-secondary);">From:</span>
+                <input type="date" id="startDateFilter" onchange="onCustomDateChange();" style="background-color: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); padding: 7px 12px; border-radius: 4px; font-size: 0.875rem; font-family: inherit;">
+                <span style="font-size:0.875rem; color:var(--text-secondary); margin-left:4px;">To:</span>
+                <input type="date" id="endDateFilter" onchange="onCustomDateChange();" style="background-color: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); padding: 7px 12px; border-radius: 4px; font-size: 0.875rem; font-family: inherit;">
+            </div>
             <!-- Partner Segment Filter -->
             <select id="partnerFilter" onchange="fetchData()" style="margin-left: 10px;">
                 <option value="all" selected>All Hubs / Segments</option>
@@ -560,22 +565,49 @@
         let citiesInstance = null;
         let globalTrackingData = []; // Tallenna data lokaalia filtteröintiä varten
 
+        function resetDateFilters() {
+            const startEl = document.getElementById('startDateFilter');
+            const endEl = document.getElementById('endDateFilter');
+            if (startEl) startEl.value = '';
+            if (endEl) endEl.value = '';
+        }
+
+        function onCustomDateChange() {
+            const timeFilterEl = document.getElementById('timeFilter');
+            if (timeFilterEl) timeFilterEl.value = 'custom';
+            fetchData();
+        }
+
         async function fetchData() {
             document.getElementById('loading').style.display = 'flex';
             
             const timeFilterEl = document.getElementById('timeFilter');
-            const dateFilterEl = document.getElementById('dateFilter');
+            const startEl = document.getElementById('startDateFilter');
+            const endEl = document.getElementById('endDateFilter');
             
-            const isCustomDay = timeFilterEl.value === 'custom' && dateFilterEl.value;
+            const isCustom = timeFilterEl.value === 'custom';
             let startDateStr = null;
             let endDateStr = null;
             
-            if (isCustomDay) {
-                // Specific Day from 00:00:00 to 23:59:59
-                const localDate = new Date(dateFilterEl.value);
-                startDateStr = new Date(localDate.setHours(0, 0, 0, 0)).toISOString();
-                endDateStr = new Date(localDate.setHours(23, 59, 59, 999)).toISOString();
-                document.getElementById('chart-title').innerText = `Activity for ${dateFilterEl.value}`;
+            if (isCustom) {
+                if (startEl && startEl.value) {
+                    const localStart = new Date(startEl.value);
+                    startDateStr = new Date(localStart.setHours(0, 0, 0, 0)).toISOString();
+                }
+                if (endEl && endEl.value) {
+                    const localEnd = new Date(endEl.value);
+                    endDateStr = new Date(localEnd.setHours(23, 59, 59, 999)).toISOString();
+                }
+                
+                let title = 'Activity';
+                if (startEl && startEl.value && endEl && endEl.value) {
+                    title = `Activity from ${startEl.value} to ${endEl.value}`;
+                } else if (startEl && startEl.value) {
+                    title = `Activity since ${startEl.value}`;
+                } else if (endEl && endEl.value) {
+                    title = `Activity until ${endEl.value}`;
+                }
+                document.getElementById('chart-title').innerText = title;
             } else {
                 const days = timeFilterEl ? (parseInt(timeFilterEl.value) || 7) : 7;
                 const isAllTime = (days >= 9999);
@@ -1354,13 +1386,26 @@
             try {
                 // Determine time filter to apply (reuse the dashboard's current filter)
                 const timeFilterEl = document.getElementById('timeFilter');
-                const days = timeFilterEl ? parseInt(timeFilterEl.value) : 7;
                 let query = client.from('feedback').select('*').order('created_at', { ascending: false });
                 
-                if (days < 9000) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - days);
-                    query = query.gte('created_at', d.toISOString());
+                if (timeFilterEl && timeFilterEl.value === 'custom') {
+                    const startEl = document.getElementById('startDateFilter');
+                    const endEl = document.getElementById('endDateFilter');
+                    if (startEl && startEl.value) {
+                        const localStart = new Date(startEl.value);
+                        query = query.gte('created_at', new Date(localStart.setHours(0, 0, 0, 0)).toISOString());
+                    }
+                    if (endEl && endEl.value) {
+                        const localEnd = new Date(endEl.value);
+                        query = query.lte('created_at', new Date(localEnd.setHours(23, 59, 59, 999)).toISOString());
+                    }
+                } else {
+                    const days = timeFilterEl ? (parseInt(timeFilterEl.value) || 7) : 7;
+                    if (days < 9000) {
+                        const d = new Date();
+                        d.setDate(d.getDate() - days);
+                        query = query.gte('created_at', d.toISOString());
+                    }
                 }
 
                 const { data, error } = await query;
