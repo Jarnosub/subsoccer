@@ -763,13 +763,14 @@
             const eventFilter = eventFilterEl ? eventFilterEl.value : 'ALL';
             const filteredData = eventFilter === 'ALL' ? globalTrackingData : globalTrackingData.filter(d => d.event_type === eventFilter);
 
-            const headers = ["Timestamp", "EventType", "UserType", "Score/Details", "Location"];
+            const headers = ["Timestamp", "EventType", "UserType", "Score/Details", "Location", "Language"];
             const rows = filteredData.map(r => [
                 new Date(r.client_time).toISOString(),
                 r.event_type || 'UNKNOWN',
                 r.source_partner || 'UNKNOWN',
                 r.match_score || '-',
-                r.location || 'Unknown'
+                `"${(r.location || 'Unknown').replace(/"/g, '""')}"`,
+                r.browser_lang || 'unknown'
             ]);
             
             let csvContent = "data:text/csv;charset=utf-8," 
