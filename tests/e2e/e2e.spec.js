@@ -130,4 +130,39 @@ test.describe('Subsoccer Pro E2E', () => {
         console.log('Tournament complete.');
     });
 
+    test('SCENARIO 3: Normal User Login Redirects to Hub (index.html)', async ({ page }) => {
+        // Mock navigator.webdriver to false to simulate a normal user
+        await page.addInitScript(() => {
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => false,
+            });
+        });
+
+        // Navigate to login.html without the e2e query param to trigger normal redirect
+        await page.goto('/login.html');
+
+        const randomId = Math.floor(Math.random() * 10000);
+        const testUser = {
+            username: `RedirectTest${randomId}`,
+            email: `redirecttest${randomId}@example.com`,
+            password: 'Password123!'
+        };
+
+        console.log(`Registering user for redirect test: ${testUser.username}`);
+
+        const signupSwitch = page.locator('#btn-show-signup');
+        if (await signupSwitch.isVisible()) {
+            await signupSwitch.click();
+        }
+
+        await page.fill('#reg-user', testUser.username);
+        await page.fill('#reg-email', testUser.email);
+        await page.fill('#reg-pass', testUser.password);
+        await page.click('#btn-register');
+
+        // Verify that after registration/login, the user is redirected to index.html
+        await page.waitForURL('**/index.html', { timeout: 10000 });
+        console.log('Redirect test passed.');
+    });
+
 });
