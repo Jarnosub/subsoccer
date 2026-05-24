@@ -142,6 +142,50 @@ function updatePageUI(p) {
         currentPageIndex = pageIdx;
     }
 
+    // Update Document Title and Meta Description for SEO discovery
+    try {
+        let pageTitle = '';
+        let pageDesc = '';
+        const translate = window.t || ((k) => k);
+
+        switch (p) {
+            case 'profile':
+                pageTitle = translate('my_profile');
+                pageDesc = 'Create your player profile, view ELO statistics, and configure your Subsoccer card.';
+                break;
+            case 'tournament':
+                pageTitle = translate('tournament');
+                pageDesc = 'Run bench soccer tournament brackets, input match scores, and crown champions.';
+                break;
+            case 'events':
+                pageTitle = translate('pro_leagues');
+                pageDesc = 'Find scheduled local events, join tournaments, and register.';
+                break;
+            case 'map':
+                pageTitle = translate('map_title');
+                pageDesc = 'Locate public Subsoccer tables near you and get playing directions.';
+                break;
+            case 'leaderboard':
+                pageTitle = translate('pc_global_rating');
+                pageDesc = 'See global player ELO rankings and win/loss records.';
+                break;
+            case 'moderator':
+                pageTitle = 'Moderator Room';
+                pageDesc = 'Access app moderator tools, manage event data, and view diagnostics.';
+                break;
+            default:
+                pageTitle = p;
+                pageDesc = 'Access Subsoccer GO features, view live table maps, create game cards, and coordinate tournaments.';
+        }
+
+        document.title = `${pageTitle.toUpperCase()} | Subsoccer GO`;
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) {
+            metaDesc.setAttribute('content', pageDesc);
+        }
+    } catch (err) {
+        console.error('SEO dynamic update error:', err);
+    }
 
     // Funktiot, jotka suoritetaan sivun vaihdon yhteydessä
     if (p === 'profile') {

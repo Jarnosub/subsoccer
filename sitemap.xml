@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://subsoccer.pro/</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://subsoccer.pro/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://subsoccer.pro/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fi" href="https://subsoccer.pro/?lang=fi"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://subsoccer.pro/?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://subsoccer.pro/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://subsoccer.pro/?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://subsoccer.pro/?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="sv" href="https://subsoccer.pro/?lang=sv"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://subsoccer.pro/?lang=nb"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://subsoccer.pro/?lang=da"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://subsoccer.pro/?lang=it"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://subsoccer.pro/?lang=nl"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://subsoccer.pro/?lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://subsoccer.pro/?lang=tr"/>
+    <xhtml:link rel="alternate" hreflang="hu" href="https://subsoccer.pro/?lang=hu"/>
+    <xhtml:link rel="alternate" hreflang="id" href="https://subsoccer.pro/?lang=id"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://subsoccer.pro/?lang=vi"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://subsoccer.pro/?lang=pl"/>
+  </url>
+  <url>
+    <loc>https://subsoccer.pro/login.html</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://subsoccer.pro/login.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://subsoccer.pro/login.html?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fi" href="https://subsoccer.pro/login.html?lang=fi"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://subsoccer.pro/login.html?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://subsoccer.pro/login.html?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://subsoccer.pro/login.html?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://subsoccer.pro/login.html?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="sv" href="https://subsoccer.pro/login.html?lang=sv"/>
+    <xhtml:link rel="alternate" hreflang="nb" href="https://subsoccer.pro/login.html?lang=nb"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://subsoccer.pro/login.html?lang=da"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://subsoccer.pro/login.html?lang=it"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://subsoccer.pro/login.html?lang=nl"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://subsoccer.pro/login.html?lang=cs"/>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://subsoccer.pro/login.html?lang=tr"/>
+    <xhtml:link rel="alternate" hreflang="hu" href="https://subsoccer.pro/login.html?lang=hu"/>
+    <xhtml:link rel="alternate" hreflang="id" href="https://subsoccer.pro/login.html?lang=id"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://subsoccer.pro/login.html?lang=vi"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://subsoccer.pro/login.html?lang=pl"/>
+  </url>
+</urlset>

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /login.html
+Disallow: /moderator/
+Disallow: /owner-dashboard.html
+Disallow: /control-room.html
+Disallow: /arcade-setup.html
+
+Sitemap: https://subsoccer.pro/sitemap.xml
