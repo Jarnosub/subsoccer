@@ -670,6 +670,50 @@
             }
         }
 
+        function getFlag(langStr) {
+            if (!langStr || langStr === 'Unknown') return '🏳️';
+            const clean = langStr.trim().toLowerCase();
+            
+            if (clean.startsWith('fi')) return '🇫🇮';
+            if (clean.startsWith('sv')) return '🇸🇪';
+            if (clean.startsWith('de')) return '🇩🇪';
+            if (clean.startsWith('fr')) return '🇫🇷';
+            if (clean.startsWith('es')) return '🇪🇸';
+            if (clean.startsWith('it')) return '🇮🇹';
+            if (clean.startsWith('nl')) return '🇳🇱';
+            if (clean.startsWith('ru')) return '🇷🇺';
+            if (clean.startsWith('ja')) return '🇯🇵';
+            if (clean.startsWith('ko')) return '🇰🇷';
+            if (clean.startsWith('zh')) return '🇨🇳';
+            if (clean.startsWith('no')) return '🇳🇴';
+            if (clean.startsWith('da')) return '🇩🇰';
+            if (clean.startsWith('et')) return '🇪🇪';
+            if (clean.startsWith('pl')) return '🇵🇱';
+            
+            if (clean.startsWith('pt')) {
+                return clean.includes('br') ? '🇧🇷' : '🇵🇹';
+            }
+            if (clean.startsWith('en')) {
+                if (clean.includes('us')) return '🇺🇸';
+                if (clean.includes('gb') || clean.includes('uk')) return '🇬🇧';
+                return '🇺🇸';
+            }
+            
+            const parts = clean.split('-');
+            if (parts.length > 1) {
+                const country = parts[parts.length - 1].toUpperCase();
+                if (country.length === 2) {
+                    const codePoints = country.split('').map(char => 127397 + char.charCodeAt(0));
+                    try {
+                        return String.fromCodePoint(...codePoints);
+                    } catch (e) {
+                        return '🏳️';
+                    }
+                }
+            }
+            return '🏳️';
+        }
+
         function renderData() {
             const data = globalTrackingData;
             if (!data) return;
@@ -716,10 +760,13 @@
                 
                 const score = row.match_score || '-';
                 const isLive = et === 'game_start';
+                const flag = getFlag(row.browser_lang);
                 
                 tr.innerHTML = `
                     <td>
-                        <div style="font-weight:600; color:#fff;">${city}</div>
+                        <div style="font-weight:600; color:#fff; display: flex; align-items: center; gap: 6px;">
+                            ${city} <span style="font-size:1.1rem; cursor:help;" title="Language: ${row.browser_lang || 'Unknown'}">${flag}</span>
+                        </div>
                         <div style="font-size:0.75rem; color:var(--text-secondary);">${ago}</div>
                     </td>
                     <td><span style="${isLive ? 'color:var(--accent-green);font-weight:bold;' : ''}">${icon} ${label}</span></td>
