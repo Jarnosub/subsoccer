@@ -41,3 +41,7 @@ jarno-ventures
 
 # Local Netlify folder
 .netlify
+
+# Database backups
+/database/backups/
+.env.backup
