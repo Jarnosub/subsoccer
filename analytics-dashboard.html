@@ -402,13 +402,27 @@
         <!-- Data Tables Row -->
         <div class="grid-tables">
             <div class="table-card" style="margin-bottom: 0;">
-                <h2>Recent Global Activity Feed</h2>
+                <h2 style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                    <span>Recent Global Activity Feed</span>
+                    <input type="text" id="activity-search" placeholder="Search location/score..." 
+                        style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; width:200px;"
+                        oninput="renderData()">
+                </h2>
                 <div style="overflow-x: auto;">
                     <table class="activity-feed">
                         <thead>
                             <tr>
                                 <th>When / Where</th>
-                                <th>Event</th>
+                                <th>
+                                    <select id="event-type-filter" onchange="renderData()" style="background:transparent; border:none; color:inherit; font-family:inherit; font-size:inherit; font-weight:bold; cursor:pointer; padding:0; outline:none; -webkit-appearance:none; -moz-appearance:none; appearance:none;">
+                                        <option value="ALL" style="background:#1e1f22; color:#fff;">Event (All) ▾</option>
+                                        <option value="game_finished" style="background:#1e1f22; color:#fff;">MATCH</option>
+                                        <option value="game_start" style="background:#1e1f22; color:#fff;">LIVE</option>
+                                        <option value="tournament_finished" style="background:#1e1f22; color:#fff;">TOURNEY</option>
+                                        <option value="tournament_match_finished" style="background:#1e1f22; color:#fff;">T-MATCH</option>
+                                        <option value="avatar_generated" style="background:#1e1f22; color:#fff;">AVATAR</option>
+                                    </select>
+                                </th>
                                 <th style="text-align:right;">Score</th>
                             </tr>
                         </thead>
@@ -688,10 +702,25 @@
             const data = globalTrackingData;
             if (!data) return;
 
-            // Suodatus event-tyypin mukaan
-            const eventFilterEl = document.getElementById('eventFilter');
+            // Suodatus event-tyypin ja haun mukaan
+            const eventFilterEl = document.getElementById('event-type-filter');
             const eventFilter = eventFilterEl ? eventFilterEl.value : 'ALL';
-            const filteredData = eventFilter === 'ALL' ? data : data.filter(d => d.event_type === eventFilter);
+            const searchQuery = document.getElementById('activity-search')?.value.toLowerCase().trim() || '';
+
+            let filteredData = data;
+            if (eventFilter !== 'ALL') {
+                filteredData = filteredData.filter(d => d.event_type === eventFilter);
+            }
+            if (searchQuery) {
+                filteredData = filteredData.filter(d => {
+                    const loc = (d.location || '').toLowerCase();
+                    const city = loc.includes('/') ? loc.split('/').pop().replace(/_/g, ' ').toLowerCase() : loc.toLowerCase();
+                    const score = (d.match_score || '').toLowerCase();
+                    const partner = (d.source_partner || '').toLowerCase();
+                    const eventLabel = (d.event_type || '').replaceAll('_', ' ').toLowerCase();
+                    return city.includes(searchQuery) || score.includes(searchQuery) || partner.includes(searchQuery) || eventLabel.includes(searchQuery);
+                });
+            }
 
             // Populate Table — show only game events (skip app_opened)
             const tbody = document.getElementById('activity-table-body');
@@ -759,9 +788,24 @@
                 return;
             }
             
-            const eventFilterEl = document.getElementById('eventFilter');
+            const eventFilterEl = document.getElementById('event-type-filter');
             const eventFilter = eventFilterEl ? eventFilterEl.value : 'ALL';
-            const filteredData = eventFilter === 'ALL' ? globalTrackingData : globalTrackingData.filter(d => d.event_type === eventFilter);
+            const searchQuery = document.getElementById('activity-search')?.value.toLowerCase().trim() || '';
+
+            let filteredData = globalTrackingData;
+            if (eventFilter !== 'ALL') {
+                filteredData = filteredData.filter(d => d.event_type === eventFilter);
+            }
+            if (searchQuery) {
+                filteredData = filteredData.filter(d => {
+                    const loc = (d.location || '').toLowerCase();
+                    const city = loc.includes('/') ? loc.split('/').pop().replace(/_/g, ' ').toLowerCase() : loc.toLowerCase();
+                    const score = (d.match_score || '').toLowerCase();
+                    const partner = (d.source_partner || '').toLowerCase();
+                    const eventLabel = (d.event_type || '').replaceAll('_', ' ').toLowerCase();
+                    return city.includes(searchQuery) || score.includes(searchQuery) || partner.includes(searchQuery) || eventLabel.includes(searchQuery);
+                });
+            }
 
             const headers = ["Timestamp", "EventType", "UserType", "Score/Details", "Location", "Language"];
             const rows = filteredData.map(r => [
