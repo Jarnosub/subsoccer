@@ -72,44 +72,73 @@ async function runBackup() {
     
     const timestampStr = new Date().toISOString().split('T')[0];
     
-    // 1. Backup public_tracking
-    const trackingData = await backupTable('public_tracking', 'client_time');
-    const trackingHeaders = ['id', 'client_time', 'event_type', 'game_code', 'match_score', 'source_partner', 'user_agent', 'browser_lang', 'location', 'is_returning', 'session_duration'];
-    const trackingCsv = jsonToCsv(trackingData, trackingHeaders);
-    
-    fs.writeFileSync(path.join(BACKUP_DIR, `public_tracking_${timestampStr}.csv`), trackingCsv, 'utf8');
-    fs.writeFileSync(path.join(BACKUP_DIR, 'public_tracking_latest.csv'), trackingCsv, 'utf8');
-    fs.writeFileSync(path.join(BACKUP_DIR, 'public_tracking_latest.json'), JSON.stringify(trackingData, null, 2), 'utf8');
-    console.log(`✓ public_tracking backup saved successfully (${trackingData.length} rows)`);
+    // Config for all tables to backup
+    const tablesToBackup = [
+      {
+        name: 'public_tracking',
+        order: 'client_time',
+        headers: ['id', 'client_time', 'event_type', 'game_code', 'match_score', 'source_partner', 'user_agent', 'browser_lang', 'location', 'is_returning', 'session_duration']
+      },
+      {
+        name: 'tournament_history',
+        order: 'created_at',
+        headers: ['id', 'created_at', 'tournament_name', 'status', 'winner_name', 'second_place_name', 'third_place_name', 'start_datetime', 'end_datetime', 'max_participants', 'tournament_type', 'latitude', 'longitude', 'organizer_id', 'event_id', 'game_id']
+      },
+      {
+        name: 'players',
+        order: 'created_at',
+        headers: ['id', 'created_at', 'username', 'elo', 'wins', 'losses', 'country', 'city', 'is_admin']
+      },
+      {
+        name: 'matches',
+        order: 'created_at',
+        headers: ['id', 'created_at', 'player1', 'player2', 'winner', 'tournament_name', 'tournament_id', 'event_id', 'player1_score', 'player2_score', 'is_verified_table', 'elo_capped', 'game_id']
+      },
+      {
+        name: 'events',
+        order: 'created_at',
+        headers: ['id', 'event_name', 'event_type', 'game_id', 'start_datetime', 'end_datetime', 'organizer_id', 'status', 'max_participants', 'description', 'is_public', 'image_url', 'created_at', 'location', 'address', 'latitude', 'longitude', 'brand_logo_url', 'primary_color']
+      },
+      {
+        name: 'event_registrations',
+        order: 'created_at',
+        headers: ['id', 'event_id', 'player_id', 'registered_at', 'status', 'checked_in', 'tournament_id', 'created_at']
+      },
+      {
+        name: 'games',
+        order: 'created_at',
+        headers: ['id', 'created_at', 'unique_code', 'game_name', 'owner_id', 'location', 'latitude', 'longitude', 'is_public', 'serial_number', 'verified', 'registered_at', 'image_url', 'privacy_mode', 'model']
+      },
+      {
+        name: 'teams',
+        order: 'created_at',
+        headers: ['id', 'name', 'tag', 'logo_url', 'captain_id', 'combined_elo', 'created_at']
+      }
+    ];
 
-    // 2. Backup tournament_history
-    const historyData = await backupTable('tournament_history', 'created_at');
-    const historyHeaders = ['id', 'created_at', 'tournament_name', 'status', 'winner_name', 'second_place_name', 'third_place_name', 'start_datetime', 'end_datetime', 'max_participants', 'tournament_type', 'latitude', 'longitude', 'organizer_id', 'event_id', 'game_id'];
-    const historyCsv = jsonToCsv(historyData, historyHeaders);
-    
-    fs.writeFileSync(path.join(BACKUP_DIR, `tournament_history_${timestampStr}.csv`), historyCsv, 'utf8');
-    fs.writeFileSync(path.join(BACKUP_DIR, 'tournament_history_latest.csv'), historyCsv, 'utf8');
-    fs.writeFileSync(path.join(BACKUP_DIR, 'tournament_history_latest.json'), JSON.stringify(historyData, null, 2), 'utf8');
-    console.log(`✓ tournament_history backup saved successfully (${historyData.length} rows)`);
-    
-    // 3. Backup players (only non-sensitive schema info)
-    const playersData = await backupTable('players', 'created_at');
-    const playersHeaders = ['id', 'created_at', 'username', 'elo', 'wins', 'losses', 'country', 'city', 'is_admin'];
-    const playersCsv = jsonToCsv(playersData, playersHeaders);
-    
-    fs.writeFileSync(path.join(BACKUP_DIR, `players_${timestampStr}.csv`), playersCsv, 'utf8');
-    fs.writeFileSync(path.join(BACKUP_DIR, 'players_latest.csv'), playersCsv, 'utf8');
-    fs.writeFileSync(path.join(BACKUP_DIR, 'players_latest.json'), JSON.stringify(playersData, null, 2), 'utf8');
-    console.log(`✓ players backup saved successfully (${playersData.length} rows)`);
+    for (const t of tablesToBackup) {
+      const data = await backupTable(t.name, t.order);
+      const csv = jsonToCsv(data, t.headers);
+      
+      fs.writeFileSync(path.join(BACKUP_DIR, `${t.name}_${timestampStr}.csv`), csv, 'utf8');
+      fs.writeFileSync(path.join(BACKUP_DIR, `${t.name}_latest.csv`), csv, 'utf8');
+      fs.writeFileSync(path.join(BACKUP_DIR, `${t.name}_latest.json`), JSON.stringify(data, null, 2), 'utf8');
+      console.log(`✓ ${t.name} backup saved successfully (${data.length} rows)`);
+    }
 
     // Create a README in backups
     const readmeContent = `# Subsoccer Analytics Databackup Archive
 Created automatically on ${new Date().toLocaleString('fi-FI')}
 
-This directory contains versioned and latest exports of critical analytics tables from Supabase:
+This directory contains versioned and latest exports of all critical tables from Supabase:
 - \`public_tracking\` (All user session, match play, and click telemetry events)
 - \`tournament_history\` (All event-linked, standalone, and mobile tournaments)
-- \`players\` (All registered profile ELO and match totals metadata)
+- \`players\` (All registered profiles, ELO, and match metadata)
+- \`matches\` (All individual match outcomes, scores, and ELO calculations)
+- \`events\` (All multi-day or single tournaments schedules and locations)
+- \`event_registrations\` (All participant linkages to events and brackets)
+- \`games\` (All registered Subsoccer game tables, serials, and map locations)
+- \`teams\` (All player-formed competitive clubs and combined team ELO)
 
 CSV files are comma-delimited, UTF-8 encoded, with properly escaped quotes/commas.
 `;
