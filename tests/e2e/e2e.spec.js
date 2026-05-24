@@ -11,6 +11,176 @@ test.describe('Subsoccer Pro E2E', () => {
     };
 
     test.beforeEach(async ({ page }) => {
+        // Log page console output
+        page.on('console', msg => console.log(`[Page Console] ${msg.type()}: ${msg.text()}`));
+        page.on('pageerror', err => console.error(`[Page Error] ${err.message}`));
+
+        // Scoped mock database state to isolate between tests
+        const mockUserDb = {
+            id: 'e2e-test-user-id-1234',
+            username: 'AUTOTEST',
+            email: 'test@example.com',
+            elo: 1300,
+            wins: 0,
+            losses: 0,
+            is_admin: false
+        };
+
+        // Intercept and mock all Supabase API requests to avoid writing test users/data to production DB
+        await page.route('https://ujxmmrsmdwrgcwatdhvx.supabase.co/**', async (route) => {
+            const url = route.request().url();
+            const method = route.request().method();
+            console.log(`[Mock Supabase Intercept] ${method} ${url}`);
+
+            if (url.includes('/auth/v1/signup') || url.includes('/auth/v1/token')) {
+                let postData = {};
+                try {
+                    postData = route.request().postDataJSON() || {};
+                } catch (e) {
+                    try {
+                        const rawData = route.request().postData() || '';
+                        const params = new URLSearchParams(rawData);
+                        postData = Object.fromEntries(params.entries());
+                    } catch (err) {}
+                }
+
+                let username = 'AUTOTEST';
+                if (postData.options) {
+                    try {
+                        const opts = typeof postData.options === 'string' ? JSON.parse(postData.options) : postData.options;
+                        username = opts.data?.username || username;
+                    } catch (err) {}
+                } else if (postData.email) {
+                    username = postData.email.split('@')[0].toUpperCase();
+                }
+
+                mockUserDb.username = username;
+                mockUserDb.email = postData.email || 'test@example.com';
+
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        access_token: 'mock-token-xyz-123',
+                        token_type: 'bearer',
+                        expires_in: 3600,
+                        refresh_token: 'mock-refresh-token',
+                        user: {
+                            id: mockUserDb.id,
+                            email: mockUserDb.email,
+                            user_metadata: { username: mockUserDb.username }
+                        }
+                    })
+                });
+            } else if (url.includes('/auth/v1/user') || url.includes('/auth/v1/session')) {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        id: mockUserDb.id,
+                        email: mockUserDb.email,
+                        user_metadata: { username: mockUserDb.username }
+                    })
+                });
+            } else if (url.includes('/rest/v1/players')) {
+                if (method === 'GET') {
+                    if (url.includes('username=ilike.')) {
+                        // Return empty array to indicate the username is available (not taken)
+                        await route.fulfill({
+                            status: 200,
+                            contentType: 'application/json',
+                            body: JSON.stringify([])
+                        });
+                        return;
+                    }
+
+                    const acceptHeader = route.request().headers()['accept'] || '';
+                    const responseBody = acceptHeader.includes('vnd.pgrst.object') 
+                        ? mockUserDb 
+                        : [mockUserDb];
+
+                    await route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify(responseBody)
+                    });
+                } else {
+                    // POST / PATCH / PUT: update our mock DB state with the values from the UI
+                    let body = null;
+                    try {
+                        body = route.request().postDataJSON();
+                    } catch (err) {}
+                    if (body) {
+                        if (Array.isArray(body)) {
+                            Object.assign(mockUserDb, body[0]);
+                        } else {
+                            Object.assign(mockUserDb, body);
+                        }
+                    }
+                    
+                    const acceptHeader2 = route.request().headers()['accept'] || '';
+                    const responseBody2 = acceptHeader2.includes('vnd.pgrst.object') 
+                        ? mockUserDb 
+                        : [mockUserDb];
+
+                    await route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify(responseBody2)
+                    });
+                }
+            } else if (url.includes('/rest/v1/countries')) {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify([
+                        { name: 'Finland', code: 'FI' }
+                    ])
+                });
+            } else if (url.includes('/rest/v1/games')) {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify([])
+                });
+            } else if (url.includes('/rest/v1/tournament_history')) {
+                if (method === 'GET') {
+                    await route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify([])
+                    });
+                } else {
+                    await route.fulfill({
+                        status: 201,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ success: true })
+                    });
+                }
+            } else if (url.includes('/rest/v1/matches')) {
+                if (method === 'GET') {
+                    await route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify([])
+                    });
+                } else {
+                    await route.fulfill({
+                        status: 201,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ success: true })
+                    });
+                }
+            } else {
+                // Default fallback
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify([])
+                });
+            }
+        });
+
         // Use relative path to leverage the baseURL from playwright.config.js
         await page.goto('/login.html?e2e=true');
     });
