@@ -204,6 +204,38 @@
             background-color: rgba(255,255,255,0.02);
         }
 
+        /* Custom Scrollbar for activity feed */
+        .activity-feed-wrapper {
+            max-height: 480px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) var(--bg-card);
+        }
+        .activity-feed-wrapper::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .activity-feed-wrapper::-webkit-scrollbar-track {
+            background: var(--bg-card);
+        }
+        .activity-feed-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        .activity-feed-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        .activity-group-header td {
+            pointer-events: none; /* prevent hover effects */
+        }
+
+        #btn-load-more:hover {
+            background-color: rgba(138, 180, 248, 0.08) !important;
+            border-color: var(--accent-blue) !important;
+            color: #fff !important;
+        }
+
         .badge {
             padding: 4px 8px;
             border-radius: 12px;
@@ -401,20 +433,27 @@
 
         <!-- Data Tables Row -->
         <div class="grid-tables">
-            <div class="table-card" style="margin-bottom: 0;">
+            <div class="table-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
                 <h2 style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
                     <span>Recent Global Activity Feed</span>
-                    <input type="text" id="activity-search" placeholder="Search location/score..." 
-                        style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; width:200px;"
-                        oninput="renderData()">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <select id="activity-time-scope" onchange="renderData(true)" 
+                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; cursor:pointer;">
+                            <option value="all" selected>All Recent</option>
+                            <option value="today">Today Only</option>
+                        </select>
+                        <input type="text" id="activity-search" placeholder="Search location/score..." 
+                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; width:180px;"
+                            oninput="renderData(true)">
+                    </div>
                 </h2>
-                <div style="overflow-x: auto;">
+                <div class="activity-feed-wrapper" style="overflow-x: auto; flex: 1;">
                     <table class="activity-feed">
                         <thead>
                             <tr>
                                 <th>When / Where</th>
                                 <th>
-                                    <select id="event-type-filter" onchange="renderData()" style="background:transparent; border:none; color:inherit; font-family:inherit; font-size:inherit; font-weight:bold; cursor:pointer; padding:0; outline:none; -webkit-appearance:none; -moz-appearance:none; appearance:none;">
+                                    <select id="event-type-filter" onchange="renderData(true)" style="background:transparent; border:none; color:inherit; font-family:inherit; font-size:inherit; font-weight:bold; cursor:pointer; padding:0; outline:none; -webkit-appearance:none; -moz-appearance:none; appearance:none;">
                                         <option value="ALL" style="background:#1e1f22; color:#fff;">Event (All) ▾</option>
                                         <option value="game_finished" style="background:#1e1f22; color:#fff;">MATCH</option>
                                         <option value="game_start" style="background:#1e1f22; color:#fff;">LIVE</option>
@@ -430,6 +469,11 @@
                             <!-- Javascript will populate this -->
                         </tbody>
                     </table>
+                </div>
+                <div id="load-more-container" style="text-align: center; padding: 12px; border-top: 1px solid var(--border-color); display: none;">
+                    <button id="btn-load-more" onclick="loadMoreActivity()" style="background: transparent; border: 1px solid var(--border-color); color: var(--accent-blue); padding: 6px 16px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: 0.2s;">
+                        <i class="fas fa-chevron-down"></i> Load More
+                    </button>
                 </div>
             </div>
 
@@ -714,7 +758,31 @@
             return '🇬🇧';
         }
 
-        function renderData() {
+        let activityLimit = 100;
+
+        function loadMoreActivity() {
+            activityLimit += 100;
+            renderData(false);
+        }
+
+        function getDateGroupLabel(dateObj) {
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            
+            if (dateObj.toDateString() === today.toDateString()) {
+                return 'Today';
+            } else if (dateObj.toDateString() === yesterday.toDateString()) {
+                return 'Yesterday';
+            } else {
+                return dateObj.toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' });
+            }
+        }
+
+        function renderData(resetLimit = true) {
+            if (resetLimit) {
+                activityLimit = 100;
+            }
             const data = globalTrackingData;
             if (!data) return;
 
@@ -722,6 +790,8 @@
             const eventFilterEl = document.getElementById('event-type-filter');
             const eventFilter = eventFilterEl ? eventFilterEl.value : 'ALL';
             const searchQuery = document.getElementById('activity-search')?.value.toLowerCase().trim() || '';
+            const timeScopeEl = document.getElementById('activity-time-scope');
+            const timeScope = timeScopeEl ? timeScopeEl.value : 'all';
 
             let filteredData = data;
             if (eventFilter !== 'ALL') {
@@ -738,16 +808,40 @@
                 });
             }
 
+            // Filter by time scope (e.g. Today Only)
+            const todayStr = new Date().toDateString();
+            if (timeScope === 'today') {
+                filteredData = filteredData.filter(d => {
+                    return new Date(d.client_time).toDateString() === todayStr;
+                });
+            }
+
             // Populate Table — show only game events (skip app_opened)
             const tbody = document.getElementById('activity-table-body');
             tbody.innerHTML = '';
             
             const gameEvents = filteredData.filter(r => r.event_type !== 'app_opened');
-            
-            gameEvents.slice(0, 50).forEach(row => {
+            const visibleEvents = gameEvents.slice(0, activityLimit);
+            let lastGroupLabel = null;
+
+            visibleEvents.forEach(row => {
                 const tr = document.createElement('tr');
                 const dateObj = new Date(row.client_time || new Date());
                 
+                // Date Grouping Header
+                const groupLabel = getDateGroupLabel(dateObj);
+                if (groupLabel !== lastGroupLabel) {
+                    const groupTr = document.createElement('tr');
+                    groupTr.className = 'activity-group-header';
+                    groupTr.innerHTML = `
+                        <td colspan="3" style="background: rgba(255,255,255,0.03); font-weight: bold; color: var(--accent-blue); font-size: 0.75rem; letter-spacing: 0.5px; padding: 8px 20px; border-bottom: 1px solid var(--border-color);">
+                            ${groupLabel.toUpperCase()}
+                        </td>
+                    `;
+                    tbody.appendChild(groupTr);
+                    lastGroupLabel = groupLabel;
+                }
+
                 // Extract city from location (e.g. "Asia/Calcutta" → "Calcutta")
                 const loc = row.location || 'Unknown';
                 const city = loc.includes('/') ? loc.split('/').pop().replace(/_/g, ' ') : loc;
@@ -777,10 +871,14 @@
                 const isLive = et === 'game_start';
                 const flag = getFlag(row.browser_lang);
                 
+                // Today marker (subtle green dot)
+                const isToday = dateObj.toDateString() === todayStr;
+                const todayDot = isToday ? `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--accent-green); margin-right: 6px;" title="Played Today"></span>` : '';
+
                 tr.innerHTML = `
                     <td>
                         <div style="font-weight:600; color:#fff; display: flex; align-items: center; gap: 6px;">
-                            ${city} <span style="font-size:1.1rem; cursor:help;" title="Language: ${row.browser_lang || 'Unknown'}">${flag}</span>
+                            ${todayDot}${city} <span style="font-size:1.1rem; cursor:help;" title="Language: ${row.browser_lang || 'Unknown'}">${flag}</span>
                         </div>
                         <div style="font-size:0.75rem; color:var(--text-secondary);">${ago}</div>
                     </td>
@@ -792,6 +890,16 @@
 
             if (gameEvents.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:#666;">No recent games.</td></tr>';
+            }
+
+            // Show or hide load more button
+            const loadMoreEl = document.getElementById('load-more-container');
+            if (loadMoreEl) {
+                if (gameEvents.length > activityLimit) {
+                    loadMoreEl.style.display = 'block';
+                } else {
+                    loadMoreEl.style.display = 'none';
+                }
             }
 
             initCharts(filteredData);
@@ -807,6 +915,8 @@
             const eventFilterEl = document.getElementById('event-type-filter');
             const eventFilter = eventFilterEl ? eventFilterEl.value : 'ALL';
             const searchQuery = document.getElementById('activity-search')?.value.toLowerCase().trim() || '';
+            const timeScopeEl = document.getElementById('activity-time-scope');
+            const timeScope = timeScopeEl ? timeScopeEl.value : 'all';
 
             let filteredData = globalTrackingData;
             if (eventFilter !== 'ALL') {
@@ -820,6 +930,12 @@
                     const partner = (d.source_partner || '').toLowerCase();
                     const eventLabel = (d.event_type || '').replaceAll('_', ' ').toLowerCase();
                     return city.includes(searchQuery) || score.includes(searchQuery) || partner.includes(searchQuery) || eventLabel.includes(searchQuery);
+                });
+            }
+            if (timeScope === 'today') {
+                const todayStr = new Date().toDateString();
+                filteredData = filteredData.filter(d => {
+                    return new Date(d.client_time).toDateString() === todayStr;
                 });
             }
 
