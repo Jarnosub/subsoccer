@@ -8,7 +8,7 @@ module.exports = defineConfig({
     workers: process.env.CI ? 1 : undefined,
     reporter: 'html',
     use: {
-        baseURL: 'http://127.0.0.1:8081',
+        baseURL: 'http://127.0.0.1:8082',
         trace: 'on-first-retry',
     },
     projects: [
@@ -17,4 +17,10 @@ module.exports = defineConfig({
             use: { ...devices['Desktop Chrome'] },
         },
     ],
+    webServer: {
+        command: 'python3 -m http.server 8082',
+        url: 'http://127.0.0.1:8082',
+        reuseExistingServer: false,
+        timeout: 10000,
+    },
 });

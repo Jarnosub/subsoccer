@@ -11,10 +11,8 @@ test.describe('Subsoccer Pro E2E', () => {
     };
 
     test.beforeEach(async ({ page }) => {
-        // Assuming the app is running locally on port 8080 (classic Live Server port)
-        // Adjust if needed, e.g., http://localhost:3000
-        // Use relative path if simplified for file:// access, but Playwright works best with http
-        await page.goto('http://127.0.0.1:8081/index.html');
+        // Use relative path to leverage the baseURL from playwright.config.js
+        await page.goto('/login.html');
     });
 
     test('SCENARIO 1: Registration and Profile Update', async ({ page }) => {
@@ -32,27 +30,55 @@ test.describe('Subsoccer Pro E2E', () => {
         await page.fill('#reg-pass', testUser.password);
         await page.click('#btn-register');
 
-        // Verify successful login (User display name should appear)
-        await expect(page.locator('#user-display-name')).toContainText(testUser.username, { timeout: 10000 });
-        console.log('Registration successful.');
+        // Verify successful login (the profile-card-container should contain the registered username in uppercase)
+        await expect(page.locator('#profile-card-container')).toContainText(testUser.username.toUpperCase(), { timeout: 10000 });
+        console.log('Registration successful, profile card name verified.');
 
         // 2. Update Profile
         console.log('Updating profile...');
-        await page.click('#btn-profile'); // Open Settings/Profile
-        await expect(page.locator('#section-profile')).toBeVisible();
+        // Open Settings menu using the hamburger menu toggle
+        await page.click('#menu-toggle-btn');
+        await page.click('#menu-item-edit-profile');
+        await expect(page.locator('#profile-edit-fields')).toBeVisible();
 
         const newFullName = `Test User ${randomId}`;
         await page.fill('#edit-full-name', newFullName);
         await page.click('#btn-save-profile');
 
-        // Verify Feedback/Notification
-        // Assuming a toast/notification appears
-        // Or check if value persisted (might need reload or check UI)
+        // Verify Feedback/Notification or successful save
+        // Save profile triggers notification or sets loading state, wait for profile fields to hide or reload
+        await page.waitForTimeout(1000);
         console.log('Profile updated.');
     });
 
     test('SCENARIO 2: Create and Play Tournament', async ({ page }) => {
-        // Note: Tournament mode works without login for guests
+        const randomId2 = Math.floor(Math.random() * 10000);
+        const tourUser = {
+            username: `TourTest${randomId2}`,
+            email: `tourtest${randomId2}@example.com`,
+            password: 'Password123!'
+        };
+
+        console.log(`Registering user for tournament: ${tourUser.username}`);
+        const signupSwitch = page.locator('#btn-show-signup');
+        if (await signupSwitch.isVisible()) {
+            await signupSwitch.click();
+        }
+
+        await page.fill('#reg-user', tourUser.username);
+        await page.fill('#reg-email', tourUser.email);
+        await page.fill('#reg-pass', tourUser.password);
+        await page.click('#btn-register');
+
+        // Verify successful login
+        await expect(page.locator('#profile-card-container')).toContainText(tourUser.username.toUpperCase(), { timeout: 10000 });
+        console.log('User registered, ready to play tournament');
+
+        // Go to play/tournament tab if not already active
+        const playTab = page.locator('#tab-tournament');
+        if (await playTab.isVisible()) {
+            await playTab.click();
+        }
 
         console.log('Navigating to Tournament Mode...');
         await page.click('#btn-tournament-mode');
@@ -78,31 +104,29 @@ test.describe('Subsoccer Pro E2E', () => {
 
         // 3. Play Round 1 (Semifinals)
         // Click winner for Match 1 (Player 1 wins)
-        await page.click('div[data-player="Player1"]');
+        // Use text-based selector since data-player attribute is not present in BracketEngine.createPlayerBtn
+        await page.click('.bracket-round:has-text("SEMI-FINALS") .match-player:has-text("Player1")');
 
         // Click winner for Match 2 (Player 3 wins)
-        await page.click('div[data-player="Player3"]');
+        await page.click('.bracket-round:has-text("SEMI-FINALS") .match-player:has-text("Player3")');
 
-        // 4. Advance
-        await expect(page.locator('#next-rd-btn')).toBeVisible();
-        await page.click('#next-rd-btn');
-        console.log('Round 1 complete.');
+        // 4. Verify Finals bracket is populated with the round 1 winners
+        await expect(page.locator('#bracket-round-1 .match-player:has-text("Player1")')).toBeVisible();
+        await expect(page.locator('#bracket-round-1 .match-player:has-text("Player3")')).toBeVisible();
+        console.log('Round 1 complete, finals populated.');
 
         // 5. Play Final
         // Final: Player 1 vs Player 3
         await page.waitForTimeout(500); // Animation wait
 
         // Select Tournament Winner (Player 1)
-        await page.click('div[data-player="Player1"][data-index]');
+        await page.click('#bracket-round-1 .match-player:has-text("Player1")');
 
         // 6. Finish
-        await expect(page.locator('#next-rd-btn')).toHaveText('FINISH TOURNAMENT');
-        await page.click('#next-rd-btn');
+        await expect(page.locator('#save-btn')).toBeVisible();
+        await page.click('#save-btn');
 
         // 7. Verify Success
-        // Should return to history/setup or show success notification
-        // Checking for success notification text
-        // await expect(page.getByText('Tournament saved successfully')).toBeVisible(); 
         console.log('Tournament complete.');
     });
 
