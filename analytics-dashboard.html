@@ -409,25 +409,25 @@
             background-color: rgba(255,255,255,0.02);
         }
 
-        /* Custom Scrollbar for activity feed */
-        .activity-feed-wrapper {
+        /* Custom Scrollbar for activity feed and countries list */
+        .activity-feed-wrapper, .countries-list-wrapper {
             max-height: 480px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--border-color) var(--bg-card);
         }
-        .activity-feed-wrapper::-webkit-scrollbar {
+        .activity-feed-wrapper::-webkit-scrollbar, .countries-list-wrapper::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        .activity-feed-wrapper::-webkit-scrollbar-track {
+        .activity-feed-wrapper::-webkit-scrollbar-track, .countries-list-wrapper::-webkit-scrollbar-track {
             background: var(--bg-card);
         }
-        .activity-feed-wrapper::-webkit-scrollbar-thumb {
+        .activity-feed-wrapper::-webkit-scrollbar-thumb, .countries-list-wrapper::-webkit-scrollbar-thumb {
             background: var(--border-color);
             border-radius: 4px;
         }
-        .activity-feed-wrapper::-webkit-scrollbar-thumb:hover {
+        .activity-feed-wrapper::-webkit-scrollbar-thumb:hover, .countries-list-wrapper::-webkit-scrollbar-thumb:hover {
             background: var(--text-secondary);
         }
 
@@ -483,12 +483,12 @@
         /* Responsive Grids */
         .grid-tables {
             display: grid; 
-            grid-template-columns: 2fr 1fr; 
+            grid-template-columns: 2fr 1fr 1fr; 
             gap: 24px; 
             margin-bottom: 40px;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1200px) {
             .grid-tables {
                 grid-template-columns: 1fr;
             }
@@ -744,6 +744,25 @@
                 </div>
             </div>
 
+            <div class="table-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
+                <h2>Top Countries <i class="fas fa-flag" style="color: var(--accent-blue); margin-left: 8px;"></i></h2>
+                <div class="countries-list-wrapper" style="overflow-x: auto; flex: 1;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Country</th>
+                                <th style="text-align:right;">Sessions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-countries-body">
+                            <!-- Javascript will populate this -->
+                            <tr><td colspan="3" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="table-card" style="margin-bottom: 0;">
                 <h2>Top ELO Leaderboard <i class="fas fa-crown" style="color: var(--accent-yellow); margin-left: 8px;"></i></h2>
                 <div style="overflow-x: auto;">
@@ -784,6 +803,70 @@
         const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
         const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
         const client = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+        const TIMEZONE_TO_COUNTRY = {
+            'Europe/Helsinki': { name: 'Finland', flag: '🇫🇮' },
+            'Europe/Prague': { name: 'Czechia', flag: '🇨🇿' },
+            'Europe/Madrid': { name: 'Spain', flag: '🇪🇸' },
+            'Asia/Shanghai': { name: 'China', flag: '🇨🇳' },
+            'Asia/Jakarta': { name: 'Indonesia', flag: '🇮🇩' },
+            'Asia/Singapore': { name: 'Singapore', flag: '🇸🇬' },
+            'Europe/Berlin': { name: 'Germany', flag: '🇩🇪' },
+            'Europe/London': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Asia/Manila': { name: 'Philippines', flag: '🇵🇭' },
+            'Europe/Copenhagen': { name: 'Denmark', flag: '🇩🇰' },
+            'America/New_York': { name: 'United States', flag: '🇺🇸' },
+            'Asia/Hong_Kong': { name: 'Hong Kong', flag: '🇭🇰' },
+            'Europe/Brussels': { name: 'Belgium', flag: '🇧🇪' },
+            'America/Chicago': { name: 'United States', flag: '🇺🇸' },
+            'America/Los_Angeles': { name: 'United States', flag: '🇺🇸' },
+            'America/Montevideo': { name: 'Uruguay', flag: '🇺🇾' },
+            'America/Denver': { name: 'United States', flag: '🇺🇸' },
+            'Europe/Paris': { name: 'France', flag: '🇫🇷' },
+            'Europe/Warsaw': { name: 'Poland', flag: '🇵🇱' },
+            'Europe/Malta': { name: 'Malta', flag: '🇲🇹' },
+            'America/Bogota': { name: 'Colombia', flag: '🇨🇴' },
+            'Asia/Dubai': { name: 'United Arab Emirates', flag: '🇦🇪' },
+            'Europe/Oslo': { name: 'Norway', flag: '🇳🇴' },
+            'Africa/Cairo': { name: 'Egypt', flag: '🇪🇬' },
+            'Europe/Sofia': { name: 'Bulgaria', flag: '🇧🇬' },
+            'Asia/Baku': { name: 'Azerbaijan', flag: '🇦🇿' },
+            'America/Sao_Paulo': { name: 'Brazil', flag: '🇧🇷' },
+            'Europe/Rome': { name: 'Italy', flag: '🇮🇹' },
+            'Asia/Calcutta': { name: 'India', flag: '🇮🇳' },
+            'America/Mazatlan': { name: 'Mexico', flag: '🇲🇽' },
+            'Europe/Istanbul': { name: 'Turkey', flag: '🇹🇷' },
+            'Europe/Stockholm': { name: 'Sweden', flag: '🇸🇪' },
+            'Europe/Dublin': { name: 'Ireland', flag: '🇮🇪' },
+            'UTC': { name: 'Global (UTC)', flag: '🌐' },
+            'Europe/Zurich': { name: 'Switzerland', flag: '🇨🇭' },
+            'America/Detroit': { name: 'United States', flag: '🇺🇸' },
+            'Africa/Nairobi': { name: 'Kenya', flag: '🇰🇪' },
+            'America/Toronto': { name: 'Canada', flag: '🇨🇦' },
+            'America/Hermosillo': { name: 'Mexico', flag: '🇲🇽' },
+            'Europe/Lisbon': { name: 'Portugal', flag: '🇵🇹' },
+            'Asia/Tokyo': { name: 'Japan', flag: '🇯🇵' },
+            'Europe/Amsterdam': { name: 'Netherlands', flag: '🇳🇱' },
+            'Atlantic/Canary': { name: 'Spain', flag: '🇪🇸' },
+            'Africa/Accra': { name: 'Ghana', flag: '🇬🇭' },
+            'Europe/Riga': { name: 'Latvia', flag: '🇱🇻' },
+            'America/Vancouver': { name: 'Canada', flag: '🇨🇦' },
+            'Europe/Kiev': { name: 'Ukraine', flag: '🇺🇦' },
+            'Africa/Luanda': { name: 'Angola', flag: '🇦🇴' },
+            'Asia/Seoul': { name: 'South Korea', flag: '🇰🇷' },
+            'Asia/Almaty': { name: 'Kazakhstan', flag: '🇰🇿' },
+            'Asia/Beirut': { name: 'Lebanon', flag: '🇱🇧' },
+            'Asia/Amman': { name: 'Jordan', flag: '🇯🇴' },
+            'Africa/Lagos': { name: 'Nigeria', flag: '🇳🇬' },
+            'Asia/Taipei': { name: 'Taiwan', flag: '🇹🇼' },
+            'Atlantic/Reykjavik': { name: 'Iceland', flag: '🇮🇸' },
+            'America/Costa_Rica': { name: 'Costa Rica', flag: '🇨🇷' },
+            'Asia/Saigon': { name: 'Vietnam', flag: '🇻🇳' },
+            'America/Mexico_City': { name: 'Mexico', flag: '🇲🇽' },
+            'Europe/Budapest': { name: 'Hungary', flag: '🇭🇺' },
+            'Indian/Reunion': { name: 'Reunion', flag: '🇷🇪' },
+            'America/Indianapolis': { name: 'United States', flag: '🇺🇸' }
+        };
 
         // Chart.js global defaults
         Chart.defaults.color = '#9AA0A6';
@@ -1063,6 +1146,45 @@
                     });
                 } else {
                     topBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:#666;">No rating data available.</td></tr>';
+                }
+
+                // Calculate and Populate Top Countries List
+                const countryCounts = {};
+                trackingData.forEach(d => {
+                    if (d.location && d.location !== 'Unknown') {
+                        const countryInfo = TIMEZONE_TO_COUNTRY[d.location];
+                        const countryName = countryInfo ? countryInfo.name : d.location.split('/').pop().replace(/_/g, ' ');
+                        const countryFlag = countryInfo ? countryInfo.flag : '🌐';
+                        
+                        if (!countryCounts[countryName]) {
+                            countryCounts[countryName] = { name: countryName, flag: countryFlag, count: 0 };
+                        }
+                        countryCounts[countryName].count++;
+                    }
+                });
+
+                const sortedCountries = Object.values(countryCounts)
+                    .sort((a, b) => b.count - a.count);
+
+                const countriesBody = document.getElementById('top-countries-body');
+                countriesBody.innerHTML = '';
+                if (sortedCountries.length > 0) {
+                    sortedCountries.forEach((c, idx) => {
+                        const tr = document.createElement('tr');
+                        const isTop3 = idx < 3;
+                        const rankColor = idx === 0 ? 'color: var(--accent-yellow);' : (idx === 1 ? 'color: #C0C0C0;' : (idx === 2 ? 'color: #cd7f32;' : 'color: var(--text-secondary);'));
+                        
+                        tr.innerHTML = `
+                            <td><strong style="${rankColor}"><i class="fas fa-trophy"></i> ${idx + 1}.</strong></td>
+                            <td style="font-weight: ${isTop3 ? 'bold' : 'normal'}; color: ${isTop3 ? 'white' : 'inherit'};">
+                                <span style="font-size:1.1rem; margin-right: 6px;">${c.flag}</span>${c.name.toUpperCase()}
+                            </td>
+                            <td style="text-align:right; font-weight: bold; color: var(--accent-blue);">${c.count}</td>
+                        `;
+                        countriesBody.appendChild(tr);
+                    });
+                } else {
+                    countriesBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:#666;">No country usage data available.</td></tr>';
                 }
 
                 // Kirjoitetaan datamuuttujaan
