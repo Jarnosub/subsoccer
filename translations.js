@@ -2038,6 +2038,7 @@ const TRANSLATIONS = {
         pc_country: 'KRAJ',
         pc_select_country: 'WYBIERZ KRAJ',
         pc_save_changes: 'ZAPISZ ZMIANY',
+        pc_download_print: 'POBIERZ KARTĘ DO DRUKU',
         pc_creating_avatar: 'TWORZENIE TWOJEGO AWATARA',
         recent_global_activity: 'OSTATNIA GLOBALNA AKTYWNOŚĆ',
         login_tagline: 'Śledź statystyki · Awansuj w rankingach · Dołączaj do turniejów',
