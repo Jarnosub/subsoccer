@@ -619,11 +619,11 @@
             <div class="kpi-grid">
                 <div class="kpi-card">
                     <div class="kpi-header">
-                        <span>DROP-OFF / BOUNCE RATE</span>
-                        <i class="fas fa-sign-out-alt"></i>
+                        <span>LANGUAGE BREAKDOWN</span>
+                        <i class="fas fa-language" style="color: var(--accent-blue);"></i>
                     </div>
-                    <div class="kpi-value" id="kpi-bounce">0%</div>
-                    <div class="kpi-trend" style="color: #888;"><i class="fas fa-chart-pie"></i> Opened app but didn't finish game</div>
+                    <div class="kpi-value" id="kpi-language" style="font-size: 1.15rem; line-height: 1.4; word-break: break-all;">N/A</div>
+                    <div class="kpi-trend" style="color: #888;"><i class="fas fa-globe"></i> Active languages used</div>
                 </div>
 
                 <div class="kpi-card">
@@ -953,14 +953,41 @@
                 const gamesStarted = trackingData.filter(d => d.event_type === 'game_start').length;
                 const instantMatches = gamesFinished; // Vain oikeat 1v1-pelit
                 
-                // Kaikki mobiilissa loppuun asti pelatut turnaukset bounce-laskentaa varten (guest + registered)
-                const allTrackingTournaments = trackingData.filter(d => d.event_type === 'tournament_finished').length;
-                
-                // Bounce rate: kuinka moni avasi appin mutta EI aloittanut peliä
-                let bounceRate = 0;
-                if (sessionCount > 0) {
-                    const engagedSessions = gamesStarted + gamesFinished + allTrackingTournaments;
-                    bounceRate = Math.max(0, Math.round(100 - (engagedSessions / sessionCount) * 100));
+                // Calculate Language Breakdown
+                const LANG_FLAGS = {
+                    FI: '🇫🇮', EN: '🇬🇧', JA: '🇯🇵', SV: '🇸🇪', NB: '🇳🇴',
+                    DA: '🇩🇰', IT: '🇮🇹', NL: '🇳🇱', CS: '🇨🇿', TR: '🇹🇷',
+                    HU: '🇭🇺', ID: '🇮🇩', VI: '🇻🇳', PL: '🇵🇱', FR: '🇫🇷',
+                    ES: '🇪🇸', DE: '🇩🇪', PT: '🇵🇹'
+                };
+                const langCounts = {};
+                let totalLangCount = 0;
+                trackingData.forEach(d => {
+                    if (d.browser_lang) {
+                        let lang = d.browser_lang.split('-')[0].toLowerCase().trim();
+                        if (lang === 'no') lang = 'nb';
+                        langCounts[lang] = (langCounts[lang] || 0) + 1;
+                        totalLangCount++;
+                    }
+                });
+
+                let langText = "N/A";
+                if (totalLangCount > 0) {
+                    const sortedLangs = Object.entries(langCounts)
+                        .map(([lang, count]) => ({
+                            lang: lang.toUpperCase(),
+                            percentage: Math.round((count / totalLangCount) * 100)
+                        }))
+                        .sort((a, b) => b.percentage - a.percentage);
+
+                    const topLangs = sortedLangs.slice(0, 3);
+                    const otherSum = sortedLangs.slice(3).reduce((sum, item) => sum + item.percentage, 0);
+                    
+                    let langParts = topLangs.map(item => `${item.lang} ${LANG_FLAGS[item.lang] || ''} ${item.percentage}%`);
+                    if (otherSum > 0) {
+                        langParts.push(`Oth ${otherSum}%`);
+                    }
+                    langText = langParts.join(' | ');
                 }
 
                 let ios = 0, android = 0, other = 0;
@@ -1013,7 +1040,7 @@
                 document.getElementById('kpi-tournaments').textContent = totalTournaments;
                 document.getElementById('kpi-users').textContent = totalUsers;
                 document.getElementById('kpi-matches').textContent = instantMatches;
-                document.getElementById('kpi-bounce').textContent = bounceRate + '%';
+                document.getElementById('kpi-language').textContent = langText;
                 document.getElementById('kpi-duration').textContent = durationTxt;
                 document.getElementById('kpi-cities').textContent = uniqueCitiesCount;
                 document.getElementById('kpi-device').textContent = `iOS ${iosP}% | And ${andP}% | Oth ${othP}%`;
