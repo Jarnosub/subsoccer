@@ -1005,7 +1005,7 @@
                 // Calculate Average Match Duration
                 let matchDurations = [];
                 trackingData.forEach(d => {
-                    if (d.event_type === 'game_finished' && d.session_duration && d.session_duration > 15 && d.session_duration < 3600) {
+                    if (d.event_type === 'game_finished' && d.session_duration && d.session_duration >= 30 && d.session_duration <= 300) {
                         matchDurations.push(d.session_duration);
                     }
                 });
