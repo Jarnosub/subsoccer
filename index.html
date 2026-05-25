@@ -77,18 +77,30 @@
             --card-border: #333333;
         }
 
-        body,
         html {
             margin: 0;
             padding: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
             overflow-x: hidden;
-            overflow-y: auto;
             background-image: linear-gradient(var(--page-bg), var(--page-bg));
             background-color: var(--page-bg);
             color: var(--page-text);
             font-family: 'Inter', sans-serif;
+        }
+
+        /* Takaa, että pääsisältö venyy täyttämään tilan ja työntää footerin alas */
+        #main-content {
+            flex: 1;
         }
 
         /* Prevent flash of unstyled content during auth check */
