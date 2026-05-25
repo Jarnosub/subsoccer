@@ -622,7 +622,7 @@
                         <span>LANGUAGE BREAKDOWN</span>
                         <i class="fas fa-language" style="color: var(--accent-blue);"></i>
                     </div>
-                    <div class="kpi-value" id="kpi-language" style="font-size: 1.15rem; line-height: 1.4; word-break: break-all;">N/A</div>
+                    <div class="kpi-value" id="kpi-language" style="font-size: 1.15rem; line-height: 1.4;">N/A</div>
                     <div class="kpi-trend" style="color: #888;"><i class="fas fa-globe"></i> Active languages used</div>
                 </div>
 
@@ -983,9 +983,9 @@
                     const topLangs = sortedLangs.slice(0, 3);
                     const otherSum = sortedLangs.slice(3).reduce((sum, item) => sum + item.percentage, 0);
                     
-                    let langParts = topLangs.map(item => `${item.lang} ${LANG_FLAGS[item.lang] || ''} ${item.percentage}%`);
+                    let langParts = topLangs.map(item => `<span style="white-space: nowrap;">${item.lang} ${LANG_FLAGS[item.lang] || ''} ${item.percentage}%</span>`);
                     if (otherSum > 0) {
-                        langParts.push(`Oth ${otherSum}%`);
+                        langParts.push(`<span style="white-space: nowrap;">Oth ${otherSum}%</span>`);
                     }
                     langText = langParts.join(' | ');
                 }
@@ -1040,7 +1040,7 @@
                 document.getElementById('kpi-tournaments').textContent = totalTournaments;
                 document.getElementById('kpi-users').textContent = totalUsers;
                 document.getElementById('kpi-matches').textContent = instantMatches;
-                document.getElementById('kpi-language').textContent = langText;
+                document.getElementById('kpi-language').innerHTML = langText;
                 document.getElementById('kpi-duration').textContent = durationTxt;
                 document.getElementById('kpi-cities').textContent = uniqueCitiesCount;
                 document.getElementById('kpi-device').textContent = `iOS ${iosP}% | And ${andP}% | Oth ${othP}%`;
