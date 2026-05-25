@@ -29,6 +29,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="version.js"></script>
+    <script src="translations.js" defer></script>
     <script src="https://js-de.sentry-cdn.com/a53cdae04c9280e2611fe75c4b793913.min.js" crossorigin="anonymous"></script>
     <script src="sentry.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
@@ -187,21 +188,21 @@
             </div>
 
             <!-- Tagline -->
-            <div style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.5rem; color:#444; letter-spacing:2px; text-transform:uppercase; margin-bottom:20px;">
+            <div data-i18n="login_tagline" style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.5rem; color:#444; letter-spacing:2px; text-transform:uppercase; margin-bottom:20px;">
                 Track stats · Climb rankings · Join tournaments
             </div>
             
             <!-- Login form card -->
             <div style="background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; padding: 20px 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.5);">
-                <div style="color: #666; letter-spacing: 2px; font-size: 0.6rem; margin-bottom: 14px; font-family:'Resolve',sans-serif; text-align:center;">PLAYER LOGIN</div>
+                <div data-i18n="login_title" style="color: #666; letter-spacing: 2px; font-size: 0.6rem; margin-bottom: 14px; font-family:'Resolve',sans-serif; text-align:center;">PLAYER LOGIN</div>
                 <form id="auth-form-wrapper" style="gap: 8px;">
-                    <input type="text" id="auth-user" name="username" placeholder="Username" autocomplete="username" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
-                    <input type="password" id="auth-pass" name="password" placeholder="Password" autocomplete="current-password" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
-                    <button id="btn-login" class="btn-red" type="submit" style="background: #c41e2a; color: #ffffff; padding: 12px; font-size: 0.9rem; letter-spacing: 1px; margin-top: 2px; box-shadow: 0 3px 15px rgba(196, 30, 42, 0.2); border-radius: 3px; font-family:'SubsoccerLogo',sans-serif;">LOG IN</button>
+                    <input type="text" id="auth-user" name="username" placeholder="Username" data-i18n="login_username" autocomplete="username" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
+                    <input type="password" id="auth-pass" name="password" placeholder="Password" data-i18n="login_password" autocomplete="current-password" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
+                    <button id="btn-login" class="btn-red" type="submit" data-i18n="login_btn" style="background: #c41e2a; color: #ffffff; padding: 12px; font-size: 0.9rem; letter-spacing: 1px; margin-top: 2px; box-shadow: 0 3px 15px rgba(196, 30, 42, 0.2); border-radius: 3px; font-family:'SubsoccerLogo',sans-serif;">LOG IN</button>
                     
                     <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: #555; font-size: 0.7rem; font-family: 'Resolve', sans-serif;">
                         <div style="flex: 1; height: 1px; background: #222;"></div>
-                        <span style="padding: 0 8px; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.55rem; font-weight: bold;">OR</span>
+                        <span data-i18n="login_or" style="padding: 0 8px; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.55rem; font-weight: bold;">OR</span>
                         <div style="flex: 1; height: 1px; background: #222;"></div>
                     </div>
                     
@@ -236,31 +237,31 @@
                             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                         </svg>
-                        Continue with Google
+                        <span data-i18n="login_google">Continue with Google</span>
                     </button>
-
+ 
                     <div style="margin-top: 8px;">
                         <button id="btn-show-signup" type="button" class="btn-create-account"
-                            onclick="showAuthPage('signup')" style="background: transparent; border: 1px solid #2a2a2a; color: #666; padding: 10px; transition: all 0.2s; border-radius: 3px; font-size: 0.75rem;" onmouseover="this.style.color='#fff'; this.style.borderColor='#555';" onmouseout="this.style.color='#666'; this.style.borderColor='#2a2a2a';">CREATE ACCOUNT</button>
+                            onclick="showAuthPage('signup')" data-i18n="login_create_acc" style="background: transparent; border: 1px solid #2a2a2a; color: #666; padding: 10px; transition: all 0.2s; border-radius: 3px; font-size: 0.75rem;" onmouseover="this.style.color='#fff'; this.style.borderColor='#555';" onmouseout="this.style.color='#666'; this.style.borderColor='#2a2a2a';">CREATE ACCOUNT</button>
                     </div>
                 </form>
             </div>
-
+ 
             <!-- Social proof -->
             <div style="display:flex; justify-content:center; gap:18px; margin-top:18px;">
                 <div style="text-align:center;">
                     <div style="font-family:'SubsoccerLogo',sans-serif; font-size:0.95rem; color:#888;">80+</div>
-                    <div style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Countries</div>
+                    <div data-i18n="login_countries_label" style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Countries</div>
                 </div>
                 <div style="width:1px; background:#1e1e1e; align-self:stretch;"></div>
                 <div style="text-align:center;">
                     <div style="font-family:'SubsoccerLogo',sans-serif; font-size:0.95rem; color:#888;">2K+</div>
-                    <div style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Players</div>
+                    <div data-i18n="login_players_label" style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Players</div>
                 </div>
                 <div style="width:1px; background:#1e1e1e; align-self:stretch;"></div>
                 <div style="text-align:center;">
                     <div style="font-family:'SubsoccerLogo',sans-serif; font-size:0.95rem; color:#888;">500+</div>
-                    <div style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Tournaments</div>
+                    <div data-i18n="login_tournaments_label" style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Tournaments</div>
                 </div>
             </div>
         </div>
@@ -311,81 +312,81 @@
                                     style="width: 100%; height: 100%; object-fit: cover; object-position: top center; display: none;">
                             </div>
 
-                            <!-- Bottom info area -->
-                            <div
-                                style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
-                                <!-- Pin + Location -->
-                                <div
-                                    style="display: flex; align-items: center; gap: 6px; color: #c41e2a; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; width:100%; box-sizing: border-box;">
-                                    <i class="fa-solid fa-location-dot"></i> <span>LOCAL ARENA</span>
-                                </div>
-
-                                <!-- Huge Name -->
-                                <div id="signup-card-name-display"
-                                    style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; transition: transform 0.1s;">
-                                    PLAYER</div>
-
-                                <!-- Rating box and Win Ratio -->
-                                <div
-                                    style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
-                                    <div
-                                        style="background: #c41e2a; color: #000; padding: 4px 10px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
-                                        1300
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <div
-                                            style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
-                                            WIN RATIO</div>
-                                        <div
-                                            style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; color: #fff; line-height: 1;">
-                                            0%</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Bottom edge "FLIP CARD" -->
-                            <div
-                                style="position: absolute; bottom: 12px; width: 100%; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.65rem; font-family:'Resolve', sans-serif; letter-spacing: 2px; z-index: 2; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">
-                                <i class="fa-solid fa-rotate" style="margin-right: 4px;"></i> FLIP CARD
-                            </div>
-                        </div>
-
-                        <!-- BACK SIDE -->
-                        <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
-                            <div style="text-align:center; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:10px; padding:20px 20px 10px 20px; background: rgba(0,0,0,0.3);">
-                                <h4 style="color:#c41e2a; font-family:'Subsoccer', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">
-                                    PLAYER DOSSIER</h4>
-                                <div style="color:#fff; font-size:0.75rem; font-family:'Resolve', sans-serif; margin-top:5px; text-transform:uppercase; letter-spacing: 1px;">
-                                    NEW RECRUIT</div>
-                            </div>
-                            <div style="padding: 10px 20px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                        <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">GLOBAL RATING</div>
-                                        <div style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">1300</div>
-                                    </div>
-                                    <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                        <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">WIN RATIO</div>
-                                        <div style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">0%</div>
-                                    </div>
-                                    <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                        <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">MATCHES</div>
-                                        <div style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
-                                    </div>
-                                    <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                        <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">WINS</div>
-                                        <div style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
-                                    </div>
-                                </div>
-                                
-                                <div style="margin-top: 10px; text-align: center; background: rgba(196,30,42,0.1); border: 1px solid rgba(196,30,42,0.3); padding: 10px; border-radius: 4px;">
-                                    <div style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.6rem; letter-spacing:2px; margin-bottom:4px;">TOURNAMENTS WON</div>
-                                    <div style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
-                                </div>
-                            </div>
-                            
-                            <div style="position:absolute; bottom:12px; width:100%; left:0; text-align:center; color:rgba(255,255,255,0.4); font-size:0.65rem; font-family:'Resolve', sans-serif; letter-spacing:2px; z-index:2;">
-                                <i class="fa-solid fa-rotate-left" style="margin-right: 4px;"></i> FLIP CARD
+                             <!-- Bottom info area -->
+                             <div
+                                 style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
+                                 <!-- Pin + Location -->
+                                 <div
+                                     style="display: flex; align-items: center; gap: 6px; color: #c41e2a; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; width:100%; box-sizing: border-box;">
+                                     <i class="fa-solid fa-location-dot"></i> <span data-i18n="pc_local_arena">LOCAL ARENA</span>
+                                 </div>
+ 
+                                 <!-- Huge Name -->
+                                 <div id="signup-card-name-display" data-i18n="player_prefix"
+                                     style="font-family: 'SubsoccerLogo', sans-serif; font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; transition: transform 0.1s;">
+                                     PLAYER</div>
+ 
+                                 <!-- Rating box and Win Ratio -->
+                                 <div
+                                     style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
+                                     <div
+                                         style="background: #c41e2a; color: #000; padding: 4px 10px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; border-radius: 3px; line-height: 1; margin-bottom: 2px;">
+                                         1300
+                                     </div>
+                                     <div style="text-align: right;">
+                                         <div data-i18n="pc_win_ratio"
+                                             style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;">
+                                             WIN RATIO</div>
+                                         <div
+                                             style="font-family: 'SubsoccerLogo', sans-serif; font-size: 1.4rem; color: #fff; line-height: 1;">
+                                             0%</div>
+                                     </div>
+                                 </div>
+                             </div>
+ 
+                             <!-- Bottom edge "FLIP CARD" -->
+                             <div
+                                 style="position: absolute; bottom: 12px; width: 100%; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.65rem; font-family:'Resolve', sans-serif; letter-spacing: 2px; z-index: 2; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">
+                                 <i class="fa-solid fa-rotate" style="margin-right: 4px;"></i> <span data-i18n="pc_flip_card">FLIP CARD</span>
+                             </div>
+                         </div>
+ 
+                         <!-- BACK SIDE -->
+                         <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+                             <div style="text-align:center; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:10px; padding:20px 20px 10px 20px; background: rgba(0,0,0,0.3);">
+                                 <h4 data-i18n="pc_player_dossier" style="color:#c41e2a; font-family:'Subsoccer', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">
+                                     PLAYER DOSSIER</h4>
+                                 <div data-i18n="pc_new_recruit" style="color:#fff; font-size:0.75rem; font-family:'Resolve', sans-serif; margin-top:5px; text-transform:uppercase; letter-spacing: 1px;">
+                                     NEW RECRUIT</div>
+                             </div>
+                             <div style="padding: 10px 20px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                     <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                         <div data-i18n="pc_global_rating" style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">GLOBAL RATING</div>
+                                         <div style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">1300</div>
+                                     </div>
+                                     <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                         <div data-i18n="pc_win_ratio" style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">WIN RATIO</div>
+                                         <div style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">0%</div>
+                                     </div>
+                                     <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                         <div data-i18n="pc_matches" style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">MATCHES</div>
+                                         <div style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
+                                     </div>
+                                     <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                         <div data-i18n="pc_wins" style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;">WINS</div>
+                                         <div style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
+                                     </div>
+                                 </div>
+                                 
+                                 <div style="margin-top: 10px; text-align: center; background: rgba(196,30,42,0.1); border: 1px solid rgba(196,30,42,0.3); padding: 10px; border-radius: 4px;">
+                                     <div data-i18n="pc_tournaments_won" style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.6rem; letter-spacing:2px; margin-bottom:4px;">TOURNAMENTS WON</div>
+                                     <div style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
+                                 </div>
+                             </div>
+                             
+                             <div style="position:absolute; bottom:12px; width:100%; left:0; text-align:center; color:rgba(255,255,255,0.4); font-size:0.65rem; font-family:'Resolve', sans-serif; letter-spacing:2px; z-index:2;">
+                                 <i class="fa-solid fa-rotate-left" style="margin-right: 4px;"></i> <span data-i18n="pc_flip_card">FLIP CARD</span>
                             </div>
                         </div>
                     </div>
@@ -399,7 +400,7 @@
                 <!-- MASCOT SELECTION -->
                 <div style="max-width: 400px; margin: 0 auto;">
                 <div style="font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-user"></i> CHOOSE YOUR CHARACTER
+                    <i class="fa-solid fa-user"></i> <span data-i18n="signup_choose_char">CHOOSE YOUR CHARACTER</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
                     <button id="signup-avatar-prev" onclick="signupCarouselStep(-1)" disabled
@@ -442,17 +443,17 @@
                 <!-- AI SELFIE STYLIZER (1 free try before signup) -->
                 <div style="max-width: 400px; margin: 0 auto 16px;">
                     <div style="font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> OR CREATE AI PORTRAIT
-                        <span id="signup-ai-badge" style="margin-left:auto; background:rgba(196,30,42,0.15); color:#c41e2a; padding:2px 8px; border-radius:10px; font-size:0.5rem; letter-spacing:1px;">1 FREE TRY</span>
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="signup_or_ai">OR CREATE AI PORTRAIT</span>
+                        <span id="signup-ai-badge" data-i18n="signup_free_try" style="margin-left:auto; background:rgba(196,30,42,0.15); color:#c41e2a; padding:2px 8px; border-radius:10px; font-size:0.5rem; letter-spacing:1px;">1 FREE TRY</span>
                     </div>
                     <div style="display:flex; gap:8px; align-items:stretch;">
                         <label id="signup-ai-upload-label" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 8px; background: #c41e2a; border:1px solid #c41e2a; border-radius:2px; color:#fff; font-family:'Resolve',sans-serif; font-size:0.6rem; font-weight:bold; letter-spacing:1px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(196, 30, 42, 0.2);" onmouseover="this.style.background='#a01520'" onmouseout="this.style.background='#c41e2a'">
                             <i class="fa-solid fa-camera" style="font-size:0.85rem"></i>
-                            <span id="signup-ai-selfie-label">TAKE SELFIE</span>
+                            <span id="signup-ai-selfie-label" data-i18n="signup_take_selfie">TAKE SELFIE</span>
                             <input type="file" accept="image/*" id="signup-ai-selfie-input" style="display:none;" onchange="handleSignupSelfie(this)">
                         </label>
                         <button id="signup-btn-generate-ai" onclick="generateSignupAvatar()" style="flex:1; padding:9px 8px; background:rgba(255,255,255,0.05); color:#666; border:1px solid rgba(255,255,255,0.1); border-radius:2px; font-family:'Resolve',sans-serif; font-size:0.6rem; font-weight:bold; letter-spacing:1px; cursor:default; display:flex; align-items:center; justify-content:center; gap:5px; transition: all 0.2s; pointer-events:none;">
-                            <i class="fa-solid fa-bolt"></i> GENERATE
+                            <i class="fa-solid fa-bolt"></i> <span data-i18n="signup_generate">GENERATE</span>
                         </button>
                     </div>
                     <div id="signup-ai-msg" style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.5rem; letter-spacing:1px; color:#888; margin-top:5px; min-height:12px;"></div>
@@ -464,7 +465,7 @@
                 <!-- SIGNUP FIELDS -->
                 <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: 0 auto;">
 
-                    <input type="text" id="reg-user" name="nickname" placeholder="Enter Player Name..." maxlength="12"
+                    <input type="text" id="reg-user" name="nickname" placeholder="Enter Player Name..." data-i18n="signup_enter_name" maxlength="12"
                         autocomplete="nickname"
                         style="width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 2px; color: #fff; font-family: 'Open Sans', sans-serif; font-size: 0.95rem; outline: none; transition: all 0.3s ease; box-sizing: border-box;">
 
@@ -473,19 +474,19 @@
                     <div id="signup-avatar-filename" style="display: none;"></div>
 
                     <div style="display:flex; gap:10px;">
-                        <input type="email" id="reg-email" name="email" placeholder="Email Address" autocomplete="email"
+                        <input type="email" id="reg-email" name="email" placeholder="Email Address" data-i18n="signup_email" autocomplete="email"
                             style="flex:1; padding: 12px; font-size:0.85rem; background: #1a1a1a; border: 1px solid #333; border-radius: 2px; color: #fff; font-family: 'Open Sans', sans-serif; outline: none; box-sizing: border-box;">
-                        <input type="password" id="reg-pass" name="password" placeholder="Password" autocomplete="new-password"
+                        <input type="password" id="reg-pass" name="password" placeholder="Password" data-i18n="login_password" autocomplete="new-password"
                             style="flex:1; padding: 12px; font-size:0.85rem; background: #1a1a1a; border: 1px solid #333; border-radius: 2px; color: #fff; font-family: 'Open Sans', sans-serif; outline: none; box-sizing: border-box;">
                     </div>
 
-                    <button id="btn-register" class="btn-red"
+                    <button id="btn-register" class="btn-red" data-i18n="signup_create_card"
                         style="background: var(--sub-red); color: #fff; border: none; padding: 14px; border-radius: 2px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.05rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; width: 100%; margin-top: 3px; transition: transform 0.2s, background 0.2s;">
                         CREATE PRO CARD
                     </button>
 
                     <div style="margin-top: 10px; text-align: center;">
-                        <span id="link-back-to-login" class="link-back" onclick="showAuthPage('login')"
+                        <span id="link-back-to-login" class="link-back" onclick="showAuthPage('login')" data-i18n="signup_back_login"
                             style="color: #c41e2a; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; font-weight: bold;">Back to Login</span>
                     </div>
                 </div>
@@ -496,7 +497,7 @@
         <div style="display:flex; align-items:center; justify-content:center; animation: signupPulse 2s ease-in-out infinite;">
             <img src="artist.png" alt="AI Artist" style="width:180px; height:auto; object-fit:contain;">
         </div>
-        <div style="font-family:'Resolve',sans-serif; font-size:1.1rem; font-weight:bold; color:#fff; letter-spacing:3px; text-transform:uppercase;">CREATING YOUR AVATAR</div>
+        <div data-i18n="pc_creating_avatar" style="font-family:'Resolve',sans-serif; font-size:1.1rem; font-weight:bold; color:#fff; letter-spacing:3px; text-transform:uppercase;">CREATING YOUR AVATAR</div>
         <div id="signup-ai-gen-status" style="font-family:'Resolve',sans-serif; font-size:0.7rem; color:#888; letter-spacing:2px; text-transform:uppercase; min-height:20px;">Analyzing your photo...</div>
         <div style="width:260px; height:4px; background:#222; border-radius:2px; overflow:hidden;">
             <div id="signup-ai-gen-progress" style="height:100%; width:0%; background:linear-gradient(90deg,#c41e2a,#ff4757,#c41e2a); background-size:200% 100%; border-radius:2px; transition:width 0.5s ease; animation: signupShimmer 1.5s linear infinite;"></div>
