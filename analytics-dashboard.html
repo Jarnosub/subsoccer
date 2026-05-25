@@ -483,14 +483,21 @@
         /* Responsive Grids */
         .grid-tables {
             display: grid; 
-            grid-template-columns: 2fr 1fr 1fr; 
-            gap: 24px; 
+            grid-template-columns: 1.3fr 1fr 1fr; 
+            gap: 20px; 
             margin-bottom: 40px;
+        }
+
+        .grid-tables th, .grid-tables td {
+            padding: 14px 12px;
         }
 
         @media (max-width: 1200px) {
             .grid-tables {
                 grid-template-columns: 1fr;
+            }
+            .grid-tables th, .grid-tables td {
+                padding: 14px 20px;
             }
         }
     </style>
@@ -1136,9 +1143,10 @@
                         const tr = document.createElement('tr');
                         const isTop3 = idx < 3;
                         const rankColor = idx === 0 ? 'color: var(--accent-yellow);' : (idx === 1 ? 'color: #C0C0C0;' : (idx === 2 ? 'color: #cd7f32;' : 'color: var(--text-secondary);'));
+                        const rankIcon = idx === 0 ? '<i class="fas fa-crown"></i> ' : (isTop3 ? '<i class="fas fa-trophy"></i> ' : '');
                         
                         tr.innerHTML = `
-                            <td><strong style="${rankColor}"><i class="fas fa-trophy"></i> ${idx + 1}.</strong></td>
+                            <td><strong style="${rankColor}">${rankIcon}${idx + 1}.</strong></td>
                             <td style="font-weight: ${isTop3 ? 'bold' : 'normal'}; color: ${isTop3 ? 'white' : 'inherit'};">${(p.username || 'Anonymous').toUpperCase()}</td>
                             <td style="text-align:right; font-weight: bold; color: var(--accent-blue);">${p.elo || 1500}</td>
                         `;
@@ -1173,9 +1181,10 @@
                         const tr = document.createElement('tr');
                         const isTop3 = idx < 3;
                         const rankColor = idx === 0 ? 'color: var(--accent-yellow);' : (idx === 1 ? 'color: #C0C0C0;' : (idx === 2 ? 'color: #cd7f32;' : 'color: var(--text-secondary);'));
+                        const rankIcon = idx === 0 ? '<i class="fas fa-crown"></i> ' : (isTop3 ? '<i class="fas fa-trophy"></i> ' : '');
                         
                         tr.innerHTML = `
-                            <td><strong style="${rankColor}"><i class="fas fa-trophy"></i> ${idx + 1}.</strong></td>
+                            <td><strong style="${rankColor}">${rankIcon}${idx + 1}.</strong></td>
                             <td style="font-weight: ${isTop3 ? 'bold' : 'normal'}; color: ${isTop3 ? 'white' : 'inherit'};">
                                 <span style="font-size:1.1rem; margin-right: 6px;">${c.flag}</span>${c.name.toUpperCase()}
                             </td>
