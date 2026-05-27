@@ -2213,9 +2213,9 @@ function translateDefaultPlayerNames() {
     
     document.querySelectorAll('.player-input').forEach(input => {
         const value = input.value.trim().toUpperCase();
-        const match = value.match(/^([A-Z\u30a0-\u30ff]+)\s*(\d+)$/);
+        const match = value.match(/^([\p{L}\s]+?)\s*(\d+)$/u);
         if (match) {
-            const prefix = match[1];
+            const prefix = match[1].trim();
             const num = match[2];
             if (prefixes.includes(prefix)) {
                 input.value = `${currentPrefix} ${num}`;
