@@ -2038,6 +2038,7 @@ const TRANSLATIONS = {
         pc_country: 'KRAJ',
         pc_select_country: 'WYBIERZ KRAJ',
         pc_save_changes: 'ZAPISZ ZMIANY',
+        pc_download_print: 'POBIERZ KARTĘ DO DRUKU',
         pc_creating_avatar: 'TWORZENIE TWOJEGO AWATARA',
         recent_global_activity: 'OSTATNIA GLOBALNA AKTYWNOŚĆ',
         login_tagline: 'Śledź statystyki · Awansuj w rankingach · Dołączaj do turniejów',
@@ -2059,6 +2060,127 @@ const TRANSLATIONS = {
         signup_email: 'Adres e-mail',
         signup_create_card: 'UTWÓRZ KARTĘ PRO',
         signup_back_login: 'Powrót do logowania'
+    },
+    ja: {
+        my_profile: 'プロフィール',
+        my_games: '試合履歴',
+        register_a_game: 'テーブル登録',
+        buy_your_own: 'テーブル購入',
+        log_out: 'ログアウト',
+        map_title: 'マップ',
+        map_tagline: '近くのテーブルを探す',
+        join_game: 'ゲームに参加',
+        join_game_desc: 'QRコードをスキャンして試合に参加',
+        players_in_countries: '国ごとのプレイヤー数',
+        select_language: '言語選択',
+        physical_games: 'テーブル台数',
+        add_new: '新規追加',
+        configure: '設定',
+        digital_assets: 'デジタルアセット',
+        digital_pro_card: 'デジタルプロカード',
+        active_subscription: '有効なメンバーシップ',
+        digital_card_desc: '公式デジタルメンバーカード',
+        view_card: 'カードを表示',
+        empty_no_games_title: '対戦履歴なし',
+        empty_no_games_desc: '最初の試合を登録しましょう！',
+        register_gear_btn: '製品を登録する',
+        loading_assets: '読み込み中...',
+        register_your_product: '製品登録',
+        register_product_desc: 'シリアル番号を入力してテーブルを登録',
+        serial_number_label: 'シリアル番号',
+        found_under_product: 'テーブルの底面をご確認ください',
+        continue_button: '次へ',
+        step_enter_code: 'コード入力',
+        step_enter_code_done: 'コード入力完了',
+        step_details: '詳細入力',
+        step_details_done: '詳細入力完了',
+        step_done: '完了',
+        pro_leagues: 'プロリーグ',
+        give_feedback: 'フィードバックを送る',
+        moderator_tools: '管理ツール',
+        register_your_game_btn: '対戦登録',
+        open_app: 'アプリを開く',
+        start_playing: 'プレイ開始',
+        product_registered: '製品登録完了',
+        product_registered_desc: 'サブサッカーテーブルの登録が完了しました！',
+        tagline: '座って、プレイして、勝つ。',
+        create_tournament: 'トーナメント作成',
+        scan_to_join: 'スキャンして参加',
+        find_public_game: 'パブリックゲームを探す',
+        countries: '国',
+        games: '試合数',
+        views: '閲覧数',
+        privacy: 'プライバシーポリシー',
+        terms: '利用規約',
+        finals: '決勝',
+        semifinals: '準決勝',
+        quarterfinals: '準々決勝',
+        round: 'ラウンド',
+        tournament: 'トーナメント',
+        add_players_to_begin: 'プレイヤーを追加して開始してください',
+        add_player: 'プレイヤー追加',
+        qr_join: 'QRコードで参加',
+        start_match: '試合開始',
+        quit_tournament: 'トーナメント終了',
+        new_tournament: '新しいトーナメント',
+        return_to_hub: 'ハブに戻る',
+        view_bracket: 'トーナメント表',
+        back_to_match: '試合に戻る',
+        quit: '終了',
+        match_concluded: '試合終了',
+        next_match_loading: '次の試合を読み込み中...',
+        final_standings: '最終順位',
+        winner_label: '勝者',
+        tournament_champion: 'トーナメントチャンピオン',
+        walkout_p1: 'P1 入場',
+        walkout_p2: 'P2 入場',
+        tournament_requires_players: 'プレイヤーが不足しています',
+        quit_confirmation: '本当にトーナメントを終了しますか？',
+        player_prefix: 'プレイヤー',
+        pc_title_player: 'プレイヤー',
+        pc_title_card: 'カード',
+        pc_local_arena: 'ホームアリーナ',
+        pc_win_ratio: '勝率',
+        pc_flip_card: 'カードをめくる',
+        pc_player_dossier: 'プレイヤー調書',
+        pc_new_recruit: 'ニューメンバー',
+        pc_global_rating: 'グローバルランク',
+        pc_matches: '対戦数',
+        pc_wins: '勝利数',
+        pc_tournaments_won: '優勝回数',
+        pc_your_avatars: 'アバター選択',
+        pc_delete_avatar: 'アバター削除',
+        pc_ai_portrait_studio: 'AIアバタースタジオ',
+        pc_take_selfie: 'セルフィーを撮る',
+        pc_generate_avatar: 'アバター作成',
+        pc_save_avatar: 'アバター保存',
+        pc_edit_profile: 'プロフィール編集',
+        pc_username: 'ユーザー名',
+        pc_country: '国',
+        pc_select_country: '国を選択',
+        pc_save_changes: '変更を保存',
+        pc_download_print: 'ダウンロード印刷',
+        pc_creating_avatar: 'アバター作成中...',
+        recent_global_activity: '世界のアクティビティ',
+        login_tagline: '統計を追跡 · ランクを上げる · トーナメントに参加',
+        login_title: 'プレイヤーログイン',
+        login_username: 'ユーザー名',
+        login_password: 'パスワード',
+        login_btn: 'ログイン',
+        login_or: 'または',
+        login_google: 'Googleで続行',
+        login_create_acc: 'アカウント作成',
+        login_players_label: 'プレイヤー',
+        login_tournaments_label: 'トーナメント',
+        signup_choose_char: 'キャラクターを選択',
+        signup_or_ai: 'またはAIアバターを作成',
+        signup_free_try: '1回無料トライアル',
+        signup_take_selfie: 'セルフィーを撮る',
+        signup_generate: '作成',
+        signup_enter_name: 'プレイヤー名を入力...',
+        signup_email: 'メールアドレス',
+        signup_create_card: 'プロカードを作成',
+        signup_back_login: 'ログインに戻る'
     }
 };
 
@@ -2086,14 +2208,14 @@ function setLanguage(lang) {
 }
 
 function translateDefaultPlayerNames() {
-    const prefixes = ["PLAYER", "JOUEUR", "JUGADOR", "SPIELER", "JOGADOR", "PELAAJA", "SPELARE", "SPILLER", "GIOCATORE", "SPELER", "HRÁČ", "OYUNCU", "JÁTÉKOS", "PEMAIN", "CẦU THỦ", "GRACZ"];
+    const prefixes = ["PLAYER", "JOUEUR", "JUGADOR", "SPIELER", "JOGADOR", "PELAAJA", "SPELARE", "SPILLER", "GIOCATORE", "SPELER", "HRÁČ", "OYUNCU", "JÁTÉKOS", "PEMAIN", "CẦU THỦ", "GRACZ", "プレイヤー"];
     const currentPrefix = t('player_prefix').toUpperCase();
     
     document.querySelectorAll('.player-input').forEach(input => {
         const value = input.value.trim().toUpperCase();
-        const match = value.match(/^([A-Z]+)\s*(\d+)$/);
+        const match = value.match(/^([\p{L}\s]+?)\s*(\d+)$/u);
         if (match) {
-            const prefix = match[1];
+            const prefix = match[1].trim();
             const num = match[2];
             if (prefixes.includes(prefix)) {
                 input.value = `${currentPrefix} ${num}`;
@@ -2149,7 +2271,8 @@ const FLAG_MAP = {
     hu: '🇭🇺',
     id: '🇮🇩',
     vi: '🇻🇳',
-    pl: '🇵🇱'
+    pl: '🇵🇱',
+    ja: '🇯🇵'
 };
 
 function updateHeaderFlag(lang) {

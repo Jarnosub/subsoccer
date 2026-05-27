@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer Localization Forge</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --sub-black: #0c0c0e;
+            --sub-charcoal: #16161a;
+            --sub-dark-grey: #1f1f24;
+            --sub-red: #e30613;
+            --sub-red-hover: #b8050f;
+            --sub-gold: #d4af37;
+            --sub-gold-glow: rgba(212, 175, 55, 0.15);
+            --sub-text-white: #ffffff;
+            --sub-text-muted: #8e8e93;
+            --sub-border: rgba(255, 255, 255, 0.08);
+            --sub-radius: 12px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--sub-black);
+            color: var(--sub-text-white);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(to bottom, #111115, #0c0c0e);
+            border-bottom: 1px solid var(--sub-border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            height: 24px;
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #fff, var(--sub-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* BUTTONS */
+        .btn {
+            background: var(--sub-dark-grey);
+            color: var(--sub-text-white);
+            border: 1px solid var(--sub-border);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--sub-red);
+            border-color: var(--sub-red);
+        }
+
+        .btn-primary:hover {
+            background: var(--sub-red-hover);
+            border-color: var(--sub-red-hover);
+            box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
+        }
+
+        .btn-gold {
+            background: transparent;
+            color: var(--sub-gold);
+            border: 1px solid var(--sub-gold);
+        }
+
+        .btn-gold:hover {
+            background: var(--sub-gold);
+            color: #000;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+        }
+
+        /* MAIN CONTAINER */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            background-image: radial-gradient(circle at top right, rgba(227, 6, 19, 0.05), transparent 60%);
+        }
+
+        /* SIDEBAR (Key Navigator) */
+        .sidebar {
+            width: 320px;
+            border-right: 1px solid var(--sub-border);
+            background: rgba(15, 15, 20, 0.6);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .search-container {
+            padding: 16px;
+            border-bottom: 1px solid var(--sub-border);
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--sub-text-muted);
+            font-size: 0.9rem;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--sub-charcoal);
+            border: 1px solid var(--sub-border);
+            color: #fff;
+            padding: 10px 12px 10px 38px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--sub-gold);
+            box-shadow: 0 0 0 2px var(--sub-gold-glow);
+        }
+
+        .key-list-header {
+            padding: 12px 16px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--sub-text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--sub-border);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .key-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .key-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--sub-border);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .key-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .key-item.active {
+            background: rgba(212, 175, 55, 0.05);
+            border-left: 3px solid var(--sub-gold);
+        }
+
+        .key-item-name {
+            font-family: monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--sub-gold);
+            word-break: break-all;
+        }
+
+        .key-item-preview {
+            font-size: 0.75rem;
+            color: var(--sub-text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .key-status {
+            align-self: flex-start;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-top: 4px;
+        }
+
+        .status-translated {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+        }
+
+        .status-missing {
+            background: rgba(244, 67, 54, 0.15);
+            color: #f44336;
+        }
+
+        /* WORKSPACE */
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 24px;
+            gap: 20px;
+        }
+
+        .workspace-title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .selected-key-display {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .selected-key-subtitle {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--sub-text-muted);
+            margin-top: 4px;
+        }
+
+        .cards-container {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .editor-card {
+            flex: 1;
+            background: var(--sub-charcoal);
+            border: 1px solid var(--sub-border);
+            border-radius: var(--sub-radius);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--sub-border);
+        }
+
+        .flag {
+            font-size: 1.1rem;
+        }
+
+        .editor-textarea {
+            flex: 1;
+            width: 100%;
+            background: var(--sub-dark-grey);
+            border: 1px solid var(--sub-border);
+            border-radius: 8px;
+            padding: 16px;
+            color: #fff;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            transition: var(--transition);
+        }
+
+        .editor-textarea:focus {
+            border-color: var(--sub-gold);
+            box-shadow: 0 0 0 2px var(--sub-gold-glow);
+        }
+
+        .editor-textarea[readonly] {
+            opacity: 0.7;
+            cursor: not-allowed;
+            background: rgba(20, 20, 25, 0.4);
+        }
+
+        /* PREVIEW PANEL */
+        .preview-panel {
+            width: 420px;
+            border-left: 1px solid var(--sub-border);
+            background: rgba(10, 10, 12, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .preview-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--sub-gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-tabs {
+            display: flex;
+            background: var(--sub-charcoal);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--sub-border);
+        }
+
+        .preview-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--sub-text-muted);
+        }
+
+        .preview-tab.active {
+            background: var(--sub-dark-grey);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .preview-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed var(--sub-border);
+            border-radius: var(--sub-radius);
+            background: #000;
+            padding: 16px;
+            position: relative;
+            min-height: 480px;
+        }
+
+        /* UI MOCKUPS styling */
+        .mock-login-card {
+            width: 100%;
+            max-width: 320px;
+            background: #111115;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .mock-logo {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 1.4rem;
+            letter-spacing: 3px;
+            color: #fff;
+        }
+
+        .mock-logo span {
+            color: var(--sub-red);
+        }
+
+        .mock-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .mock-tagline {
+            font-size: 0.75rem;
+            color: var(--sub-text-muted);
+            line-height: 1.4;
+        }
+
+        .mock-input {
+            width: 100%;
+            background: #1a1a20;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 0.8rem;
+            text-align: left;
+        }
+
+        .mock-btn {
+            background: var(--sub-red);
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            border: none;
+        }
+
+        .mock-btn-google {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mock-link {
+            font-size: 0.75rem;
+            color: var(--sub-gold);
+            text-decoration: underline;
+        }
+
+        /* Mock Profile Card */
+        .mock-profile-card {
+            width: 100%;
+            max-width: 300px;
+            aspect-ratio: 5/7;
+            background: #0d0d0f;
+            border: 6px solid #1a1a1f;
+            border-radius: var(--sub-radius);
+            padding: 12px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .mock-profile-card::after {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border: 1.5px solid var(--sub-gold);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .mock-pc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.5px solid var(--sub-gold);
+            padding-bottom: 4px;
+            margin-top: 4px;
+        }
+
+        .mock-pc-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: var(--sub-gold);
+            text-transform: uppercase;
+        }
+
+        .mock-pc-avatar {
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(to bottom, #222, #0d0d0f);
+            margin-top: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .mock-pc-avatar i {
+            font-size: 4rem;
+            color: #444;
+        }
+
+        .mock-pc-avatar-overlay {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: var(--sub-gold);
+            color: #000;
+            font-size: 0.55rem;
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 2px;
+        }
+
+        .mock-pc-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #fff;
+            margin-top: 8px;
+            text-transform: uppercase;
+            text-align: left;
+        }
+
+        .mock-pc-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 10px;
+            font-size: 0.65rem;
+        }
+
+        .mock-pc-stat-row {
+            display: flex;
+            justify-content: space-between;
+            color: var(--sub-text-muted);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 2px;
+        }
+
+        .mock-pc-stat-val {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Mock Hub Buttons */
+        .mock-hub-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .mock-hub-btn-red {
+            background: var(--sub-red);
+            color: #fff;
+            padding: 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mock-hub-btn-dark {
+            background: rgba(0,0,0,0.85);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mock-hub-btn-outline {
+            background: transparent;
+            border: 2px solid var(--sub-red);
+            color: var(--sub-red);
+            padding: 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* EXPORT MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--sub-charcoal);
+            border: 2px solid var(--sub-gold);
+            border-radius: var(--sub-radius);
+            width: 680px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        .modal-body {
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-header-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--sub-gold);
+        }
+
+        .code-output {
+            background: #09090b;
+            border: 1px solid var(--sub-border);
+            border-radius: 8px;
+            padding: 16px;
+            color: var(--sub-gold);
+            font-family: monospace;
+            font-size: 0.85rem;
+            white-space: pre;
+            overflow-x: auto;
+            max-height: 350px;
+            user-select: all;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-brand">
+            <img src="subsoccer_logo.svg" alt="Subsoccer" class="brand-logo">
+            <div class="brand-title">Localization Forge</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-gold" onclick="openExportModal()"><i class="fa-solid fa-code"></i> Export JS Block</button>
+            <button class="btn btn-primary" onclick="saveChanges()"><i class="fa-solid fa-floppy-disk"></i> Apply & Save Local</button>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="key-search" class="search-input" placeholder="Search keys or translations..." oninput="filterKeys()">
+                </div>
+            </div>
+            <div class="key-list-header">
+                <span>Key Name</span>
+                <span id="keys-count">0 keys</span>
+            </div>
+            <div class="key-list" id="key-list-container">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- WORKSPACE -->
+        <div class="workspace">
+            <div class="workspace-title-bar">
+                <div>
+                    <div class="selected-key-display" id="selected-key-name">select_language</div>
+                    <div class="selected-key-subtitle">Translation Key Reference</div>
+                </div>
+            </div>
+
+            <div class="cards-container">
+                <!-- ENGLISH VALUE -->
+                <div class="editor-card">
+                    <div class="card-header">
+                        <span class="flag">🇺🇸</span>
+                        <span>English Reference (Read-only)</span>
+                    </div>
+                    <textarea class="editor-textarea" id="en-textarea" readonly></textarea>
+                </div>
+
+                <!-- JAPANESE EDITABLE VALUE -->
+                <div class="editor-card" style="border-color: var(--sub-gold-glow);">
+                    <div class="card-header" style="color: var(--sub-gold);">
+                        <span class="flag">🇯🇵</span>
+                        <span>Japanese Translation</span>
+                    </div>
+                    <textarea class="editor-textarea" id="ja-textarea" oninput="updateCurrentKeyTranslation(this.value)" placeholder="Type Japanese translation here..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREVIEW PANEL -->
+        <div class="preview-panel">
+            <div class="preview-title">
+                <i class="fa-solid fa-eye"></i> Live Layout Preview
+            </div>
+            <div class="preview-tabs">
+                <div class="preview-tab active" id="tab-btn-login" onclick="switchPreviewTab('login')">Login Card</div>
+                <div class="preview-tab" id="tab-btn-profile" onclick="switchPreviewTab('profile')">Player Card</div>
+                <div class="preview-tab" id="tab-btn-hub" onclick="switchPreviewTab('hub')">Hub Buttons</div>
+            </div>
+
+            <div class="preview-container" id="preview-container">
+                <!-- Mockups loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- CODE EXPORT MODAL -->
+    <div class="modal-overlay" id="export-modal">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="workspace-title-bar">
+                    <div class="modal-header-title">Export Japanese Translation Block</div>
+                    <button class="btn" onclick="closeExportModal()" style="padding: 6px 12px;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--sub-text-muted);">
+                    Copy the JavaScript block below and replace the existing <code>ja: { ... }</code> block inside <code>translations.js</code>.
+                </p>
+                <div class="code-output" id="export-code-block"></div>
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
+                    <button class="btn" onclick="copyExportedCode()"><i class="fa-solid fa-copy"></i> Copy to Clipboard</button>
+                    <button class="btn btn-primary" onclick="closeExportModal()">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script tags containing translations -->
+    <script src="translations.js"></script>
+    
+    <script>
+        let currentKey = '';
+        let allKeys = [];
+        let activePreviewTab = 'login';
+        
+        // In-memory working copy of Japanese translations
+        let workingJaTranslations = {};
+
+        // On document load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if TRANSLATIONS is available
+            if (typeof TRANSLATIONS === 'undefined') {
+                alert('Error: translations.js not loaded. Make sure the file exists and is in the same directory.');
+                return;
+            }
+
+            // Initialize working copy from loaded translations or empty
+            workingJaTranslations = { ...(TRANSLATIONS.ja || {}) };
+
+            // Extract all keys from English block
+            allKeys = Object.keys(TRANSLATIONS.en || {});
+            
+            // Build sidebar key list
+            buildSidebarList();
+            
+            // Select first key by default
+            if (allKeys.length > 0) {
+                selectKey(allKeys[0]);
+            }
+
+            // Initialize Preview
+            renderPreview();
+        });
+
+        function buildSidebarList(filter = '') {
+            const container = document.getElementById('key-list-container');
+            container.innerHTML = '';
+            
+            let filteredKeys = allKeys;
+            if (filter) {
+                const searchLower = filter.toLowerCase();
+                filteredKeys = allKeys.filter(key => {
+                    const enVal = (TRANSLATIONS.en[key] || '').toLowerCase();
+                    const jaVal = (workingJaTranslations[key] || '').toLowerCase();
+                    return key.toLowerCase().includes(searchLower) || 
+                           enVal.includes(searchLower) || 
+                           jaVal.includes(searchLower);
+                });
+            }
+
+            document.getElementById('keys-count').innerText = `${filteredKeys.length} keys`;
+
+            filteredKeys.forEach(key => {
+                const item = document.createElement('div');
+                item.className = `key-item ${key === currentKey ? 'active' : ''}`;
+                item.id = `key-item-${key}`;
+                item.onclick = () => selectKey(key);
+
+                const name = document.createElement('span');
+                name.className = 'key-item-name';
+                name.innerText = key;
+
+                const preview = document.createElement('span');
+                preview.className = 'key-item-preview';
+                preview.innerText = TRANSLATIONS.en[key] || '';
+
+                const status = document.createElement('span');
+                status.className = 'key-status';
+                
+                const hasTranslation = workingJaTranslations[key] && workingJaTranslations[key].trim() !== '';
+                if (hasTranslation) {
+                    status.classList.add('status-translated');
+                    status.innerText = 'Translated';
+                } else {
+                    status.classList.add('status-missing');
+                    status.innerText = 'Missing';
+                }
+
+                item.appendChild(name);
+                item.appendChild(preview);
+                item.appendChild(status);
+                container.appendChild(item);
+            });
+        }
+
+        function filterKeys() {
+            const query = document.getElementById('key-search').value;
+            buildSidebarList(query);
+        }
+
+        function selectKey(key) {
+            // Remove active classes
+            if (currentKey) {
+                const prevActive = document.getElementById(`key-item-${currentKey}`);
+                if (prevActive) prevActive.classList.remove('active');
+            }
+
+            currentKey = key;
+            
+            // Add active class
+            const newActive = document.getElementById(`key-item-${currentKey}`);
+            if (newActive) newActive.classList.add('active');
+
+            // Update details
+            document.getElementById('selected-key-name').innerText = key;
+            document.getElementById('en-textarea').value = TRANSLATIONS.en[key] || '';
+            document.getElementById('ja-textarea').value = workingJaTranslations[key] || '';
+            
+            document.getElementById('ja-textarea').focus();
+        }
+
+        function updateCurrentKeyTranslation(val) {
+            workingJaTranslations[currentKey] = val;
+            
+            // Update sidebar item status live
+            const item = document.getElementById(`key-item-${currentKey}`);
+            if (item) {
+                const statusSpan = item.querySelector('.key-status');
+                if (statusSpan) {
+                    statusSpan.className = 'key-status';
+                    if (val.trim() !== '') {
+                        statusSpan.classList.add('status-translated');
+                        statusSpan.innerText = 'Translated';
+                    } else {
+                        statusSpan.classList.add('status-missing');
+                        statusSpan.innerText = 'Missing';
+                    }
+                }
+            }
+
+            // Update live UI mockups
+            renderPreview();
+        }
+
+        function switchPreviewTab(tab) {
+            document.getElementById(`tab-btn-${activePreviewTab}`).classList.remove('active');
+            activePreviewTab = tab;
+            document.getElementById(`tab-btn-${activePreviewTab}`).classList.add('active');
+            renderPreview();
+        }
+
+        // Live render translations in mockup screens
+        function renderPreview() {
+            const container = document.getElementById('preview-container');
+            container.innerHTML = '';
+
+            // Safe lookup helper using workingJaTranslations or falling back to English
+            const t = (key) => {
+                return workingJaTranslations[key] || TRANSLATIONS.en[key] || `[${key}]`;
+            };
+
+            if (activePreviewTab === 'login') {
+                container.innerHTML = `
+                    <div class="mock-login-card">
+                        <div class="mock-logo">SUBSOCCER<span>GO</span></div>
+                        <div class="mock-tagline">${t('login_tagline')}</div>
+                        <div class="mock-title">${t('login_title')}</div>
+                        
+                        <input type="text" class="mock-input" placeholder="${t('login_username')}" disabled>
+                        <input type="password" class="mock-input" placeholder="${t('login_password')}" disabled>
+                        
+                        <button class="mock-btn">${t('login_btn')}</button>
+                        
+                        <div style="font-size: 0.65rem; color: var(--sub-text-muted); display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <hr style="flex:1; border:none; border-top:1px solid rgba(255,255,255,0.08);">
+                            ${t('login_or')}
+                            <hr style="flex:1; border:none; border-top:1px solid rgba(255,255,255,0.08);">
+                        </div>
+                        
+                        <button class="mock-btn-google">
+                            <i class="fa-brands fa-google"></i> ${t('login_google')}
+                        </button>
+                        
+                        <div class="mock-link">${t('login_create_acc')}</div>
+                    </div>
+                `;
+            } else if (activePreviewTab === 'profile') {
+                container.innerHTML = `
+                    <div class="mock-profile-card">
+                        <div class="mock-pc-header">
+                            <div class="mock-pc-title">${t('pc_title_player')}</div>
+                            <div class="mock-pc-title" style="color: #fff;">${t('pc_title_card')}</div>
+                        </div>
+                        
+                        <div class="mock-pc-avatar">
+                            <i class="fa-solid fa-user-ninja"></i>
+                            <div class="mock-pc-avatar-overlay">${t('pc_new_recruit')}</div>
+                        </div>
+                        
+                        <div class="mock-pc-name">TAKE_SENSEI</div>
+                        
+                        <div class="mock-pc-stats">
+                            <div class="mock-pc-stat-row">
+                                <span>${t('pc_local_arena')}</span>
+                                <span class="mock-pc-stat-val">Tokyo Dome</span>
+                            </div>
+                            <div class="mock-pc-stat-row">
+                                <span>${t('pc_win_ratio')}</span>
+                                <span class="mock-pc-stat-val">76%</span>
+                            </div>
+                            <div class="mock-pc-stat-row">
+                                <span>${t('pc_matches')}</span>
+                                <span class="mock-pc-stat-val">48</span>
+                            </div>
+                            <div class="mock-pc-stat-row">
+                                <span>${t('pc_wins')}</span>
+                                <span class="mock-pc-stat-val">37</span>
+                            </div>
+                            <div class="mock-pc-stat-row">
+                                <span>${t('pc_tournaments_won')}</span>
+                                <span class="mock-pc-stat-val">4</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (activePreviewTab === 'hub') {
+                container.innerHTML = `
+                    <div class="mock-hub-buttons">
+                        <button class="mock-hub-btn-red">
+                            <i class="fa-solid fa-trophy"></i> ${t('create_tournament')}
+                        </button>
+                        <button class="mock-hub-btn-dark">
+                            <i class="fa-solid fa-qrcode"></i> ${t('scan_to_join')}
+                        </button>
+                        <button class="mock-hub-btn-outline">
+                            <i class="fa-solid fa-map-location-dot"></i> ${t('find_public_game')}
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Export code modal
+        function openExportModal() {
+            const modal = document.getElementById('export-modal');
+            const codeBlock = document.getElementById('export-code-block');
+            
+            // Format workingJaTranslations object nicely
+            let formattedJS = '    ja: {\n';
+            const keys = Object.keys(workingJaTranslations);
+            keys.forEach((key, idx) => {
+                // Escape single quotes in values
+                const val = (workingJaTranslations[key] || '').replace(/'/g, "\\'");
+                formattedJS += `        ${key}: '${val}'${idx < keys.length - 1 ? ',' : ''}\n`;
+            });
+            formattedJS += '    }';
+
+            codeBlock.innerText = formattedJS;
+            modal.style.display = 'flex';
+        }
+
+        function closeExportModal() {
+            document.getElementById('export-modal').style.display = 'none';
+        }
+
+        function copyExportedCode() {
+            const codeBlock = document.getElementById('export-code-block');
+            navigator.clipboard.writeText(codeBlock.innerText)
+                .then(() => {
+                    alert('Japanese translation block copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Could not copy text: ', err);
+                });
+        }
+
+        // Save translations in localStorage of this page
+        function saveChanges() {
+            // Update global TRANSLATIONS object inside this page lifecycle
+            TRANSLATIONS.ja = { ...workingJaTranslations };
+            
+            // Prepare code structure to inject into translations.js
+            let fullJSFileCode = '';
+            
+            alert('Translations saved locally in browser memory! To apply them to your files, click "Export JS Block", copy the code, and paste it into "translations.js".');
+        }
+    </script>
+</body>
+</html>
