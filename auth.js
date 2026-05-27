@@ -721,11 +721,80 @@ export function previewAvatarFile(input, previewImgId = 'avatar-preview', fileNa
 }
 
 /**
+ * Compress and resize an image file using HTML5 Canvas
+ * @param {File|Blob} file The input image file
+ * @param {number} maxDim Maximum width or height
+ * @param {number} quality JPEG quality (0.0 to 1.0)
+ * @returns {Promise<Blob>} The compressed JPEG blob
+ */
+function compressImage(file, maxDim = 512, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        if (!file.type.startsWith('image/')) {
+            return resolve(file);
+        }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxDim) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    }
+                } else {
+                    if (height > maxDim) {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject(new Error('Canvas toBlob returned null'));
+                        }
+                    },
+                    'image/jpeg',
+                    quality
+                );
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
+}
+
+/**
  * Upload player avatar to Supabase Storage
  */
 async function uploadPlayerAvatar(file, customUserId = null) {
     try {
-        const fileExt = file.name.split('.').pop();
+        console.log('Original avatar file size:', (file.size / 1024).toFixed(1), 'KB');
+        
+        let fileToUpload = file;
+        try {
+            fileToUpload = await compressImage(file, 512, 0.8);
+            console.log('Compressed avatar file size:', (fileToUpload.size / 1024).toFixed(1), 'KB');
+        } catch (compressErr) {
+            console.warn('Image compression failed, uploading original:', compressErr);
+        }
+
+        const fileExt = 'jpg'; // Always upload as jpg after compression
         const userId = customUserId || (state.user ? state.user.id : 'unknown');
         const fileName = `${userId}_${Date.now()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
@@ -734,9 +803,10 @@ async function uploadPlayerAvatar(file, customUserId = null) {
 
         const { data, error } = await _supabase.storage
             .from('event-images')
-            .upload(filePath, file, {
+            .upload(filePath, fileToUpload, {
                 cacheControl: '3600',
-                upsert: false
+                upsert: false,
+                contentType: 'image/jpeg'
             });
 
         if (error) {
