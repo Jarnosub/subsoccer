@@ -3,21 +3,47 @@ exports.handler = async function(event, context) {
     
     // Netlify adds these geo headers automatically to incoming requests
     const ip = headers['x-nf-client-connection-ip'] || '';
-    const city = headers['x-city'] || '';
-    const country = headers['x-country'] || '';
-    const region = headers['x-region'] || '';
-    const timezone = headers['x-timezone'] || '';
+    let city = headers['x-city'] || '';
+    let country = headers['x-country'] || '';
+    let region = headers['x-region'] || '';
+    let timezone = headers['x-timezone'] || '';
+
+    // Decode x-nf-geo if present (Netlify passes geolocation data as a Base64-encoded JSON string)
+    const geoHeader = headers['x-nf-geo'];
+    if (geoHeader) {
+        try {
+            const geoData = JSON.parse(Buffer.from(geoHeader, 'base64').toString('utf-8'));
+            if (geoData) {
+                if (geoData.city) city = geoData.city;
+                if (geoData.country) {
+                    country = typeof geoData.country === 'object' ? geoData.country.code : geoData.country;
+                }
+                if (geoData.subdivision) {
+                    region = typeof geoData.subdivision === 'object' ? geoData.subdivision.code : geoData.subdivision;
+                }
+                if (geoData.timezone) timezone = geoData.timezone;
+            }
+        } catch (e) {
+            // Ignore parse errors, fall back to default headers
+        }
+    }
 
     // Netlify header strings are URL-encoded if they contain special characters (like Scandinavian letters)
     let decodedCity = city;
     try {
         if (city) {
-            decodedCity = decodeURIComponent(escape(city)); 
+            if (city.includes('%')) {
+                decodedCity = decodeURIComponent(city);
+            } else {
+                try {
+                    decodedCity = decodeURIComponent(escape(city)); 
+                } catch (e) {
+                    decodedCity = decodeURIComponent(city);
+                }
+            }
         }
     } catch (e) {
-        try {
-            decodedCity = decodeURIComponent(city);
-        } catch (err) {}
+        decodedCity = city;
     }
 
     return {
