@@ -240,8 +240,27 @@ export async function populateCountries() {
 }
 
 function renderCountryOptions(select, countries) {
+    // Custom order matching the user's exact specification
+    const order = ['fi', 'us', 'gb', 'sg', 'ph', 'id', 'de', 'cz', 'cs', 'cn', 'dk', 'fr', 'no', 'in', 'az', 'hk', 'mx', 'tr', 'ca', 'se', 'es', 'ja', 'jp', 'vi'];
+
+    // Sort according to custom order array, then fallback to alphabetical
+    const sorted = [...countries].sort((a, b) => {
+        const codeA = a.code.toLowerCase();
+        const codeB = b.code.toLowerCase();
+        let idxA = order.indexOf(codeA);
+        let idxB = order.indexOf(codeB);
+        
+        if (idxA === -1) idxA = 999;
+        if (idxB === -1) idxB = 999;
+        
+        if (idxA !== idxB) {
+            return idxA - idxB;
+        }
+        return a.name.localeCompare(b.name);
+    });
+
     select.innerHTML = '<option value="" disabled selected>Select Country</option>';
-    countries.forEach(c => {
+    sorted.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.code.toLowerCase();
         opt.innerText = c.name;
