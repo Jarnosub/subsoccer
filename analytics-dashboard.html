@@ -1662,6 +1662,9 @@
 
             grid.innerHTML = players.map(p => {
                 const hasAvatar = p.avatar_url && p.avatar_url.length > 5;
+                const optAvatarUrl = (hasAvatar && p.avatar_url.includes('supabase.co/storage/v1/object/public/'))
+                    ? p.avatar_url.split('?')[0].replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + '?width=80&height=80&resize=cover&quality=80'
+                    : p.avatar_url;
                 const name = (p.username || 'UNKNOWN').toUpperCase();
                 const elo = p.elo || 1300;
                 const matches = (p.wins || 0) + (p.losses || 0);
@@ -1671,7 +1674,7 @@
                 return `
                     <div style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--bg-base); border:1px solid var(--border-color); border-radius:8px; transition:0.2s;" onmouseover="this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.borderColor='var(--border-color)'">
                         ${hasAvatar 
-                            ? `<img src="${p.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; flex-shrink:0; border:2px solid var(--border-color);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            ? `<img src="${optAvatarUrl}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; flex-shrink:0; border:2px solid var(--border-color);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                <div style="display:none; width:40px; height:40px; border-radius:50%; background:rgba(242,139,130,0.15); align-items:center; justify-content:center; flex-shrink:0; color:var(--accent-red); font-size:0.8rem;"><i class="fas fa-image-slash"></i></div>`
                             : `<div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#555; font-size:0.9rem;"><i class="fas fa-user"></i></div>`
                         }
