@@ -40,8 +40,11 @@ export async function viewPlayerCard(targetUsername) {
     const losses = p.losses || 0;
     const ratio = losses > 0 ? (wins / losses).toFixed(2) : (wins > 0 ? "1.00" : "0.00");
     const rank = p.elo > 1600 ? "PRO" : "ROOKIE";
+    const baseAvatarUrl = (p.avatar_url && p.avatar_url.trim() !== '') ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
+    const avatarUrl = (baseAvatarUrl.includes('supabase.co/storage/v1/object/public/'))
+        ? baseAvatarUrl.split('?')[0].replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + '?width=512&height=512&resize=cover&quality=85'
+        : baseAvatarUrl;
     const cardHeader = state.brand ? "PARTNER" : rank;
-    const avatarUrl = (p.avatar_url && p.avatar_url.trim() !== '') ? p.avatar_url : 'placeholder-silhouette-5-wide.png';
     const rookieClass = (wins + losses) < 5 ? 'status-rookie' : '';
 
     let historyHtml = '';

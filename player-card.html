@@ -1040,7 +1040,10 @@
 
             if (player.avatar_url) {
                 const photo = document.getElementById('pc-card-photo');
-                photo.src = player.avatar_url;
+                const optAvatarUrl = (player.avatar_url.includes('supabase.co/storage/v1/object/public/'))
+                    ? player.avatar_url.split('?')[0].replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + '?width=512&height=512&resize=cover&quality=85'
+                    : player.avatar_url;
+                photo.src = optAvatarUrl;
                 photo.style.display = 'block';
                 document.getElementById('pc-card-icon').style.display = 'none';
 
@@ -1240,7 +1243,10 @@
                 opt.setAttribute('data-avatar-url', url);
                 opt.setAttribute('data-custom', 'true');
                 opt.onclick = function() { selectAvatar(this); };
-                opt.innerHTML = `<img src="${url}?v=${Date.now()}" alt="Custom Avatar" style="border-radius:8px;">`;
+                const optUrl = (url.includes('supabase.co/storage/v1/object/public/'))
+                    ? url.split('?')[0].replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + `?width=150&height=150&resize=cover&quality=80&v=${Date.now()}`
+                    : `${url}?v=${Date.now()}`;
+                opt.innerHTML = `<img src="${optUrl}" alt="Custom Avatar" style="border-radius:8px;">`;
                 track.insertBefore(opt, track.firstChild);
             });
 
