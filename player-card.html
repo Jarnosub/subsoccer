@@ -1854,9 +1854,39 @@
         async function loadCountries() {
             try {
                 const sb = getSb();
-                const { data } = await sb.from('countries').select('name, code').order('name');
+                const { data } = await sb.from('countries').select('name, code');
                 const sel = document.getElementById('pc-edit-country');
                 if (data) {
+                    // Country usage stats (based on telemetry logs)
+                    const usageStats = {
+                        'fi': 1519, 'us': 743, 'gb': 507, 'sg': 437, 'ph': 289,
+                        'id': 247, 'de': 187, 'fr': 143, 'cz': 138, 'cn': 125,
+                        'dk': 119, 'no': 94, 'in': 67, 'az': 56, 'hk': 47,
+                        'mx': 43, 'tr': 38, 'ca': 33, 'se': 26, 'es': 24,
+                        'jp': 21, 'vn': 20, 'be': 19, 'ch': 13, 'lb': 12,
+                        'pt': 11, 'hu': 10, 'br': 9, 'nl': 9, 'gh': 9,
+                        'ao': 9, 'ie': 8, 'it': 7, 'lv': 7, 'kr': 7,
+                        'is': 7, 'ae': 6, 'eg': 6, 'ke': 6, 'jo': 6,
+                        'pl': 5, 'co': 5, 'qa': 4, 'mt': 3, 'bg': 3,
+                        'ng': 3, 'ua': 2, 'kz': 2, 'uy': 1, 'tw': 1
+                    };
+                    
+                    // Sort first by usage count descending, then alphabetically
+                    data.sort((a, b) => {
+                        const codeA = a.code.toLowerCase();
+                        const codeB = b.code.toLowerCase();
+                        const usageA = usageStats[codeA] || 0;
+                        const usageB = usageStats[codeB] || 0;
+                        
+                        if (usageA !== usageB) {
+                            return usageB - usageA; // Descending usage
+                        }
+                        return a.name.localeCompare(b.name);
+                    });
+
+                    // Clear existing dynamic options to prevent duplicates
+                    sel.innerHTML = '<option value="" disabled selected data-i18n="pc_select_country">SELECT COUNTRY</option>';
+                    
                     data.forEach(c => {
                         const opt = document.createElement('option');
                         opt.value = c.code.toLowerCase();
