@@ -304,6 +304,12 @@
 
             <!-- Signup (if not logged in) -->
             <div id="community-signup">
+                <button type="button" class="btn-secondary" onclick="signUpWithGoogle()" style="margin-bottom: 25px; padding: 14px; position: relative;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); height: 20px;">
+                    <span style="font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px;">CONTINUE WITH GOOGLE</span>
+                </button>
+                <div class="auth-divider"><hr><span>or use email</span><hr></div>
+
                 <div class="form-group">
                     <label>Username</label>
                     <input type="text" id="comm-username" placeholder="Your player name" autocapitalize="characters">
@@ -324,6 +330,12 @@
 
             <!-- Login (if not logged in) -->
             <div id="community-login" style="display:none;">
+                <button type="button" class="btn-secondary" onclick="signUpWithGoogle()" style="margin-bottom: 25px; padding: 14px; position: relative;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); height: 20px;">
+                    <span style="font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px;">CONTINUE WITH GOOGLE</span>
+                </button>
+                <div class="auth-divider"><hr><span>or use email</span><hr></div>
+
                 <div class="form-group">
                     <label>Email</label>
                     <input type="text" id="comm-login-user" placeholder="your@email.com">
@@ -422,7 +434,21 @@
                 const { data: { session } } = await _supabase.auth.getSession();
                 if (session?.user) {
                     const { data: player } = await _supabase.from('players').select('*').eq('id', session.user.id).maybeSingle();
-                    if (player) currentUser = player;
+                    if (player) {
+                        currentUser = player;
+                    } else {
+                        const newName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+                        await _supabase.from('players').upsert({
+                            id: session.user.id,
+                            username: newName,
+                            display_name: newName,
+                            email: session.user.email,
+                            elo: 1300,
+                            wins: 0,
+                            losses: 0
+                        }, { onConflict: 'id' });
+                        currentUser = { id: session.user.id, username: newName };
+                    }
                 }
             } catch (e) { console.warn('Auth check:', e); }
         }
@@ -793,6 +819,18 @@
                 document.getElementById('product-badge').style.display = 'none';
                 showView('view-success');
             } catch (err) { showCommunityStatus('Failed to add location: ' + err.message, 'error'); }
+        }
+        async function signUpWithGoogle() {
+            try {
+                const { error } = await _supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.href }
+                });
+                if (error) throw error;
+            } catch (e) {
+                console.error("Google login error:", e);
+                alert("Google login failed.");
+            }
         }
     </script>
 </body>
