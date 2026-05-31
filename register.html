@@ -791,6 +791,21 @@
                 }
             }
 
+            // Fallback geocoding if lat/lng is missing but we have locationText
+            if (!communityLat && !communityLng && locationText) {
+                try {
+                    showCommunityStatus('Looking up address coordinates...', 'success');
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText)}`);
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        communityLat = parseFloat(data[0].lat);
+                        communityLng = parseFloat(data[0].lon);
+                    }
+                } catch (e) {
+                    console.warn("Geocoding failed:", e);
+                }
+            }
+
             // Insert community location
             try {
                 showCommunityStatus('Adding location...', 'success');

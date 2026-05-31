@@ -235,10 +235,31 @@
             btn.disabled = true;
 
             try {
-                const { error } = await sb.from('games').update({
+                let lat = undefined;
+                let lon = undefined;
+                if (newLoc) {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(newLoc)}`);
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            lat = parseFloat(data[0].lat);
+                            lon = parseFloat(data[0].lon);
+                        }
+                    } catch (e) {
+                        console.warn("Geocoding failed:", e);
+                    }
+                }
+
+                const updatePayload = {
                     game_name: newName,
                     location: newLoc
-                }).eq('id', currentEditId);
+                };
+                if (lat !== undefined && lon !== undefined) {
+                    updatePayload.latitude = lat;
+                    updatePayload.longitude = lon;
+                }
+
+                const { error } = await sb.from('games').update(updatePayload).eq('id', currentEditId);
 
                 if (error) throw error;
                 
