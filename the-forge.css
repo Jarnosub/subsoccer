@@ -18,7 +18,7 @@
 }
 
 :root {
-    --global-bg: url('subsoccer-teams-ny.jpg');
+    --global-bg: url('subsoccer-teams-ny.jpg?v=2');
     --subsoccer-red: #c41e2a;
     --subsoccer-gold: #FFD700;
 }
