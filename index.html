@@ -330,24 +330,9 @@
             position: relative;
         }
 
-        .content-image::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60%;
-            background: linear-gradient(to bottom, transparent, var(--page-bg));
-            pointer-events: none;
-        }
-
         @media (min-width: 600px) {
             .content-image {
                 border-radius: 12px;
-            }
-
-            .content-image::after {
-                border-radius: 0 0 12px 12px;
             }
         }
 
