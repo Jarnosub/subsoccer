@@ -624,13 +624,29 @@
 
             <!-- ROW 2 -->
             <div class="kpi-grid">
-                <div class="kpi-card">
+                <div class="kpi-card" style="position: relative; cursor: pointer; transition: border-color 0.2s;" onmouseover="this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="toggleLanguagesDropdown(event)">
                     <div class="kpi-header">
                         <span>LANGUAGE BREAKDOWN</span>
                         <i class="fas fa-language" style="color: var(--accent-blue);"></i>
                     </div>
-                    <div class="kpi-value" id="kpi-language" style="font-size: 1.15rem; line-height: 1.4;">N/A</div>
+                    <div style="display: flex; align-items: baseline; gap: 8px;">
+                        <div class="kpi-value" id="kpi-language" style="font-size: 1.15rem; line-height: 1.4;">N/A</div>
+                        <span style="font-size: 0.8rem; color: var(--accent-blue); display: flex; align-items: center; gap: 3px;">
+                            view list <i class="fas fa-chevron-down" id="languages-chevron" style="font-size: 0.7rem; transition: transform 0.2s;"></i>
+                        </span>
+                    </div>
                     <div class="kpi-trend" style="color: #888;"><i class="fas fa-globe"></i> Active languages used</div>
+
+                    <!-- Custom Languages Dropdown Container -->
+                    <div id="languages-dropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; max-height: 300px; background: rgba(43, 45, 49, 0.98); backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 8px; z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.6); margin-top: 5px; flex-direction: column; overflow: hidden;" onclick="event.stopPropagation()">
+                        <div style="padding: 8px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; background: rgba(0,0,0,0.2);">
+                            <i class="fas fa-search" style="color: var(--text-secondary); font-size: 0.8rem; margin-right: 6px;"></i>
+                            <input type="text" id="language-search-input" placeholder="Search country..." oninput="filterLanguagesDropdown()" style="background: transparent; border: none; color: var(--text-primary); font-size: 0.8rem; outline: none; width: 100%;" onclick="event.stopPropagation()">
+                        </div>
+                        <div id="languages-list-container" style="overflow-y: auto; padding: 6px 0; flex: 1;">
+                            <!-- Languages will be loaded here -->
+                        </div>
+                    </div>
                 </div>
 
                 <div class="kpi-card">
@@ -985,7 +1001,108 @@
                 return `${countryFlag} ${countryName} / ${city}`;
             }
             
-            return city || loc;
+        }
+
+        function getCountryFromBrowserLang(browserLang) {
+            if (!browserLang) return null;
+            
+            let cleanLang = browserLang.trim();
+            if (cleanLang.includes('FBLC/')) {
+                const match = cleanLang.match(/FBLC\/([a-zA-Z_-]+)/);
+                if (match) cleanLang = match[1];
+            } else if (cleanLang.includes(';')) {
+                const match = cleanLang.match(/\b([a-z]{2}[_-][a-zA-Z]{2,4})\b/);
+                if (match) cleanLang = match[1];
+            }
+
+            const normalized = cleanLang.replace('_', '-').trim();
+            const parts = normalized.split('-');
+            const lang = parts[0].toLowerCase();
+            const region = parts.length > 1 ? parts[1].toUpperCase() : '';
+            
+            const REGION_MAPPINGS = {
+                'FI': { name: 'Finland', flag: '🇫🇮' },
+                'GB': { name: 'United Kingdom', flag: '🇬🇧' },
+                'US': { name: 'United States', flag: '🇺🇸' },
+                'SG': { name: 'Singapore', flag: '🇸🇬' },
+                'DE': { name: 'Germany', flag: '🇩🇪' },
+                'CZ': { name: 'Czechia', flag: '🇨🇿' },
+                'FR': { name: 'France', flag: '🇫🇷' },
+                'NO': { name: 'Norway', flag: '🇳🇴' },
+                'ID': { name: 'Indonesia', flag: '🇮🇩' },
+                'DK': { name: 'Denmark', flag: '🇩🇰' },
+                'CN': { name: 'China', flag: '🇨🇳' },
+                'IN': { name: 'India', flag: '🇮🇳' },
+                'TR': { name: 'Turkey', flag: '🇹🇷' },
+                'HK': { name: 'Hong Kong', flag: '🇭🇰' },
+                'SE': { name: 'Sweden', flag: '🇸🇪' },
+                'CA': { name: 'Canada', flag: '🇨🇦' },
+                'BR': { name: 'Brazil', flag: '🇧🇷' },
+                'TW': { name: 'Taiwan', flag: '🇹🇼' },
+                'MX': { name: 'Mexico', flag: '🇲🇽' },
+                'VN': { name: 'Vietnam', flag: '🇻🇳' },
+                'RU': { name: 'Russia', flag: '🇷🇺' },
+                'HU': { name: 'Hungary', flag: '🇭🇺' },
+                'IT': { name: 'Italy', flag: '🇮🇹' },
+                'NL': { name: 'Netherlands', flag: '🇳🇱' },
+                'KR': { name: 'South Korea', flag: '🇰🇷' },
+                'PL': { name: 'Poland', flag: '🇵🇱' },
+                'IS': { name: 'Iceland', flag: '🇮🇸' },
+                'AZ': { name: 'Azerbaijan', flag: '🇦🇿' },
+                'BG': { name: 'Bulgaria', flag: '🇧🇬' },
+                'IL': { name: 'Israel', flag: '🇮🇱' },
+                'UA': { name: 'Ukraine', flag: '🇺🇦' },
+                'BE': { name: 'Belgium', flag: '🇧🇪' },
+                'CH': { name: 'Switzerland', flag: '🇨🇭' },
+                'AT': { name: 'Austria', flag: '🇦🇹' },
+                'AU': { name: 'Australia', flag: '🇦🇺' },
+                'ZA': { name: 'South Africa', flag: '🇿🇦' },
+                'IE': { name: 'Ireland', flag: '🇮🇪' },
+                'PH': { name: 'Philippines', flag: '🇵🇭' },
+                'MY': { name: 'Malaysia', flag: '🇲🇾' },
+                'GR': { name: 'Greece', flag: '🇬🇷' },
+                'ME': { name: 'Montenegro', flag: '🇲🇪' },
+                'QA': { name: 'Qatar', flag: '🇶🇦' }
+            };
+            
+            if (region && REGION_MAPPINGS[region]) {
+                return REGION_MAPPINGS[region];
+            }
+            
+            const LANG_MAPPINGS = {
+                'fi': { name: 'Finland', flag: '🇫🇮' },
+                'en': { name: 'United Kingdom', flag: '🇬🇧' },
+                'de': { name: 'Germany', flag: '🇩🇪' },
+                'fr': { name: 'France', flag: '🇫🇷' },
+                'zh': { name: 'China', flag: '🇨🇳' },
+                'ja': { name: 'Japan', flag: '🇯🇵' },
+                'es': { name: 'Spain', flag: '🇪🇸' },
+                'tr': { name: 'Turkey', flag: '🇹🇷' },
+                'da': { name: 'Denmark', flag: '🇩🇰' },
+                'cs': { name: 'Czechia', flag: '🇨🇿' },
+                'pt': { name: 'Portugal', flag: '🇵🇹' },
+                'it': { name: 'Italy', flag: '🇮🇹' },
+                'sv': { name: 'Sweden', flag: '🇸🇪' },
+                'nl': { name: 'Netherlands', flag: '🇳🇱' },
+                'pl': { name: 'Poland', flag: '🇵🇱' },
+                'ro': { name: 'Romania', flag: '🇷🇴' },
+                'uk': { name: 'Ukraine', flag: '🇺🇦' },
+                'no': { name: 'Norway', flag: '🇳🇴' },
+                'nb': { name: 'Norway', flag: '🇳🇴' },
+                'id': { name: 'Indonesia', flag: '🇮🇩' },
+                'ru': { name: 'Russia', flag: '🇷🇺' },
+                'hu': { name: 'Hungary', flag: '🇭🇺' },
+                'ko': { name: 'South Korea', flag: '🇰🇷' },
+                'vi': { name: 'Vietnam', flag: '🇻🇳' },
+                'bg': { name: 'Bulgaria', flag: '🇧🇬' },
+                'he': { name: 'Israel', flag: '🇮🇱' }
+            };
+            
+            if (LANG_MAPPINGS[lang]) {
+                return LANG_MAPPINGS[lang];
+            }
+            
+            return { name: region || lang.toUpperCase() || 'Unknown', flag: '🌐' };
         }
 
         // Chart.js global defaults
@@ -1165,12 +1282,28 @@
                 };
                 const langCounts = {};
                 let totalLangCount = 0;
+                globalLanguageCountryCounts = {}; // Reset
+
                 trackingData.forEach(d => {
                     if (d.browser_lang) {
                         let lang = d.browser_lang.split('-')[0].toLowerCase().trim();
                         if (lang === 'no') lang = 'nb';
                         langCounts[lang] = (langCounts[lang] || 0) + 1;
                         totalLangCount++;
+
+                        // Aggregate by country name for the dropdown
+                        const countryInfo = getCountryFromBrowserLang(d.browser_lang);
+                        if (countryInfo) {
+                            const cName = countryInfo.name;
+                            if (!globalLanguageCountryCounts[cName]) {
+                                globalLanguageCountryCounts[cName] = {
+                                    name: cName,
+                                    flag: countryInfo.flag,
+                                    count: 0
+                                };
+                            }
+                            globalLanguageCountryCounts[cName].count++;
+                        }
                     }
                 });
 
@@ -1905,6 +2038,7 @@
 
         // Cities Dropdown Logic (Hierarchical Grouped by Country)
         let globalCountryGroups = {};
+        let globalLanguageCountryCounts = {};
 
         function toggleCitiesDropdown(event) {
             event.stopPropagation();
@@ -1913,6 +2047,7 @@
             const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
             
             if (isHidden) {
+                closeLanguagesDropdown();
                 dropdown.style.display = 'flex';
                 chevron.style.transform = 'rotate(180deg)';
                 renderCitiesDropdownList('');
@@ -2029,12 +2164,97 @@
             renderCitiesDropdownList(query);
         }
 
+        // Languages Dropdown Logic
+        function toggleLanguagesDropdown(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('languages-dropdown');
+            const chevron = document.getElementById('languages-chevron');
+            const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+            
+            if (isHidden) {
+                closeCitiesDropdown();
+                dropdown.style.display = 'flex';
+                chevron.style.transform = 'rotate(180deg)';
+                renderLanguagesDropdownList('');
+                document.getElementById('language-search-input').value = '';
+                document.getElementById('language-search-input').focus();
+            } else {
+                closeLanguagesDropdown();
+            }
+        }
+
+        function closeLanguagesDropdown() {
+            const dropdown = document.getElementById('languages-dropdown');
+            const chevron = document.getElementById('languages-chevron');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+            if (chevron) {
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function renderLanguagesDropdownList(searchQuery = '') {
+            const container = document.getElementById('languages-list-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            const query = searchQuery.toLowerCase().trim();
+            
+            const sortedLanguageCountries = Object.values(globalLanguageCountryCounts)
+                .sort((a, b) => b.count - a.count);
+                
+            let hasMatches = false;
+            
+            sortedLanguageCountries.forEach(country => {
+                if (query && !country.name.toLowerCase().includes(query)) return;
+                
+                hasMatches = true;
+                
+                const row = document.createElement('div');
+                row.style.padding = '8px 12px';
+                row.style.fontSize = '0.8rem';
+                row.style.color = 'var(--text-secondary)';
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.justifyContent = 'space-between';
+                row.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
+                row.onmouseover = () => row.style.backgroundColor = 'rgba(255,255,255,0.02)';
+                row.onmouseout = () => row.style.backgroundColor = 'transparent';
+                
+                row.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1rem;">${country.flag}</span>
+                        <span style="color: #fff; font-weight: 500;">${country.name}</span>
+                    </div>
+                    <span style="color: var(--accent-blue); font-weight: bold; font-size: 0.85rem;">${country.count}</span>
+                `;
+                container.appendChild(row);
+            });
+            
+            if (!hasMatches) {
+                container.innerHTML = '<div style="padding: 16px; color: var(--text-secondary); font-size: 0.8rem; text-align: center;">No matches found</div>';
+            }
+        }
+
+        function filterLanguagesDropdown() {
+            const query = document.getElementById('language-search-input').value;
+            renderLanguagesDropdownList(query);
+        }
+
         window.addEventListener('click', function(e) {
-            const dropdown = document.getElementById('cities-dropdown');
-            if (dropdown && dropdown.style.display === 'flex') {
+            const citiesDropdown = document.getElementById('cities-dropdown');
+            if (citiesDropdown && citiesDropdown.style.display === 'flex') {
                 const card = document.querySelector('.kpi-card[onclick*="toggleCitiesDropdown"]');
                 if (card && !card.contains(e.target)) {
                     closeCitiesDropdown();
+                }
+            }
+            const languagesDropdown = document.getElementById('languages-dropdown');
+            if (languagesDropdown && languagesDropdown.style.display === 'flex') {
+                const card = document.querySelector('.kpi-card[onclick*="toggleLanguagesDropdown"]');
+                if (card && !card.contains(e.target)) {
+                    closeLanguagesDropdown();
                 }
             }
         });
