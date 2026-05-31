@@ -1263,9 +1263,22 @@
                     if (data && data.length > 0) {
                         let cities = [...new Set(data.map(ev => {
                             if (!ev.location) return null;
-                            const parts = ev.location.split('/');
-                            let city = parts.length > 1 ? parts[parts.length - 1] : ev.location;
-                            // Timezone locations often have underscores, e.g., Los_Angeles
+                            const loc = ev.location;
+                            let city;
+                            if (loc.includes('(')) {
+                                // New format: "Espoo, FI (Europe/Helsinki)"
+                                const commaIndex = loc.indexOf(',');
+                                if (commaIndex > -1) {
+                                    city = loc.substring(0, commaIndex).trim();
+                                } else {
+                                    const parenIndex = loc.indexOf('(');
+                                    city = loc.substring(0, parenIndex).trim();
+                                }
+                            } else {
+                                // Old format: "Europe/Espoo"
+                                const parts = loc.split('/');
+                                city = parts.length > 1 ? parts[parts.length - 1] : loc;
+                            }
                             return city.replace(/_/g, ' ').toUpperCase();
                         }).filter(Boolean))];
 
