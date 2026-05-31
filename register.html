@@ -121,10 +121,10 @@
         <i class="fa-solid fa-arrow-left"></i>
     </button>
 
-    <div class="reg-header">
+    <div class="reg-header" id="reg-header-main">
         <img src="subsoccer_logo.svg" alt="Subsoccer" style="cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
-        <h1 data-i18n="register_your_product">REGISTER YOUR PRODUCT</h1>
-        <p data-i18n="register_product_desc">Enter the serial number from your product sticker to activate your warranty and digital features.</p>
+        <h1 style="font-size: 1.8rem;">ADD TO THE NETWORK</h1>
+        <p style="line-height: 1.6;">Register your product or add a game location to the Subsoccer map.</p>
     </div>
 
     <!-- Product Badge (shown after serial validated) -->
@@ -136,8 +136,31 @@
         </div>
     </div>
 
+    <!-- VIEW 0: CHOOSE PATH -->
+    <div class="view active" id="view-choose">
+        <div class="reg-form" style="gap: 12px;">
+            <div onclick="showSerialFlow()" style="background: #1a1a1a; border: 1px solid #333; border-radius: var(--sub-radius); padding: 22px 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 16px;" onmouseenter="this.style.borderColor='var(--sub-gold)'" onmouseleave="this.style.borderColor='#333'">
+                <i class="fa-solid fa-barcode" style="font-size: 1.5rem; color: var(--sub-gold); flex-shrink: 0;"></i>
+                <div>
+                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.95rem; color: #fff; letter-spacing: 1px; margin-bottom: 4px;">I HAVE A SERIAL NUMBER</div>
+                    <div style="font-size: 0.75rem; color: #666; line-height: 1.4;">Register your own Subsoccer product with the code from the sticker.</div>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color: #444; flex-shrink: 0;"></i>
+            </div>
+
+            <div onclick="startCommunityFlow()" style="background: #1a1a1a; border: 1px solid #333; border-radius: var(--sub-radius); padding: 22px 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 16px;" onmouseenter="this.style.borderColor='var(--sub-red)'" onmouseleave="this.style.borderColor='#333'">
+                <i class="fa-solid fa-location-dot" style="font-size: 1.5rem; color: var(--sub-red); flex-shrink: 0;"></i>
+                <div>
+                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.95rem; color: #fff; letter-spacing: 1px; margin-bottom: 4px;">I KNOW WHERE THERE'S A TABLE</div>
+                    <div style="font-size: 0.75rem; color: #666; line-height: 1.4;">Add a game location to the map – bar, school, office, anywhere.</div>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color: #444; flex-shrink: 0;"></i>
+            </div>
+        </div>
+    </div>
+
     <!-- VIEW 1: ENTER SERIAL NUMBER -->
-    <div class="view active" id="view-serial">
+    <div class="view" id="view-serial">
         <div class="step-indicator">
             <div class="step active" data-i18n="step_enter_code">1. Enter code</div>
             <div class="step" data-i18n="step_details">2. Your details</div>
@@ -160,6 +183,8 @@
             <button class="btn-primary" id="btn-validate" onclick="validateSerial()">
                 <i class="fa-solid fa-arrow-right" style="margin-right: 8px;"></i><span data-i18n="continue_button">CONTINUE</span>
             </button>
+
+            <button class="btn-secondary" onclick="showView('view-choose')" style="margin-top: 5px;">← Back</button>
 
             <div class="status-msg" id="serial-status"></div>
         </div>
@@ -249,6 +274,91 @@
             </div>
 
             <div class="status-msg" id="account-status"></div>
+        </div>
+    </div>
+
+    <!-- VIEW: COMMUNITY LOCATION -->
+    <div class="view" id="view-community">
+        <div class="step-indicator">
+            <div class="step done">1. Type ✓</div>
+            <div class="step active">2. Location details</div>
+            <div class="step">3. Done!</div>
+        </div>
+
+        <div class="product-badge" style="display: flex; border-color: var(--sub-red);">
+            <i class="fa-solid fa-location-dot badge-icon"></i>
+            <div class="badge-info">
+                <h3>Community Location</h3>
+                <p style="color: var(--sub-red);">ADD A TABLE TO THE MAP</p>
+            </div>
+        </div>
+
+        <div class="reg-form" id="community-form">
+            <!-- Logged-in state -->
+            <div id="community-logged-in" style="display:none;">
+                <div style="background:#1a1a1a; border:1px solid #333; border-radius:var(--sub-radius); padding:15px; text-align:center; margin-bottom:15px;">
+                    <div style="font-family: 'Resolve', sans-serif; font-size:0.7rem; color:#666; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px;">Logged in as</div>
+                    <div style="font-family:'Resolve', sans-serif; font-size:1.1rem; color:var(--sub-accent); letter-spacing: 1px;" id="community-logged-name">PLAYER</div>
+                </div>
+            </div>
+
+            <!-- Signup (if not logged in) -->
+            <div id="community-signup">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="comm-username" placeholder="Your player name" autocapitalize="characters">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="comm-email" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="comm-password" placeholder="Min 6 characters" minlength="6">
+                </div>
+                <div class="auth-divider"><hr><span>already have an account?</span><hr></div>
+                <button class="btn-secondary" onclick="showCommunityLogin()">
+                    <i class="fa-solid fa-right-to-bracket" style="margin-right: 6px;"></i>LOG IN INSTEAD
+                </button>
+            </div>
+
+            <!-- Login (if not logged in) -->
+            <div id="community-login" style="display:none;">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" id="comm-login-user" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="comm-login-pass" placeholder="Password">
+                </div>
+                <button class="btn-secondary" onclick="showCommunitySignup()">← Back to sign up</button>
+            </div>
+
+            <!-- Common fields: venue name + location -->
+            <div style="margin-top: 15px; border-top: 1px solid #222; padding-top: 20px;">
+                <div class="form-group">
+                    <label>Venue Name</label>
+                    <input type="text" id="comm-venue-name" placeholder="e.g. Kallio Bar, School Gym, Office">
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <div id="comm-location-status" style="font-size: 0.8rem; color: #666; margin-bottom: 8px;">
+                        <i class="fa-solid fa-crosshairs" style="margin-right: 5px;"></i>Click below to detect your location
+                    </div>
+                    <button class="btn-secondary" id="comm-detect-btn" onclick="detectCommunityLocation()" style="margin-top: 0; margin-bottom: 10px;">
+                        <i class="fa-solid fa-crosshairs" style="margin-right: 8px; color: var(--sub-red);"></i>DETECT MY LOCATION
+                    </button>
+                    <input type="text" id="comm-location-text" placeholder="e.g. Helsinki, Finland">
+                    <div class="form-hint">Auto-detected or type manually</div>
+                </div>
+            </div>
+
+            <button class="btn-gold" id="comm-submit-btn" onclick="submitCommunityLocation()">
+                <i class="fa-solid fa-map-pin" style="margin-right: 8px;"></i>ADD TO MAP
+            </button>
+
+            <div class="status-msg" id="community-status"></div>
         </div>
     </div>
 
@@ -518,6 +628,172 @@
         function showSignupForm() { document.getElementById('signup-section').style.display = 'block'; document.getElementById('login-section').style.display = 'none'; }
         function showSerialStatus(msg, type) { const el = document.getElementById('serial-status'); el.textContent = msg; el.className = 'status-msg ' + type; }
         function showAccountStatus(msg, type) { const el = document.getElementById('account-status'); el.textContent = msg; el.className = 'status-msg ' + type; }
+
+        // ============================================
+        // COMMUNITY LOCATION FLOW
+        // ============================================
+        let communityLat = null;
+        let communityLng = null;
+
+        function showSerialFlow() {
+            showView('view-serial');
+            document.getElementById('reg-serial').focus();
+        }
+
+        function startCommunityFlow() {
+            showView('view-community');
+            if (currentUser) {
+                document.getElementById('community-logged-in').style.display = 'block';
+                document.getElementById('community-signup').style.display = 'none';
+                document.getElementById('community-login').style.display = 'none';
+                document.getElementById('community-logged-name').textContent = currentUser.username;
+            }
+        }
+
+        function showCommunityLogin() {
+            document.getElementById('community-signup').style.display = 'none';
+            document.getElementById('community-login').style.display = 'block';
+        }
+
+        function showCommunitySignup() {
+            document.getElementById('community-signup').style.display = 'block';
+            document.getElementById('community-login').style.display = 'none';
+        }
+
+        function showCommunityStatus(msg, type) {
+            const el = document.getElementById('community-status');
+            el.textContent = msg;
+            el.className = 'status-msg ' + type;
+        }
+
+        async function detectCommunityLocation() {
+            const statusEl = document.getElementById('comm-location-status');
+            const btn = document.getElementById('comm-detect-btn');
+            btn.disabled = true;
+            statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i>Detecting location...';
+            statusEl.style.color = '#888';
+
+            if (!navigator.geolocation) {
+                statusEl.innerHTML = '<i class="fa-solid fa-xmark" style="margin-right: 5px; color: var(--sub-red);"></i>Geolocation not available. Type location manually.';
+                statusEl.style.color = 'var(--sub-red)';
+                btn.disabled = false;
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    communityLat = pos.coords.latitude;
+                    communityLng = pos.coords.longitude;
+                    statusEl.innerHTML = `<i class="fa-solid fa-check" style="margin-right: 5px; color: #4caf50;"></i>Location detected (${communityLat.toFixed(4)}, ${communityLng.toFixed(4)})`;
+                    statusEl.style.color = '#4caf50';
+                    btn.innerHTML = '<i class="fa-solid fa-check" style="margin-right: 8px;"></i>LOCATION DETECTED';
+                    btn.style.borderColor = '#4caf50';
+                    btn.style.color = '#4caf50';
+
+                    // Reverse geocode for city name
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${communityLat}&lon=${communityLng}`);
+                        const data = await res.json();
+                        if (data && data.address) {
+                            const city = data.address.city || data.address.town || data.address.village || data.address.municipality || '';
+                            const country = data.address.country || '';
+                            const locationText = [city, country].filter(Boolean).join(', ');
+                            document.getElementById('comm-location-text').value = locationText;
+                        }
+                    } catch (e) { /* reverse geocode failed, user can type manually */ }
+                },
+                (err) => {
+                    statusEl.innerHTML = '<i class="fa-solid fa-xmark" style="margin-right: 5px; color: var(--sub-red);"></i>Location denied. Type location manually.';
+                    statusEl.style.color = 'var(--sub-red)';
+                    btn.disabled = false;
+                },
+                { timeout: 8000, enableHighAccuracy: false }
+            );
+        }
+
+        async function submitCommunityLocation() {
+            const venueName = document.getElementById('comm-venue-name').value.trim();
+            const locationText = document.getElementById('comm-location-text').value.trim();
+
+            if (!venueName) { showCommunityStatus('Please enter a venue name.', 'error'); return; }
+            if (!locationText) { showCommunityStatus('Please detect or type a location.', 'error'); return; }
+
+            // Auth: signup or login if not logged in
+            if (!currentUser) {
+                const signupVisible = document.getElementById('community-signup').style.display !== 'none';
+                if (signupVisible) {
+                    const username = document.getElementById('comm-username').value.trim().toUpperCase();
+                    const email = document.getElementById('comm-email').value.trim();
+                    const password = document.getElementById('comm-password').value;
+                    if (!username || !email || !password) { showCommunityStatus('Please fill all account fields.', 'error'); return; }
+                    if (password.length < 6) { showCommunityStatus('Password must be at least 6 characters.', 'error'); return; }
+
+                    try {
+                        showCommunityStatus('Creating account...', 'success');
+                        const { data, error } = await _supabase.auth.signUp({
+                            email, password,
+                            options: { data: { username, display_name: username } }
+                        });
+                        if (error) {
+                            if (error.message.includes('already') || error.status === 422) {
+                                showCommunityStatus('Email already registered. Try logging in instead.', 'error'); return;
+                            }
+                            throw error;
+                        }
+                        if (data.user) {
+                            await _supabase.from('players').upsert({ id: data.user.id, username, email, elo: 1300, wins: 0, losses: 0 }, { onConflict: 'id' });
+                            currentUser = { id: data.user.id, username };
+                        }
+                    } catch (err) { showCommunityStatus('Error: ' + err.message, 'error'); return; }
+                } else {
+                    const userInput = document.getElementById('comm-login-user').value.trim();
+                    const password = document.getElementById('comm-login-pass').value;
+                    if (!userInput || !password) { showCommunityStatus('Please fill login fields.', 'error'); return; }
+
+                    try {
+                        showCommunityStatus('Logging in...', 'success');
+                        let email = userInput;
+                        if (!userInput.includes('@')) {
+                            const { data: player } = await _supabase.from('players').select('email').ilike('username', userInput).maybeSingle();
+                            if (player?.email) email = player.email;
+                        }
+                        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                        if (error) throw error;
+                        const { data: profile } = await _supabase.from('players').select('*').eq('id', data.user.id).maybeSingle();
+                        currentUser = profile || { id: data.user.id, username: userInput };
+                    } catch (err) { showCommunityStatus('Login failed: ' + err.message, 'error'); return; }
+                }
+            }
+
+            // Insert community location
+            try {
+                showCommunityStatus('Adding location...', 'success');
+                const { error } = await _supabase.from('games').insert([{
+                    unique_code: 'COMMUNITY-' + Date.now(),
+                    game_name: venueName,
+                    location: locationText,
+                    latitude: communityLat || null,
+                    longitude: communityLng || null,
+                    owner_id: currentUser.id,
+                    is_public: true,
+                    serial_number: null,
+                    verified: false,
+                    registered_at: new Date().toISOString()
+                }]);
+                if (error) throw error;
+
+                // Show success
+                document.getElementById('success-desc').innerHTML = `
+                    <strong>${venueName}</strong><br>
+                    <span style="color:#888">${locationText}</span><br><br>
+                    📍 Added by <strong>${currentUser.username}</strong>.<br>
+                    This location is now visible on the map!
+                `;
+                document.getElementById('btn-play-now').style.display = 'none';
+                document.getElementById('product-badge').style.display = 'none';
+                showView('view-success');
+            } catch (err) { showCommunityStatus('Failed to add location: ' + err.message, 'error'); }
+        }
     </script>
 </body>
 </html>

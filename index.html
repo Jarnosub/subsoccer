@@ -1144,10 +1144,7 @@
                 hubMap = L.map('public-game-map').setView([60.1699, 24.9384], 5);
                 hubMap.attributionControl.setPrefix(false);
                 
-                const isDark = document.body.classList.contains('dark-mode');
-                const tileUrl = isDark 
-                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+                const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
                 hubTileLayer = L.tileLayer(tileUrl, {
                     attribution: '&copy; CARTO',
@@ -1320,10 +1317,7 @@
 
             // Update map tiles dynamically if map is open
             if (typeof hubTileLayer !== 'undefined' && hubTileLayer) {
-                hubTileLayer.setUrl(isDark 
-                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-                );
+                hubTileLayer.setUrl('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png');
             }
         }
 

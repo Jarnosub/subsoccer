@@ -35,6 +35,10 @@ const TRANSLATIONS = {
         step_details: "2. Your details",
         step_details_done: "2. Your details ✓",
         step_done: "3. Done!",
+        register_have_serial: "I HAVE A SERIAL NUMBER",
+        register_know_location: "I KNOW WHERE THERE'S A TABLE",
+        register_community_title: "ADD A GAME LOCATION",
+        community_reported: "COMMUNITY REPORTED",
         pro_leagues: "PRO LEAGUES",
         give_feedback: "GIVE FEEDBACK",
         moderator_tools: "MODERATOR TOOLS",
@@ -643,6 +647,10 @@ const TRANSLATIONS = {
         step_details: "2. Tietosi",
         step_details_done: "2. Tietosi ✓",
         step_done: "3. Valmis!",
+        register_have_serial: "MINULLA ON SARJANUMERO",
+        register_know_location: "TIEDÄN MISSÄ ON PÖYTÄ",
+        register_community_title: "LISÄÄ PELIPAIKKA",
+        community_reported: "YHTEISÖN ILMOITTAMA",
         pro_leagues: "PRO-LIIGAT",
         give_feedback: "ANNA PALAUTETTA",
         moderator_tools: "MODERAATTORIN TYÖKALUT",
@@ -2419,3 +2427,33 @@ if (document.readyState === 'loading') {
 } else {
     updateHeaderFlag(currentLang);
 }
+
+// Dynamic translation keys for simplified registration custom toggle
+const newRegTranslations = {
+    en: { signup_customize_avatar: "Customize Avatar & AI (Optional)" },
+    fi: { signup_customize_avatar: "Muokkaa hahmoa & tekoälyä (Valinnainen)" },
+    de: { signup_customize_avatar: "Avatar & AI anpassen (Optional)" },
+    es: { signup_customize_avatar: "Personalizar avatar e IA (Opcional)" },
+    fr: { signup_customize_avatar: "Personnaliser l'avatar et l'IA (Optionnel)" },
+    sv: { signup_customize_avatar: "Anpassa avatar & AI (Valfritt)" },
+    nb: { signup_customize_avatar: "Legg til tilpasning (Valgfritt)" },
+    da: { signup_customize_avatar: "Tilpas avatar & AI (Valgfrit)" },
+    it: { signup_customize_avatar: "Personalizza Avatar e AI (Opzionale)" },
+    nl: { signup_customize_avatar: "Avatar & AI aanpassen (Optioneel)" },
+    pt: { signup_customize_avatar: "Personalizar avatar e IA (Opcional)" },
+    pl: { signup_customize_avatar: "Dostosuj awatara i AI (Opcjonalnie)" },
+    tr: { signup_customize_avatar: "Avatar ve AI Özelleştir (İsteğe Bağlı)" },
+    hu: { signup_customize_avatar: "Avatar és AI testreszabása (Opcionális)" },
+    cs: { signup_customize_avatar: "Přizpůsobit avatara a AI (Volitelné)" },
+    id: { signup_customize_avatar: "Sesuaikan Avatar & AI (Opsional)" },
+    vi: { signup_customize_avatar: "Tùy chỉnh Avatar & AI (Tùy chọn)" },
+    ja: { signup_customize_avatar: "アバターとAIをカスタマイズ（オプション）" },
+    zh: { signup_customize_avatar: "自定义头像与AI（可选）" }
+};
+
+for (const lang in newRegTranslations) {
+    if (TRANSLATIONS[lang]) {
+        Object.assign(TRANSLATIONS[lang], newRegTranslations[lang]);
+    }
+}
+
