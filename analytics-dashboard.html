@@ -903,7 +903,15 @@
             'Europe/Basingstoke': { name: 'United Kingdom', flag: '🇬🇧' },
             'America/El_Segundo': { name: 'United States', flag: '🇺🇸' },
             'Europe/Bracknell': { name: 'United Kingdom', flag: '🇬🇧' },
-            'Asia/San_Juan': { name: 'Philippines', flag: '🇵🇭' }
+            'Asia/San_Juan': { name: 'Philippines', flag: '🇵🇭' },
+            'America/Brooklyn': { name: 'United States', flag: '🇺🇸' },
+            'America/San_Diego': { name: 'United States', flag: '🇺🇸' },
+            'Asia/Pasig': { name: 'Philippines', flag: '🇵🇭' },
+            'Asia/Quezon_City': { name: 'Philippines', flag: '🇵🇭' },
+            'Europe/Espoo': { name: 'Finland', flag: '🇫🇮' },
+            'Europe/Islington': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Europe/Lambeth': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Europe/Portsmouth': { name: 'United Kingdom', flag: '🇬🇧' }
         };
 
         function parseLocation(locationStr) {
@@ -942,6 +950,42 @@
                 timezone: locationStr,
                 raw: locationStr
             };
+        }
+
+        function getDisplayLocation(loc) {
+            if (!loc || loc === 'Unknown') return 'Unknown';
+            const parsed = parseLocation(loc);
+            const countryInfo = TIMEZONE_TO_COUNTRY[loc] || TIMEZONE_TO_COUNTRY[parsed.timezone];
+            
+            let countryName = countryInfo ? countryInfo.name : '';
+            let countryFlag = countryInfo ? countryInfo.flag : '';
+            
+            if (!countryName && parsed.countryCode) {
+                const code = parsed.countryCode.trim().toUpperCase();
+                if (code === 'FI') { countryName = 'Finland'; countryFlag = '🇫🇮'; }
+                else if (code === 'US') { countryName = 'United States'; countryFlag = '🇺🇸'; }
+                else if (code === 'GB') { countryName = 'United Kingdom'; countryFlag = '🇬🇧'; }
+                else if (code === 'SG') { countryName = 'Singapore'; countryFlag = '🇸🇬'; }
+                else if (code === 'PH') { countryName = 'Philippines'; countryFlag = '🇵🇭'; }
+                else if (code === 'ID') { countryName = 'Indonesia'; countryFlag = '🇮🇩'; }
+                else if (code === 'DE') { countryName = 'Germany'; countryFlag = '🇩🇪'; }
+                else if (code === 'IL') { countryName = 'Israel'; countryFlag = '🇮🇱'; }
+                else if (code === 'ES') { countryName = 'Spain'; countryFlag = '🇪🇸'; }
+                else if (code === 'QA') { countryName = 'Qatar'; countryFlag = '🇶🇦'; }
+                else if (code === 'MY') { countryName = 'Malaysia'; countryFlag = '🇲🇾'; }
+                else if (code === 'GR') { countryName = 'Greece'; countryFlag = '🇬🇷'; }
+                else if (code === 'NL') { countryName = 'Netherlands'; countryFlag = '🇳🇱'; }
+                else if (code === 'ME') { countryName = 'Montenegro'; countryFlag = '🇲🇪'; }
+                else { countryName = code; countryFlag = '🌐'; }
+            }
+
+            const city = parsed.city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
+
+            if (countryName) {
+                return `${countryFlag} ${countryName} / ${city}`;
+            }
+            
+            return city || loc;
         }
 
         // Chart.js global defaults
@@ -1788,7 +1832,7 @@
                         fillOpacity: 0.6,
                         weight: 1.5,
                         radius: isFallback ? 4 : radius
-                    }).bindPopup(`<div style="color:black"><b>${loc}</b><br>${count} Events tracked</div>`).addTo(mymap);
+                    }).bindPopup(`<div style="color:black"><b>${getDisplayLocation(loc)}</b><br>${count} Events tracked</div>`).addTo(mymap);
                 }
             }
         }
