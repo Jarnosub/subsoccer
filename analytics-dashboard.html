@@ -872,7 +872,38 @@
             'America/Mexico_City': { name: 'Mexico', flag: '🇲🇽' },
             'Europe/Budapest': { name: 'Hungary', flag: '🇭🇺' },
             'Indian/Reunion': { name: 'Reunion', flag: '🇷🇪' },
-            'America/Indianapolis': { name: 'United States', flag: '🇺🇸' }
+            'America/Indianapolis': { name: 'United States', flag: '🇺🇸' },
+            'Europe/Vigo': { name: 'Spain', flag: '🇪🇸' },
+            'Europe/Athens': { name: 'Greece', flag: '🇬🇷' },
+            'Asia/Qatar': { name: 'Qatar', flag: '🇶🇦' },
+            'America/Minneapolis': { name: 'United States', flag: '🇺🇸' },
+            'Asia/East_Jakarta': { name: 'Indonesia', flag: '🇮🇩' },
+            'Asia/Mumbai': { name: 'India', flag: '🇮🇳' },
+            'Europe/Liverpool': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Europe/Glasgow': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Asia/Petaling_Jaya': { name: 'Malaysia', flag: '🇲🇾' },
+            'Asia/Central_Jakarta': { name: 'Indonesia', flag: '🇮🇩' },
+            'Europe/Leeds': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Europe/Birmingham': { name: 'United Kingdom', flag: '🇬🇧' },
+            'America/Henderson': { name: 'United States', flag: '🇺🇸' },
+            'Asia/Caloocan': { name: 'Philippines', flag: '🇵🇭' },
+            'America/Renton': { name: 'United States', flag: '🇺🇸' },
+            'Europe/Chorley': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Europe/Croydon': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Europe/Nottingham': { name: 'United Kingdom', flag: '🇬🇧' },
+            'America/San_Bernardino': { name: 'United States', flag: '🇺🇸' },
+            'America/Seattle': { name: 'United States', flag: '🇺🇸' },
+            'Asia/West_Jakarta': { name: 'Indonesia', flag: '🇮🇩' },
+            'Asia/Pangil': { name: 'Philippines', flag: '🇵🇭' },
+            'Asia/Gangnam-gu': { name: 'South Korea', flag: '🇰🇷' },
+            'Europe/Naaldwijk': { name: 'Netherlands', flag: '🇳🇱' },
+            'Europe/Leipzig': { name: 'Germany', flag: '🇩🇪' },
+            'Europe/Podgorica': { name: 'Montenegro', flag: '🇲🇪' },
+            'Europe/Swanley': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Europe/Basingstoke': { name: 'United Kingdom', flag: '🇬🇧' },
+            'America/El_Segundo': { name: 'United States', flag: '🇺🇸' },
+            'Europe/Bracknell': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Asia/San_Juan': { name: 'Philippines', flag: '🇵🇭' }
         };
 
         function parseLocation(locationStr) {
@@ -1627,8 +1658,9 @@
                 if(layer instanceof L.CircleMarker) layer.remove();
             });
 
-            // Rough mapping of timezones to coordinates for visual heatmap
+            // Rough mapping of timezones and cities to coordinates for visual heatmap
             const tzCoords = {
+                // Timezones
                 'Europe/Helsinki': [60.1695, 24.9354], 'Europe/Stockholm': [59.3293, 18.0686],
                 'Europe/Oslo': [59.9139, 10.7522], 'Europe/Copenhagen': [55.6761, 12.5683],
                 'Europe/London': [51.5074, -0.1278], 'Europe/Paris': [48.8566, 2.3522],
@@ -1637,20 +1669,79 @@
                 'Europe/Istanbul': [41.0082, 28.9784], 'Europe/Brussels': [50.8503, 4.3517],
                 'Europe/Dublin': [53.3498, -6.2603], 'Europe/Prague': [50.0755, 14.4378],
                 'Europe/Malta': [35.9375, 14.3754], 'Europe/Warsaw': [52.2297, 21.0122],
-                'Europe/Lisbon': [38.7223, -9.1393],
+                'Europe/Lisbon': [38.7223, -9.1393], 'Europe/Zurich': [47.3769, 8.5417],
+                'Europe/Sofia': [42.6977, 23.3219], 'Europe/Riga': [56.9496, 24.1052],
+                'Europe/Kiev': [50.4501, 30.5234], 'Europe/Budapest': [47.4979, 19.0402],
                 'America/New_York': [40.7128, -74.006], 'America/Los_Angeles': [34.0522, -118.2437],
                 'America/Chicago': [41.8781, -87.6298], 'America/Toronto': [43.6532, -79.3832],
                 'America/Phoenix': [33.4484, -112.0740], 'America/Denver': [39.7392, -104.9903],
                 'America/Sao_Paulo': [-23.5505, -46.6333], 'America/Bogota': [4.7110, -74.0721],
-                'America/Hermosillo': [29.0730, -110.9559],
+                'America/Hermosillo': [29.0730, -110.9559], 'America/Detroit': [42.3314, -83.0458],
+                'America/Vancouver': [49.2827, -123.1207], 'America/Costa_Rica': [9.9281, -84.0907],
+                'America/Mexico_City': [19.4326, -99.1332], 'America/Indianapolis': [39.7684, -86.1581],
+                'America/Montevideo': [-34.9011, -56.1645],
                 'Asia/Tokyo': [35.6762, 139.6503], 'Asia/Dubai': [25.2048, 55.2708],
                 'Asia/Singapore': [1.3521, 103.8198], 'Asia/Shanghai': [31.2304, 121.4737],
                 'Asia/Seoul': [37.5665, 126.9780], 'Asia/Bangkok': [13.7563, 100.5018],
                 'Asia/Manila': [14.5995, 120.9842], 'Asia/Jakarta': [-6.2088, 106.8456],
                 'Asia/Baku': [40.4093, 49.8671], 'Asia/Calcutta': [22.5726, 88.3639],
-                'Asia/Hong_Kong': [22.3193, 114.1694],
+                'Asia/Hong_Kong': [22.3193, 114.1694], 'Asia/Jerusalem': [32.0853, 34.7818],
+                'Asia/Almaty': [43.2220, 76.8512], 'Asia/Beirut': [33.8938, 35.5018],
+                'Asia/Amman': [31.9454, 35.9284], 'Asia/Taipei': [25.0330, 121.5654],
+                'Asia/Saigon': [10.8231, 106.6297],
                 'Australia/Sydney': [-33.8688, 151.2093], 'Australia/Melbourne': [-37.8136, 144.9631],
-                'Africa/Johannesburg': [-26.2041, 28.0473], 'UTC': [51.4769, 0.0005] // fallback
+                'Africa/Johannesburg': [-26.2041, 28.0473], 'Africa/Cairo': [30.0444, 31.2357],
+                'Africa/Nairobi': [-1.2921, 36.8219], 'Africa/Accra': [5.6037, -0.1870],
+                'Africa/Luanda': [-8.8390, 13.2894], 'Africa/Lagos': [6.5244, 3.3792],
+                'Atlantic/Canary': [28.2916, -16.6291], 'Atlantic/Reykjavik': [64.1466, -21.9426],
+                'Indian/Reunion': [-21.1151, 55.5364],
+                'UTC': [51.4769, 0.0005],
+                'America/Mazatlan': [23.2494, -106.4111], 'Europe/Vigo': [42.2406, -8.7207],
+                'Europe/Athens': [37.9838, 23.7275], 'Asia/Qatar': [25.2854, 51.5310],
+                'America/Minneapolis': [44.9778, -93.2650], 'Asia/East_Jakarta': [-6.2250, 106.9004],
+                'Asia/Mumbai': [19.0760, 72.8777], 'Europe/Liverpool': [53.4084, -2.9916],
+                'Europe/Glasgow': [55.8642, -4.2518], 'Asia/Petaling_Jaya': [3.1073, 101.6067],
+                'Asia/Central_Jakarta': [-6.1865, 106.8341], 'Europe/Leeds': [53.8008, -1.5491],
+                'Europe/Birmingham': [52.4862, -1.8904], 'America/Henderson': [36.0395, -114.9817],
+                'Asia/Caloocan': [14.6500, 120.9667], 'America/Renton': [47.4797, -122.2079],
+                'Europe/Chorley': [53.6530, -2.6300], 'Europe/Croydon': [51.3762, -0.0982],
+                'Europe/Nottingham': [52.9548, -1.1581], 'America/San_Bernardino': [34.1083, -117.2898],
+                'America/Seattle': [47.6062, -122.3321], 'Asia/West_Jakarta': [-6.1683, 106.7583],
+                'Asia/Pangil': [14.4014, 121.4633], 'Asia/Gangnam-gu': [37.4980, 127.0280],
+                'Europe/Naaldwijk': [51.9894, 4.2072], 'Europe/Leipzig': [51.3397, 12.3731],
+                'Europe/Podgorica': [42.4304, 19.2594], 'Europe/Swanley': [51.3960, 0.1750],
+                'Europe/Basingstoke': [51.2625, -1.0870], 'America/El_Segundo': [33.9192, -118.4165],
+                'Europe/Bracknell': [51.4160, -0.7490], 'Asia/San_Juan': [14.6019, 121.0358],
+
+                // Cities for exact local mapping
+                'Helsinki': [60.1695, 24.9354], 'Espoo': [60.2055, 24.6559], 'Tampere': [61.4978, 23.7610],
+                'Vantaa': [60.2934, 25.0408], 'Oulu': [65.0124, 25.4682], 'Turku': [60.4518, 22.2666],
+                'Lahti': [60.9827, 25.6615], 'Kuopio': [62.8924, 27.6770],
+                'London': [51.5074, -0.1278], 'Islington': [51.5465, -0.1058], 'Lambeth': [51.4935, -0.1177],
+                'Southwark': [51.5035, -0.0804], 'Portsmouth': [50.8037, -1.0913],
+                'New York': [40.7128, -74.006], 'Brooklyn': [40.6782, -73.9442], 'Queens': [40.7282, -73.7949],
+                'San Diego': [32.7157, -117.1611], 'Chicago': [41.8781, -87.6298], 'Los Angeles': [34.0522, -118.2437],
+                'Singapore': [1.3521, 103.8198], 'Manila': [14.5995, 120.9842], 'Pasig': [14.5764, 121.0851],
+                'Quezon City': [14.6760, 121.0437], 'Makati': [14.5547, 121.0244], 'Jakarta': [-6.2088, 106.8456],
+                'Bekasi': [-6.2383, 106.9756], 'Tangerang': [-6.1781, 106.6300], 'Berlin': [52.5200, 13.4050],
+                'Prague': [50.0755, 14.4378], 'Tel Aviv': [32.0853, 34.7818], 'Jerusalem': [31.7683, 35.2137],
+                'Haifa': [32.7940, 34.9896],
+                'Mazatlan': [23.2494, -106.4111], 'Vigo': [42.2406, -8.7207],
+                'Athens': [37.9838, 23.7275], 'Qatar': [25.2854, 51.5310],
+                'Minneapolis': [44.9778, -93.2650], 'East Jakarta': [-6.2250, 106.9004],
+                'Mumbai': [19.0760, 72.8777], 'Liverpool': [53.4084, -2.9916],
+                'Glasgow': [55.8642, -4.2518], 'Petaling Jaya': [3.1073, 101.6067],
+                'Central Jakarta': [-6.1865, 106.8341], 'Leeds': [53.8008, -1.5491],
+                'Birmingham': [52.4862, -1.8904], 'Henderson': [36.0395, -114.9817],
+                'Caloocan': [14.6500, 120.9667], 'Renton': [47.4797, -122.2079],
+                'Chorley': [53.6530, -2.6300], 'Croydon': [51.3762, -0.0982],
+                'Nottingham': [52.9548, -1.1581], 'San Bernardino': [34.1083, -117.2898],
+                'Seattle': [47.6062, -122.3321], 'West Jakarta': [-6.1683, 106.7583],
+                'Pangil': [14.4014, 121.4633], 'Gangnam-gu': [37.4980, 127.0280],
+                'Naaldwijk': [51.9894, 4.2072], 'Leipzig': [51.3397, 12.3731],
+                'Podgorica': [42.4304, 19.2594], 'Swanley': [51.3960, 0.1750],
+                'Basingstoke': [51.2625, -1.0870], 'El Segundo': [33.9192, -118.4165],
+                'Bracknell': [51.4160, -0.7490], 'San Juan': [14.6019, 121.0358]
             };
 
             const tzContinents = {
@@ -1671,7 +1762,7 @@
             for (const loc in locCounts) {
                 const count = locCounts[loc];
                 const parsed = parseLocation(loc);
-                let coords = tzCoords[loc] || tzCoords[parsed.timezone];
+                let coords = tzCoords[loc] || tzCoords[parsed.city] || tzCoords[parsed.timezone];
                 let isFallback = false;
 
                 if (!coords && loc !== 'Unknown') {
