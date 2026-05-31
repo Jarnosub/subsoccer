@@ -1017,92 +1017,38 @@
 
             const normalized = cleanLang.replace('_', '-').trim();
             const parts = normalized.split('-');
-            const lang = parts[0].toLowerCase();
-            const region = parts.length > 1 ? parts[1].toUpperCase() : '';
+            let lang = parts[0].toLowerCase();
+            if (lang === 'no') lang = 'nb';
             
-            const REGION_MAPPINGS = {
-                'FI': { name: 'Finland', flag: '🇫🇮' },
-                'GB': { name: 'United Kingdom', flag: '🇬🇧' },
-                'US': { name: 'United States', flag: '🇺🇸' },
-                'SG': { name: 'Singapore', flag: '🇸🇬' },
-                'DE': { name: 'Germany', flag: '🇩🇪' },
-                'CZ': { name: 'Czechia', flag: '🇨🇿' },
-                'FR': { name: 'France', flag: '🇫🇷' },
-                'NO': { name: 'Norway', flag: '🇳🇴' },
-                'ID': { name: 'Indonesia', flag: '🇮🇩' },
-                'DK': { name: 'Denmark', flag: '🇩🇰' },
-                'CN': { name: 'China', flag: '🇨🇳' },
-                'IN': { name: 'India', flag: '🇮🇳' },
-                'TR': { name: 'Turkey', flag: '🇹🇷' },
-                'HK': { name: 'Hong Kong', flag: '🇭🇰' },
-                'SE': { name: 'Sweden', flag: '🇸🇪' },
-                'CA': { name: 'Canada', flag: '🇨🇦' },
-                'BR': { name: 'Brazil', flag: '🇧🇷' },
-                'TW': { name: 'Taiwan', flag: '🇹🇼' },
-                'MX': { name: 'Mexico', flag: '🇲🇽' },
-                'VN': { name: 'Vietnam', flag: '🇻🇳' },
-                'RU': { name: 'Russia', flag: '🇷🇺' },
-                'HU': { name: 'Hungary', flag: '🇭🇺' },
-                'IT': { name: 'Italy', flag: '🇮🇹' },
-                'NL': { name: 'Netherlands', flag: '🇳🇱' },
-                'KR': { name: 'South Korea', flag: '🇰🇷' },
-                'PL': { name: 'Poland', flag: '🇵🇱' },
-                'IS': { name: 'Iceland', flag: '🇮🇸' },
-                'AZ': { name: 'Azerbaijan', flag: '🇦🇿' },
-                'BG': { name: 'Bulgaria', flag: '🇧🇬' },
-                'IL': { name: 'Israel', flag: '🇮🇱' },
-                'UA': { name: 'Ukraine', flag: '🇺🇦' },
-                'BE': { name: 'Belgium', flag: '🇧🇪' },
-                'CH': { name: 'Switzerland', flag: '🇨🇭' },
-                'AT': { name: 'Austria', flag: '🇦🇹' },
-                'AU': { name: 'Australia', flag: '🇦🇺' },
-                'ZA': { name: 'South Africa', flag: '🇿🇦' },
-                'IE': { name: 'Ireland', flag: '🇮🇪' },
-                'PH': { name: 'Philippines', flag: '🇵🇭' },
-                'MY': { name: 'Malaysia', flag: '🇲🇾' },
-                'GR': { name: 'Greece', flag: '🇬🇷' },
-                'ME': { name: 'Montenegro', flag: '🇲🇪' },
-                'QA': { name: 'Qatar', flag: '🇶🇦' }
-            };
-            
-            if (region && REGION_MAPPINGS[region]) {
-                return REGION_MAPPINGS[region];
-            }
-            
-            const LANG_MAPPINGS = {
-                'fi': { name: 'Finland', flag: '🇫🇮' },
+            // The 19 supported countries corresponding to the 19 supported languages in TRANSLATIONS (translations.js)
+            const LANG_TO_COUNTRY = {
                 'en': { name: 'United Kingdom', flag: '🇬🇧' },
+                'fi': { name: 'Finland', flag: '🇫🇮' },
                 'de': { name: 'Germany', flag: '🇩🇪' },
                 'fr': { name: 'France', flag: '🇫🇷' },
-                'zh': { name: 'China', flag: '🇨🇳' },
-                'ja': { name: 'Japan', flag: '🇯🇵' },
                 'es': { name: 'Spain', flag: '🇪🇸' },
-                'tr': { name: 'Turkey', flag: '🇹🇷' },
-                'da': { name: 'Denmark', flag: '🇩🇰' },
-                'cs': { name: 'Czechia', flag: '🇨🇿' },
                 'pt': { name: 'Portugal', flag: '🇵🇹' },
-                'it': { name: 'Italy', flag: '🇮🇹' },
                 'sv': { name: 'Sweden', flag: '🇸🇪' },
-                'nl': { name: 'Netherlands', flag: '🇳🇱' },
-                'pl': { name: 'Poland', flag: '🇵🇱' },
-                'ro': { name: 'Romania', flag: '🇷🇴' },
-                'uk': { name: 'Ukraine', flag: '🇺🇦' },
-                'no': { name: 'Norway', flag: '🇳🇴' },
                 'nb': { name: 'Norway', flag: '🇳🇴' },
-                'id': { name: 'Indonesia', flag: '🇮🇩' },
-                'ru': { name: 'Russia', flag: '🇷🇺' },
+                'da': { name: 'Denmark', flag: '🇩🇰' },
+                'it': { name: 'Italy', flag: '🇮🇹' },
+                'nl': { name: 'Netherlands', flag: '🇳🇱' },
+                'cs': { name: 'Czechia', flag: '🇨🇿' },
+                'tr': { name: 'Turkey', flag: '🇹🇷' },
                 'hu': { name: 'Hungary', flag: '🇭🇺' },
-                'ko': { name: 'South Korea', flag: '🇰🇷' },
+                'id': { name: 'Indonesia', flag: '🇮🇩' },
                 'vi': { name: 'Vietnam', flag: '🇻🇳' },
-                'bg': { name: 'Bulgaria', flag: '🇧🇬' },
-                'he': { name: 'Israel', flag: '🇮🇱' }
+                'pl': { name: 'Poland', flag: '🇵🇱' },
+                'ja': { name: 'Japan', flag: '🇯🇵' },
+                'zh': { name: 'China', flag: '🇨🇳' }
             };
             
-            if (LANG_MAPPINGS[lang]) {
-                return LANG_MAPPINGS[lang];
+            // If the resolved language is not supported by the app translations, fallback to English (United Kingdom)
+            if (!LANG_TO_COUNTRY[lang]) {
+                lang = 'en';
             }
             
-            return { name: region || lang.toUpperCase() || 'Unknown', flag: '🌐' };
+            return LANG_TO_COUNTRY[lang];
         }
 
         // Chart.js global defaults
