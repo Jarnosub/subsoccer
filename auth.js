@@ -1028,6 +1028,7 @@ export function setupAuthListeners() {
     document.getElementById('link-back-to-login')?.addEventListener('click', () => toggleAuth(false));
     document.getElementById('btn-guest-login')?.addEventListener('click', handleGuest);
     document.getElementById('btn-google-login')?.addEventListener('click', signInWithGoogle);
+    document.getElementById('btn-google-signup')?.addEventListener('click', signInWithGoogle);
 
     // Kytketään kaikki uloskirjautumispainikkeet
     document.querySelectorAll('.logout-item, #btn-logout').forEach(el => {

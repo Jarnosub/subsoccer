@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <script>
+        if (location.hostname === 'kia.subsoccer.pro' && !location.pathname.startsWith('/kia')) location.replace('/kia/');
+        if (navigator.userAgent.includes('Lighthouse') || navigator.userAgent.includes('Chrome-Lighthouse')) {
+            document.documentElement.classList.add('lighthouse');
+            window.addEventListener('DOMContentLoaded', () => {
+                document.body.classList.remove('auth-loading');
+                document.body.classList.add('auth-ready');
+            });
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Subsoccer Pro - The Hub</title>
+    <meta name="description" content="Create your player profile, climb the global leaderboards, and join Subsoccer tournaments.">
+    
+    <!-- Localized Language Alternates for SEO -->
+    <link rel="alternate" hreflang="x-default" href="https://subsoccer.pro/">
+    <link rel="alternate" hreflang="en" href="https://subsoccer.pro/?lang=en">
+    <link rel="alternate" hreflang="fi" href="https://subsoccer.pro/?lang=fi">
+    <link rel="alternate" hreflang="fr" href="https://subsoccer.pro/?lang=fr">
+    <link rel="alternate" hreflang="es" href="https://subsoccer.pro/?lang=es">
+    <link rel="alternate" hreflang="de" href="https://subsoccer.pro/?lang=de">
+    <link rel="alternate" hreflang="pt" href="https://subsoccer.pro/?lang=pt">
+    <link rel="alternate" hreflang="sv" href="https://subsoccer.pro/?lang=sv">
+    <link rel="alternate" hreflang="nb" href="https://subsoccer.pro/?lang=nb">
+    <link rel="alternate" hreflang="da" href="https://subsoccer.pro/?lang=da">
+    <link rel="alternate" hreflang="it" href="https://subsoccer.pro/?lang=it">
+    <link rel="alternate" hreflang="nl" href="https://subsoccer.pro/?lang=nl">
+    <link rel="alternate" hreflang="cs" href="https://subsoccer.pro/?lang=cs">
+    <link rel="alternate" hreflang="tr" href="https://subsoccer.pro/?lang=tr">
+    <link rel="alternate" hreflang="hu" href="https://subsoccer.pro/?lang=hu">
+    <link rel="alternate" hreflang="id" href="https://subsoccer.pro/?lang=id">
+    <link rel="alternate" hreflang="vi" href="https://subsoccer.pro/?lang=vi">
+    <link rel="alternate" hreflang="pl" href="https://subsoccer.pro/?lang=pl">
+
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#E30613">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="subsoccer_logo.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
+
+    <!-- Open Graph / Social Media Cover Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://subsoccer.pro/">
+    <meta property="og:title" content="Subsoccer Pro - The Hub">
+    <meta property="og:description"
+        content="Create your player profile, climb the global leaderboards, and join Subsoccer tournaments.">
+    <meta property="og:image" content="https://subsoccer.pro/Subsoccer_tournament_2.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="the-forge.css?v=2">
+    <!-- Leaflet Kartta CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <!-- Supabase tietokanta -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="translations.js" defer></script>
+
+    <style>
+        :root {
+            --page-bg: #f0f0f0;
+            --page-text: #000000;
+            --card-bg: #ffffff;
+            --card-border: #e0e0e0;
+        }
+
+        body.dark-mode {
+            --page-bg: #1a1a1a;
+            --page-text: #ffffff;
+            --card-bg: #2a2a2a;
+            --card-border: #333333;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background-image: linear-gradient(var(--page-bg), var(--page-bg));
+            background-color: var(--page-bg);
+            color: var(--page-text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Prevent flash of unstyled content during auth check */
+        body.auth-loading {
+            opacity: 0;
+        }
+        .lighthouse body.auth-loading {
+            opacity: 1 !important;
+        }
+        body.auth-ready {
+            opacity: 1;
+            transition: opacity 0.2s ease-in;
+        }
+
+        /* Dark mode overrides for index page */
+        body.dark-mode .content-card {
+            background-image: linear-gradient(var(--card-bg), var(--card-bg)) !important;
+            background-color: var(--card-bg) !important;
+            border-color: var(--card-border) !important;
+        }
+
+        body.dark-mode .content-image {
+            border-color: var(--card-border) !important;
+        }
+
+        body.dark-mode .top-header {
+            border-bottom-color: var(--card-border) !important;
+        }
+
+        body.dark-mode [style*="color: #000"],
+        body.dark-mode [style*="color:#000"],
+        body.dark-mode [style*="color: #111"],
+        body.dark-mode [style*="color:#111"] {
+            color: var(--page-text) !important;
+        }
+
+        body.dark-mode [style*="background: #ffffff"],
+        body.dark-mode [style*="background:#ffffff"],
+        body.dark-mode [style*="background-color: #ffffff"] {
+            background: var(--card-bg) !important;
+        }
+
+        body.dark-mode [style*="border: 1px solid #e0e0e0"],
+        body.dark-mode [style*="border-bottom: 1px solid #e0e0e0"],
+        body.dark-mode [style*="border: 2px solid #c41e2a"] {
+            border-color: var(--card-border) !important;
+        }
+
+        /* Dark mode toggle in footer */
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #888;
+            font-size: 0.85rem;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .theme-toggle:hover {
+            color: #fff;
+        }
+
+        body.dark-mode .theme-toggle {
+            color: #ccc;
+        }
+
+        /* Dark mode: SUBSOCCER title + tagline */
+        body.dark-mode .page-title-subsoccer {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        body.dark-mode .page-tagline {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        /* Dark mode: Scan to Join button */
+        body.dark-mode .btn-scan-join {
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        body.dark-mode .btn-scan-join:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.55);
+        }
+
+        /* Dark mode: stats numbers */
+        body.dark-mode .social-proof-number {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .social-proof-label {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        /* Dark mode: navigation menu */
+        body.dark-mode #main-nav-menu > div {
+            background: #222222 !important;
+            border-left-color: #333333 !important;
+        }
+
+        body.dark-mode #main-nav-menu button,
+        body.dark-mode #main-nav-menu a {
+            color: #ffffff !important;
+            border-bottom-color: #333333 !important;
+        }
+
+        body.dark-mode #main-nav-menu a i {
+            color: #aaaaaa !important;
+        }
+
+        body.dark-mode #main-nav-menu #menu-league-link,
+        body.dark-mode #main-nav-menu #menu-league-link i {
+            color: #c41e2a !important;
+        }
+
+        /* Dark mode: header + icons */
+        body.dark-mode .top-header {
+            background: #111111 !important;
+            border-bottom-color: #333 !important;
+        }
+
+        body.dark-mode #hub-login-btn {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .top-header > button {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .btn-find-table {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        }
+
+        body.dark-mode .btn-find-table:hover {
+            background: rgba(255, 255, 255, 0.14) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        body.dark-mode .lang-selector-container {
+            border-top-color: var(--card-border) !important;
+        }
+
+        body.dark-mode #lang-select {
+            background: #222222 !important;
+            border-color: var(--card-border) !important;
+            color: #ffffff !important;
+        }
+
+        /* 3. LOGO YLHÄÄLLÄ KESKELLÄ */
+        .top-header {
+            position: relative;
+            width: 100%;
+            padding: 12px 20px;
+            box-sizing: border-box;
+            background: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-logo {
+            height: 22px !important;
+        }
+
+        /* HEADER TYPOGRAFIA (Subsoccer GO) */
+        .page-title-container {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            padding: 12px 20px 6px 20px;
+            box-sizing: border-box;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .page-title-subsoccer {
+            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif !important;
+            font-weight: normal;
+            font-size: clamp(4.4rem, 21.5vw, 6.5rem);
+            color: rgba(0, 0, 0, 0.8);
+            letter-spacing: 0;
+            line-height: 0.9;
+            margin: 0;
+            text-transform: uppercase;
+            display: inline;
+        }
+
+        .page-title-go {
+            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif !important;
+            font-weight: normal;
+            font-size: clamp(4.4rem, 21.5vw, 6.5rem);
+            color: #c41e2a;
+            letter-spacing: 0;
+            line-height: 0.9;
+            margin: 0;
+            text-transform: uppercase;
+            display: inline;
+            margin-left: 5px;
+        }
+
+        .page-tagline {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 4px;
+            color: #999;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        /* KUVABLOKKI */
+        .content-image {
+            width: 100%;
+            max-width: 600px;
+            height: clamp(180px, 30vh, 350px);
+            background-image: url('subsoccer-teams.jpg');
+            background-size: cover;
+            background-position: center 25%;
+            margin: 10px auto 25px;
+            position: relative;
+        }
+
+        @media (min-width: 600px) {
+            .content-image {
+                border-radius: 12px;
+            }
+
+            .content-image::after {
+                border-radius: 0 0 12px 12px;
+            }
+        }
+
+        /* Gradient removed per user request */
+
+        .hub-menu {
+            width: 100%;
+            background-color: transparent;
+            padding: 20px 20px 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .btn-play-now {
+            width: 100%;
+            max-width: 400px;
+            background: #c41e2a;
+            color: #fff;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 2px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.15rem !important;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.15s, opacity 0.2s;
+        }
+
+        .btn-play-now:active {
+            transform: scale(0.97);
+        }
+
+        .btn-find-table {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 2px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1rem !important;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.2s;
+        }
+
+        .btn-find-table:active {
+            transform: scale(0.97);
+        }
+
+        .btn-find-table:hover {
+            background: rgba(0, 0, 0, 0.65);
+        }
+
+        .btn-scan-join {
+            width: 100%;
+            max-width: 400px;
+            background: transparent;
+            color: #c41e2a;
+            border: 2px solid #c41e2a;
+            padding: 10px 16px;
+            border-radius: 2px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1rem !important;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.2s, color 0.2s;
+        }
+
+        .btn-scan-join:active {
+            transform: scale(0.97);
+        }
+
+        .btn-scan-join:hover {
+            background: #c41e2a;
+            color: #fff;
+        }
+
+        /* SOCIAL PROOF BAR */
+        .social-proof {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px 20px 10px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            text-align: center;
+        }
+
+        .social-proof-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .social-proof-number {
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1;
+        }
+
+        .social-proof-label {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.55rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #999;
+            margin-top: 4px;
+        }
+        /* TOIMINTO 3: KAUPPA */
+        .shop-link {
+            font-family: 'Resolve', sans-serif;
+            color: #888;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: underline;
+            text-decoration-color: #444;
+            text-underline-offset: 4px;
+            cursor: pointer;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .shop-link:hover {
+            color: #fff;
+            text-decoration-color: #c41e2a;
+        }
+
+        /* Leaflet overrides */
+        .leaflet-popup-tip {
+            background: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        .leaflet-top {
+            top: 70px !important;
+        }
+
+        .leaflet-left {
+            left: 10px !important;
+        }
+
+        /* YLÄPALKKI (Announcement Bar) */
+        .announcement-bar {
+            width: 100%;
+            background-color: #000000;
+            color: #ffffff;
+            text-align: center;
+            padding: 8px 10px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            box-sizing: border-box;
+        }
+
+        /* ALATUNNISTE (Black Bar) */
+        .footer-bar {
+            width: 100%;
+            background-color: #000000;
+            padding: 15px 20px;
+            box-sizing: border-box;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .footer-bar a {
+            color: #ffffff;
+            /* Negative text */
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            font-family: 'Resolve', sans-serif;
+            transition: color 0.2s;
+        }
+
+        .footer-bar a:hover {
+            color: #c41e2a;
+        }
+
+        .footer-bar span {
+            color: #555555;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+
+<body class="auth-loading">
+
+    <!-- Branded splash shown during auth check -->
+    <div id="auth-splash" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--page-bg,#f0f0f0);display:flex;align-items:center;justify-content:center;z-index:9999;">
+        <img src="subsoccer_logo.svg" alt="" style="height:28px;opacity:0.4;animation:authPulse 1.5s ease-in-out infinite;">
+    </div>
+    <style>@keyframes authPulse{0%,100%{opacity:0.3;transform:scale(1);}50%{opacity:0.6;transform:scale(1.04);}}</style>
+
+    <div id="top-ticker-container">
+        <div id="top-ticker" class="ticker-wrapper">
+            <div class="ticker-content">
+                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities" style="color: #c41e2a; margin-left: 10px;"></span>
+            </div>
+            <div class="ticker-content" aria-hidden="true">
+                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities" style="color: #c41e2a; margin-left: 10px;"></span>
+            </div>
+        </div>
+    </div>
+    <style>
+        #top-ticker-container {
+            width: 100%;
+            background-color: #000000;
+            color: #ffffff;
+            padding: calc(5px + env(safe-area-inset-top, 0px)) 0 5px;
+            font-family: 'Resolve', sans-serif;
+            font-weight: bold;
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-sizing: border-box;
+            z-index: 100;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+            display: flex;
+        }
+
+        .ticker-wrapper {
+            display: flex;
+            width: max-content;
+        }
+
+        .ticker-content {
+            padding-right: 15vw;
+        }
+
+        #top-ticker.animating {
+            animation: marquee 45s linear infinite;
+        }
+
+        @media (min-width: 768px) {
+            #top-ticker-container {
+                padding: calc(8px + env(safe-area-inset-top, 0px)) 0 8px;
+                font-size: 0.75rem;
+                letter-spacing: 1.5px;
+            }
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(-50%, 0, 0);
+            }
+        }
+    </style>
+
+    <!-- YLÄPALKKI / LOGO JA PELAAJAKORTTI -->
+    <div class="top-header">
+
+        <!-- Hamburger Menu Button (Left) -->
+        <button onclick="document.getElementById('main-nav-menu').style.display='flex'"
+            style="background: transparent; border: none; color: #000; cursor: pointer; height: 100%; display: flex; align-items: center;"
+            aria-label="Open navigation menu">
+            <div
+                style="display: flex; flex-direction: column; justify-content: space-between; width: 26px; height: 18px; opacity: 0.8;">
+                <div style="width: 100%; height: 2.5px; background-color: currentColor;"></div>
+                <div style="width: 100%; height: 2.5px; background-color: currentColor;"></div>
+                <div style="width: 100%; height: 2.5px; background-color: currentColor;"></div>
+            </div>
+        </button>
+
+        <!-- Keskitetty Logo -->
+        <div
+            style="display: flex; justify-content: center; align-items: center; position: absolute; left: 50%; transform: translateX(-50%); pointer-events: auto;">
+            <img src="subsoccer_logo.svg" class="main-logo" alt="Subsoccer" style="cursor: pointer;"
+                onclick="window.location.href='https://subsoccer.com';">
+        </div>
+
+        <!-- Oikea reuna: Kielivalitsin lippuna + kirjautuminen -->
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <!-- Lippupainike -->
+            <div id="header-lang-selector" style="position: relative; display: flex; align-items: center; cursor: pointer;">
+                <span id="current-flag-emoji" style="font-size: 1.3rem;">🇬🇧</span>
+                <!-- Invisible select overlaid on top to handle clicks natively and beautifully -->
+                <select id="header-lang-select" onchange="setLanguage(this.value)" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none;" aria-label="Select language">
+                    <option value="en">🇬🇧 English</option>
+                    <option value="fi">🇫🇮 Suomi</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="pt">🇵🇹 Português</option>
+                    <option value="sv">🇸🇪 Svenska</option>
+                    <option value="nb">🇳🇴 Norsk</option>
+                    <option value="da">🇩🇰 Dansk</option>
+                    <option value="it">🇮🇹 Italiano</option>
+                    <option value="nl">🇳🇱 Nederlands</option>
+                    <option value="cs">🇨🇿 Čeština</option>
+                    <option value="tr">🇹🇷 Türkçe</option>
+                    <option value="hu">🇭🇺 Magyar</option>
+                    <option value="id">🇮🇩 Indonesia</option>
+                    <option value="vi">🇻🇳 Tiếng Việt</option>
+                    <option value="pl">🇵🇱 Polski</option>
+                </select>
+            </div>
+
+            <button id="hub-login-btn"
+                style="background: transparent; border: none; color: #000; cursor: pointer; display: flex; align-items: center;"
+                onclick="window.location.href='login.html#login'"
+                aria-label="Log in">
+                <i class="fa-solid fa-user" style="font-size: 1.4rem;"></i>
+            </button>
+            <div id="hub-player-card" style="display: none; align-items: center; cursor: pointer;"
+                onclick="window.location.href='player-card.html'"
+                role="button"
+                tabindex="0"
+                aria-label="View player profile">
+                <i class="fa-solid fa-user-check" style="color: #c41e2a; font-size: 1.4rem;"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- ISO OTSIKKO -->
+    <main id="main-content">
+        <div class="page-title-container">
+            <h1 class="page-title-subsoccer">SUBSOCCER</h1>
+            <h1 class="page-title-go">GO</h1>
+            <div class="page-tagline" data-i18n="tagline">Create · Join · Compete</div>
+        </div>
+
+        <!-- KUVABLOKKI -->
+        <div class="content-image"></div>
+
+        <!-- PÄÄVALIKKO / TARINAN VALINTA -->
+        <div class="hub-menu">
+
+
+
+            <!-- YKKÖSVALINTA: LUO TURNAUS -->
+            <button class="btn-play-now" onclick="window.location.href='mobile-game.html'">
+                <i class="fa-solid fa-trophy"></i> <span data-i18n="create_tournament">Create Tournament</span> <i class="fa-solid fa-arrow-right"
+                    style="margin-left: 2px; font-size: 0.85em;"></i>
+            </button>
+
+            <!-- KAKKOSVALINTA: SKANNAA -->
+            <button class="btn-scan-join" onclick="window.location.href='scan-code.html'">
+                <i class="fa-solid fa-qrcode"></i> <span data-i18n="scan_to_join">Scan to Join</span>
+            </button>
+
+            <!-- KOLMOSVALINTA: KARTTA -->
+            <button class="btn-find-table" onclick="openMapOverlay()">
+                <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="find_public_game">Find Public Game</span>
+            </button>
+
+        </div>
+
+        <!-- SOCIAL PROOF -->
+        <div class="social-proof">
+            <div class="social-proof-item">
+                <span class="social-proof-number">80+</span>
+                <span class="social-proof-label" data-i18n="countries">Countries</span>
+            </div>
+            <div class="social-proof-item">
+                <span class="social-proof-number">10K+</span>
+                <span class="social-proof-label" data-i18n="games">Games</span>
+            </div>
+            <div class="social-proof-item">
+                <span class="social-proof-number">3B+</span>
+                <span class="social-proof-label" data-i18n="views">Views</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- BLACK FOOTER BAR -->
+    <div class="footer-bar">
+        <span style="color: #888; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px;">© 2026
+            Subsoccer</span>
+        <span>|</span>
+        <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank" data-i18n="privacy">Privacy</a>
+        <span>|</span>
+        <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank" data-i18n="terms">Terms</a>
+        <span>|</span>
+        <button class="theme-toggle" id="theme-toggle" onclick="toggleDarkMode()" title="Toggle dark/light mode">
+            <i class="fa-solid fa-moon"></i>
+        </button>
+    </div>
+
+    <!-- MAIN HAMBURGER MENU OVERLAY -->
+    <div id="main-nav-menu" onclick="if(event.target === this) this.style.display='none'"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.5); z-index: 3000; justify-content: flex-end;">
+
+        <div
+            style="width: 75%; max-width: 380px; height: 100%; background: #ffffff; border-left: 1px solid #e0e0e0; box-shadow: -10px 0 30px rgba(0,0,0,0.15); display: flex; flex-direction: column; padding: 40px 20px; position: relative;">
+            <button onclick="document.getElementById('main-nav-menu').style.display='none'"
+                style="position: absolute; top: 30px; right: 30px; background: none; border: none; color: #111; font-size: 2.5rem; cursor: pointer; z-index: 3001;"
+                aria-label="Close navigation menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <img src="subsoccer_logo.svg"
+                style="cursor: pointer; height: 40px; margin-top: 10px; margin-bottom: 50px; align-self: flex-start; pointer-events: none;"
+                alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
+
+            <div
+                style="display: flex; flex-direction: column; gap: 20px; font-family: 'Resolve', sans-serif; font-size: 1.1rem; letter-spacing: 2px; height: 100%;">
+                <!-- 1. Pelaaja ensin (Daily Use) -->
+                <a href="player-card.html" id="menu-profile-link"
+                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
+                        class="fa-solid fa-user" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="my_profile">MY PROFILE</span></a>
+                <a href="pro-leagues.html" id="menu-league-link"
+                    style="color: #c41e2a; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
+                        class="fa-solid fa-crown" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="pro_leagues">PRO LEAGUES</span></a>
+
+                <!-- 2. Kokoelma ja Omistajuus (Assets) -->
+                <a href="my-collection.html" id="menu-owner-link"
+                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
+                        class="fa-solid fa-layer-group" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="my_games">MY GAMES</span></a>
+                <a href="register.html"
+                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
+                        class="fa-solid fa-plus" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="register_a_game">REGISTER A GAME</span></a>
+
+                <!-- 3. Kauppa & Tuki (Secondary) -->
+                <a href="https://subsoccer.com" target="_blank"
+                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
+                        class="fa-solid fa-cart-shopping" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="buy_your_own">BUY YOUR OWN SUBSOCCER</span></a>
+                <a href="#"
+                    onclick="triggerFeedbackPrompt(); document.getElementById('main-nav-menu').style.display='none'; return false;"
+                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
+                        class="fa-solid fa-comment-dots" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="give_feedback">GIVE FEEDBACK</span></a>
+
+                <!-- 4. Järjestelmä (Bottom) -->
+                <a href="moderator/index.html" id="menu-mod-link"
+                    style="color: #c41e2a; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
+                        class="fa-solid fa-shield-halved" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="moderator_tools">MODERATOR TOOLS</span></a>
+                <a href="#" id="menu-logout-link"
+                    style="color: #c41e2a; text-decoration: none; padding-bottom: 15px; display: none; align-items: center; margin-top: 10px;"><i
+                        class="fa-solid fa-right-from-bracket"
+                        style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="log_out">LOG OUT</span></a>
+
+                <!-- Kielivalitsin (Language Selector) -->
+                <div class="lang-selector-container" style="margin-top: auto; padding-top: 20px; display: flex; flex-direction: column; gap: 8px; font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 1px; border-top: 1px solid #eee;">
+                    <label for="lang-select" style="color: #666; font-weight: bold;" data-i18n="select_language">LANGUAGE</label>
+                    <div style="position: relative;">
+                        <select id="lang-select" onchange="setLanguage(this.value)" style="width: 100%; padding: 12px; background: #f5f5f5; border: 1px solid #e0e0e0; color: #111; border-radius: 4px; font-family: 'Open Sans', sans-serif; font-size: 0.9rem; cursor: pointer; -webkit-appearance: none; -moz-appearance: none; appearance: none; font-weight: 600;">
+                            <option value="en">English (ENG)</option>
+                            <option value="fi">Suomi (FIN)</option>
+                            <option value="fr">Français (FRA)</option>
+                            <option value="es">Español (ESP)</option>
+                            <option value="de">Deutsch (GER)</option>
+                            <option value="pt">Português (POR)</option>
+                            <option value="sv">Svenska (SWE)</option>
+                            <option value="nb">Norsk (NOR)</option>
+                            <option value="da">Dansk (DAN)</option>
+                            <option value="it">Italiano (ITA)</option>
+                            <option value="nl">Nederlands (NED)</option>
+                            <option value="cs">Čeština (CZE)</option>
+                            <option value="tr">Türkçe (TUR)</option>
+                            <option value="hu">Magyar (HUN)</option>
+                            <option value="id">Indonesia (INA)</option>
+                            <option value="vi">Tiếng Việt (VIE)</option>
+                            <option value="pl">Polski (POL)</option>
+                        </select>
+                        <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #666; font-size: 0.8rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- KARTTANÄKYMÄ (Piilotettu oletuksena) -->
+    <div id="map-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; z-index: 2000; background: #ffffff;">
+        <div id="public-game-map" style="width: 100%; height: 100%;"></div>
+
+        <!-- YLÄPALKKI: BACK + LOGO (sama kuin tournament) -->
+        <div
+            style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2100; background: #ffffff; display: flex; align-items: center; padding: calc(12px + env(safe-area-inset-top, 0px)) 20px 12px; box-sizing: border-box; border-bottom: 1px solid #e0e0e0;">
+            <button onclick="closeMapOverlay()"
+                style="background: none; border: none; color: #111; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px;"
+                aria-label="Close map">
+                <i class="fa-solid fa-arrow-left" style="font-size: 1.2rem;"></i>
+            </button>
+            <div style="position: absolute; left: 50%; transform: translateX(-50%);">
+                <img src="subsoccer_logo.svg" class="main-logo" alt="Subsoccer" style="height: 22px !important;">
+            </div>
+        </div>
+
+        <!-- ISO OTSIKKO kartan päällä (sama fontti kuin TOURNAMENT) -->
+        <div
+            style="position: absolute; top: calc(70px + env(safe-area-inset-top, 0px)); left: 0; width: 100%; z-index: 2100; text-align: center; pointer-events: none;">
+            <div style="white-space: nowrap;">
+                <span class="page-title-subsoccer" style="font-size: 3.2rem;">SUBSOCCER</span>
+                <span class="page-title-go" style="font-size: 3.2rem;" data-i18n="map_title">MAP</span>
+            </div>
+            <div
+                style="font-family: 'Resolve', sans-serif; font-weight: 300; color: #888; font-size: 0.85rem; letter-spacing: 1px; margin-top: 2px;" data-i18n="map_tagline">
+                Find · Play · Connect</div>
+        </div>
+
+        <!-- ALAREUNAN REKISTERÖINTI-LINKKI -->
+        <div
+            style="position: absolute; bottom: calc(20px + env(safe-area-inset-bottom, 10px)); left: 50%; transform: translateX(-50%); z-index: 2100; width: 90%; max-width: 350px;">
+            <button onclick="window.location.href='register.html'"
+                style="width: 100%; padding: 12px; background: #c41e2a; border: none; color: #ffffff; border-radius: 4px; font-family: 'Resolve', sans-serif; font-size: 0.9rem; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <i class="fa-solid fa-hammer" style="color: #ffffff;"></i> <span data-i18n="register_your_game_btn">REGISTER YOUR GAME</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // AUTH STATE: LOG IN vs. PLAYER CARD
+        // ============================================================
+        // ============================================================
+        // AUTH STATE: LOG IN vs. PLAYER CARD
+        // ============================================================
+        async function initAuth() {
+            try {
+                // 1. Fallback: check localStorage immediately for instantaneous UI update before network
+                const cached = localStorage.getItem('subsoccer-user');
+                if (cached) {
+                    try {
+                        const user = JSON.parse(cached);
+                        if (user && user.username) {
+                            showPlayerCard(user);
+                        }
+                    } catch (e) { }
+                }
+
+                // 2. Setup Supabase listener for authoritative state and sync
+                const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+                const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+                // Single shared Supabase instance to avoid GoTrueClient duplicate warning
+                if (!window._hubSb) {
+                    window._hubSb = window.supabase ? supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+                }
+                const sb = window._hubSb;
+
+                let hasCachedUser = false;
+                if (cached) {
+                    try {
+                        const user = JSON.parse(cached);
+                        if (user && user.username) {
+                            hasCachedUser = true;
+                            // Show card IMMEDIATELY from cache (includes moderator link)
+                            showPlayerCard(user);
+                        }
+                    } catch (e) { }
+                }
+
+                if (sb) {
+                    // Check explicitly and await it on load (solves async bfcache bugs)
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (session && session.user) {
+                        const { data: player } = await sb.from('players').select('username, elo, is_admin').eq('id', session.user.id).single();
+                        if (player) {
+                            showPlayerCard(player);
+                            localStorage.setItem('subsoccer-user', JSON.stringify(player));
+                        } else if (!hasCachedUser) {
+                            document.getElementById('hub-login-btn').style.display = 'flex';
+                        }
+                    } else if (!hasCachedUser) {
+                        document.getElementById('hub-login-btn').style.display = 'flex';
+                    }
+
+                    // Background listener for future sign out / parallel sign in
+                    sb.auth.onAuthStateChange(async (event, currentSession) => {
+                        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && currentSession && currentSession.user) {
+                            const { data: p } = await sb.from('players').select('username, elo, is_admin').eq('id', currentSession.user.id).single();
+                            if (p) {
+                                showPlayerCard(p);
+                                localStorage.setItem('subsoccer-user', JSON.stringify(p));
+                            } else {
+                                document.getElementById('hub-login-btn').style.display = 'flex';
+                            }
+                        } else if (event === 'SIGNED_OUT') {
+                            localStorage.removeItem('subsoccer-user');
+                            document.getElementById('hub-login-btn').style.display = 'flex';
+                            document.getElementById('hub-player-card').style.display = 'none';
+                            document.getElementById('menu-profile-link').style.display = 'none';
+                            document.getElementById('menu-league-link').style.display = 'none';
+                            document.getElementById('menu-logout-link').style.display = 'none';
+                            document.getElementById('menu-owner-link').style.display = 'none';
+                            document.getElementById('menu-mod-link').style.display = 'none';
+                        }
+                    });
+                } else if (!hasCachedUser) {
+                    document.getElementById('hub-login-btn').style.display = 'flex';
+                }
+            } catch (e) {
+                console.log('Auth check error:', e);
+                const cached = localStorage.getItem('subsoccer-user');
+                if (!cached) document.getElementById('hub-login-btn').style.display = 'flex';
+            }
+        }
+
+        function revealPage() {
+            if (document.body.classList.contains('auth-ready')) return;
+            const splash = document.getElementById('auth-splash');
+            if (splash) splash.remove();
+            document.body.classList.remove('auth-loading');
+            document.body.classList.add('auth-ready');
+        }
+
+        // Failsafe: always show page within 3s even if auth hangs
+        setTimeout(revealPage, 3000);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuth().finally(revealPage);
+
+            // Bind logout via addEventListener (CSP-safe, prevents href="#" jump)
+            const logoutLink = document.getElementById('menu-logout-link');
+            if (logoutLink) {
+                logoutLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    hubLogout();
+                });
+            }
+
+            // Keyboard accessibility for player card click trigger
+            const playerCard = document.getElementById('hub-player-card');
+            if (playerCard) {
+                playerCard.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        playerCard.click();
+                    }
+                });
+            }
+        });
+
+        // Handle Safari/Mobile BFCache restores
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                // Ensure page initialization runs even on BFCache restore
+                if (typeof initAuth === 'function') {
+                    initAuth();
+                }
+            }
+        });
+
+        function showPlayerCard(player) {
+            // Updated UI doesn't have names, just shows the check icon
+            document.getElementById('hub-login-btn').style.display = 'none';
+            document.getElementById('hub-player-card').style.display = 'flex';
+
+            // Menu toggles
+            document.getElementById('menu-profile-link').style.display = 'flex';
+            document.getElementById('menu-logout-link').style.display = 'flex';
+
+            // My Collection is visible to every registered user
+            document.getElementById('menu-owner-link').style.display = 'flex';
+
+            // Pro Leagues - grayed out for standard users (only admins can click)
+            const leagueLink = document.getElementById('menu-league-link');
+            leagueLink.style.display = 'flex';
+            if (player.is_admin || player.is_owner) {
+                leagueLink.style.opacity = '1';
+                leagueLink.onclick = null;
+            } else {
+                leagueLink.style.opacity = '0.3';
+                leagueLink.onclick = (e) => {
+                    e.preventDefault();
+                    alert("Pro Leagues is currently in closed beta. Only verified organizers can host tournaments.");
+                };
+            }
+
+            if (player.is_admin) {
+                document.getElementById('menu-mod-link').style.display = 'flex';
+            }
+        }
+
+        async function triggerFeedbackPrompt() {
+            const msg = prompt("Describe the issue or suggestion:");
+            if (!msg) return;
+
+            function showToast(text, type = 'success') {
+                let container = document.getElementById('notification-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'notification-container';
+                    document.body.appendChild(container);
+                }
+                const toast = document.createElement('div');
+                toast.className = 'toast-notification ' + (type === 'error' ? 'error' : 'success');
+                toast.innerText = text;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            }
+
+            try {
+                showToast("Sending...", "success");
+
+                const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+                const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+                if (!window._hubSb) {
+                    window._hubSb = window.supabase ? supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+                }
+                const sb = window._hubSb;
+                if (!sb) {
+                    throw new Error("Supabase client not initialized.");
+                }
+
+                let userId = 'guest';
+                const cached = localStorage.getItem('subsoccer-user');
+                if (cached) {
+                    try {
+                        const user = JSON.parse(cached);
+                        if (user && user.id) userId = user.id;
+                        else if (user && user.username) {
+                            const { data: { session } } = await sb.auth.getSession();
+                            if (session && session.user) userId = session.user.id;
+                        }
+                    } catch (e) {}
+                } else {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (session && session.user) userId = session.user.id;
+                }
+
+                const { error } = await sb.from('feedback').insert([{
+                    message: msg,
+                    user_id: userId,
+                    page: 'hub'
+                }]);
+
+                if (error) throw error;
+                showToast("Thanks for your feedback!", "success");
+            } catch (e) {
+                console.error(e);
+                showToast("Error sending feedback", "error");
+            }
+        }
+
+        async function hubLogout() {
+            if (!confirm('Log out?')) return;
+            // Clear storage FIRST (ensures we log out even if signOut hangs)
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sb-') || key.includes('supabase') || key === 'subsoccer-user') {
+                    localStorage.removeItem(key);
+                }
+            });
+            try {
+                const sb = window._hubSb || (window.supabase ? supabase.createClient(
+                    'https://ujxmmrsmdwrgcwatdhvx.supabase.co',
+                    'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t'
+                ) : null);
+                if (sb) {
+                    // Race: if signOut takes > 2s, redirect anyway
+                    await Promise.race([
+                        sb.auth.signOut(),
+                        new Promise(r => setTimeout(r, 2000))
+                    ]);
+                }
+            } catch (e) { console.warn('signOut error:', e); }
+            // Force full reload to bypass Safari BFCache
+            window.location.href = 'index.html?t=' + Date.now();
+        }
+
+        let hubMap = null;
+        let hubTileLayer = null;
+
+        function openMapOverlay() {
+            const overlay = document.getElementById('map-overlay');
+            overlay.style.display = 'block';
+
+            if (hubMap) {
+                // Multiple invalidateSize calls to ensure tiles load properly
+                setTimeout(() => hubMap.invalidateSize(), 100);
+                setTimeout(() => hubMap.invalidateSize(), 500);
+                return;
+            }
+
+            // Short delay to ensure the overlay is visible before Leaflet measures container
+            setTimeout(() => {
+                // Init Leaflet map
+                hubMap = L.map('public-game-map').setView([60.1699, 24.9384], 5);
+                hubMap.attributionControl.setPrefix(false);
+                
+                const isDark = document.body.classList.contains('dark-mode');
+                const tileUrl = isDark 
+                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+                hubTileLayer = L.tileLayer(tileUrl, {
+                    attribution: '&copy; CARTO',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                });
+                hubTileLayer.addTo(hubMap);
+
+            // Red icon for tables
+            const redIcon = L.divIcon({
+                className: '',
+                html: '<div style="background:#c41e2a; width:14px; height:14px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 10px rgba(196,30,42,0.4);"></div>',
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
+
+            // Fetch tables from Supabase
+            const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+            const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+
+            fetch(`${SUPABASE_URL}/rest/v1/games?select=id,game_name,latitude,longitude,location,is_public&is_public=eq.true&latitude=not.is.null`, {
+                headers: {
+                    'apikey': SUPABASE_ANON,
+                    'Authorization': `Bearer ${SUPABASE_ANON}`
+                }
+            })
+                .then(r => r.json())
+                .then(tables => {
+                    if (!tables || !Array.isArray(tables)) return;
+
+                    tables.forEach(t => {
+                        if (!t.latitude || !t.longitude) return;
+                        const marker = L.marker([t.latitude, t.longitude], { icon: redIcon }).addTo(hubMap);
+                        marker.bindPopup(`
+                        <div style="font-family: sans-serif; color: #111; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e0e0e0; min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">${t.game_name || 'Subsoccer Table'}</div>
+                            <div style="color: #666; font-size: 0.75rem;">${t.location || ''}</div>
+                            <div style="color: #c41e2a; font-size: 0.7rem; margin-top: 6px; text-transform: uppercase; font-weight: bold;">TABLE</div>
+                        </div>
+                    `, { className: 'light-popup' });
+                    });
+                })
+                .catch(e => console.error('Map data error:', e));
+
+            // Try to show user location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const userIcon = L.divIcon({
+                        className: '',
+                        html: '<div style="background:#3b82f6; width:12px; height:12px; border-radius:50%; border:3px solid rgba(59,130,246,0.3); box-shadow:0 0 15px rgba(59,130,246,0.5);"></div>',
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6]
+                    });
+                    L.marker([pos.coords.latitude, pos.coords.longitude], { icon: userIcon }).addTo(hubMap)
+                        .bindPopup('<div style="font-family:sans-serif; color:#fff; background:#111; padding:8px; border-radius:6px;">📍 You are here</div>', { className: 'dark-popup' });
+                }, () => { }, { timeout: 5000 });
+            }
+
+                // Multiple invalidateSize calls for reliable rendering
+                setTimeout(() => hubMap.invalidateSize(), 200);
+                setTimeout(() => hubMap.invalidateSize(), 600);
+            }, 50); // end of setTimeout wrapper
+        }
+
+        function closeMapOverlay() {
+            document.getElementById('map-overlay').style.display = 'none';
+        }
+    </script>
+
+    <style>
+        /* Leaflet popup dark theme */
+        .dark-popup .leaflet-popup-content-wrapper {
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .dark-popup .leaflet-popup-tip {
+            background: #111 !important;
+        }
+
+        .dark-popup .leaflet-popup-content {
+            margin: 0 !important;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+            const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+            let activeCities = [];
+
+            function updateTicker() {
+                if (activeCities.length > 0) {
+                    const spans = document.querySelectorAll('.ticker-cities');
+                    const label = typeof t === 'function' ? t('recent_global_activity').toUpperCase() : 'RECENT GLOBAL ACTIVITY FEED';
+                    spans.forEach(tc => {
+                        tc.innerHTML = `&nbsp;·&nbsp; ${label}: <span style="color:#ffffff;">${activeCities.join(' &nbsp;·&nbsp; ')}</span>`;
+                    });
+                }
+            }
+
+            // Listen for language changes to update the ticker live!
+            window.addEventListener('subsoccer-language-changed', updateTicker);
+
+            fetch(`${SUPABASE_URL}/rest/v1/public_tracking?select=location&location=not.is.null&order=client_time.desc&limit=100`, {
+                headers: {
+                    'apikey': SUPABASE_ANON,
+                    'Authorization': `Bearer ${SUPABASE_ANON}`
+                }
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        let cities = [...new Set(data.map(ev => {
+                            if (!ev.location) return null;
+                            const parts = ev.location.split('/');
+                            let city = parts.length > 1 ? parts[parts.length - 1] : ev.location;
+                            // Timezone locations often have underscores, e.g., Los_Angeles
+                            return city.replace(/_/g, ' ').toUpperCase();
+                        }).filter(Boolean))];
+
+                        // Otetaan 10 viimeisintä uniikkia kaupunkia
+                        cities = cities.slice(0, 10);
+                        activeCities = cities;
+                        updateTicker();
+                    }
+                })
+                .catch(e => console.error('Ticker data error:', e))
+                .finally(() => {
+                    const tickerNode = document.getElementById('top-ticker');
+                    if (tickerNode) {
+                        tickerNode.classList.add('animating');
+                    }
+                });
+        });
+    </script>
+    <!-- Theme Toggle Button -->
+    <script>
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('subsoccer-dark-mode', isDark ? '1' : '0');
+            const icon = document.querySelector('#theme-toggle i');
+            if (icon) {
+                icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+
+            // Update map tiles dynamically if map is open
+            if (typeof hubTileLayer !== 'undefined' && hubTileLayer) {
+                hubTileLayer.setUrl(isDark 
+                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+                );
+            }
+        }
+
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl = params.get('dark') === '1';
+            const storageVal = localStorage.getItem('subsoccer-dark-mode');
+            const fromStorage = storageVal === '1' || storageVal === null;
+            if (fromUrl || fromStorage) {
+                document.body.classList.add('dark-mode');
+                const icon = document.querySelector('#theme-toggle i');
+                if (icon) icon.className = 'fa-solid fa-sun';
+                if (fromUrl || storageVal === null) localStorage.setItem('subsoccer-dark-mode', '1');
+            }
+        })();
+    </script>
+
+    <script src="version.js"></script>
+    <script src="https://js-de.sentry-cdn.com/a53cdae04c9280e2611fe75c4b793913.min.js" crossorigin="anonymous"></script>
+    <script src="sentry.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js?v=' + APP_VERSION).then(registration => {
+                    console.log('[Service Worker] Registered with scope:', registration.scope, '| Version:', APP_VERSION);
+                }).catch(err => {
+                    console.error('[Service Worker] Registration failed:', err);
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
