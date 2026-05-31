@@ -357,6 +357,9 @@ function nextTournyMatch() {
     document.getElementById('m-matchup-p1').innerText = pending.p1;
     document.getElementById('m-matchup-p2').innerText = pending.p2;
 
+    // Show rivalry badge if there's head-to-head history
+    showRivalryBadge(pending.p1, pending.p2);
+
     // Update bracket rendering
     renderMobileBracket();
 
@@ -473,6 +476,10 @@ function finishMatch(winnerName, winnerIndex) {
         winner: winnerName,
         round: currentPendingMatch ? currentPendingMatch.roundName : 'Match'
     });
+
+    // Save rivalry result to localStorage
+    const loserName = (winnerName === gameState.p1Name) ? gameState.p2Name : gameState.p1Name;
+    saveRivalryResult(winnerName, loserName);
     
     // Explicit anonymous tracking for the individual tournament match
     if (_sb) {
@@ -669,6 +676,9 @@ function showTournamentComplete() {
     });
 
     showLayer('m-layer-leaderboard');
+
+    // Render post-tournament stats panel
+    renderTournamentStats();
     
     broadcastTvState();
 }
@@ -864,6 +874,164 @@ window.mobileRemovePlayer = function(btn) {
     updateAddPlayerButton();
     broadcastTvState();
 };
+
+// ============================================================
+// RIVALRY TRACKER (localStorage-based head-to-head history)
+// ============================================================
+
+const RIVALRY_STORAGE_KEY = 'subsoccer_rivalries';
+
+function getRivalryKey(name1, name2) {
+    // Always sort alphabetically so JARNO|MIKA === MIKA|JARNO
+    return [name1, name2].sort().join('|');
+}
+
+function loadRivalries() {
+    try {
+        const raw = localStorage.getItem(RIVALRY_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch (_) {
+        return {};
+    }
+}
+
+function saveRivalryResult(winner, loser) {
+    const rivalries = loadRivalries();
+    const key = getRivalryKey(winner, loser);
+    
+    if (!rivalries[key]) {
+        rivalries[key] = {};
+    }
+    rivalries[key][winner] = (rivalries[key][winner] || 0) + 1;
+    if (!rivalries[key][loser]) rivalries[key][loser] = 0;
+    
+    try {
+        localStorage.setItem(RIVALRY_STORAGE_KEY, JSON.stringify(rivalries));
+    } catch (_) { /* quota exceeded — silently ignore */ }
+}
+
+function getRivalryHistory(name1, name2) {
+    const rivalries = loadRivalries();
+    const key = getRivalryKey(name1, name2);
+    return rivalries[key] || null;
+}
+
+function showRivalryBadge(p1, p2) {
+    const badge = document.getElementById('m-rivalry-badge');
+    if (!badge) return;
+    
+    const history = getRivalryHistory(p1, p2);
+    
+    if (!history) {
+        badge.style.display = 'none';
+        return;
+    }
+    
+    const p1Wins = history[p1] || 0;
+    const p2Wins = history[p2] || 0;
+    
+    if (p1Wins === 0 && p2Wins === 0) {
+        badge.style.display = 'none';
+        return;
+    }
+    
+    let text;
+    if (p1Wins > p2Wins) {
+        text = `${escapeHtml(p1)} leads ${p1Wins}-${p2Wins}`;
+    } else if (p2Wins > p1Wins) {
+        text = `${escapeHtml(p2)} leads ${p2Wins}-${p1Wins}`;
+    } else {
+        text = `Tied ${p1Wins}-${p2Wins}`;
+    }
+    
+    badge.innerHTML = `<span class="rivalry-icon">⚡</span><span class="rivalry-text">${text}</span>`;
+    badge.style.display = 'flex';
+}
+
+// ============================================================
+// POST-TOURNAMENT STATS
+// ============================================================
+
+function renderTournamentStats() {
+    const container = document.getElementById('m-tournament-stats');
+    if (!container || matchResults.length === 0) return;
+    
+    // Calculate stats from matchResults
+    let closestGame = null;
+    let biggestWin = null;
+    const goalsByPlayer = {};
+    let totalGoals = 0;
+    
+    matchResults.forEach(r => {
+        const diff = Math.abs(r.p1Score - r.p2Score);
+        const gameGoals = r.p1Score + r.p2Score;
+        totalGoals += gameGoals;
+        
+        // Track goals per player
+        goalsByPlayer[r.p1] = (goalsByPlayer[r.p1] || 0) + r.p1Score;
+        goalsByPlayer[r.p2] = (goalsByPlayer[r.p2] || 0) + r.p2Score;
+        
+        // Closest game (smallest diff)
+        if (!closestGame || diff < closestGame.diff || (diff === closestGame.diff && gameGoals > closestGame.totalGoals)) {
+            closestGame = { p1: r.p1, p2: r.p2, p1Score: r.p1Score, p2Score: r.p2Score, diff, totalGoals: gameGoals };
+        }
+        
+        // Biggest win (largest diff)
+        if (!biggestWin || diff > biggestWin.diff || (diff === biggestWin.diff && gameGoals > biggestWin.totalGoals)) {
+            biggestWin = { winner: r.winner, p1: r.p1, p2: r.p2, p1Score: r.p1Score, p2Score: r.p2Score, diff, totalGoals: gameGoals };
+        }
+    });
+    
+    // Top scorer
+    const topScorer = Object.entries(goalsByPlayer).sort((a, b) => b[1] - a[1])[0];
+    
+    // Build stats HTML
+    let html = `<div class="tournament-stats-title">TOURNAMENT STATS</div>`;
+    html += `<div class="tournament-stats-grid">`;
+    
+    // Closest game
+    if (closestGame) {
+        html += `
+            <div class="stat-item stat-highlight">
+                <div class="stat-label">CLOSEST GAME</div>
+                <div class="stat-value">${closestGame.p1Score}-${closestGame.p2Score}</div>
+                <div class="stat-detail">${escapeHtml(closestGame.p1)} vs ${escapeHtml(closestGame.p2)}</div>
+            </div>`;
+    }
+    
+    // Biggest win
+    if (biggestWin) {
+        html += `
+            <div class="stat-item">
+                <div class="stat-label">BIGGEST WIN</div>
+                <div class="stat-value">${biggestWin.p1Score}-${biggestWin.p2Score}</div>
+                <div class="stat-detail">${escapeHtml(biggestWin.winner)}</div>
+            </div>`;
+    }
+    
+    // Top scorer
+    if (topScorer) {
+        html += `
+            <div class="stat-item">
+                <div class="stat-label">TOP SCORER</div>
+                <div class="stat-value">${topScorer[1]} GOALS</div>
+                <div class="stat-detail">${escapeHtml(topScorer[0])}</div>
+            </div>`;
+    }
+    
+    // Total goals
+    html += `
+        <div class="stat-item">
+            <div class="stat-label">TOTAL GOALS</div>
+            <div class="stat-value">${totalGoals}</div>
+            <div class="stat-detail">${matchResults.length} matches</div>
+        </div>`;
+    
+    html += `</div>`;
+    
+    container.innerHTML = html;
+    container.style.display = 'block';
+}
 
 // ============================================================
 // RESTART
