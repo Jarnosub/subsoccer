@@ -31,25 +31,29 @@ let userLat = null;
 let userLng = null;
 
 const locationPromise = (async function() {
-    let loc = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+    const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
     try {
         const res = await fetch('/.netlify/functions/geo');
         if (res.ok) {
             const data = await res.json();
-            if (data.city) {
-                const formattedCity = data.city.trim().replace(/\s+/g, '_');
-                const parts = loc.split('/');
-                if (parts.length > 1) {
-                    loc = `${parts[0]}/${formattedCity}`;
-                } else {
-                    loc = `Europe/${formattedCity}`;
-                }
+            const city = data.city ? data.city.trim() : '';
+            const country = data.country ? data.country.trim() : '';
+            const timezone = data.timezone ? data.timezone.trim() : clientTimezone;
+            
+            if (city && country) {
+                return `${city}, ${country} (${timezone})`;
+            } else if (city) {
+                return `${city} (${timezone})`;
+            } else if (country) {
+                return `${country} (${timezone})`;
+            } else {
+                return timezone;
             }
         }
     } catch (e) {
-        console.warn("Geo lookup failed, using timezone:", e);
+        console.warn("Geo lookup failed, using client timezone:", e);
     }
-    return loc;
+    return clientTimezone;
 })();
 
 function captureGeolocation() {

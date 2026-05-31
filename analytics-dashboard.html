@@ -875,6 +875,44 @@
             'America/Indianapolis': { name: 'United States', flag: '🇺🇸' }
         };
 
+        function parseLocation(locationStr) {
+            if (!locationStr || locationStr === 'Unknown') {
+                return { city: 'Unknown', countryCode: '', timezone: 'Unknown', raw: locationStr };
+            }
+            
+            if (locationStr.includes('(') && locationStr.includes(')')) {
+                const parenStart = locationStr.indexOf('(');
+                const parenEnd = locationStr.indexOf(')');
+                const timezone = locationStr.substring(parenStart + 1, parenEnd).trim();
+                const mainPart = locationStr.substring(0, parenStart).trim();
+                
+                let city = mainPart;
+                let countryCode = '';
+                const commaIndex = mainPart.indexOf(',');
+                if (commaIndex > -1) {
+                    city = mainPart.substring(0, commaIndex).trim();
+                    countryCode = mainPart.substring(commaIndex + 1).trim();
+                }
+                
+                return {
+                    city: city.replace(/_/g, ' '),
+                    countryCode: countryCode,
+                    timezone: timezone,
+                    raw: locationStr
+                };
+            }
+            
+            const parts = locationStr.split('/');
+            const city = parts.length > 1 ? parts[parts.length - 1].replace(/_/g, ' ') : locationStr;
+            
+            return {
+                city: city,
+                countryCode: '',
+                timezone: locationStr,
+                raw: locationStr
+            };
+        }
+
         // Chart.js global defaults
         Chart.defaults.color = '#9AA0A6';
         Chart.defaults.borderColor = '#3C4043';
@@ -1114,9 +1152,8 @@
                 if (trackingData && trackingData.length > 0) {
                     let citiesData = trackingData.filter(d => d.location && d.location !== 'Unknown');
                     const uniqueCities = new Set(citiesData.map(d => {
-                        const parts = d.location.split('/');
-                        let city = parts.length > 1 ? parts[parts.length - 1] : d.location;
-                        return city.replace(/_/g, ' ');
+                        const parsed = parseLocation(d.location);
+                        return parsed.city;
                     }));
                     uniqueCitiesCount = uniqueCities.size;
                     
@@ -1160,8 +1197,9 @@
                 const countryCounts = {};
                 trackingData.forEach(d => {
                     if (d.location && d.location !== 'Unknown') {
-                        const countryInfo = TIMEZONE_TO_COUNTRY[d.location];
-                        const countryName = countryInfo ? countryInfo.name : d.location.split('/').pop().replace(/_/g, ' ');
+                        const parsed = parseLocation(d.location);
+                        const countryInfo = TIMEZONE_TO_COUNTRY[d.location] || TIMEZONE_TO_COUNTRY[parsed.timezone];
+                        const countryName = countryInfo ? countryInfo.name : parsed.city;
                         const countryFlag = countryInfo ? countryInfo.flag : '🌐';
                         
                         if (!countryCounts[countryName]) {
@@ -1265,8 +1303,8 @@
             }
             if (searchQuery) {
                 filteredData = filteredData.filter(d => {
-                    const loc = (d.location || '').toLowerCase();
-                    const city = loc.includes('/') ? loc.split('/').pop().replace(/_/g, ' ').toLowerCase() : loc.toLowerCase();
+                    const parsed = parseLocation(d.location);
+                    const city = parsed.city.toLowerCase();
                     const score = (d.match_score || '').toLowerCase();
                     const partner = (d.source_partner || '').toLowerCase();
                     const eventLabel = (d.event_type || '').replaceAll('_', ' ').toLowerCase();
@@ -1309,8 +1347,8 @@
                 }
 
                 // Extract city from location (e.g. "Asia/Calcutta" → "Calcutta")
-                const loc = row.location || 'Unknown';
-                const city = loc.includes('/') ? loc.split('/').pop().replace(/_/g, ' ') : loc;
+                const parsed = parseLocation(row.location);
+                const city = parsed.city;
                 
                 // Calculate time ago
                 const now = new Date();
@@ -1509,11 +1547,12 @@
             const cityMap = {};
             data.forEach(d => {
                 if (d.location && d.location !== 'Unknown') {
-                    const city = d.location.split('/')[1] || d.location;
+                    const parsed = parseLocation(d.location);
+                    const city = parsed.city;
                     cityMap[city] = (cityMap[city] || 0) + 1;
                 }
             });
-            const sortedCities = Object.keys(cityMap).map(c => ({city: c.replace('_', ' '), count: cityMap[c]})).sort((a,b) => b.count - a.count).slice(0, 5);
+            const sortedCities = Object.keys(cityMap).map(c => ({city: c, count: cityMap[c]})).sort((a,b) => b.count - a.count).slice(0, 5);
             
             citiesInstance = new Chart(ctx3, {
                 type: 'bar',
@@ -1603,11 +1642,12 @@
 
             for (const loc in locCounts) {
                 const count = locCounts[loc];
-                let coords = tzCoords[loc];
+                const parsed = parseLocation(loc);
+                let coords = tzCoords[loc] || tzCoords[parsed.timezone];
                 let isFallback = false;
 
                 if (!coords && loc !== 'Unknown') {
-                    const continent = loc.split('/')[0];
+                    const continent = parsed.timezone.split('/')[0];
                     if (tzContinents[continent]) {
                         // Tightly cluster unknown areas so they don't spawn in oceans
                         const hash = loc.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);

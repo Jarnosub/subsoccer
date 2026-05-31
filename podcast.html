@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under the Table: Subsoccer Go - Deep Dive Podcast</title>
+    
+    <!-- SEO & Open Graph Meta Tags for LinkedIn Sharing -->
+    <meta name="description" content="How did a physical bench soccer game spread to 100 cities in 54 countries with a 0€ marketing budget? Listen to the full 20-minute deep dive podcast.">
+    
+    <!-- Facebook / LinkedIn Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://subsoccer.pro/podcast.html">
+    <meta property="og:title" content="Under the Table: Subsoccer Go - Deep Dive Podcast">
+    <meta property="og:description" content="How did a physical bench soccer game spread to 100 cities in 54 countries with a 0€ marketing budget? Listen to the full 20-minute deep dive podcast.">
+    <meta property="og:image" content="https://subsoccer.pro/assets/linkedin_thumbnail_eng.png">
+    
+    <!-- Twitter Cards -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://subsoccer.pro/podcast.html">
+    <meta property="twitter:title" content="Under the Table: Subsoccer Go - Deep Dive Podcast">
+    <meta property="twitter:description" content="How did a physical bench soccer game spread to 100 cities in 54 countries with a 0€ marketing budget? Listen to the full 20-minute deep dive podcast.">
+    <meta property="twitter:image" content="https://subsoccer.pro/assets/linkedin_thumbnail_eng.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons for Custom Player -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --text-secondary: #94a3b8;
+            --primary-color: #ef4444; /* red accent matching Subsoccer red logo color */
+            --primary-hover: #dc2626;
+            --slider-bg: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(239, 68, 68, 0.08) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 60%, #ff8a8a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Glassmorphism Podcast Card */
+        .podcast-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .cover-art-container {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .cover-art {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .podcast-card:hover .cover-art {
+            transform: scale(1.02);
+        }
+
+        .track-info {
+            margin-bottom: 25px;
+        }
+
+        .track-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-author {
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .track-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        /* Player Controls */
+        .progress-area {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-container {
+            height: 6px;
+            width: 100%;
+            background: var(--slider-bg);
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary-color), #ff6b6b);
+            border-radius: 10px;
+            position: relative;
+            transition: width 0.1s linear;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .progress-bar-container:hover .progress-bar::after {
+            opacity: 1;
+        }
+
+        .time-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .speed-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 60px;
+        }
+
+        .speed-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--text-color);
+        }
+
+        .play-pause-btn {
+            width: 64px;
+            height: 64px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .play-pause-btn:hover {
+            transform: scale(1.08);
+            background: var(--primary-hover);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .play-pause-btn:active {
+            transform: scale(0.95);
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100px;
+            justify-content: flex-end;
+        }
+
+        .volume-container i {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .volume-container i:hover {
+            color: var(--text-color);
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 60px;
+            height: 4px;
+            background: var(--slider-bg);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .share-section {
+            margin-top: 25px;
+            border-top: 1px solid var(--card-border);
+            padding-top: 20px;
+        }
+
+        .share-btn {
+            background: transparent;
+            border: 1px dashed var(--card-border);
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .share-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            animation: fadeIn 1.2s ease;
+        }
+
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            .podcast-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Under the Table</h1>
+        <p>The Subsoccer Go Story</p>
+    </header>
+
+    <div class="container">
+        <div class="podcast-card">
+            <!-- Hidden Audio Element -->
+            <audio id="audio-player">
+                <!-- Check in assets/audio/ folder first -->
+                <source src="assets/audio/Subsoccer_s_global_growth_under_the_table.m4a" type="audio/mp4">
+                <!-- Fallback to root folder -->
+                <source src="Subsoccer_s_global_growth_under_the_table.m4a" type="audio/mp4">
+                Your browser does not support the audio element.
+            </audio>
+
+            <div class="cover-art-container">
+                <img src="assets/linkedin_thumbnail_eng.png" alt="Under the Table: Subsoccer Go Podcast Cover" class="cover-art">
+            </div>
+
+            <div class="track-info">
+                <div class="track-author">Deep Dive Podcast</div>
+                <div class="track-title">Episode 1: Global Growth Under the Table</div>
+                <div class="track-description">
+                    How did the physical Subsoccer bench soccer game conquer 100 cities and 54 countries in just 2.5 months with a 0€ marketing budget? In this 20-minute episode, AI hosts analyze the physics of organic growth, audited telemetry, and the upcoming mass-market consumer table (target 249€ price category).
+                </div>
+            </div>
+
+            <!-- Custom Seek bar -->
+            <div class="progress-area">
+                <div class="progress-bar-container" id="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="time-labels">
+                    <span id="current-time">0:00</span>
+                    <span id="duration">20:00</span>
+                </div>
+            </div>
+
+            <!-- Controls (Speed, Play/Pause, Volume) -->
+            <div class="controls-row">
+                <button class="speed-btn" id="speed-btn">1.0x</button>
+                
+                <button class="play-pause-btn" id="play-btn" aria-label="Play">
+                    <i class="fa-solid fa-play" id="play-icon"></i>
+                </button>
+                
+                <div class="volume-container">
+                    <i class="fa-solid fa-volume-high" id="volume-icon"></i>
+                    <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.1" value="1">
+                </div>
+            </div>
+
+            <!-- Share via Clipboard -->
+            <div class="share-section">
+                <button class="share-btn" id="share-btn">
+                    <i class="fa-solid fa-link"></i> Copy link for LinkedIn share
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Subsoccer Go</p>
+    </footer>
+
+    <script>
+        const audio = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const speedBtn = document.getElementById('speed-btn');
+        const volumeIcon = document.getElementById('volume-icon');
+        const volumeSlider = document.getElementById('volume-slider');
+        const shareBtn = document.getElementById('share-btn');
+
+        let isPlaying = false;
+        let speeds = [1.0, 1.25, 1.5, 2.0];
+        let currentSpeedIndex = 0;
+
+        // Play or Pause
+        function togglePlay() {
+            if (isPlaying) {
+                pauseTrack();
+            } else {
+                playTrack();
+            }
+        }
+
+        function playTrack() {
+            audio.play().then(() => {
+                isPlaying = true;
+                playIcon.classList.remove('fa-play');
+                playIcon.classList.add('fa-pause');
+                playBtn.setAttribute('aria-label', 'Pause');
+            }).catch(err => {
+                console.log("Playback failed: ", err);
+                alert("Please make sure 'Subsoccer_s_global_growth_under_the_table.m4a' is uploaded to the root or assets/audio/ directory.");
+            });
+        }
+
+        function pauseTrack() {
+            audio.pause();
+            isPlaying = false;
+            playIcon.classList.remove('fa-pause');
+            playIcon.classList.add('fa-play');
+            playBtn.setAttribute('aria-label', 'Play');
+        }
+
+        // Update progress and duration
+        function updateProgress(e) {
+            const { duration, currentTime } = e.srcElement;
+            if (isNaN(duration)) return;
+            
+            // Update progress bar width
+            const progressPercent = (currentTime / duration) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            
+            // Update time displays
+            currentTimeEl.innerText = formatTime(currentTime);
+            durationEl.innerText = formatTime(duration);
+        }
+
+        // Format raw seconds to MM:SS
+        function formatTime(seconds) {
+            let mins = Math.floor(seconds / 60);
+            let secs = Math.floor(seconds % 60);
+            if (secs < 10) secs = '0' + secs;
+            return `${mins}:${secs}`;
+        }
+
+        // Set seek position on progress bar click
+        function setProgress(e) {
+            const width = this.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            if (isNaN(duration)) return;
+            audio.currentTime = (clickX / width) * duration;
+        }
+
+        // Toggle Speed (1.0x -> 1.25x -> 1.5x -> 2.0x)
+        function toggleSpeed() {
+            currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+            const speed = speeds[currentSpeedIndex];
+            audio.playbackRate = speed;
+            speedBtn.innerText = `${speed.toFixed(2).replace('.00', '')}x`;
+        }
+
+        // Volume control
+        function handleVolumeChange() {
+            audio.volume = volumeSlider.value;
+            if (audio.volume === 0) {
+                volumeIcon.className = 'fa-solid fa-volume-xmark';
+            } else if (audio.volume < 0.5) {
+                volumeIcon.className = 'fa-solid fa-volume-low';
+            } else {
+                volumeIcon.className = 'fa-solid fa-volume-high';
+            }
+        }
+
+        // Mute toggle
+        function toggleMute() {
+            if (audio.muted) {
+                audio.muted = false;
+                volumeSlider.value = audio.volume;
+                handleVolumeChange();
+            } else {
+                audio.muted = true;
+                volumeIcon.className = 'fa-solid fa-volume-xmark';
+                volumeSlider.value = 0;
+            }
+        }
+
+        // Copy Page Link to Clipboard
+        function copyLink() {
+            const link = window.location.href;
+            navigator.clipboard.writeText(link).then(() => {
+                const originalText = shareBtn.innerHTML;
+                shareBtn.innerHTML = '<i class="fa-solid fa-check"></i> Link copied to clipboard!';
+                shareBtn.style.borderColor = '#10b981'; // Green success border
+                shareBtn.style.color = '#10b981';
+                setTimeout(() => {
+                    shareBtn.innerHTML = originalText;
+                    shareBtn.style.borderColor = 'var(--card-border)';
+                    shareBtn.style.color = 'var(--text-secondary)';
+                }, 2000);
+            }).catch(err => {
+                alert("Copy failed, please copy the URL directly from the address bar.");
+            });
+        }
+
+        // Event listeners
+        playBtn.addEventListener('click', togglePlay);
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('loadedmetadata', () => {
+            durationEl.innerText = formatTime(audio.duration);
+        });
+        progressContainer.addEventListener('click', setProgress);
+        speedBtn.addEventListener('click', toggleSpeed);
+        volumeSlider.addEventListener('input', handleVolumeChange);
+        volumeIcon.addEventListener('click', toggleMute);
+        shareBtn.addEventListener('click', copyLink);
+
+        // Auto pause on end
+        audio.addEventListener('ended', pauseTrack);
+    </script>
+</body>
+</html>

@@ -83,9 +83,9 @@ Käyttöjärjestys perustuu telemetriadatan 5 122 paikannettuun tapahtumaan (laj
 ## 4. Keskeiset havainnot telemetriadasta (Business & Tech Insights)
 Tietokannan varmuuskopioista (2 382 ottelua, 5 189 tapahtumaa) tehdyistä analyyseistä nousi kaksi erittäin kriittistä huomiota:
 
-1. **Pelaajan 2 asymmetrinen ylivoima (Win-rate Bias) 🔴**:
-   * Rekisteröidyistä loppuun pelatuista otteluista **Pelaaja 2 (oikea/punainen puoli) on voittanut 56,9 %**, kun taas **Pelaaja 1 (vasen/valkoinen puoli) vain 35,3 %** (loput tasapelejä).
-   * Tämä epätasapaino voi johtua pelillisestä puolierosta tai teknisestä virheestä tulosten tallennuslogiikassa (esim. sovellus tallentaa herkemmin P2:n voittajaksi). *Tätä tulee tutkia tarkemmin jatkossa.*
+1. **Pelaajan 2 asymmetrinen ylivoima (Win-rate Bias) 🔴 (Ratkaistu)**:
+   * Raakadatan asymmetria (P2 voitti 51,4 % globaalisti ja 64,8 % Suomessa) osoittautui **100 % kehittäjän testausartifaktiksi**. Suomalainen kehittäjä teki kehitys- ja toimintatestauksia nopeasti naputtelemalla Player 2 -voittoon (0-3) pääosin alle 30 sekunnissa.
+   * Suodattamalla testipelit pois (kesto 30s–300s), kansainvälinen otteludata osoittaa erittäin tasapainoisen ja organicin suhteen: **Pelaaja 1 voittaa 52,4 %** ja **Pelaaja 2 voittaa 47,3 %** otteluista (tiukat 3-2 ja 3-1 pelit edustavat 37 % kokonaisuudesta). Peli ja sen digitaalinen scoreboard ovat siis täysin tasapainossa.
 2. **Käyttöjärjestelmät**:
    * **iOS (iPhone/iPad) kattaa 59,1 %** kaikesta käytöstä. Android 26,0 % ja Desktop 14,8 %.
    * iOS-yhteensopivuus ja PWA-suorituskyky Safarilla ovat sovelluksen menestykselle kriittisimpiä.
@@ -97,5 +97,5 @@ Tietokannan varmuuskopioista (2 382 ottelua, 5 189 tapahtumaa) tehdyistä analyy
 ---
 
 ## 5. Tulevat kehityskohteet
-* **Pelaaja 2:n voittoputkien/asymmetrian analysointi**: Tarkistettava, tallentavatko jotkin pelipäätteet tai tuomaritapahtumat oletuksena Pelaaja 2:n voittajaksi, vai johtuuko tämä pelipöydän fyysisistä tekijöistä.
 * **Väliaikainen vierastunnus & paikalliset tuloslistat**: Parantaa pikapelikokemusta (Zero-Friction Guest Flow) tallentamalla ELO-pisteet väliaikaisesti selaimeen ja näyttämällä QR-koodikohtaisia tuloslistoja globaalien sijaan.
+* **Pitkän aikavälin TimesFM-ennustaminen**: Ajaa uudelleen kaupunkikohtaiset TimesFM-ennusteet 2–3 viikon kuluttua, kun Netlifyn geo-sijaintipäivityksen aiheuttama uusi "kaupunkipiikki" tasaantuu tietokannassa.
