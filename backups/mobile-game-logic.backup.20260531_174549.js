@@ -1,0 +1,1224 @@
+// ============================================================
+// SUBSOCCER MOBILE GAME LOGIC
+// Standalone tournament engine for phone-only play (no TV)
+// Uses BracketEngine directly, no arcadeSocket dependency
+// ============================================================
+
+import { BracketEngine } from './bracket-engine.js';
+import { MatchService } from './match-service.js';
+
+// --- UTILS ---
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.toString().replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag));
+}
+
+// --- AUTH STATE ---
+let isLoggedIn = false;
+let currentUserId = null;
+let _sb = null;
+const MAX_PLAYERS_GUEST = 8;
+const MAX_PLAYERS_LOGGED = 8;
+
+// --- SMART MIRROR (TV CAST) ---
+let tvRoomCode = null;
+let tvChannel = null;
+window.isTvMode = false;
+
+
+// --- GEOLOCATION ---
+let userLat = null;
+let userLng = null;
+
+const locationPromise = (async function() {
+    const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+    try {
+        const res = await fetch('/.netlify/functions/geo');
+        if (res.ok) {
+            const data = await res.json();
+            const city = data.city ? data.city.trim() : '';
+            const country = data.country ? data.country.trim() : '';
+            const timezone = data.timezone ? data.timezone.trim() : clientTimezone;
+            
+            if (city && country) {
+                return `${city}, ${country} (${timezone})`;
+            } else if (city) {
+                return `${city} (${timezone})`;
+            } else if (country) {
+                return `${country} (${timezone})`;
+            } else {
+                return timezone;
+            }
+        }
+    } catch (e) {
+        console.warn("Geo lookup failed, using client timezone:", e);
+    }
+    return clientTimezone;
+})();
+
+function captureGeolocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            pos => { userLat = pos.coords.latitude; userLng = pos.coords.longitude; },
+            () => { /* silently ignore denial */ },
+            { enableHighAccuracy: false, timeout: 5000 }
+        );
+    }
+}
+
+(async function checkMobileAuth() {
+    try {
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        _sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+        
+        // 1. Fetch Auth State
+        const { data: { session } } = await _sb.auth.getSession();
+        if (session && session.user) {
+            isLoggedIn = true;
+            currentUserId = session.user.id;
+            updateAddPlayerButton();
+        }
+
+        // Note: Pricing logic removed from here since mobile standalone flow is always free.
+    } catch(e) { console.log('Init check:', e.message); }
+    
+    // Check if we are a TV Receiver
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tv')) {
+        window.isTvMode = true;
+        tvRoomCode = urlParams.get('tv');
+        document.body.classList.add('is-tv-mode');
+        initTvReceiver();
+    }
+
+    // Always restore player names from sessionStorage (if any) before updating UI
+    if (window.restoreMobilePlayers) {
+        window.restoreMobilePlayers();
+    }
+    
+    // Check if there is an active tournament in progress
+    if (restoreTournyState()) {
+        updateAddPlayerButton();
+        return;
+    }
+    
+    updateAddPlayerButton();
+})();
+
+function getMaxPlayers() {
+    return isLoggedIn ? MAX_PLAYERS_LOGGED : MAX_PLAYERS_GUEST;
+}
+
+function updateAddPlayerButton() {
+    const container = document.getElementById('m-players-list');
+    const addContainer = document.getElementById('m-add-buttons-container');
+    if (!container || !addContainer) return;
+    
+    const count = container.children.length;
+    const max = getMaxPlayers();
+    
+    // Hide BOTH 'ADD PLAYER' and 'QR JOIN' buttons when max limit is reached
+    if (count >= max) {
+        addContainer.style.display = 'none';
+    } else {
+        addContainer.style.display = 'flex';
+    }
+}
+
+// --- GAME STATE ---
+let gameState = {
+    p1Score: 0,
+    p2Score: 0,
+    p1Name: "PLAYER 1",
+    p2Name: "PLAYER 2",
+    isTournament: false,
+    tournamentStartTime: null
+};
+
+let localEngine = null;
+let matchTimerInterval = null;
+let matchRemaining = 90;
+let pMatchProcessing = false;
+let currentPendingMatch = null;
+let matchResults = []; // Track all match results for leaderboard
+
+const GOALS_TO_WIN = 3; // Best of 5: first to 3 wins
+
+// ============================================================
+// TOURNAMENT PERSISTENCE
+// ============================================================
+
+function saveTournyState() {
+    if (!localEngine || !gameState.isTournament) return;
+    const state = {
+        gameState: gameState,
+        currentPendingMatch: currentPendingMatch,
+        matchResults: matchResults,
+        activeLayer: getCurrentLayer(),
+        engine: {
+            participants: localEngine.participants,
+            rounds: localEngine.rounds,
+            currentRoundIndex: localEngine.currentRoundIndex,
+            isActive: localEngine.isActive
+        }
+    };
+    localStorage.setItem('subsoccer_mobile_tourny', JSON.stringify(state));
+}
+
+function getCurrentLayer() {
+    const layers = document.querySelectorAll('.m-layer');
+    for (let l of layers) {
+        if (l.style.display === 'flex' || l.style.display === 'block') {
+            return l.id;
+        }
+    }
+    return 'm-layer-setup';
+}
+
+function restoreTournyState() {
+    const raw = localStorage.getItem('subsoccer_mobile_tourny');
+    if (!raw) return false;
+    
+    try {
+        const state = JSON.parse(raw);
+        if (!state.engine || !state.engine.isActive) return false;
+
+        // Restore vars
+        gameState = state.gameState;
+        currentPendingMatch = state.currentPendingMatch;
+        matchResults = state.matchResults || [];
+
+        // Restore Engine
+        localEngine = new BracketEngine({ 
+            containerId: 'mobile-bracket-area', 
+            enableSaveButton: false 
+        });
+        localEngine.participants = state.engine.participants;
+        localEngine.rounds = state.engine.rounds;
+        localEngine.currentRoundIndex = state.engine.currentRoundIndex;
+        localEngine.isActive = state.engine.isActive;
+
+        // Render bracket
+        renderMobileBracket();
+
+        // Restore UI state based on layer
+        if (state.activeLayer === 'm-layer-game' && currentPendingMatch) {
+            // Restore match in progress
+            document.getElementById('m-p1-name').innerText = gameState.p1Name;
+            document.getElementById('m-p2-name').innerText = gameState.p2Name;
+            document.getElementById('m-score-p1').innerText = gameState.p1Score;
+            document.getElementById('m-score-p2').innerText = gameState.p2Score;
+            updateGoalVisual('m-goals-p1', gameState.p1Score);
+            updateGoalVisual('m-goals-p2', gameState.p2Score);
+            showLayer('m-layer-game');
+            pMatchProcessing = false;
+        } else if (state.activeLayer === 'm-layer-nextmatch' && currentPendingMatch) {
+            // Restore next match screen
+            document.getElementById('m-round-name').innerText = currentPendingMatch.roundName;
+            document.getElementById('m-matchup-p1').innerText = currentPendingMatch.p1;
+            document.getElementById('m-matchup-p2').innerText = currentPendingMatch.p2;
+            showLayer('m-layer-nextmatch');
+        } else {
+            // Fallback to bracket
+            showLayer('m-layer-bracket');
+        }
+
+        return true;
+    } catch(e) {
+        console.warn("Failed to restore tourny:", e);
+        return false;
+    }
+}
+
+// ============================================================
+// LAYER SWITCHING
+// ============================================================
+
+function showLayer(layerId) {
+    document.querySelectorAll('.m-layer').forEach(l => {
+        l.style.display = 'none';
+        l.classList.remove('fade-in');
+    });
+    const target = document.getElementById(layerId);
+    if (target) {
+        target.style.display = 'flex';
+        // force reflow for transition
+        void target.offsetWidth;
+        target.classList.add('fade-in');
+    }
+    broadcastTvState();
+}
+
+// ============================================================
+// SETUP: Read players and start tournament
+// ============================================================
+
+window.mobileStartTournament = function() {
+    const inputs = document.querySelectorAll('.player-input');
+    const players = [];
+    const usedNames = new Set();
+    window.verifiedMobilePlayers = window.verifiedMobilePlayers || {};
+
+    inputs.forEach(i => {
+        let name = i.value.trim().toUpperCase();
+        if (name) {
+            let uniqueName = name;
+            let counter = 2;
+            while(usedNames.has(uniqueName)) {
+                uniqueName = `${name} ${counter}`;
+                counter++;
+            }
+            usedNames.add(uniqueName);
+            players.push(uniqueName);
+            i.value = uniqueName; // Update UI with unique name
+
+            if (i.dataset && i.dataset.userId) {
+                window.verifiedMobilePlayers[uniqueName] = i.dataset.userId;
+            }
+        }
+    });
+
+    if (players.length < 2 || players.length > 8) {
+        alert(window.t ? window.t('tournament_requires_players') : "Tournament requires 2 to 8 players.");
+        return;
+    }
+
+    gameState.isTournament = true;
+    gameState.tournamentStartTime = Date.now();
+
+    // Initialize BracketEngine
+    localEngine = new BracketEngine({ 
+        containerId: 'mobile-bracket-area', 
+        enableSaveButton: false 
+    });
+    localEngine.generateBracket(players, true); // shuffle
+
+    // Render bracket view
+    renderMobileBracket();
+    
+    // Move to first match
+    nextTournyMatch();
+    saveTournyState();
+};
+
+// ============================================================
+// BRACKET RENDERING (Mobile-optimized)
+// ============================================================
+
+function renderMobileBracket() {
+    const container = document.getElementById('mobile-bracket-area');
+    if (!container || !localEngine) return;
+    
+    // BracketEngine render() method builds the DOM into the container
+    localEngine.containerId = 'mobile-bracket-area';
+    localEngine.render();
+    broadcastTvState();
+}
+
+// ============================================================
+// TOURNAMENT MATCH FLOW
+// ============================================================
+
+function getPendingMatch() {
+    if (!localEngine) return null;
+    const roundIdx = localEngine.getActiveRoundIndex();
+    if (roundIdx >= localEngine.rounds.length) return null;
+
+    const round = localEngine.rounds[roundIdx];
+    for (let i = 0; i < round.length; i++) {
+        const m = round[i];
+        if (m.p1 && m.p2 && !m.winner && m.p1 !== 'BYE' && m.p2 !== 'BYE') {
+            return { 
+                rIndex: roundIdx, 
+                mIndex: i, 
+                p1: m.p1, 
+                p2: m.p2, 
+                roundName: localEngine.getRoundName(roundIdx, localEngine.rounds.length) 
+            };
+        }
+    }
+    return null;
+}
+
+function nextTournyMatch() {
+    const pending = getPendingMatch();
+    
+    if (!pending) {
+        // Tournament is complete!
+        showTournamentComplete();
+        return;
+    }
+
+    currentPendingMatch = pending;
+
+    // Update the "next match" display
+    document.getElementById('m-round-name').innerText = pending.roundName;
+    document.getElementById('m-matchup-p1').innerText = pending.p1;
+    document.getElementById('m-matchup-p2').innerText = pending.p2;
+
+    // Show rivalry badge if there's head-to-head history
+    showRivalryBadge(pending.p1, pending.p2);
+
+    // Update bracket rendering
+    renderMobileBracket();
+
+    // Show the "next match" layer
+    showLayer('m-layer-nextmatch');
+
+    // Highlight the pending match in the bracket DOM
+    setTimeout(() => {
+        const activeMatchDiv = document.getElementById(`match-${pending.rIndex}-${pending.mIndex}`);
+        if (activeMatchDiv) {
+            activeMatchDiv.classList.add('glow');
+            activeMatchDiv.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        }
+    }, 50);
+}
+
+// ============================================================
+// SCOREBOARD / GAME CONTROLS
+// ============================================================
+
+window.mobileStartMatch = function() {
+    saveTournyState();
+    if (!currentPendingMatch) return;
+    
+    gameState.p1Score = 0;
+    gameState.p2Score = 0;
+    gameState.p1Name = currentPendingMatch.p1;
+    gameState.p2Name = currentPendingMatch.p2;
+    gameState.isTournament = true;
+    pMatchProcessing = false;
+
+    // Update scoreboard UI
+    document.getElementById('m-p1-name').innerText = gameState.p1Name;
+    document.getElementById('m-p2-name').innerText = gameState.p2Name;
+    document.getElementById('m-score-p1').innerText = '0';
+    document.getElementById('m-score-p2').innerText = '0';
+    document.getElementById('m-goals-p1').innerText = '○○○';
+    document.getElementById('m-goals-p2').innerText = '○○○';
+
+    showLayer('m-layer-game');
+};
+
+window.mobileGoal = function(playerNumber) {
+    if (pMatchProcessing) return;
+    saveTournyState();
+
+    if (playerNumber === 1) {
+        gameState.p1Score++;
+        document.getElementById('m-score-p1').innerText = gameState.p1Score;
+        updateGoalVisual('m-goals-p1', gameState.p1Score);
+    }
+    if (playerNumber === 2) {
+        gameState.p2Score++;
+        document.getElementById('m-score-p2').innerText = gameState.p2Score;
+        updateGoalVisual('m-goals-p2', gameState.p2Score);
+    }
+
+    if (navigator.vibrate) navigator.vibrate(50);
+
+    // Check if someone reached 3 goals
+    if (gameState.p1Score >= GOALS_TO_WIN) {
+        pMatchProcessing = true;
+        setTimeout(() => finishMatch(gameState.p1Name, 1), 800);
+    } else if (gameState.p2Score >= GOALS_TO_WIN) {
+        pMatchProcessing = true;
+        setTimeout(() => finishMatch(gameState.p2Name, 2), 800);
+    }
+    
+    saveTournyState();
+    broadcastTvState();
+};
+
+function updateGoalVisual(elementId, score) {
+    const filled = Math.min(score, GOALS_TO_WIN);
+    const empty = GOALS_TO_WIN - filled;
+    document.getElementById(elementId).innerText = '●'.repeat(filled) + '○'.repeat(empty);
+}
+
+window.mobileSkipMatch = function(winnerNumber) {
+    if (pMatchProcessing) return;
+    pMatchProcessing = true;
+    clearInterval(matchTimerInterval);
+    
+    if (winnerNumber === 1) gameState.p1Score++;
+    if (winnerNumber === 2) gameState.p2Score++;
+
+    const winnerName = winnerNumber === 1 ? gameState.p1Name : gameState.p2Name;
+    saveTournyState();
+    finishMatch(winnerName, winnerNumber);
+};
+
+// No timer needed - game ends when someone reaches 3 goals
+
+// ============================================================
+// MATCH FINISH & VICTORY
+// ============================================================
+
+function finishMatch(winnerName, winnerIndex) {
+    // Record match in bracket
+    if (localEngine && currentPendingMatch) {
+        localEngine.setMatchWinner(
+            currentPendingMatch.rIndex, 
+            currentPendingMatch.mIndex, 
+            winnerName, 
+            true
+        );
+    }
+
+    matchResults.push({
+        p1: gameState.p1Name,
+        p2: gameState.p2Name,
+        p1Score: gameState.p1Score,
+        p2Score: gameState.p2Score,
+        winner: winnerName,
+        round: currentPendingMatch ? currentPendingMatch.roundName : 'Match'
+    });
+
+    // Save rivalry result to localStorage
+    const loserName = (winnerName === gameState.p1Name) ? gameState.p2Name : gameState.p1Name;
+    saveRivalryResult(winnerName, loserName);
+    
+    // Explicit anonymous tracking for the individual tournament match
+    if (_sb) {
+        const isRet = !!localStorage.getItem('subsoccer-user');
+        locationPromise.then(userLoc => {
+            _sb.from('public_tracking').insert({
+                event_type: 'tournament_match_finished',
+                game_code: 'MOBILE-TOURNAMENT',
+                match_score: `${gameState.p1Score}-${gameState.p2Score}`,
+                source_partner: isLoggedIn ? 'registered' : 'guest',
+                user_agent: navigator.userAgent,
+                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
+                location: userLoc,
+                is_returning: isRet
+            }).then(() => {}).catch(() => {});
+        });
+    }
+
+    // Record the match in the global backend for ELO & Stats (silently, no loading overlay)
+    try {
+        const viMap = window.verifiedMobilePlayers || {};
+        MatchService.recordMatch({
+            player1Name: gameState.p1Name,
+            player2Name: gameState.p2Name,
+            player1Id: viMap[gameState.p1Name] || null,
+            player2Id: viMap[gameState.p2Name] || null,
+            winnerName: winnerName,
+            p1Score: gameState.p1Score,
+            p2Score: gameState.p2Score,
+            tournamentName: "Mobile Arcade",
+            gameId: "MOBILE-FREEPLAY"
+        }).catch(err => console.log("ELO save skipped:", err));
+        // Immediately hide any loading overlay that MatchService creates
+        // since we don't want it blocking the victory screen
+        setTimeout(() => {
+            const loader = document.getElementById('loading-overlay');
+            if (loader) loader.style.display = 'none';
+        }, 0);
+    } catch(e) {
+        console.warn("Match logging offline or unavailable:", e);
+    }
+
+    // Show victory screen
+    document.getElementById('m-winner-name').innerText = winnerName;
+    document.getElementById('m-victory-score').innerHTML = `<span class="victory-score-half victory-score-left">${gameState.p1Score}</span><span class="victory-score-dash">-</span><span class="victory-score-half victory-score-right">${gameState.p2Score}</span>`;
+    document.getElementById('m-victory-round').innerText = 
+        currentPendingMatch ? currentPendingMatch.roundName : (window.t ? window.t('match_concluded') : 'MATCH CONCLUDED');
+    
+    showLayer('m-layer-victory');
+    broadcastTvState();
+
+    // Auto-advance after 4 seconds, or tap to skip
+    let victoryTimer = setTimeout(() => {
+        pMatchProcessing = false;
+        nextTournyMatch();
+    }, 4000);
+    
+    const vicLayer = document.getElementById('m-layer-victory');
+    const skipFn = () => {
+        clearTimeout(victoryTimer);
+        vicLayer.removeEventListener('click', skipFn);
+        pMatchProcessing = false;
+        nextTournyMatch();
+    };
+    vicLayer.addEventListener('click', skipFn);
+}
+
+// ============================================================
+// TOURNAMENT COMPLETE
+// ============================================================
+
+async function trackTournamentAnonymously(results) {
+    // Zero-friction tracking: fires for ALL tournaments (guest + logged-in)
+    // Uses public_tracking table which allows anonymous inserts (no auth needed)
+    if (!_sb) return;
+    try {
+        const participants = localEngine.participants.filter(p => p !== 'BYE');
+        const isRet = !!localStorage.getItem('subsoccer-user');
+        let duration = null;
+        if (gameState.tournamentStartTime) {
+            duration = Math.floor((Date.now() - gameState.tournamentStartTime) / 1000);
+        }
+
+        const userLoc = await locationPromise;
+
+        await _sb.from('public_tracking').insert({
+            event_type: 'tournament_finished',
+            game_code: 'MOBILE-TOURNAMENT',
+            match_score: `${participants.length}p`,
+            source_partner: isLoggedIn ? 'registered' : 'guest',
+            user_agent: navigator.userAgent,
+            browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
+            location: userLoc,
+            is_returning: isRet,
+            session_duration: duration
+        });
+    } catch (_) { /* silent */ }
+}
+
+async function saveTournamentToDatabase(results) {
+    // Only save if user is logged in and we have a Supabase client
+    if (!isLoggedIn || !_sb || !currentUserId) return;
+
+    try {
+        const participants = localEngine.participants.filter(p => p !== 'BYE');
+        const now = new Date().toISOString();
+
+        // Capture geolocation NOW (only logged-in users see the prompt,
+        // and only when their tournament actually finishes)
+        let lat = userLat;
+        let lng = userLng;
+        if (!lat && navigator.geolocation) {
+            try {
+                const pos = await new Promise((resolve, reject) =>
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 4000 })
+                );
+                lat = pos.coords.latitude;
+                lng = pos.coords.longitude;
+                userLat = lat; userLng = lng;
+            } catch (_) { /* user denied or timeout — save without coords */ }
+        }
+
+        const { error } = await _sb.from('tournament_history').insert({
+            tournament_name: `Mobile Tournament ${new Date().toLocaleDateString()}`,
+            organizer_id: currentUserId,
+            status: 'completed',
+            winner_name: results.winner,
+            second_place_name: results.second || null,
+            start_datetime: now,
+            end_datetime: now,
+            max_participants: participants.length,
+            tournament_type: 'elimination',
+            latitude: lat,
+            longitude: lng
+        });
+
+        if (error) {
+            console.warn('Failed to save tournament:', error.message);
+        } else {
+            console.log('Tournament saved to database with geolocation:', lat, lng);
+        }
+    } catch (e) {
+        console.warn('Tournament save error:', e.message);
+    }
+}
+
+function showTournamentComplete() {
+    localStorage.removeItem('subsoccer_mobile_tourny');
+    const results = localEngine.getTournamentResults();
+    const winner = results.winner || 'UNKNOWN';
+
+    // 1. Always track anonymously (zero friction, all users)
+    trackTournamentAnonymously(results);
+    // 2. Save full details only if logged in
+    saveTournamentToDatabase(results);
+
+    // Show champion name
+    document.getElementById('m-champion-name').innerText = winner;
+
+    // Build leaderboard from ALL participants
+    const wins = {};
+    // Initialize all participants with 0 wins
+    localEngine.participants.forEach(p => {
+        if (p !== 'BYE') wins[p] = 0;
+    });
+    // Count actual wins
+    matchResults.forEach(r => {
+        wins[r.winner] = (wins[r.winner] || 0) + 1;
+    });
+    
+    // Sort by wins
+    const sorted = Object.entries(wins).sort((a, b) => b[1] - a[1]);
+    
+    const leaderboardEl = document.getElementById('m-leaderboard-list');
+    leaderboardEl.innerHTML = '';
+    sorted.forEach(([name, w], idx) => {
+        const row = document.createElement('div');
+        row.style.cssText = `
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; border-radius: 2px; margin-bottom: 8px;
+            background: ${idx === 0 ? 'rgba(196,30,42,0.1)' : 'rgba(255,255,255,0.03)'};
+            border: 1px solid ${idx === 0 ? 'rgba(196,30,42,0.4)' : 'rgba(255,255,255,0.05)'};
+            ${idx === 0 ? 'box-shadow: 0 0 15px rgba(196,30,42,0.2);' : ''}
+        `;
+        const safeName = escapeHtml(name);
+        row.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="color: ${idx === 0 ? '#c41e2a' : '#666'}; font-weight: 900; width: 24px;">#${idx + 1}</span>
+                <span style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">${safeName}</span>
+            </div>
+            <div style="font-family: 'Resolve', sans-serif; color: ${idx === 0 ? '#c41e2a' : '#888'}; font-size: 0.9rem;">${w} WINS</div>
+        `;
+        leaderboardEl.appendChild(row);
+    });
+
+    showLayer('m-layer-leaderboard');
+
+    // Render post-tournament stats panel
+    renderTournamentStats();
+    
+    broadcastTvState();
+}
+
+// ============================================================
+// SETUP UI HELPERS (Player add/remove for setup screen)
+// ============================================================
+
+window.mobileAddPlayer = function(defaultName, userId) {
+    const container = document.getElementById('m-players-list');
+    const num = container.children.length + 1;
+    
+    if (num > getMaxPlayers()) return;
+
+    const datasetAttr = userId ? `data-user-id="${userId}"` : '';
+
+    const playerPrefix = (window.t ? window.t('player_prefix') : 'PLAYER').toUpperCase();
+    const defaultVal = defaultName || (`${playerPrefix} ${num}`);
+
+    const div = document.createElement('div');
+    div.className = 'player-row';
+    div.style.cssText = 'display: flex; align-items: center; background: #ffffff; padding: 6px; border-radius: 2px; border: none; margin-bottom: 6px; border-left: 3px solid #c41e2a;';
+    div.innerHTML = `
+        <span class="player-num" style="color: #999; font-weight: 700; padding: 0 8px; width: 32px; font-size: 0.8rem;">#${num}</span>
+        <input type="text" autocomplete="off" autocapitalize="characters" onfocus="setTimeout(() => this.select(), 50)" onkeyup="this.setAttribute('value', this.value); if(window.broadcastTvState) window.broadcastTvState();" value="${escapeHtml(defaultVal)}" 
+               class="player-input" ${datasetAttr}
+               style="text-transform: uppercase; color: #111; width: 100%; padding: 8px 10px; font-size: 0.95rem; font-weight: 600; background: transparent; border: none; border-radius: 2px; outline: none; font-family: 'Resolve', sans-serif; letter-spacing: 0px;">
+
+        <i class="fas fa-pencil-alt" style="color: #ccc; font-size: 0.75rem; margin-left: 10px; pointer-events: none;"></i>
+        <button onclick="mobileRemovePlayer(this)" style="color: #c41e2a; padding: 8px 12px; background: none; border: none; cursor: pointer;">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+    updateAddPlayerButton();
+    broadcastTvState();
+    
+    // Auto-scroll to bottom so new player is always visible
+    setTimeout(() => {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }, 10);
+};
+
+let qrJoinChannel = null;
+window.openQrJoin = function() {
+    // Luodaan satunnainen 4-numeroinen huonekoodi
+    const joinCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const joinUrl = `${window.location.origin}/join.html?code=${joinCode}`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(joinUrl)}&margin=0`;
+
+    // Kuunnellaan uusia pelaajia tässä kanavassa
+    if (qrJoinChannel) _sb.removeChannel(qrJoinChannel);
+    qrJoinChannel = _sb.channel('qr-join-' + joinCode);
+    qrJoinChannel.on('broadcast', { event: 'player-join' }, ({ payload }) => {
+        if (payload.name) {
+            let baseName = payload.name.toUpperCase();
+            let upName = baseName;
+
+            const inputs = document.querySelectorAll('.player-input');
+            const usedNames = new Set();
+            inputs.forEach(i => usedNames.add(i.value.trim().toUpperCase()));
+            
+            let counter = 2;
+            while(usedNames.has(upName)) {
+                upName = `${baseName} ${counter}`;
+                counter++;
+            }
+            
+            // Map verified IDs to names securely
+            window.verifiedMobilePlayers = window.verifiedMobilePlayers || {};
+            if (payload.id) {
+                window.verifiedMobilePlayers[upName] = payload.id;
+            }
+
+            // Etsitään onko valmiina tyhjiä paikkoja ("PLAYER X")
+            let replaced = false;
+            for(let i=0; i<inputs.length; i++) {
+                if(inputs[i].value.trim().startsWith("PLAYER ")) {
+                    inputs[i].value = upName;
+                    if (payload.id) inputs[i].dataset.userId = payload.id;
+                    inputs[i].dispatchEvent(new Event('keyup')); // Pakotetaan tv-synkki
+                    replaced = true;
+                    break;
+                }
+            }
+            if (!replaced) window.mobileAddPlayer(upName, payload.id);
+            
+            // Päivitetään asettelu popuppiin lukemalla kentät uusiksi
+            const listEl = document.getElementById('qr-joined-list');
+            if (listEl) {
+                let existingPlayersHtml = '';
+                let existingCount = 0;
+                document.querySelectorAll('.player-input').forEach((input, idx) => {
+                    const name = input.value.trim();
+                    if (name && !name.startsWith("PLAYER ")) {
+                        existingCount++;
+                        const safeName = escapeHtml(name.toUpperCase());
+                        existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${safeName}</div>`;
+                    }
+                });
+                const emptyHtml = `<div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>`;
+                listEl.innerHTML = existingCount > 0 ? existingPlayersHtml : emptyHtml;
+                listEl.scrollTop = listEl.scrollHeight;
+            }
+
+            const addBtn = document.getElementById('m-add-player-btn');
+            if(addBtn) {
+                const origBg = addBtn.style.background;
+                addBtn.style.background = '#4CAF50';
+                setTimeout(() => { if(addBtn) addBtn.style.background = origBg; }, 500);
+            }
+        }
+    });
+    qrJoinChannel.subscribe();
+
+    // Rakennetaan visuaalinen pop-up yhdellä isolla QR-koodilla
+    let existing = document.getElementById('qr-join-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'qr-join-overlay';
+    overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background: var(--page-bg); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; text-align:center;`;
+    
+    overlay.innerHTML = `
+        <div id="qr-modal-content" style="background: #ffffff; border: 1px solid #e0e0e0; padding: 36px 28px; border-radius: 4px; max-width: 90%; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); position: relative;">
+            
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;">
+                <i class="fas fa-qrcode" style="color: #c41e2a; font-size: 1.2rem;"></i>
+                <span id="qr-modal-title" style="color: #111; font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; font-family: 'Resolve', sans-serif; text-transform: uppercase;">Join Tournament</span>
+            </div>
+            <p style="color: #999; font-size: 0.7rem; margin-bottom: 24px; font-family: 'Resolve', sans-serif; letter-spacing: 1.5px; text-transform: uppercase;">Scan with your phone camera</p>
+            
+            <div id="qr-modal-img-container" style="background: #f9f9f9; margin: 0 auto 24px auto; padding: 16px; border-radius: 4px; width: max-content; display: block; border: 1px solid #e0e0e0;">
+                <img src="${qrImageUrl}" alt="Join QR Code" style="width: 180px; height: 180px; display:block;">
+            </div>
+            
+            <div id="qr-joined-list" style="background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 44px; max-height: 100px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; justify-content: center; align-content: center;">
+                <!-- Lista injektoidaan -->
+            </div>
+            
+            <button onclick="window.closeQrJoin()" style="background: #111; color: #fff; border: none; padding: 13px; font-family: 'Resolve', sans-serif; font-size: 0.85rem; font-weight: 600; border-radius: 2px; cursor: pointer; letter-spacing: 2px; width: 100%; transition: all 0.2s; text-transform: uppercase;">
+                <i class="fas fa-times" style="margin-right: 8px; font-size: 0.7rem;"></i> CLOSE
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    
+    // Yhdistetään poistofunktio window-objektiin
+    window.closeQrJoin = function() {
+        const ov = document.getElementById('qr-join-overlay');
+        if (ov) ov.remove();
+        if (qrJoinChannel) {
+            _sb.removeChannel(qrJoinChannel);
+            qrJoinChannel = null;
+        }
+    };
+
+    // Injektoidaan lista heti kun avataan
+    const listEl = document.getElementById('qr-joined-list');
+    if (listEl) {
+        let existingPlayersHtml = '';
+        let existingCount = 0;
+        document.querySelectorAll('.player-input').forEach((input, idx) => {
+            const name = input.value.trim();
+            if (name && !name.startsWith("PLAYER ")) {
+                existingCount++;
+                existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${name.toUpperCase()}</div>`;
+            }
+        });
+        const emptyHtml = `<div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>`;
+        listEl.innerHTML = existingCount > 0 ? existingPlayersHtml : emptyHtml;
+    }
+};
+
+window.mobileRemovePlayer = function(btn) {
+    const row = btn.closest('.player-row');
+    const container = document.getElementById('m-players-list');
+    
+    if (container.querySelectorAll('.player-row').length <= 2) {
+        const idx = Array.from(container.querySelectorAll('.player-row')).indexOf(row);
+        row.querySelector('.player-input').value = 'PLAYER ' + (idx + 1);
+        return;
+    }
+    
+    row.remove();
+    
+    // Re-number
+    const rows = container.querySelectorAll('.player-row');
+    rows.forEach((r, idx) => {
+        r.querySelector('.player-num').innerText = '#' + (idx + 1);
+    });
+    updateAddPlayerButton();
+    broadcastTvState();
+};
+
+// ============================================================
+// RIVALRY TRACKER (localStorage-based head-to-head history)
+// ============================================================
+
+const RIVALRY_STORAGE_KEY = 'subsoccer_rivalries';
+
+function getRivalryKey(name1, name2) {
+    // Always sort alphabetically so JARNO|MIKA === MIKA|JARNO
+    return [name1, name2].sort().join('|');
+}
+
+function loadRivalries() {
+    try {
+        const raw = localStorage.getItem(RIVALRY_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch (_) {
+        return {};
+    }
+}
+
+function saveRivalryResult(winner, loser) {
+    const rivalries = loadRivalries();
+    const key = getRivalryKey(winner, loser);
+    
+    if (!rivalries[key]) {
+        rivalries[key] = {};
+    }
+    rivalries[key][winner] = (rivalries[key][winner] || 0) + 1;
+    if (!rivalries[key][loser]) rivalries[key][loser] = 0;
+    
+    try {
+        localStorage.setItem(RIVALRY_STORAGE_KEY, JSON.stringify(rivalries));
+    } catch (_) { /* quota exceeded — silently ignore */ }
+}
+
+function getRivalryHistory(name1, name2) {
+    const rivalries = loadRivalries();
+    const key = getRivalryKey(name1, name2);
+    return rivalries[key] || null;
+}
+
+function showRivalryBadge(p1, p2) {
+    const badge = document.getElementById('m-rivalry-badge');
+    if (!badge) return;
+    
+    const history = getRivalryHistory(p1, p2);
+    
+    if (!history) {
+        badge.style.display = 'none';
+        return;
+    }
+    
+    const p1Wins = history[p1] || 0;
+    const p2Wins = history[p2] || 0;
+    
+    if (p1Wins === 0 && p2Wins === 0) {
+        badge.style.display = 'none';
+        return;
+    }
+    
+    let text;
+    if (p1Wins > p2Wins) {
+        text = `${escapeHtml(p1)} leads ${p1Wins}-${p2Wins}`;
+    } else if (p2Wins > p1Wins) {
+        text = `${escapeHtml(p2)} leads ${p2Wins}-${p1Wins}`;
+    } else {
+        text = `Tied ${p1Wins}-${p2Wins}`;
+    }
+    
+    badge.innerHTML = `<span class="rivalry-icon">⚡</span><span class="rivalry-text">${text}</span>`;
+    badge.style.display = 'flex';
+}
+
+// ============================================================
+// POST-TOURNAMENT STATS
+// ============================================================
+
+function renderTournamentStats() {
+    const container = document.getElementById('m-tournament-stats');
+    if (!container || matchResults.length === 0) return;
+    
+    // Calculate stats from matchResults
+    let closestGame = null;
+    let biggestWin = null;
+    const goalsByPlayer = {};
+    let totalGoals = 0;
+    
+    matchResults.forEach(r => {
+        const diff = Math.abs(r.p1Score - r.p2Score);
+        const gameGoals = r.p1Score + r.p2Score;
+        totalGoals += gameGoals;
+        
+        // Track goals per player
+        goalsByPlayer[r.p1] = (goalsByPlayer[r.p1] || 0) + r.p1Score;
+        goalsByPlayer[r.p2] = (goalsByPlayer[r.p2] || 0) + r.p2Score;
+        
+        // Closest game (smallest diff)
+        if (!closestGame || diff < closestGame.diff || (diff === closestGame.diff && gameGoals > closestGame.totalGoals)) {
+            closestGame = { p1: r.p1, p2: r.p2, p1Score: r.p1Score, p2Score: r.p2Score, diff, totalGoals: gameGoals };
+        }
+        
+        // Biggest win (largest diff)
+        if (!biggestWin || diff > biggestWin.diff || (diff === biggestWin.diff && gameGoals > biggestWin.totalGoals)) {
+            biggestWin = { winner: r.winner, p1: r.p1, p2: r.p2, p1Score: r.p1Score, p2Score: r.p2Score, diff, totalGoals: gameGoals };
+        }
+    });
+    
+    // Top scorer
+    const topScorer = Object.entries(goalsByPlayer).sort((a, b) => b[1] - a[1])[0];
+    
+    // Build stats HTML
+    let html = `<div class="tournament-stats-title">TOURNAMENT STATS</div>`;
+    html += `<div class="tournament-stats-grid">`;
+    
+    // Closest game
+    if (closestGame) {
+        html += `
+            <div class="stat-item stat-highlight">
+                <div class="stat-label">CLOSEST GAME</div>
+                <div class="stat-value">${closestGame.p1Score}-${closestGame.p2Score}</div>
+                <div class="stat-detail">${escapeHtml(closestGame.p1)} vs ${escapeHtml(closestGame.p2)}</div>
+            </div>`;
+    }
+    
+    // Biggest win
+    if (biggestWin) {
+        html += `
+            <div class="stat-item">
+                <div class="stat-label">BIGGEST WIN</div>
+                <div class="stat-value">${biggestWin.p1Score}-${biggestWin.p2Score}</div>
+                <div class="stat-detail">${escapeHtml(biggestWin.winner)}</div>
+            </div>`;
+    }
+    
+    // Top scorer
+    if (topScorer) {
+        html += `
+            <div class="stat-item">
+                <div class="stat-label">TOP SCORER</div>
+                <div class="stat-value">${topScorer[1]} GOALS</div>
+                <div class="stat-detail">${escapeHtml(topScorer[0])}</div>
+            </div>`;
+    }
+    
+    // Total goals
+    html += `
+        <div class="stat-item">
+            <div class="stat-label">TOTAL GOALS</div>
+            <div class="stat-value">${totalGoals}</div>
+            <div class="stat-detail">${matchResults.length} matches</div>
+        </div>`;
+    
+    html += `</div>`;
+    
+    container.innerHTML = html;
+    container.style.display = 'block';
+}
+
+// ============================================================
+// RESTART
+// ============================================================
+
+window.mobileRestart = function() {
+    // Reset everything
+    matchResults = [];
+    localEngine = null;
+    currentPendingMatch = null;
+    pMatchProcessing = false;
+    clearInterval(matchTimerInterval);
+    
+    showLayer('m-layer-setup');
+    broadcastTvState();
+};
+
+// ============================================================
+// TV SPECTATOR BROADCAST (SMART MIRROR)
+// ============================================================
+
+window.startTvCast = function() {
+    if (!tvRoomCode) {
+        tvRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+        tvChannel = _sb.channel('tv-' + tvRoomCode);
+        tvChannel.subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log("Broadcasting to TV...");
+                broadcastTvState();
+                const castBtn = document.getElementById('cast-btn');
+                if (castBtn) { castBtn.style.color = '#4CAF50'; castBtn.innerHTML = `<i class="fas fa-tv mr-2"></i> CASTING: ${tvRoomCode}`; }
+            }
+        });
+    }
+
+    const castUrl = `${window.location.origin}${window.location.pathname}?tv=${tvRoomCode}`;
+    
+    // Try native share UI first, mostly for mobile devices
+    if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+        navigator.share({
+            title: 'Subsoccer Tournament Stream',
+            text: 'Open this link on the big screen to see the live tournament stats:',
+            url: castUrl
+        }).catch(err => {
+            showCastModal(castUrl);
+        });
+    } else {
+        showCastModal(castUrl);
+    }
+};
+
+window.showCastModal = function(url) {
+    let existing = document.getElementById('cast-modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cast-modal-overlay';
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; font-family:"Subsoccer",sans-serif; text-align:center; backdrop-filter:blur(5px);';
+    
+    overlay.innerHTML = `
+        <div style="background:rgba(20,20,25,0.85); border:1px solid rgba(255,255,255,0.1); padding:24px; border-radius:2px; backdrop-filter:blur(10px); max-width:90%; width: 340px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+            <h2 style="color:white; margin-bottom:8px; font-size:1.2rem; letter-spacing:1px; font-family:'Resolve',sans-serif;"><i class="fas fa-tv" style="color:#c41e2a; margin-right:8px;"></i> SPECTATOR MODE</h2>
+            <p style="color:#888; font-size:0.8rem; margin-bottom:16px; font-family:'Resolve',sans-serif; letter-spacing:1px;">OPEN THIS LINK ON ANY SCREEN</p>
+            
+            <div style="background:rgba(0,0,0,0.5); color:#fff; padding:12px; border-radius:6px; word-break:break-all; font-family:monospace; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05); user-select:all; cursor:pointer;" id="cast-url-box">
+                ${url}
+            </div>
+            
+            <div style="display:flex; gap:8px; flex-direction:column;">
+                <button id="cast-copy-btn" style="background:transparent; color:#c41e2a; border:1px solid rgba(227,6,19,0.3); padding:12px; font-family:'Resolve',sans-serif; font-size:0.9rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%; transition:0.2s;">
+                    <i class="fas fa-copy" style="margin-right:8px;"></i> COPY LINK
+                </button>
+                <button onclick="document.getElementById('cast-modal-overlay').remove()" style="background:transparent; color:#666; border:none; padding:12px; font-family:'Resolve',sans-serif; font-size:0.8rem; border-radius:6px; cursor:pointer; font-weight:bold; letter-spacing:1px; width:100%;">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const copyBtn = document.getElementById('cast-copy-btn');
+    const urlBox = document.getElementById('cast-url-box');
+
+    const copyFn = async () => {
+        try {
+            await navigator.clipboard.writeText(url);
+            copyBtn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i> COPIED!';
+            copyBtn.style.color = '#4CAF50';
+            copyBtn.style.borderColor = 'rgba(76, 175, 80, 0.3)';
+            setTimeout(() => {
+                copyBtn.innerHTML = '<i class="fas fa-copy" style="margin-right:8px;"></i> COPY LINK';
+                copyBtn.style.color = '#c41e2a';
+                copyBtn.style.borderColor = 'rgba(227,6,19,0.3)';
+            }, 3000);
+        } catch(e) {
+            const textArea = document.createElement("textarea");
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            copyBtn.innerHTML = '<i class="fas fa-check" style="margin-right:8px;"></i> COPIED!';
+            copyBtn.style.color = '#4CAF50';
+            copyBtn.style.borderColor = 'rgba(76, 175, 80, 0.3)';
+        }
+    };
+
+    copyBtn.onclick = copyFn;
+    urlBox.onclick = copyFn;
+};
+
+function broadcastTvState() {
+    if (!tvChannel || window.isTvMode) return; // TV mode doesn't broadcast!
+    
+    let activeLayer = null;
+    document.querySelectorAll('.m-layer').forEach(l => {
+        if(l.style.display && l.style.display !== 'none') activeLayer = l.id;
+    });
+
+    const state = {
+        layer: activeLayer,
+        setupHtml: document.getElementById('m-players-list') ? document.getElementById('m-players-list').innerHTML : '',
+        bracketHtml: document.getElementById('mobile-bracket-area') ? document.getElementById('mobile-bracket-area').innerHTML : '',
+        titleText: '',
+        standingsHtml: document.getElementById('m-leaderboard-list') ? document.getElementById('m-leaderboard-list').innerHTML : '',
+        p1Score: document.getElementById('m-score-p1') ? document.getElementById('m-score-p1').innerText : '',
+        p2Score: document.getElementById('m-score-p2') ? document.getElementById('m-score-p2').innerText : '',
+        p1Goals: document.getElementById('m-goals-p1') ? document.getElementById('m-goals-p1').innerText : '',
+        p2Goals: document.getElementById('m-goals-p2') ? document.getElementById('m-goals-p2').innerText : '',
+        p1NameGame: document.getElementById('m-p1-name') ? document.getElementById('m-p1-name').innerText : '',
+        p2NameGame: document.getElementById('m-p2-name') ? document.getElementById('m-p2-name').innerText : '',
+        nxtRound: document.getElementById('m-round-name') ? document.getElementById('m-round-name').innerText : '',
+        nxtP1: document.getElementById('m-matchup-p1') ? document.getElementById('m-matchup-p1').innerText : '',
+        nxtP2: document.getElementById('m-matchup-p2') ? document.getElementById('m-matchup-p2').innerText : '',
+        vicName: document.getElementById('m-winner-name') ? document.getElementById('m-winner-name').innerText : '',
+        vicScore: document.getElementById('m-victory-score') ? document.getElementById('m-victory-score').innerText : '',
+        champName: document.getElementById('m-champion-name') ? document.getElementById('m-champion-name').innerHTML : ''
+    };
+    
+    tvChannel.send({ type: 'broadcast', event: 'tv-update', payload: state });
+}
+
+window.broadcastTvState = broadcastTvState;
+
+function initTvReceiver() {
+    tvChannel = _sb.channel('tv-' + tvRoomCode);
+    tvChannel.on('broadcast', { event: 'tv-update' }, ({ payload }) => {
+        console.log("Received TV Sync:", payload);
+        
+        // 1. Sync innerTexts and HTMLs safely
+        const e = (id, html) => { if(document.getElementById(id) && html !== undefined) document.getElementById(id).innerHTML = html; };
+        const t = (id, text) => { if(document.getElementById(id) && text !== undefined) document.getElementById(id).innerText = text; };
+
+        e('m-players-list', payload.setupHtml);
+        e('mobile-bracket-area', payload.bracketHtml);
+        e('m-tourny-title', payload.titleText);
+        e('m-leaderboard-list', payload.standingsHtml);
+        e('m-champion-name', payload.champName);
+        
+        t('m-score-p1', payload.p1Score);
+        t('m-score-p2', payload.p2Score);
+        t('m-goals-p1', payload.p1Goals);
+        t('m-goals-p2', payload.p2Goals);
+        t('m-p1-name', payload.p1NameGame);
+        t('m-p2-name', payload.p2NameGame);
+        
+        t('m-round-name', payload.nxtRound);
+        t('m-matchup-p1', payload.nxtP1);
+        t('m-matchup-p2', payload.nxtP2);
+        
+        t('m-winner-name', payload.vicName);
+        t('m-victory-score', payload.vicScore);
+        
+        // 2. Switch layer
+        if (payload.layer) {
+            document.querySelectorAll('.m-layer').forEach(l => {
+                l.style.display = (l.id === payload.layer) ? 'flex' : 'none';
+            });
+        }
+    }).subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+            console.log("TV Spectator Connected!");
+        }
+    });
+}
+
+if (!window.isTvMode) {
+    showLayer('m-layer-setup');
+}
