@@ -949,6 +949,12 @@
                     countryCode = mainPart.substring(commaIndex + 1).trim();
                 }
                 
+                // If the parsed city is just a country code like "NO" or "FR", fallback to timezone city
+                if (city.length <= 2 && timezone && timezone.includes('/')) {
+                    const tzParts = timezone.split('/');
+                    city = tzParts[tzParts.length - 1];
+                }
+                
                 return {
                     city: city.replace(/_/g, ' '),
                     countryCode: countryCode,
