@@ -1266,13 +1266,24 @@
                             const loc = ev.location;
                             let city;
                             if (loc.includes('(')) {
-                                // New format: "Espoo, FI (Europe/Helsinki)"
-                                const commaIndex = loc.indexOf(',');
+                                // New format: "Espoo, FI (Europe/Helsinki)" or "NO (Europe/Oslo)"
+                                const parenIndex = loc.indexOf('(');
+                                const mainPart = loc.substring(0, parenIndex).trim();
+                                const parenEnd = loc.indexOf(')');
+                                const timezone = loc.substring(parenIndex + 1, parenEnd).trim();
+                                
+                                let parsedCity = mainPart;
+                                const commaIndex = mainPart.indexOf(',');
                                 if (commaIndex > -1) {
-                                    city = loc.substring(0, commaIndex).trim();
+                                    parsedCity = mainPart.substring(0, commaIndex).trim();
+                                }
+                                
+                                // If the parsed city is just a country code like "NO" or "FR", fallback to timezone city
+                                if (parsedCity.length <= 2 && timezone && timezone.includes('/')) {
+                                    const parts = timezone.split('/');
+                                    city = parts[parts.length - 1].replace(/_/g, ' ');
                                 } else {
-                                    const parenIndex = loc.indexOf('(');
-                                    city = loc.substring(0, parenIndex).trim();
+                                    city = parsedCity;
                                 }
                             } else {
                                 // Old format: "Europe/Espoo"
