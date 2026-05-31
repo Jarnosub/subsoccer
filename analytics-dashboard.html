@@ -16,15 +16,15 @@
 
     <style>
         :root {
-            --bg-base: #F4F6F9;
-            --bg-card: #FFFFFF;
-            --text-primary: #1A1D20;
-            --text-secondary: #5F6368;
-            --accent-blue: #1A73E8;
-            --accent-red: #D93025;
-            --accent-green: #1E8E3E;
-            --accent-yellow: #F9AB00;
-            --border-color: #DADCE0;
+            --bg-base: #202225;
+            --bg-card: #2B2D31;
+            --text-primary: #E8EAED;
+            --text-secondary: #A0A5AA;
+            --accent-blue: #8AB4F8;
+            --accent-red: #F28B82;
+            --accent-green: #81C995;
+            --accent-yellow: #FDE293;
+            --border-color: #3F4147;
         }
 
         body {
@@ -115,7 +115,7 @@
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg fill='%235F6368' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+            background-image: url("data:image/svg+xml;utf8,<svg fill='%23A0A5AA' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
             background-repeat: no-repeat;
             background-position: right 12px center;
             background-size: 16px;
@@ -133,7 +133,7 @@
         .filters select:focus, 
         .filters input[type="date"]:focus {
             border-color: var(--accent-blue);
-            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+            box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.2);
         }
 
         .filters .date-range-container {
@@ -234,7 +234,7 @@
 
         .filters button.btn-feedbacks:hover {
             background-color: var(--accent-yellow);
-            color: #1A1D20;
+            color: var(--bg-base);
             border-color: var(--accent-yellow);
         }
 
@@ -301,7 +301,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3);
         }
 
         .kpi-title {
@@ -398,7 +398,7 @@
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: rgba(0,0,0,0.02);
+            background: rgba(255,255,255,0.02);
         }
 
         td {
@@ -406,7 +406,7 @@
         }
 
         tbody tr:hover {
-            background-color: rgba(0,0,0,0.015);
+            background-color: rgba(255,255,255,0.02);
         }
 
         /* Custom Scrollbar for activity feed and countries list */
@@ -436,9 +436,9 @@
         }
 
         #btn-load-more:hover {
-            background-color: rgba(26, 115, 232, 0.08) !important;
+            background-color: rgba(138, 180, 248, 0.08) !important;
             border-color: var(--accent-blue) !important;
-            color: var(--accent-blue) !important;
+            color: #fff !important;
         }
 
         .badge {
@@ -447,8 +447,8 @@
             font-size: 0.75rem;
             font-weight: 500;
         }
-        .badge.guest { background-color: rgba(26, 115, 232, 0.1); color: var(--accent-blue); }
-        .badge.registered { background-color: rgba(30, 142, 62, 0.1); color: var(--accent-green); }
+        .badge.guest { background-color: rgba(138, 180, 248, 0.1); color: var(--accent-blue); }
+        .badge.registered { background-color: rgba(129, 201, 149, 0.1); color: var(--accent-green); }
 
         /* Cities Dropdown Scrollbar */
         #cities-list-container {
@@ -469,7 +469,7 @@
         .loading-overlay {
             position: fixed;
             top:0; left:0; width:100%; height:100%;
-            background: rgba(244, 246, 249, 0.9);
+            background: rgba(32, 34, 37, 0.9);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -656,8 +656,8 @@
                     <div class="kpi-trend" style="color: #888;" id="kpi-cities-trend"><i class="fas fa-map-marker-alt"></i> Unique cities played</div>
 
                     <!-- Custom Dropdown Container -->
-                    <div id="cities-dropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; max-height: 300px; background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 8px; z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.15); margin-top: 5px; flex-direction: column; overflow: hidden;" onclick="event.stopPropagation()">
-                        <div style="padding: 8px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; background: rgba(0,0,0,0.02);">
+                    <div id="cities-dropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; max-height: 300px; background: rgba(43, 45, 49, 0.98); backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 8px; z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.6); margin-top: 5px; flex-direction: column; overflow: hidden;" onclick="event.stopPropagation()">
+                        <div style="padding: 8px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; background: rgba(0,0,0,0.2);">
                             <i class="fas fa-search" style="color: var(--text-secondary); font-size: 0.8rem; margin-right: 6px;"></i>
                             <input type="text" id="city-search-input" placeholder="Search city or country..." oninput="filterCitiesDropdown()" style="background: transparent; border: none; color: var(--text-primary); font-size: 0.8rem; outline: none; width: 100%;" onclick="event.stopPropagation()">
                         </div>
@@ -702,7 +702,7 @@
         <!-- Global Map Row -->
         <div class="table-card">
             <h2>Live Global Match Map <i class="fas fa-satellite-dish" style="color: var(--accent-blue); margin-left:8px;"></i></h2>
-            <div id="map" style="height: 400px; width: 100%; background: var(--bg-base);"></div>
+            <div id="map" style="height: 400px; width: 100%; background: #f4f6f9;"></div>
         </div>
 
         <!-- Data Tables Row -->
@@ -728,12 +728,12 @@
                                 <th>When / Where</th>
                                 <th>
                                     <select id="event-type-filter" onchange="renderData(true)" style="background:transparent; border:none; color:inherit; font-family:inherit; font-size:inherit; font-weight:bold; cursor:pointer; padding:0; outline:none; -webkit-appearance:none; -moz-appearance:none; appearance:none;">
-                                        <option value="ALL" style="background: var(--bg-card); color: var(--text-primary);">Event (All) ▾</option>
-                                        <option value="game_finished" style="background: var(--bg-card); color: var(--text-primary);">MATCH</option>
-                                        <option value="game_start" style="background: var(--bg-card); color: var(--text-primary);">LIVE</option>
-                                        <option value="tournament_finished" style="background: var(--bg-card); color: var(--text-primary);">TOURNEY</option>
-                                        <option value="tournament_match_finished" style="background: var(--bg-card); color: var(--text-primary);">T-MATCH</option>
-                                        <option value="avatar_generated" style="background: var(--bg-card); color: var(--text-primary);">AVATAR</option>
+                                        <option value="ALL" style="background:#1e1f22; color:#fff;">Event (All) ▾</option>
+                                        <option value="game_finished" style="background:#1e1f22; color:#fff;">MATCH</option>
+                                        <option value="game_start" style="background:#1e1f22; color:#fff;">LIVE</option>
+                                        <option value="tournament_finished" style="background:#1e1f22; color:#fff;">TOURNEY</option>
+                                        <option value="tournament_match_finished" style="background:#1e1f22; color:#fff;">T-MATCH</option>
+                                        <option value="avatar_generated" style="background:#1e1f22; color:#fff;">AVATAR</option>
                                     </select>
                                 </th>
                                 <th style="text-align:right;">Score</th>
@@ -945,9 +945,8 @@
         }
 
         // Chart.js global defaults
-        // Resolve dynamic styles from CSS variables
-        Chart.defaults.color = '#5F6368';
-        Chart.defaults.borderColor = '#E8EAED';
+        Chart.defaults.color = '#9AA0A6';
+        Chart.defaults.borderColor = '#3C4043';
         Chart.defaults.font.family = "'Roboto', sans-serif";
 
         let chartInstance = null;
@@ -1441,13 +1440,13 @@
 
                 tr.innerHTML = `
                     <td>
-                        <div style="font-weight:600; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                        <div style="font-weight:600; color:#fff; display: flex; align-items: center; gap: 6px;">
                             ${todayDot}${city} <span style="font-size:1.1rem; cursor:help;" title="Language: ${row.browser_lang || 'Unknown'}">${flag}</span>
                         </div>
                         <div style="font-size:0.75rem; color:var(--text-secondary);">${ago}</div>
                     </td>
                     <td><span style="${isLive ? 'color:var(--accent-green);font-weight:bold;' : ''}">${icon} ${label}</span></td>
-                    <td style="text-align:right; font-weight:bold; font-size:1rem; ${score !== '-' ? 'color: var(--text-primary);' : 'color: var(--text-secondary);'}">${score}</td>
+                    <td style="text-align:right; font-weight:bold; font-size:1rem; ${score !== '-' ? 'color:#fff;' : 'color:#555;'}">${score}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1541,13 +1540,6 @@
             const labels = Object.keys(daysMap).reverse();
             const counts = Object.values(daysMap).reverse();
 
-            // Resolve dynamic styling colors from CSS variables
-            const accentBlue = getComputedStyle(document.documentElement).getPropertyValue('--accent-blue').trim() || '#1A73E8';
-            const accentRed = getComputedStyle(document.documentElement).getPropertyValue('--accent-red').trim() || '#D93025';
-            const accentGreen = getComputedStyle(document.documentElement).getPropertyValue('--accent-green').trim() || '#1E8E3E';
-            const accentYellow = getComputedStyle(document.documentElement).getPropertyValue('--accent-yellow').trim() || '#F9AB00';
-            const borderColorVar = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() || '#DADCE0';
-
             // Trend Line Chart
             const ctx1 = document.getElementById('mainChart').getContext('2d');
             chartInstance = new Chart(ctx1, {
@@ -1557,8 +1549,8 @@
                     datasets: [{
                         label: 'Events',
                         data: counts.length ? counts : [0],
-                        borderColor: accentBlue,
-                        backgroundColor: accentBlue + '1A', // ~10% opacity in hex
+                        borderColor: '#8AB4F8',
+                        backgroundColor: 'rgba(138, 180, 248, 0.1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4
@@ -1570,7 +1562,7 @@
                     layout: { padding: { bottom: 5 } },
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: borderColorVar }, ticks: { precision: 0 } },
+                        y: { beginAtZero: true, grid: { color: '#3C4043' }, ticks: { precision: 0 } },
                         x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0 } }
                     }
                 }
@@ -1593,7 +1585,7 @@
                     labels: ['Social', 'Costco', 'Registered', 'Guest'],
                     datasets: [{
                         data: [socialCount, costcoCount, regCount, guestCount],
-                        backgroundColor: [accentBlue, accentRed, accentGreen, accentYellow],
+                        backgroundColor: ['#8AB4F8', '#F28B82', '#81C995', '#FDE293'],
                         borderWidth: 0,
                         hoverOffset: 4
                     }]
@@ -1628,7 +1620,7 @@
                     datasets: [{
                         label: 'Events',
                         data: sortedCities.map(c => c.count),
-                        backgroundColor: accentBlue,
+                        backgroundColor: '#8AB4F8',
                         maxBarThickness: 32,
                         borderRadius: 4
                     }]
@@ -1787,11 +1779,12 @@
 
                 if (coords) {
                     const radius = Math.min(Math.max(count * 1.5, 6), 25);
-                    const accentBlue = getComputedStyle(document.documentElement).getPropertyValue('--accent-blue').trim() || '#1A73E8';
-                    const accentRed = getComputedStyle(document.documentElement).getPropertyValue('--accent-red').trim() || '#D93025';
+                    // Vibrant colors for high contrast on the light map tiles
+                    const mapBlue = '#1A73E8';
+                    const mapRed = '#D93025';
                     L.circleMarker(coords, {
-                        color: isFallback ? accentRed + 'CC' : accentBlue + 'CC',
-                        fillColor: isFallback ? accentRed : accentBlue,
+                        color: isFallback ? mapRed + 'CC' : mapBlue + 'CC',
+                        fillColor: isFallback ? mapRed : mapBlue,
                         fillOpacity: 0.6,
                         weight: 1.5,
                         radius: isFallback ? 4 : radius
@@ -1845,10 +1838,10 @@
                         ${hasAvatar 
                             ? `<img src="${optAvatarUrl}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; flex-shrink:0; border:2px solid var(--border-color);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                <div style="display:none; width:40px; height:40px; border-radius:50%; background:rgba(242,139,130,0.15); align-items:center; justify-content:center; flex-shrink:0; color:var(--accent-red); font-size:0.8rem;"><i class="fas fa-image-slash"></i></div>`
-                            : `<div style="width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,0.05); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#555; font-size:0.9rem;"><i class="fas fa-user"></i></div>`
+                            : `<div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#555; font-size:0.9rem;"><i class="fas fa-user"></i></div>`
                         }
                         <div style="min-width:0; flex:1;">
-                            <div style="font-weight:600; font-size:0.8rem; color: var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name} ${country ? '<span style="font-size:0.7rem; color:var(--text-secondary);">' + country + '</span>' : ''}</div>
+                            <div style="font-weight:600; font-size:0.8rem; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name} ${country ? '<span style="font-size:0.7rem; color:var(--text-secondary);">' + country + '</span>' : ''}</div>
                             <div style="font-size:0.7rem; color:var(--text-secondary); display:flex; gap:8px; margin-top:2px;">
                                 <span style="color:var(--accent-blue);">${elo} ELO</span>
                                 <span>${matches} games</span>
@@ -1922,7 +1915,7 @@
                 hasMatches = true;
                 
                 const countryDiv = document.createElement('div');
-                countryDiv.style.borderBottom = '1px solid var(--border-color)';
+                countryDiv.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
                 
                 const header = document.createElement('div');
                 header.style.padding = '8px 12px';
@@ -1930,12 +1923,12 @@
                 header.style.alignItems = 'center';
                 header.style.justifyContent = 'space-between';
                 header.style.cursor = 'pointer';
-                header.style.background = 'rgba(0,0,0,0.02)';
+                header.style.background = 'rgba(255,255,255,0.02)';
                 header.style.fontWeight = 'bold';
                 header.style.fontSize = '0.825rem';
                 header.style.userSelect = 'none';
-                header.onmouseover = () => header.style.backgroundColor = 'rgba(0,0,0,0.06)';
-                header.onmouseout = () => header.style.backgroundColor = 'rgba(0,0,0,0.02)';
+                header.onmouseover = () => header.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                header.onmouseout = () => header.style.backgroundColor = 'rgba(255,255,255,0.02)';
                 
                 const cleanIdName = country.name.replace(/\s+/g, '-');
                 const citiesListId = `cities-list-${cleanIdName}`;
