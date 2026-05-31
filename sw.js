@@ -14,7 +14,7 @@ const ASSETS = [
     '/subsoccer_logo.svg',
     '/icon-192.png',
     '/icon-512.png',
-    '/subsoccer-teams-ny.jpg?v=2'
+    '/subsoccer-teams-ny2.jpg'
 ];
 
 // Asennusvaihe: Tallennetaan tärkeimmät tiedostot välimuistiin
