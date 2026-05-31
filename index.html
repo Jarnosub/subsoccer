@@ -169,12 +169,12 @@
             color: #ccc;
         }
 
-        /* Dark mode: SUBSOCCER title + tagline */
-        body.dark-mode .page-title-subsoccer {
+        /* Dark mode: SUBSOCCER title + tagline (only on main hub) */
+        body.dark-mode #main-content .page-title-subsoccer {
             color: rgba(255, 255, 255, 0.9) !important;
         }
 
-        body.dark-mode .page-tagline {
+        body.dark-mode #main-content .page-tagline {
             color: rgba(255, 255, 255, 0.5) !important;
         }
 
@@ -857,11 +857,11 @@
         <div
             style="position: absolute; top: calc(70px + env(safe-area-inset-top, 0px)); left: 0; width: 100%; z-index: 2100; text-align: center; pointer-events: none;">
             <div style="white-space: nowrap;">
-                <span class="page-title-subsoccer" style="font-size: 3.2rem;">SUBSOCCER</span>
+                <span class="page-title-subsoccer" style="font-size: 3.2rem; color: #000 !important;">SUBSOCCER</span>
                 <span class="page-title-go" style="font-size: 3.2rem;" data-i18n="map_title">MAP</span>
             </div>
             <div
-                style="font-family: 'Resolve', sans-serif; font-weight: 300; color: #888; font-size: 0.85rem; letter-spacing: 1px; margin-top: 2px;" data-i18n="map_tagline">
+                style="font-family: 'Resolve', sans-serif; font-weight: 300; color: #333 !important; font-size: 0.85rem; letter-spacing: 1px; margin-top: 2px;" data-i18n="map_tagline">
                 Find · Play · Connect</div>
         </div>
 
@@ -870,7 +870,7 @@
             style="position: absolute; bottom: calc(20px + env(safe-area-inset-bottom, 10px)); left: 50%; transform: translateX(-50%); z-index: 2100; width: 90%; max-width: 350px;">
             <button onclick="window.location.href='register.html'"
                 style="width: 100%; padding: 12px; background: #c41e2a; border: none; color: #ffffff; border-radius: 4px; font-family: 'Resolve', sans-serif; font-size: 0.9rem; font-weight: bold; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <i class="fa-solid fa-hammer" style="color: #ffffff;"></i> <span data-i18n="register_your_game_btn">REGISTER YOUR GAME</span>
+                <i class="fa-solid fa-location-dot" style="color: #ffffff;"></i> <span data-i18n="add_to_map_btn">ADD TO MAP</span>
             </button>
         </div>
     </div>
@@ -1144,10 +1144,7 @@
                 hubMap = L.map('public-game-map').setView([60.1699, 24.9384], 5);
                 hubMap.attributionControl.setPrefix(false);
                 
-                const isDark = document.body.classList.contains('dark-mode');
-                const tileUrl = isDark 
-                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+                const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
                 hubTileLayer = L.tileLayer(tileUrl, {
                     attribution: '&copy; CARTO',
@@ -1182,10 +1179,10 @@
                         if (!t.latitude || !t.longitude) return;
                         const marker = L.marker([t.latitude, t.longitude], { icon: redIcon }).addTo(hubMap);
                         marker.bindPopup(`
-                        <div style="font-family: sans-serif; color: #111; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e0e0e0; min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">${t.game_name || 'Subsoccer Table'}</div>
-                            <div style="color: #666; font-size: 0.75rem;">${t.location || ''}</div>
-                            <div style="color: #c41e2a; font-size: 0.7rem; margin-top: 6px; text-transform: uppercase; font-weight: bold;">TABLE</div>
+                        <div style="font-family: sans-serif; color: #111 !important; background: #fff !important; padding: 12px; border-radius: 8px; border: 1px solid #e0e0e0; min-width: 160px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; color: #000 !important;">${t.game_name || 'Subsoccer Game'}</div>
+                            <div style="color: #666 !important; font-size: 0.75rem;">${t.location || ''}</div>
+                            <div style="color: #c41e2a !important; font-size: 0.7rem; margin-top: 6px; text-transform: uppercase; font-weight: bold;">GAME</div>
                         </div>
                     `, { className: 'light-popup' });
                     });
@@ -1320,10 +1317,7 @@
 
             // Update map tiles dynamically if map is open
             if (typeof hubTileLayer !== 'undefined' && hubTileLayer) {
-                hubTileLayer.setUrl(isDark 
-                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-                );
+                hubTileLayer.setUrl('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png');
             }
         }
 

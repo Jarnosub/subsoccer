@@ -12,7 +12,7 @@ export function initGameMap() {
     if (!document.getElementById('map-picker')) return;
     state.gameMap = L.map('map-picker').setView([60.1699, 24.9384], 10);
     state.gameMap.attributionControl.setPrefix(false); // Remove Leaflet prefix
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(state.gameMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(state.gameMap);
     state.gameMap.on('click', async function (e) {
         setMapLocation(e.latlng.lat, e.latlng.lng);
         try {
@@ -43,7 +43,7 @@ export async function fetchPublicGamesMap() {
         state.publicMap = L.map('public-game-map', { zoomControl: false }).setView([60.1699, 24.9384], 11);
         L.control.zoom({ position: 'bottomright' }).addTo(state.publicMap);
         state.publicMap.attributionControl.setPrefix(false); // Remove Leaflet prefix
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
 
         // Initialize Cluster Group
         state.clusterGroup = L.markerClusterGroup({
@@ -174,6 +174,8 @@ export function filterMap(type) {
                     `;
                 } else if (!g.is_public) {
                     popupContent += `<div style="color:#4a9eff; font-size:0.6rem; font-weight:bold; margin-bottom:4px;"><i class="fa fa-lock"></i> PRIVATE HOME TABLE</div>`;
+                } else {
+                    popupContent += `<div style="color:var(--sub-red); font-size:0.6rem; font-weight:bold; margin-bottom:4px;"><i class="fa-solid fa-location-dot"></i> COMMUNITY REPORTED</div>`;
                 }
 
                 popupContent += `
@@ -274,9 +276,10 @@ function updateNearestList(lat, lng) {
         const isVerified = g.verified;
         const isPrivate = !g.is_public;
 
-        const borderStyle = isVerified ? 'border-left: 4px solid var(--sub-gold); background: rgba(255, 215, 0, 0.05);' : (isPrivate ? 'border-left: 4px solid #4a9eff; background: rgba(74, 158, 255, 0.05);' : 'border-left: 4px solid #333;');
+        const borderStyle = isVerified ? 'border-left: 4px solid var(--sub-gold); background: rgba(255, 215, 0, 0.05);' : (isPrivate ? 'border-left: 4px solid #4a9eff; background: rgba(74, 158, 255, 0.05);' : 'border-left: 4px solid var(--sub-red); background: rgba(196, 30, 42, 0.05);');
         const titleColor = isVerified ? 'var(--sub-gold)' : (isPrivate ? '#4a9eff' : '#fff');
-        const badge = isVerified ? '<span style="background:var(--sub-gold); color:#000; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">PRO ARENA</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : '');
+        const isCommunity = !isVerified && !isPrivate;
+        const badge = isVerified ? '<span style="background:var(--sub-gold); color:#000; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">PRO ARENA</span>' : (isPrivate ? '<i class="fa-solid fa-lock" style="font-size:0.6rem; margin-right:4px;"></i>' : (isCommunity ? '<span style="background:var(--sub-red); color:#fff; font-family:\'Russo One\'; font-size:0.55rem; padding:2px 4px; border-radius:2px; margin-right:5px; vertical-align:middle;">COMMUNITY</span>' : ''));
 
         return `
             <div class="nearest-game-item" style="${borderStyle} padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;" data-action="fly-to-location" data-lat="${g.latitude}" data-lng="${g.longitude}">

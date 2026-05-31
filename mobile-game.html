@@ -880,6 +880,114 @@
         body.dark-mode .theme-toggle {
             color: #ccc;
         }
+
+        /* ========================================
+           RIVALRY BADGE (nextmatch layer)
+           ======================================== */
+        .rivalry-badge {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 14px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: transparent;
+            border: none;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: #999;
+            animation: rivalryFadeIn 0.4s ease-out;
+        }
+
+        .rivalry-badge .rivalry-icon {
+            font-size: 0.7rem;
+            color: #c41e2a;
+        }
+
+        .rivalry-badge .rivalry-text {
+            font-weight: 400;
+        }
+
+        body.dark-mode .rivalry-badge {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        body.dark-mode .rivalry-badge .rivalry-icon {
+            color: #c41e2a;
+        }
+
+        @keyframes rivalryFadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========================================
+           TOURNAMENT STATS CARD (leaderboard)
+           ======================================== */
+        .tournament-stats-card {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tournament-stats-title {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 3px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .tournament-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            padding: 12px 14px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stat-label {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.55rem;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.45);
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .stat-detail {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 3px;
+        }
+
+        .stat-item.stat-highlight {
+            background: rgba(196, 30, 42, 0.08);
+            border-color: rgba(196, 30, 42, 0.2);
+        }
+
+        .stat-item.stat-highlight .stat-value {
+            color: #c41e2a;
+        }
     </style>
 </head>
 
@@ -1000,6 +1108,8 @@
                 <div class="match-vs">VS</div>
                 <div class="match-player-name" id="m-matchup-p2">PLAYER 2</div>
             </div>
+
+            <div id="m-rivalry-badge" class="rivalry-badge anim-in" style="display: none; animation-delay: 0.15s;"></div>
 
             <button class="match-start-btn anim-in" onclick="mobileStartMatch()" style="animation-delay: 0.2s;">
                 <i class="fas fa-play"></i> <span data-i18n="start_match">Start Match</span>
@@ -1124,7 +1234,10 @@
                 <div id="m-leaderboard-list">
                     <!-- Filled by JS -->
                 </div>
+                <div id="m-tournament-stats" class="tournament-stats-card" style="display: none;"></div>
             </div>
+            <!-- Spacer to ensure stats scroll past fixed bottom buttons -->
+            <div style="flex-shrink: 0; height: 150px; width: 100%;"></div>
         </div>
 
         <div class="end-actions" style="position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 20px)); left: 50%; transform: translateX(-50%); width: 100%; max-width: 400px; padding: 0 20px; z-index: 2; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box;">
