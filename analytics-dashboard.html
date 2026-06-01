@@ -590,7 +590,10 @@
                         <span>TOTAL APP OPENS</span>
                         <i class="fas fa-mobile-alt"></i>
                     </div>
-                    <div class="kpi-value" id="kpi-sessions">0</div>
+                    <div style="display:flex;align-items:baseline;gap:10px;">
+                        <div class="kpi-value" id="kpi-sessions">0</div>
+                        <span id="kpi-wow" style="font-size:0.8rem;font-weight:500;padding:2px 8px;border-radius:12px;display:none;"></span>
+                    </div>
                     <div class="kpi-trend"><i class="fas fa-arrow-up"></i> Total scanned QR codes</div>
                 </div>
 
@@ -685,10 +688,11 @@
 
                 <div class="kpi-card">
                     <div class="kpi-header">
-                        <span>DEVICE BREAKDOWN</span>
+                        <span>CONVERSION RATE</span>
+                        <i class="fas fa-filter" style="color: var(--accent-green);"></i>
                     </div>
-                    <div class="kpi-value" id="kpi-device" style="font-size: 1.5rem; margin-top: 10px;">iOS 0% | And 0% | Oth 0%</div>
-                    <div class="kpi-trend" style="color: #888;"><i class="fas fa-globe"></i> Ecosystem usage</div>
+                    <div class="kpi-value" id="kpi-conversion" style="color: var(--accent-green);">—%</div>
+                    <div class="kpi-trend" style="color: #888;" id="kpi-conversion-trend"><i class="fas fa-arrow-right"></i> QR scan → game played</div>
                 </div>
             </div>
         </div>
@@ -702,7 +706,7 @@
                 </div>
             </div>
             <div class="chart-card">
-                <h2>User Segments</h2>
+                <h2>Peak Hours <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:400;">— when games are played</span></h2>
                 <div style="position: relative; height: 260px; width: 100%;">
                     <canvas id="doughnutChart"></canvas>
                 </div>
@@ -787,19 +791,19 @@
             </div>
 
             <div class="table-card" style="margin-bottom: 0;">
-                <h2>Top ELO Leaderboard <i class="fas fa-crown" style="color: var(--accent-yellow); margin-left: 8px;"></i></h2>
+                <h2>Hub Activity <i class="fas fa-qrcode" style="color: var(--accent-blue); margin-left: 8px;"></i></h2>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
                                 <th>Rank</th>
-                                <th>Player</th>
-                                <th style="text-align:right;">ELO Rating</th>
+                                <th>QR / Hub Code</th>
+                                <th style="text-align:right;">Events</th>
+                                <th style="text-align:right;">Games</th>
                             </tr>
                         </thead>
-                        <tbody id="top-players-body">
-                            <!-- Javascript will populate this -->
-                            <tr><td colspan="3" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                        <tbody id="hub-activity-body">
+                            <tr><td colspan="4" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -816,6 +820,16 @@
             </h2>
             <div id="players-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; padding:20px; max-height:600px; overflow-y:auto;">
                 <div style="text-align:center; padding:40px; color:#666; grid-column:1/-1;"><i class="fas fa-spinner fa-spin"></i> Loading players...</div>
+            </div>
+        </div>
+
+        <!-- New Countries Banner -->
+        <div id="new-countries-banner" style="display:none; background:rgba(129,201,149,0.08); border:1px solid rgba(129,201,149,0.25); border-radius:8px; padding:14px 20px; margin-bottom:24px; display:flex; align-items:center; gap:12px;">
+            <i class="fas fa-globe" style="color:var(--accent-green); font-size:1.1rem;"></i>
+            <div>
+                <span style="color:var(--accent-green); font-weight:600;" id="new-countries-count">0 new countries</span>
+                <span style="color:var(--text-secondary); font-size:0.875rem;"> appeared this period for the first time</span>
+                <div id="new-countries-flags" style="font-size:1.2rem; margin-top:4px;"></div>
             </div>
         </div>
 
@@ -1088,6 +1102,7 @@
             const endEl = document.getElementById('endDateFilter');
             
             const isCustom = timeFilterEl.value === 'custom';
+            const isAllTimeFilter = timeFilterEl.value === '9999';
             let startDateStr = null;
             let endDateStr = null;
             
@@ -1175,6 +1190,22 @@
                     if (page > 30) break;
                 }
 
+                // Fetch previous period data (for WoW growth & new countries comparison)
+                let prevTrackingData = [];
+                if (!isAllTimeFilter && startDateStr) {
+                    const periodMs = endDateStr
+                        ? (new Date(endDateStr).getTime() - new Date(startDateStr).getTime())
+                        : (Date.now() - new Date(startDateStr).getTime());
+                    const prevEndStr = startDateStr;
+                    const prevStartStr = new Date(new Date(startDateStr).getTime() - periodMs).toISOString();
+                    const { data: prevPage } = await client.from('public_tracking')
+                        .select('event_type,location')
+                        .gte('client_time', prevStartStr)
+                        .lt('client_time', prevEndStr)
+                        .limit(5000);
+                    if (prevPage) prevTrackingData = prevPage;
+                }
+
                 let historyQuery = client.from('tournament_history').select('*', { count: 'exact' });
                 if (startDateStr) historyQuery = historyQuery.gte('start_datetime', startDateStr);
                 if (endDateStr) historyQuery = historyQuery.lte('start_datetime', endDateStr);
@@ -1223,7 +1254,24 @@
                 const sessionCount = trackingData.filter(d => d.event_type === 'app_opened').length;
                 const gamesFinished = trackingData.filter(d => d.event_type === 'game_finished').length;
                 const gamesStarted = trackingData.filter(d => d.event_type === 'game_start').length;
-                const instantMatches = gamesFinished; // Vain oikeat 1v1-pelit
+                const instantMatches = gamesFinished;
+
+                // Conversion Rate: QR scan → game played
+                const conversionRate = sessionCount > 0 ? Math.round((gamesFinished / sessionCount) * 100) : 0;
+
+                // WoW Growth (previous period comparison)
+                const prevSessionCount = prevTrackingData.filter(d => d.event_type === 'app_opened').length;
+                const wowGrowth = (!isAllTimeFilter && prevSessionCount > 0)
+                    ? Math.round((sessionCount - prevSessionCount) / prevSessionCount * 100)
+                    : null;
+
+                // Peak Hour array (for chart)
+                const hourCounts = new Array(24).fill(0);
+                trackingData.forEach(d => {
+                    if (d.event_type === 'game_finished' || d.event_type === 'tournament_match_finished') {
+                        hourCounts[new Date(d.client_time).getHours()]++;
+                    }
+                });
                 
                 // Calculate Language Breakdown
                 const LANG_FLAGS = {
@@ -1277,18 +1325,6 @@
                     }
                     langText = langParts.join(' | ');
                 }
-
-                let ios = 0, android = 0, other = 0;
-                trackingData.forEach(d => {
-                    const ua = (d.user_agent || '').toLowerCase();
-                    if (ua.includes('iphone') || ua.includes('ipad')) ios++;
-                    else if (ua.includes('android')) android++;
-                    else other++;
-                });
-                const tDev = ios + android + other;
-                const iosP = tDev ? Math.round(ios / tDev * 100) : 0;
-                const andP = tDev ? Math.round(android / tDev * 100) : 0;
-                const othP = tDev ? Math.round(other / tDev * 100) : 0;
 
                 // Calculate Average Match Duration
                 let matchDurations = [];
@@ -1350,6 +1386,21 @@
                     uniqueCitiesCount = uniqueCitiesGlobally.size;
                 }
 
+                // New Countries vs previous period
+                const prevCountriesSet = new Set();
+                prevTrackingData.forEach(d => {
+                    if (d.location && d.location !== 'Unknown') {
+                        const p = parseLocation(d.location);
+                        const ci = TIMEZONE_TO_COUNTRY[d.location] || TIMEZONE_TO_COUNTRY[p.timezone];
+                        const cn = ci ? ci.name : null;
+                        if (cn && cn !== 'Unknown') prevCountriesSet.add(cn);
+                    }
+                });
+                const newCountriesList = Object.keys(globalCountryGroups)
+                    .filter(c => c !== 'Unknown' && !prevCountriesSet.has(c))
+                    .map(c => ({ name: c, flag: globalCountryGroups[c].flag }));
+
+                // --- KPI Display ---
                 document.getElementById('kpi-sessions').textContent = sessionCount;
                 document.getElementById('kpi-tournaments').textContent = totalTournaments;
                 document.getElementById('kpi-users').textContent = totalUsers;
@@ -1358,28 +1409,67 @@
                 document.getElementById('kpi-duration').textContent = durationTxt;
                 document.getElementById('kpi-cities').textContent = uniqueCountriesCount;
                 document.getElementById('kpi-cities-trend').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${uniqueCitiesCount} unique cities played`;
-                document.getElementById('kpi-device').textContent = `iOS ${iosP}% | And ${andP}% | Oth ${othP}%`;
 
-                // Populate Top Players List
-                const topBody = document.getElementById('top-players-body');
-                topBody.innerHTML = '';
-                if (topPlayersRes.data && topPlayersRes.data.length > 0) {
-                    topPlayersRes.data.forEach((p, idx) => {
+                // Conversion Rate
+                document.getElementById('kpi-conversion').textContent = `${conversionRate}%`;
+                document.getElementById('kpi-conversion-trend').innerHTML =
+                    `<i class="fas fa-arrow-right"></i> ${sessionCount} scans → ${gamesFinished} games`;
+
+                // WoW Growth badge
+                const wowEl = document.getElementById('kpi-wow');
+                if (wowGrowth !== null) {
+                    const isPos = wowGrowth >= 0;
+                    wowEl.textContent = `${isPos ? '+' : ''}${wowGrowth}% vs prev`;
+                    wowEl.style.background = isPos ? 'rgba(129,201,149,0.15)' : 'rgba(242,139,130,0.15)';
+                    wowEl.style.color = isPos ? 'var(--accent-green)' : 'var(--accent-red)';
+                    wowEl.style.display = 'inline-block';
+                } else {
+                    wowEl.style.display = 'none';
+                }
+
+                // New Countries Banner
+                const banner = document.getElementById('new-countries-banner');
+                if (newCountriesList.length > 0 && !isAllTimeFilter) {
+                    document.getElementById('new-countries-count').textContent =
+                        `${newCountriesList.length} new countr${newCountriesList.length > 1 ? 'ies' : 'y'}`;
+                    document.getElementById('new-countries-flags').textContent =
+                        newCountriesList.slice(0, 12).map(c => `${c.flag} ${c.name}`).join(' · ');
+                    banner.style.display = 'flex';
+                } else {
+                    banner.style.display = 'none';
+                }
+
+                // Hub Activity — top QR codes / game tables by games played
+                const hubMap = {};
+                trackingData.forEach(d => {
+                    const code = (d.game_code || d.source_partner || 'unknown').toUpperCase();
+                    if (!hubMap[code]) hubMap[code] = { total: 0, games: 0 };
+                    hubMap[code].total++;
+                    if (d.event_type === 'game_finished') hubMap[code].games++;
+                });
+                const sortedHubs = Object.entries(hubMap)
+                    .map(([code, v]) => ({ code, ...v }))
+                    .sort((a, b) => b.games - a.games)
+                    .slice(0, 10);
+
+                const hubBody = document.getElementById('hub-activity-body');
+                hubBody.innerHTML = '';
+                if (sortedHubs.length > 0) {
+                    sortedHubs.forEach((h, idx) => {
+                        const rankColor = idx === 0 ? 'color:var(--accent-yellow);' : (idx < 3 ? 'color:#C0C0C0;' : 'color:var(--text-secondary);');
                         const tr = document.createElement('tr');
-                        const isTop3 = idx < 3;
-                        const rankColor = idx === 0 ? 'color: var(--accent-yellow);' : (idx === 1 ? 'color: #C0C0C0;' : (idx === 2 ? 'color: #cd7f32;' : 'color: var(--text-secondary);'));
-                        const rankIcon = idx === 0 ? '<i class="fas fa-crown"></i> ' : (isTop3 ? '<i class="fas fa-trophy"></i> ' : '');
-                        
                         tr.innerHTML = `
-                            <td><strong style="${rankColor}">${rankIcon}${idx + 1}.</strong></td>
-                            <td style="font-weight: ${isTop3 ? 'bold' : 'normal'}; color: ${isTop3 ? 'white' : 'inherit'};">${(p.username || 'Anonymous').toUpperCase()}</td>
-                            <td style="text-align:right; font-weight: bold; color: var(--accent-blue);">${p.elo || 1500}</td>
+                            <td><strong style="${rankColor}">${idx + 1}.</strong></td>
+                            <td style="font-family:monospace; color:var(--accent-blue); font-size:0.85rem;">${h.code}</td>
+                            <td style="text-align:right; color:var(--text-secondary);">${h.total}</td>
+                            <td style="text-align:right; font-weight:bold;">${h.games}</td>
                         `;
-                        topBody.appendChild(tr);
+                        hubBody.appendChild(tr);
                     });
                 } else {
-                    topBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:#666;">No rating data available.</td></tr>';
+                    hubBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#666;">No hub data available.</td></tr>';
                 }
+
 
                 // Calculate and Populate Top Countries List
                 const countryCounts = {};
@@ -1697,36 +1787,39 @@
                 }
             });
 
-            // Doughnut Chart (User Personas)
+            // Peak Hours Bar Chart
             const ctx2 = document.getElementById('doughnutChart').getContext('2d');
-            let socialCount = 0, costcoCount = 0, regCount = 0, guestCount = 0;
+            const peakData = new Array(24).fill(0);
             data.forEach(d => {
-                const s = d.source_partner || 'unknown';
-                if (s === 'social') socialCount++;
-                else if (s === 'costco') costcoCount++;
-                else if (s === 'registered') regCount++;
-                else if (s === 'guest') guestCount++;
+                if (d.event_type === 'game_finished' || d.event_type === 'tournament_match_finished') {
+                    peakData[new Date(d.client_time).getHours()]++;
+                }
             });
-
+            const maxPeak = Math.max(...peakData, 1);
+            const peakColors = peakData.map(v => {
+                const r = v / maxPeak;
+                if (r > 0.6) return '#81C995';
+                if (r > 0.2) return '#8AB4F8';
+                return '#3F4147';
+            });
             doughnutInstance = new Chart(ctx2, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
-                    labels: ['Social', 'Costco', 'Registered', 'Guest'],
-                    datasets: [{
-                        data: [socialCount, costcoCount, regCount, guestCount],
-                        backgroundColor: ['#8AB4F8', '#F28B82', '#81C995', '#FDE293'],
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }]
+                    labels: Array.from({length: 24}, (_, i) => i + 'h'),
+                    datasets: [{ data: peakData, backgroundColor: peakColors, borderRadius: 3, maxBarThickness: 22 }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: 20 },
+                    layout: { padding: { top: 10 } },
                     plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 12 } }
+                        legend: { display: false },
+                        tooltip: { callbacks: { title: (i) => `${i[0].label}:00 – ${+i[0].label.replace('h','')+1}:00` } }
                     },
-                    cutout: '65%'
+                    scales: {
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 8, color: '#A0A5AA' } },
+                        y: { beginAtZero: true, display: false }
+                    }
                 }
             });
 
