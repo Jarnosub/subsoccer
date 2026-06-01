@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Main hub page -->
   <url>
     <loc>https://subsoccer.pro/</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://subsoccer.pro/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://subsoccer.pro/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="fi" href="https://subsoccer.pro/?lang=fi"/>
@@ -22,8 +27,13 @@
     <xhtml:link rel="alternate" hreflang="vi" href="https://subsoccer.pro/?lang=vi"/>
     <xhtml:link rel="alternate" hreflang="pl" href="https://subsoccer.pro/?lang=pl"/>
   </url>
+
+  <!-- App / play page -->
   <url>
     <loc>https://subsoccer.pro/login.html</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://subsoccer.pro/login.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://subsoccer.pro/login.html?lang=en"/>
     <xhtml:link rel="alternate" hreflang="fi" href="https://subsoccer.pro/login.html?lang=fi"/>
@@ -43,4 +53,13 @@
     <xhtml:link rel="alternate" hreflang="vi" href="https://subsoccer.pro/login.html?lang=vi"/>
     <xhtml:link rel="alternate" hreflang="pl" href="https://subsoccer.pro/login.html?lang=pl"/>
   </url>
+
+  <!-- Content page -->
+  <url>
+    <loc>https://subsoccer.pro/podcast.html</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
 </urlset>
