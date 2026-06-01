@@ -690,6 +690,15 @@
                     <div class="kpi-value" id="kpi-device" style="font-size: 1.5rem; margin-top: 10px;">iOS 0% | And 0% | Oth 0%</div>
                     <div class="kpi-trend" style="color: #888;"><i class="fas fa-globe"></i> Ecosystem usage</div>
                 </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>APP OPEN LOCATIONS</span>
+                        <i class="fas fa-door-open" style="color: var(--accent-green);"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-open-cities" style="color: var(--accent-green);"><i class="fas fa-spinner fa-spin" style="font-size: 1rem;"></i></div>
+                    <div class="kpi-trend" style="color: #888;" id="kpi-open-cities-trend"><i class="fas fa-map-marker-alt"></i> Unique cities (app opened)</div>
+                </div>
             </div>
         </div>
 
@@ -1350,6 +1359,25 @@
                     uniqueCitiesCount = uniqueCitiesGlobally.size;
                 }
 
+                // Calculate unique cities/countries where app was specifically OPENED
+                let appOpenCities = 0;
+                let appOpenCountries = 0;
+                if (trackingData && trackingData.length > 0) {
+                    const openEvents = trackingData.filter(d => d.event_type === 'app_opened' && d.location && d.location !== 'Unknown');
+                    const openCitySet = new Set();
+                    const openCountrySet = new Set();
+                    openEvents.forEach(d => {
+                        const parsed = parseLocation(d.location);
+                        const city = parsed.city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
+                        if (city && city !== 'Unknown') openCitySet.add(city);
+                        const countryInfo = TIMEZONE_TO_COUNTRY[d.location] || TIMEZONE_TO_COUNTRY[parsed.timezone];
+                        const country = countryInfo ? countryInfo.name : (parsed.countryCode || null);
+                        if (country && country !== 'Unknown') openCountrySet.add(country);
+                    });
+                    appOpenCities = openCitySet.size;
+                    appOpenCountries = openCountrySet.size;
+                }
+
                 document.getElementById('kpi-sessions').textContent = sessionCount;
                 document.getElementById('kpi-tournaments').textContent = totalTournaments;
                 document.getElementById('kpi-users').textContent = totalUsers;
@@ -1359,6 +1387,8 @@
                 document.getElementById('kpi-cities').textContent = uniqueCountriesCount;
                 document.getElementById('kpi-cities-trend').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${uniqueCitiesCount} unique cities played`;
                 document.getElementById('kpi-device').textContent = `iOS ${iosP}% | And ${andP}% | Oth ${othP}%`;
+                document.getElementById('kpi-open-cities').textContent = appOpenCities;
+                document.getElementById('kpi-open-cities-trend').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${appOpenCities} cities · ${appOpenCountries} countries`;
 
                 // Populate Top Players List
                 const topBody = document.getElementById('top-players-body');
