@@ -2755,6 +2755,12 @@ function translateDOM(root = document) {
 
     // Auto-translate default player names on tournament setup screen if present
     translateDefaultPlayerNames();
+
+    // Show FAQ section only in English
+    const faqEl = root === document ? document.getElementById('faq') : root.querySelector('#faq');
+    if (faqEl) {
+        faqEl.style.display = currentLang === 'en' ? '' : 'none';
+    }
 }
 
 // Initial auto-translation on load
