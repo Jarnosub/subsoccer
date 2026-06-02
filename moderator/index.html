@@ -4,14 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Subsoccer - Moderator Tools</title>
+
+    <!-- Preconnect to speed up external resources -->
+    <link rel="preconnect" href="https://ujxmmrsmdwrgcwatdhvx.supabase.co">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    <!-- Font Awesome icons (needed for UI) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../style.css?v=2">
+
     <style>
+        /* Inline font-faces only — avoids loading the full 80KB style.css */
+        @font-face {
+            font-family: 'Resolve';
+            src: url('../fonts/Resolve-BoldNrw.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Open Sans';
+            src: url('https://fonts.gstatic.com/s/opensans/v34/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'Open Sans', sans-serif; background: #f5f5f5; color: #111; min-height: 100dvh; margin: 0; }
         .mod-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top, 20px)); background: #ffffff; border-bottom: 1px solid #e0e0e0; }
         .mod-title { font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 2px; color: #c41e2a; }
         .mod-container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        
+
         .mod-btn { width: 100%; text-align: left; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 16px 20px; color: #333; font-family: 'Resolve', sans-serif; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; transition: all 0.2s; }
         .mod-btn:hover { background: #f9f9f9; color: #111; border-color: #ccc; }
         .mod-btn i { color: #c41e2a; width: 24px; text-align: center; font-size: 1.1rem; }
@@ -20,35 +41,40 @@
         .mod-danger { color: #E30613; border-color: rgba(227,6,19,0.3); }
         .mod-danger i { color: #E30613; }
         .mod-danger:hover { background: rgba(227,6,19,0.1); border-color: #E30613; color: #ffaaaa; }
-        
+
         .section-title { font-family: 'Resolve', sans-serif; margin-top: 35px; margin-bottom: 15px; font-size: 0.7rem; color: #999; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* Dark mode overrides */
+        /* Dark mode */
         body.dark-mode { background: #1a1a1a; color: #ffffff; }
         body.dark-mode .mod-header { background: #111111; border-bottom-color: #333333; }
         body.dark-mode .mod-header button { color: #ffffff !important; }
         body.dark-mode .mod-btn { background: #222222; border-color: #333333; color: #ffffff; }
         body.dark-mode .mod-btn:hover { background: #333333; border-color: #555555; }
-        body.dark-mode .mod-btn div[style*="color: #999"], 
+        body.dark-mode .mod-btn div[style*="color: #999"],
         body.dark-mode .mod-btn div[style*="color: #666"] { color: #aaaaaa !important; }
         body.dark-mode .section-title { color: #aaaaaa; }
         body.dark-mode .mod-danger { border-color: rgba(227,6,19,0.4); }
         body.dark-mode .mod-danger:hover { background: rgba(227,6,19,0.2); }
     </style>
+
+    <!-- Supabase (needed synchronously for auth) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../version.js"></script>
-    <script src="https://js-de.sentry-cdn.com/a53cdae04c9280e2611fe75c4b793913.min.js" crossorigin="anonymous"></script>
-    <script src="../sentry.js"></script>
+    <script src="../version.js" defer></script>
+    <!-- Sentry loaded async — does not block rendering -->
+    <script src="https://js-de.sentry-cdn.com/a53cdae04c9280e2611fe75c4b793913.min.js" crossorigin="anonymous" async></script>
+    <script src="../sentry.js" defer></script>
 </head>
 <body>
     <script>
+        /* Apply dark mode immediately to avoid flash */
         const storageVal = localStorage.getItem('subsoccer-dark-mode');
         if (storageVal === '1' || storageVal === null) {
             document.body.classList.add('dark-mode');
             if (storageVal === null) localStorage.setItem('subsoccer-dark-mode', '1');
         }
     </script>
-    <!-- Auth guard: hide everything until verified -->
+
+    <!-- Auth guard -->
     <div id="auth-wall" style="display:flex; justify-content:center; align-items:center; min-height:100dvh; font-family:'Resolve',sans-serif; color:#666; letter-spacing:1px; font-size:0.8rem;">
         <i class="fas fa-circle-notch fa-spin" style="margin-right:10px;"></i> VERIFYING ACCESS...
     </div>
@@ -113,10 +139,10 @@
 
         <!-- Analytics Engine -->
         <div class="section-title">ANALYTICS ENGINE</div>
-        
+
         <button class="mod-btn" onclick="window.location.href='../analytics-dashboard.html'">
             <i class="fa-solid fa-chart-simple"></i>
-            <span style="font-weight: bold;">GLOBAL METRICS & ANALYTICS</span>
+            <span style="font-weight: bold;">GLOBAL METRICS &amp; ANALYTICS</span>
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
 
@@ -140,7 +166,6 @@
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
 
-
         <div class="section-title" style="color: #832;">DANGER ZONE</div>
 
         <!-- Purge Global Leaderboard -->
@@ -154,23 +179,32 @@
 
     <script>
         (async function() {
+            const SUPER_ADMIN_ID = '054f6378-95c5-4f5b-a678-745e585a01fc';
             const _sb = supabase.createClient(
                 'https://ujxmmrsmdwrgcwatdhvx.supabase.co',
                 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t'
             );
+
             const { data } = await _sb.auth.getSession();
             if (!data.session) {
                 document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="../index.html" style="color:#c41e2a; margin-left:8px;">LOG IN</a>';
                 return;
             }
-            // Verify admin status
-            const { data: player } = await _sb.from('players').select('id, is_admin').eq('id', data.session.user.id).maybeSingle();
-            const SUPER_ADMIN_ID = '054f6378-95c5-4f5b-a678-745e585a01fc';
-            if (!player?.is_admin && data.session.user.id !== SUPER_ADMIN_ID) {
+
+            // Super admin bypasses DB query — saves one round-trip (~300-800ms)
+            if (data.session.user.id === SUPER_ADMIN_ID) {
+                document.getElementById('auth-wall').style.display = 'none';
+                document.getElementById('mod-content').style.display = 'block';
+                return;
+            }
+
+            // Regular admin check via DB
+            const { data: player } = await _sb.from('players').select('is_admin').eq('id', data.session.user.id).maybeSingle();
+            if (!player?.is_admin) {
                 document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="../index.html" style="color:#c41e2a; margin-left:8px;">BACK</a>';
                 return;
             }
-            // Auth passed - show content
+
             document.getElementById('auth-wall').style.display = 'none';
             document.getElementById('mod-content').style.display = 'block';
         })();
