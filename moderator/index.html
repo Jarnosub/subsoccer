@@ -185,28 +185,46 @@
                 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t'
             );
 
-            const { data } = await _sb.auth.getSession();
-            if (!data.session) {
-                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="../index.html" style="color:#c41e2a; margin-left:8px;">LOG IN</a>';
-                return;
-            }
+            try {
+                // Race auth against a 10s timeout
+                const authTimeout = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('AUTH_TIMEOUT')), 10000)
+                );
+                const { data } = await Promise.race([_sb.auth.getSession(), authTimeout]);
 
-            // Super admin bypasses DB query — saves one round-trip (~300-800ms)
-            if (data.session.user.id === SUPER_ADMIN_ID) {
+                if (!data.session) {
+                    document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="margin-right:10px; color:#E30613;"></i> ACCESS DENIED — <a href="../index.html" style="color:#c41e2a; margin-left:8px;">LOG IN</a>';
+                    return;
+                }
+
+                // Super admin bypasses DB query — saves one round-trip (~300-800ms)
+                if (data.session.user.id === SUPER_ADMIN_ID) {
+                    document.getElementById('auth-wall').style.display = 'none';
+                    document.getElementById('mod-content').style.display = 'block';
+                    return;
+                }
+
+                // Regular admin check via DB
+                const { data: player } = await _sb.from('players').select('is_admin').eq('id', data.session.user.id).maybeSingle();
+                if (!player?.is_admin) {
+                    document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="../index.html" style="color:#c41e2a; margin-left:8px;">BACK</a>';
+                    return;
+                }
+
                 document.getElementById('auth-wall').style.display = 'none';
                 document.getElementById('mod-content').style.display = 'block';
-                return;
+            } catch (err) {
+                console.error('Moderator auth error:', err);
+                const msg = err.message === 'AUTH_TIMEOUT'
+                    ? 'Connection timed out — could not reach server'
+                    : 'Error: ' + err.message;
+                document.getElementById('auth-wall').innerHTML =
+                    '<div style="text-align:center;">' +
+                    '<i class="fas fa-exclamation-triangle" style="color:#E30613; font-size:1.2rem; margin-bottom:10px; display:block;"></i>' +
+                    '<span style="color:#999; font-size:0.8rem;">' + msg + '</span><br>' +
+                    '<button onclick="location.reload()" style="margin-top:14px; padding:8px 20px; background:transparent; color:#c41e2a; border:1px solid rgba(196,30,42,0.4); border-radius:4px; cursor:pointer; font-family:Resolve,sans-serif; font-size:0.75rem; letter-spacing:1px;">' +
+                    '<i class="fas fa-redo" style="margin-right:6px;"></i>RETRY</button></div>';
             }
-
-            // Regular admin check via DB
-            const { data: player } = await _sb.from('players').select('is_admin').eq('id', data.session.user.id).maybeSingle();
-            if (!player?.is_admin) {
-                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-shield-halved" style="margin-right:10px; color:#E30613;"></i> ADMIN ONLY — <a href="../index.html" style="color:#c41e2a; margin-left:8px;">BACK</a>';
-                return;
-            }
-
-            document.getElementById('auth-wall').style.display = 'none';
-            document.getElementById('mod-content').style.display = 'block';
         })();
     </script>
 </body>
