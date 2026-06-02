@@ -1135,7 +1135,13 @@
             }
 
             try {
-                const { data: sessionData } = await client.auth.getSession();
+                // Race auth check against a 10s timeout
+                const authTimeout = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('AUTH_TIMEOUT')), 10000)
+                );
+                const authCheck = client.auth.getSession();
+                const { data: sessionData } = await Promise.race([authCheck, authTimeout]);
+
                 if (!sessionData.session) {
                     document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="color:var(--accent-red); margin-right:8px;"></i> ACCESS DENIED — PLEASE LOG IN';
                     document.getElementById('loading').style.display = 'none';
@@ -1520,7 +1526,23 @@
 
             } catch (err) {
                 console.error("Error fetching analytics:", err);
-                alert("Error fetching analytics: " + err.message);
+                if (err.message === 'AUTH_TIMEOUT') {
+                    document.getElementById('auth-wall').innerHTML =
+                        '<div style="text-align:center;">' +
+                        '<i class="fas fa-exclamation-triangle" style="color:#fde293; font-size:1.5rem; margin-bottom:12px; display:block;"></i>' +
+                        '<span style="color:#ccc;">Connection timed out</span><br>' +
+                        '<span style="color:#888; font-size:0.85rem;">Could not reach authentication server</span><br>' +
+                        '<button onclick="location.reload()" style="margin-top:16px; padding:8px 24px; background:rgba(138,180,248,0.15); color:#8ab4f8; border:1px solid rgba(138,180,248,0.3); border-radius:6px; cursor:pointer; font-size:0.9rem;">' +
+                        '<i class="fas fa-redo" style="margin-right:6px;"></i>Retry</button></div>';
+                } else {
+                    document.getElementById('auth-wall').innerHTML =
+                        '<div style="text-align:center;">' +
+                        '<i class="fas fa-exclamation-circle" style="color:var(--accent-red); font-size:1.5rem; margin-bottom:12px; display:block;"></i>' +
+                        '<span style="color:#ccc;">Error loading dashboard</span><br>' +
+                        '<span style="color:#888; font-size:0.85rem;">' + err.message + '</span><br>' +
+                        '<button onclick="location.reload()" style="margin-top:16px; padding:8px 24px; background:rgba(138,180,248,0.15); color:#8ab4f8; border:1px solid rgba(138,180,248,0.3); border-radius:6px; cursor:pointer; font-size:0.9rem;">' +
+                        '<i class="fas fa-redo" style="margin-right:6px;"></i>Retry</button></div>';
+                }
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
