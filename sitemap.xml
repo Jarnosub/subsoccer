@@ -5,7 +5,7 @@
   <!-- Main hub page -->
   <url>
     <loc>https://subsoccer.pro/</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://subsoccer.pro/"/>
@@ -26,12 +26,17 @@
     <xhtml:link rel="alternate" hreflang="id" href="https://subsoccer.pro/?lang=id"/>
     <xhtml:link rel="alternate" hreflang="vi" href="https://subsoccer.pro/?lang=vi"/>
     <xhtml:link rel="alternate" hreflang="pl" href="https://subsoccer.pro/?lang=pl"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://subsoccer.pro/?lang=ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://subsoccer.pro/?lang=zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://subsoccer.pro/?lang=ko"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://subsoccer.pro/?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="az" href="https://subsoccer.pro/?lang=az"/>
   </url>
 
   <!-- App / play page -->
   <url>
     <loc>https://subsoccer.pro/login.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://subsoccer.pro/login.html"/>
@@ -52,12 +57,17 @@
     <xhtml:link rel="alternate" hreflang="id" href="https://subsoccer.pro/login.html?lang=id"/>
     <xhtml:link rel="alternate" hreflang="vi" href="https://subsoccer.pro/login.html?lang=vi"/>
     <xhtml:link rel="alternate" hreflang="pl" href="https://subsoccer.pro/login.html?lang=pl"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://subsoccer.pro/login.html?lang=ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://subsoccer.pro/login.html?lang=zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://subsoccer.pro/login.html?lang=ko"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://subsoccer.pro/login.html?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="az" href="https://subsoccer.pro/login.html?lang=az"/>
   </url>
 
   <!-- Content page -->
   <url>
     <loc>https://subsoccer.pro/podcast.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
