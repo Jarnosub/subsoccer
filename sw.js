@@ -47,14 +47,31 @@ self.addEventListener('activate', (event) => {
 
 // Hakuvaihe (Fetch): Palautetaan välimuistista jos offline, muuten verkosta
 self.addEventListener('fetch', (event) => {
-    // Ei välimuistia Supabasen API-kutsuihin tai ulkoisiin domaineihin tässä yksinkertaisessa toteutuksessa
+    // Ei välimuistia ulkoisiin domaineihin
     if (!event.request.url.startsWith(self.location.origin)) {
         return;
+    }
+
+    // Admin-sivut menevät AINA suoraan networkiin (ei SW-cacheä auth-sivuille)
+    const NETWORK_ONLY_PATHS = [
+        '/moderator',
+        '/analytics-dashboard',
+        '/owner-dashboard',
+        '/control-room',
+        '/brand-builder',
+        '/theme-editor',
+        '/qr-batch-exporter',
+        '/registered-players',
+    ];
+    const url = new URL(event.request.url);
+    if (NETWORK_ONLY_PATHS.some(p => url.pathname.startsWith(p))) {
+        return; // Ei intercept — menee suoraan selaimelle
     }
 
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             // Jos löytyy välimuistista, palauta se
+
             if (cachedResponse) {
                 // Haetaan taustalla uusin versio verkosta (Stale-while-revalidate pattern)
                 fetch(event.request).then((networkResponse) => {
