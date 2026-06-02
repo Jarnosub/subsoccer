@@ -94,6 +94,64 @@
     }
     </script>
 
+    <!-- FAQ Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Subsoccer GO?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Subsoccer GO is a free web app for Subsoccer bench soccer tables. Scan the QR code on any Subsoccer table, play a match, and your score is tracked automatically — no download or registration required. It works on any phone with a browser."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I start playing?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Simply scan the QR code on any Subsoccer table with your phone camera. The app opens instantly in your browser — tap the score buttons during your match and results are saved automatically. The average match takes just 2 minutes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Subsoccer GO free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Subsoccer GO is completely free. No app download, no subscription, no registration needed. Just scan and play. You can optionally create a free player profile to track your ELO ranking and tournament history."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "In how many countries is Subsoccer played?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Subsoccer GO is actively used in over 58 countries and 118 cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Singapore, the Philippines, Indonesia, and Germany. The app supports 22 languages."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the ELO ranking system?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Subsoccer GO uses an ELO rating system similar to chess. Every match result adjusts your rating — beat a higher-ranked player and your rating rises faster. Create a free player profile to start tracking your global ranking."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I run tournaments with Subsoccer GO?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! Subsoccer GO includes a built-in tournament system for 2–8 players. It automatically generates brackets, tracks scores, and crowns a champion. Perfect for offices, events, bars, and schools."
+          }
+        }
+      ]
+    }
+    </script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=4">
     <link rel="stylesheet" href="the-forge.css?v=2">
@@ -607,6 +665,72 @@
             color: #555555;
             font-size: 0.75rem;
         }
+
+        /* ─── FAQ Section ─── */
+        .faq-section {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 40px 20px 30px;
+        }
+        .faq-section h2 {
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 24px;
+            color: #222;
+        }
+        .dark-mode .faq-section h2 { color: #ddd; }
+        .faq-item {
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        .dark-mode .faq-item {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .faq-question {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 16px 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #111;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: color 0.2s;
+        }
+        .dark-mode .faq-question { color: #eee; }
+        .faq-question:hover { color: #c41e2a; }
+        .faq-question::after {
+            content: '+';
+            font-size: 1.3rem;
+            font-weight: 300;
+            flex-shrink: 0;
+            transition: transform 0.3s;
+        }
+        .faq-item.open .faq-question::after {
+            content: '−';
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.35s ease;
+            font-size: 0.88rem;
+            line-height: 1.65;
+            color: #555;
+            padding: 0 0 0 0;
+        }
+        .dark-mode .faq-answer { color: #aaa; }
+        .faq-item.open .faq-answer {
+            max-height: 300px;
+            padding-bottom: 16px;
+        }
     </style>
 </head>
 
@@ -800,6 +924,59 @@
             </div>
         </div>
     </main>
+
+    <!-- FAQ SECTION -->
+    <section class="faq-section" id="faq">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')" aria-expanded="false">
+                What is Subsoccer GO?
+            </button>
+            <div class="faq-answer">
+                Subsoccer GO is a free web app for Subsoccer bench soccer tables. Scan the QR code on any Subsoccer table, play a match, and your score is tracked automatically — no download or registration required. Works on any phone with a browser.
+            </div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')" aria-expanded="false">
+                How do I start playing?
+            </button>
+            <div class="faq-answer">
+                Simply scan the QR code on any Subsoccer table with your phone camera. The app opens instantly — tap the score buttons during your match and results are saved automatically. The average match takes just 2 minutes.
+            </div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')" aria-expanded="false">
+                Is Subsoccer GO free?
+            </button>
+            <div class="faq-answer">
+                Yes, completely free. No app download, no subscription, no registration needed. Just scan and play. You can optionally create a free player profile to track your ELO ranking and tournament history.
+            </div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')" aria-expanded="false">
+                In how many countries is Subsoccer played?
+            </button>
+            <div class="faq-answer">
+                Subsoccer GO is actively used in over 58 countries and 118 cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Singapore, the Philippines, Indonesia, and Germany.
+            </div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')" aria-expanded="false">
+                What is the ELO ranking system?
+            </button>
+            <div class="faq-answer">
+                Subsoccer GO uses an ELO rating system similar to chess. Every match result adjusts your rating — beat a higher-ranked player and your rating rises faster. Create a free player profile to start tracking your global ranking.
+            </div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="this.parentElement.classList.toggle('open')" aria-expanded="false">
+                Can I run tournaments?
+            </button>
+            <div class="faq-answer">
+                Yes! Subsoccer GO includes a built-in tournament system for 2–8 players. It automatically generates brackets, tracks scores, and crowns a champion. Perfect for offices, events, bars, and schools.
+            </div>
+        </div>
+    </section>
 
     <!-- BLACK FOOTER BAR -->
     <div class="footer-bar">
