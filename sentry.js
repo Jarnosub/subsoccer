@@ -25,6 +25,11 @@ if (typeof Sentry !== 'undefined' && Sentry.onLoad) {
                 'Failed to fetch',
                 'NetworkError',
                 'AbortError',
+                // Browser extension noise
+                'runtime.sendMessage',
+                'Extension context invalidated',
+                'chrome-extension://',
+                'moz-extension://',
             ],
         });
 
