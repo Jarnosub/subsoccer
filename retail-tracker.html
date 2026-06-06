@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer Retail Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #0a0f1d; --bg2: #131b2e; --accent: #10b981; --accent2: #6366f1;
+            --text: #f8fafc; --text2: #94a3b8; --border: rgba(255,255,255,0.08);
+            --card: rgba(255,255,255,0.03); --card-h: rgba(255,255,255,0.06);
+            --green: #22c55e; --red: #ef4444; --yellow: #eab308;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif; background: var(--bg);
+            background-image: radial-gradient(at 0% 0%, rgba(16,185,129,0.08) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(99,102,241,0.08) 0px, transparent 50%);
+            color: var(--text); min-height: 100vh; padding: 2rem 1.5rem; line-height: 1.5;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .logo { display: flex; align-items: center; gap: 1rem; }
+        .logo-icon { font-size: 2rem; }
+        h1 { font-size: 1.75rem; font-weight: 800; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .badge { background: rgba(99,102,241,0.15); color: var(--accent2); border: 1px solid rgba(99,102,241,0.2); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .btn { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn:hover { background: var(--card-h); border-color: rgba(255,255,255,0.2); }
+
+        /* Summary bar */
+        .summary { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.5rem; flex: 1; min-width: 200px; backdrop-filter: blur(10px); }
+        .summary-card .label { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+        .summary-card .value { font-size: 2rem; font-weight: 800; }
+        .summary-card .sub { font-size: 0.75rem; color: var(--text2); margin-top: 0.25rem; }
+
+        /* Product cards */
+        .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .product-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; backdrop-filter: blur(10px); transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .product-card:hover { transform: translateY(-4px); border-color: rgba(16,185,129,0.3); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+        .product-header { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+        .product-retailer { font-size: 0.7rem; color: var(--accent2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+        .product-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; }
+        .product-meta { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+        .price-tag { font-size: 1.75rem; font-weight: 800; color: var(--accent); }
+        .price-change { font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 6px; }
+        .price-change.up { background: rgba(239,68,68,0.15); color: var(--red); }
+        .price-change.down { background: rgba(34,197,94,0.15); color: var(--green); }
+        .stock-badge { padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .stock-badge.in-stock { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+        .stock-badge.out-of-stock { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+        .stock-badge.unknown { background: rgba(234,179,8,0.15); color: var(--yellow); border: 1px solid rgba(234,179,8,0.2); }
+        .product-body { padding: 1.5rem; }
+        .chart-container { height: 180px; margin-bottom: 1rem; }
+        .product-footer { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--text2); }
+        .visit-link { color: var(--accent); text-decoration: none; font-weight: 600; transition: color 0.2s; }
+        .visit-link:hover { color: #059669; }
+
+        /* States */
+        .empty-state { text-align: center; padding: 5rem 2rem; background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .code-box { background: #020617; border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.75rem; font-family: monospace; font-size: 0.8rem; color: #38bdf8; display: inline-block; margin-top: 0.5rem; }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .summary { flex-direction: column; }
+            .products { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">💰</span>
+                <h1>Retail Tracker</h1>
+                <span class="badge">Price Monitor</span>
+            </div>
+            <div style="display:flex;gap:0.75rem">
+                <a href="/brand-scanner.html" class="btn">🔍 Brand Scanner</a>
+                <a href="/index.html" class="btn">← Päävalikko</a>
+            </div>
+        </header>
+
+        <div class="summary" id="summary">
+            <div class="summary-card"><div class="label">Tuotteita seurannassa</div><div class="value" id="s-count">—</div></div>
+            <div class="summary-card"><div class="label">Halvin hinta</div><div class="value" id="s-lowest">—</div><div class="sub" id="s-lowest-where"></div></div>
+            <div class="summary-card"><div class="label">Viimeisin tarkistus</div><div class="value" id="s-last" style="font-size:1rem">—</div></div>
+        </div>
+
+        <div id="products" class="products">
+            <div class="empty-state">
+                <div class="icon">📦</div>
+                <h3>Ei seurantadataa</h3>
+                <p style="color:var(--text2);margin-top:0.5rem">Aja hintaseuranta komennolla:</p>
+                <div class="code-box">node scripts/track-prices.js</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const RETAILER_NAMES = {
+            'costco-au': '🇦🇺 Costco Australia',
+            'costco-ca': '🇨🇦 Costco Canada',
+            'costco-nz': '🇳🇿 Costco New Zealand',
+        };
+        function getRetailerName(id) {
+            if (RETAILER_NAMES[id]) return RETAILER_NAMES[id];
+            if (id.startsWith('walmart')) return '🇺🇸 Walmart';
+            return id;
+        }
+        const CHART_COLORS = ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#06b6d4'];
+        let charts = [];
+
+        async function load() {
+            try {
+                const res = await fetch('/retail-tracker.json');
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                if (!data.products || data.products.length === 0) return;
+
+                // Summary
+                document.getElementById('s-count').textContent = data.products.length;
+
+                let lowest = Infinity, lowestWhere = '';
+                data.products.forEach(p => {
+                    const last = p.history[p.history.length - 1];
+                    if (last && last.price && last.price < lowest) {
+                        lowest = last.price;
+                        lowestWhere = `${getRetailerName(p.retailer)} (${p.currency})`;
+                    }
+                });
+                document.getElementById('s-lowest').textContent = lowest < Infinity ? `$${lowest.toFixed(2)}` : '—';
+                document.getElementById('s-lowest-where').textContent = lowestWhere;
+
+                const lastScraped = data.products.map(p => p.lastScraped).filter(Boolean).sort().pop();
+                document.getElementById('s-last').textContent = lastScraped ? new Date(lastScraped).toLocaleString('fi-FI') : '—';
+
+                // Products
+                const container = document.getElementById('products');
+                container.innerHTML = '';
+
+                data.products.forEach((prod, idx) => {
+                    const latest = prod.history[prod.history.length - 1] || {};
+                    const prev = prod.history.length > 1 ? prod.history[prod.history.length - 2] : null;
+
+                    // Price change
+                    let changeHtml = '';
+                    if (prev && prev.price && latest.price && prev.price !== latest.price) {
+                        const diff = latest.price - prev.price;
+                        const pct = ((diff / prev.price) * 100).toFixed(1);
+                        const cls = diff > 0 ? 'up' : 'down';
+                        const arrow = diff > 0 ? '↑' : '↓';
+                        changeHtml = `<span class="price-change ${cls}">${arrow} ${Math.abs(pct)}%</span>`;
+                    }
+
+                    // Stock badge
+                    let stockHtml = '';
+                    if (latest.inStock === true) stockHtml = '<span class="stock-badge in-stock">Saatavilla</span>';
+                    else if (latest.inStock === false) stockHtml = '<span class="stock-badge out-of-stock">Loppu</span>';
+                    else stockHtml = '<span class="stock-badge unknown">Tuntematon</span>';
+
+                    // Rating
+                    let ratingHtml = '';
+                    if (latest.rating) {
+                        const stars = '⭐'.repeat(Math.round(latest.rating));
+                        ratingHtml = `<span style="font-size:0.8rem;color:var(--text2)">${stars} ${latest.rating}/5 (${latest.reviewCount || '?'})</span>`;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <div class="product-header">
+                            <div class="product-retailer">${getRetailerName(prod.retailer)}</div>
+                            <div class="product-name">${prod.product || 'Subsoccer'}</div>
+                            <div class="product-meta">
+                                <span class="price-tag">${latest.price ? '$' + latest.price.toFixed(2) : '—'}</span>
+                                ${changeHtml}
+                                ${stockHtml}
+                            </div>
+                            ${ratingHtml ? '<div style="margin-top:0.5rem">' + ratingHtml + '</div>' : ''}
+                        </div>
+                        <div class="product-body">
+                            <div class="chart-container"><canvas id="chart-${idx}"></canvas></div>
+                        </div>
+                        <div class="product-footer">
+                            <span>${prod.history.length} datapistettä</span>
+                            <a href="${prod.url}" target="_blank" class="visit-link">Tuotesivu ↗</a>
+                        </div>
+                    `;
+                    container.appendChild(card);
+
+                    // Chart
+                    if (prod.history.length > 0) {
+                        const ctx = document.getElementById(`chart-${idx}`).getContext('2d');
+                        charts.push(new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: prod.history.map(h => h.date),
+                                datasets: [{
+                                    label: 'Hinta (' + (prod.currency || 'USD') + ')',
+                                    data: prod.history.map(h => h.price),
+                                    borderColor: CHART_COLORS[idx % CHART_COLORS.length],
+                                    backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] + '20',
+                                    fill: true, tension: 0.3, pointRadius: 4, pointHoverRadius: 6,
+                                    borderWidth: 2,
+                                }]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => '$' + v } }
+                                }
+                            }
+                        }));
+                    }
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        document.addEventListener('DOMContentLoaded', load);
+    </script>
+</body>
+</html>

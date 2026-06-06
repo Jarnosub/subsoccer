@@ -1,6 +1,8 @@
 unique_id,ds,y
+new_cities_rate,2026-03-19,1
 new_cities_rate,2026-03-20,0
 new_cities_rate,2026-03-21,0
+new_cities_rate,2026-03-22,0
 new_cities_rate,2026-03-23,0
 new_cities_rate,2026-03-24,2
 new_cities_rate,2026-03-25,8
@@ -70,4 +72,6 @@ new_cities_rate,2026-05-27,1
 new_cities_rate,2026-05-28,13
 new_cities_rate,2026-05-29,9
 new_cities_rate,2026-05-30,13
-new_cities_rate,2026-05-31,2
+new_cities_rate,2026-05-31,17
+new_cities_rate,2026-06-01,6
+new_cities_rate,2026-06-02,0

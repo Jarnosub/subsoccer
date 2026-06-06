@@ -499,6 +499,7 @@ function finishMatch(winnerName, winnerIndex) {
     }
 
     // Record the match in the global backend for ELO & Stats (silently, no loading overlay)
+    // MatchService handles offline queueing automatically if network is unavailable
     try {
         const viMap = window.verifiedMobilePlayers || {};
         MatchService.recordMatch({
@@ -511,6 +512,10 @@ function finishMatch(winnerName, winnerIndex) {
             p2Score: gameState.p2Score,
             tournamentName: "Mobile Arcade",
             gameId: "MOBILE-FREEPLAY"
+        }).then(result => {
+            if (result && result.offlineQueued) {
+                console.log('[MobileGame] ⏳ Match queued offline — will sync when connection returns');
+            }
         }).catch(err => console.log("ELO save skipped:", err));
         // Immediately hide any loading overlay that MatchService creates
         // since we don't want it blocking the victory screen

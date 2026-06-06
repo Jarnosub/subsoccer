@@ -11,6 +11,23 @@ const ASSETS = [
     '/ui.js',
     '/script.js',
     '/audio-engine.js',
+    // Offline-pelitila: pelisivut ja -logiikka
+    '/mobile-game.html',
+    '/mobile-game-logic.js',
+    '/quick-match.js',
+    '/match-service.js',
+    '/bracket-engine.js',
+    '/game-service.js',
+    '/offline-queue.js',
+    '/qr-lobby.js',
+    // Fontit
+    '/fonts/Subsoccer-2-Regular.woff2',
+    '/fonts/Subsoccer-2-Regular.woff',
+    '/fonts/Subsoccer-2-Regular.otf',
+    '/fonts/Resolve-BoldNrw.otf',
+    '/fonts/Resolve-RegularCn.otf',
+    '/fonts/Resolve-RegularNrw.otf',
+    // Resurssit
     '/subsoccer_logo.svg',
     '/icon-192.png',
     '/icon-512.png',

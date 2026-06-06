@@ -17,6 +17,8 @@
         "@supabase/supabase-js": "^2.101.1",
         "cors": "^2.8.6",
         "express": "^5.2.1",
+        "node-cron": "^4.2.1",
+        "nodemailer": "^8.0.10",
         "stripe": "^22.0.0"
     },
     "main": "main.js",

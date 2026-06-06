@@ -1,4 +1,13 @@
 import { _supabase, state } from './config.js';
+import { OfflineQueue } from './offline-queue.js';
+
+// ============================================================
+// OFFLINE QUEUE INITIALIZATION
+// ============================================================
+OfflineQueue.init().then(() => {
+    // Päivitä UI-badge heti alustuksen jälkeen
+    OfflineQueue.updateBadge();
+});
 
 // ============================================================
 // 2. PELAAJAPOOLIN HALLINTA (haku, lisäys, poisto)
@@ -41,7 +50,7 @@ export function directAdd(n) {
 }
 
 // ============================================================
-// 10. CONNECTION WATCHDOG
+// 10. CONNECTION WATCHDOG + OFFLINE SYNC
 // ============================================================
 
 let wasOffline = false;
@@ -49,14 +58,21 @@ const checkConnection = async () => {
     const dot = document.getElementById('conn-dot');
     if (!dot) return;
 
+    // Näytä/piilota offline-palkki
+    const offlineBar = document.getElementById('offline-bar');
+
     if (!navigator.onLine) {
         if (!wasOffline) {
             if (window.showNotification) window.showNotification("No internet connection", "error");
             wasOffline = true;
         }
         dot.classList.add('dot-offline');
+        if (offlineBar) offlineBar.classList.add('visible');
         return;
     }
+
+    // Piilota offline-palkki kun yhteys palaa
+    if (offlineBar) offlineBar.classList.remove('visible');
 
     try {
         // Tehdään kevyt haku vain jos oltiin offline-tilassa
@@ -66,6 +82,13 @@ const checkConnection = async () => {
                 if (window.showNotification) window.showNotification("Connection restored", "success");
                 wasOffline = false;
                 dot.classList.remove('dot-offline');
+                
+                // 🔄 Synkronoi offline-jono automaattisesti
+                const pendingCount = await OfflineQueue.getPendingCount();
+                if (pendingCount > 0) {
+                    console.log(`[ConnectionWatchdog] 🔄 Connection restored — syncing ${pendingCount} offline matches`);
+                    await OfflineQueue.syncAll();
+                }
             }
         }
     } catch (e) {}
