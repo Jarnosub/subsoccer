@@ -1,8 +1,11 @@
 import { _supabase, state } from './config.js';
 import { showNotification, showLoading, hideLoading, showModal } from './ui-utils.js';
+import { OfflineQueue } from './offline-queue.js';
 
 /**
  * Keskitetty palvelu otteluiden hallintaan ja ELO-laskentaan.
+ * Tukee offline-tilaa: jos tallennus epäonnistuu, peli tallennetaan paikallisesti
+ * IndexedDB-jonoon ja synkronoidaan automaattisesti kun yhteys palaa.
  */
 const isUuid = (val) => val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
 
@@ -12,6 +15,17 @@ function withTimeout(promise, ms = 10000) {
         promise,
         new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), ms))
     ]);
+}
+
+/**
+ * Laskee paikallisen ELO-arvion offline-tilassa (ilman palvelimen tietoja).
+ */
+function estimateLocalElo(winnerCurrentElo = 1300, loserCurrentElo = 1300) {
+    const kFactor = 32;
+    const expected = 1 / (1 + Math.pow(10, (loserCurrentElo - winnerCurrentElo) / 400));
+    const newElo = Math.round(winnerCurrentElo + kFactor * (1 - expected));
+    const gain = newElo - winnerCurrentElo;
+    return { newElo, gain: Math.max(1, gain) };
 }
 
 let _isRecording = false;
@@ -54,6 +68,24 @@ export const MatchService = {
             return { success: false, error: 'duplicate' };
         }
         _isRecording = true;
+
+        const matchParams = { player1Name, player2Name, player1Id, player2Id, winnerName, p1Score, p2Score, tournamentId, tournamentName, gameId };
+
+        // --- OFFLINE CHECK: Jos ei nettiä, tallenna suoraan jonoon ---
+        if (!navigator.onLine) {
+            console.log('[MatchService] 📡 Offline — queuing match locally');
+            _isRecording = false;
+            try {
+                await OfflineQueue.enqueue(matchParams);
+                const currentUser = state.user;
+                const winnerElo = currentUser && currentUser.username === winnerName ? (currentUser.elo || 1300) : 1300;
+                const { newElo, gain } = estimateLocalElo(winnerElo);
+                return { success: true, offlineQueued: true, newElo, gain, isGuest: false, wasCapped: false };
+            } catch (err) {
+                console.error('[MatchService] Offline queue failed:', err);
+                return { success: false, error: err, offlineQueued: false };
+            }
+        }
 
         try {
             showLoading('Recording match...');
@@ -194,6 +226,28 @@ export const MatchService = {
             return { success: true, newElo, gain, isGuest: winnerData.isGuest, wasCapped };
         } catch (error) {
             console.error('MatchService Error:', error);
+
+            // --- OFFLINE FALLBACK: Jos verkkovirhe, tallenna jonoon ---
+            const isNetworkError = !navigator.onLine || 
+                error.message?.includes('timeout') || 
+                error.message?.includes('Failed to fetch') ||
+                error.message?.includes('NetworkError') ||
+                error.message?.includes('Request timeout');
+
+            if (isNetworkError) {
+                console.log('[MatchService] 📡 Network error — queuing match offline');
+                try {
+                    await OfflineQueue.enqueue(matchParams);
+                    hideLoading();
+                    const currentUser = state.user;
+                    const winnerElo = currentUser && currentUser.username === winnerName ? (currentUser.elo || 1300) : 1300;
+                    const { newElo, gain } = estimateLocalElo(winnerElo);
+                    return { success: true, offlineQueued: true, newElo, gain, isGuest: false, wasCapped: false };
+                } catch (queueErr) {
+                    console.error('[MatchService] Offline queue also failed:', queueErr);
+                }
+            }
+
             showNotification('Failed to record match', 'error');
             return { success: false, error };
         } finally {
@@ -202,5 +256,9 @@ export const MatchService = {
         }
     }
 };
+
+// Tallenna alkuperäinen recordMatch-funktio offline-synkronointia varten
+// (Synkronoija kutsuu tätä suoraan, jotta se ei päädy takaisin offline-jonoon)
+MatchService._originalRecordMatch = MatchService.recordMatch.bind(MatchService);
 
 window.MatchService = MatchService;

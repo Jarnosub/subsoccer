@@ -131,7 +131,7 @@ export async function finalizeQuickMatch(winnerName, context = null) {
 
         if (result.success) {
             if (window.audioEngine) window.audioEngine.stopListening();
-            showVictory(winnerName, result.newElo, result.gain, result.isGuest);
+            showVictory(winnerName, result.newElo, result.gain, result.isGuest, result.offlineQueued);
         }
     } catch (error) {
         console.error('Error finalizing Quick Match:', error);
@@ -139,7 +139,7 @@ export async function finalizeQuickMatch(winnerName, context = null) {
     }
 }
 
-export function showVictory(name, newElo, gain, isGuest = false) {
+export function showVictory(name, newElo, gain, isGuest = false, offlineQueued = false) {
     document.getElementById('app-content').style.display = 'none';
 
     // FIX: Piilotetaan sticky-tallenna-nappi, koska se on body-elementin alla
@@ -147,8 +147,16 @@ export function showVictory(name, newElo, gain, isGuest = false) {
     if (saveBtn) saveBtn.style.display = 'none';
 
     document.getElementById('victory-player-name').innerText = name;
-    document.getElementById('victory-elo-count').innerText = newElo;
-    document.getElementById('victory-elo-gain').innerText = `+${gain} POINTS`;
+
+    if (offlineQueued) {
+        // Offline-tilassa näytetään arvioitu ELO ja synkronointiviesti
+        document.getElementById('victory-elo-count').innerText = newElo || '—';
+        document.getElementById('victory-elo-gain').innerText = `~+${gain || '?'} POINTS (estimated)`;
+    } else {
+        document.getElementById('victory-elo-count').innerText = newElo;
+        document.getElementById('victory-elo-gain').innerText = `+${gain} POINTS`;
+    }
+
     const overlay = document.getElementById('victory-overlay');
 
     // Etsitään napit ja lisätään Pro-luokat
@@ -160,6 +168,19 @@ export function showVictory(name, newElo, gain, isGuest = false) {
         buttons[1].innerText = 'END GAME';
     }
 
+    // Offline-ilmoitus voittonäytöllä
+    const oldOfflineMsg = document.getElementById('victory-offline-msg');
+    if (oldOfflineMsg) oldOfflineMsg.remove();
+    if (offlineQueued) {
+        const msg = document.createElement('div');
+        msg.id = 'victory-offline-msg';
+        msg.className = 'fade-in';
+        msg.style = "margin-top: 15px; color: #fff; font-size: 0.8rem; max-width: 280px; background: rgba(230, 81, 0, 0.15); padding: 12px 15px; border-radius: var(--sub-radius); border: 1px solid rgba(230, 81, 0, 0.3); text-align:center; line-height:1.4;";
+        msg.innerHTML = "<span style='color:#f57c00; font-weight:bold; display:block; margin-bottom:4px;'>📡 OFFLINE</span>Result saved locally — will sync automatically when connection returns.";
+        const controls = overlay.querySelector('.victory-controls') || overlay.querySelector('button').parentElement;
+        controls.before(msg);
+    }
+
     const oldMsg = document.getElementById('guest-upsell');
     if (oldMsg) oldMsg.remove();
     if (isGuest) {
@@ -167,7 +188,7 @@ export function showVictory(name, newElo, gain, isGuest = false) {
         msg.id = 'guest-upsell';
         msg.className = 'fade-in';
         msg.style = "margin-top: 25px; color: #fff; font-size: 0.85rem; max-width: 280px; background: rgba(255,215,0,0.1); padding: 15px; border-radius: var(--sub-radius); border: 1px solid rgba(255,215,0,0.2); text-align:center; line-height:1.4;";
-        msg.innerHTML = "<span style='color:var(--sub-gold); font-weight:bold; display:block; margin-bottom:5px;'>🔥 GREAT WIN!</span> Create a free account to save your progress and climb the Global Leaderboard.";
+        msg.innerHTML = "<span style='color:var(--sub-gold); font-weight:bold; display:block; margin-bottom:5px;'>🔥 GREAT WIN!</span>Create a free account to save your progress and climb the Global Leaderboard.";
 
         // Lisätään viesti ennen nappeja
         const controls = overlay.querySelector('.victory-controls') || overlay.querySelector('button').parentElement;

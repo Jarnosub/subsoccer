@@ -463,6 +463,28 @@ export function setupUIListeners() {
         document.head.appendChild(style);
     }
 
+    // OFFLINE BAR: Näyttää ilmoituksen offline-tilasta
+    if (!document.getElementById('offline-bar')) {
+        const offlineBar = document.createElement('div');
+        offlineBar.id = 'offline-bar';
+        offlineBar.innerHTML = `
+            <div class="offline-bar-inner">
+                <span class="offline-bar-icon">📡</span>
+                <span class="offline-bar-text">Offline – results saved locally</span>
+            </div>
+        `;
+        document.body.appendChild(offlineBar);
+    }
+
+    // SYNC BADGE: Näyttää synkronoimattomien pelien määrän
+    if (!document.getElementById('offline-sync-badge')) {
+        const badge = document.createElement('div');
+        badge.id = 'offline-sync-badge';
+        badge.style.display = 'none';
+        badge.title = 'Offline matches pending sync';
+        document.body.appendChild(badge);
+    }
+
     const thresholdLine = document.getElementById('audio-threshold-line');
     if (thresholdLine) thresholdLine.remove();
 

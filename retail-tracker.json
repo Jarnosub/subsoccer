@@ -1,0 +1,21 @@
+{
+  "products": [
+    {
+      "retailer": "costco-au",
+      "product": "Subsoccer C3 Bench Soccer Game",
+      "url": "https://www.costco.com.au/c/Subsoccer-C3-Bench-Soccer-Game/p/2029137",
+      "currency": "AUD",
+      "imageUrl": "https://www.costco.com.au/mediapermalink/COS01-product-icon-delivery",
+      "lastScraped": "2026-06-03T19:47:26.601Z",
+      "history": [
+        {
+          "date": "2026-06-03",
+          "price": 399.99,
+          "inStock": true,
+          "rating": null,
+          "reviewCount": null
+        }
+      ]
+    }
+  ]
+}

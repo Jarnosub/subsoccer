@@ -11,6 +11,16 @@ const ASSETS = [
     '/ui.js',
     '/script.js',
     '/audio-engine.js',
+    // Offline-pelitila: pelisivut ja -logiikka
+    '/mobile-game.html',
+    '/mobile-game-logic.js',
+    '/quick-match.js',
+    '/match-service.js',
+    '/bracket-engine.js',
+    '/game-service.js',
+    '/offline-queue.js',
+    '/qr-lobby.js',
+    // Resurssit
     '/subsoccer_logo.svg',
     '/icon-192.png',
     '/icon-512.png',
