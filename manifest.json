@@ -1,8 +1,11 @@
 {
   "name": "Subsoccer Pro",
   "short_name": "Subsoccer",
+  "id": "/?utm_source=pwa",
   "start_url": ".",
   "display": "standalone",
+  "orientation": "any",
+  "categories": ["sports", "games"],
   "background_color": "#c41e2a",
   "theme_color": "#c41e2a",
   "description": "Official Subsoccer Tournament & Match Tracker",
@@ -18,6 +21,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "subsoccer_tournament_2.webp",
+      "sizes": "1000x1000",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Subsoccer Live Action Match"
     }
   ]
 }
