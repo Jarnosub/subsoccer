@@ -302,49 +302,15 @@
                 </div>
             </div>
 
-            <!-- Signup (if not logged in) -->
+            <!-- Signup (if not logged in) — Google-only for simplicity -->
             <div id="community-signup">
-                <button type="button" class="btn-secondary" onclick="signUpWithGoogle()" style="margin-bottom: 25px; padding: 14px; position: relative;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); height: 20px;">
-                    <span style="font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px;">CONTINUE WITH GOOGLE</span>
+                <button type="button" class="btn-primary" onclick="signUpWithGoogle()" style="margin-bottom: 15px; padding: 16px; position: relative; background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.15); width: 100%;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); height: 22px;">
+                    <span style="font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px; color: #fff;">CONTINUE WITH GOOGLE</span>
                 </button>
-                <div class="auth-divider"><hr><span>or use email</span><hr></div>
-
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="comm-username" placeholder="Your player name" autocapitalize="characters">
+                <div style="text-align: center; color: #555; font-size: 0.7rem; margin-bottom: 10px;">
+                    <i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> Sign in to verify your submission
                 </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="comm-email" placeholder="your@email.com">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="comm-password" placeholder="Min 6 characters" minlength="6">
-                </div>
-                <div class="auth-divider"><hr><span>already have an account?</span><hr></div>
-                <button class="btn-secondary" onclick="showCommunityLogin()">
-                    <i class="fa-solid fa-right-to-bracket" style="margin-right: 6px;"></i>LOG IN INSTEAD
-                </button>
-            </div>
-
-            <!-- Login (if not logged in) -->
-            <div id="community-login" style="display:none;">
-                <button type="button" class="btn-secondary" onclick="signUpWithGoogle()" style="margin-bottom: 25px; padding: 14px; position: relative;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); height: 20px;">
-                    <span style="font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px;">CONTINUE WITH GOOGLE</span>
-                </button>
-                <div class="auth-divider"><hr><span>or use email</span><hr></div>
-
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="text" id="comm-login-user" placeholder="your@email.com">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="comm-login-pass" placeholder="Password">
-                </div>
-                <button class="btn-secondary" onclick="showCommunitySignup()">← Back to sign up</button>
             </div>
 
             <!-- Common fields: venue name + location -->
