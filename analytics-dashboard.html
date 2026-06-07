@@ -823,6 +823,21 @@
                     </tbody>
                 </table>
             </div>
+            <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <h3 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; letter-spacing: 0.5px;"><i class="fas fa-mobile-alt" style="color: var(--accent-blue); margin-right: 6px;"></i>Platform Stats</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Platform</th>
+                            <th style="text-align:right;">Events</th>
+                            <th style="text-align:right;">Games</th>
+                        </tr>
+                    </thead>
+                    <tbody id="platform-stats-body">
+                        <tr><td colspan="3" style="text-align:center; padding:12px; color:#666;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Registered Players -->
@@ -1520,6 +1535,44 @@
                 } else {
                     partnerBody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:12px;color:#666;">No partner data.</td></tr>';
                 }
+
+                // Platform Stats — detect from user_agent
+                const platformMap = {
+                    'iOS App': { events: 0, games: 0 },
+                    'Android App': { events: 0, games: 0 },
+                    'Web Browser': { events: 0, games: 0 }
+                };
+                trackingData.forEach(d => {
+                    const ua = (d.user_agent || '').toLowerCase();
+                    let platform;
+                    if (ua.includes('pwashell') || ua.includes('subsoccerios')) {
+                        platform = 'iOS App';
+                    } else if (ua.includes('subsoccerandroid') || ua.includes('wv') && ua.includes('android')) {
+                        platform = 'Android App';
+                    } else {
+                        platform = 'Web Browser';
+                    }
+                    platformMap[platform].events++;
+                    if (d.event_type === 'game_finished' || d.event_type === 'tournament_match_finished') {
+                        platformMap[platform].games++;
+                    }
+                });
+                const platformBody = document.getElementById('platform-stats-body');
+                platformBody.innerHTML = '';
+                const platformIcons = { 'iOS App': '🍎', 'Android App': '🤖', 'Web Browser': '🌐' };
+                const platformColors = { 'iOS App': '#007AFF', 'Android App': '#3DDC84', 'Web Browser': 'var(--text-secondary)' };
+                Object.entries(platformMap)
+                    .sort((a, b) => b[1].events - a[1].events)
+                    .forEach(([name, v]) => {
+                        if (v.events === 0) return;
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="font-size:0.85rem;"><span style="margin-right:6px;">${platformIcons[name]}</span><span style="color:${platformColors[name]}; font-weight:600;">${name}</span></td>
+                            <td style="text-align:right; color:var(--text-secondary);">${v.events}</td>
+                            <td style="text-align:right; font-weight:bold;">${v.games}</td>
+                        `;
+                        platformBody.appendChild(tr);
+                    });
 
 
                 // Calculate and Populate Top Countries List
