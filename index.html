@@ -1622,6 +1622,7 @@
                                 tz = loc;
                             }
                             let country = cc && cc.length === 2 ? cc : (tzCountry[tz] || '');
+                            if (country === 'GB') country = 'UK'; // Normalize
                             if (country) {
                                 countryCounts[country] = (countryCounts[country] || 0) + 1;
                             }
