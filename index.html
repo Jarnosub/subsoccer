@@ -1507,14 +1507,27 @@
             // Listen for language changes to update the ticker live!
             window.addEventListener('subsoccer-language-changed', updateTicker);
 
-            fetch(`${SUPABASE_URL}/rest/v1/public_tracking?select=location&location=not.is.null&order=client_time.desc&limit=10000`, {
-                headers: {
-                    'apikey': SUPABASE_ANON,
-                    'Authorization': `Bearer ${SUPABASE_ANON}`
+            // Paginated fetch to bypass Supabase 1000-row limit
+            async function fetchAllLocations() {
+                let allData = [];
+                let page = 0;
+                const pageSize = 1000;
+                while (true) {
+                    const res = await fetch(
+                        `${SUPABASE_URL}/rest/v1/public_tracking?select=location&location=not.is.null&order=client_time.desc&limit=${pageSize}&offset=${page * pageSize}`,
+                        { headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` } }
+                    );
+                    const pageData = await res.json();
+                    if (!pageData || pageData.length === 0) break;
+                    allData.push(...pageData);
+                    if (pageData.length < pageSize) break;
+                    page++;
+                    if (page > 20) break; // Safety
                 }
-            })
-                .then(r => r.json())
-                .then(data => {
+                return allData;
+            }
+
+            fetchAllLocations().then(data => {
                     if (data && data.length > 0) {
                         // Parse cities for activity feed
                         let cities = [...new Set(data.map(ev => {
