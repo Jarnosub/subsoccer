@@ -808,6 +808,21 @@
                     </table>
                 </div>
             </div>
+            <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <h3 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; letter-spacing: 0.5px;"><i class="fas fa-handshake" style="color: var(--accent-yellow); margin-right: 6px;"></i>Partner Scans</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Partner</th>
+                            <th style="text-align:right;">Scans</th>
+                            <th style="text-align:right;">Games</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partner-scans-body">
+                        <tr><td colspan="3" style="text-align:center; padding:12px; color:#666;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Registered Players -->
@@ -1476,6 +1491,36 @@
                     hubBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#666;">No hub data available.</td></tr>';
                 }
 
+                // Partner Scans — group by source_partner
+                const partnerMap = {};
+                trackingData.forEach(d => {
+                    const p = (d.source_partner || 'unknown').toUpperCase();
+                    if (!partnerMap[p]) partnerMap[p] = { scans: 0, games: 0 };
+                    if (d.event_type === 'app_opened') partnerMap[p].scans++;
+                    if (d.event_type === 'game_finished') partnerMap[p].games++;
+                });
+                const sortedPartners = Object.entries(partnerMap)
+                    .map(([name, v]) => ({ name, ...v }))
+                    .sort((a, b) => b.scans - a.scans);
+
+                const partnerBody = document.getElementById('partner-scans-body');
+                partnerBody.innerHTML = '';
+                if (sortedPartners.length > 0) {
+                    sortedPartners.forEach(p => {
+                        const isSpecial = p.name !== 'SOCIAL' && p.name !== 'GUEST' && p.name !== 'UNKNOWN';
+                        const nameColor = isSpecial ? 'color:var(--accent-yellow); font-weight:bold;' : 'color:var(--text-secondary);';
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="font-family:monospace; font-size:0.85rem; ${nameColor}">${isSpecial ? '<i class="fas fa-star" style="margin-right:4px; font-size:0.65rem;"></i>' : ''}${p.name}</td>
+                            <td style="text-align:right; color:var(--text-secondary);">${p.scans}</td>
+                            <td style="text-align:right; font-weight:bold;">${p.games}</td>
+                        `;
+                        partnerBody.appendChild(tr);
+                    });
+                } else {
+                    partnerBody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:12px;color:#666;">No partner data.</td></tr>';
+                }
+
 
                 // Calculate and Populate Top Countries List
                 const countryCounts = {};
@@ -1679,6 +1724,12 @@
                 const isToday = dateObj.toDateString() === todayStr;
                 const todayDot = isToday ? `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--accent-green); margin-right: 6px;" title="Played Today"></span>` : '';
 
+                const partnerCode = (row.source_partner || '').toUpperCase();
+                const isSpecialPartner = partnerCode && partnerCode !== 'SOCIAL' && partnerCode !== 'GUEST' && partnerCode !== 'UNKNOWN' && partnerCode !== '';
+                const partnerBadge = isSpecialPartner
+                    ? `<span style="background:rgba(255,215,0,0.15); color:var(--accent-yellow); font-size:0.6rem; padding:2px 6px; border-radius:3px; font-weight:bold; letter-spacing:0.5px; margin-left:4px;">${partnerCode}</span>`
+                    : '';
+
                 tr.innerHTML = `
                     <td>
                         <div style="font-weight:600; color:#fff; display: flex; align-items: center; gap: 6px;">
@@ -1686,7 +1737,7 @@
                         </div>
                         <div style="font-size:0.75rem; color:var(--text-secondary);">${ago}</div>
                     </td>
-                    <td><span style="${isLive ? 'color:var(--accent-green);font-weight:bold;' : ''}">${icon} ${label}</span></td>
+                    <td><span style="${isLive ? 'color:var(--accent-green);font-weight:bold;' : ''}">${icon} ${label}</span>${partnerBadge}</td>
                     <td style="text-align:right; font-weight:bold; font-size:1rem; ${score !== '-' ? 'color:#fff;' : 'color:#555;'}">${score}</td>
                 `;
                 tbody.appendChild(tr);
