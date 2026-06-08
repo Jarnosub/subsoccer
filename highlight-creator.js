@@ -31,6 +31,7 @@ let previewRAF = null;
 let logoImg = null;
 const CLIP_DURATION = 7; // seconds — the magic number
 let clipStart = 0; // start time of 7s clip
+let isExporting = false; // prevent preview loop from interfering
 
 // Trim DOM refs
 const trimSlider  = document.getElementById('trim-slider');
@@ -111,8 +112,8 @@ function loadVideo(file) {
 function startPreviewLoop() {
     if (previewRAF) cancelAnimationFrame(previewRAF);
     function loop() {
-        if (sourceVideo.readyState >= 2) {
-            // Loop within clip bounds
+        if (sourceVideo.readyState >= 2 && !isExporting) {
+            // Loop within clip bounds (only during preview, not export)
             const actualClipDur = Math.min(CLIP_DURATION, sourceVideo.duration - clipStart);
             const clipEnd = clipStart + actualClipDur;
             if (!sourceVideo.paused && sourceVideo.currentTime >= clipEnd) {
@@ -126,6 +127,13 @@ function startPreviewLoop() {
         previewRAF = requestAnimationFrame(loop);
     }
     loop();
+}
+
+function stopPreviewLoop() {
+    if (previewRAF) {
+        cancelAnimationFrame(previewRAF);
+        previewRAF = null;
+    }
 }
 
 // Play/pause toggle
@@ -346,6 +354,8 @@ function setProgress(pct) {
 // ───────────────────────────────────────────
 async function exportWithWebCodecs() {
     const video = sourceVideo;
+    isExporting = true;
+    stopPreviewLoop();
     video.pause();
 
     const width  = video.videoWidth;
@@ -442,6 +452,10 @@ async function exportWithWebCodecs() {
     const url = URL.createObjectURL(blob);
     downloadLink.href = url;
     downloadLink.download = 'subsoccer-highlight.mp4';
+
+    // Restore preview
+    isExporting = false;
+    startPreviewLoop();
 }
 
 function seekTo(video, time) {
@@ -461,11 +475,15 @@ function seekTo(video, time) {
 // ───────────────────────────────────────────
 async function exportWithMediaRecorder() {
     const video = sourceVideo;
-    video.currentTime = clipStart;
-    video.muted = true;
+
+    // Stop preview loop so it doesn't interfere
+    isExporting = true;
+    stopPreviewLoop();
+    video.pause();
 
     const w = video.videoWidth;
     const h = video.videoHeight;
+    const actualClipDur = Math.min(CLIP_DURATION, video.duration - clipStart);
 
     const recCanvas = document.createElement('canvas');
     recCanvas.width = w;
@@ -482,30 +500,52 @@ async function exportWithMediaRecorder() {
     const stream = recCanvas.captureStream(30);
     const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
     const chunks = [];
+    let stopped = false;
 
     recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
     const recDone = new Promise((resolve) => { recorder.onstop = resolve; });
 
+    function stopRecording() {
+        if (stopped) return;
+        stopped = true;
+        video.pause();
+        try { recorder.stop(); } catch(e) {}
+    }
+
+    // Safety timeout — never run longer than clip + 3s buffer
+    const safetyTimeout = setTimeout(() => {
+        console.warn('Export safety timeout reached');
+        stopRecording();
+    }, (actualClipDur + 3) * 1000);
+
+    // Seek to clip start, wait for seek, then start
+    video.currentTime = clipStart;
+    await new Promise(r => { video.onseeked = r; });
+
     recorder.start(100);
     await video.play();
 
-    const clipEnd = clipStart + CLIP_DURATION;
+    const clipEnd = clipStart + actualClipDur;
     function drawLoop() {
-        if (video.paused) return;
-        if (video.currentTime >= clipEnd) {
-            video.pause();
-            recorder.stop();
+        if (stopped) return;
+        if (video.currentTime >= clipEnd || video.paused || video.ended) {
+            stopRecording();
             return;
         }
         recCtx.drawImage(video, 0, 0, w, h);
         drawOverlay(recCtx, w, h);
-        setProgress(((video.currentTime - clipStart) / CLIP_DURATION) * 100);
+        setProgress(((video.currentTime - clipStart) / actualClipDur) * 100);
         requestAnimationFrame(drawLoop);
     }
     drawLoop();
 
     await recDone;
+    clearTimeout(safetyTimeout);
     setProgress(100);
+
+    // Restore preview
+    isExporting = false;
+    startPreviewLoop();
 
     const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
     const blob = new Blob(chunks, { type: mimeType });
