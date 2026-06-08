@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Subsoccer Highlight Creator</title>
+    <link rel="icon" type="image/svg+xml" href="subsoccer_logo.svg" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="highlight.css" />
+</head>
+<body class="dark-mode">
+
+    <header class="hl-header">
+        <a href="index.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i></a>
+        <img src="subsoccer_logo.svg" alt="Subsoccer" class="header-logo" />
+        <span class="header-badge">HIGHLIGHT CREATOR</span>
+    </header>
+
+    <main class="hl-container">
+
+        <!-- STEP 1: Match info -->
+        <section class="hl-card" id="step-info">
+            <div class="card-header">
+                <span class="step-num">1</span>
+                <h2>Match Info</h2>
+            </div>
+            <form id="match-form" class="match-form" autocomplete="off">
+                <div class="form-row">
+                    <label>
+                        <span class="label-text">Tournament</span>
+                        <input type="text" name="tournament" placeholder="e.g. Summer Cup 2026" required />
+                    </label>
+                </div>
+                <div class="form-row two-col">
+                    <label>
+                        <span class="label-text">Player 1</span>
+                        <input type="text" name="player1" placeholder="Player 1" required />
+                    </label>
+                    <label>
+                        <span class="label-text">Player 2</span>
+                        <input type="text" name="player2" placeholder="Player 2" required />
+                    </label>
+                </div>
+                <div class="form-row two-col">
+                    <label>
+                        <span class="label-text">Score</span>
+                        <input type="text" name="score" placeholder="3 – 1" required />
+                    </label>
+                    <label>
+                        <span class="label-text">Round (optional)</span>
+                        <input type="text" name="round" placeholder="e.g. Semifinal" />
+                    </label>
+                </div>
+            </form>
+        </section>
+
+        <!-- STEP 2: Video upload -->
+        <section class="hl-card" id="step-video">
+            <div class="card-header">
+                <span class="step-num">2</span>
+                <h2>Video Clip</h2>
+            </div>
+            <div class="dropzone" id="dropzone">
+                <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                <p>Drag & drop video here</p>
+                <span class="dropzone-sub">or tap to select · you'll pick a 7s clip · MP4/MOV</span>
+                <input type="file" id="video-input" accept="video/mp4,video/quicktime,video/webm,video/*" />
+            </div>
+            <div class="preview-wrapper" id="preview-wrapper" style="display:none;">
+                <video id="source-video" muted playsinline></video>
+                <canvas id="preview-canvas"></canvas>
+                <!-- 7s clip trimmer -->
+                <div class="trim-section">
+                    <div class="trim-label">
+                        <i class="fa-solid fa-scissors"></i>
+                        <span>Select your 7-second highlight</span>
+                    </div>
+                    <div class="trim-timeline" id="trim-timeline">
+                        <div class="trim-window" id="trim-window"></div>
+                        <input type="range" id="trim-slider" min="0" max="100" value="0" step="0.1" />
+                    </div>
+                    <div class="trim-times">
+                        <span id="trim-start">0:00</span>
+                        <span class="trim-duration">7s clip</span>
+                        <span id="trim-end">0:07</span>
+                    </div>
+                </div>
+                <div class="preview-controls">
+                    <button id="play-pause-btn" class="btn-icon"><i class="fa-solid fa-play"></i></button>
+                    <span id="video-time" class="video-time">0:00 / 0:07</span>
+                    <button id="change-video-btn" class="btn-text-small">Change video</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 3: Export -->
+        <section class="hl-card" id="step-export">
+            <div class="card-header">
+                <span class="step-num">3</span>
+                <h2>Export</h2>
+            </div>
+            <div class="export-area">
+                <div class="progress-bar-container" id="progress-container" style="display:none;">
+                    <div class="progress-bar" id="progress-bar"></div>
+                    <span class="progress-text" id="progress-text">0%</span>
+                </div>
+                <button id="export-btn" class="btn-export" disabled>
+                    <i class="fa-solid fa-film"></i> Export MP4
+                </button>
+                <p class="export-note">100% client-side · no upload · your video stays on your device</p>
+            </div>
+        </section>
+
+        <!-- Download ready (hidden until export done) -->
+        <section class="hl-card hl-card-success" id="download-section" style="display:none;">
+            <i class="fa-solid fa-circle-check success-icon"></i>
+            <h2>Ready to Share!</h2>
+            <div class="download-buttons">
+                <a id="download-link" class="btn-download" href="#" download="subsoccer-highlight.mp4">
+                    <i class="fa-solid fa-download"></i> Download
+                </a>
+                <button id="share-btn" class="btn-share">
+                    <i class="fa-solid fa-share-nodes"></i> Share
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script type="module" src="highlight-creator.js"></script>
+</body>
+</html>
