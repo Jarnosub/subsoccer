@@ -138,6 +138,40 @@ body.dark-mode {
 }
 .match-form input::placeholder { color: #555; }
 
+.match-form select {
+    padding: 10px 12px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 700;
+    font-family: inherit;
+    text-align: center;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.match-form select:focus {
+    outline: none;
+    border-color: #c41e2a;
+    box-shadow: 0 0 0 3px rgba(196,30,42,0.15);
+}
+
+.score-row {
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+}
+.score-row label { flex: 0 0 80px; }
+.score-dash {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #c41e2a;
+    padding-bottom: 8px;
+}
+
 /* ─── Dropzone ─── */
 .dropzone {
     border: 2px dashed #333;

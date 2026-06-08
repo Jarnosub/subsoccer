@@ -25,30 +25,35 @@
                 <h2>Match Info</h2>
             </div>
             <form id="match-form" class="match-form" autocomplete="off">
-                <div class="form-row">
-                    <label>
-                        <span class="label-text">Tournament</span>
-                        <input type="text" name="tournament" placeholder="e.g. Summer Cup 2026" required />
-                    </label>
-                </div>
                 <div class="form-row two-col">
                     <label>
                         <span class="label-text">Player 1</span>
-                        <input type="text" name="player1" placeholder="Player 1" required />
+                        <input type="text" name="player1" placeholder="Name" required />
                     </label>
                     <label>
                         <span class="label-text">Player 2</span>
-                        <input type="text" name="player2" placeholder="Player 2" required />
+                        <input type="text" name="player2" placeholder="Name" required />
                     </label>
                 </div>
-                <div class="form-row two-col">
+                <div class="form-row score-row">
                     <label>
                         <span class="label-text">Score</span>
-                        <input type="text" name="score" placeholder="3 – 1" required />
+                        <select name="score1" id="score1">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3</option>
+                        </select>
                     </label>
+                    <span class="score-dash">–</span>
                     <label>
-                        <span class="label-text">Round (optional)</span>
-                        <input type="text" name="round" placeholder="e.g. Semifinal" />
+                        <span class="label-text">&nbsp;</span>
+                        <select name="score2" id="score2">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
                     </label>
                 </div>
             </form>

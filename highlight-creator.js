@@ -189,7 +189,7 @@ function formatTime(s) {
 function drawOverlay(c, w, h) {
     if (!matchInfo) return;
 
-    const { tournament, player1, player2, score, round } = matchInfo;
+    const { player1, player2, score } = matchInfo;
 
     // Scale based on video height — works for any resolution (720p to 4K)
     const s = h / 100; // 1% of video height as base unit
@@ -229,8 +229,8 @@ function drawOverlay(c, w, h) {
     c.fillStyle = '#c41e2a';
     c.fillText(' GO', textX + subsW, topH / 2);
 
-    // ── Bottom scoreboard (~12% of height) ──
-    const botH = Math.round(12 * s);
+    // ── Bottom scoreboard ──
+    const botH = Math.round(8 * s);
     const botY = h - botH;
 
     // Gradient background (fading from bottom)
@@ -245,16 +245,7 @@ function drawOverlay(c, w, h) {
     c.fillStyle = '#c41e2a';
     c.fillRect(0, botY, w, Math.max(3, Math.round(0.3 * s)));
 
-    // Round label (e.g. "SEMIFINAL")
-    let contentY = botY + Math.round(1.5 * s);
-    if (round) {
-        c.fillStyle = '#c41e2a';
-        c.font = `700 ${Math.round(1.5 * s)}px Inter, sans-serif`;
-        c.textBaseline = 'top';
-        c.textAlign = 'left';
-        c.fillText(round.toUpperCase(), pad, contentY);
-        contentY += Math.round(2.2 * s);
-    }
+    const contentY = botY + Math.round(1.8 * s);
 
     // ── Player names + score (main row) ──
     const nameSize = Math.round(3 * s);     // ~3% of height
@@ -280,12 +271,6 @@ function drawOverlay(c, w, h) {
     c.font = `700 ${nameSize}px Inter, sans-serif`;
     c.fillText(player2.toUpperCase(), w - pad, contentY);
 
-    // ── Tournament name (bottom line) ──
-    c.textAlign = 'left';
-    c.fillStyle = 'rgba(255,255,255,0.55)';
-    c.font = `500 ${Math.round(1.5 * s)}px Inter, sans-serif`;
-    c.fillText('🏆  ' + tournament, pad, contentY + Math.round(4 * s));
-
     // Reset
     c.textAlign = 'left';
     c.textBaseline = 'alphabetic';
@@ -295,16 +280,16 @@ function drawOverlay(c, w, h) {
 // Match info from form
 // ───────────────────────────────────────────
 matchForm.addEventListener('input', updateExportState);
+matchForm.addEventListener('change', updateExportState);
 
 function readMatchInfo() {
     const fd = new FormData(matchForm);
-    const t = fd.get('tournament')?.trim();
     const p1 = fd.get('player1')?.trim();
     const p2 = fd.get('player2')?.trim();
-    const s = fd.get('score')?.trim();
-    const r = fd.get('round')?.trim() || '';
-    if (t && p1 && p2 && s) {
-        matchInfo = { tournament: t, player1: p1, player2: p2, score: s, round: r };
+    const s1 = fd.get('score1') || '0';
+    const s2 = fd.get('score2') || '0';
+    if (p1 && p2) {
+        matchInfo = { player1: p1, player2: p2, score: `${s1}-${s2}` };
     } else {
         matchInfo = null;
     }
@@ -316,7 +301,7 @@ function updateExportState() {
 }
 
 // ───────────────────────────────────────────
-// Export pipeline
+// Export pipeline — try WebCodecs first, fall back to MediaRecorder
 // ───────────────────────────────────────────
 exportBtn.addEventListener('click', async () => {
     readMatchInfo();
@@ -325,13 +310,18 @@ exportBtn.addEventListener('click', async () => {
     exportBtn.disabled = true;
     exportBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing…';
     progressContainer.style.display = 'block';
+    downloadSection.style.display = 'none';
     setProgress(0);
 
     try {
-        if ('VideoEncoder' in window) {
-            await exportWithWebCodecs();
+        if ('VideoEncoder' in window && typeof OffscreenCanvas !== 'undefined') {
+            try {
+                await exportWithWebCodecs();
+            } catch (wcErr) {
+                console.warn('WebCodecs failed, trying MediaRecorder:', wcErr);
+                await exportWithMediaRecorder();
+            }
         } else {
-            // Canvas + MediaRecorder fallback (produces WebM on Chrome, MP4 on Safari)
             await exportWithMediaRecorder();
         }
         downloadSection.style.display = 'block';
