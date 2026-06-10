@@ -926,6 +926,14 @@
 
                 <button class="pc-save-btn" onclick="saveProfile()" style="width:100%;" data-i18n="pc_save_changes">SAVE CHANGES</button>
                 <button class="pc-logout-btn" onclick="logoutPlayer()"><i class="fa-solid fa-sign-out-alt" style="margin-right:8px;"></i><span data-i18n="log_out">LOG OUT</span></button>
+
+                <div id="danger-zone" style="margin-top: 20px; padding-top: 16px; border-top: 2px solid rgba(227,6,19,0.2);">
+                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: #E30613; letter-spacing: 2px; margin-bottom: 10px;">DANGER ZONE</div>
+                    <button type="button" id="btn-delete-account" onclick="deleteAccountFlow()" style="width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(227,6,19,0.4); border-radius: 4px; color: #E30613; font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fa-solid fa-trash"></i> DELETE MY ACCOUNT
+                    </button>
+                    <p style="font-size: 0.6rem; color: #666; text-align: center; margin-top: 6px;">This permanently deletes your account, game history, and all data.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -2354,6 +2362,73 @@
                 }
             });
             window.location.href = 'index.html';
+        }
+
+        async function deleteAccountFlow() {
+            const confirmed = confirm(
+                'Are you sure you want to DELETE your account?\n\n' +
+                'This will permanently delete:\n' +
+                '• Your player profile\n' +
+                '• All game history\n' +
+                '• Your leaderboard rankings\n\n' +
+                'This action CANNOT be undone.'
+            );
+            if (!confirmed) return;
+
+            const typed = prompt('Type DELETE to confirm account deletion:');
+            if (typed !== 'DELETE') {
+                alert('Account deletion cancelled.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-delete-account');
+            const originalHTML = btn ? btn.innerHTML : '';
+
+            try {
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+                }
+
+                const sb = getSb();
+                const { data: { session } } = await sb.auth.getSession();
+                if (!session) {
+                    alert('You must be logged in to delete your account.');
+                    return;
+                }
+
+                const response = await fetch('/.netlify/functions/delete-account', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to delete account');
+                }
+
+                alert('Account deleted successfully.');
+                await sb.auth.signOut();
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('sb-') || key.includes('supabase') || key === 'subsoccer-user') {
+                        localStorage.removeItem(key);
+                    }
+                });
+                window.location.replace('index.html');
+
+            } catch (error) {
+                console.error('Delete account error:', error);
+                alert('Error: ' + error.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+            }
         }
 
         // Load profile
