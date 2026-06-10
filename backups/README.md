@@ -1,5 +1,5 @@
 # Subsoccer Analytics Databackup Archive
-Created automatically on 4.6.2026 klo 10.50.48
+Created automatically on 8.6.2026 klo 10.16.47
 
 This directory contains versioned and latest exports of all critical tables from Supabase:
 - `public_tracking` (All user session, match play, and click telemetry events)
