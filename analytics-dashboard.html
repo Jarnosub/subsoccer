@@ -871,6 +871,45 @@
         const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
         const client = supabase.createClient(SUPA_URL, SUPA_KEY);
 
+        // Comprehensive ISO country code → name + flag lookup
+        const CODE_TO_COUNTRY = {
+            'FI':{ name:'Finland', flag:'🇫🇮' }, 'US':{ name:'United States', flag:'🇺🇸' },
+            'GB':{ name:'United Kingdom', flag:'🇬🇧' }, 'DE':{ name:'Germany', flag:'🇩🇪' },
+            'SG':{ name:'Singapore', flag:'🇸🇬' }, 'PH':{ name:'Philippines', flag:'🇵🇭' },
+            'ID':{ name:'Indonesia', flag:'🇮🇩' }, 'HU':{ name:'Hungary', flag:'🇭🇺' },
+            'BG':{ name:'Bulgaria', flag:'🇧🇬' }, 'EE':{ name:'Estonia', flag:'🇪🇪' },
+            'IN':{ name:'India', flag:'🇮🇳' }, 'AT':{ name:'Austria', flag:'🇦🇹' },
+            'AZ':{ name:'Azerbaijan', flag:'🇦🇿' }, 'CN':{ name:'China', flag:'🇨🇳' },
+            'BE':{ name:'Belgium', flag:'🇧🇪' }, 'CA':{ name:'Canada', flag:'🇨🇦' },
+            'MX':{ name:'Mexico', flag:'🇲🇽' }, 'ES':{ name:'Spain', flag:'🇪🇸' },
+            'NZ':{ name:'New Zealand', flag:'🇳🇿' }, 'DK':{ name:'Denmark', flag:'🇩🇰' },
+            'NL':{ name:'Netherlands', flag:'🇳🇱' }, 'CH':{ name:'Switzerland', flag:'🇨🇭' },
+            'NO':{ name:'Norway', flag:'🇳🇴' }, 'IT':{ name:'Italy', flag:'🇮🇹' },
+            'HK':{ name:'Hong Kong', flag:'🇭🇰' }, 'CO':{ name:'Colombia', flag:'🇨🇴' },
+            'SE':{ name:'Sweden', flag:'🇸🇪' }, 'FR':{ name:'France', flag:'🇫🇷' },
+            'JP':{ name:'Japan', flag:'🇯🇵' }, 'KR':{ name:'South Korea', flag:'🇰🇷' },
+            'BR':{ name:'Brazil', flag:'🇧🇷' }, 'AU':{ name:'Australia', flag:'🇦🇺' },
+            'IE':{ name:'Ireland', flag:'🇮🇪' }, 'PT':{ name:'Portugal', flag:'🇵🇹' },
+            'PL':{ name:'Poland', flag:'🇵🇱' }, 'RO':{ name:'Romania', flag:'🇷🇴' },
+            'TR':{ name:'Turkey', flag:'🇹🇷' }, 'RU':{ name:'Russia', flag:'🇷🇺' },
+            'UA':{ name:'Ukraine', flag:'🇺🇦' }, 'TH':{ name:'Thailand', flag:'🇹🇭' },
+            'MY':{ name:'Malaysia', flag:'🇲🇾' }, 'AE':{ name:'UAE', flag:'🇦🇪' },
+            'IL':{ name:'Israel', flag:'🇮🇱' }, 'QA':{ name:'Qatar', flag:'🇶🇦' },
+            'GR':{ name:'Greece', flag:'🇬🇷' }, 'CZ':{ name:'Czechia', flag:'🇨🇿' },
+            'ME':{ name:'Montenegro', flag:'🇲🇪' }, 'RS':{ name:'Serbia', flag:'🇷🇸' },
+            'HR':{ name:'Croatia', flag:'🇭🇷' }, 'SK':{ name:'Slovakia', flag:'🇸🇰' },
+            'SI':{ name:'Slovenia', flag:'🇸🇮' }, 'LT':{ name:'Lithuania', flag:'🇱🇹' },
+            'LV':{ name:'Latvia', flag:'🇱🇻' }, 'BY':{ name:'Belarus', flag:'🇧🇾' },
+            'BA':{ name:'Bosnia', flag:'🇧🇦' }, 'MK':{ name:'N. Macedonia', flag:'🇲🇰' },
+            'AL':{ name:'Albania', flag:'🇦🇱' }, 'EG':{ name:'Egypt', flag:'🇪🇬' },
+            'NG':{ name:'Nigeria', flag:'🇳🇬' }, 'KE':{ name:'Kenya', flag:'🇰🇪' },
+            'ZA':{ name:'South Africa', flag:'🇿🇦' }, 'AR':{ name:'Argentina', flag:'🇦🇷' },
+            'CL':{ name:'Chile', flag:'🇨🇱' }, 'PE':{ name:'Peru', flag:'🇵🇪' },
+            'VN':{ name:'Vietnam', flag:'🇻🇳' }, 'TW':{ name:'Taiwan', flag:'🇹🇼' },
+            'PK':{ name:'Pakistan', flag:'🇵🇰' }, 'SA':{ name:'Saudi Arabia', flag:'🇸🇦' },
+            'GH':{ name:'Ghana', flag:'🇬🇭' }, 'MT':{ name:'Malta', flag:'🇲🇹' }
+        };
+
         const TIMEZONE_TO_COUNTRY = {
             'Europe/Helsinki': { name: 'Finland', flag: '🇫🇮' },
             'Europe/Prague': { name: 'Czechia', flag: '🇨🇿' },
@@ -972,7 +1011,28 @@
             'Europe/Espoo': { name: 'Finland', flag: '🇫🇮' },
             'Europe/Islington': { name: 'United Kingdom', flag: '🇬🇧' },
             'Europe/Lambeth': { name: 'United Kingdom', flag: '🇬🇧' },
-            'Europe/Portsmouth': { name: 'United Kingdom', flag: '🇬🇧' }
+            'Europe/Portsmouth': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Europe/Tallinn': { name: 'Estonia', flag: '🇪🇪' },
+            'Europe/Vienna': { name: 'Austria', flag: '🇦🇹' },
+            'Asia/Kolkata': { name: 'India', flag: '🇮🇳' },
+            'Europe/Bucharest': { name: 'Romania', flag: '🇷🇴' },
+            'Europe/Belgrade': { name: 'Serbia', flag: '🇷🇸' },
+            'Europe/Vilnius': { name: 'Lithuania', flag: '🇱🇹' },
+            'Europe/Bratislava': { name: 'Slovakia', flag: '🇸🇰' },
+            'Europe/Ljubljana': { name: 'Slovenia', flag: '🇸🇮' },
+            'Europe/Zagreb': { name: 'Croatia', flag: '🇭🇷' },
+            'Europe/Sarajevo': { name: 'Bosnia', flag: '🇧🇦' },
+            'Europe/Skopje': { name: 'North Macedonia', flag: '🇲🇰' },
+            'Europe/Tirana': { name: 'Albania', flag: '🇦🇱' },
+            'Europe/Minsk': { name: 'Belarus', flag: '🇧🇾' },
+            'Europe/Moscow': { name: 'Russia', flag: '🇷🇺' },
+            'Asia/Kuala_Lumpur': { name: 'Malaysia', flag: '🇲🇾' },
+            'Asia/Bangkok': { name: 'Thailand', flag: '🇹🇭' },
+            'America/Lima': { name: 'Peru', flag: '🇵🇪' },
+            'America/Buenos_Aires': { name: 'Argentina', flag: '🇦🇷' },
+            'America/Santiago': { name: 'Chile', flag: '🇨🇱' },
+            'Australia/Sydney': { name: 'Australia', flag: '🇦🇺' },
+            'Australia/Melbourne': { name: 'Australia', flag: '🇦🇺' }
         };
 
         function parseLocation(locationStr) {
@@ -1029,20 +1089,8 @@
             
             if (!countryName && parsed.countryCode) {
                 const code = parsed.countryCode.trim().toUpperCase();
-                if (code === 'FI') { countryName = 'Finland'; countryFlag = '🇫🇮'; }
-                else if (code === 'US') { countryName = 'United States'; countryFlag = '🇺🇸'; }
-                else if (code === 'GB') { countryName = 'United Kingdom'; countryFlag = '🇬🇧'; }
-                else if (code === 'SG') { countryName = 'Singapore'; countryFlag = '🇸🇬'; }
-                else if (code === 'PH') { countryName = 'Philippines'; countryFlag = '🇵🇭'; }
-                else if (code === 'ID') { countryName = 'Indonesia'; countryFlag = '🇮🇩'; }
-                else if (code === 'DE') { countryName = 'Germany'; countryFlag = '🇩🇪'; }
-                else if (code === 'IL') { countryName = 'Israel'; countryFlag = '🇮🇱'; }
-                else if (code === 'ES') { countryName = 'Spain'; countryFlag = '🇪🇸'; }
-                else if (code === 'QA') { countryName = 'Qatar'; countryFlag = '🇶🇦'; }
-                else if (code === 'MY') { countryName = 'Malaysia'; countryFlag = '🇲🇾'; }
-                else if (code === 'GR') { countryName = 'Greece'; countryFlag = '🇬🇷'; }
-                else if (code === 'NL') { countryName = 'Netherlands'; countryFlag = '🇳🇱'; }
-                else if (code === 'ME') { countryName = 'Montenegro'; countryFlag = '🇲🇪'; }
+                const mapped = CODE_TO_COUNTRY[code];
+                if (mapped) { countryName = mapped.name; countryFlag = mapped.flag; }
                 else { countryName = code; countryFlag = '🌐'; }
             }
 
@@ -1400,14 +1448,11 @@
                         let countryName = countryInfo ? countryInfo.name : (parsed.countryCode || 'Unknown');
                         let countryFlag = countryInfo ? countryInfo.flag : '🌐';
                         
-                        // Clean codes to full names
-                        if (countryName === 'FI') { countryName = 'Finland'; countryFlag = '🇫🇮'; }
-                        else if (countryName === 'US') { countryName = 'United States'; countryFlag = '🇺🇸'; }
-                        else if (countryName === 'GB') { countryName = 'United Kingdom'; countryFlag = '🇬🇧'; }
-                        else if (countryName === 'SG') { countryName = 'Singapore'; countryFlag = '🇸🇬'; }
-                        else if (countryName === 'PH') { countryName = 'Philippines'; countryFlag = '🇵🇭'; }
-                        else if (countryName === 'ID') { countryName = 'Indonesia'; countryFlag = '🇮🇩'; }
-                        else if (countryName === 'DE') { countryName = 'Germany'; countryFlag = '🇩🇪'; }
+                        // Clean codes to full names via central map
+                        if (countryName.length <= 3 && CODE_TO_COUNTRY[countryName]) {
+                            countryFlag = CODE_TO_COUNTRY[countryName].flag;
+                            countryName = CODE_TO_COUNTRY[countryName].name;
+                        }
                         
                         if (!globalCountryGroups[countryName]) {
                             globalCountryGroups[countryName] = {
