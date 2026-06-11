@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="background-color: #1a1c1e;">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -31,13 +31,18 @@
             --table-hover: #2d3034;
         }
 
+        html, body {
+            background-color: var(--bg-base) !important;
+        }
+
         body {
-            font-family: 'Open Sans', sans-serif;
-            background-color: var(--bg-base);
+            font-family: 'Open Sans', sans-serif !important;
             color: var(--text-primary);
             margin: 0;
             padding: 0;
             min-height: 100dvh;
+            display: block !important;
+            align-items: initial !important;
         }
 
         .header {
@@ -82,9 +87,13 @@
         }
 
         .container {
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
+            padding: 20px !important;
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+            background: transparent !important;
+            border: none !important;
+            width: 100% !important;
+            box-sizing: border-box;
         }
 
         /* KPI Stats Grid */
