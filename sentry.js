@@ -25,6 +25,9 @@ if (typeof Sentry !== 'undefined' && Sentry.onLoad) {
                 'Failed to fetch',
                 'NetworkError',
                 'AbortError',
+                // Cross-origin script errors (bots/old browsers)
+                'Script error.',
+                'Script error',
                 // Browser extension noise
                 'runtime.sendMessage',
                 'Extension context invalidated',
