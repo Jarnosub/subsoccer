@@ -2023,9 +2023,15 @@
                 });
 
                 // 2. Call background function (returns immediately)
+                // Get auth token for secure API call
+                const _sess = await _supabase.auth.getSession();
+                const _authToken = _sess?.data?.session?.access_token || '';
                 const bgRes = await fetch('/.netlify/functions/generate-avatar-background', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${_authToken}`
+                    },
                     body: JSON.stringify({ 
                         image_b64: _aiSelfieB64, 
                         taskId: taskId,
