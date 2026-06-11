@@ -1005,6 +1005,90 @@ export async function signInWithGoogle() {
     }
 }
 
+export async function signInWithApple() {
+    try {
+        const { error } = await _supabase.auth.signInWithOAuth({
+            provider: 'apple',
+            options: {
+                redirectTo: window.location.origin + '/login.html'
+            }
+        });
+        if (error) throw error;
+    } catch (e) {
+        console.error("Apple login failed:", e);
+        showNotification(e.message || "Apple login failed", "error");
+    }
+}
+
+export async function deleteAccount() {
+    // Step 1: Confirm with user
+    const confirmed = confirm(
+        'Are you sure you want to DELETE your account?\n\n' +
+        'This will permanently delete:\n' +
+        '• Your player profile\n' +
+        '• All game history\n' +
+        '• Your leaderboard rankings\n\n' +
+        'This action CANNOT be undone.'
+    );
+    if (!confirmed) return;
+
+    // Step 2: Double-confirm by typing DELETE
+    const typed = prompt('Type DELETE to confirm account deletion:');
+    if (typed !== 'DELETE') {
+        showNotification('Account deletion cancelled.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('btn-delete-account');
+    const originalHTML = btn ? btn.innerHTML : '';
+
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+        }
+
+        // Get current session token
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) {
+            showNotification('You must be logged in to delete your account.', 'error');
+            return;
+        }
+
+        // Call Netlify function
+        const response = await fetch('/.netlify/functions/delete-account', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to delete account');
+        }
+
+        // Success — sign out and redirect
+        showNotification('Account deleted successfully.', 'success');
+        await _supabase.auth.signOut();
+        resetFullState();
+        setTimeout(() => {
+            window.location.replace('index.html');
+        }, 1500);
+
+    } catch (error) {
+        console.error('Delete account error:', error);
+        showNotification('Error: ' + error.message, 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    }
+}
+
 /**
  * Programmatic event listeners. 
  * Removes the need for 'window.xxx' and inline 'onclick' in HTML.
@@ -1029,6 +1113,9 @@ export function setupAuthListeners() {
     document.getElementById('btn-guest-login')?.addEventListener('click', handleGuest);
     document.getElementById('btn-google-login')?.addEventListener('click', signInWithGoogle);
     document.getElementById('btn-google-signup')?.addEventListener('click', signInWithGoogle);
+    document.getElementById('btn-apple-login')?.addEventListener('click', signInWithApple);
+    document.getElementById('btn-apple-signup')?.addEventListener('click', signInWithApple);
+    document.getElementById('btn-delete-account')?.addEventListener('click', deleteAccount);
 
     // Kytketään kaikki uloskirjautumispainikkeet
     document.querySelectorAll('.logout-item, #btn-logout').forEach(el => {

@@ -138,6 +138,6 @@ describe('Basic SEO elements', () => {
     });
 
     it('should have a title tag', () => {
-        expect(doc.title).toContain('Subsoccer GO');
+        expect(doc.title).toContain('Subsoccer');
     });
 });

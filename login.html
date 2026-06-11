@@ -306,6 +306,7 @@
                         </svg>
                         <span data-i18n="login_google">Continue with Google</span>
                     </button>
+                    <button type="button" id="btn-apple-login" style="width: 100%; padding: 14px; margin-top: 10px; background: #000000; border: 1px solid #333; border-radius: 4px; color: #fff; font-family: 'Open Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;"><i class="fa-brands fa-apple" style="font-size: 1.2rem;"></i> Sign in with Apple</button>
  
                     <div style="margin-top: 8px;">
                         <button id="btn-show-signup" type="button" class="btn-create-account"
@@ -601,6 +602,7 @@
                         </svg>
                         <span data-i18n="login_google">Continue with Google</span>
                     </button>
+                    <button type="button" id="btn-apple-signup" style="width: 100%; padding: 14px; margin-top: 10px; background: #000000; border: 1px solid #333; border-radius: 4px; color: #fff; font-family: 'Open Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;"><i class="fa-brands fa-apple" style="font-size: 1.2rem;"></i> Sign in with Apple</button>
 
                     <div style="margin-top: 10px; text-align: center;">
                         <span id="link-back-to-login" class="link-back" onclick="showAuthPage('login')" data-i18n="signup_back_login"
@@ -1107,6 +1109,14 @@
                             style="flex: 1; background: #2a2a2a; color: #fff; border: none; border-radius: 4px; padding: 16px; font-family: 'SubsoccerLogo', sans-serif; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.2s;">
                             CANCEL
                         </button>
+                    </div>
+
+                    <div id="danger-zone" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid rgba(227,6,19,0.2);">
+                        <div style="font-family: 'Resolve', sans-serif; font-size: 0.7rem; color: #E30613; letter-spacing: 2px; margin-bottom: 12px;">DANGER ZONE</div>
+                        <button type="button" id="btn-delete-account" style="width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(227,6,19,0.4); border-radius: 4px; color: #E30613; font-family: 'Resolve', sans-serif; font-size: 0.8rem; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <i class="fa-solid fa-trash"></i> DELETE MY ACCOUNT
+                        </button>
+                        <p style="font-size: 0.7rem; color: #999; text-align: center; margin-top: 8px;">This permanently deletes your account, game history, and all data.</p>
                     </div>
                 </div>
 

@@ -72,4 +72,68 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- Player profiles -->
+  <url>
+    <loc>https://subsoccer.pro/player-card.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Scoreboard -->
+  <url>
+    <loc>https://subsoccer.pro/scoreboard.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Pro Leagues -->
+  <url>
+    <loc>https://subsoccer.pro/pro-leagues.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Join League -->
+  <url>
+    <loc>https://subsoccer.pro/join-league.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Case Study -->
+  <url>
+    <loc>https://subsoccer.pro/case-study.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Video -->
+  <url>
+    <loc>https://subsoccer.pro/video.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Instant Play -->
+  <url>
+    <loc>https://subsoccer.pro/instant-play.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Feature Roadmap -->
+  <url>
+    <loc>https://subsoccer.pro/feature-roadmap.html</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
 </urlset>
