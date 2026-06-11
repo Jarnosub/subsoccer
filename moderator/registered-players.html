@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color: #1a1c1e;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -398,6 +398,35 @@
             background-color: var(--accent-red);
             color: #fff;
         }
+
+        /* Role toggle button */
+        .role-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .role-btn.is-admin {
+            background: rgba(196, 30, 42, 0.15);
+            border-color: rgba(196, 30, 42, 0.4);
+            color: #f28b82;
+        }
+        .role-btn.is-admin:hover {
+            background: rgba(196, 30, 42, 0.3);
+        }
+        .role-btn.make-admin {
+            background: rgba(138, 180, 248, 0.1);
+            border-color: rgba(138, 180, 248, 0.3);
+            color: var(--accent-blue);
+        }
+        .role-btn.make-admin:hover {
+            background: rgba(138, 180, 248, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -502,6 +531,7 @@
                             <th style="width: 120px;">Losses</th>
                             <th style="width: 100px; text-align: center;">Country</th>
                             <th style="width: 150px; text-align: center;">Avatar Status</th>
+                            <th style="width: 130px; text-align: center;">Role</th>
                         </tr>
                     </thead>
                     <tbody id="players-tbody">
@@ -715,11 +745,19 @@
                             <td>${p.losses || 0}</td>
                             <td style="text-align: center;">${flag}</td>
                             <td style="text-align: center;">${statusBadge}</td>
+                            <td style="text-align: center;">
+                                <button class="role-btn ${p.is_admin ? 'is-admin' : 'make-admin'}" 
+                                        data-player-id="${p.id}" 
+                                        data-is-admin="${!!p.is_admin}"
+                                        onclick="window._toggleAdmin(this)">
+                                    ${p.is_admin ? '⭐ ADMIN' : 'MAKE ADMIN'}
+                                </button>
+                            </td>
                         `;
                         tbody.appendChild(tr);
                     });
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--text-secondary);">No players found matching current filters.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--text-secondary);">No players found matching current filters.</td></tr>`;
                 }
 
                 // Update pagination controls
@@ -786,6 +824,51 @@
                 }
             });
         }
+
+        // Toggle admin status
+        window._toggleAdmin = async function(btn) {
+            const playerId = btn.dataset.playerId;
+            const currentlyAdmin = btn.dataset.isAdmin === 'true';
+            const action = currentlyAdmin ? 'revoke admin from' : 'grant admin to';
+
+            if (!confirm(`Are you sure you want to ${action} this player?`)) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
+            try {
+                const { error } = await _supabase
+                    .from('players')
+                    .update({ is_admin: !currentlyAdmin })
+                    .eq('id', playerId);
+
+                if (error) throw error;
+
+                // Update button state
+                btn.dataset.isAdmin = String(!currentlyAdmin);
+                if (!currentlyAdmin) {
+                    btn.className = 'role-btn is-admin';
+                    btn.textContent = '⭐ ADMIN';
+                } else {
+                    btn.className = 'role-btn make-admin';
+                    btn.textContent = 'MAKE ADMIN';
+                }
+
+                // Toast notification
+                const toast = document.createElement('div');
+                toast.style.cssText = 'background:#81c995; color:#000; padding:10px 16px; border-radius:6px; font-weight:bold; font-size:0.8rem;';
+                toast.textContent = currentlyAdmin ? 'Admin rights revoked' : 'Admin rights granted ⭐';
+                document.getElementById('notification-container').appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+
+            } catch (err) {
+                console.error('Toggle admin error:', err);
+                alert('Failed: ' + err.message);
+                btn.textContent = currentlyAdmin ? '⭐ ADMIN' : 'MAKE ADMIN';
+            } finally {
+                btn.disabled = false;
+            }
+        };
     </script>
 </body>
 </html>
