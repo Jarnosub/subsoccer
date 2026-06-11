@@ -2,6 +2,14 @@ import { _supabase, state } from './config.js';
 import { showNotification, showModal, closeModal } from './ui-utils.js';
 import { setMapLocation } from './map.js';
 
+// XSS protection: escape user-controlled strings before inserting into HTML
+const escapeHTML = (str) => {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+};
+
 /**
  * ============================================================
  * GAME TABLE MANAGEMENT & OWNERSHIP
@@ -177,9 +185,9 @@ export async function fetchMyGames() {
                 <button onclick="initEditGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem; margin-right: 5px; color: #ccc;">✏️</button>
                 <button onclick="deleteGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--sub-red);">🗑️</button>
             </div>
-            <div style="font-family: 'Russo One'; font-size: 1rem; padding-right: 60px; ${game.verified ? 'margin-top:25px;' : ''}">${game.game_name}</div>
-            <small style="color:#888;">${game.location}</small><br>
-            <small style="color:var(--sub-gold); font-size:0.65rem;">SERIAL: ${game.serial_number}</small>
+            <div style="font-family: 'Russo One'; font-size: 1rem; padding-right: 60px; ${game.verified ? 'margin-top:25px;' : ''}">${escapeHTML(game.game_name)}</div>
+            <small style="color:#888;">${escapeHTML(game.location)}</small><br>
+            <small style="color:var(--sub-gold); font-size:0.65rem;">SERIAL: ${escapeHTML(game.serial_number)}</small>
             ${game.verified ? `<div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:10px;">
                 <button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:var(--sub-gold); color:#000;" onclick="window.open('instant-play.html?mode=display&game_id=${game.id}', '_blank')"><i class="fa-solid fa-tv"></i> OPEN JÄTTINÄYTTÖ</button>
                 <button class="btn-red" style="font-size:0.7rem; padding:6px 12px; background:#444;" onclick="releaseGameOwnership('${game.id}')">Release Ownership</button>
@@ -194,8 +202,8 @@ export async function fetchMyGames() {
             <div style="position: absolute; top: 10px; right: 10px;">
                 <button onclick="initEditGame('${game.id}')" style="background: none; border: none; cursor: pointer; font-size: 0.8rem; color: var(--sub-gold); font-family: 'Resolve';">EDIT</button>
             </div>
-            <div style="font-family:'Russo One'; font-size:0.9rem; color:#fff; margin-bottom:3px;">${game.verified ? '⭐ ' : ''}${game.game_name}</div>
-            <div style="font-size:0.75rem; color:#888;">${game.location}</div>
+            <div style="font-family:'Russo One'; font-size:0.9rem; color:#fff; margin-bottom:3px;">${game.verified ? '⭐ ' : ''}${escapeHTML(game.game_name)}</div>
+            <div style="font-size:0.75rem; color:#888;">${escapeHTML(game.location)}</div>
         </div>`).join('');
 }
 

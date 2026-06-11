@@ -1,4 +1,15 @@
 import { _supabase, state, FLAGS } from './config.js';
+
+// XSS Protection: escapeHTML helper
+if (typeof window._escapeHTML === 'undefined') {
+    window._escapeHTML = function(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    };
+}
+const escapeHTML = window._escapeHTML;
 import { showLoading, hideLoading, safeHTML, unsafeHTML } from './ui-utils.js';
 
 /**
@@ -71,7 +82,7 @@ async function renderPlayersLB(container) {
             const rank = i + 1;
             const imageSrc = player.avatar_url || 'placeholder-silhouette-5-wide.png';
             const flag = player.country ? player.country.toLowerCase() : 'fi';
-            const teamTag = player.team_data ? unsafeHTML(`<div style="color:var(--sub-gold); font-size:0.6rem; margin-bottom:2px; font-weight:bold;">[${player.team_data.tag}]</div>`) : '';
+            const teamTag = player.team_data ? unsafeHTML(`<div style="color:var(--sub-gold); font-size:0.6rem; margin-bottom:2px; font-weight:bold;">[${escapeHTML(player.team_data.tag)}]</div>`) : '';
 
             html += safeHTML`
             <div class="podium-place p-${rank}">
@@ -96,7 +107,7 @@ async function renderPlayersLB(container) {
         html += data.slice(3).map((p, i) => {
             const flag = p.country ? p.country.toLowerCase() : 'fi';
             const rank = i + 4;
-            const teamTag = p.team_data ? unsafeHTML(`<span style="color:var(--sub-gold); font-size:0.7rem; margin-right:5px; font-weight:bold;">[${p.team_data.tag}]</span>`) : '';
+            const teamTag = p.team_data ? unsafeHTML(`<span style="color:var(--sub-gold); font-size:0.7rem; margin-right:5px; font-weight:bold;">[${escapeHTML(p.team_data.tag)}]</span>`) : '';
             return safeHTML`
             <div class="ranking-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#0a0a0a; border-radius:var(--sub-radius); margin-bottom:10px; border:1px solid #222; border-left:2px solid #333; transition:all 0.3s ease;" data-username="${p.username}">
                 <div style="display:flex; align-items:center; gap:15px;">
@@ -136,8 +147,8 @@ async function renderTeamsLB(container) {
                 <div class="podium-card" style="cursor:default; border: 2px solid var(--sub-gold);">
                     <img src="${imageSrc}" alt="${team.name}" onerror="this.src='placeholder-silhouette-5-wide.png'">
                     <div class="podium-card-overlay">
-                        <div style="color:var(--sub-gold); font-size:0.6rem; margin-bottom:2px; font-weight:bold;">[${team.tag}]</div>
-                        <div class="podium-name" style="font-size:0.65rem;">${team.name}</div>
+                        <div style="color:var(--sub-gold); font-size:0.6rem; margin-bottom:2px; font-weight:bold;">[${escapeHTML(team.tag)}]</div>
+                        <div class="podium-name" style="font-size:0.65rem;">${escapeHTML(team.name)}</div>
                         <div class="podium-elo">${team.combined_elo}</div>
                     </div>
                 </div>
@@ -162,8 +173,8 @@ async function renderTeamsLB(container) {
                     <span style="color:#444; font-family:var(--sub-name-font); font-size:0.8rem; min-width:30px;">#${rank}</span>
                     ${logoHtml}
                     <div>
-                        <div class="lb-name" style="font-size:0.9rem !important;">${t.name}</div>
-                        <div style="color:var(--sub-gold); font-size:0.7rem; font-weight:bold;">[${t.tag}]</div>
+                        <div class="lb-name" style="font-size:0.9rem !important;">${escapeHTML(t.name)}</div>
+                        <div style="color:var(--sub-gold); font-size:0.7rem; font-weight:bold;">[${escapeHTML(t.tag)}]</div>
                     </div>
                 </div>
                 <span class="lb-elo" style="font-size:1.1rem !important; color:var(--sub-gold);">${t.combined_elo}</span>
@@ -207,7 +218,7 @@ export async function fetchHist() {
 
         let html = "";
         for (const eventName in events) {
-            html += `<div class="event-group"><h2 class="event-title">${eventName}</h2>`;
+            html += `<div class="event-group"><h2 class="event-title">${escapeHTML(eventName)}</h2>`;
             
             html += events[eventName].map((h) => {
                 if (h.is_standalone_group) {
@@ -215,19 +226,19 @@ export async function fetchHist() {
                     const matchesHtml = h.matches.map(m => {
                         const date = new Date(m.created_at);
                         const fDate = `${date.getDate()}.${date.getMonth() + 1}. ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-                        const tName = m.tournament_name || 'Verified Session';
+                        const tName = escapeHTML(m.tournament_name || 'Verified Session');
                         const scoreStr = (m.player1_score !== null && m.player2_score !== null) ? `${m.player1_score} - ${m.player2_score}` : 'WIN';
                         return `
                         <div style="background:#111; padding:10px; border-radius:5px; margin-top:5px; font-size:0.8rem; border-left:2px solid var(--sub-red); position:relative;">
                             <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold;">[${tName}]</div>
-                            <b>${m.winner}</b> defeated ${m.winner === m.player1 ? m.player2 : m.player1} <span style="color:#aaa;">(${scoreStr})</span>
+                            <b>${escapeHTML(m.winner)}</b> defeated ${escapeHTML(m.winner === m.player1 ? m.player2 : m.player1)} <span style="color:#aaa;">(${scoreStr})</span>
                             <div style="position: absolute; bottom: 10px; right: 10px; font-size: 0.6rem; color: #666;">${fDate}</div>
                         </div>`;
                     }).join('');
 
                     return `
                     <div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px;">
-                        <div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${h.name}</div>
+                        <div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${escapeHTML(h.name)}</div>
                         <div style="margin-top:10px;">${matchesHtml}</div>
                     </div>`;
                 } else {
@@ -235,19 +246,19 @@ export async function fetchHist() {
                     const tourMatches = matchData ? matchData.filter(m => m.tournament_id === h.id) : [];
                     const tourPlayers = [...new Set(tourMatches.flatMap(m => [m.player1, m.player2]))];
                     const playersJsonString = JSON.stringify([...new Set(tourPlayers)]);
-                    const matchesHtml = tourMatches.map(m => `<div style="background:#111; padding:10px; border-radius:5px; margin-top:5px; font-size:0.8rem;"><b>${m.winner}</b> defeated ${m.winner === m.player1 ? m.player2 : m.player1}</div>`).join('');
+                    const matchesHtml = tourMatches.map(m => `<div style="background:#111; padding:10px; border-radius:5px; margin-top:5px; font-size:0.8rem;"><b>${escapeHTML(m.winner)}</b> defeated ${escapeHTML(m.winner === m.player1 ? m.player2 : m.player1)}</div>`).join('');
                     const date = new Date(h.created_at);
                     const formattedDate = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
 
                     let podiumHtml = `<div style="font-family: var(--sub-body-font); font-size:0.85rem; color:#fff;">`;
-                    if (h.winner_name) podiumHtml += `<div>🏆 ${h.winner_name}</div>`;
-                    if (h.second_place_name) podiumHtml += `<div style="color:#ccc; font-size:0.8rem; margin-top:2px;">🥈 ${h.second_place_name}</div>`;
-                    if (h.third_place_name) podiumHtml += `<div style="color:#cd7f32; font-size:0.8rem; margin-top:2px;">🥉 ${h.third_place_name}</div>`;
+                    if (h.winner_name) podiumHtml += `<div>🏆 ${escapeHTML(h.winner_name)}</div>`;
+                    if (h.second_place_name) podiumHtml += `<div style="color:#ccc; font-size:0.8rem; margin-top:2px;">🥈 ${escapeHTML(h.second_place_name)}</div>`;
+                    if (h.third_place_name) podiumHtml += `<div style="color:#cd7f32; font-size:0.8rem; margin-top:2px;">🥉 ${escapeHTML(h.third_place_name)}</div>`;
                     podiumHtml += `</div>`;
 
                     return `<div class="ranking-row" style="background:#0a0a0a; padding:15px; border-radius:var(--sub-radius); border:1px solid #222; border-left:2px solid var(--sub-gold); margin-bottom:10px; position: relative; display:block; text-align:left;">
-                    <div style="position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1rem; z-index: 5; opacity:0.6;" data-replay-players='${playersJsonString}' data-replay-name="${h.tournament_name}">🔄</div>
-                    <div style="cursor:pointer;" data-toggle-tournament="${h.id}"><div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${h.tournament_name}</div>${podiumHtml}</div>
+                    <div style="position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1rem; z-index: 5; opacity:0.6;" data-replay-players='${playersJsonString}' data-replay-name="${escapeHTML(h.tournament_name)}">🔄</div>
+                    <div style="cursor:pointer;" data-toggle-tournament="${h.id}"><div style="font-family: var(--sub-name-font); font-size: 1rem; margin-bottom: 8px; text-transform:uppercase; color:var(--sub-gold);">${escapeHTML(h.tournament_name)}</div>${podiumHtml}</div>
                     <div id="tour-matches-${h.id}" style="display:none; margin-top:10px;">${matchesHtml}</div>
                     <div style="position: absolute; bottom: 10px; right: 10px; font-size: 0.6rem; color: #666;">${formattedDate}</div>
                 </div>`;

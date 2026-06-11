@@ -2,6 +2,17 @@ import { _supabase, state } from './config.js';
 import { showNotification, showLoading, hideLoading } from './ui-utils.js';
 import { canModerateEvent, closeEventModal } from './event-ui.js';
 
+// --- XSS Protection ---
+if (typeof window._escapeHTML === 'undefined') {
+    window._escapeHTML = function(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    };
+}
+const escapeHTML = window._escapeHTML;
+
 /**
  * ============================================================
  * EVENT FORM & UPLOAD COMPONENT
@@ -346,7 +357,7 @@ export async function showCreateTournamentForm(eventId, eventName) {
         state.allGames = games;
     }
 
-    const gameOptions = state.allGames.map(g => `<option value="${g.id}">${g.game_name}${g.location ? ' - ' + g.location : ''}</option>`).join('');
+    const gameOptions = state.allGames.map(g => `<option value="${g.id}">${escapeHTML(g.game_name)}${g.location ? ' - ' + escapeHTML(g.location) : ''}</option>`).join('');
     const now = new Date();
     const startTime = getRoundedTime(now);
     const defaultStartTime = formatForInput(startTime);
@@ -358,7 +369,7 @@ export async function showCreateTournamentForm(eventId, eventName) {
                     <h2 style="font-family:var(--sub-name-font); font-size:1.1rem; margin:0 0 20px 0; color:var(--sub-gold); text-align:center; text-transform:uppercase; letter-spacing:2px;">
                         <i class="fa fa-trophy" style="margin-right:8px;"></i> CREATE TOURNAMENT
                     </h2>
-                    <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888;">Event: <span style="color:#fff;">${eventName}</span></div>
+                    <div style="background:#111; border:1px solid #333; border-radius:6px; padding:12px; margin-bottom:15px; font-size:0.85rem; color:#888;">Event: <span style="color:#fff;">${escapeHTML(eventName)}</span></div>
                     <div style="margin-bottom:15px;"><label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">TOURNAMENT NAME</label><input type="text" id="tournament-name-input" placeholder="e.g. Morning Finals" style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff;"></div>
                     <div style="margin-bottom:15px;"><label style="display:block; font-size:0.85rem; color:#888; margin-bottom:5px;">GAME TABLE *</label><select id="tournament-game-select" style="width:100%; padding:10px; background:#111; border:1px solid #333; border-radius:6px; color:#fff;">${gameOptions}</select></div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">

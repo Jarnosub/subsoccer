@@ -1,6 +1,14 @@
 import { _supabase, state } from './config.js';
 import { OfflineQueue } from './offline-queue.js';
 
+// XSS protection: escape user-controlled strings before inserting into HTML
+const escapeHTML = (str) => {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+};
+
 // ============================================================
 // OFFLINE QUEUE INITIALIZATION
 // ============================================================
@@ -29,8 +37,8 @@ export async function handleSearch(v) {
     const combined = [...new Set([...dbNames, ...state.sessionGuests])];
     const f = combined.filter(n => n.toUpperCase().includes(q) && !state.pool.includes(n));
     
-    r.innerHTML = f.map(n => `<div class="search-item" data-action="direct-add" data-name="${n}">${n}</div>`).join('') + 
-                  `<div class="search-item" style="color:var(--sub-gold);" data-action="direct-add" data-name="${q}">Add: "${q}"</div>`;
+    r.innerHTML = f.map(n => `<div class="search-item" data-action="direct-add" data-name="${escapeHTML(n)}">${escapeHTML(n)}</div>`).join('') + 
+                  `<div class="search-item" style="color:var(--sub-gold);" data-action="direct-add" data-name="${escapeHTML(q)}">Add: "${escapeHTML(q)}"</div>`;
     r.style.display = 'block';
 }
 

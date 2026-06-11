@@ -1,6 +1,14 @@
 import { _supabase, state } from './config.js';
 import { showNotification, showPage } from './ui-utils.js';
 
+// XSS protection: escape user-controlled strings before inserting into HTML
+const escapeHTML = (str) => {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+};
+
 /**
  * ============================================================
  * MAP & LOCATION SERVICES
@@ -285,9 +293,9 @@ function updateNearestList(lat, lng) {
             <div class="nearest-game-item" style="${borderStyle} padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;" data-action="fly-to-location" data-lat="${g.latitude}" data-lng="${g.longitude}">
                 <div style="flex-grow:1; cursor:pointer;">
                     <div style="font-family:'Russo One'; color:${titleColor}; font-size:0.95rem; margin-bottom:3px; text-transform:uppercase;">
-                        ${badge}${g.game_name}
+                        ${badge}${escapeHTML(g.game_name)}
                     </div>
-                    <div style="font-size:0.75rem; color:#888;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${g.location}</div>
+                    <div style="font-size:0.75rem; color:#888;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${escapeHTML(g.location)}</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:0.8rem; font-weight:bold; color:#ccc; margin-bottom:3px;">${distDisplay}</div>

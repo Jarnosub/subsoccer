@@ -90,10 +90,12 @@ export function showModal(title, content, options = {}) {
     modal.className = 'modal-overlay';
     const maxWidth = options.maxWidth || '500px';
     const borderColor = options.borderColor || 'var(--sub-gold)';
+    // Escape title to prevent XSS (title may contain user-controlled event/tournament names)
+    const escTitle = (() => { const d = document.createElement('div'); d.textContent = String(title || ''); return d.innerHTML; })();
     modal.innerHTML = `
         <div class="modal-content" style="max-width: ${maxWidth}; border-color: ${borderColor};">
             <div class="modal-header">
-                <h3 style="color: ${borderColor};">${title}</h3>
+                <h3 style="color: ${borderColor};">${escTitle}</h3>
                 <button class="modal-close" data-close-modal="${modalId}">&times;</button>
             </div>
             <div class="modal-body">${content}</div>

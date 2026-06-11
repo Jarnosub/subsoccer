@@ -1,6 +1,17 @@
 import { showModal, showNotification, showLoading, hideLoading } from './ui-utils.js';
 import { _supabase, state, isSuperAdmin, isAdmin } from './config.js';
 
+// --- XSS Protection ---
+if (typeof window._escapeHTML === 'undefined') {
+    window._escapeHTML = function(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    };
+}
+const escapeHTML = window._escapeHTML;
+
 /**
  * MODERATOR SERVICE
  * Tools for system administration
@@ -29,7 +40,7 @@ function renderPartnersList() {
         <div class="sub-item-row" style="padding:8px 12px; background:#0a0a0a; border:1px solid #222; display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
             <div style="display:flex; align-items:center; gap:10px; flex:1; cursor:pointer;" data-copy-index="${i}">
                 <div style="width:12px; height:12px; border-radius:50%; background:${p.color}; border:1px solid #fff;"></div>
-                <div style="font-size:0.85rem; color:#fff; font-family:'Resolve';">${p.brand.toUpperCase()} <i class="fa fa-link" style="font-size:0.6rem; margin-left:5px; opacity:0.5;"></i></div>
+                <div style="font-size:0.85rem; color:#fff; font-family:'Resolve';">${escapeHTML(p.brand.toUpperCase())} <i class="fa fa-link" style="font-size:0.6rem; margin-left:5px; opacity:0.5;"></i></div>
             </div>
             <div style="display:flex; gap:12px;">
                 <button data-edit-index="${i}" style="background:none; border:none; color:var(--sub-gold); cursor:pointer; font-size:0.9rem;"><i class="fa fa-edit"></i></button>
@@ -205,10 +216,10 @@ export async function viewAllUsers() {
                     <div style="background:#111; padding:12px; border-radius:4px; margin-bottom:8px; border-left:3px solid ${u.is_admin ? 'var(--sub-gold)' : '#333'}; display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <div style="font-family:'Resolve'; color:#fff; font-size:0.9rem;">
-                                ${u.is_admin ? '⭐ ' : ''}${u.username}
+                                ${u.is_admin ? '⭐ ' : ''}${escapeHTML(u.username)}
                             </div>
-                            <div style="font-size:0.7rem; color:#666;">${u.country?.toUpperCase() || 'FI'} • Joined ${new Date(u.created_at).toLocaleDateString()}</div>
-                            <div style="font-size:0.6rem; color:#444;">${u.email}</div>
+                            <div style="font-size:0.7rem; color:#666;">${escapeHTML(u.country?.toUpperCase() || 'FI')} • Joined ${new Date(u.created_at).toLocaleDateString()}</div>
+                            <div style="font-size:0.6rem; color:#444;">${escapeHTML(u.email)}</div>
                         </div>
                         <div style="text-align:right; display:flex; flex-direction:column; gap:5px;">
                             <div style="color:var(--sub-gold); font-family:'Resolve'; font-size:1rem;">${u.elo}</div>
@@ -424,10 +435,10 @@ export async function loadAnalytics() {
                 
                 return `
                 <div style="background:#111; padding:15px; border-radius:5px; margin-top:5px; font-size:0.9rem; border-left:3px solid var(--sub-red); position:relative;">
-                    <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold; letter-spacing: 1px;">[${tName}]</div>
-                    <span style="font-family:'Resolve'; color:#fff; text-transform:uppercase;">${m.winner}</span> 
+                    <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold; letter-spacing: 1px;">[${escapeHTML(tName)}]</div>
+                    <span style="font-family:'Resolve'; color:#fff; text-transform:uppercase;">${escapeHTML(m.winner)}</span> 
                     <span style="color:#888;">defeated</span> 
-                    <span style="font-family:'Resolve'; color:#fff; text-transform:uppercase;">${m.winner === m.player1 ? m.player2 : m.player1}</span> 
+                    <span style="font-family:'Resolve'; color:#fff; text-transform:uppercase;">${escapeHTML(m.winner === m.player1 ? m.player2 : m.player1)}</span> 
                     <span style="color:var(--sub-gold); font-weight:bold;">(${scoreStr})</span>
                     <div style="position: absolute; top: 15px; right: 15px; font-size: 0.7rem; color: #666;">${fDate}</div>
                 </div>`;
@@ -445,12 +456,12 @@ export async function loadAnalytics() {
                 
                 let html = `
                 <div style="background:#111; padding:15px; border-radius:5px; margin-top:10px; font-size:0.9rem; border-left:3px solid var(--sub-gold); position:relative;">
-                    <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold; letter-spacing: 1px;">[${h.tournament_name}] ${eventName ? ' - ' + eventName : ''}</div>
+                    <div style="color:var(--sub-gold); font-size:0.7rem; margin-bottom:5px; font-weight:bold; letter-spacing: 1px;">[${escapeHTML(h.tournament_name)}] ${eventName ? ' - ' + escapeHTML(eventName) : ''}</div>
                     <div style="position: absolute; top: 15px; right: 15px; font-size: 0.7rem; color: #666;">${fDate}</div>`;
                 
-                if (h.winner_name) html += `<div style="margin-top:5px; font-family:'Resolve';">🏆 ${h.winner_name}</div>`;
-                if (h.second_place_name) html += `<div style="color:#aaa; font-size:0.8rem; margin-top:2px;">🥈 ${h.second_place_name}</div>`;
-                if (h.third_place_name) html += `<div style="color:#aa7f32; font-size:0.8rem; margin-top:2px;">🥉 ${h.third_place_name}</div>`;
+                if (h.winner_name) html += `<div style="margin-top:5px; font-family:'Resolve';">🏆 ${escapeHTML(h.winner_name)}</div>`;
+                if (h.second_place_name) html += `<div style="color:#aaa; font-size:0.8rem; margin-top:2px;">🥈 ${escapeHTML(h.second_place_name)}</div>`;
+                if (h.third_place_name) html += `<div style="color:#aa7f32; font-size:0.8rem; margin-top:2px;">🥉 ${escapeHTML(h.third_place_name)}</div>`;
                 
                 html += `</div>`;
                 return html;

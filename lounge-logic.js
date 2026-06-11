@@ -1,6 +1,17 @@
 import { arcadeSocket } from './socket-service.js';
 import { BracketEngine } from './bracket-engine.js';
 
+// --- XSS Protection ---
+if (typeof window._escapeHTML === 'undefined') {
+    window._escapeHTML = function(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    };
+}
+const escapeHTML = window._escapeHTML;
+
 // STRIPE DELETED: Pure Free-to-Play Arcade Web Logic
 const tableId = 'table-04';
 arcadeSocket.connect();
@@ -275,7 +286,7 @@ arcadeSocket.on('lobby_player_joined', (payload) => {
     li.className = "flex items-center bg-[#1a1a1a] p-2 rounded-lg border border-[#D4AF37] mb-3 relative player-row";
     li.innerHTML = `
         <span class="text-[#D4AF37] font-bold px-2 w-8"><i class="fas fa-check-circle"></i></span>
-        <div class="verified-player-name text-white w-full p-2 font-bold font-sans tracking-widest uppercase">${player.username}</div>
+        <div class="verified-player-name text-white w-full p-2 font-bold font-sans tracking-widest uppercase">${escapeHTML(player.username)}</div>
         <div class="text-[10px] bg-[#D4AF37] text-black px-2 py-1 rounded font-bold font-sans tracking-widest absolute right-2">${player.elo} ELO</div>
     `;
     container.appendChild(li);
@@ -348,7 +359,7 @@ function nextTournyMatch() {
         const winner = res.winner || 'PLAYER';
         
         const hubHtml = document.getElementById('tourny-matchup');
-        if(hubHtml) hubHtml.innerHTML = `<h2 class="text-3xl text-[#D4AF37] font-bold mb-4">🏆 ${winner}</h2><p class="text-white text-lg">WINS TOURNAMENT!</p><p class="text-gray-500 text-sm mt-4">Returning to start...</p>`;
+        if(hubHtml) hubHtml.innerHTML = `<h2 class="text-3xl text-[#D4AF37] font-bold mb-4">🏆 ${escapeHTML(winner)}</h2><p class="text-white text-lg">WINS TOURNAMENT!</p><p class="text-gray-500 text-sm mt-4">Returning to start...</p>`;
         
         switchScreen('s-tourny-hub');
         
@@ -366,7 +377,7 @@ function nextTournyMatch() {
 
     window.currentPendingMatch = pending;
     document.getElementById('tourny-round-name').innerText = pending.roundName;
-    document.getElementById('tourny-matchup').innerHTML = `${pending.p1}<br><span class="text-xs text-red-500">VS</span><br>${pending.p2}`;
+    document.getElementById('tourny-matchup').innerHTML = `${escapeHTML(pending.p1)}<br><span class="text-xs text-red-500">VS</span><br>${escapeHTML(pending.p2)}`;
     switchScreen('s-tourny-hub');
 }
 

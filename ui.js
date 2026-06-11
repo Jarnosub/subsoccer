@@ -1,4 +1,15 @@
 import { state, _supabase, subscribe, isAdmin, APP_VERSION, FLAGS, KIOSK_MODE } from './config.js';
+
+// XSS Protection: escapeHTML helper
+if (typeof window._escapeHTML === 'undefined') {
+    window._escapeHTML = function(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    };
+}
+const escapeHTML = window._escapeHTML;
 import { applyBranding, injectFooterLink } from './branding-service.js';
 import { CardGenerator } from './card-generator.js';
 import { viewPlayerCard, showLevelUpCard, showPhysicalOrderDialog, showCardShop, downloadFanCard, showAppConcept, purchaseEdition, setupPlayerCardListeners } from './player-card-ui.js';
@@ -852,7 +863,7 @@ export function updatePoolUI() {
         div.innerHTML = `
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="color: #444; font-family: var(--sub-name-font); font-size: 0.8rem; width: 20px;">${index + 1}.</span>
-                <span style="color: white; text-transform: uppercase; font-size: 0.9rem; font-family: var(--sub-name-font); letter-spacing:1px;">${name}</span>
+                <span style="color: white; text-transform: uppercase; font-size: 0.9rem; font-family: var(--sub-name-font); letter-spacing:1px;">${escapeHTML(name)}</span>
             </div>
             <button class="pool-remove-btn" data-remove-index="${index}" style="background:none; border:none; color:#666; cursor:pointer; font-size:0.9rem; padding:5px; transition:color 0.2s;" onmouseover="this.style.color='var(--sub-red)'" onmouseout="this.style.color='#666'">
                 <i class="fa fa-times"></i>
@@ -878,7 +889,7 @@ export function clearPool() {
 
 export function updateGuestUI() {
     const el = document.getElementById('active-guests');
-    if (el) el.innerHTML = state.sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" data-guest="${g}">${g}</span>`).join('');
+    if (el) el.innerHTML = state.sessionGuests.map(g => `<span class="guest-badge" style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.7rem; cursor:pointer; margin:4px; display:inline-block; border:1px solid #444;" data-guest="${escapeHTML(g)}">${escapeHTML(g)}</span>`).join('');
 }
 
 // Profile UI imports handle updateProfileCard

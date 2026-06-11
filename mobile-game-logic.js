@@ -851,7 +851,7 @@ window.openQrJoin = function() {
             const name = input.value.trim();
             if (name && !name.startsWith("PLAYER ")) {
                 existingCount++;
-                existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${name.toUpperCase()}</div>`;
+                existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${escapeHtml(name.toUpperCase())}</div>`;
             }
         });
         const emptyHtml = `<div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>`;

@@ -2,6 +2,14 @@ import { _supabase, state } from './config.js';
 import { showNotification, showModal, closeModal } from './ui-utils.js';
 import { viewEventDetails } from './event-service.js';
 
+// XSS protection: escape user-controlled strings before inserting into HTML
+const escapeHTML = (str) => {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+};
+
 /**
  * ============================================================
  * EVENT PARTICIPANT COMPONENT
@@ -53,8 +61,8 @@ export async function handleParticipantSearch(tournamentId) {
     if (q.length < 1) { dropdown.style.display = 'none'; return; }
 
     const { data: players } = await _supabase.from('players').select('username').ilike('username', `%${q}%`).limit(5);
-    let html = (players || []).map(p => `<div style="padding:8px; cursor:pointer;" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${p.username}">${p.username}</div>`).join('');
-    html += `<div style="padding:8px; color:var(--sub-gold); cursor:pointer;" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${q}">+ Add "${q}"</div>`;
+    let html = (players || []).map(p => `<div style="padding:8px; cursor:pointer;" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${escapeHTML(p.username)}">${escapeHTML(p.username)}</div>`).join('');
+    html += `<div style="padding:8px; color:var(--sub-gold); cursor:pointer;" data-action="select-participant" data-tour-id="${tournamentId}" data-name="${escapeHTML(q)}">+ Add "${escapeHTML(q)}"</div>`;
     dropdown.innerHTML = html;
     dropdown.style.display = 'block';
 }

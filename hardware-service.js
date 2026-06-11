@@ -1,6 +1,17 @@
 import { _supabase } from './config.js';
 import { showNotification, showLoading, hideLoading } from './ui-utils.js';
 
+// --- XSS Protection ---
+if (typeof window._escapeHTML === 'undefined') {
+    window._escapeHTML = function(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    };
+}
+const escapeHTML = window._escapeHTML;
+
 export function setupHardwareGarage() {
     window.openHardwareClaimModal = () => {
         document.getElementById('hardware-serial-input').value = '';
@@ -174,14 +185,14 @@ export async function loadHardwareGarage() {
                                             <div style="position: absolute; bottom:0; left:0; width:100%; height:60%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);"></div>
                                             
                                             <div style="position: absolute; bottom: 10px; left: 15px; display: flex; align-items: center; gap: 6px; color: #fff; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                                                <i class="fa-solid fa-location-dot" style="color: ${badgeColor};"></i> <span>${locationStr}</span>
+                                                <i class="fa-solid fa-location-dot" style="color: ${badgeColor};"></i> <span>${escapeHTML(locationStr)}</span>
                                             </div>
                                         </div>
 
                                         <!-- Bottom Info -->
                                         <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; background: linear-gradient(135deg, #111 0%, #050505 100%);">
                                             <div style="font-family: var(--sub-name-font); font-size: 1.25rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px; word-wrap: break-word; overflow-wrap: break-word; width: 100%;">
-                                                ${venueName}
+                                                ${escapeHTML(venueName)}
                                             </div>
                                             <div style="color: #888; font-size: 0.7rem; font-family: monospace; margin-top: 5px;">SN: ${item.serial_number}</div>
 
@@ -334,14 +345,14 @@ window.openVenueCardModal = (serial) => {
                             <div style="position: absolute; bottom:0; left:0; width:100%; height:60%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);"></div>
                             
                             <div style="position: absolute; bottom: 10px; left: 15px; display: flex; align-items: center; gap: 6px; color: #fff; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                                <i class="fa-solid fa-location-dot" style="color: ${badgeColor};"></i> <span>${locationStr}</span>
+                                <i class="fa-solid fa-location-dot" style="color: ${badgeColor};"></i> <span>${escapeHTML(locationStr)}</span>
                             </div>
                         </div>
 
                         <!-- Bottom Info -->
                         <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; background: linear-gradient(135deg, #111 0%, #050505 100%);">
                             <div style="font-family: var(--sub-name-font); font-size: 1.25rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">
-                                ${venueName}
+                                ${escapeHTML(venueName)}
                             </div>
                             <div style="color: #888; font-size: 0.7rem; font-family: monospace; margin-top: 5px;">SN: ${item.serial_number}</div>
 
@@ -490,13 +501,13 @@ window.openPublicVenueCardModal = async (gameId) => {
                             <img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover;">
                             <div style="position: absolute; bottom:0; left:0; width:100%; height:60%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);"></div>
                             <div style="position: absolute; bottom: 10px; left: 15px; display: flex; align-items: center; gap: 6px; color: #fff; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                                <i class="fa-solid fa-location-dot" style="color: ${badgeColor};"></i> <span>${locationStr}</span>
+                                <i class="fa-solid fa-location-dot" style="color: ${badgeColor};"></i> <span>${escapeHTML(locationStr)}</span>
                             </div>
                         </div>
 
                         <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; background: linear-gradient(135deg, #111 0%, #050505 100%);">
                             <div style="font-family: var(--sub-name-font); font-size: 1.3rem; text-transform: uppercase; color: #fff; margin-top: -5px; line-height: 1.1; letter-spacing: 1px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">
-                                ${venueName}
+                                ${escapeHTML(venueName)}
                             </div>
                             <div style="color: #888; font-size: 0.7rem; font-family: monospace; margin-top: 5px;">SN: ${item.serial_number}</div>
 
@@ -655,7 +666,7 @@ async function renderKingWidget(gameId, ownerId, containerId) {
                 </div>
                 
                 <div style="z-index: 2; flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                    <div style="font-family: var(--sub-name-font); font-size: 1.4rem; color: #fff; line-height: 1; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">${kingName}</div>
+                    <div style="font-family: var(--sub-name-font); font-size: 1.4rem; color: #fff; line-height: 1; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">${escapeHTML(kingName)}</div>
                     <div style="color: #aaa; font-size: 0.65rem; margin-top: 6px; line-height: 1.4; border-top: 1px solid #333; padding-top: 6px;">
                         ${statusText}
                     </div>
@@ -866,12 +877,12 @@ window.configureVenue = async (serial) => {
 
             <div style="margin-bottom: 20px;">
                 <label style="font-size: 0.65rem; color: #888; text-transform: uppercase;">Venue Name / Alias</label>
-                <input type="text" id="venueName-${serial}" placeholder="e.g. Laatoka Arena" style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: var(--sub-gold); font-weight: bold; border-radius: 4px; margin-top: 5px; box-sizing: border-box; font-family: 'Russo One', sans-serif;" value="${currentName}" />
+                <input type="text" id="venueName-${serial}" placeholder="e.g. Laatoka Arena" style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: var(--sub-gold); font-weight: bold; border-radius: 4px; margin-top: 5px; box-sizing: border-box; font-family: 'Russo One', sans-serif;" value="${escapeHTML(currentName)}" />
             </div>
 
             <div style="margin-bottom: 20px;">
                 <label style="font-size: 0.65rem; color: #888; text-transform: uppercase;">Location Address / City</label>
-                <input type="text" id="venueLocation-${serial}" placeholder="e.g. Keskuskatu 1, Helsinki" style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; margin-top: 5px; box-sizing: border-box; font-family: 'Open Sans', sans-serif;" value="${currentLocation}" />
+                <input type="text" id="venueLocation-${serial}" placeholder="e.g. Keskuskatu 1, Helsinki" style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; margin-top: 5px; box-sizing: border-box; font-family: 'Open Sans', sans-serif;" value="${escapeHTML(currentLocation)}" />
                 <div style="font-size: 0.6rem; color: var(--sub-red); margin-top: 8px; font-weight: bold; letter-spacing: 0.5px;">
                     <i class="fa-solid fa-map-pin"></i> Provide an exact street address for Public Arenas so players can navigate to your table via Google Maps!
                 </div>
