@@ -1007,6 +1007,44 @@ export async function signInWithGoogle() {
 
 export async function signInWithApple() {
     try {
+        const isWKWebView = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers['apple-sign-in'];
+        if (isWKWebView) {
+            return new Promise((resolve, reject) => {
+                window.handleAppleSignInResult = async (token, error) => {
+                    delete window.handleAppleSignInResult;
+                    if (error) {
+                        console.error("Native Apple sign in error:", error);
+                        // User cancelled or error, do not show alert if it was user cancellation
+                        if (error.indexOf("Canceled") === -1 && error.indexOf("cancelled") === -1) {
+                            showNotification(error, "error");
+                        }
+                        reject(new Error(error));
+                        return;
+                    }
+                    if (!token) {
+                        reject(new Error("No token returned"));
+                        return;
+                    }
+                    try {
+                        const { data, error: authError } = await _supabase.auth.signInWithIdToken({
+                            provider: 'apple',
+                            token: token
+                        });
+                        if (authError) throw authError;
+                        
+                        // Redirect or reload page to update UI after login
+                        window.location.reload();
+                        resolve(data);
+                    } catch (e) {
+                        console.error("Supabase Apple ID token sign in failed:", e);
+                        showNotification(e.message || "Apple login failed", "error");
+                        reject(e);
+                    }
+                };
+                window.webkit.messageHandlers['apple-sign-in'].postMessage({});
+            });
+        }
+
         const { error } = await _supabase.auth.signInWithOAuth({
             provider: 'apple',
             options: {
