@@ -7,6 +7,24 @@ const isUuid = (val) => val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}
 
 let isAuthListenerSet = false;
 
+// Security fix #12: Client-side rate limiter for login attempts
+const loginAttempts = [];
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_WINDOW_MS = 60000; // 60 seconds
+
+function isRateLimited() {
+    const now = Date.now();
+    // Remove attempts outside the window
+    while (loginAttempts.length > 0 && now - loginAttempts[0] > LOGIN_WINDOW_MS) {
+        loginAttempts.shift();
+    }
+    return loginAttempts.length >= MAX_LOGIN_ATTEMPTS;
+}
+
+function recordLoginAttempt() {
+    loginAttempts.push(Date.now());
+}
+
 export async function initApp() {
     try {
         setupAuthListeners();
@@ -541,6 +559,13 @@ export async function handleAuth(event) {
             return;
         }
 
+        // Security fix #12: Rate limit login attempts
+        if (isRateLimited()) {
+            const waitSec = Math.ceil((LOGIN_WINDOW_MS - (Date.now() - loginAttempts[0])) / 1000);
+            showNotification(`Too many login attempts. Please wait ${waitSec} seconds.`, "error");
+            return;
+        }
+
         // 1. Yritetään ensin kirjautua sähköpostilla (uusi tapa)
         if (input.includes('@')) {
             console.log("📧 Attempting email login via Supabase Auth...");
@@ -599,15 +624,8 @@ export async function handleAuth(event) {
             throw new Error("Database connection error. Please check your permissions.");
         }
 
-        if (!nameMatches || nameMatches.length === 0) {
-            console.log("Direct search failed, trying fuzzy search...");
-            const fuzzyInput = input.replace(/\s+/g, '%');
-            const { data: fuzzyMatches } = await _supabase
-                .from('players')
-                .select('*')
-                .ilike('username', fuzzyInput);
-            nameMatches = fuzzyMatches || [];
-        }
+        // Security fix #12: Removed fuzzy/wildcard search from login — exact match only
+        // Fuzzy search allowed username enumeration without rate limits
 
         if (nameMatches && nameMatches.length > 0) {
             console.log(`🔑 Found ${nameMatches.length} matching records. Checking credentials...`);
@@ -641,6 +659,7 @@ export async function handleAuth(event) {
         // Jos pääsimme tänne asti, mikään rivi ei toiminut
         throw new Error("Invalid login credentials. If you recently upgraded, your secure password might be different from your old one.");
     } catch (e) {
+        recordLoginAttempt(); // Security fix #12: track failed attempts
         console.error("Login error:", e);
         const msg = e.message || "An error occurred during login.";
         showNotification(msg.includes("Invalid login credentials") ? "Invalid email or password." : msg, "error");
