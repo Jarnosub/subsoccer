@@ -2381,9 +2381,33 @@
             );
             if (!confirmed) return;
 
-            const typed = prompt('Type DELETE to confirm account deletion:');
-            if (typed !== 'DELETE') {
+            // Security fix #15: Re-authenticate before deletion
+            const sb = getSb();
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                alert('You must be logged in to delete your account.');
+                return;
+            }
+
+            const email = session.user?.email;
+            if (!email) {
+                alert('Cannot verify identity — no email linked to account.');
+                return;
+            }
+
+            const password = prompt('To confirm your identity, please enter your password:');
+            if (!password) {
                 alert('Account deletion cancelled.');
+                return;
+            }
+
+            const { error: reAuthError } = await sb.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (reAuthError) {
+                alert('Incorrect password. Account deletion cancelled.');
                 return;
             }
 
@@ -2394,13 +2418,6 @@
                 if (btn) {
                     btn.disabled = true;
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
-                }
-
-                const sb = getSb();
-                const { data: { session } } = await sb.auth.getSession();
-                if (!session) {
-                    alert('You must be logged in to delete your account.');
-                    return;
                 }
 
                 const response = await fetch('/.netlify/functions/delete-account', {

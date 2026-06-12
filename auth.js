@@ -1089,10 +1089,33 @@ export async function deleteAccount() {
     );
     if (!confirmed) return;
 
-    // Step 2: Double-confirm by typing DELETE
-    const typed = prompt('Type DELETE to confirm account deletion:');
-    if (typed !== 'DELETE') {
+    // Security fix #15: Re-authenticate before deletion
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) {
+        showNotification('You must be logged in to delete your account.', 'error');
+        return;
+    }
+
+    const email = session.user?.email;
+    if (!email) {
+        showNotification('Cannot verify identity — no email linked to account.', 'error');
+        return;
+    }
+
+    const password = prompt('To confirm your identity, please enter your password:');
+    if (!password) {
         showNotification('Account deletion cancelled.', 'error');
+        return;
+    }
+
+    // Re-authenticate with Supabase
+    const { error: reAuthError } = await _supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+
+    if (reAuthError) {
+        showNotification('Incorrect password. Account deletion cancelled.', 'error');
         return;
     }
 
