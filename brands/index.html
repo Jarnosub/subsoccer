@@ -371,8 +371,9 @@
             }
 
             try {
+                // Security fix #16: only fetch needed fields, password is checked server-side
                 const res = await fetch(
-                    `${SUPA_URL}/rest/v1/brands?slug=eq.${brandSlug}&is_active=eq.true&select=*&limit=1`,
+                    `${SUPA_URL}/rest/v1/brands?slug=eq.${brandSlug}&is_active=eq.true&select=id,slug,name,subtitle,logo_url,hero_url,is_active,has_password&limit=1`,
                     { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
                 );
                 const brands = await res.json();
@@ -409,7 +410,8 @@
             document.getElementById('brand-loading').classList.add('loaded');
 
             // Show gate or content
-            if (brandConfig.password) {
+            // Security fix #16: password is never sent to client
+            if (brandConfig.has_password) {
                 const authKey = `brand-auth-${brandSlug}`;
                 if (sessionStorage.getItem(authKey) === 'true') {
                     document.getElementById('main-content').style.display = 'block';
@@ -421,17 +423,41 @@
             }
         }
 
-        function checkPassword() {
+        async function checkPassword() {
             const input = document.getElementById('gate-password');
-            if (input.value === brandConfig.password) {
-                const authKey = `brand-auth-${brandSlug}`;
-                sessionStorage.setItem(authKey, 'true');
-                document.getElementById('password-gate').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-            } else {
-                document.getElementById('gate-error').innerText = 'INCORRECT PASSWORD';
-                input.value = '';
-                input.focus();
+            const btn = document.querySelector('#password-gate button');
+            btn.disabled = true;
+            btn.textContent = 'CHECKING...';
+            try {
+                // Security fix #16: verify password server-side via Supabase RPC
+                const res = await fetch(
+                    `${SUPA_URL}/rest/v1/rpc/verify_brand_password`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPA_KEY,
+                            'Authorization': `Bearer ${SUPA_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ brand_slug: brandSlug, password_attempt: input.value })
+                    }
+                );
+                const result = await res.json();
+                if (result === true) {
+                    const authKey = `brand-auth-${brandSlug}`;
+                    sessionStorage.setItem(authKey, 'true');
+                    document.getElementById('password-gate').style.display = 'none';
+                    document.getElementById('main-content').style.display = 'block';
+                } else {
+                    document.getElementById('gate-error').innerText = 'INCORRECT PASSWORD';
+                    input.value = '';
+                    input.focus();
+                }
+            } catch (e) {
+                document.getElementById('gate-error').innerText = 'ERROR — TRY AGAIN';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'ENTER';
             }
         }
 

@@ -271,9 +271,10 @@
 
     <script>
         // ============================================================
-        // PASSWORD GATE
+        // PASSWORD GATE — Security fix #16: password checked server-side
         // ============================================================
-        const DEMO_PASSWORD = 'kia2026';
+        const SUPA_URL_GATE = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY_GATE = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
 
         // Check if already authenticated this session
         if (sessionStorage.getItem('kia-demo-auth') === 'true') {
@@ -281,16 +282,39 @@
             document.getElementById('main-content').style.display = 'block';
         }
 
-        function checkPassword() {
+        async function checkPassword() {
             const input = document.getElementById('gate-password');
-            if (input.value === DEMO_PASSWORD) {
-                sessionStorage.setItem('kia-demo-auth', 'true');
-                document.getElementById('password-gate').classList.add('unlocked');
-                document.getElementById('main-content').style.display = 'block';
-            } else {
-                document.getElementById('gate-error').innerText = 'INCORRECT PASSWORD';
-                input.value = '';
-                input.focus();
+            const btn = document.querySelector('#password-gate button');
+            btn.disabled = true;
+            btn.textContent = 'CHECKING...';
+            try {
+                const res = await fetch(
+                    `${SUPA_URL_GATE}/rest/v1/rpc/verify_brand_password`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPA_KEY_GATE,
+                            'Authorization': `Bearer ${SUPA_KEY_GATE}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ brand_slug: 'kia', password_attempt: input.value })
+                    }
+                );
+                const result = await res.json();
+                if (result === true) {
+                    sessionStorage.setItem('kia-demo-auth', 'true');
+                    document.getElementById('password-gate').classList.add('unlocked');
+                    document.getElementById('main-content').style.display = 'block';
+                } else {
+                    document.getElementById('gate-error').innerText = 'INCORRECT PASSWORD';
+                    input.value = '';
+                    input.focus();
+                }
+            } catch (e) {
+                document.getElementById('gate-error').innerText = 'ERROR — TRY AGAIN';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'ENTER';
             }
         }
 
