@@ -302,11 +302,15 @@
                 </div>
             </div>
 
-            <!-- Signup (if not logged in) — Google-only for simplicity -->
+            <!-- Signup (if not logged in) — Google & Apple OAuth -->
             <div id="community-signup">
-                <button type="button" class="btn-primary" onclick="signUpWithGoogle()" style="margin-bottom: 15px; padding: 16px; position: relative; background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.15); width: 100%;">
+                <button type="button" class="btn-primary" onclick="signUpWithGoogle()" style="margin-bottom: 10px; padding: 16px; position: relative; background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.15); width: 100%;">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); height: 22px;">
                     <span style="font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px; color: #fff;">CONTINUE WITH GOOGLE</span>
+                </button>
+                <button type="button" class="btn-primary" onclick="signUpWithApple()" style="margin-bottom: 15px; padding: 16px; position: relative; background: #000000; border: 1px solid #333; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fa-brands fa-apple" style="font-size: 1.2rem; color: #fff;"></i>
+                    <span style="font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px; color: #fff;">SIGN IN WITH APPLE</span>
                 </button>
                 <div style="text-align: center; color: #888; font-size: 0.7rem; margin-bottom: 10px;">
                     <i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> Sign in to verify your submission
@@ -811,6 +815,45 @@
             } catch (e) {
                 console.error("Google login error:", e);
                 alert("Google login failed.");
+            }
+        }
+        async function signUpWithApple() {
+            try {
+                // Check if running inside Apple's WKWebView (native iOS app context)
+                const isWKWebView = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers['apple-sign-in'];
+                if (isWKWebView) {
+                    window.handleAppleSignInResult = async (token, error) => {
+                        delete window.handleAppleSignInResult;
+                        if (error) {
+                            console.error("Native Apple sign in error:", error);
+                            alert("Apple login failed: " + error);
+                            return;
+                        }
+                        try {
+                            const { error: sbErr } = await _supabase.auth.signInWithIdToken({
+                                provider: 'apple',
+                                token: token
+                            });
+                            if (sbErr) throw sbErr;
+                            // Reload or handle login success
+                            window.location.reload();
+                        } catch (e) {
+                            console.error("Supabase Apple ID token sign in failed:", e);
+                            alert(e.message || "Apple login failed");
+                        }
+                    };
+                    window.webkit.messageHandlers['apple-sign-in'].postMessage({});
+                } else {
+                    // Fallback to web standard OAuth redirect flow
+                    const { error } = await _supabase.auth.signInWithOAuth({
+                        provider: 'apple',
+                        options: { redirectTo: window.location.href }
+                    });
+                    if (error) throw error;
+                }
+            } catch (e) {
+                console.error("Apple login error:", e);
+                alert(e.message || "Apple login failed");
             }
         }
     </script>
