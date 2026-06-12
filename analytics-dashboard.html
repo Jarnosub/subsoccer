@@ -695,6 +695,18 @@
                     <div class="kpi-trend" style="color: #888;" id="kpi-conversion-trend"><i class="fas fa-arrow-right"></i> QR scan → game played</div>
                 </div>
             </div>
+
+            <!-- ROW 3 -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>RETURNING USERS</span>
+                        <i class="fas fa-redo" style="color: var(--accent-yellow);"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-returning" style="color: var(--accent-yellow);">—%</div>
+                    <div class="kpi-trend" style="color: #888;" id="kpi-returning-trend"><i class="fas fa-user-check"></i> Come back to play again</div>
+                </div>
+            </div>
         </div>
 
         <!-- Charts Row -->
@@ -837,6 +849,22 @@
                         <tr><td colspan="3" style="text-align:center; padding:12px; color:#666;">Loading...</td></tr>
                     </tbody>
                 </table>
+            </div>
+            <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <h3 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; letter-spacing: 0.5px;"><i class="fas fa-flag" style="color: var(--accent-green); margin-right: 6px;"></i>Registration Rate by Country</h3>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead><tr>
+                            <th>Country</th>
+                            <th style="text-align:right;">Registered</th>
+                            <th style="text-align:right;">Guest</th>
+                            <th style="text-align:right;">Reg. Rate</th>
+                        </tr></thead>
+                        <tbody id="country-registration-body">
+                            <tr><td colspan="4" style="text-align:center; padding:12px; color:#666;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -1344,6 +1372,12 @@
                 // Conversion Rate: QR scan → game played
                 const conversionRate = sessionCount > 0 ? Math.round((gamesFinished / sessionCount) * 100) : 0;
 
+                // Calculate Returning Users %
+                const returningCount = trackingData.filter(d => d.is_returning === true).length;
+                const newCount = trackingData.filter(d => d.is_returning === false).length;
+                const totalRetNew = returningCount + newCount;
+                const returningPct = totalRetNew > 0 ? Math.round((returningCount / totalRetNew) * 100) : 0;
+
                 // WoW Growth (previous period comparison)
                 const prevSessionCount = prevTrackingData.filter(d => d.event_type === 'app_opened').length;
                 const wowGrowth = (!isAllTimeFilter && prevSessionCount > 0)
@@ -1497,6 +1531,10 @@
                 document.getElementById('kpi-conversion-trend').innerHTML =
                     `<i class="fas fa-arrow-right"></i> ${sessionCount} scans → ${gamesFinished} games`;
 
+                // Returning Users KPI
+                document.getElementById('kpi-returning').textContent = totalRetNew > 0 ? `${returningPct}%` : '—%';
+                document.getElementById('kpi-returning-trend').innerHTML = `<i class="fas fa-user-check"></i> ${returningCount} returning / ${newCount} new`;
+
                 // WoW Growth badge
                 const wowEl = document.getElementById('kpi-wow');
                 if (wowGrowth !== null) {
@@ -1619,6 +1657,52 @@
                         `;
                         platformBody.appendChild(tr);
                     });
+
+                // Registration Rate by Country
+                const regByCountry = {};
+                trackingData.forEach(d => {
+                    if (!d.location || d.location === 'Unknown') return;
+                    const parsed = parseLocation(d.location);
+                    const countryInfo = TIMEZONE_TO_COUNTRY[d.location] || TIMEZONE_TO_COUNTRY[parsed.timezone];
+                    let countryName = countryInfo ? countryInfo.name : (parsed.countryCode || 'Unknown');
+                    let countryFlag = countryInfo ? countryInfo.flag : '🌐';
+                    if (countryName.length <= 3 && CODE_TO_COUNTRY[countryName]) {
+                        countryFlag = CODE_TO_COUNTRY[countryName].flag;
+                        countryName = CODE_TO_COUNTRY[countryName].name;
+                    }
+                    if (!countryName || countryName === 'Unknown') return;
+
+                    if (!regByCountry[countryName]) regByCountry[countryName] = { flag: countryFlag, registered: 0, guest: 0 };
+                    const partner = (d.source_partner || '').toLowerCase();
+                    if (partner === 'registered') {
+                        regByCountry[countryName].registered++;
+                    } else {
+                        regByCountry[countryName].guest++;
+                    }
+                });
+
+                const sortedRegCountries = Object.entries(regByCountry)
+                    .map(([name, v]) => ({ name, ...v, total: v.registered + v.guest, rate: v.registered + v.guest > 0 ? Math.round(v.registered / (v.registered + v.guest) * 100) : 0 }))
+                    .sort((a, b) => b.total - a.total)
+                    .filter(c => c.total >= 3);
+
+                const regBody = document.getElementById('country-registration-body');
+                regBody.innerHTML = '';
+                if (sortedRegCountries.length > 0) {
+                    sortedRegCountries.forEach(c => {
+                        const rateColor = c.rate >= 50 ? 'var(--accent-green)' : (c.rate >= 20 ? 'var(--accent-yellow)' : 'var(--accent-red)');
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${c.flag} ${c.name}</td>
+                            <td style="text-align:right; color:var(--accent-green);">${c.registered}</td>
+                            <td style="text-align:right; color:var(--text-secondary);">${c.guest}</td>
+                            <td style="text-align:right; font-weight:bold; color:${rateColor};">${c.rate}%</td>
+                        `;
+                        regBody.appendChild(tr);
+                    });
+                } else {
+                    regBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#666;">No country data available.</td></tr>';
+                }
 
 
                 // Calculate and Populate Top Countries List
