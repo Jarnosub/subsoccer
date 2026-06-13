@@ -835,15 +835,6 @@
         <div style="width: 280px; max-width: 100%;">
             <div class="studio-section-label" style="margin-bottom: 8px;"><i class="fa-solid fa-palette"></i> <span data-i18n="pc_your_avatars">YOUR AVATARS</span></div>
         </div>
-
-        <!-- TAKE PHOTO button -->
-        <div style="width: 280px; max-width: 100%; margin-bottom: 12px;">
-            <label style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #222; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px; padding: 12px 16px; cursor: pointer; transition: all 0.2s; font-family: 'Resolve', sans-serif; font-size: 0.75rem; letter-spacing: 2px; color: #fff; text-transform: uppercase;" onmouseover="this.style.borderColor='#c41e2a'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
-                <i class="fa-solid fa-camera" style="font-size: 1rem; color: #c41e2a;"></i>
-                <span data-i18n="pc_take_photo">TAKE PHOTO</span>
-                <input type="file" accept="image/*" capture="user" id="camera-photo-input" style="display:none;" onchange="handleCameraPhoto(this)">
-            </label>
-        </div>
         
         <!-- Carousel wrap: Arrows outside, track inside (280px max) -->
         <div class="avatar-carousel-wrap" style="width: 100%; max-width: 380px; justify-content: center; gap: 12px; margin-bottom: 0;">
@@ -2182,112 +2173,6 @@
         }
 
         // Save profile
-        // Handle camera photo: compress, upload, save as avatar
-        async function handleCameraPhoto(input) {
-            if (!input.files || !input.files[0]) return;
-            const file = input.files[0];
-
-            // Check login
-            let userId = _currentPlayer?.id;
-            if (!userId || userId === 'guest' || userId === 'spectator') {
-                const msg = document.getElementById('pc-edit-msg');
-                if (msg) { msg.style.color = '#E30613'; msg.innerText = 'LOG IN TO SAVE PHOTO'; }
-                input.value = '';
-                return;
-            }
-
-            // Show loading state on card
-            const photo = document.getElementById('pc-card-photo');
-            const icon = document.getElementById('pc-card-icon');
-            icon.style.display = 'none';
-            photo.style.display = 'block';
-            photo.style.opacity = '0.4';
-
-            try {
-                // Compress photo to 512px JPEG
-                const compressedBlob = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            const maxDim = 512;
-                            let w = img.width, h = img.height;
-                            if (w > h) {
-                                if (w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
-                            } else {
-                                if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
-                            }
-                            canvas.width = w;
-                            canvas.height = h;
-                            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                            canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Compress failed')), 'image/jpeg', 0.85);
-                        };
-                        img.onerror = reject;
-                        img.src = e.target.result;
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-
-                // Upload to Supabase Storage
-                const path = `avatars/${userId}_photo_${Date.now()}.jpg`;
-                const sb = getSb();
-                const { error: uploadErr } = await sb.storage.from('event-images').upload(path, compressedBlob, {
-                    cacheControl: '3600',
-                    upsert: true,
-                    contentType: 'image/jpeg'
-                });
-                if (uploadErr) throw new Error('Upload failed: ' + uploadErr.message);
-
-                const { data: urlData } = sb.storage.from('event-images').getPublicUrl(path);
-                const publicUrl = urlData.publicUrl + '?v=' + Date.now();
-
-                // Update player record
-                await directQuery('PATCH', 'players', {
-                    'id': `eq.${userId}`
-                }, { avatar_url: publicUrl });
-
-                // Update UI
-                photo.src = publicUrl;
-                photo.style.opacity = '1';
-                document.getElementById('selected-avatar-url').value = publicUrl;
-
-                // Update local cache
-                if (_currentPlayer) _currentPlayer.avatar_url = publicUrl;
-                try {
-                    const cached = localStorage.getItem('subsoccer-user');
-                    if (cached) {
-                        const obj = JSON.parse(cached);
-                        obj.avatar_url = publicUrl;
-                        localStorage.setItem('subsoccer-user', JSON.stringify(obj));
-                    }
-                } catch(e) {}
-
-                // Add to carousel as custom avatar
-                const track = document.getElementById('avatar-selection');
-                if (track) {
-                    track.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-                    const opt = document.createElement('div');
-                    opt.className = 'avatar-option selected';
-                    opt.setAttribute('data-avatar', publicUrl);
-                    opt.setAttribute('data-custom', 'true');
-                    opt.onclick = function() { selectAvatar(this); };
-                    opt.innerHTML = `<img src="${publicUrl}" alt="Photo">`;
-                    track.insertBefore(opt, track.firstChild);
-                }
-
-                console.log('📷 Camera photo saved:', publicUrl);
-            } catch (err) {
-                console.error('Camera photo save failed:', err);
-                photo.style.opacity = '1';
-                const msg = document.getElementById('pc-edit-msg');
-                if (msg) { msg.style.color = '#E30613'; msg.innerText = 'PHOTO SAVE FAILED'; }
-            }
-
-            input.value = ''; // Reset file input
-        }
-
         async function saveProfile() {
             const btn = document.getElementById('pc-save-btn');
             const msg = document.getElementById('pc-edit-msg');
