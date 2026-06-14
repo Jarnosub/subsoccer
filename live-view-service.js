@@ -1,6 +1,14 @@
 import { _supabase, state } from './config.js';
 import { showNotification, unsafeHTML } from './ui-utils.js';
 
+// XSS protection: escape user-controlled strings before inserting into HTML
+const escapeHTML = (str) => {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+};
+
 /**
  * ============================================================
  * LIVE EVENT VIEW SERVICE
@@ -29,11 +37,11 @@ export function shareLiveEventLink(eventId, eventName) {
                 <p style="color:#ccc; margin-bottom:15px; text-align:center;">
                     Share this link to display live tournament results on screens or other devices.
                 </p>
-                <input type="text" value="${liveUrl}" readonly 
+                <input type="text" value="${escapeHTML(liveUrl)}" readonly 
                        style="width:100%; padding:12px; background:#0a0a0a; border:1px solid #333; color:#fff; font-family:monospace; border-radius:6px; margin-bottom:20px; font-size:0.9rem;"
                        data-action="select-all">
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-red" style="flex:1; background:#4CAF50;" data-action="copy-live-link" data-url="${liveUrl}">
+                    <button class="btn-red" style="flex:1; background:#4CAF50;" data-action="copy-live-link" data-url="${escapeHTML(liveUrl)}">
                         <i class="fa fa-copy"></i> COPY LINK
                     </button>
                     <button class="btn-red" style="flex:1; background:#333;" data-action="close-share-modal">
@@ -190,7 +198,7 @@ export async function viewLiveEvent(eventId, isBackgroundUpdate = false) {
             <div style="text-align:center; padding:40px; color:#fff;">
                 <h2 style="color:#f44336; font-family:'Russo One'; margin-bottom:20px;">⚠️ Error Loading Event</h2>
                 <p style="color:#999; margin-bottom:10px;">Unable to load event data.</p>
-                <p style="color:#666; font-size:0.9rem; font-family:monospace;">${e.message || 'Unknown error'}</p>
+                <p style="color:#666; font-size:0.9rem; font-family:monospace;">${escapeHTML(e.message || 'Unknown error')}</p>
                 <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px; background:var(--sub-red); color:#fff; border:none; border-radius:6px; cursor:pointer; font-family:'Russo One';">
                     RELOAD PAGE
                 </button>
@@ -295,7 +303,7 @@ function renderLiveBracketHtml(t) {
             return `
                 <div class="bracket-match-card" style="background:#111; border:1px solid #333; border-radius:6px; overflow:hidden; min-width:240px; box-shadow:0 4px 15px rgba(0,0,0,0.3); position:relative; opacity:0.6;">
                     <div style="padding:12px 15px; border-bottom:1px solid #222; background:rgba(255,255,255,0.05);">
-                        <span style="color:#fff; font-weight:bold; font-size:0.95rem; font-family:var(--sub-name-font); text-transform:uppercase; letter-spacing:0.5px;">${m.player1}</span>
+                        <span style="color:#fff; font-weight:bold; font-size:0.95rem; font-family:var(--sub-name-font); text-transform:uppercase; letter-spacing:0.5px;">${escapeHTML(m.player1)}</span>
                     </div>
                     <div style="padding:12px 15px; color:#888; font-size:0.8rem; font-family:var(--sub-name-font); letter-spacing:1px; display:flex; align-items:center;">
                         <i class="fa fa-arrow-right" style="margin-right:8px; font-size:0.7rem;"></i> BYE
@@ -318,13 +326,13 @@ function renderLiveBracketHtml(t) {
                 <!-- Player 1 -->
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; border-bottom:1px solid #222; position:relative; ${isWinner1 ? 'background:rgba(255,215,0,0.1);' : ''}">
                     ${isWinner1 ? '<div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--sub-gold);"></div>' : ''}
-                    <span style="color:${isWinner1 ? '#fff' : '#888'}; font-weight:${isWinner1 ? 'bold' : 'normal'}; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; font-family:var(--sub-name-font); padding-left:${isWinner1 ? '6px' : '0'}; text-transform:uppercase; letter-spacing:0.5px;">${m.player1}</span>
+                    <span style="color:${isWinner1 ? '#fff' : '#888'}; font-weight:${isWinner1 ? 'bold' : 'normal'}; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; font-family:var(--sub-name-font); padding-left:${isWinner1 ? '6px' : '0'}; text-transform:uppercase; letter-spacing:0.5px;">${escapeHTML(m.player1)}</span>
                     <span style="color:${isWinner1 ? 'var(--sub-gold)' : '#555'}; font-family:'Russo One'; font-size:1.1rem; text-shadow:${isWinner1 ? '0 0 10px rgba(255,215,0,0.3)' : 'none'};">${p1Score}</span>
                 </div>
                 <!-- Player 2 -->
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; position:relative; ${isWinner2 ? 'background:rgba(255,215,0,0.1);' : ''}">
                     ${isWinner2 ? '<div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--sub-gold);"></div>' : ''}
-                    <span style="color:${isWinner2 ? '#fff' : '#888'}; font-weight:${isWinner2 ? 'bold' : 'normal'}; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; font-family:var(--sub-name-font); padding-left:${isWinner2 ? '6px' : '0'}; text-transform:uppercase; letter-spacing:0.5px;">${m.player2}</span>
+                    <span style="color:${isWinner2 ? '#fff' : '#888'}; font-weight:${isWinner2 ? 'bold' : 'normal'}; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; font-family:var(--sub-name-font); padding-left:${isWinner2 ? '6px' : '0'}; text-transform:uppercase; letter-spacing:0.5px;">${escapeHTML(m.player2)}</span>
                     <span style="color:${isWinner2 ? 'var(--sub-gold)' : '#555'}; font-family:'Russo One'; font-size:1.1rem; text-shadow:${isWinner2 ? '0 0 10px rgba(255,215,0,0.3)' : 'none'};">${p2Score}</span>
                 </div>
             </div>
@@ -448,7 +456,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
 
         // Slightly smaller card for live view grid
         return `
-            <div data-username="${p.username}" style="cursor: pointer; display:flex; flex-direction:column; align-items:center; margin: 0 5px; position: relative; z-index: ${4 - place}; ${place === 1 ? 'transform: scale(1.1); margin-bottom: 10px;' : ''}">
+            <div data-username="${escapeHTML(p.username)}" style="cursor: pointer; display:flex; flex-direction:column; align-items:center; margin: 0 5px; position: relative; z-index: ${4 - place}; ${place === 1 ? 'transform: scale(1.1); margin-bottom: 10px;' : ''}">
                 <div style="font-size: 1.5rem; margin-bottom: 5px;">${rankIcon}</div>
                 
                 <div style="width: 100px; height: 160px; background: #0a0a0a; border: 2px solid ${color}; border-radius: 6px; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column;">
@@ -469,7 +477,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                         <div style="display: flex; align-items: center; justify-content: center; gap: 3px; margin-bottom: 1px;">
                             <img src="https://flagcdn.com/w40/${flag}.png" style="height: 8px; border-radius: 1px;">
                             <div style="color: #fff; font-family: var(--sub-name-font); font-size: 0.65rem; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;">
-                                ${p.username}
+                                ${escapeHTML(p.username)}
                             </div>
                         </div>
                         <div style="color: ${color}; font-family: 'Russo One'; font-size: 0.9rem;">
@@ -598,7 +606,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                 ` : ''}
 
                 <h1 class="sub-heading-premium" style="font-size:3.5rem; margin-bottom:15px; line-height: 1; text-transform:uppercase; letter-spacing:3px; text-shadow: 0 5px 15px rgba(0,0,0,0.5);">
-                    ${event.event_name}
+                    ${escapeHTML(event.event_name)}
                 </h1>
                 
                 <div style="display: flex; justify-content: center; gap: 30px; align-items: center; flex-wrap: wrap; margin-top: 15px;">
@@ -607,7 +615,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                     </div>
                     ${event.location ? `
                         <div style="font-size:1rem; color:#ccc; font-family: var(--sub-name-font); letter-spacing: 1px; text-transform: uppercase; display:flex; align-items:center; gap:10px;">
-                            <i class="fa fa-map-marker-alt" style="color: var(--sub-red);"></i> ${event.location}
+                            <i class="fa fa-map-marker-alt" style="color: var(--sub-red);"></i> ${escapeHTML(event.location)}
                         </div>
                     ` : ''}
                 </div>
@@ -637,10 +645,10 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:25px;">
                                 <div style="flex: 1;">
                                     <div style="font-size:0.75rem; color:var(--sub-gold); font-family: var(--sub-name-font); letter-spacing: 2px; margin-bottom: 8px; text-transform: uppercase;">
-                                        ${t.game?.game_name || 'Tournament'}
+                                        ${escapeHTML(t.game?.game_name || 'Tournament')}
                                     </div>
                                     <h2 style="font-family:var(--sub-name-font); font-size:1.6rem; margin:0; line-height: 1.2; color:#fff; letter-spacing:1px;">
-                                        ${t.tournament_name || 'Unofficial Match'}
+                                        ${escapeHTML(t.tournament_name || 'Unofficial Match')}
                                     </h2>
                                 </div>
                                 <div style="text-align:right; margin-left: 20px;">
@@ -725,7 +733,7 @@ function showLiveEventView(event, tournaments, playerMap = {}) {
                 <div class="ticker-content">
                     ${tournaments.length > 0 ?
             tournaments.map(t => `
-                            <span style="margin-right:50px;">🏆 ${t.tournament_name || 'Tournament'}: ${t.status === 'completed' ? `WINNER: ${t.winner_name}` : 'LIVE NOW'}</span>
+                            <span style="margin-right:50px;">🏆 ${escapeHTML(t.tournament_name || 'Tournament')}: ${t.status === 'completed' ? `WINNER: ${escapeHTML(t.winner_name)}` : 'LIVE NOW'}</span>
                         `).join('')
             : 'WELCOME TO SUBSOCCER LIVE EVENTS • FOLLOW THE ACTION • PLAY FAIR • HAVE FUN'
         }

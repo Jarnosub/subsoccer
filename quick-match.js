@@ -3,6 +3,17 @@ import { showNotification, safeHTML } from './ui-utils.js';
 import { MatchService } from './match-service.js';
 import { BroadcastService } from './broadcast-service.js';
 
+// --- XSS Protection ---
+if (typeof window._escapeHTML === 'undefined') {
+    window._escapeHTML = function(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    };
+}
+const escapeHTML = window._escapeHTML;
+
 // Debounce-apuri pelaajahaulle (estää liian tiheät DB-kyselyt)
 let _searchTimeout = null;
 function debouncedSearch(fn, delay = 300) {
@@ -85,7 +96,7 @@ export async function updateEloPreview() {
     const id1 = p1 ? p1.id : 'guest1', id2 = p2 ? p2.id : 'guest2';
     const result = MatchService.calculateNewElo({ id: id1, elo: elo1 }, { id: id2, elo: elo2 }, id1);
     const gain = result.newEloA - elo1;
-    document.getElementById('elo-prediction-text').innerHTML = `<span class="highlight">${state.quickP1}</span> gains <span class="highlight">+${gain} ELO</span> if they win`;
+    document.getElementById('elo-prediction-text').innerHTML = `<span class="highlight">${escapeHTML(state.quickP1)}</span> gains <span class="highlight">+${gain} ELO</span> if they win`;
     document.getElementById('elo-preview').style.display = 'block';
 }
 

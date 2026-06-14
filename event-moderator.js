@@ -2,6 +2,14 @@ import { _supabase } from './config.js';
 import { showNotification } from './ui-utils.js';
 import { viewEventDetails } from './event-service.js';
 
+// XSS protection: escape user-controlled strings before inserting into HTML
+const escapeHTML = (str) => {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+};
+
 /**
  * ============================================================
  * EVENT MODERATOR COMPONENT
@@ -20,8 +28,8 @@ export async function searchModerators(query, eventId) {
         const { data: players } = await _supabase.from('players').select('id, username').ilike('username', `%${query}%`).limit(5);
         resultsContainer.innerHTML = (players || []).map(p => `
             <div style="padding:8px; border-bottom:1px solid #222; display:flex; justify-content:space-between; align-items:center;">
-                <span style="color:#fff; font-size:0.85rem;">${p.username}</span>
-                <button data-action="add-moderator" data-event-id="${eventId}" data-player-id="${p.id}" data-username="${p.username}"
+                <span style="color:#fff; font-size:0.85rem;">${escapeHTML(p.username)}</span>
+                <button data-action="add-moderator" data-event-id="${eventId}" data-player-id="${p.id}" data-username="${escapeHTML(p.username)}"
                     style="background:var(--sub-red); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:0.75rem; cursor:pointer;">ADD</button>
             </div>`).join('') || '<div style="padding:8px; color:#666; font-size:0.85rem;">No players found</div>';
     } catch (e) {

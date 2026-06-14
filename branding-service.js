@@ -118,7 +118,7 @@ function showPartnerSplashScreen(logoUrl, bgColor) {
     `;
     splash.innerHTML = `
         <div style="font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 20px; opacity: 0.8;">SUBSOCCER</div>
-        ${logoUrl ? `<img src="${logoUrl}" style="max-height: 80px; margin-bottom: 20px;">` : ''}
+        ${logoUrl ? `<img src="${logoUrl.replace(/"/g, '&quot;')}" style="max-height: 80px; margin-bottom: 20px;">` : ''}
         <div style="font-size: 2.5rem; font-weight: bold; letter-spacing: 2px; text-align: center; padding: 0 20px; line-height: 1.1;">
             OFFICIAL<br>PARTNER
         </div>

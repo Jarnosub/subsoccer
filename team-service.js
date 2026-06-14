@@ -1,4 +1,15 @@
 import { _supabase, state, FLAGS } from './config.js';
+
+// XSS Protection: escapeHTML helper
+if (typeof window._escapeHTML === 'undefined') {
+    window._escapeHTML = function(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    };
+}
+const escapeHTML = window._escapeHTML;
 import { showNotification, showModal, closeModal } from './ui-utils.js';
 import { updateProfileCard } from './profile-ui.js';
 
@@ -89,11 +100,11 @@ async function searchTeams(query) {
                 : `<div style="width:24px; height:24px; border-radius:4px; background:#222; display:flex; justify-content:center; align-items:center; color: var(--sub-gold); font-size: 0.6rem;"><i class="fa-solid fa-shield"></i></div>`
             }
                     <div>
-                        <div style="font-weight:bold; font-size: 0.9rem;">[${team.tag}] ${team.name}</div>
+                        <div style="font-weight:bold; font-size: 0.9rem;">[${escapeHTML(team.tag)}] ${escapeHTML(team.name)}</div>
                         <div style="color:var(--sub-gold); font-size: 0.75rem;"><i class="fa-solid fa-star"></i> ${team.combined_elo}</div>
                     </div>
                 </div>
-                <button style="background:transparent; border:1px solid var(--sub-red); color:var(--sub-red); padding: 5px 10px; border-radius:4px; cursor:pointer;" onclick="window.joinTeam('${team.id}', '${team.name}')">JOIN</button>
+                <button style="background:transparent; border:1px solid var(--sub-red); color:var(--sub-red); padding: 5px 10px; border-radius:4px; cursor:pointer;" onclick="window.joinTeam('${team.id}', '${escapeHTML(team.name).replace(/'/g, "\\'")}')">JOIN</button>
             </div>
         `).join('');
     } catch (e) {
@@ -142,8 +153,8 @@ async function renderMyTeam(container) {
         container.innerHTML = `
             <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 25px 15px; text-align: center; margin-top: 20px;">
                 ${logoHtml}
-                <div style="color: var(--sub-gold); font-size: 0.8rem; font-weight: bold; letter-spacing: 2px;">[${team.tag}]</div>
-                <h3 style="font-family: 'Russo One', sans-serif; font-size: 1.5rem; color: #fff; margin: 5px 0 15px 0; text-transform: uppercase; letter-spacing: 1px;">${team.name}</h3>
+                <div style="color: var(--sub-gold); font-size: 0.8rem; font-weight: bold; letter-spacing: 2px;">[${escapeHTML(team.tag)}]</div>
+                <h3 style="font-family: 'Russo One', sans-serif; font-size: 1.5rem; color: #fff; margin: 5px 0 15px 0; text-transform: uppercase; letter-spacing: 1px;">${escapeHTML(team.name)}</h3>
                 
                 <div style="background: rgba(0,0,0,0.5); border-radius: 8px; padding: 15px; margin-bottom: 20px; display:flex; justify-content:space-around;">
                     <div>
@@ -163,7 +174,7 @@ async function renderMyTeam(container) {
                             <div style="display:flex; align-items:center; gap: 10px;">
                                 ${m.avatar_url ? `<img src="${m.avatar_url}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">` : `<i class="fa-solid fa-user-circle" style="color:#555; font-size:24px;"></i>`}
                                 <span style="font-size: 0.95rem; color: ${m.id === team.captain_id ? 'var(--sub-gold)' : '#fff'};">
-                                    ${m.username} ${m.id === team.captain_id ? '<i class="fa-solid fa-crown" style="font-size:0.7rem; margin-left:3px;"></i>' : ''}
+                                    ${escapeHTML(m.username)} ${m.id === team.captain_id ? '<i class="fa-solid fa-crown" style="font-size:0.7rem; margin-left:3px;"></i>' : ''}
                                 </span>
                             </div>
                             <div style="color: #aaa; font-size:0.85rem;">${m.elo}</div>

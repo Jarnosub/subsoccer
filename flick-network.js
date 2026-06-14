@@ -51,7 +51,8 @@ function renderOnlinePlayers() {
     players.forEach(p => {
         const badge = document.createElement('div');
         badge.className = 'online-player-badge';
-        badge.innerHTML = `<i class="fa-solid fa-wifi" style="margin-right: 4px;"></i> ${p.name}`;
+        badge.innerHTML = '<i class="fa-solid fa-wifi" style="margin-right: 4px;"></i> ';
+        badge.appendChild(document.createTextNode(p.name));
         list.appendChild(badge);
     });
 }

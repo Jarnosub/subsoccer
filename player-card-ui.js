@@ -3,6 +3,14 @@ import { showModal, closeModal, showNotification, handleAsync } from './ui-utils
 import { CardGenerator } from './card-generator.js';
 import { initTiltEffect } from './ui.js';
 
+// XSS protection: escape user-controlled strings before inserting into HTML
+const escapeHTML = (str) => {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+};
+
 export async function viewPlayerCard(targetUsername) {
     showModal('Player Card', '<p style="font-family:\'Resolve\'">LOADING CARD...</p>', { id: 'card-modal', maxWidth: '400px' });
 
@@ -65,7 +73,7 @@ export async function viewPlayerCard(targetUsername) {
             return `
                             <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:#111; margin-bottom:5px; border-radius:4px; border-left:2px solid ${color};">
                                 <div>
-                                    <div style="color:#fff; font-size:0.8rem; font-family:var(--sub-name-font); text-transform:uppercase;">${t.tournament_name || 'Tournament'}</div>
+                                    <div style="color:#fff; font-size:0.8rem; font-family:var(--sub-name-font); text-transform:uppercase;">${escapeHTML(t.tournament_name || 'Tournament')}</div>
                                     <div style="color:#666; font-size:0.6rem;">${date}</div>
                                 </div>
                                 <div style="color:${color}; font-size:0.7rem; font-weight:bold; font-family:var(--sub-name-font);">${icon} ${place}</div>
@@ -103,8 +111,8 @@ export async function viewPlayerCard(targetUsername) {
             return `
                             <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:#111; margin-bottom:4px; border-radius:4px; border-left:2px solid ${resultColor};">
                                 <div style="display:flex; flex-direction:column;">
-                                    <div style="color:#fff; font-size:0.75rem; font-family:var(--sub-name-font);">vs ${opponent}</div>
-                                    <div style="color:#666; font-size:0.6rem;">${date} • ${m.tournament_name || 'Quick Match'}</div>
+                                    <div style="color:#fff; font-size:0.75rem; font-family:var(--sub-name-font);">${escapeHTML('vs ' + opponent)}</div>
+                                    <div style="color:#666; font-size:0.6rem;">${date} • ${escapeHTML(m.tournament_name || 'Quick Match')}</div>
                                 </div>
                                 <div style="text-align:right;">
                                     <div style="color:${resultColor}; font-size:0.8rem; font-weight:bold; font-family:'Russo One';">${score}</div>
@@ -143,8 +151,8 @@ export async function viewPlayerCard(targetUsername) {
                         <div class="card-image-box">
                             <img src="${avatarUrl}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='placeholder-silhouette-5-wide.png'">
                             <div class="card-nameplate">
-                                ${p.team_data ? `<div style="font-family:'Open Sans', sans-serif; color:#FFD700; font-size:0.6rem; font-weight:bold; margin-bottom:2px; letter-spacing:1px; text-transform:uppercase;">${p.team_data.tag}</div>` : ''}
-                                <div style="font-family:'Russo One', sans-serif; color:#fff; font-size:1.6rem; line-height:1; text-transform:uppercase;">${p.username}</div>
+                                ${p.team_data ? `<div style="font-family:'Open Sans', sans-serif; color:#FFD700; font-size:0.6rem; font-weight:bold; margin-bottom:2px; letter-spacing:1px; text-transform:uppercase;">${escapeHTML(p.team_data.tag)}</div>` : ''}
+                                <div style="font-family:'Russo One', sans-serif; color:#fff; font-size:1.6rem; line-height:1; text-transform:uppercase;">${escapeHTML(p.username)}</div>
                             </div>
                         </div>
 
@@ -178,11 +186,11 @@ export async function viewPlayerCard(targetUsername) {
             <div class="card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); border-radius: 0; background-color: #0a0a0a; background-image: radial-gradient(circle at center, #1a0000 0%, #000 100%); border: 1px solid #333; overflow-y: auto; overflow-x: hidden;">
                 <div class="card-inner-frame" style="padding:15px; display:block; text-align:left; overflow-y:auto; overflow-x:hidden;">
                     <div style="text-align:center; padding-bottom:5px; border-bottom:1px solid #333; margin-bottom:5px; position:relative;">
-                        <button onclick="event.stopPropagation(); reportPlayer('${p.username}')" style="position:absolute; top:0; right:0; background:transparent; border:none; color:#E30613; cursor:pointer; font-size:0.8rem;" title="Report inappropriate avatar">
+                        <button onclick="event.stopPropagation(); reportPlayer('${escapeHTML(p.username)}')" style="position:absolute; top:0; right:0; background:transparent; border:none; color:#E30613; cursor:pointer; font-size:0.8rem;" title="Report inappropriate avatar">
                             <i class="fa-solid fa-flag"></i> REPORT
                         </button>
                         <h4 style="color:var(--sub-gold); font-family:'Russo One'; margin:0; letter-spacing:2px; font-size:1.1rem;">PLAYER DOSSIER</h4>
-                        <div style="color:#fff; font-size:0.75rem; font-family:'Resolve'; margin-top:5px; text-transform:uppercase;">${p.username}</div>
+                        <div style="color:#fff; font-size:0.75rem; font-family:'Resolve'; margin-top:5px; text-transform:uppercase;">${escapeHTML(p.username)}</div>
                     </div>
                     ${historyHtml}
                     ${matchesHtml}

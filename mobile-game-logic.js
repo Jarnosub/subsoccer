@@ -483,7 +483,8 @@ function finishMatch(winnerName, winnerIndex) {
     
     // Explicit anonymous tracking for the individual tournament match
     if (_sb) {
-        const isRet = !!localStorage.getItem('subsoccer-user');
+        const isRet = !!localStorage.getItem('subsoccer-visited');
+        localStorage.setItem('subsoccer-visited', Date.now());
         locationPromise.then(userLoc => {
             _sb.from('public_tracking').insert({
                 event_type: 'tournament_match_finished',
@@ -562,7 +563,8 @@ async function trackTournamentAnonymously(results) {
     if (!_sb) return;
     try {
         const participants = localEngine.participants.filter(p => p !== 'BYE');
-        const isRet = !!localStorage.getItem('subsoccer-user');
+        const isRet = !!localStorage.getItem('subsoccer-visited');
+        localStorage.setItem('subsoccer-visited', Date.now());
         let duration = null;
         if (gameState.tournamentStartTime) {
             duration = Math.floor((Date.now() - gameState.tournamentStartTime) / 1000);
@@ -851,7 +853,7 @@ window.openQrJoin = function() {
             const name = input.value.trim();
             if (name && !name.startsWith("PLAYER ")) {
                 existingCount++;
-                existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${name.toUpperCase()}</div>`;
+                existingPlayersHtml += `<div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Resolve', sans-serif; letter-spacing: 1px;"><span style="color:#888; margin-right: 4px;">#${idx + 1}</span> ${escapeHtml(name.toUpperCase())}</div>`;
             }
         });
         const emptyHtml = `<div style="color: #666; text-align: center; width: 100%; font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.85rem; margin-top: 5px;">Waiting for players...</div>`;

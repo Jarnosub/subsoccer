@@ -1,4 +1,15 @@
 import { _supabase } from './config.js';
+
+// XSS Protection: escapeHTML helper
+if (typeof window._escapeHTML === 'undefined') {
+    window._escapeHTML = function(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    };
+}
+const escapeHTML = window._escapeHTML;
 import { BracketEngine } from './bracket-engine.js';
 import { arcadeSocket } from './socket-service.js';
 
@@ -145,7 +156,7 @@ function renderEloBoard() {
     list.innerHTML = sorted.slice(0, 10).map((p, index) => `
         <div class="flex justify-between py-4 border-b border-gray-800 items-center">
             <span class="text-gray-500 w-12 text-2xl font-sans font-bold">#${index + 1}</span>
-            <span class="flex-1 text-white font-bold font-sans tracking-wide text-3xl text-shadow-sm uppercase">${p.name}</span>
+            <span class="flex-1 text-white font-bold font-sans tracking-wide text-3xl text-shadow-sm uppercase">${escapeHTML(p.name)}</span>
             <span class="font-black text-gray-400 text-xl font-sans tracking-wider mr-4">WINS</span>
             <span class="font-black text-[#FFD700] text-5xl font-sans text-shadow-md tracking-wider">${p.wins}</span>
         </div>
@@ -517,7 +528,7 @@ arcadeSocket.on('roster_update', (payload) => {
         grid.innerHTML += `
             <div class="bg-[#111] border border-[#D4AF37] p-3 rounded-xl flex items-center gap-3">
                 <span class="text-[#D4AF37] font-bold">#${i + 1}</span>
-                <span class="text-white font-bold font-sans tracking-widest uppercase">${pName}</span>
+                <span class="text-white font-bold font-sans tracking-widest uppercase">${escapeHTML(pName)}</span>
             </div>
         `;
     });

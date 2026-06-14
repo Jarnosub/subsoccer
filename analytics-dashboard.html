@@ -337,7 +337,7 @@
         /* Charts Row */
         .chart-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
             gap: 24px;
             margin-bottom: 24px;
         }
@@ -695,6 +695,18 @@
                     <div class="kpi-trend" style="color: #888;" id="kpi-conversion-trend"><i class="fas fa-arrow-right"></i> QR scan → game played</div>
                 </div>
             </div>
+
+            <!-- ROW 3 -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>RETURNING USERS</span>
+                        <i class="fas fa-redo" style="color: var(--accent-yellow);"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-returning" style="color: var(--accent-yellow);">—%</div>
+                    <div class="kpi-trend" style="color: #888;" id="kpi-returning-trend"><i class="fas fa-user-check"></i> Come back to play again</div>
+                </div>
+            </div>
         </div>
 
         <!-- Charts Row -->
@@ -715,6 +727,12 @@
                 <h2>Top Hubs</h2>
                 <div style="position: relative; height: 260px; width: 100%;">
                     <canvas id="citiesChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2>City Growth <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:400;">— cumulative unique cities</span></h2>
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="cityGrowthChart"></canvas>
                 </div>
             </div>
         </div>
@@ -838,6 +856,22 @@
                     </tbody>
                 </table>
             </div>
+            <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <h3 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; letter-spacing: 0.5px;"><i class="fas fa-flag" style="color: var(--accent-green); margin-right: 6px;"></i>Registration Rate by Country</h3>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead><tr>
+                            <th>Country</th>
+                            <th style="text-align:right;">Registered</th>
+                            <th style="text-align:right;">Guest</th>
+                            <th style="text-align:right;">Reg. Rate</th>
+                        </tr></thead>
+                        <tbody id="country-registration-body">
+                            <tr><td colspan="4" style="text-align:center; padding:12px; color:#666;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Registered Players -->
@@ -870,6 +904,45 @@
         const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
         const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
         const client = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+        // Comprehensive ISO country code → name + flag lookup
+        const CODE_TO_COUNTRY = {
+            'FI':{ name:'Finland', flag:'🇫🇮' }, 'US':{ name:'United States', flag:'🇺🇸' },
+            'GB':{ name:'United Kingdom', flag:'🇬🇧' }, 'DE':{ name:'Germany', flag:'🇩🇪' },
+            'SG':{ name:'Singapore', flag:'🇸🇬' }, 'PH':{ name:'Philippines', flag:'🇵🇭' },
+            'ID':{ name:'Indonesia', flag:'🇮🇩' }, 'HU':{ name:'Hungary', flag:'🇭🇺' },
+            'BG':{ name:'Bulgaria', flag:'🇧🇬' }, 'EE':{ name:'Estonia', flag:'🇪🇪' },
+            'IN':{ name:'India', flag:'🇮🇳' }, 'AT':{ name:'Austria', flag:'🇦🇹' },
+            'AZ':{ name:'Azerbaijan', flag:'🇦🇿' }, 'CN':{ name:'China', flag:'🇨🇳' },
+            'BE':{ name:'Belgium', flag:'🇧🇪' }, 'CA':{ name:'Canada', flag:'🇨🇦' },
+            'MX':{ name:'Mexico', flag:'🇲🇽' }, 'ES':{ name:'Spain', flag:'🇪🇸' },
+            'NZ':{ name:'New Zealand', flag:'🇳🇿' }, 'DK':{ name:'Denmark', flag:'🇩🇰' },
+            'NL':{ name:'Netherlands', flag:'🇳🇱' }, 'CH':{ name:'Switzerland', flag:'🇨🇭' },
+            'NO':{ name:'Norway', flag:'🇳🇴' }, 'IT':{ name:'Italy', flag:'🇮🇹' },
+            'HK':{ name:'Hong Kong', flag:'🇭🇰' }, 'CO':{ name:'Colombia', flag:'🇨🇴' },
+            'SE':{ name:'Sweden', flag:'🇸🇪' }, 'FR':{ name:'France', flag:'🇫🇷' },
+            'JP':{ name:'Japan', flag:'🇯🇵' }, 'KR':{ name:'South Korea', flag:'🇰🇷' },
+            'BR':{ name:'Brazil', flag:'🇧🇷' }, 'AU':{ name:'Australia', flag:'🇦🇺' },
+            'IE':{ name:'Ireland', flag:'🇮🇪' }, 'PT':{ name:'Portugal', flag:'🇵🇹' },
+            'PL':{ name:'Poland', flag:'🇵🇱' }, 'RO':{ name:'Romania', flag:'🇷🇴' },
+            'TR':{ name:'Turkey', flag:'🇹🇷' }, 'RU':{ name:'Russia', flag:'🇷🇺' },
+            'UA':{ name:'Ukraine', flag:'🇺🇦' }, 'TH':{ name:'Thailand', flag:'🇹🇭' },
+            'MY':{ name:'Malaysia', flag:'🇲🇾' }, 'AE':{ name:'UAE', flag:'🇦🇪' },
+            'IL':{ name:'Israel', flag:'🇮🇱' }, 'QA':{ name:'Qatar', flag:'🇶🇦' },
+            'GR':{ name:'Greece', flag:'🇬🇷' }, 'CZ':{ name:'Czechia', flag:'🇨🇿' },
+            'ME':{ name:'Montenegro', flag:'🇲🇪' }, 'RS':{ name:'Serbia', flag:'🇷🇸' },
+            'HR':{ name:'Croatia', flag:'🇭🇷' }, 'SK':{ name:'Slovakia', flag:'🇸🇰' },
+            'SI':{ name:'Slovenia', flag:'🇸🇮' }, 'LT':{ name:'Lithuania', flag:'🇱🇹' },
+            'LV':{ name:'Latvia', flag:'🇱🇻' }, 'BY':{ name:'Belarus', flag:'🇧🇾' },
+            'BA':{ name:'Bosnia', flag:'🇧🇦' }, 'MK':{ name:'N. Macedonia', flag:'🇲🇰' },
+            'AL':{ name:'Albania', flag:'🇦🇱' }, 'EG':{ name:'Egypt', flag:'🇪🇬' },
+            'NG':{ name:'Nigeria', flag:'🇳🇬' }, 'KE':{ name:'Kenya', flag:'🇰🇪' },
+            'ZA':{ name:'South Africa', flag:'🇿🇦' }, 'AR':{ name:'Argentina', flag:'🇦🇷' },
+            'CL':{ name:'Chile', flag:'🇨🇱' }, 'PE':{ name:'Peru', flag:'🇵🇪' },
+            'VN':{ name:'Vietnam', flag:'🇻🇳' }, 'TW':{ name:'Taiwan', flag:'🇹🇼' },
+            'PK':{ name:'Pakistan', flag:'🇵🇰' }, 'SA':{ name:'Saudi Arabia', flag:'🇸🇦' },
+            'GH':{ name:'Ghana', flag:'🇬🇭' }, 'MT':{ name:'Malta', flag:'🇲🇹' }
+        };
 
         const TIMEZONE_TO_COUNTRY = {
             'Europe/Helsinki': { name: 'Finland', flag: '🇫🇮' },
@@ -972,7 +1045,28 @@
             'Europe/Espoo': { name: 'Finland', flag: '🇫🇮' },
             'Europe/Islington': { name: 'United Kingdom', flag: '🇬🇧' },
             'Europe/Lambeth': { name: 'United Kingdom', flag: '🇬🇧' },
-            'Europe/Portsmouth': { name: 'United Kingdom', flag: '🇬🇧' }
+            'Europe/Portsmouth': { name: 'United Kingdom', flag: '🇬🇧' },
+            'Europe/Tallinn': { name: 'Estonia', flag: '🇪🇪' },
+            'Europe/Vienna': { name: 'Austria', flag: '🇦🇹' },
+            'Asia/Kolkata': { name: 'India', flag: '🇮🇳' },
+            'Europe/Bucharest': { name: 'Romania', flag: '🇷🇴' },
+            'Europe/Belgrade': { name: 'Serbia', flag: '🇷🇸' },
+            'Europe/Vilnius': { name: 'Lithuania', flag: '🇱🇹' },
+            'Europe/Bratislava': { name: 'Slovakia', flag: '🇸🇰' },
+            'Europe/Ljubljana': { name: 'Slovenia', flag: '🇸🇮' },
+            'Europe/Zagreb': { name: 'Croatia', flag: '🇭🇷' },
+            'Europe/Sarajevo': { name: 'Bosnia', flag: '🇧🇦' },
+            'Europe/Skopje': { name: 'North Macedonia', flag: '🇲🇰' },
+            'Europe/Tirana': { name: 'Albania', flag: '🇦🇱' },
+            'Europe/Minsk': { name: 'Belarus', flag: '🇧🇾' },
+            'Europe/Moscow': { name: 'Russia', flag: '🇷🇺' },
+            'Asia/Kuala_Lumpur': { name: 'Malaysia', flag: '🇲🇾' },
+            'Asia/Bangkok': { name: 'Thailand', flag: '🇹🇭' },
+            'America/Lima': { name: 'Peru', flag: '🇵🇪' },
+            'America/Buenos_Aires': { name: 'Argentina', flag: '🇦🇷' },
+            'America/Santiago': { name: 'Chile', flag: '🇨🇱' },
+            'Australia/Sydney': { name: 'Australia', flag: '🇦🇺' },
+            'Australia/Melbourne': { name: 'Australia', flag: '🇦🇺' }
         };
 
         function parseLocation(locationStr) {
@@ -1029,20 +1123,8 @@
             
             if (!countryName && parsed.countryCode) {
                 const code = parsed.countryCode.trim().toUpperCase();
-                if (code === 'FI') { countryName = 'Finland'; countryFlag = '🇫🇮'; }
-                else if (code === 'US') { countryName = 'United States'; countryFlag = '🇺🇸'; }
-                else if (code === 'GB') { countryName = 'United Kingdom'; countryFlag = '🇬🇧'; }
-                else if (code === 'SG') { countryName = 'Singapore'; countryFlag = '🇸🇬'; }
-                else if (code === 'PH') { countryName = 'Philippines'; countryFlag = '🇵🇭'; }
-                else if (code === 'ID') { countryName = 'Indonesia'; countryFlag = '🇮🇩'; }
-                else if (code === 'DE') { countryName = 'Germany'; countryFlag = '🇩🇪'; }
-                else if (code === 'IL') { countryName = 'Israel'; countryFlag = '🇮🇱'; }
-                else if (code === 'ES') { countryName = 'Spain'; countryFlag = '🇪🇸'; }
-                else if (code === 'QA') { countryName = 'Qatar'; countryFlag = '🇶🇦'; }
-                else if (code === 'MY') { countryName = 'Malaysia'; countryFlag = '🇲🇾'; }
-                else if (code === 'GR') { countryName = 'Greece'; countryFlag = '🇬🇷'; }
-                else if (code === 'NL') { countryName = 'Netherlands'; countryFlag = '🇳🇱'; }
-                else if (code === 'ME') { countryName = 'Montenegro'; countryFlag = '🇲🇪'; }
+                const mapped = CODE_TO_COUNTRY[code];
+                if (mapped) { countryName = mapped.name; countryFlag = mapped.flag; }
                 else { countryName = code; countryFlag = '🌐'; }
             }
 
@@ -1110,6 +1192,7 @@
         let chartInstance = null;
         let doughnutInstance = null;
         let citiesInstance = null;
+        let cityGrowthInstance = null;
         let globalTrackingData = []; // Tallenna data lokaalia filtteröintiä varten
 
         function resetDateFilters() {
@@ -1296,6 +1379,14 @@
                 // Conversion Rate: QR scan → game played
                 const conversionRate = sessionCount > 0 ? Math.round((gamesFinished / sessionCount) * 100) : 0;
 
+                // Calculate Returning Users % (only data from 14.6.2026 — earlier data had a bug)
+                const retFixDate = new Date('2026-06-14T00:00:00Z');
+                const validRetData = trackingData.filter(d => new Date(d.client_time) >= retFixDate);
+                const returningCount = validRetData.filter(d => d.is_returning === true).length;
+                const newCount = validRetData.filter(d => d.is_returning === false).length;
+                const totalRetNew = returningCount + newCount;
+                const returningPct = totalRetNew > 0 ? Math.round((returningCount / totalRetNew) * 100) : 0;
+
                 // WoW Growth (previous period comparison)
                 const prevSessionCount = prevTrackingData.filter(d => d.event_type === 'app_opened').length;
                 const wowGrowth = (!isAllTimeFilter && prevSessionCount > 0)
@@ -1400,14 +1491,11 @@
                         let countryName = countryInfo ? countryInfo.name : (parsed.countryCode || 'Unknown');
                         let countryFlag = countryInfo ? countryInfo.flag : '🌐';
                         
-                        // Clean codes to full names
-                        if (countryName === 'FI') { countryName = 'Finland'; countryFlag = '🇫🇮'; }
-                        else if (countryName === 'US') { countryName = 'United States'; countryFlag = '🇺🇸'; }
-                        else if (countryName === 'GB') { countryName = 'United Kingdom'; countryFlag = '🇬🇧'; }
-                        else if (countryName === 'SG') { countryName = 'Singapore'; countryFlag = '🇸🇬'; }
-                        else if (countryName === 'PH') { countryName = 'Philippines'; countryFlag = '🇵🇭'; }
-                        else if (countryName === 'ID') { countryName = 'Indonesia'; countryFlag = '🇮🇩'; }
-                        else if (countryName === 'DE') { countryName = 'Germany'; countryFlag = '🇩🇪'; }
+                        // Clean codes to full names via central map
+                        if (countryName.length <= 3 && CODE_TO_COUNTRY[countryName]) {
+                            countryFlag = CODE_TO_COUNTRY[countryName].flag;
+                            countryName = CODE_TO_COUNTRY[countryName].name;
+                        }
                         
                         if (!globalCountryGroups[countryName]) {
                             globalCountryGroups[countryName] = {
@@ -1451,6 +1539,10 @@
                 document.getElementById('kpi-conversion').textContent = `${conversionRate}%`;
                 document.getElementById('kpi-conversion-trend').innerHTML =
                     `<i class="fas fa-arrow-right"></i> ${sessionCount} scans → ${gamesFinished} games`;
+
+                // Returning Users KPI
+                document.getElementById('kpi-returning').textContent = totalRetNew > 0 ? `${returningPct}%` : '—%';
+                document.getElementById('kpi-returning-trend').innerHTML = `<i class="fas fa-user-check"></i> ${returningCount} returning / ${newCount} new<br><span style="font-size:0.6rem;color:#999;">⚠ Measuring since 14.6.2026 — earlier data invalid</span>`;
 
                 // WoW Growth badge
                 const wowEl = document.getElementById('kpi-wow');
@@ -1574,6 +1666,52 @@
                         `;
                         platformBody.appendChild(tr);
                     });
+
+                // Registration Rate by Country
+                const regByCountry = {};
+                trackingData.forEach(d => {
+                    if (!d.location || d.location === 'Unknown') return;
+                    const parsed = parseLocation(d.location);
+                    const countryInfo = TIMEZONE_TO_COUNTRY[d.location] || TIMEZONE_TO_COUNTRY[parsed.timezone];
+                    let countryName = countryInfo ? countryInfo.name : (parsed.countryCode || 'Unknown');
+                    let countryFlag = countryInfo ? countryInfo.flag : '🌐';
+                    if (countryName.length <= 3 && CODE_TO_COUNTRY[countryName]) {
+                        countryFlag = CODE_TO_COUNTRY[countryName].flag;
+                        countryName = CODE_TO_COUNTRY[countryName].name;
+                    }
+                    if (!countryName || countryName === 'Unknown') return;
+
+                    if (!regByCountry[countryName]) regByCountry[countryName] = { flag: countryFlag, registered: 0, guest: 0 };
+                    const partner = (d.source_partner || '').toLowerCase();
+                    if (partner === 'registered') {
+                        regByCountry[countryName].registered++;
+                    } else {
+                        regByCountry[countryName].guest++;
+                    }
+                });
+
+                const sortedRegCountries = Object.entries(regByCountry)
+                    .map(([name, v]) => ({ name, ...v, total: v.registered + v.guest, rate: v.registered + v.guest > 0 ? Math.round(v.registered / (v.registered + v.guest) * 100) : 0 }))
+                    .sort((a, b) => b.total - a.total)
+                    .filter(c => c.total >= 3);
+
+                const regBody = document.getElementById('country-registration-body');
+                regBody.innerHTML = '';
+                if (sortedRegCountries.length > 0) {
+                    sortedRegCountries.forEach(c => {
+                        const rateColor = c.rate >= 50 ? 'var(--accent-green)' : (c.rate >= 20 ? 'var(--accent-yellow)' : 'var(--accent-red)');
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${c.flag} ${c.name}</td>
+                            <td style="text-align:right; color:var(--accent-green);">${c.registered}</td>
+                            <td style="text-align:right; color:var(--text-secondary);">${c.guest}</td>
+                            <td style="text-align:right; font-weight:bold; color:${rateColor};">${c.rate}%</td>
+                        `;
+                        regBody.appendChild(tr);
+                    });
+                } else {
+                    regBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#666;">No country data available.</td></tr>';
+                }
 
 
                 // Calculate and Populate Top Countries List
@@ -1875,6 +2013,7 @@
             if (chartInstance) chartInstance.destroy();
             if (doughnutInstance) doughnutInstance.destroy();
             if (citiesInstance) citiesInstance.destroy();
+            if (cityGrowthInstance) cityGrowthInstance.destroy();
 
             // Aggregation by day for trend line
             const daysMap = {};
@@ -1989,6 +2128,91 @@
                     }
                 }
             });
+
+            // ===== City Growth Chart (cumulative unique cities over time) =====
+            const ctx4 = document.getElementById('cityGrowthChart').getContext('2d');
+            const cityGrowthMap = {};
+            const seenCitiesSet = new Set();
+
+            // Sort data by time
+            const sortedData = [...data].sort((a, b) => new Date(a.client_time) - new Date(b.client_time));
+            sortedData.forEach(d => {
+                if (!d.location || d.location === 'Unknown') return;
+                const parsed = parseLocation(d.location);
+                const city = parsed.city;
+                if (!city || city === 'Unknown') return;
+
+                const dateObj = new Date(d.client_time);
+                const dateKey = ('0' + dateObj.getDate()).slice(-2) + '/' + ('0' + (dateObj.getMonth() + 1)).slice(-2);
+
+                if (!cityGrowthMap[dateKey]) cityGrowthMap[dateKey] = { cumulative: 0, newCount: 0 };
+                if (!seenCitiesSet.has(city)) {
+                    seenCitiesSet.add(city);
+                    cityGrowthMap[dateKey].newCount++;
+                }
+            });
+
+            // Fill cumulative
+            let cumTotal = 0;
+            const growthLabels = Object.keys(cityGrowthMap);
+            growthLabels.forEach(key => {
+                cumTotal += cityGrowthMap[key].newCount;
+                cityGrowthMap[key].cumulative = cumTotal;
+            });
+
+            const growthGradient = ctx4.createLinearGradient(0, 0, 0, 260);
+            growthGradient.addColorStop(0, 'rgba(138, 180, 248, 0.3)');
+            growthGradient.addColorStop(1, 'rgba(138, 180, 248, 0.02)');
+
+            cityGrowthInstance = new Chart(ctx4, {
+                type: 'line',
+                data: {
+                    labels: growthLabels,
+                    datasets: [{
+                        label: 'Total Cities',
+                        data: growthLabels.map(k => cityGrowthMap[k].cumulative),
+                        borderColor: '#8AB4F8',
+                        backgroundColor: growthGradient,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#8AB4F8',
+                        pointBorderColor: '#8AB4F8',
+                        pointBorderWidth: 0,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#8AB4F8',
+                        pointHoverBorderWidth: 2,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(ctx) {
+                                    const key = growthLabels[ctx.dataIndex];
+                                    return `+${cityGrowthMap[key].newCount} new`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { font: { size: 10 }, maxTicksLimit: 10 },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { size: 10 } },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
         }
 
         let mymap = null;
@@ -2021,6 +2245,8 @@
                 'Europe/Lisbon': [38.7223, -9.1393], 'Europe/Zurich': [47.3769, 8.5417],
                 'Europe/Sofia': [42.6977, 23.3219], 'Europe/Riga': [56.9496, 24.1052],
                 'Europe/Kiev': [50.4501, 30.5234], 'Europe/Budapest': [47.4979, 19.0402],
+                'Europe/Vienna': [48.2082, 16.3738], 'Europe/Bucharest': [44.4268, 26.1025],
+                'Europe/Tallinn': [59.4370, 24.7536], 'Europe/Vilnius': [54.6872, 25.2797],
                 'America/New_York': [40.7128, -74.006], 'America/Los_Angeles': [34.0522, -118.2437],
                 'America/Chicago': [41.8781, -87.6298], 'America/Toronto': [43.6532, -79.3832],
                 'America/Phoenix': [33.4484, -112.0740], 'America/Denver': [39.7392, -104.9903],
@@ -2117,15 +2343,8 @@
                 let isFallback = false;
 
                 if (!coords && loc !== 'Unknown') {
-                    const continent = parsed.timezone.split('/')[0];
-                    if (tzContinents[continent]) {
-                        // Tightly cluster unknown areas so they don't spawn in oceans
-                        const hash = loc.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
-                        const latOffset = (hash % 6) - 3;
-                        const lngOffset = ((hash >> 4) % 6) - 3;
-                        coords = [tzContinents[continent][0] + latOffset, tzContinents[continent][1] + lngOffset];
-                        isFallback = true;
-                    }
+                    // Skip unknown locations instead of placing them randomly
+                    continue;
                 }
 
                 if (coords) {

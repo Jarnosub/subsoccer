@@ -10,6 +10,31 @@ exports.handler = async function (event, context) {
         return { statusCode: 405, body: "Method Not Allowed" };
     }
 
+    // ==========================================
+    // AUTH CHECK: Verify Supabase JWT token
+    // ==========================================
+    const authHeader = event.headers?.authorization || '';
+    if (!authHeader.startsWith('Bearer ')) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({ error: "Authentication required. Please log in." })
+        };
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseAuthUrl = process.env.SUPABASE_URL || 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+    
+    try {
+        const verifyResp = await fetch(`${supabaseAuthUrl}/auth/v1/user`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'apikey': process.env.SUPABASE_ANON_KEY || '' }
+        });
+        if (!verifyResp.ok) {
+            return { statusCode: 401, body: JSON.stringify({ error: "Invalid session." }) };
+        }
+    } catch (e) {
+        return { statusCode: 401, body: JSON.stringify({ error: "Auth verification failed." }) };
+    }
+
     try {
         const { image_b64, taskId, supabaseUrl, supabaseKey } = JSON.parse(event.body);
         let apiKey = process.env.MY_OPENAI_KEY || process.env.OPENAI_API_KEY;

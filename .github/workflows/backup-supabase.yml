@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Mahdollistaa manuaalisen käynnistyksen GitHubin kautta
 
 permissions:
-  contents: write # Vaaditaan jotta toiminto voi kommitoida ja pushata backup-tiedostot takaisin repoon
+  contents: read # Security: read-only, backups are NOT committed to the repo
 
 jobs:
   backup:
@@ -28,14 +28,11 @@ jobs:
       - name: Run backup script
         run: node scripts/backup-supabase.js
 
-      - name: Commit and push changes
+      # Security fix #17: Backups are generated but NOT pushed to the repo.
+      # Database dumps should not be stored in version control.
+      # Consider uploading to a secure storage (e.g. S3, Google Cloud Storage) instead.
+      - name: Summary
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add backups/
-          if git diff-index --quiet HEAD --; then
-            echo "No changes in data since last backup."
-          else
-            git commit -m "chore(backup): automated Supabase data update [skip ci]"
-            git push origin staging
-          fi
+          echo "✅ Backup script completed successfully."
+          echo "⚠️  Backups are NOT committed to the repo for security reasons."
+          echo "💡 To persist backups, configure an external storage destination."

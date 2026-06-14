@@ -42,6 +42,9 @@ jarno-ventures
 # Local Netlify folder
 .netlify
 
-# Database backups
+# Database backups — Security fix #8: never commit database dumps to Git
 /database/backups/
+/backups/
+*.sql.gz
+*.sql.bak
 .env.backup

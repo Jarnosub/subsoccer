@@ -960,7 +960,8 @@
 
                 const userLoc = await locationPromise;
                 const lang = localStorage.getItem('subsoccer-lang') || (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
-                const isReturning = !!localStorage.getItem('subsoccer-user');
+                const isReturning = !!localStorage.getItem('subsoccer-visited');
+                localStorage.setItem('subsoccer-visited', Date.now());
                 
                 let duration = null;
                 if (!window.__trackingStartTime) window.__trackingStartTime = Date.now();
