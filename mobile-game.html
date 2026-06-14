@@ -987,6 +987,17 @@
             border-color: rgba(196, 30, 42, 0.2);
         }
 
+        .switch-label .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .3s;
+            border-radius: 24px;
+        }
         .switch-label .slider:before {
             position: absolute;
             content: "";
@@ -1018,31 +1029,31 @@
     <div id="settings-modal" class="modal-overlay" onclick="if(event.target === this) toggleSettingsMenu()" style="display: none; justify-content: center; align-items: center; z-index: 10005;">
         <div class="modal-content" style="max-width: 320px; width: 90%; border-radius: var(--sub-radius); background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
             <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; letter-spacing: 2px;" data-i18n="settings_title">SETTINGS</h3>
+                <h3 style="margin: 0; font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; letter-spacing: 2px;">SETTINGS</h3>
                 <button class="modal-close" onclick="toggleSettingsMenu()" style="background: none; border: none; color: #999; font-size: 1.5rem; cursor: pointer; padding: 0; width: auto; height: auto; margin-left: auto;">&times;</button>
             </div>
             <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 20px;">
                 <!-- Dark Mode Option -->
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-family: 'Resolve', sans-serif; font-size: 0.9rem; color: #ccc;" data-i18n="dark_mode">DARK MODE</span>
+                    <span style="font-family: 'Resolve', sans-serif; font-size: 0.9rem; color: #ccc;">DARK MODE</span>
                     <label class="switch-label" style="position: relative; display: inline-block; width: 44px; height: 24px;">
                         <input type="checkbox" id="dark-mode-checkbox" onchange="toggleDarkModeSetting()" style="opacity: 0; width: 0; height: 0; margin: 0;">
-                        <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .3s; border-radius: 24px;"></span>
+                        <span class="slider"></span>
                     </label>
                 </div>
                 
                 <!-- Voice Control Option -->
                 <div id="voice-control-option" style="display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-family: 'Resolve', sans-serif; font-size: 0.9rem; color: #ccc;" data-i18n="voice_control">VOICE CONTROL</span>
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 0.9rem; color: #ccc;">VOICE CONTROL</span>
                         <label class="switch-label" style="position: relative; display: inline-block; width: 44px; height: 24px;">
                             <input type="checkbox" id="voice-control-checkbox" onchange="toggleVoiceControlSetting()" style="opacity: 0; width: 0; height: 0; margin: 0;">
-                            <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .3s; border-radius: 24px;"></span>
+                            <span class="slider"></span>
                         </label>
                     </div>
                     <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #666;">
                         <span id="voice-setting-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #666; display: inline-block;"></span>
-                        <span id="voice-setting-label" data-i18n="voice_control_off">Voice control: OFF</span>
+                        <span id="voice-setting-label">Voice control: OFF</span>
                     </div>
                 </div>
             </div>
