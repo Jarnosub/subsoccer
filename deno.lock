@@ -16,6 +16,8 @@
         "npm:cors@^2.8.6",
         "npm:express@^5.2.1",
         "npm:jsdom@^28.1.0",
+        "npm:node-cron@^4.2.1",
+        "npm:nodemailer@^8.0.10",
         "npm:sharp@~0.34.5",
         "npm:stripe@22",
         "npm:vitest@^4.0.18"

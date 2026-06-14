@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="apple-itunes-app" content="app-id=6777437223">
     <title>Subsoccer GO — Play on any Subsoccer Table | Track Stats &amp; ELO</title>
     <meta name="description" content="The official companion app for your Subsoccer table. Track ELO rankings, run tournaments, and challenge friends across 58 countries — no registration required.">
@@ -178,7 +178,7 @@
             <span class="version-label" style="display:none;">BETA VERSION</span>
             <span class="version-date" style="display:none;">MAR 2026 // v1.0.0</span>
         </div>
-        <button id="menu-toggle-btn">
+        <button id="menu-toggle-btn" aria-label="Menu">
             <i class="fa-solid fa-bars"></i>
         </button>
     </header>
@@ -244,7 +244,7 @@
                     Create an account or
                     log in to host brackets and save statistics.</div>
             </div>
-            <button onclick="window.history.back();"
+            <button onclick="window.history.back();" aria-label="Takaisin"
                 style="position: fixed; top: 25px; left: 25px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: #fff; font-size: 1rem; cursor: pointer; z-index: 1000; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
@@ -255,19 +255,19 @@
             </div>
 
             <!-- Tagline -->
-            <div data-i18n="login_tagline" style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.5rem; color:#444; letter-spacing:2px; text-transform:uppercase; margin-bottom:20px;">
+            <div data-i18n="login_tagline" style="text-align:center; font-family:'Resolve',sans-serif; font-size:0.5rem; color:#9c9c9c; letter-spacing:2px; text-transform:uppercase; margin-bottom:20px;">
                 Track stats · Climb rankings · Join tournaments
             </div>
             
             <!-- Login form card -->
             <div style="background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; padding: 20px 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.5);">
-                <div data-i18n="login_title" style="color: #666; letter-spacing: 2px; font-size: 0.6rem; margin-bottom: 14px; font-family:'Resolve',sans-serif; text-align:center;">PLAYER LOGIN</div>
+                <div data-i18n="login_title" style="color: #9c9c9c; letter-spacing: 2px; font-size: 0.6rem; margin-bottom: 14px; font-family:'Resolve',sans-serif; text-align:center;">PLAYER LOGIN</div>
                 <form id="auth-form-wrapper" style="gap: 8px;">
                     <input type="text" id="auth-user" name="username" placeholder="Username" data-i18n="login_username" autocomplete="username" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
                     <input type="password" id="auth-pass" name="password" placeholder="Password" data-i18n="login_password" autocomplete="current-password" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 11px 12px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; border-radius: 3px;">
                     <button id="btn-login" class="btn-red" type="submit" data-i18n="login_btn" style="background: #c41e2a; color: #ffffff; padding: 12px; font-size: 0.9rem; letter-spacing: 1px; margin-top: 2px; box-shadow: 0 3px 15px rgba(196, 30, 42, 0.2); border-radius: 3px; font-family:'SubsoccerLogo',sans-serif;">LOG IN</button>
                     
-                    <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: #555; font-size: 0.7rem; font-family: 'Resolve', sans-serif;">
+                    <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: #8c8c8c; font-size: 0.7rem; font-family: 'Resolve', sans-serif;">
                         <div style="flex: 1; height: 1px; background: #222;"></div>
                         <span data-i18n="login_or" style="padding: 0 8px; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.55rem; font-weight: bold;">OR</span>
                         <div style="flex: 1; height: 1px; background: #222;"></div>
@@ -310,7 +310,7 @@
  
                     <div style="margin-top: 8px;">
                         <button id="btn-show-signup" type="button" class="btn-create-account"
-                            onclick="showAuthPage('signup')" data-i18n="login_create_acc" style="background: transparent; border: 1px solid #2a2a2a; color: #666; padding: 10px; transition: all 0.2s; border-radius: 3px; font-size: 0.75rem;" onmouseover="this.style.color='#fff'; this.style.borderColor='#555';" onmouseout="this.style.color='#666'; this.style.borderColor='#2a2a2a';">CREATE ACCOUNT</button>
+                            onclick="showAuthPage('signup')" data-i18n="login_create_acc" style="background: transparent; border: 1px solid #3c3c3c; color: #9c9c9c; padding: 10px; transition: all 0.2s; border-radius: 3px; font-size: 0.75rem;" onmouseover="this.style.color='#fff'; this.style.borderColor='#555';" onmouseout="this.style.color='#9c9c9c'; this.style.borderColor='#3c3c3c';">CREATE ACCOUNT</button>
                     </div>
                 </form>
             </div>
@@ -319,17 +319,17 @@
             <div style="display:flex; justify-content:center; gap:18px; margin-top:18px;">
                 <div style="text-align:center;">
                     <div style="font-family:'SubsoccerLogo',sans-serif; font-size:0.95rem; color:#888;">80+</div>
-                    <div data-i18n="login_countries_label" style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Countries</div>
+                    <div data-i18n="login_countries_label" style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#9c9c9c; letter-spacing:1.5px; text-transform:uppercase;">Countries</div>
                 </div>
                 <div style="width:1px; background:#1e1e1e; align-self:stretch;"></div>
                 <div style="text-align:center;">
                     <div style="font-family:'SubsoccerLogo',sans-serif; font-size:0.95rem; color:#888;">2K+</div>
-                    <div data-i18n="login_players_label" style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Players</div>
+                    <div data-i18n="login_players_label" style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#9c9c9c; letter-spacing:1.5px; text-transform:uppercase;">Players</div>
                 </div>
                 <div style="width:1px; background:#1e1e1e; align-self:stretch;"></div>
                 <div style="text-align:center;">
                     <div style="font-family:'SubsoccerLogo',sans-serif; font-size:0.95rem; color:#888;">500+</div>
-                    <div data-i18n="login_tournaments_label" style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#444; letter-spacing:1.5px; text-transform:uppercase;">Tournaments</div>
+                    <div data-i18n="login_tournaments_label" style="font-family:'Resolve',sans-serif; font-size:0.4rem; color:#9c9c9c; letter-spacing:1.5px; text-transform:uppercase;">Tournaments</div>
                 </div>
             </div>
         </div>
@@ -338,7 +338,7 @@
 
             <div
                 style="padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; width: 100%; box-sizing: border-box;">
-                <button type="button" onclick="showAuthPage('login')"
+                <button type="button" onclick="showAuthPage('login')" aria-label="Takaisin"
                     style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 1.2rem; cursor: pointer; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
