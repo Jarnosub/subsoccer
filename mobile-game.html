@@ -1624,6 +1624,10 @@
         window.onVoiceGoalDetected = function(word, playerNumber) {
             console.log(`🎙️ Voice Goal detected: ${word} for player ${playerNumber}`);
             
+            // Only allow voice goals when game layer is active (not on victory/bracket screens)
+            const gameLayer = document.getElementById('m-layer-game');
+            if (!gameLayer || !gameLayer.classList.contains('fade-in')) return;
+            
             // Trigger target player goal
             if (typeof window.mobileGoal === 'function') {
                 window.mobileGoal(playerNumber);
