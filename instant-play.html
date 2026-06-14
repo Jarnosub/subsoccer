@@ -1834,6 +1834,28 @@
         window.claimVictory = claimVictory;
         window.shareTvLink = shareTvLink;
         window.shareVipLink = shareVipLink;
+
+        // Screen Wake Lock API to prevent screen sleep during games
+        let wakeLock = null;
+        async function requestWakeLock() {
+            if (!('wakeLock' in navigator)) return;
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Screen Wake Lock active.');
+            } catch (err) {
+                console.warn('Wake Lock request failed:', err);
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', requestWakeLock);
+        } else {
+            requestWakeLock();
+        }
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
     </script>
 </body>
 
