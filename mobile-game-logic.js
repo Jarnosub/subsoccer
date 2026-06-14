@@ -494,7 +494,8 @@ function finishMatch(winnerName, winnerIndex) {
                 user_agent: navigator.userAgent,
                 browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
                 location: userLoc,
-                is_returning: isRet
+                is_returning: isRet,
+                session_id: sessionStorage.getItem('subsoccer-session-id') || (() => { const s = crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); sessionStorage.setItem('subsoccer-session-id', s); return s; })()
             }).then(() => {}).catch(() => {});
         });
     }
@@ -581,7 +582,8 @@ async function trackTournamentAnonymously(results) {
             browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
             location: userLoc,
             is_returning: isRet,
-            session_duration: duration
+            session_duration: duration,
+            session_id: sessionStorage.getItem('subsoccer-session-id') || (() => { const s = crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); sessionStorage.setItem('subsoccer-session-id', s); return s; })()
         });
     } catch (_) { /* silent */ }
 }

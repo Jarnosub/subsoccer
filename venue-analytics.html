@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer Venue Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #202225;
+            --bg-card: #2B2D31;
+            --text-primary: #E8EAED;
+            --text-secondary: #A0A5AA;
+            --accent-blue: #8AB4F8;
+            --accent-red: #F28B82;
+            --accent-green: #81C995;
+            --accent-yellow: #FDE293;
+            --border-color: #3F4147;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 24px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-links {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .header-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+        .header-links a:hover { color: var(--accent-blue); }
+
+        .dashboard-container {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .filters {
+            margin-bottom: 24px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .filters select {
+            background-color: #1e1f22;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        /* KPI summary row */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .kpi-trend {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* Venue table */
+        .table-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .table-card h2 {
+            margin: 0 0 16px 0;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        table.venue-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        table.venue-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        table.venue-table th:hover {
+            color: var(--accent-blue);
+        }
+
+        table.venue-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(63, 65, 71, 0.4);
+            color: var(--text-primary);
+        }
+
+        table.venue-table tr:hover td {
+            background: rgba(138, 180, 248, 0.04);
+        }
+
+        .badge-code {
+            background: rgba(138, 180, 248, 0.12);
+            color: var(--accent-blue);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .bar-cell {
+            position: relative;
+            min-width: 80px;
+        }
+        .bar-bg {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            height: 22px;
+            border-radius: 3px;
+            opacity: 0.15;
+        }
+        .bar-val {
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        /* Chart grid */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 900px) {
+            .chart-grid { grid-template-columns: 1fr; }
+        }
+
+        .chart-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            height: 350px;
+        }
+
+        .chart-card h2 {
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        /* UTM table */
+        .utm-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(63, 65, 71, 0.3);
+            font-size: 0.85rem;
+        }
+        .utm-row:last-child { border-bottom: none; }
+        .utm-source {
+            flex: 1;
+            font-weight: 500;
+        }
+        .utm-medium {
+            flex: 0.7;
+            color: var(--text-secondary);
+        }
+        .utm-count {
+            font-weight: 600;
+            color: var(--accent-blue);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Loading / auth */
+        #loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        #auth-wall {
+            text-align: center;
+            padding: 80px 20px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+        }
+        #mod-content { display: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-store" style="color: var(--accent-blue);"></i> Venue Performance</h1>
+        <div class="header-links">
+            <a href="analytics-dashboard.html"><i class="fas fa-chart-line"></i> Main Analytics</a>
+        </div>
+    </div>
+
+    <div id="auth-wall">
+        <i class="fas fa-spinner fa-spin"></i> VERIFYING ACCESS...
+    </div>
+
+    <div id="mod-content">
+        <div class="dashboard-container">
+
+            <!-- Filters -->
+            <div class="filters">
+                <label style="font-size:0.75rem; color:var(--text-secondary); letter-spacing:1px;">TIME</label>
+                <select id="timeFilter" onchange="fetchData()">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="9999">All Time</option>
+                </select>
+            </div>
+
+            <!-- KPI Summary -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>TOTAL VENUES</span><i class="fas fa-map-pin"></i></div>
+                    <div class="kpi-value" id="kpi-venues">0</div>
+                    <div class="kpi-trend">Unique game codes</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>TOTAL SESSIONS</span><i class="fas fa-users"></i></div>
+                    <div class="kpi-value" id="kpi-sessions">0</div>
+                    <div class="kpi-trend" id="kpi-sessions-trend">Unique session IDs</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>TOTAL GAMES</span><i class="fas fa-futbol"></i></div>
+                    <div class="kpi-value" id="kpi-games">0</div>
+                    <div class="kpi-trend" id="kpi-games-trend">—</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>AVG GAMES / SESSION</span><i class="fas fa-fire"></i></div>
+                    <div class="kpi-value" id="kpi-avg-games">—</div>
+                    <div class="kpi-trend">Engagement depth</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>UTM TRACKED</span><i class="fas fa-bullhorn"></i></div>
+                    <div class="kpi-value" id="kpi-utm">0%</div>
+                    <div class="kpi-trend" id="kpi-utm-trend">Sessions with UTM data</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h2>Top Venues by Games <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:400;">— game_finished events</span></h2>
+                    <div style="position: relative; height: 280px; width: 100%;">
+                        <canvas id="venueChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h2>Traffic Sources (UTM) <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:400;">— top sources</span></h2>
+                    <div style="position: relative; height: 280px; width: 100%;">
+                        <canvas id="utmChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Venue Performance Table -->
+            <div class="table-card">
+                <h2>Venue Breakdown</h2>
+                <div id="loading" style="display:none;"><i class="fas fa-spinner fa-spin"></i>&nbsp; Loading tracking data...</div>
+                <table class="venue-table" id="venue-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">VENUE CODE</th>
+                            <th onclick="sortTable(1)">SCANS</th>
+                            <th onclick="sortTable(2)">GAMES</th>
+                            <th onclick="sortTable(3)">CONVERSION %</th>
+                            <th onclick="sortTable(4)">GAMES / SESSION</th>
+                            <th onclick="sortTable(5)">AVG DURATION</th>
+                            <th onclick="sortTable(6)">PEAK HOUR</th>
+                            <th onclick="sortTable(7)">LOCATIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="venue-tbody"></tbody>
+                </table>
+            </div>
+
+            <!-- UTM Breakdown Table -->
+            <div class="table-card">
+                <h2>Marketing Attribution (UTM Breakdown)</h2>
+                <div id="utm-list">
+                    <div style="color:var(--text-secondary); padding:20px; text-align:center;">No UTM data yet — add ?utm_source=...&utm_medium=... to your QR links</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        const client = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+        Chart.defaults.color = '#9AA0A6';
+        Chart.defaults.borderColor = '#3C4043';
+        Chart.defaults.font.family = "'Roboto', sans-serif";
+
+        let venueChartInstance = null;
+        let utmChartInstance = null;
+        let currentSortCol = 2; // default: games desc
+        let currentSortAsc = false;
+
+        // Auth check on load
+        (async () => {
+            try {
+                const { data: sessionData } = await client.auth.getSession();
+                if (!sessionData.session) {
+                    document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="color:var(--accent-red);margin-right:8px;"></i> ACCESS DENIED — PLEASE LOG IN';
+                    return;
+                }
+                // Check admin
+                const userId = sessionData.session.user.id;
+                const { data: playerData } = await client.from('players').select('is_admin').eq('id', userId).single();
+                if (!playerData || !playerData.is_admin) {
+                    document.getElementById('auth-wall').innerHTML = '<i class="fas fa-lock" style="color:var(--accent-red);margin-right:8px;"></i> ADMIN ACCESS REQUIRED';
+                    return;
+                }
+                document.getElementById('auth-wall').style.display = 'none';
+                document.getElementById('mod-content').style.display = 'block';
+                fetchData();
+            } catch (e) {
+                document.getElementById('auth-wall').innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--accent-yellow);margin-right:8px;"></i> AUTH ERROR';
+            }
+        })();
+
+        async function fetchData() {
+            document.getElementById('loading').style.display = 'flex';
+            
+            const days = parseInt(document.getElementById('timeFilter').value) || 30;
+            const isAllTime = days >= 9999;
+            let startDateStr = null;
+            if (!isAllTime) {
+                const pastDate = new Date();
+                pastDate.setDate(pastDate.getDate() - days);
+                startDateStr = pastDate.toISOString();
+            }
+
+            try {
+                // Paginated fetch
+                let allData = [];
+                let page = 0;
+                const pageSize = 1000;
+                while (true) {
+                    let q = client.from('public_tracking').select('*')
+                        .order('client_time', { ascending: false })
+                        .range(page * pageSize, (page + 1) * pageSize - 1);
+                    if (startDateStr) q = q.gte('client_time', startDateStr);
+                    const { data: pageData, error } = await q;
+                    if (error) throw error;
+                    if (!pageData || pageData.length === 0) break;
+                    allData = allData.concat(pageData);
+                    if (pageData.length < pageSize) break;
+                    page++;
+                }
+
+                processData(allData);
+            } catch (err) {
+                console.error('Fetch error:', err);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function processData(data) {
+            // Group by game_code
+            const venues = {};
+            const sessionSet = new Set();
+            let totalGames = 0;
+            let utmSessions = new Set();
+
+            data.forEach(d => {
+                const code = (d.game_code || 'UNKNOWN').toUpperCase();
+                if (!venues[code]) {
+                    venues[code] = { scans: 0, games: 0, sessions: new Set(), durations: [], hours: new Array(24).fill(0), locations: new Set() };
+                }
+                const v = venues[code];
+
+                if (d.event_type === 'app_opened') v.scans++;
+                if (d.event_type === 'game_finished' || d.event_type === 'tournament_match_finished') {
+                    v.games++;
+                    totalGames++;
+                    const h = new Date(d.client_time).getHours();
+                    v.hours[h]++;
+                    if (d.session_duration && d.session_duration >= 30 && d.session_duration <= 300) {
+                        v.durations.push(d.session_duration);
+                    }
+                }
+                if (d.session_id) {
+                    v.sessions.add(d.session_id);
+                    sessionSet.add(d.session_id);
+                }
+                if (d.location && d.location !== 'Unknown') {
+                    const city = d.location.includes('/') ? d.location.split('/').pop().replace(/_/g, ' ') : d.location;
+                    v.locations.add(city);
+                }
+                if (d.utm_source && d.session_id) utmSessions.add(d.session_id);
+            });
+
+            const venueCount = Object.keys(venues).length;
+            const totalSessions = sessionSet.size;
+            const avgGames = totalSessions > 0 ? (totalGames / totalSessions).toFixed(1) : '—';
+            const utmPct = totalSessions > 0 ? Math.round((utmSessions.size / totalSessions) * 100) : 0;
+
+            // KPIs
+            document.getElementById('kpi-venues').textContent = venueCount;
+            document.getElementById('kpi-sessions').textContent = totalSessions || data.filter(d => d.event_type === 'app_opened').length;
+            document.getElementById('kpi-sessions-trend').textContent = totalSessions > 0 ? 'Unique session IDs' : 'Based on app_opened events';
+            document.getElementById('kpi-games').textContent = totalGames;
+            document.getElementById('kpi-avg-games').textContent = avgGames;
+            document.getElementById('kpi-utm').textContent = utmPct + '%';
+            document.getElementById('kpi-utm-trend').textContent = `${utmSessions.size} / ${totalSessions} sessions with UTM`;
+
+            // Build venue rows
+            const rows = Object.keys(venues).map(code => {
+                const v = venues[code];
+                const conversion = v.scans > 0 ? Math.min(Math.round((v.games / v.scans) * 100), 100) : 0;
+                const sessCount = v.sessions.size;
+                const gamesPerSession = sessCount > 0 ? (v.games / sessCount).toFixed(1) : '—';
+                const avgDuration = v.durations.length > 0 ? Math.round(v.durations.reduce((a, b) => a + b, 0) / v.durations.length) : null;
+                const peakHour = v.hours.indexOf(Math.max(...v.hours));
+                const locations = [...v.locations].slice(0, 3).join(', ');
+                return { code, scans: v.scans, games: v.games, conversion, gamesPerSession, avgDuration, peakHour, locations, sessCount };
+            });
+
+            // Sort
+            rows.sort((a, b) => {
+                const keys = ['code', 'scans', 'games', 'conversion', 'gamesPerSession', 'avgDuration', 'peakHour', 'locations'];
+                const key = keys[currentSortCol];
+                let av = a[key], bv = b[key];
+                if (typeof av === 'string' && typeof bv === 'string') {
+                    return currentSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+                }
+                av = parseFloat(av) || 0;
+                bv = parseFloat(bv) || 0;
+                return currentSortAsc ? av - bv : bv - av;
+            });
+
+            // Render table
+            const maxGames = Math.max(...rows.map(r => r.games), 1);
+            const tbody = document.getElementById('venue-tbody');
+            tbody.innerHTML = rows.map(r => `
+                <tr>
+                    <td><span class="badge-code">${escapeHTML(r.code)}</span></td>
+                    <td>${r.scans}</td>
+                    <td class="bar-cell">
+                        <div class="bar-bg" style="width:${Math.round(r.games/maxGames*100)}%; background:var(--accent-blue);"></div>
+                        <span class="bar-val">${r.games}</span>
+                    </td>
+                    <td>${r.conversion}%</td>
+                    <td>${r.gamesPerSession}</td>
+                    <td>${r.avgDuration ? formatDuration(r.avgDuration) : '—'}</td>
+                    <td>${r.peakHour}:00</td>
+                    <td style="font-size:0.8rem; color:var(--text-secondary); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHTML(r.locations || '—')}</td>
+                </tr>
+            `).join('');
+
+            // Venue chart (top 10)
+            renderVenueChart(rows.slice(0, 10));
+
+            // UTM breakdown
+            renderUtmBreakdown(data);
+        }
+
+        function renderVenueChart(topVenues) {
+            if (venueChartInstance) venueChartInstance.destroy();
+            const ctx = document.getElementById('venueChart').getContext('2d');
+            venueChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topVenues.map(v => v.code),
+                    datasets: [{
+                        label: 'Games',
+                        data: topVenues.map(v => v.games),
+                        backgroundColor: 'rgba(138, 180, 248, 0.6)',
+                        borderColor: '#8AB4F8',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { font: { size: 10 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderUtmBreakdown(data) {
+            // Group by utm_source + utm_medium
+            const utmMap = {};
+            data.forEach(d => {
+                if (!d.utm_source) return;
+                const key = `${d.utm_source}||${d.utm_medium || 'direct'}`;
+                if (!utmMap[key]) utmMap[key] = { source: d.utm_source, medium: d.utm_medium || 'direct', count: 0, sessions: new Set() };
+                utmMap[key].count++;
+                if (d.session_id) utmMap[key].sessions.add(d.session_id);
+            });
+
+            const utmRows = Object.values(utmMap).sort((a, b) => b.count - a.count);
+
+            // UTM list
+            const utmList = document.getElementById('utm-list');
+            if (utmRows.length === 0) {
+                utmList.innerHTML = '<div style="color:var(--text-secondary); padding:20px; text-align:center;">No UTM data yet — add <code style="background:#1e1f22; padding:2px 6px; border-radius:3px;">?utm_source=facebook&utm_medium=social</code> to your QR links</div>';
+            } else {
+                utmList.innerHTML = `
+                    <div class="utm-row" style="font-weight:600; color:var(--text-secondary); font-size:0.7rem; letter-spacing:1px;">
+                        <div class="utm-source">SOURCE</div>
+                        <div class="utm-medium">MEDIUM</div>
+                        <div class="utm-count">EVENTS</div>
+                        <div class="utm-count">SESSIONS</div>
+                    </div>
+                ` + utmRows.map(r => `
+                    <div class="utm-row">
+                        <div class="utm-source">${escapeHTML(r.source)}</div>
+                        <div class="utm-medium">${escapeHTML(r.medium)}</div>
+                        <div class="utm-count">${r.count}</div>
+                        <div class="utm-count">${r.sessions.size}</div>
+                    </div>
+                `).join('');
+            }
+
+            // UTM chart
+            if (utmChartInstance) utmChartInstance.destroy();
+            const ctx = document.getElementById('utmChart').getContext('2d');
+            const topUtm = utmRows.slice(0, 8);
+            if (topUtm.length === 0) {
+                // Empty state
+                utmChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: ['No UTM data'], datasets: [{ data: [1], backgroundColor: ['rgba(255,255,255,0.05)'] }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            } else {
+                const colors = ['#8AB4F8', '#81C995', '#FDE293', '#F28B82', '#C58AF9', '#78D9EC', '#FCAD70', '#A8DAB5'];
+                utmChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: topUtm.map(r => `${r.source} / ${r.medium}`),
+                        datasets: [{
+                            data: topUtm.map(r => r.count),
+                            backgroundColor: topUtm.map((_, i) => colors[i % colors.length]),
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: { font: { size: 11 }, padding: 12 }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function sortTable(colIdx) {
+            if (currentSortCol === colIdx) {
+                currentSortAsc = !currentSortAsc;
+            } else {
+                currentSortCol = colIdx;
+                currentSortAsc = false;
+            }
+            fetchData();
+        }
+
+        function formatDuration(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return m > 0 ? `${m}m ${s}s` : `${s}s`;
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>
