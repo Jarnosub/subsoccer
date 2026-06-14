@@ -1630,16 +1630,16 @@
             }
         };
 
-        // Auto-activate dark mode from URL param or localStorage (default: OFF)
+        // Auto-activate dark mode from URL param or localStorage (default: ON)
         (function() {
             const params = new URLSearchParams(window.location.search);
             const fromUrl = params.get('dark') === '1';
             const storageVal = localStorage.getItem('subsoccer-dark-mode');
-            const fromStorage = storageVal === '1';
+            const fromStorage = storageVal === '1' || storageVal === null;
             
             if (fromUrl || fromStorage) {
                 document.body.classList.add('dark-mode');
-                if (fromUrl) localStorage.setItem('subsoccer-dark-mode', '1');
+                if (fromUrl || storageVal === null) localStorage.setItem('subsoccer-dark-mode', '1');
             }
         })();
         let wakeLock = null;
