@@ -483,7 +483,8 @@ function finishMatch(winnerName, winnerIndex) {
     
     // Explicit anonymous tracking for the individual tournament match
     if (_sb) {
-        const isRet = !!localStorage.getItem('subsoccer-user');
+        const isRet = !!localStorage.getItem('subsoccer-visited');
+        localStorage.setItem('subsoccer-visited', Date.now());
         locationPromise.then(userLoc => {
             _sb.from('public_tracking').insert({
                 event_type: 'tournament_match_finished',
@@ -562,7 +563,8 @@ async function trackTournamentAnonymously(results) {
     if (!_sb) return;
     try {
         const participants = localEngine.participants.filter(p => p !== 'BYE');
-        const isRet = !!localStorage.getItem('subsoccer-user');
+        const isRet = !!localStorage.getItem('subsoccer-visited');
+        localStorage.setItem('subsoccer-visited', Date.now());
         let duration = null;
         if (gameState.tournamentStartTime) {
             duration = Math.floor((Date.now() - gameState.tournamentStartTime) / 1000);
