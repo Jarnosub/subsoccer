@@ -2191,7 +2191,7 @@
                     labels: growthLabels,
                     datasets: [{
                         label: 'Total Cities',
-                        data: growthLabels.map(k => cityGrowthMap[k].cumulative),
+                        data: sortedGrowthKeys.map(k => cityGrowthMap[k].cumulative),
                         borderColor: '#8AB4F8',
                         backgroundColor: growthGradient,
                         fill: true,
@@ -2215,7 +2215,7 @@
                         tooltip: {
                             callbacks: {
                                 afterLabel: function(ctx) {
-                                    const key = growthLabels[ctx.dataIndex];
+                                    const key = sortedGrowthKeys[ctx.dataIndex];
                                     return `+${cityGrowthMap[key].newCount} new`;
                                 }
                             }
