@@ -39,7 +39,7 @@ let speechRecognition = null;
 let isSpeechActive = false;
 let lastSpeechGoalTime = 0;
 const SPEECH_COOLDOWN_MS = 1200; // Cooldown between voice-detected goals
-let voiceEnabled = true; // Can be toggled independently
+let voiceEnabled = false; // Default OFF – toggled on via Settings or logo long-press
 
 // Word-to-player mapping
 const VOICE_COMMANDS = {
