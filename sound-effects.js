@@ -45,7 +45,7 @@ class SoundEffects {
     loadSound(name, url) {
         const audio = new Audio(url);
         audio.volume = this.volume;
-        audio.preload = 'auto';
+        audio.preload = 'none';
         this.sounds[name] = audio;
         console.log(`🔊 Loaded sound: ${name} from ${url}`);
     }
