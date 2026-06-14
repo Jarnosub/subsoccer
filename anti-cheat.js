@@ -88,11 +88,7 @@ function showConsentQR(player, onConsentGranted) {
         }
     }).subscribe();
 
-    // The greybox fallback button hook
-    document.addEventListener('force-consent-granted', () => {
-        console.log(`[Anti-Cheat] Dev-forced consent for ${player}`);
-        completeConsent(onConsentGranted);
-    }, { once: true });
+    // force-consent-granted bypass removed for security (2026-06-14)
 }
 
 function completeConsent(callback) {
