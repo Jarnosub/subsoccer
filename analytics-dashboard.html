@@ -524,7 +524,10 @@
 
     <div class="header">
         <h1><i class="fas fa-chart-line" style="color: var(--accent-blue);"></i> Subsoccer Analytics Engine</h1>
-        <button onclick="window.location.href='moderator/index.html';" style="background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+        <div style="display:flex; align-items:center; gap:16px;">
+            <a href="venue-analytics.html" style="color:var(--text-secondary); text-decoration:none; font-size:0.85rem; transition:color 0.2s;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='var(--text-secondary)'"><i class="fas fa-store"></i> Venue Analytics</a>
+            <button onclick="window.location.href='moderator/index.html';" style="background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+        </div>
     </div>
 
     <div class="dashboard-container">
@@ -1072,7 +1075,8 @@
             'America/Buenos_Aires': { name: 'Argentina', flag: '🇦🇷' },
             'America/Santiago': { name: 'Chile', flag: '🇨🇱' },
             'Australia/Sydney': { name: 'Australia', flag: '🇦🇺' },
-            'Australia/Melbourne': { name: 'Australia', flag: '🇦🇺' }
+            'Australia/Melbourne': { name: 'Australia', flag: '🇦🇺' },
+            'Asia/Tbilisi': { name: 'Georgia', flag: '🇬🇪' }
         };
 
         function parseLocation(locationStr) {
@@ -2284,7 +2288,7 @@
                 'Asia/Hong_Kong': [22.3193, 114.1694], 'Asia/Jerusalem': [32.0853, 34.7818],
                 'Asia/Almaty': [43.2220, 76.8512], 'Asia/Beirut': [33.8938, 35.5018],
                 'Asia/Amman': [31.9454, 35.9284], 'Asia/Taipei': [25.0330, 121.5654],
-                'Asia/Saigon': [10.8231, 106.6297],
+                'Asia/Saigon': [10.8231, 106.6297], 'Asia/Tbilisi': [41.7151, 44.8271],
                 'Australia/Sydney': [-33.8688, 151.2093], 'Australia/Melbourne': [-37.8136, 144.9631],
                 'Africa/Johannesburg': [-26.2041, 28.0473], 'Africa/Cairo': [30.0444, 31.2357],
                 'Africa/Nairobi': [-1.2921, 36.8219], 'Africa/Accra': [5.6037, -0.1870],

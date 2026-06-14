@@ -951,6 +951,27 @@
             return clientTimezone;
         })();
 
+        // --- Session ID & UTM tracking helpers ---
+        function getSessionId() {
+            let sid = sessionStorage.getItem('subsoccer-session-id');
+            if (!sid) {
+                sid = crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+                sessionStorage.setItem('subsoccer-session-id', sid);
+            }
+            return sid;
+        }
+        function getUtmParams() {
+            // Read from URL first, cache in sessionStorage so they persist across page navigations
+            const url = new URLSearchParams(window.location.search);
+            const keys = ['utm_source', 'utm_medium', 'utm_campaign'];
+            keys.forEach(k => { if (url.get(k)) sessionStorage.setItem(k, url.get(k)); });
+            return {
+                utm_source: sessionStorage.getItem('utm_source') || null,
+                utm_medium: sessionStorage.getItem('utm_medium') || null,
+                utm_campaign: sessionStorage.getItem('utm_campaign') || null
+            };
+        }
+
         async function logTrackingEvent(eventType, matchScore = null) {
             try {
                 if (!_supabase) return;
@@ -969,6 +990,8 @@
                     duration = Math.floor((Date.now() - window.__trackingStartTime) / 1000); // seconds
                 }
 
+                const utm = getUtmParams();
+
                 await _supabase.from('public_tracking').insert({
                     event_type: eventType,
                     game_code: gId.toUpperCase(),
@@ -978,7 +1001,11 @@
                     location: userLoc,
                     is_returning: isReturning,
                     browser_lang: lang,
-                    session_duration: duration
+                    session_duration: duration,
+                    session_id: getSessionId(),
+                    utm_source: utm.utm_source,
+                    utm_medium: utm.utm_medium,
+                    utm_campaign: utm.utm_campaign
                 });
             } catch (err) {
                 console.warn("Tracking error:", err);

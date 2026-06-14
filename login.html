@@ -899,7 +899,8 @@
                                 event_type: 'avatar_generated',
                                 game_code: 'AI-STUDIO',
                                 source_partner: 'signup-flow',
-                                user_agent: navigator.userAgent
+                                user_agent: navigator.userAgent,
+                                session_id: sessionStorage.getItem('subsoccer-session-id') || null
                             }).then(() => console.log('Tracked avatar generation.'));
                         } catch (e) {
                             console.error('Tracking error:', e);

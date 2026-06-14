@@ -168,7 +168,11 @@
                 game_code: 'MINIGAME-QR',
                 source_partner: 'promo-qr',
                 user_agent: navigator.userAgent,
-                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase()
+                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
+                session_id: sessionStorage.getItem('subsoccer-session-id') || (() => { const s = crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); sessionStorage.setItem('subsoccer-session-id', s); return s; })(),
+                utm_source: sessionStorage.getItem('utm_source') || new URLSearchParams(window.location.search).get('utm_source') || null,
+                utm_medium: sessionStorage.getItem('utm_medium') || new URLSearchParams(window.location.search).get('utm_medium') || null,
+                utm_campaign: sessionStorage.getItem('utm_campaign') || new URLSearchParams(window.location.search).get('utm_campaign') || null
             });
         }
     } catch (err) {
@@ -188,7 +192,11 @@ window.onload = async () => {
                 game_code: 'MINIGAME-QR',
                 source_partner: new URLSearchParams(window.location.search).get('utm_source') || 'qr',
                 user_agent: navigator.userAgent,
-                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase()
+                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
+                session_id: sessionStorage.getItem('subsoccer-session-id') || (() => { const s = crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); sessionStorage.setItem('subsoccer-session-id', s); return s; })(),
+                utm_source: sessionStorage.getItem('utm_source') || new URLSearchParams(window.location.search).get('utm_source') || null,
+                utm_medium: sessionStorage.getItem('utm_medium') || new URLSearchParams(window.location.search).get('utm_medium') || null,
+                utm_campaign: sessionStorage.getItem('utm_campaign') || new URLSearchParams(window.location.search).get('utm_campaign') || null
             });
         }
     } catch (err) {
