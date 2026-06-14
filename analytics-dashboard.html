@@ -2159,8 +2159,8 @@
             });
 
             const growthGradient = ctx4.createLinearGradient(0, 0, 0, 260);
-            growthGradient.addColorStop(0, 'rgba(196, 30, 42, 0.35)');
-            growthGradient.addColorStop(1, 'rgba(196, 30, 42, 0.02)');
+            growthGradient.addColorStop(0, 'rgba(138, 180, 248, 0.3)');
+            growthGradient.addColorStop(1, 'rgba(138, 180, 248, 0.02)');
 
             cityGrowthInstance = new Chart(ctx4, {
                 type: 'line',
@@ -2169,15 +2169,18 @@
                     datasets: [{
                         label: 'Total Cities',
                         data: growthLabels.map(k => cityGrowthMap[k].cumulative),
-                        borderColor: '#c41e2a',
+                        borderColor: '#8AB4F8',
                         backgroundColor: growthGradient,
                         fill: true,
                         tension: 0.3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#c41e2a',
-                        pointBorderWidth: 2,
-                        pointRadius: 3,
-                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#8AB4F8',
+                        pointBorderColor: '#8AB4F8',
+                        pointBorderWidth: 0,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#8AB4F8',
+                        pointHoverBorderWidth: 2,
                         borderWidth: 2
                     }]
                 },
