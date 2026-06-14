@@ -294,13 +294,14 @@ export async function handleSignUp() {
     if (!u || !p || !email) return showNotification("Fill all fields including email", "error");
 
     // Tarkistetaan onko nimi jo varattu (huomioidaan eri välilyönnit)
-    let { data: matches } = await _supabase.from('players').select('*').ilike('username', u);
+    // Security: Use player_profiles view to avoid exposing email/phone to anon role
+    let { data: matches } = await _supabase.from('player_profiles').select('id, username, elo, wins, losses, country').ilike('username', u);
 
     if (!matches || matches.length === 0) {
         const fuzzyName = u.replace(/\s+/g, '%');
         const { data: fuzzyMatches } = await _supabase
-            .from('players')
-            .select('*')
+            .from('player_profiles')
+            .select('id, username, elo, wins, losses, country')
             .ilike('username', fuzzyName);
         matches = fuzzyMatches || [];
     }
@@ -581,15 +582,14 @@ export async function handleAuth(event) {
             }
             console.log("Supabase Auth login failed:", error.message);
 
-            // Tarkistetaan löytyykö sähköposti players-taulusta (migraatiotuki)
-            const { data: emailMatches, error: emailErr } = await _supabase
-                .from('players')
-                .select('*')
-                .ilike('email', input);
+            // Security: email lookup removed from anon-accessible flow.
+            // Users must enter their email address directly to log in.
+            // The legacy username-to-email migration path is handled below via player_profiles.
+            const emailMatches = []; // Legacy email lookup disabled for security
 
-            if (!emailErr && emailMatches && emailMatches.length > 0) {
+            if (emailMatches.length > 0) {
                 const hashed = await hashPassword(p);
-                const userRecord = emailMatches.find(m => m.password === hashed || m.password === p) || emailMatches[0];
+                const userRecord = emailMatches[0];
 
                 console.log("Legacy record found by email:", userRecord.username);
                 if (isUuid(userRecord.id)) {
@@ -612,9 +612,9 @@ export async function handleAuth(event) {
         // 2. Tarkistetaan players-taulu (käyttäjänimellä)
         console.log("🔍 Searching players table by username...");
 
-        // Yksinkertaistettu haku ilman Promise.racea jumiutumisen estämiseksi
+        // Security: Use player_profiles view (no email/password exposed to anon)
         let { data: nameMatches, error: nameErr } = await _supabase
-            .from('players').select('*').ilike('username', input);
+            .from('player_profiles').select('id, username, elo, wins, losses, country, is_admin').ilike('username', input);
 
         console.log("📡 DB Search completed. Matches found:", nameMatches?.length || 0);
 

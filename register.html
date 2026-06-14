@@ -546,8 +546,10 @@
                 showAccountStatus('Logging in...', 'success');
                 let email = userInput;
                 if (!userInput.includes('@')) {
-                    const { data: player } = await _supabase.from('players').select('email').ilike('username', userInput).maybeSingle();
-                    if (player?.email) email = player.email;
+                    // Security: use player_profiles view (no email exposed to anon)
+                    // Username login requires the user to enter their email directly
+                    showAccountStatus('Please enter your email address to log in.', 'error');
+                    return;
                 }
                 const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
@@ -750,8 +752,9 @@
                         showCommunityStatus('Logging in...', 'success');
                         let email = userInput;
                         if (!userInput.includes('@')) {
-                            const { data: player } = await _supabase.from('players').select('email').ilike('username', userInput).maybeSingle();
-                            if (player?.email) email = player.email;
+                            // Security: use player_profiles view (no email exposed to anon)
+                            showCommunityStatus('Please enter your email address to log in.', 'error');
+                            return;
                         }
                         const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
                         if (error) throw error;
