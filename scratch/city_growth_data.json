@@ -1,0 +1,72 @@
+[
+  {
+    "date": "2026-06-01",
+    "cumulative": 9,
+    "newCities": 9
+  },
+  {
+    "date": "2026-06-02",
+    "cumulative": 21,
+    "newCities": 12
+  },
+  {
+    "date": "2026-06-03",
+    "cumulative": 39,
+    "newCities": 18
+  },
+  {
+    "date": "2026-06-04",
+    "cumulative": 55,
+    "newCities": 16
+  },
+  {
+    "date": "2026-06-05",
+    "cumulative": 65,
+    "newCities": 10
+  },
+  {
+    "date": "2026-06-06",
+    "cumulative": 76,
+    "newCities": 11
+  },
+  {
+    "date": "2026-06-07",
+    "cumulative": 86,
+    "newCities": 10
+  },
+  {
+    "date": "2026-06-08",
+    "cumulative": 90,
+    "newCities": 4
+  },
+  {
+    "date": "2026-06-09",
+    "cumulative": 95,
+    "newCities": 5
+  },
+  {
+    "date": "2026-06-10",
+    "cumulative": 114,
+    "newCities": 19
+  },
+  {
+    "date": "2026-06-11",
+    "cumulative": 126,
+    "newCities": 12
+  },
+  {
+    "date": "2026-06-12",
+    "cumulative": 143,
+    "newCities": 17
+  },
+  {
+    "date": "2026-06-13",
+    "cumulative": 166,
+    "newCities": 23
+  },
+  {
+    "date": "2026-06-14",
+    "cumulative": 167,
+    "newCities": 1
+  }
+]
