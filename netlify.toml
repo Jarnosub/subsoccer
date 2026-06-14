@@ -33,7 +33,7 @@
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=(self)"
+    Permissions-Policy = "camera=(), microphone=(self), geolocation=(self)"
     X-XSS-Protection = "1; mode=block"
     # Security fix #14: Content Security Policy
     # 'unsafe-inline' required because app uses inline scripts/styles extensively
