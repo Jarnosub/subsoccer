@@ -342,6 +342,12 @@
             margin-bottom: 24px;
         }
 
+        @media (max-width: 1250px) and (min-width: 901px) {
+            .chart-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
         @media (max-width: 900px) {
             .chart-grid {
                 grid-template-columns: 1fr;
@@ -1377,7 +1383,7 @@
                 const instantMatches = gamesFinished;
 
                 // Conversion Rate: QR scan → game played
-                const conversionRate = sessionCount > 0 ? Math.round((gamesFinished / sessionCount) * 100) : 0;
+                const conversionRate = sessionCount > 0 ? Math.min(Math.round((gamesFinished / sessionCount) * 100), 100) : 0;
 
                 // Calculate Returning Users % (only data from 14.6.2026 — earlier data had a bug)
                 const retFixDate = new Date('2026-06-14T00:00:00Z');
@@ -2015,15 +2021,22 @@
             if (citiesInstance) citiesInstance.destroy();
             if (cityGrowthInstance) cityGrowthInstance.destroy();
 
-            // Aggregation by day for trend line
+            // Aggregation by day for trend line using YYYY-MM-DD keys to ensure correct sorting across months/years
             const daysMap = {};
             data.forEach(d => {
                 const dateObj = new Date(d.client_time || new Date());
-                const dateKey = ('0' + dateObj.getDate()).slice(-2) + '/' + ('0' + (dateObj.getMonth() + 1)).slice(-2);
-                daysMap[dateKey] = (daysMap[dateKey] || 0) + 1;
+                const year = dateObj.getFullYear();
+                const month = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+                const day = ('0' + dateObj.getDate()).slice(-2);
+                const isoKey = `${year}-${month}-${day}`;
+                daysMap[isoKey] = (daysMap[isoKey] || 0) + 1;
             });
-            const labels = Object.keys(daysMap).reverse();
-            const counts = Object.values(daysMap).reverse();
+            const sortedIsoKeys = Object.keys(daysMap).sort();
+            const labels = sortedIsoKeys.map(k => {
+                const parts = k.split('-');
+                return `${parts[2]}/${parts[1]}`;
+            });
+            const counts = sortedIsoKeys.map(k => daysMap[k]);
 
             // Trend Line Chart
             const ctx1 = document.getElementById('mainChart').getContext('2d');
@@ -2143,21 +2156,29 @@
                 if (!city || city === 'Unknown') return;
 
                 const dateObj = new Date(d.client_time);
-                const dateKey = ('0' + dateObj.getDate()).slice(-2) + '/' + ('0' + (dateObj.getMonth() + 1)).slice(-2);
+                const year = dateObj.getFullYear();
+                const month = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+                const day = ('0' + dateObj.getDate()).slice(-2);
+                const isoKey = `${year}-${month}-${day}`;
 
-                if (!cityGrowthMap[dateKey]) cityGrowthMap[dateKey] = { cumulative: 0, newCount: 0 };
+                if (!cityGrowthMap[isoKey]) cityGrowthMap[isoKey] = { cumulative: 0, newCount: 0 };
                 if (!seenCitiesSet.has(city)) {
                     seenCitiesSet.add(city);
-                    cityGrowthMap[dateKey].newCount++;
+                    cityGrowthMap[isoKey].newCount++;
                 }
             });
 
-            // Fill cumulative
+            // Fill cumulative and sort chronologically using ISO keys
             let cumTotal = 0;
-            const growthLabels = Object.keys(cityGrowthMap);
-            growthLabels.forEach(key => {
+            const sortedGrowthKeys = Object.keys(cityGrowthMap).sort();
+            sortedGrowthKeys.forEach(key => {
                 cumTotal += cityGrowthMap[key].newCount;
                 cityGrowthMap[key].cumulative = cumTotal;
+            });
+
+            const growthLabels = sortedGrowthKeys.map(k => {
+                const parts = k.split('-');
+                return `${parts[2]}/${parts[1]}`;
             });
 
             const growthGradient = ctx4.createLinearGradient(0, 0, 0, 260);
