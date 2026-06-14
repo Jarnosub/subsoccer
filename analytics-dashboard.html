@@ -2243,6 +2243,8 @@
                 'Europe/Lisbon': [38.7223, -9.1393], 'Europe/Zurich': [47.3769, 8.5417],
                 'Europe/Sofia': [42.6977, 23.3219], 'Europe/Riga': [56.9496, 24.1052],
                 'Europe/Kiev': [50.4501, 30.5234], 'Europe/Budapest': [47.4979, 19.0402],
+                'Europe/Vienna': [48.2082, 16.3738], 'Europe/Bucharest': [44.4268, 26.1025],
+                'Europe/Tallinn': [59.4370, 24.7536], 'Europe/Vilnius': [54.6872, 25.2797],
                 'America/New_York': [40.7128, -74.006], 'America/Los_Angeles': [34.0522, -118.2437],
                 'America/Chicago': [41.8781, -87.6298], 'America/Toronto': [43.6532, -79.3832],
                 'America/Phoenix': [33.4484, -112.0740], 'America/Denver': [39.7392, -104.9903],
@@ -2339,15 +2341,8 @@
                 let isFallback = false;
 
                 if (!coords && loc !== 'Unknown') {
-                    const continent = parsed.timezone.split('/')[0];
-                    if (tzContinents[continent]) {
-                        // Tightly cluster unknown areas so they don't spawn in oceans
-                        const hash = loc.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
-                        const latOffset = (hash % 6) - 3;
-                        const lngOffset = ((hash >> 4) % 6) - 3;
-                        coords = [tzContinents[continent][0] + latOffset, tzContinents[continent][1] + lngOffset];
-                        isFallback = true;
-                    }
+                    // Skip unknown locations instead of placing them randomly
+                    continue;
                 }
 
                 if (coords) {
