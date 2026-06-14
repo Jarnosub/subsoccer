@@ -1379,9 +1379,11 @@
                 // Conversion Rate: QR scan → game played
                 const conversionRate = sessionCount > 0 ? Math.round((gamesFinished / sessionCount) * 100) : 0;
 
-                // Calculate Returning Users %
-                const returningCount = trackingData.filter(d => d.is_returning === true).length;
-                const newCount = trackingData.filter(d => d.is_returning === false).length;
+                // Calculate Returning Users % (only data from 14.6.2026 — earlier data had a bug)
+                const retFixDate = new Date('2026-06-14T00:00:00Z');
+                const validRetData = trackingData.filter(d => new Date(d.client_time) >= retFixDate);
+                const returningCount = validRetData.filter(d => d.is_returning === true).length;
+                const newCount = validRetData.filter(d => d.is_returning === false).length;
                 const totalRetNew = returningCount + newCount;
                 const returningPct = totalRetNew > 0 ? Math.round((returningCount / totalRetNew) * 100) : 0;
 
@@ -1540,7 +1542,7 @@
 
                 // Returning Users KPI
                 document.getElementById('kpi-returning').textContent = totalRetNew > 0 ? `${returningPct}%` : '—%';
-                document.getElementById('kpi-returning-trend').innerHTML = `<i class="fas fa-user-check"></i> ${returningCount} returning / ${newCount} new<br><span style="font-size:0.6rem;color:#555;">⚠ Data accurate from 14.6.2026</span>`;
+                document.getElementById('kpi-returning-trend').innerHTML = `<i class="fas fa-user-check"></i> ${returningCount} returning / ${newCount} new<br><span style="font-size:0.6rem;color:#555;">⚠ Measuring since 14.6.2026 — earlier data invalid</span>`;
 
                 // WoW Growth badge
                 const wowEl = document.getElementById('kpi-wow');
