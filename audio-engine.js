@@ -448,7 +448,7 @@ function startVoiceRecognition() {
     if (!SpeechRecognition) {
         console.warn('🎙️ Speech Recognition not supported in this browser');
         if (typeof window.onVoiceStatusChange === 'function') {
-            window.onVoiceStatusChange({ active: false, supported: false });
+            window.onVoiceStatusChange({ active: false, supported: false, enabled: voiceEnabled });
         }
         return false;
     }
@@ -468,7 +468,7 @@ function startVoiceRecognition() {
             isSpeechActive = true;
             console.log('🎙️ Voice goal detection: ACTIVE');
             if (typeof window.onVoiceStatusChange === 'function') {
-                window.onVoiceStatusChange({ active: true, supported: true });
+                window.onVoiceStatusChange({ active: true, supported: true, enabled: voiceEnabled });
             }
         };
 
@@ -552,7 +552,7 @@ function startVoiceRecognition() {
                 }, 300);
             } else {
                 if (typeof window.onVoiceStatusChange === 'function') {
-                    window.onVoiceStatusChange({ active: false, supported: true });
+                    window.onVoiceStatusChange({ active: false, supported: true, enabled: voiceEnabled });
                 }
             }
         };
@@ -581,7 +581,7 @@ function stopVoiceRecognition() {
     isSpeechActive = false;
 
     if (typeof window.onVoiceStatusChange === 'function') {
-        window.onVoiceStatusChange({ active: false, supported: true });
+        window.onVoiceStatusChange({ active: false, supported: true, enabled: voiceEnabled });
     }
 }
 

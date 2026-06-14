@@ -1603,8 +1603,8 @@
             const label = document.getElementById('voice-setting-label');
             const checkbox = document.getElementById('voice-control-checkbox');
             
-            // Sync checkbox if updated externally
-            if (checkbox) {
+            // Sync checkbox if updated externally (only if enabled is explicitly defined)
+            if (checkbox && typeof status.enabled === 'boolean') {
                 checkbox.checked = status.enabled;
             }
 
