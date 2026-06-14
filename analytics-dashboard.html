@@ -337,7 +337,7 @@
         /* Charts Row */
         .chart-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
             gap: 24px;
             margin-bottom: 24px;
         }
@@ -727,6 +727,12 @@
                 <h2>Top Hubs</h2>
                 <div style="position: relative; height: 260px; width: 100%;">
                     <canvas id="citiesChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2>City Growth <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:400;">— cumulative unique cities</span></h2>
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="cityGrowthChart"></canvas>
                 </div>
             </div>
         </div>
@@ -1186,6 +1192,7 @@
         let chartInstance = null;
         let doughnutInstance = null;
         let citiesInstance = null;
+        let cityGrowthInstance = null;
         let globalTrackingData = []; // Tallenna data lokaalia filtteröintiä varten
 
         function resetDateFilters() {
@@ -2004,6 +2011,7 @@
             if (chartInstance) chartInstance.destroy();
             if (doughnutInstance) doughnutInstance.destroy();
             if (citiesInstance) citiesInstance.destroy();
+            if (cityGrowthInstance) cityGrowthInstance.destroy();
 
             // Aggregation by day for trend line
             const daysMap = {};
@@ -2114,6 +2122,88 @@
                         y: { 
                             grid: { display: false },
                             ticks: { font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+
+            // ===== City Growth Chart (cumulative unique cities over time) =====
+            const ctx4 = document.getElementById('cityGrowthChart').getContext('2d');
+            const cityGrowthMap = {};
+            const seenCitiesSet = new Set();
+
+            // Sort data by time
+            const sortedData = [...data].sort((a, b) => new Date(a.client_time) - new Date(b.client_time));
+            sortedData.forEach(d => {
+                if (!d.location || d.location === 'Unknown') return;
+                const parsed = parseLocation(d.location);
+                const city = parsed.city;
+                if (!city || city === 'Unknown') return;
+
+                const dateObj = new Date(d.client_time);
+                const dateKey = ('0' + dateObj.getDate()).slice(-2) + '/' + ('0' + (dateObj.getMonth() + 1)).slice(-2);
+
+                if (!cityGrowthMap[dateKey]) cityGrowthMap[dateKey] = { cumulative: 0, newCount: 0 };
+                if (!seenCitiesSet.has(city)) {
+                    seenCitiesSet.add(city);
+                    cityGrowthMap[dateKey].newCount++;
+                }
+            });
+
+            // Fill cumulative
+            let cumTotal = 0;
+            const growthLabels = Object.keys(cityGrowthMap);
+            growthLabels.forEach(key => {
+                cumTotal += cityGrowthMap[key].newCount;
+                cityGrowthMap[key].cumulative = cumTotal;
+            });
+
+            const growthGradient = ctx4.createLinearGradient(0, 0, 0, 260);
+            growthGradient.addColorStop(0, 'rgba(196, 30, 42, 0.35)');
+            growthGradient.addColorStop(1, 'rgba(196, 30, 42, 0.02)');
+
+            cityGrowthInstance = new Chart(ctx4, {
+                type: 'line',
+                data: {
+                    labels: growthLabels,
+                    datasets: [{
+                        label: 'Total Cities',
+                        data: growthLabels.map(k => cityGrowthMap[k].cumulative),
+                        borderColor: '#c41e2a',
+                        backgroundColor: growthGradient,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#c41e2a',
+                        pointBorderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(ctx) {
+                                    const key = growthLabels[ctx.dataIndex];
+                                    return `+${cityGrowthMap[key].newCount} new`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { font: { size: 10 }, maxTicksLimit: 10 },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { size: 10 } },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
                         }
                     }
                 }
