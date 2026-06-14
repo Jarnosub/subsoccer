@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer Pro — Privacy Policy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1011;
+            --card: #1a1b1e;
+            --border: #2a2b2e;
+            --text: #e8eaed;
+            --text-sec: #9aa0a6;
+            --accent: #D4AF37;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.7;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .logo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo-header img { width: 160px; }
+        .logo-header p {
+            color: var(--text-sec);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+        .updated {
+            color: var(--text-sec);
+            font-size: 0.8rem;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 12px;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+        p, li {
+            color: var(--text-sec);
+            font-size: 0.9rem;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        strong {
+            color: var(--text);
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover { text-decoration: underline; }
+        .highlight-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-sec);
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-header">
+            <img src="subsoccer_logo.svg" alt="Subsoccer Logo">
+            <p>PRIVACY POLICY</p>
+        </div>
+
+        <h1>Privacy Policy</h1>
+        <p class="updated">Last updated: June 14, 2026</p>
+
+        <p>Subsoccer Pro ("we", "us", "our") operates the Subsoccer Pro web application and related services. This Privacy Policy explains what data we collect, how we use it, and your rights regarding your personal information.</p>
+
+        <h2>1. Data We Collect</h2>
+
+        <p>We collect the following categories of data:</p>
+
+        <h3 style="font-size:0.95rem; margin-top:20px; color:var(--text);">a) Account Data (registered users)</h3>
+        <ul>
+            <li><strong>Email address</strong> — used for authentication and account recovery</li>
+            <li><strong>Username</strong> — chosen by you, displayed publicly on leaderboards</li>
+            <li><strong>Avatar</strong> — profile picture (uploaded or AI-generated)</li>
+            <li><strong>Country</strong> — selected by you during registration</li>
+        </ul>
+
+        <h3 style="font-size:0.95rem; margin-top:20px; color:var(--text);">b) Game Data</h3>
+        <ul>
+            <li><strong>Match results</strong> — scores, player names, timestamps</li>
+            <li><strong>Tournament history</strong> — brackets, placements, participant names</li>
+            <li><strong>ELO rating</strong> — calculated from match results</li>
+        </ul>
+
+        <h3 style="font-size:0.95rem; margin-top:20px; color:var(--text);">c) Analytics Data (all users, including QR scan visitors)</h3>
+        <ul>
+            <li><strong>Approximate location</strong> — city-level, determined from your IP address via a server-side lookup. We do <strong>not</strong> use GPS or the browser Geolocation API. We do <strong>not</strong> store your IP address.</li>
+            <li><strong>Device type</strong> — browser user agent string (e.g., "Safari on iPhone")</li>
+            <li><strong>Browser language</strong> — your browser's language preference</li>
+            <li><strong>Session duration</strong> — how long you played</li>
+            <li><strong>Session ID</strong> — a random identifier that groups your actions within a single visit. It is not linked to your identity and resets when you close the browser tab.</li>
+            <li><strong>UTM parameters</strong> — marketing campaign tags from the URL (e.g., utm_source), if present</li>
+        </ul>
+
+        <div class="highlight-box">
+            <strong>What we do NOT collect:</strong>
+            <ul>
+                <li>IP addresses</li>
+                <li>GPS coordinates</li>
+                <li>Cookies (we use localStorage for session state only)</li>
+                <li>Personal financial information</li>
+                <li>Contacts, photos, or other device data</li>
+            </ul>
+        </div>
+
+        <h2>2. How We Use Your Data</h2>
+        <ul>
+            <li><strong>Account Data:</strong> To authenticate you, display your profile, and let you participate in leaderboards and tournaments.</li>
+            <li><strong>Game Data:</strong> To calculate rankings, display match history, and generate player statistics.</li>
+            <li><strong>Analytics Data:</strong> To understand how the app is used, identify popular regions, and improve the product. Analytics data is viewed only by the Subsoccer team through an admin-only dashboard.</li>
+        </ul>
+
+        <h2>3. Data Storage & Security</h2>
+        <ul>
+            <li>All data is stored in <strong>Supabase</strong> (hosted on AWS in the EU region).</li>
+            <li>All communication is encrypted via <strong>HTTPS/TLS</strong>.</li>
+            <li>Database access is protected by <strong>Row Level Security (RLS)</strong> policies that restrict who can read or modify data.</li>
+            <li>Passwords are hashed with <strong>bcrypt</strong> before storage. We never store plaintext passwords.</li>
+            <li>Authentication is handled by <strong>Supabase Auth</strong> with industry-standard JWT tokens.</li>
+        </ul>
+
+        <h2>4. Data Sharing</h2>
+        <p>We do <strong>not</strong> sell, rent, or share your personal data with third parties, except:</p>
+        <ul>
+            <li><strong>Supabase</strong> — our database provider (processes data on our behalf)</li>
+            <li><strong>Netlify</strong> — our hosting provider (serves the application)</li>
+            <li><strong>Sentry</strong> — error monitoring (receives anonymous error reports with <code>sendDefaultPii: false</code>)</li>
+        </ul>
+        <p>We do not use Google Analytics or any third-party advertising trackers.</p>
+
+        <h2>5. Your Rights</h2>
+        <p>Under GDPR and applicable data protection laws, you have the right to:</p>
+        <ul>
+            <li><strong>Access</strong> — request a copy of your personal data</li>
+            <li><strong>Rectification</strong> — update or correct your data via your profile settings</li>
+            <li><strong>Deletion</strong> — delete your account and all associated data. You can do this directly from the app (Settings → Delete Account) or by contacting us.</li>
+            <li><strong>Data Portability</strong> — request your data in a machine-readable format</li>
+            <li><strong>Objection</strong> — object to processing of your data</li>
+        </ul>
+
+        <h2>6. Data Retention</h2>
+        <ul>
+            <li><strong>Account Data:</strong> Retained until you delete your account.</li>
+            <li><strong>Analytics Data:</strong> Retained for up to 24 months, then aggregated or deleted.</li>
+            <li><strong>Game Data:</strong> Retained as part of the public leaderboard for the lifetime of the service.</li>
+        </ul>
+
+        <h2>7. Children's Privacy</h2>
+        <p>Subsoccer Pro does not knowingly collect personal data from children under 13. The QR-code scanning feature (Instant Play) works without any account or personal data collection — only anonymous analytics data is recorded.</p>
+
+        <h2>8. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy from time to time. The updated version will be indicated by the "Last updated" date at the top of this page.</p>
+
+        <h2>9. Contact Us</h2>
+        <p>If you have questions about this Privacy Policy or wish to exercise your rights, contact us at:</p>
+        <div class="highlight-box">
+            <strong>Subsoccer Oy</strong><br>
+            Email: <a href="mailto:privacy@subsoccer.com">privacy@subsoccer.com</a><br>
+            Website: <a href="https://subsoccer.com">subsoccer.com</a>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 Subsoccer Oy. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
