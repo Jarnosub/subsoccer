@@ -2253,7 +2253,7 @@
             
             // Clear old markers
             mymap.eachLayer((layer) => {
-                if(layer instanceof L.CircleMarker) layer.remove();
+                if(layer instanceof L.Marker) layer.remove();
             });
 
             // Rough mapping of timezones and cities to coordinates for visual heatmap
@@ -2377,13 +2377,41 @@
                     // Vibrant colors for high contrast on the light map tiles
                     const mapBlue = '#1A73E8';
                     const mapRed = '#D93025';
-                    L.circleMarker(coords, {
-                        color: isFallback ? mapRed + 'CC' : mapBlue + 'CC',
-                        fillColor: isFallback ? mapRed : mapBlue,
-                        fillOpacity: 0.6,
-                        weight: 1.5,
-                        radius: isFallback ? 4 : radius
-                    }).bindPopup(`<div style="color:black"><b>${getDisplayLocation(loc)}</b><br>${count} Events tracked</div>`).addTo(mymap);
+                    
+                    // Create a custom HTML/CSS divIcon to show the circle marker with a number inside
+                    const diameter = radius * 2;
+                    const markerHtml = `
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: ${diameter}px;
+                            height: ${diameter}px;
+                            border-radius: 50%;
+                            background-color: ${isFallback ? mapRed : mapBlue};
+                            border: 1.5px solid ${isFallback ? mapRed : '#fff'};
+                            color: white;
+                            font-family: 'Roboto', sans-serif;
+                            font-size: ${Math.max(8, Math.min(13, radius * 0.7))}px;
+                            font-weight: bold;
+                            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                            opacity: 0.85;
+                            transition: transform 0.2s ease, opacity 0.2s ease;
+                        " class="map-interactive-marker">
+                            ${count}
+                        </div>
+                    `;
+
+                    const customIcon = L.divIcon({
+                        html: markerHtml,
+                        className: 'custom-map-marker',
+                        iconSize: [diameter, diameter],
+                        iconAnchor: [radius, radius]
+                    });
+
+                    L.marker(coords, { icon: customIcon })
+                        .bindPopup(`<div style="color:black"><b>${getDisplayLocation(loc)}</b><br>${count} Events tracked</div>`)
+                        .addTo(mymap);
                 }
             }
         }
