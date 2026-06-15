@@ -560,7 +560,11 @@
             }
         }
 
-
+        @keyframes voice-pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+            100% { opacity: 1; transform: scale(1); }
+        }
 
         /* Rules Overlay */
         .rules-overlay {
@@ -675,9 +679,28 @@
         <div id="audio-threshold-marker"></div>
     </div>
 
+    <!-- Voice Detection Badge -->
+    <div id="voice-badge" style="display:none; position:fixed; top:12px; right:12px; z-index:999;
+        background: rgba(0,0,0,0.75); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.15);
+        border-radius:24px; padding:6px 14px; font-size:12px; color:#fff;
+        font-family:'Inter',sans-serif; display:flex; align-items:center; gap:6px;
+        transition: all 0.3s ease;">
+        <span id="voice-dot" style="width:8px; height:8px; border-radius:50%; background:#4CAF50;
+            display:inline-block; animation:voice-pulse 1.5s infinite;"></span>
+        <span id="voice-label">Voice ON</span>
+    </div>
+
+    <!-- Voice Goal Toast -->
+    <div id="voice-toast" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.5);
+        z-index:1100; font-family:'Oswald','Inter',sans-serif; font-size:48px; font-weight:700;
+        text-transform:uppercase; letter-spacing:4px; padding:16px 40px;
+        border-radius:12px; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,0.5);
+        pointer-events:none; opacity:0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+    </div>
+
     <!-- Exit Button (CLOSE) removed for Costco captive pilot -->
     <!-- Game Logo -->
-    <img src="subsoccer_logo.svg" class="game-logo" alt="Subsoccer" width="101" height="35" style="cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
+    <img src="subsoccer_logo.svg" id="game-logo" class="game-logo" alt="Subsoccer" width="101" height="35" style="cursor: pointer;">
 
 
 
@@ -1714,7 +1737,7 @@
             }
         }
 
-        // Toggle Microphone
+        // Toggle Microphone (acoustic detection only — voice recognition has its own toggle)
         function toggleMic(btn) {
             micEnabled = !micEnabled;
             if (micEnabled) {
@@ -1738,6 +1761,61 @@
                 console.warn("⚠️ Maali tunnistettu (Mic OFF) - Testitila");
             }
             addGoal(playerNumber);
+        };
+
+        // Voice recognition UI callbacks (disabled for Costco)
+        window.onVoiceStatusChange = function(status) {
+            const badge = document.getElementById('voice-badge');
+            const dot = document.getElementById('voice-dot');
+            const label = document.getElementById('voice-label');
+            if (!badge) return;
+
+            // Never show voice UI for Costco partner
+            const isCostcoPartner = new URLSearchParams(window.location.search).get('partner') === 'costco';
+            if (isCostcoPartner) {
+                badge.style.display = 'none';
+                return;
+            }
+
+            if (!status.supported) {
+                badge.style.display = 'none';
+                return;
+            }
+
+            if (status.active) {
+                badge.style.display = 'flex';
+                dot.style.background = '#4CAF50';
+                dot.style.animation = 'voice-pulse 1.5s infinite';
+                label.textContent = '🎙️ Voice ON';
+            } else {
+                badge.style.display = 'none';
+            }
+        };
+
+        window.onVoiceGoalDetected = function(word, player) {
+            const toast = document.getElementById('voice-toast');
+            if (!toast) return;
+
+            // Set color based on player
+            const isBlue = player === 1;
+            toast.style.background = isBlue
+                ? 'linear-gradient(135deg, #1565C0, #42A5F5)'
+                : 'linear-gradient(135deg, #C62828, #EF5350)';
+            toast.style.boxShadow = isBlue
+                ? '0 0 40px rgba(33,150,243,0.5)'
+                : '0 0 40px rgba(244,67,54,0.5)';
+
+            toast.textContent = `“${word.toUpperCase()}”`;
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%,-50%) scale(1)';
+
+            // Fade out after 1.2s
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%,-50%) scale(0.8)';
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 1200);
         };
 
         // Stadium Lasers / Spotlight Effect (Premium E-Sports Look)
@@ -1846,6 +1924,74 @@
                 console.warn('Wake Lock request failed:', err);
             }
         }
+
+        // Setup long press on the game logo to toggle voice recognition
+        (function() {
+            const logo = document.getElementById('game-logo');
+            if (!logo) return;
+
+            let pressTimer = null;
+            let isLongPress = false;
+
+            function startPress(e) {
+                if (e.type === 'mousedown' && e.button !== 0) return;
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    triggerLongPress();
+                }, 1500);
+            }
+
+            function cancelPress() {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+            }
+
+            function handleLogoClick(e) {
+                if (isLongPress) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isLongPress = false;
+                    return;
+                }
+                window.location.href = 'https://subsoccer.com';
+            }
+
+            function triggerLongPress() {
+                // Costco guard
+                const isCostcoPartner = new URLSearchParams(window.location.search).get('partner') === 'costco';
+                if (isCostcoPartner) {
+                    console.log("Speech recognition disabled in Costco partner mode.");
+                    return;
+                }
+
+                if (!window.audioEngine) {
+                    console.warn("audioEngine not loaded");
+                    return;
+                }
+
+                const voiceStatus = window.audioEngine.getVoiceStatus();
+                if (voiceStatus.enabled) {
+                    window.audioEngine.stopVoiceRecognition();
+                    window.audioEngine.setVoiceEnabled(false);
+                    console.log("Voice Recognition turned OFF via long-press.");
+                } else {
+                    window.audioEngine.setVoiceEnabled(true);
+                    window.audioEngine.startVoiceRecognition();
+                    console.log("Voice Recognition turned ON via long-press.");
+                }
+            }
+
+            logo.addEventListener('mousedown', startPress);
+            logo.addEventListener('touchstart', startPress, { passive: true });
+            logo.addEventListener('mouseup', cancelPress);
+            logo.addEventListener('touchend', cancelPress);
+            logo.addEventListener('mouseleave', cancelPress);
+            logo.addEventListener('touchcancel', cancelPress);
+            logo.addEventListener('click', handleLogoClick);
+        })();
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', requestWakeLock);
         } else {

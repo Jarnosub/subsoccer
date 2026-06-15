@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="the-forge.css?v=2">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="translations.js"></script>
+    <script src="audio-engine.js"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -986,18 +987,78 @@
             border-color: rgba(196, 30, 42, 0.2);
         }
 
-        .stat-item.stat-highlight .stat-value {
-            color: #c41e2a;
+        .switch-label .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .switch-label .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        .switch-label input:checked + .slider {
+            background-color: var(--sub-red, #c1272d);
+        }
+        .switch-label input:checked + .slider:before {
+            transform: translateX(20px);
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Theme Toggle Button -->
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleDarkMode()" title="Toggle dark/light mode">
-        <i class="fa-solid fa-moon"></i>
+    <!-- Settings Toggle Button (Gear) -->
+    <button class="theme-toggle" id="settings-toggle" onclick="toggleSettingsMenu()" title="Asetukset / Settings" style="z-index: 9999;">
+        <i class="fa-solid fa-gear"></i>
     </button>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay" onclick="if(event.target === this) toggleSettingsMenu()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 10005; background: rgba(0,0,0,0.6);">
+        <div class="modal-content" style="max-width: 320px; width: 90%; border-radius: var(--sub-radius); background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; letter-spacing: 2px;">SETTINGS</h3>
+                <button class="modal-close" onclick="toggleSettingsMenu()" style="background: none; border: none; color: #999; font-size: 1.5rem; cursor: pointer; padding: 0; width: auto; height: auto; margin-left: auto;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+                <!-- Dark Mode Option -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-family: 'Resolve', sans-serif; font-size: 0.9rem; color: #ccc;">DARK MODE</span>
+                    <label class="switch-label" style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                        <input type="checkbox" id="dark-mode-checkbox" onchange="toggleDarkModeSetting()" style="opacity: 0; width: 0; height: 0; margin: 0;">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <!-- Voice Control Option -->
+                <div id="voice-control-option" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 0.9rem; color: #ccc;">VOICE CONTROL</span>
+                        <label class="switch-label" style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                            <input type="checkbox" id="voice-control-checkbox" onchange="toggleVoiceControlSetting()" style="opacity: 0; width: 0; height: 0; margin: 0;">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #666;">
+                        <span id="voice-setting-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #666; display: inline-block;"></span>
+                        <span id="voice-setting-label">Voice control: OFF</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ==========================================
          LAYER 1: SETUP (Player names + Start)
@@ -1474,16 +1535,106 @@
     <!-- GAME LOGIC -->
     <script type="module" src="mobile-game-logic.js?v=2"></script>
 
-    <!-- DARK MODE TOGGLE -->
+    <!-- SETTINGS & DARK MODE LOGIC -->
     <script>
-        function toggleDarkMode() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('subsoccer-dark-mode', isDark ? '1' : '0');
-            const icon = document.querySelector('#theme-toggle i');
-            if (icon) icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        // Toggle the Settings Modal display
+        function toggleSettingsMenu() {
+            const modal = document.getElementById('settings-modal');
+            if (!modal) return;
+            
+            const isVisible = modal.style.display === 'flex';
+            if (isVisible) {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+                // Initialize checkboxes based on current states
+                const darkCheckbox = document.getElementById('dark-mode-checkbox');
+                if (darkCheckbox) {
+                    darkCheckbox.checked = document.body.classList.contains('dark-mode');
+                }
+                const voiceCheckbox = document.getElementById('voice-control-checkbox');
+                if (voiceCheckbox && window.audioEngine) {
+                    voiceCheckbox.checked = window.audioEngine.getVoiceStatus().enabled;
+                }
+                
+                // Costco partner protection: hide Voice control settings entirely in Costco mode
+                const isCostcoPartner = new URLSearchParams(window.location.search).get('partner') === 'costco';
+                const voiceOption = document.getElementById('voice-control-option');
+                if (isCostcoPartner && voiceOption) {
+                    voiceOption.style.display = 'none';
+                }
+            }
         }
 
-        // Auto-activate dark mode from URL param or localStorage
+        // Toggle Dark Mode from Settings Modal
+        function toggleDarkModeSetting() {
+            const checkbox = document.getElementById('dark-mode-checkbox');
+            if (!checkbox) return;
+            
+            const isDark = checkbox.checked;
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('subsoccer-dark-mode', '1');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('subsoccer-dark-mode', '0');
+            }
+        }
+
+        // Toggle Voice Control from Settings Modal
+        function toggleVoiceControlSetting() {
+            const checkbox = document.getElementById('voice-control-checkbox');
+            if (!checkbox || !window.audioEngine) return;
+            
+            const isVoiceEnabled = checkbox.checked;
+            window.audioEngine.setVoiceEnabled(isVoiceEnabled);
+            if (isVoiceEnabled) {
+                window.audioEngine.startVoiceRecognition();
+                console.log("Voice Recognition enabled from settings.");
+            } else {
+                window.audioEngine.stopVoiceRecognition();
+                console.log("Voice Recognition disabled from settings.");
+            }
+        }
+
+        // Voice Engine Callbacks
+        window.onVoiceStatusChange = function(status) {
+            const dot = document.getElementById('voice-setting-dot');
+            const label = document.getElementById('voice-setting-label');
+            const checkbox = document.getElementById('voice-control-checkbox');
+            
+            // Sync checkbox if updated externally (only if enabled is explicitly defined)
+            if (checkbox && typeof status.enabled === 'boolean') {
+                checkbox.checked = status.enabled;
+            }
+
+            if (!dot || !label) return;
+
+            if (status.active) {
+                dot.style.background = '#4CAF50';
+                dot.style.animation = 'voice-pulse 1.5s infinite';
+                label.textContent = 'Voice control: ACTIVE';
+            } else {
+                dot.style.background = '#666';
+                dot.style.animation = 'none';
+                label.textContent = status.enabled ? 'Voice control: CONNECTING...' : 'Voice control: OFF';
+            }
+        };
+
+        window.onVoiceGoalDetected = function(word, playerNumber) {
+            console.log(`🎙️ Voice Goal detected: ${word} for player ${playerNumber}`);
+            
+            // Only allow voice goals when game layer is active (not on victory/bracket screens)
+            const gameLayer = document.getElementById('m-layer-game');
+            if (!gameLayer || !gameLayer.classList.contains('fade-in')) return;
+            
+            // Trigger target player goal
+            if (typeof window.mobileGoal === 'function') {
+                window.mobileGoal(playerNumber);
+            }
+        };
+
+        // Auto-activate dark mode from URL param or localStorage (default: ON)
         (function() {
             const params = new URLSearchParams(window.location.search);
             const fromUrl = params.get('dark') === '1';
@@ -1492,13 +1643,9 @@
             
             if (fromUrl || fromStorage) {
                 document.body.classList.add('dark-mode');
-                const icon = document.querySelector('#theme-toggle i');
-                if (icon) icon.className = 'fa-solid fa-sun';
                 if (fromUrl || storageVal === null) localStorage.setItem('subsoccer-dark-mode', '1');
             }
         })();
-
-        // Screen Wake Lock API to prevent screen sleep during games
         let wakeLock = null;
         async function requestWakeLock() {
             if (!('wakeLock' in navigator)) return;

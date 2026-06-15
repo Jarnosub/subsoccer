@@ -1,6 +1,7 @@
 // ============================================================
 // SUBSOCCER AUDIO ENGINE - Acoustic Goal Detection
 // Patented Technology: Dual-frequency goal detection system
+// + Speech Recognition: Voice-based goal detection ("Red"/"Blue")
 // ============================================================
 
 // Audio context and analyzer nodes
@@ -30,6 +31,36 @@ const COOLDOWN_MS = 1500; // Cooldown between goal detections
 let lastDetectionTime = 0;
 let detectionStartTime = 0;
 let currentDetectedGoal = null;
+
+// ============================================================
+// SPEECH RECOGNITION - Voice Goal Detection
+// ============================================================
+let speechRecognition = null;
+let isSpeechActive = false;
+let lastSpeechGoalTime = 0;
+const SPEECH_COOLDOWN_MS = 1200; // Cooldown between voice-detected goals
+let voiceEnabled = false; // Default OFF – toggled on via Settings or logo long-press
+
+// Word-to-player mapping
+const VOICE_COMMANDS = {
+    // English
+    'red': 2,       // Red → Player 2 scores (Right side)
+    'read': 2,      // Common misheard variant
+    'bread': 2,     // Common misheard variant
+    'ret': 2,       // Finnish-accented "red"
+    'blue': 1,      // Blue → Player 1 scores (Left side)
+    'boo': 1,       // Common misheard variant
+    'blew': 1,      // Homophone
+    'glue': 1,      // Common misheard variant
+    // Finnish
+    'punainen': 2,  // Punainen → Player 2 scores
+    'punanen': 2,   // Colloquial Finnish
+    'puna': 2,      // Shortened form
+    'sininen': 1,   // Sininen → Player 1 scores
+    'sininen': 1,
+    'sinine': 1,    // Colloquial
+    'sini': 1,      // Shortened form
+};
 
 // Debug/Fine-tuning state
 let peakGoal1 = 0;
@@ -111,6 +142,10 @@ async function startListening() {
         // Start frequency analysis loop
         startDetectionLoop();
 
+        // Voice recognition is NOT auto-started here.
+        // It requires its own UI toggle (not yet implemented).
+        // Call window.audioEngine.startVoiceRecognition() manually when ready.
+
         updateUIStatus(true);
         return { success: true, message: "Goal detection activated" };
 
@@ -125,6 +160,9 @@ async function startListening() {
  */
 function stopListening() {
     if (!isListening) return;
+
+    // Stop speech recognition if it was manually started
+    if (isSpeechActive) stopVoiceRecognition();
 
     // Stop detection loop
     if (detectionInterval) {
@@ -396,6 +434,188 @@ function updateUIStatus(active) {
     }
 }
 
+// ============================================================
+// SPEECH RECOGNITION FUNCTIONS
+// ============================================================
+
+/**
+ * Start Web Speech API voice recognition
+ * Listens for color words to detect goals
+ */
+function startVoiceRecognition() {
+    // Check browser support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        console.warn('🎙️ Speech Recognition not supported in this browser');
+        if (typeof window.onVoiceStatusChange === 'function') {
+            window.onVoiceStatusChange({ active: false, supported: false, enabled: voiceEnabled });
+        }
+        return false;
+    }
+
+    if (isSpeechActive && speechRecognition) {
+        return true; // Already running
+    }
+
+    try {
+        speechRecognition = new SpeechRecognition();
+        speechRecognition.continuous = true;       // Keep listening
+        speechRecognition.interimResults = true;   // Get partial results for faster response
+        speechRecognition.maxAlternatives = 3;     // More alternatives = better chance of catching the word
+        speechRecognition.lang = 'en-US';          // Primary language
+
+        speechRecognition.onstart = () => {
+            isSpeechActive = true;
+            console.log('🎙️ Voice goal detection: ACTIVE');
+            if (typeof window.onVoiceStatusChange === 'function') {
+                window.onVoiceStatusChange({ active: true, supported: true, enabled: voiceEnabled });
+            }
+        };
+
+        speechRecognition.onresult = (event) => {
+            if (!voiceEnabled) return;
+
+            const now = Date.now();
+            // Cooldown check
+            if (now - lastSpeechGoalTime < SPEECH_COOLDOWN_MS) return;
+
+            // Check the latest result(s)
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const result = event.results[i];
+                // Check all alternatives for best matching
+                for (let j = 0; j < result.length; j++) {
+                    const transcript = result[j].transcript.trim().toLowerCase();
+                    const words = transcript.split(/\s+/);
+
+                    // Check each word against our command map
+                    for (const word of words) {
+                        const cleanWord = word.replace(/[^a-zäöüå]/gi, '').toLowerCase();
+                        const player = VOICE_COMMANDS[cleanWord];
+
+                        if (player) {
+                            lastSpeechGoalTime = now;
+                            console.log(`🎙️ VOICE GOAL! Heard "${cleanWord}" → Player ${player} scores`);
+
+                            // Call global handler (same as acoustic detection)
+                            if (typeof window.handleGoalDetected === 'function') {
+                                window.handleGoalDetected(player);
+                            }
+
+                            // Notify UI about the detected word
+                            if (typeof window.onVoiceGoalDetected === 'function') {
+                                window.onVoiceGoalDetected(cleanWord, player);
+                            }
+
+                            playConfirmationSound();
+                            return; // Only one goal per result batch
+                        }
+                    }
+                }
+            }
+        };
+
+        speechRecognition.onerror = (event) => {
+            // 'no-speech' is normal when nobody is talking
+            if (event.error === 'no-speech') return;
+            // 'aborted' happens on intentional stop
+            if (event.error === 'aborted') return;
+
+            console.warn('🎙️ Speech recognition error:', event.error);
+
+            // Auto-restart on recoverable errors
+            if (event.error === 'network' || event.error === 'audio-capture') {
+                isSpeechActive = false;
+                // Retry after a short delay
+                setTimeout(() => {
+                    if (isListening && voiceEnabled) {
+                        startVoiceRecognition();
+                    }
+                }, 1000);
+            }
+        };
+
+        speechRecognition.onend = () => {
+            isSpeechActive = false;
+            console.log('🎙️ Voice recognition ended');
+
+            // Auto-restart if we're still supposed to be listening
+            // (Speech API stops after silence periods on some browsers)
+            if (isListening && voiceEnabled) {
+                setTimeout(() => {
+                    if (isListening && voiceEnabled) {
+                        try {
+                            speechRecognition.start();
+                        } catch (e) {
+                            // Ignore "already started" errors
+                        }
+                    }
+                }, 300);
+            } else {
+                if (typeof window.onVoiceStatusChange === 'function') {
+                    window.onVoiceStatusChange({ active: false, supported: true, enabled: voiceEnabled });
+                }
+            }
+        };
+
+        speechRecognition.start();
+        return true;
+
+    } catch (e) {
+        console.error('🎙️ Failed to start speech recognition:', e);
+        return false;
+    }
+}
+
+/**
+ * Stop voice recognition
+ */
+function stopVoiceRecognition() {
+    if (speechRecognition) {
+        try {
+            speechRecognition.abort();
+        } catch (e) {
+            // Ignore errors on abort
+        }
+        speechRecognition = null;
+    }
+    isSpeechActive = false;
+
+    if (typeof window.onVoiceStatusChange === 'function') {
+        window.onVoiceStatusChange({ active: false, supported: true, enabled: voiceEnabled });
+    }
+}
+
+/**
+ * Toggle voice recognition on/off independently
+ * @param {boolean} enabled
+ */
+function setVoiceEnabled(enabled) {
+    voiceEnabled = enabled;
+    if (enabled && isListening && !isSpeechActive) {
+        startVoiceRecognition();
+    } else if (!enabled && isSpeechActive) {
+        stopVoiceRecognition();
+    }
+    return voiceEnabled;
+}
+
+/**
+ * Get voice recognition status
+ */
+function getVoiceStatus() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    return {
+        supported: !!SpeechRecognition,
+        active: isSpeechActive,
+        enabled: voiceEnabled,
+        cooldown: SPEECH_COOLDOWN_MS
+    };
+}
+
+// ============================================================
+// STATUS & CONFIGURATION FUNCTIONS
+// ============================================================
+
 /**
  * Get current listening status
  */
@@ -403,6 +623,7 @@ function getStatus() {
     return {
         isListening,
         hasMicrophone: microphoneStream !== null,
+        voice: getVoiceStatus(),
         settings: {
             goal1Frequency: GOAL_1_FREQUENCY,
             goal2Frequency: GOAL_2_FREQUENCY,
@@ -458,5 +679,10 @@ window.audioEngine = {
     setThreshold,
     setFrequencies,
     resetPeaks,
-    playTestSound
+    playTestSound,
+    // Voice recognition
+    startVoiceRecognition,
+    stopVoiceRecognition,
+    setVoiceEnabled,
+    getVoiceStatus
 };
