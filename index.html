@@ -1001,6 +1001,110 @@
         </div>
     </section>
 
+    <!-- RULES & TOURNAMENT GUIDE OVERLAY -->
+    <div id="rules-guide-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.98); z-index: 4000; flex-direction: column; align-items: center; padding: 40px 20px; box-sizing: border-box; overflow-y: auto;">
+        <div style="width: 100%; max-width: 600px; position: relative; display: flex; flex-direction: column; gap: 30px;">
+            <button onclick="closeRulesOverlay()" style="position: absolute; top: -10px; right: 0; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer;" aria-label="Close rules overlay">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <img src="subsoccer_logo.svg" alt="Subsoccer" width="80" style="height: auto; filter: brightness(0) invert(1); margin-bottom: 15px;">
+                <h2 style="font-family: 'Resolve', sans-serif; font-size: 2.2rem; color: #fff; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);">RULES & GUIDE</h2>
+            </div>
+
+            <!-- OFFICIAL RULES SECTION -->
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <h3 style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: var(--sub-gold, #FFD700); letter-spacing: 1px; border-bottom: 2px solid var(--sub-red, #E30613); padding-bottom: 8px; text-transform: uppercase; margin-bottom: 5px;">OFFICIAL RULES</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.04); padding: 12px 15px; border-radius: 4px; border-left: 4px solid var(--sub-red, #E30613);">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: #888; font-weight: bold; min-width: 20px; text-align: center;">1</span>
+                        <div>
+                            <div style="font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">START</div>
+                            <div style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #ccc; margin-top: 2px;">The winner of Rock/Paper/Scissors starts.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.04); padding: 12px 15px; border-radius: 4px; border-left: 4px solid var(--sub-red, #E30613);">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: #888; font-weight: bold; min-width: 20px; text-align: center;">2</span>
+                        <div>
+                            <div style="font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">KICK-OFF</div>
+                            <div style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #ccc; margin-top: 2px;">Kick-off must be taken inside your own goal area.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.04); padding: 12px 15px; border-radius: 4px; border-left: 4px solid var(--sub-red, #E30613);">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: #888; font-weight: bold; min-width: 20px; text-align: center;">3</span>
+                        <div>
+                            <div style="font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">POSITIONING</div>
+                            <div style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #ccc; margin-top: 2px;">Both buttocks must remain on the bench. Hands must not enter the play area and should be kept on the table or on the sides of the benches.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.04); padding: 12px 15px; border-radius: 4px; border-left: 4px solid var(--sub-red, #E30613);">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: #888; font-weight: bold; min-width: 20px; text-align: center;">4</span>
+                        <div>
+                            <div style="font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">BALL OUT OF PLAY</div>
+                            <div style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #ccc; margin-top: 2px;">If the ball leaves the table, play resumes with a kick-off by the player from whose side the ball went out.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.04); padding: 12px 15px; border-radius: 4px; border-left: 4px solid var(--sub-red, #E30613);">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: #888; font-weight: bold; min-width: 20px; text-align: center;">5</span>
+                        <div>
+                            <div style="font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">WINNER</div>
+                            <div style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #ccc; margin-top: 2px;">The first player to score 3 goals wins.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HOW TO HOST A TOURNAMENT SECTION -->
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+                <h3 style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: var(--sub-gold, #FFD700); letter-spacing: 1px; border-bottom: 2px solid var(--sub-red, #E30613); padding-bottom: 8px; text-transform: uppercase; margin-bottom: 5px;">HOW TO HOST A TOURNAMENT</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.04); padding: 12px 15px; border-radius: 4px; border-left: 4px solid var(--sub-gold, #FFD700);">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: #888; font-weight: bold; min-width: 20px; text-align: center;">1</span>
+                        <div>
+                            <div style="font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">SELECT 2-8 PLAYERS</div>
+                            <div style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #ccc; margin-top: 2px;">Enter player names and start the tournament.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.04); padding: 12px 15px; border-radius: 4px; border-left: 4px solid var(--sub-gold, #FFD700);">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: #888; font-weight: bold; min-width: 20px; text-align: center;">2</span>
+                        <div>
+                            <div style="font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">AUTOMATIC BRACKETS</div>
+                            <div style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #ccc; margin-top: 2px;">Subsoccer GO shuffles matches and generates the tournament bracket automatically. If the player count is uneven (e.g. 3 or 5 players), the app assigns free passes (BYE) for the first round.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.04); padding: 12px 15px; border-radius: 4px; border-left: 4px solid var(--sub-gold, #FFD700);">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: #888; font-weight: bold; min-width: 20px; text-align: center;">3</span>
+                        <div>
+                            <div style="font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">MATCH WINNER & FORFEIT</div>
+                            <div style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #ccc; margin-top: 2px;">Mark the winner by clicking the player's name in the bracket. If a player forfeits, mark the opponent as the winner.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; gap: 15px; background: rgba(255,255,255,0.04); padding: 12px 15px; border-radius: 4px; border-left: 4px solid var(--sub-gold, #FFD700);">
+                        <span style="font-family: 'Resolve', sans-serif; font-size: 1.3rem; color: #888; font-weight: bold; min-width: 20px; text-align: center;">4</span>
+                        <div>
+                            <div style="font-family: 'Resolve', sans-serif; font-size: 1rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">LARGE TOURNAMENTS</div>
+                            <div style="font-family: 'Open Sans', sans-serif; font-size: 0.85rem; color: #ccc; margin-top: 2px;">Host multiple separate qualifying pools (max 8 players per pool). Choose the top 1–4 players from each pool and create a new "finals tournament" in the app to crown the overall champion.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="closeRulesOverlay()" style="background: linear-gradient(135deg, var(--sub-red, #E30613) 0%, #a00 100%); color: white; border: none; padding: 15px 30px; border-radius: 4px; font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; cursor: pointer; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.4); margin-top: 20px; align-self: center; width: 100%; max-width: 320px;">
+                CLOSE
+            </button>
+        </div>
+    </div>
+
     <!-- BLACK FOOTER BAR -->
     <div class="footer-bar">
         <span style="color: #888; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px;">© 2026
@@ -1037,6 +1141,9 @@
                 <a href="player-card.html" id="menu-profile-link"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
                         class="fa-solid fa-user" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="my_profile">MY PROFILE</span></a>
+                <a href="#" id="menu-rules-link" onclick="openRulesOverlay(); document.getElementById('main-nav-menu').style.display='none'; return false;"
+                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
+                        class="fa-solid fa-book-open" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="rules_and_guide">RULES & GUIDE</span></a>
                 <a href="pro-leagues.html" id="menu-league-link"
                     style="color: #c41e2a; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
                         class="fa-solid fa-crown" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="pro_leagues">PRO LEAGUES</span></a>
@@ -1478,6 +1585,14 @@
 
         function closeMapOverlay() {
             document.getElementById('map-overlay').style.display = 'none';
+        }
+
+        function openRulesOverlay() {
+            document.getElementById('rules-guide-overlay').style.display = 'flex';
+        }
+
+        function closeRulesOverlay() {
+            document.getElementById('rules-guide-overlay').style.display = 'none';
         }
     </script>
 

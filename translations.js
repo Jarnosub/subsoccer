@@ -3,6 +3,7 @@
 const TRANSLATIONS = {
     en: {
         my_profile: "MY PROFILE",
+        rules_and_guide: "RULES & GUIDE",
         my_games: "MY GAMES",
         register_a_game: "REGISTER A GAME",
         buy_your_own: "BUY YOUR OWN SUBSOCCER",
