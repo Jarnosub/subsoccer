@@ -738,6 +738,7 @@ const TRANSLATIONS = {
         host_step4_desc: "Host multiple separate qualifying pools (max 8 players per pool). Choose the top 1–4 players from each pool and create a new \"finals tournament\" in the app to crown the overall champion."
     },
     fi: {
+        rules_and_guide: "SÄÄNNÖT & OHJEET",
         my_profile: "OMA PROFIILI",
         my_games: "OMAT PELIT",
         register_a_game: "REKISTERÖI PELI",
