@@ -1347,8 +1347,20 @@
         // Failsafe: always show page within 3s even if auth hangs
         setTimeout(revealPage, 3000);
 
+        function checkHash() {
+            if (window.location.hash === '#rules') {
+                openRulesOverlay();
+            } else {
+                closeRulesOverlay();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             initAuth().finally(revealPage);
+            checkHash();
+
+            // Listen for future hash changes (e.g. clicking links or back button)
+            window.addEventListener('hashchange', checkHash);
 
             // Bind logout via addEventListener (CSP-safe, prevents href="#" jump)
             const logoutLink = document.getElementById('menu-logout-link');
@@ -1589,10 +1601,18 @@
 
         function openRulesOverlay() {
             document.getElementById('rules-guide-overlay').style.display = 'flex';
+            if (window.location.hash !== '#rules') {
+                // Add to history state so back button works and closes it
+                history.pushState(null, null, '#rules');
+            }
         }
 
         function closeRulesOverlay() {
             document.getElementById('rules-guide-overlay').style.display = 'none';
+            if (window.location.hash === '#rules') {
+                // Clear the hash from address bar without reloading
+                history.pushState(null, null, ' ');
+            }
         }
     </script>
 
