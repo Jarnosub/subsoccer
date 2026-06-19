@@ -1636,43 +1636,59 @@
         document.addEventListener('DOMContentLoaded', () => {
             const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
             const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
-            let activeCities = [];
-            let topCountriesText = '';
-            let tickerPhase = 0; // 0 = activity feed, 1 = top countries
+            let activeCities = []; // Array of "CITY SCORE" strings
 
             function updateTicker() {
                 const spans = document.querySelectorAll('.ticker-cities');
-                if (tickerPhase === 0 && activeCities.length > 0) {
+                if (activeCities.length > 0) {
                     const label = typeof t === 'function' ? t('recent_global_activity').toUpperCase() : 'RECENT GLOBAL ACTIVITY FEED';
                     spans.forEach(tc => {
                         tc.innerHTML = `&nbsp;·&nbsp; ${label}: <span style="color:#ffffff;">${activeCities.join(' &nbsp;·&nbsp; ')}</span>`;
                     });
-                } else if (tickerPhase === 1 && topCountriesText) {
-                    spans.forEach(tc => {
-                        tc.innerHTML = `&nbsp;·&nbsp; ${topCountriesText}`;
-                    });
                 }
             }
-
-            // Rotate ticker content every 12 seconds
-            setInterval(() => {
-                if (topCountriesText) {
-                    tickerPhase = tickerPhase === 0 ? 1 : 0;
-                    updateTicker();
-                }
-            }, 12000);
 
             // Listen for language changes to update the ticker live!
             window.addEventListener('subsoccer-language-changed', updateTicker);
 
-            // Paginated fetch to bypass Supabase 1000-row limit
+            // Helper: parse city name from location string
+            function parseCityFromLocation(loc) {
+                if (!loc) return null;
+                let city;
+                if (loc.includes('(')) {
+                    const parenIndex = loc.indexOf('(');
+                    const mainPart = loc.substring(0, parenIndex).trim();
+                    const parenEnd = loc.indexOf(')');
+                    const timezone = loc.substring(parenIndex + 1, parenEnd).trim();
+                    
+                    let parsedCity = mainPart;
+                    const commaIndex = mainPart.indexOf(',');
+                    if (commaIndex > -1) {
+                        parsedCity = mainPart.substring(0, commaIndex).trim();
+                    }
+                    
+                    if (parsedCity.length <= 2 && timezone && timezone.includes('/')) {
+                        const parts = timezone.split('/');
+                        city = parts[parts.length - 1].replace(/_/g, ' ');
+                    } else {
+                        city = parsedCity;
+                    }
+                } else {
+                    const parts = loc.split('/');
+                    city = parts.length > 1 ? parts[parts.length - 1] : loc;
+                }
+                city = city.replace(/_/g, ' ').toUpperCase();
+                return (city && city !== 'UNKNOWN' && city.length > 2) ? city : null;
+            }
+
+            // Paginated fetch — now includes match_score and event_type
             async function fetchAllLocations() {
                 let allData = [];
                 let page = 0;
                 const pageSize = 1000;
                 while (true) {
                     const res = await fetch(
-                        `${SUPABASE_URL}/rest/v1/public_tracking?select=location&location=not.is.null&order=client_time.desc&limit=${pageSize}&offset=${page * pageSize}`,
+                        `${SUPABASE_URL}/rest/v1/public_tracking?select=location,match_score,event_type&location=not.is.null&order=client_time.desc&limit=${pageSize}&offset=${page * pageSize}`,
                         { headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` } }
                     );
                     const pageData = await res.json();
@@ -1687,112 +1703,57 @@
 
             fetchAllLocations().then(data => {
                     if (data && data.length > 0) {
-                        // Parse cities for activity feed
-                        let cities = [...new Set(data.map(ev => {
-                            if (!ev.location) return null;
-                            const loc = ev.location;
-                            let city;
-                            if (loc.includes('(')) {
-                                const parenIndex = loc.indexOf('(');
-                                const mainPart = loc.substring(0, parenIndex).trim();
-                                const parenEnd = loc.indexOf(')');
-                                const timezone = loc.substring(parenIndex + 1, parenEnd).trim();
-                                
-                                let parsedCity = mainPart;
-                                const commaIndex = mainPart.indexOf(',');
-                                if (commaIndex > -1) {
-                                    parsedCity = mainPart.substring(0, commaIndex).trim();
+                        // Build city → last match score map (data is already ordered by client_time desc)
+                        const cityScoreMap = {};  // city → first match score found (= most recent)
+                        const seenCities = [];    // ordered unique cities
+
+                        data.forEach(ev => {
+                            const city = parseCityFromLocation(ev.location);
+                            if (!city) return;
+
+                            if (!cityScoreMap[city]) {
+                                // First time seeing this city — check if this event has a score
+                                const isMatch = ev.event_type === 'game_finished' || ev.event_type === 'tournament_match_finished';
+                                const score = (isMatch && ev.match_score) ? ev.match_score : null;
+                                cityScoreMap[city] = score || ''; // empty = no match found yet
+                                seenCities.push(city);
+                            } else if (!cityScoreMap[city]) {
+                                // We've seen this city but haven't found a score yet
+                                const isMatch = ev.event_type === 'game_finished' || ev.event_type === 'tournament_match_finished';
+                                if (isMatch && ev.match_score) {
+                                    cityScoreMap[city] = ev.match_score;
                                 }
-                                
-                                if (parsedCity.length <= 2 && timezone && timezone.includes('/')) {
-                                    const parts = timezone.split('/');
-                                    city = parts[parts.length - 1].replace(/_/g, ' ');
-                                } else {
-                                    city = parsedCity;
-                                }
-                            } else {
-                                const parts = loc.split('/');
-                                city = parts.length > 1 ? parts[parts.length - 1] : loc;
                             }
-                            return city.replace(/_/g, ' ').toUpperCase();
-                        }).filter(Boolean))].filter(c => c !== 'UNKNOWN' && c.length > 2);
+                        });
+
+                        // Second pass: for cities with no score from their first event,
+                        // find the most recent match score from any event in that city
+                        seenCities.forEach(city => {
+                            if (cityScoreMap[city]) return; // already has a score
+                            const matchEv = data.find(ev => {
+                                const c = parseCityFromLocation(ev.location);
+                                return c === city
+                                    && (ev.event_type === 'game_finished' || ev.event_type === 'tournament_match_finished')
+                                    && ev.match_score;
+                            });
+                            if (matchEv) cityScoreMap[city] = matchEv.match_score;
+                        });
 
                         // Update social proof with real city count
-                        const uniqueAllCities = new Set(cities);
-                        const cityCount = uniqueAllCities.size;
+                        const cityCount = seenCities.length;
                         const spEl = document.getElementById('sp-cities');
                         if (spEl && cityCount > 10) {
                             spEl.textContent = cityCount + '+';
                         }
 
-                        // Top 10 cities for ticker
-                        cities = cities.slice(0, 10);
-                        activeCities = cities;
-
-                        // Build top countries from location data
-                        const countryFlags = {
-                            'UK': '🇬🇧', 'GB': '🇬🇧', 'FI': '🇫🇮', 'SG': '🇸🇬', 'DE': '🇩🇪',
-                            'PH': '🇵🇭', 'US': '🇺🇸', 'HU': '🇭🇺', 'ID': '🇮🇩', 'CZ': '🇨🇿',
-                            'JP': '🇯🇵', 'FR': '🇫🇷', 'SE': '🇸🇪', 'NO': '🇳🇴', 'DK': '🇩🇰',
-                            'NL': '🇳🇱', 'ES': '🇪🇸', 'IT': '🇮🇹', 'PT': '🇵🇹', 'NZ': '🇳🇿',
-                            'AZ': '🇦🇿', 'IN': '🇮🇳', 'AE': '🇦🇪', 'CN': '🇨🇳', 'KR': '🇰🇷',
-                            'CA': '🇨🇦', 'TR': '🇹🇷', 'IL': '🇮🇱', 'BR': '🇧🇷', 'MX': '🇲🇽'
-                        };
-                        const tzCountry = {
-                            'Europe/Helsinki': 'FI', 'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO',
-                            'Europe/London': 'UK', 'Europe/Paris': 'FR', 'Europe/Berlin': 'DE',
-                            'Europe/Madrid': 'ES', 'Europe/Rome': 'IT', 'Europe/Amsterdam': 'NL',
-                            'Europe/Prague': 'CZ', 'Europe/Budapest': 'HU', 'Europe/Istanbul': 'TR',
-                            'Europe/Warsaw': 'PL', 'Europe/Lisbon': 'PT', 'Europe/Copenhagen': 'DK',
-                            'Europe/Dublin': 'UK', 'Europe/Brussels': 'DE', 'Europe/Zurich': 'DE',
-                            'America/New_York': 'US', 'America/Los_Angeles': 'US', 'America/Chicago': 'US',
-                            'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Sao_Paulo': 'BR',
-                            'America/Mexico_City': 'MX', 'Asia/Tokyo': 'JP', 'Asia/Singapore': 'SG',
-                            'Asia/Manila': 'PH', 'Asia/Jakarta': 'ID', 'Asia/Seoul': 'KR',
-                            'Asia/Shanghai': 'CN', 'Asia/Dubai': 'AE', 'Asia/Calcutta': 'IN',
-                            'Asia/Mumbai': 'IN', 'Asia/Baku': 'AZ', 'Asia/Hong_Kong': 'CN',
-                            'Australia/Sydney': 'AU', 'Pacific/Auckland': 'NZ'
-                        };
-                        const countryNames = {
-                            'UK': 'UK', 'FI': 'FINLAND', 'SG': 'SINGAPORE', 'DE': 'GERMANY',
-                            'PH': 'PHILIPPINES', 'US': 'USA', 'HU': 'HUNGARY', 'ID': 'INDONESIA',
-                            'CZ': 'CZECHIA', 'JP': 'JAPAN', 'FR': 'FRANCE', 'SE': 'SWEDEN',
-                            'NO': 'NORWAY', 'DK': 'DENMARK', 'NL': 'NETHERLANDS', 'ES': 'SPAIN',
-                            'IT': 'ITALY', 'PT': 'PORTUGAL', 'NZ': 'NEW ZEALAND', 'AZ': 'AZERBAIJAN',
-                            'IN': 'INDIA', 'AE': 'UAE', 'CN': 'CHINA', 'KR': 'KOREA', 'CA': 'CANADA',
-                            'TR': 'TURKEY', 'IL': 'ISRAEL', 'BR': 'BRAZIL', 'MX': 'MEXICO',
-                            'AU': 'AUSTRALIA', 'PL': 'POLAND'
-                        };
-                        const countryCounts = {};
-                        data.forEach(ev => {
-                            if (!ev.location) return;
-                            const loc = ev.location;
-                            let tz = '';
-                            let cc = '';
-                            if (loc.includes('(')) {
-                                const pi = loc.indexOf('(');
-                                const pe = loc.indexOf(')');
-                                tz = loc.substring(pi + 1, pe).trim();
-                                const mainPart = loc.substring(0, pi).trim();
-                                const ci = mainPart.lastIndexOf(',');
-                                if (ci > -1) cc = mainPart.substring(ci + 1).trim().toUpperCase();
-                            } else if (loc.includes('/')) {
-                                tz = loc;
+                        // Top 10 cities for ticker, each with their last score
+                        activeCities = seenCities.slice(0, 10).map(city => {
+                            const score = cityScoreMap[city];
+                            if (score) {
+                                return `${city} <span style="color:var(--sub-gold,#FFD700);font-weight:bold;">${score}</span>`;
                             }
-                            let country = cc && cc.length === 2 ? cc : (tzCountry[tz] || '');
-                            if (country === 'GB') country = 'UK'; // Normalize
-                            if (country) {
-                                countryCounts[country] = (countryCounts[country] || 0) + 1;
-                            }
+                            return city;
                         });
-                        const topC = Object.entries(countryCounts)
-                            .sort((a, b) => b[1] - a[1])
-                            .slice(0, 6)
-                            .map(([code]) => `${countryFlags[code] || ''} ${countryNames[code] || code}`)
-                            .join('  ·  ');
-                        if (topC) {
-                            topCountriesText = `<span style="color:var(--sub-gold,#FFD700);">🏆 TOP COUNTRIES:</span> <span style="color:#ffffff;">${topC}</span>`;
-                        }
 
                         updateTicker();
                     }
