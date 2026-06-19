@@ -1711,13 +1711,13 @@
                             const city = parseCityFromLocation(ev.location);
                             if (!city) return;
 
-                            if (!cityScoreMap[city]) {
+                            if (!(city in cityScoreMap)) {
                                 // First time seeing this city — check if this event has a score
                                 const isMatch = ev.event_type === 'game_finished' || ev.event_type === 'tournament_match_finished';
                                 const score = (isMatch && ev.match_score) ? ev.match_score : null;
                                 cityScoreMap[city] = score || ''; // empty = no match found yet
                                 seenCities.push(city);
-                            } else if (!cityScoreMap[city]) {
+                            } else if (cityScoreMap[city] === '') {
                                 // We've seen this city but haven't found a score yet
                                 const isMatch = ev.event_type === 'game_finished' || ev.event_type === 'tournament_match_finished';
                                 if (isMatch && ev.match_score) {
@@ -1729,7 +1729,7 @@
                         // Second pass: for cities with no score from their first event,
                         // find the most recent match score from any event in that city
                         seenCities.forEach(city => {
-                            if (cityScoreMap[city]) return; // already has a score
+                            if (cityScoreMap[city] !== '') return; // already has a score
                             const matchEv = data.find(ev => {
                                 const c = parseCityFromLocation(ev.location);
                                 return c === city
