@@ -6,5 +6,15 @@ Disallow: /moderator/
 Disallow: /owner-dashboard.html
 Disallow: /control-room.html
 Disallow: /arcade-setup.html
+Disallow: /analytics-dashboard.html
+Disallow: /brand-builder.html
+Disallow: /brand-scanner.html
+Disallow: /qr-batch-exporter.html
+Disallow: /theme-editor.html
+Disallow: /translation-forge.html
+Disallow: /retail-tracker.html
+Disallow: /venue-analytics.html
+Disallow: /highlight-creator.html
+Disallow: /pricing-calculator.html
 
 Sitemap: https://subsoccer.pro/sitemap.xml

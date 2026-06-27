@@ -7,6 +7,8 @@ exports.handler = async function(event, context) {
     let country = headers['x-country'] || '';
     let region = headers['x-region'] || '';
     let timezone = headers['x-timezone'] || '';
+    let latitude = null;
+    let longitude = null;
 
     // Decode x-nf-geo if present (Netlify passes geolocation data as a Base64-encoded JSON string)
     const geoHeader = headers['x-nf-geo'];
@@ -22,6 +24,8 @@ exports.handler = async function(event, context) {
                     region = typeof geoData.subdivision === 'object' ? geoData.subdivision.code : geoData.subdivision;
                 }
                 if (geoData.timezone) timezone = geoData.timezone;
+                if (geoData.latitude) latitude = geoData.latitude;
+                if (geoData.longitude) longitude = geoData.longitude;
             }
         } catch (e) {
             // Ignore parse errors, fall back to default headers
@@ -58,7 +62,9 @@ exports.handler = async function(event, context) {
             city: decodedCity,
             country: country,
             region: region,
-            timezone: timezone
+            timezone: timezone,
+            latitude: latitude,
+            longitude: longitude
         })
     };
 };

@@ -715,6 +715,15 @@
                     <div class="kpi-value" id="kpi-returning" style="color: var(--accent-yellow);">—%</div>
                     <div class="kpi-trend" style="color: #888;" id="kpi-returning-trend"><i class="fas fa-user-check"></i> Come back to play again</div>
                 </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>ACTIVE DEVICES</span>
+                        <i class="fas fa-gamepad" style="color: #BB86FC;"></i>
+                    </div>
+                    <div class="kpi-value" id="kpi-devices" style="color: #BB86FC;"><i class="fas fa-spinner fa-spin" style="font-size: 1rem;"></i></div>
+                    <div class="kpi-trend" style="color: #888;" id="kpi-devices-trend"><i class="fas fa-microchip"></i> Estimated game tables</div>
+                </div>
             </div>
         </div>
 
@@ -1204,6 +1213,7 @@
         let citiesInstance = null;
         let cityGrowthInstance = null;
         let globalTrackingData = []; // Tallenna data lokaalia filtteröintiä varten
+        let globalPrevTrackingData = []; // Previous period data for comparisons
 
         function resetDateFilters() {
             const startEl = document.getElementById('startDateFilter');
@@ -1329,7 +1339,7 @@
                     const prevEndStr = startDateStr;
                     const prevStartStr = new Date(new Date(startDateStr).getTime() - periodMs).toISOString();
                     const { data: prevPage } = await client.from('public_tracking')
-                        .select('event_type,location')
+                        .select('event_type,location,client_time')
                         .gte('client_time', prevStartStr)
                         .lt('client_time', prevEndStr)
                         .limit(5000);
@@ -1491,12 +1501,19 @@
                     
                     validData.forEach(d => {
                         const parsed = parseLocation(d.location);
-                        const city = parsed.city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
-                        if (!city || city === 'Unknown') return;
                         
-                        uniqueCitiesGlobally.add(city);
+                        // Only count as a city if the location has proper "City, XX (timezone)" format
+                        // Skip timezone-only (e.g. "Europe/Helsinki") and country-only (e.g. "FI (Europe/Helsinki)")
+                        const isProperCity = d.location.includes(',') && d.location.includes('(');
                         
-                        // Resolve country
+                        if (isProperCity) {
+                            const city = parsed.city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
+                            if (city && city !== 'Unknown') {
+                                uniqueCitiesGlobally.add(city);
+                            }
+                        }
+                        
+                        // Resolve country (from all entries, not just proper cities)
                         const countryInfo = TIMEZONE_TO_COUNTRY[d.location] || TIMEZONE_TO_COUNTRY[parsed.timezone];
                         let countryName = countryInfo ? countryInfo.name : (parsed.countryCode || 'Unknown');
                         let countryFlag = countryInfo ? countryInfo.flag : '🌐';
@@ -1514,7 +1531,13 @@
                                 cities: new Set()
                             };
                         }
-                        globalCountryGroups[countryName].cities.add(city);
+                        // Only add proper cities to city sets
+                        if (isProperCity) {
+                            const city = parsed.city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
+                            if (city && city !== 'Unknown') {
+                                globalCountryGroups[countryName].cities.add(city);
+                            }
+                        }
                     });
                     
                     uniqueCountriesCount = Object.keys(globalCountryGroups).filter(c => c !== 'Unknown').length;
@@ -1552,7 +1575,70 @@
 
                 // Returning Users KPI
                 document.getElementById('kpi-returning').textContent = totalRetNew > 0 ? `${returningPct}%` : '—%';
-                document.getElementById('kpi-returning-trend').innerHTML = `<i class="fas fa-user-check"></i> ${returningCount} returning / ${newCount} new<br><span style="font-size:0.6rem;color:#999;">⚠ Measuring since 14.6.2026 — earlier data invalid</span>`;
+                // Prev period returning %
+                const prevValidRetData = prevTrackingData.filter(d => new Date(d.client_time) >= retFixDate);
+                const prevReturningCount = prevValidRetData.filter(d => d.is_returning === true).length;
+                const prevNewCount = prevValidRetData.filter(d => d.is_returning === false).length;
+                const prevTotalRetNew = prevReturningCount + prevNewCount;
+                const prevReturningPct = prevTotalRetNew > 0 ? Math.round((prevReturningCount / prevTotalRetNew) * 100) : 0;
+                let retDeltaHtml = '';
+                if (!isAllTimeFilter && prevTotalRetNew > 0 && totalRetNew > 0) {
+                    const retDiff = returningPct - prevReturningPct;
+                    const retColor = retDiff >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+                    retDeltaHtml = ` <span style="font-size:0.7rem;color:${retColor};font-weight:600;">${retDiff >= 0 ? '▲' : '▼'} ${Math.abs(retDiff)}pp</span>`;
+                }
+                document.getElementById('kpi-returning-trend').innerHTML = `<i class="fas fa-user-check"></i> ${returningCount} returning / ${newCount} new${retDeltaHtml}<br><span style="font-size:0.6rem;color:#999;">⚠ Measuring since 14.6.2026 — earlier data invalid</span>`;
+
+                // Active Devices KPI — estimate based on concurrent locations
+                // Reusable estimator function
+                function estimateDevices(events) {
+                    const cities = new Set();
+                    const cityDayGames = {};
+                    events.forEach(d => {
+                        if (!d.location || !d.location.includes(',')) return;
+                        const m = d.location.match(/^([^,]+)/);
+                        if (!m) return;
+                        const city = m[1].trim();
+                        cities.add(city);
+                        if (d.client_time) {
+                            const key = city + '|' + d.client_time.split('T')[0];
+                            cityDayGames[key] = (cityDayGames[key] || 0) + 1;
+                        }
+                    });
+                    const cityMax = {};
+                    Object.entries(cityDayGames).forEach(([k, c]) => {
+                        const city = k.split('|')[0];
+                        cityMax[city] = Math.max(cityMax[city] || 0, c);
+                    });
+                    let est = 0;
+                    Object.values(cityMax).forEach(max => {
+                        if (max >= 30) est += 3;
+                        else if (max >= 15) est += 2;
+                        else est += 1;
+                    });
+                    const tzOnly = new Set();
+                    events.forEach(d => {
+                        if (d.location && !d.location.includes(',') && d.location !== 'Unknown') tzOnly.add(d.location);
+                    });
+                    est += tzOnly.size;
+                    return { total: est, cities: cities.size, tzOnly: tzOnly.size };
+                }
+
+                const gameFilter = d => d.event_type === 'game_finished' || d.event_type === 'tournament_match_finished';
+                const currentDevices = estimateDevices(trackingData.filter(gameFilter));
+                const prevDevices = estimateDevices(prevTrackingData.filter(gameFilter));
+
+                let devicesDeltaHtml = '';
+                if (!isAllTimeFilter && prevDevices.total > 0) {
+                    const devDiff = currentDevices.total - prevDevices.total;
+                    const devPct = Math.round((devDiff / prevDevices.total) * 100);
+                    const devColor = devDiff >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+                    devicesDeltaHtml = `<br><span style="font-size:0.7rem;color:${devColor};font-weight:600;">${devDiff >= 0 ? '▲' : '▼'} ${Math.abs(devPct)}% vs prev period</span>`;
+                }
+
+                document.getElementById('kpi-devices').textContent = currentDevices.total > 0 ? `~${currentDevices.total}` : '—';
+                document.getElementById('kpi-devices-trend').innerHTML = 
+                    `<i class="fas fa-microchip"></i> ${currentDevices.cities} cities + ${currentDevices.tzOnly} unknown loc${devicesDeltaHtml}`;
 
                 // WoW Growth badge
                 const wowEl = document.getElementById('kpi-wow');
@@ -1767,6 +1853,7 @@
 
                 // Kirjoitetaan datamuuttujaan
                 globalTrackingData = trackingData;
+                globalPrevTrackingData = prevTrackingData;
                 
                 // Renderöi
                 renderData();
@@ -2042,27 +2129,84 @@
             });
             const counts = sortedIsoKeys.map(k => daysMap[k]);
 
+            // Calculate daily average
+            const dailyAvg = counts.length > 0 ? Math.round(counts.reduce((a, b) => a + b, 0) / counts.length) : 0;
+            const avgLine = counts.map(() => dailyAvg);
+
+            // Calculate prev period daily average for comparison
+            let avgDeltaHtml = '';
+            if (globalPrevTrackingData && globalPrevTrackingData.length > 0) {
+                const prevDaysMap = {};
+                globalPrevTrackingData.forEach(d => {
+                    if (!d.client_time) return;
+                    const dateObj = new Date(d.client_time);
+                    const isoKey = `${dateObj.getFullYear()}-${('0'+(dateObj.getMonth()+1)).slice(-2)}-${('0'+dateObj.getDate()).slice(-2)}`;
+                    prevDaysMap[isoKey] = (prevDaysMap[isoKey] || 0) + 1;
+                });
+                const prevCounts = Object.values(prevDaysMap);
+                const prevDailyAvg = prevCounts.length > 0 ? Math.round(prevCounts.reduce((a,b) => a+b, 0) / prevCounts.length) : 0;
+                if (prevDailyAvg > 0) {
+                    const avgDiff = dailyAvg - prevDailyAvg;
+                    const avgPct = Math.round((avgDiff / prevDailyAvg) * 100);
+                    const avgColor = avgDiff >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+                    avgDeltaHtml = ` <span style="font-size:0.75rem;color:${avgColor};font-weight:600;">${avgDiff >= 0 ? '▲' : '▼'} ${Math.abs(avgPct)}%</span>`;
+                }
+            }
+
+            // Update chart title with daily average + delta
+            const chartTitleEl = document.getElementById('chart-title');
+            if (chartTitleEl) {
+                chartTitleEl.innerHTML = chartTitleEl.innerText + ` <span style="font-size:0.8rem;color:var(--text-secondary);font-weight:400;">— avg ${dailyAvg}/day</span>${avgDeltaHtml}`;
+            }
+
             // Trend Line Chart
             const ctx1 = document.getElementById('mainChart').getContext('2d');
             chartInstance = new Chart(ctx1, {
                 type: 'line',
                 data: {
                     labels: labels.length ? labels : ['No data'],
-                    datasets: [{
-                        label: 'Events',
-                        data: counts.length ? counts : [0],
-                        borderColor: '#8AB4F8',
-                        backgroundColor: 'rgba(138, 180, 248, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }]
+                    datasets: [
+                        {
+                            label: 'Events',
+                            data: counts.length ? counts : [0],
+                            borderColor: '#8AB4F8',
+                            backgroundColor: 'rgba(138, 180, 248, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: `Daily avg (${dailyAvg})`,
+                            data: avgLine.length ? avgLine : [0],
+                            borderColor: 'rgba(255, 183, 77, 0.7)',
+                            backgroundColor: 'transparent',
+                            borderWidth: 1.5,
+                            borderDash: [6, 4],
+                            fill: false,
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            tension: 0
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: { padding: { bottom: 5 } },
-                    plugins: { legend: { display: false } },
+                    plugins: {
+                        legend: { display: true, labels: { boxWidth: 12, font: { size: 11 }, color: '#9AA0A6', usePointStyle: true } },
+                        tooltip: {
+                            callbacks: {
+                                afterBody: function(context) {
+                                    if (context[0] && context[0].datasetIndex === 0) {
+                                        const diff = context[0].raw - dailyAvg;
+                                        const pct = dailyAvg > 0 ? Math.round((diff / dailyAvg) * 100) : 0;
+                                        return `${diff >= 0 ? '+' : ''}${diff} vs avg (${pct >= 0 ? '+' : ''}${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    },
                     scales: {
                         y: { beginAtZero: true, grid: { color: '#3C4043' }, ticks: { precision: 0 } },
                         x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0 } }
@@ -2155,6 +2299,9 @@
             const sortedData = [...data].sort((a, b) => new Date(a.client_time) - new Date(b.client_time));
             sortedData.forEach(d => {
                 if (!d.location || d.location === 'Unknown') return;
+                // Only count proper "City, XX (timezone)" format
+                const isProperCity = d.location.includes(',') && d.location.includes('(');
+                if (!isProperCity) return;
                 const parsed = parseLocation(d.location);
                 const city = parsed.city;
                 if (!city || city === 'Unknown') return;

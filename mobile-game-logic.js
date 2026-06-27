@@ -686,8 +686,7 @@ function showTournamentComplete() {
 
     showLayer('m-layer-leaderboard');
 
-    // Render post-tournament stats panel
-    renderTournamentStats();
+    // Tournament stats panel removed — cluttered the winner screen
     
     broadcastTvState();
 }
