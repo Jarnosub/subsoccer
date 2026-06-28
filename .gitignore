@@ -48,3 +48,5 @@ jarno-ventures
 *.sql.gz
 *.sql.bak
 .env.backup
+*.expect
+*.exp
