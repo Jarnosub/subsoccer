@@ -1366,34 +1366,12 @@
                 </div>
             </div>
 
-            <!-- Add to Map prompt -->
-            <div id="add-to-map-card" class="leaderboard-card" style="display: none;">
-                <!-- Default state: prompt -->
-                <div id="map-prompt-state">
-                    <div class="leaderboard-title">📍 SUBSOCCER MAP</div>
-                    <div style="font-family: 'Resolve', sans-serif; font-size: 1.1rem; color: #fff; margin-bottom: 16px; text-align: center; letter-spacing: 1px;">Add your game table to the map!</div>
-                    <input type="text" id="map-game-name" placeholder="Name your game" 
-                        maxlength="40"
-                        style="width: 100%; box-sizing: border-box; padding: 14px 16px; border-radius: 2px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: #fff; font-size: 1rem; font-family: 'Resolve', sans-serif; outline: none; margin-bottom: 10px; letter-spacing: 0.5px;">
-                    <div id="map-city-label" style="font-family: 'Resolve', sans-serif; font-size: 0.65rem; color: rgba(255,255,255,0.5); margin-bottom: 16px; text-align: center; letter-spacing: 3px;">
-                        📌 <span id="map-detected-city">DETECTING LOCATION...</span>
-                    </div>
-                    <button id="map-submit-btn" onclick="submitAddToMap()" 
-                        style="width: 100%; padding: 14px 20px; border-radius: 2px; border: none; background: #c41e2a; color: #fff; font-size: 1.2rem; font-family: 'Resolve', sans-serif; cursor: pointer; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s;">
-                        📍 Add to Map
-                    </button>
-                </div>
-                <!-- Success state -->
-                <div id="map-success-state" style="display: none; text-align: center; padding: 16px 0;">
-                    <div style="font-size: 1.8rem; margin-bottom: 10px;">✅</div>
-                    <div style="font-family: 'Resolve', sans-serif; font-size: 1.2rem; color: #fff; letter-spacing: 1px;">ADDED TO THE MAP!</div>
-                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: rgba(255,255,255,0.5); margin-top: 8px; letter-spacing: 3px;">YOUR GAME IS NOW VISIBLE WORLDWIDE</div>
-                </div>
-                <!-- Error state -->
-                <div id="map-error-state" style="display: none; text-align: center; padding: 16px 0;">
-                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.85rem; color: #c41e2a; letter-spacing: 1px;">COULD NOT ADD TO MAP — TRY AGAIN LATER</div>
-                </div>
-            </div>
+            <!-- Pin Table to Map Link -->
+            <a href="register.html" 
+                style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #fff; font-family: 'Subsoccer', sans-serif; font-size: 1.15rem; letter-spacing: 2px; text-decoration: none; padding: 14px 24px; margin: 18px auto 0; background: rgba(196, 30, 42, 0.15); border: 1px solid rgba(196, 30, 42, 0.5); border-radius: 6px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: all 0.2s;"
+                onmouseover="this.style.background='rgba(196, 30, 42, 0.3)'; this.style.borderColor='var(--sub-red)';" onmouseout="this.style.background='rgba(196, 30, 42, 0.15)'; this.style.borderColor='rgba(196, 30, 42, 0.5)';">
+                <i class="fa-solid fa-map-pin" style="color: var(--sub-red); font-size: 1.1rem;"></i> <span>REGISTER TABLE TO MAP</span>
+            </a>
 
             <!-- Spacer to ensure stats scroll past fixed bottom buttons -->
             <div style="flex-shrink: 0; height: 180px; width: 100%;"></div>

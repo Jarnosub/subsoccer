@@ -3,880 +3,557 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Subsoccer - Register Your Product</title>
+    <title>Subsoccer — Pin Your Table to the Map</title>
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="translations.js"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <style>
         @font-face { font-family: 'Subsoccer'; src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'); font-display: swap; }
         @font-face { font-family: 'Resolve'; src: url('fonts/Resolve-BoldNrw.otf') format('opentype'); font-display: swap; }
-        :root { --sub-red: #c41e2a; --sub-accent: #c41e2a; --sub-gold: #FFD700; --sub-radius: 4px; }
+        :root { --sub-red: #c41e2a; --sub-radius: 6px; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Open Sans', sans-serif;
-            background: #0a0a0a;
+            background: #0d0e11;
             color: #fff;
             min-height: 100vh; min-height: 100dvh;
             display: flex; flex-direction: column; align-items: center;
-            padding: 0 20px env(safe-area-inset-bottom, 40px) 20px;
+            padding: 20px 20px env(safe-area-inset-bottom, 30px) 20px;
         }
 
-        .reg-header { text-align: center; padding: 40px 0 25px; width: 100%; max-width: 420px; }
-        .reg-header img { width: 100px; margin-bottom: 25px; }
-        .reg-header h1 { font-family: 'Subsoccer', sans-serif; font-size: 2.2rem; letter-spacing: 2px; color: #fff; margin-bottom: 10px; font-weight: normal; }
-        .reg-header p { font-family: 'Resolve', sans-serif; color: #888; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; line-height: 1.5; }
-
-        .product-badge {
-            background: #1a1a1a;
-            border: 1px solid #333; border-radius: var(--sub-radius);
-            padding: 15px 20px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;
-            width: 100%; max-width: 420px;
+        .pin-container {
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .product-badge .badge-icon { font-size: 2rem; color: var(--sub-accent); }
-        .product-badge .badge-info h3 { font-family: 'Resolve', sans-serif; font-size: 1.1rem; color: #fff; letter-spacing: 1px; }
-        .product-badge .badge-info p { color: var(--sub-accent); font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
 
-        .step-indicator { display: flex; gap: 0; width: 100%; max-width: 420px; margin-bottom: 25px; }
-        .step { flex: 1; text-align: center; padding: 10px 5px; font-family: 'Resolve', sans-serif; font-size: 0.65rem; color: #555; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #333; }
-        .step.active { color: var(--sub-accent); border-bottom-color: var(--sub-accent); }
-        .step.done { color: #4caf50; border-bottom-color: #4caf50; }
-
-        .reg-form { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
-        .form-group { display: flex; flex-direction: column; gap: 5px; }
-        .form-group label { font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 2px; color: #aaa; text-transform: uppercase; }
-        .form-group input, .form-group select {
-            background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 14px 16px;
-            border-radius: var(--sub-radius); font-size: 1rem; font-family: 'Open Sans', sans-serif;
-            transition: border-color 0.3s; width: 100%;
+        .pin-header {
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 24px;
         }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--sub-accent); box-shadow: 0 0 0 3px rgba(196, 30, 42, 0.2); }
-        .form-group input::placeholder { color: #777; }
-
-        .serial-input-wrapper { position: relative; display: flex; align-items: stretch; }
-        .serial-input-wrapper input {
-            flex: 1; font-family: 'Resolve', sans-serif; letter-spacing: 2px;
-            text-transform: uppercase; font-size: 1.1rem; text-align: center;
+        .pin-header img { width: 85px; margin-bottom: 15px; cursor: pointer; }
+        .pin-header h1 {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            color: #fff;
+            font-weight: normal;
         }
-        .form-hint { font-size: 0.68rem; color: #888; margin-top: 3px; }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--sub-red) 0%, #900000 100%); color: white; border: none;
-            padding: 18px; border-radius: var(--sub-radius); font-family: 'Resolve', sans-serif;
-            font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
-            text-transform: uppercase; margin-top: 5px;
+        .pin-header p {
+            font-family: 'Resolve', sans-serif;
+            color: #888;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-top: 4px;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(227, 6, 19, 0.4); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        .btn-gold {
-            background: transparent; border: 1px solid var(--sub-accent); color: var(--sub-accent);
-            padding: 18px; border-radius: var(--sub-radius); font-family: 'Resolve', sans-serif;
-            font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
-            text-transform: uppercase; margin-top: 5px;
+        .card {
+            width: 100%;
+            background: #16171b;
+            border: 1px solid #282a30;
+            border-radius: 12px;
+            padding: 22px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
         }
-        .btn-gold:hover { background: rgba(196, 30, 42, 0.1); }
 
-        .btn-secondary {
-            background: none; border: 1px solid #333; color: #888; padding: 14px 30px;
-            border-radius: var(--sub-radius); font-size: 0.8rem; cursor: pointer;
-            font-family: 'Open Sans', sans-serif; width: 100%; margin-top: 5px;
+        .loc-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--sub-radius);
+            padding: 12px 14px;
         }
-        .btn-secondary:hover { border-color: #555; color: #ccc; }
+        .loc-badge i { font-size: 1.2rem; color: var(--sub-red); }
+        .loc-details { min-width: 0; flex: 1; }
+        .loc-city { font-weight: 700; font-size: 0.95rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .loc-status { font-size: 0.7rem; color: #888; margin-top: 2px; }
 
-        .status-msg {
-            display: none; width: 100%; padding: 12px 16px; border-radius: var(--sub-radius);
-            font-size: 0.85rem; text-align: center; margin-top: 10px;
+        .type-selector {
+            display: flex;
+            gap: 10px;
         }
-        .status-msg.success { display: block; background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); color: #4caf50; }
-        .status-msg.error { display: block; background: rgba(227, 6, 19, 0.1); border: 1px solid rgba(227, 6, 19, 0.3); color: var(--sub-red); }
-
-        .view { display: none; width: 100%; max-width: 420px; }
-        .view.active { display: flex; flex-direction: column; align-items: center; }
-
-        .auth-divider { display: flex; align-items: center; gap: 15px; width: 100%; margin: 5px 0; }
-        .auth-divider span { color: #777; font-size: 0.75rem; white-space: nowrap; }
-        .auth-divider hr { flex: 1; border: none; border-top: 1px solid #333; }
-
-        .success-card {
-            background: #1a1a1a; border: 1px solid rgba(76, 175, 80, 0.3);
-            border-radius: 4px; padding: 30px; text-align: center; width: 100%; max-width: 420px;
+        .type-btn {
+            flex: 1;
+            padding: 14px 10px;
+            border-radius: var(--sub-radius);
+            border: 1px solid #333;
+            background: #1f2026;
+            color: #ccc;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
         }
-        .success-card .icon { font-size: 3rem; color: #4caf50; margin-bottom: 15px; }
-        .success-card h2 { font-family: 'Subsoccer', sans-serif; font-size: 1.5rem; color: var(--sub-accent); letter-spacing: 2px; margin-bottom: 10px; font-weight: normal; }
-        .success-card p { color: #999; font-size: 0.85rem; line-height: 1.6; }
-        .success-card strong { color: #fff; }
+        .type-btn i { font-size: 1.3rem; }
+        .type-btn:hover { border-color: #666; color: #fff; }
+        .type-btn.active {
+            border-color: var(--sub-red);
+            background: rgba(196, 30, 42, 0.12);
+            color: #fff;
+        }
+        .type-btn.active i { color: var(--sub-red); }
 
-        .reg-footer { margin-top: 40px; text-align: center; color: #555; font-size: 0.65rem; letter-spacing: 1px; padding-bottom: 20px; }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1.5px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .form-group input {
+            background: #1f2026;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 14px;
+            border-radius: var(--sub-radius);
+            font-size: 0.95rem;
+            font-family: 'Open Sans', sans-serif;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--sub-red);
+            box-shadow: 0 0 0 3px rgba(196, 30, 42, 0.2);
+        }
+
+        .quick-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .preset-tag {
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #aaa;
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .preset-tag:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: #555; }
+
+        .btn-submit {
+            background: var(--sub-red);
+            color: #fff;
+            border: none;
+            padding: 16px;
+            border-radius: var(--sub-radius);
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.15rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(196, 30, 42, 0.35);
+            margin-top: 6px;
+        }
+        .btn-submit:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn-submit:active { transform: translateY(1px); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* SUCCESS VIEW */
+        #success-view {
+            display: none;
+            text-align: center;
+            width: 100%;
+        }
+        .success-badge {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 12px;
+            padding: 24px 20px;
+            margin-bottom: 20px;
+        }
+        .success-badge i { font-size: 2.5rem; color: #4caf50; margin-bottom: 12px; }
+        .success-badge h2 { font-family: 'Subsoccer', sans-serif; font-size: 1.6rem; letter-spacing: 2px; color: #fff; font-weight: normal; margin-bottom: 6px; }
+        .success-badge p { font-size: 0.85rem; color: #aaa; line-height: 1.5; }
+
+        #preview-map {
+            width: 100%;
+            height: 160px;
+            border-radius: var(--sub-radius);
+            border: 1px solid #333;
+            margin-top: 10px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #444;
+            color: #ccc;
+            padding: 14px;
+            border-radius: var(--sub-radius);
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-outline:hover { border-color: #888; color: #fff; }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: #000;
+            font-weight: 700;
+            border: none;
+            padding: 14px;
+            border-radius: var(--sub-radius);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
 
     <!-- BACK BUTTON -->
-    <button onclick="window.location.href='index.html'" style="position: absolute; top: 25px; left: 25px; background: rgba(30,30,30,0.9); backdrop-filter: blur(5px); border: 1px solid #333; color: #fff; font-size: 1.2rem; cursor: pointer; z-index: 100; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+    <button onclick="window.location.href='index.html'" aria-label="Back to home" style="position: absolute; top: 20px; left: 20px; background: rgba(30,30,30,0.8); backdrop-filter: blur(5px); border: 1px solid #333; color: #fff; font-size: 1.1rem; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
         <i class="fa-solid fa-arrow-left"></i>
     </button>
 
-    <div class="reg-header" id="reg-header-main">
-        <img src="subsoccer_logo.svg" alt="Subsoccer" style="cursor: pointer;" onclick="window.location.href='https://subsoccer.com';">
-        <h1 style="font-size: 1.8rem;">ADD TO THE NETWORK</h1>
-        <p style="line-height: 1.6;">Register your product or add a game location to the Subsoccer map.</p>
-    </div>
-
-    <!-- Product Badge (shown after serial validated) -->
-    <div class="product-badge" id="product-badge" style="display: none;">
-        <i class="fa-solid fa-trophy badge-icon" id="badge-icon"></i>
-        <div class="badge-info">
-            <h3 id="badge-model-name">Subsoccer</h3>
-            <p id="badge-model-type">Detected</p>
+    <div class="pin-container">
+        
+        <div class="pin-header">
+            <img src="subsoccer_logo.svg" alt="Subsoccer" onclick="window.location.href='index.html'">
+            <h1>PIN TO MAP</h1>
+            <p>Add this Subsoccer table to the global network</p>
         </div>
-    </div>
 
-    <!-- VIEW 0: CHOOSE PATH -->
-    <div class="view active" id="view-choose">
-        <div class="reg-form" style="gap: 12px;">
-            <div onclick="showSerialFlow()" style="background: #1a1a1a; border: 1px solid #333; border-radius: var(--sub-radius); padding: 22px 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 16px;" onmouseenter="this.style.borderColor='var(--sub-gold)'" onmouseleave="this.style.borderColor='#333'">
-                <i class="fa-solid fa-barcode" style="font-size: 1.5rem; color: var(--sub-gold); flex-shrink: 0;"></i>
-                <div>
-                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.95rem; color: #fff; letter-spacing: 1px; margin-bottom: 4px;">I HAVE A SERIAL NUMBER</div>
-                    <div style="font-size: 0.75rem; color: #666; line-height: 1.4;">Register your own Subsoccer product with the code from the sticker.</div>
+        <!-- FORM CARD -->
+        <div class="card" id="form-card">
+            
+            <!-- DETECTED LOCATION -->
+            <div class="loc-badge">
+                <i class="fa-solid fa-location-dot"></i>
+                <div class="loc-details">
+                    <div class="loc-city" id="detected-city">Detecting location...</div>
+                    <div class="loc-status" id="detected-status">Using GPS & Geo telemetry</div>
                 </div>
-                <i class="fa-solid fa-chevron-right" style="color: #444; flex-shrink: 0;"></i>
             </div>
 
-            <div onclick="startCommunityFlow()" style="background: #1a1a1a; border: 1px solid #333; border-radius: var(--sub-radius); padding: 22px 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 16px;" onmouseenter="this.style.borderColor='var(--sub-red)'" onmouseleave="this.style.borderColor='#333'">
-                <i class="fa-solid fa-location-dot" style="font-size: 1.5rem; color: var(--sub-red); flex-shrink: 0;"></i>
-                <div>
-                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.95rem; color: #fff; letter-spacing: 1px; margin-bottom: 4px;">I KNOW WHERE THERE'S A TABLE</div>
-                    <div style="font-size: 0.75rem; color: #666; line-height: 1.4;">Add a game location to the map – bar, school, office, anywhere.</div>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="color: #444; flex-shrink: 0;"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- VIEW 1: ENTER SERIAL NUMBER -->
-    <div class="view" id="view-serial">
-        <div class="step-indicator">
-            <div class="step active" data-i18n="step_enter_code">1. Enter code</div>
-            <div class="step" data-i18n="step_details">2. Your details</div>
-            <div class="step" data-i18n="step_done">3. Done!</div>
-        </div>
-
-        <div class="reg-form">
+            <!-- TYPE SELECTOR -->
             <div class="form-group">
-                <label data-i18n="serial_number_label">Serial Number</label>
-                <div class="serial-input-wrapper">
-                    <input type="text" id="reg-serial" placeholder="SS3-V02-25PO111-XXXX" maxlength="30"
-                           inputmode="text" autocapitalize="characters" autocomplete="off" autofocus>
-                </div>
-                <div class="form-hint">
-                    <i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>
-                    <span data-i18n="found_under_product">Found on the sticker underneath your product</span>
-                </div>
-            </div>
-
-            <button class="btn-primary" id="btn-validate" onclick="validateSerial()">
-                <i class="fa-solid fa-arrow-right" style="margin-right: 8px;"></i><span data-i18n="continue_button">CONTINUE</span>
-            </button>
-
-            <button class="btn-secondary" onclick="showView('view-choose')" style="margin-top: 5px;">← Back</button>
-
-            <div class="status-msg" id="serial-status"></div>
-        </div>
-    </div>
-
-    <!-- VIEW 2: ACCOUNT / DETAILS -->
-    <div class="view" id="view-account">
-        <div class="step-indicator">
-            <div class="step done" data-i18n="step_enter_code_done">1. Enter code ✓</div>
-            <div class="step active" data-i18n="step_details">2. Your details</div>
-            <div class="step" data-i18n="step_done">3. Done!</div>
-        </div>
-
-        <div class="reg-form" id="auth-form">
-            <!-- Logged-in state -->
-            <div id="logged-in-section" style="display:none;">
-                <div style="background:#1a1a1a; border:1px solid #333; border-radius:var(--sub-radius); padding:15px; text-align:center; margin-bottom:15px;">
-                    <div style="font-family: 'Resolve', sans-serif; font-size:0.7rem; color:#666; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px;">Logged in as</div>
-                    <div style="font-family:'Resolve', sans-serif; font-size:1.1rem; color:var(--sub-accent); letter-spacing: 1px;" id="logged-in-name">PLAYER</div>
-                </div>
-                <div class="form-group">
-                    <label>Give Your Product a Name</label>
-                    <input type="text" id="reg-name-li" placeholder="e.g. Office Arena, Home Stadium">
-                </div>
-                <div class="form-group">
-                    <label>City / Location</label>
-                    <input type="text" id="reg-location-li" placeholder="e.g. Helsinki, Finland">
-                </div>
-                <button class="btn-gold" onclick="completeRegistration()">
-                    <i class="fa-solid fa-check-circle" style="margin-right: 8px;"></i>REGISTER PRODUCT
-                </button>
-            </div>
-
-            <!-- Sign up -->
-            <div id="signup-section">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="reg-username" placeholder="Your player name" autocapitalize="characters">
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="reg-email" placeholder="your@email.com">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="reg-password" placeholder="Min 6 characters" minlength="6">
-                </div>
-                <div class="form-group">
-                    <label>Product Name</label>
-                    <input type="text" id="reg-name" placeholder="e.g. Office Arena, Home Stadium">
-                </div>
-                <div class="form-group">
-                    <label>City / Location</label>
-                    <input type="text" id="reg-location" placeholder="e.g. Helsinki, Finland">
-                </div>
-                <button class="btn-gold" onclick="signupAndRegister()">
-                    <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i>CREATE ACCOUNT & REGISTER
-                </button>
-                <div class="auth-divider"><hr><span>already have an account?</span><hr></div>
-                <button class="btn-secondary" onclick="showLoginForm()">
-                    <i class="fa-solid fa-right-to-bracket" style="margin-right: 6px;"></i>LOG IN INSTEAD
-                </button>
-            </div>
-
-            <!-- Login -->
-            <div id="login-section" style="display:none;">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="text" id="login-user" placeholder="your@email.com">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="login-pass" placeholder="Password">
-                </div>
-                <div class="form-group">
-                    <label>Product Name</label>
-                    <input type="text" id="reg-name-login" placeholder="e.g. Office Arena">
-                </div>
-                <div class="form-group">
-                    <label>City / Location</label>
-                    <input type="text" id="reg-location-login" placeholder="e.g. Helsinki, Finland">
-                </div>
-                <button class="btn-gold" onclick="loginAndRegister()">
-                    <i class="fa-solid fa-right-to-bracket" style="margin-right: 8px;"></i>LOG IN & REGISTER
-                </button>
-                <button class="btn-secondary" onclick="showSignupForm()">← Back to sign up</button>
-            </div>
-
-            <div class="status-msg" id="account-status"></div>
-        </div>
-    </div>
-
-    <!-- VIEW: COMMUNITY LOCATION -->
-    <div class="view" id="view-community">
-        <div class="step-indicator">
-            <div class="step done">1. Type ✓</div>
-            <div class="step active">2. Location details</div>
-            <div class="step">3. Done!</div>
-        </div>
-
-        <div class="product-badge" style="display: flex; border-color: var(--sub-red);">
-            <i class="fa-solid fa-location-dot badge-icon"></i>
-            <div class="badge-info">
-                <h3>Community Location</h3>
-                <p style="color: var(--sub-red);">ADD A TABLE TO THE MAP</p>
-            </div>
-        </div>
-
-        <div class="reg-form" id="community-form">
-            <!-- Logged-in state -->
-            <div id="community-logged-in" style="display:none;">
-                <div style="background:#1a1a1a; border:1px solid #333; border-radius:var(--sub-radius); padding:15px; text-align:center; margin-bottom:15px;">
-                    <div style="font-family: 'Resolve', sans-serif; font-size:0.7rem; color:#666; letter-spacing:1px; text-transform:uppercase; margin-bottom:5px;">Logged in as</div>
-                    <div style="font-family:'Resolve', sans-serif; font-size:1.1rem; color:var(--sub-accent); letter-spacing: 1px;" id="community-logged-name">PLAYER</div>
-                </div>
-            </div>
-
-            <!-- Signup (if not logged in) — Google & Apple OAuth -->
-            <div id="community-signup">
-                <button type="button" class="btn-primary" onclick="signUpWithGoogle()" style="margin-bottom: 10px; padding: 16px; position: relative; background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.15); width: 100%;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); height: 22px;">
-                    <span style="font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px; color: #fff;">CONTINUE WITH GOOGLE</span>
-                </button>
-                <button type="button" class="btn-primary" onclick="signUpWithApple()" style="margin-bottom: 15px; padding: 16px; position: relative; background: #000000; border: 1px solid #333; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <i class="fa-brands fa-apple" style="font-size: 1.2rem; color: #fff;"></i>
-                    <span style="font-family: 'Resolve', sans-serif; font-weight: bold; font-size: 0.95rem; letter-spacing: 1px; color: #fff;">SIGN IN WITH APPLE</span>
-                </button>
-                <div style="text-align: center; color: #888; font-size: 0.7rem; margin-bottom: 10px;">
-                    <i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> Sign in to verify your submission
-                </div>
-            </div>
-
-            <!-- Common fields: venue name + location -->
-            <div style="margin-top: 15px; border-top: 1px solid #222; padding-top: 20px;">
-                <div class="form-group">
-                    <label>Venue Name</label>
-                    <input type="text" id="comm-venue-name" placeholder="e.g. Kallio Bar, School Gym, Office">
-                </div>
-                <div class="form-group">
-                    <label>Location</label>
-                    <div id="comm-location-status" style="font-size: 0.8rem; color: #999; margin-bottom: 8px;">
-                        <i class="fa-solid fa-crosshairs" style="margin-right: 5px;"></i>Click below to detect your location
-                    </div>
-                    <button class="btn-secondary" id="comm-detect-btn" onclick="detectCommunityLocation()" style="margin-top: 0; margin-bottom: 10px;">
-                        <i class="fa-solid fa-crosshairs" style="margin-right: 8px; color: var(--sub-red);"></i>DETECT MY LOCATION
+                <label>Table Type</label>
+                <div class="type-selector">
+                    <button type="button" class="type-btn active" id="btn-public" onclick="setType('public')">
+                        <i class="fa-solid fa-building"></i>
+                        <span>PUBLIC VENUE</span>
                     </button>
-                    <input type="text" id="comm-location-text" placeholder="e.g. Helsinki, Finland">
-                    <div class="form-hint">Auto-detected or type manually</div>
+                    <button type="button" class="type-btn" id="btn-home" onclick="setType('home')">
+                        <i class="fa-solid fa-house"></i>
+                        <span>HOME / PRIVATE</span>
+                    </button>
                 </div>
             </div>
 
-            <button class="btn-gold" id="comm-submit-btn" onclick="submitCommunityLocation()">
-                <i class="fa-solid fa-map-pin" style="margin-right: 8px;"></i>ADD TO MAP
+            <!-- VENUE / TABLE NAME -->
+            <div class="form-group">
+                <label id="name-label">Venue / Location Name</label>
+                <input type="text" id="venue-name" placeholder="e.g. Kallio Bar, Office Lounge..." maxlength="50" autocomplete="off">
+                <div class="quick-presets" id="presets-container">
+                    <span class="preset-tag" onclick="applyPreset('Sports Bar & Lounge')">🍺 Sports Bar</span>
+                    <span class="preset-tag" onclick="applyPreset('Office Arena')">💼 Office Arena</span>
+                    <span class="preset-tag" onclick="applyPreset('School Gym')">🏫 School</span>
+                    <span class="preset-tag" onclick="applyPreset('Youth Club')">🎮 Youth Club</span>
+                </div>
+            </div>
+
+            <!-- SUBMIT BUTTON -->
+            <button class="btn-submit" id="btn-pin" onclick="submitPin()">
+                <i class="fa-solid fa-map-pin"></i> <span>PIN THIS TABLE</span>
             </button>
 
-            <div class="status-msg" id="community-status"></div>
         </div>
-    </div>
 
-    <!-- VIEW 3: SUCCESS -->
-    <div class="view" id="view-success">
-        <div class="step-indicator">
-            <div class="step done" data-i18n="step_enter_code_done">1. Enter code ✓</div>
-            <div class="step done" data-i18n="step_details_done">2. Your details ✓</div>
-            <div class="step active" data-i18n="step_done">3. Done!</div>
-        </div>
-        <div class="success-card">
-            <div class="icon"><i class="fa-solid fa-circle-check"></i></div>
-            <h2 data-i18n="product_registered">PRODUCT REGISTERED!</h2>
-            <p id="success-desc" data-i18n="product_registered_desc">Your product is now part of the Subsoccer network.</p>
-        </div>
-        <button class="btn-gold" style="width:100%; max-width:420px; margin-top: 20px;" onclick="window.location.href='login.html'">
-            <i class="fa-solid fa-gamepad" style="margin-right: 8px;"></i><span data-i18n="open_app">OPEN THE APP</span>
-        </button>
-        <button class="btn-secondary" style="max-width:420px;" id="btn-play-now">
-            <i class="fa-solid fa-bolt" style="margin-right: 6px;"></i><span data-i18n="start_playing">Start playing now</span>
-        </button>
-    </div>
+        <!-- SUCCESS VIEW -->
+        <div id="success-view">
+            <div class="success-badge">
+                <i class="fa-solid fa-circle-check"></i>
+                <h2>TABLE PINNED!</h2>
+                <p id="success-text">Your Subsoccer table is now officially on the map.</p>
+                <div id="preview-map"></div>
+            </div>
 
-    <div class="reg-footer">© Subsoccer – The Pro League</div>
+            <a id="whatsapp-share" class="btn-whatsapp" target="_blank" href="#">
+                <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i> Share Table Link on WhatsApp
+            </a>
+
+            <div style="display: flex; gap: 10px; width: 100%; margin-top: 12px;">
+                <a href="index.html" class="btn-outline" style="flex: 1;">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+                <a href="index.html" onclick="sessionStorage.setItem('open-map','1');" class="btn-outline" style="flex: 1; border-color: var(--sub-red); color: #fff;">
+                    <i class="fa-solid fa-map"></i> View Map
+                </a>
+            </div>
+        </div>
+
+    </div>
 
     <script>
-        // ============================================
-        // SUPABASE
-        // ============================================
         const SUPA_URL  = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
         const SUPA_KEY  = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
         const _supabase = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-        // ============================================
-        // STATE
-        // ============================================
-        let hardwareRecord = null;  // The matched row from hardware_registry
-        let fullSerial = '';
-        let currentUser = null;
+        let _pinType = 'public';
+        let _geoData = { lat: 60.1699, lng: 24.9384, city: 'Helsinki', country: 'Finland', precise: false };
+        let _currentUser = null;
 
-        // Human-friendly model names
-        const MODEL_DISPLAY = {
-            'S7':       { name: 'Subsoccer 7',       icon: 'fa-solid fa-trophy' },
-            'S7-WHITE': { name: 'Subsoccer 7 White',  icon: 'fa-solid fa-trophy' },
-            'S7-BLACK': { name: 'Subsoccer 7 Black',  icon: 'fa-solid fa-trophy' },
-            'S3':       { name: 'Subsoccer 3 Edge',   icon: 'fa-solid fa-medal' },
-            'S3-EDGE':  { name: 'Subsoccer 3 Edge',   icon: 'fa-solid fa-medal' },
-            'DOCK':     { name: 'Subsoccer Dock',     icon: 'fa-solid fa-ship' },
-            'ARCADE':   { name: 'Subsoccer Arcade',   icon: 'fa-solid fa-crown' },
-        };
+        // Basic profanity / spam filter
+        const PROFANITY_WORDS = [
+            'vittu', 'perkele', 'saatana', 'kyrpa', 'paska', 'huora', 
+            'fuck', 'shit', 'bitch', 'asshole', 'cunt', 'dick', 'pussy', 'nigger', 'faggot'
+        ];
 
-        // ============================================
-        // INIT
-        // ============================================
+        function isProfane(text) {
+            if (!text) return false;
+            const lower = text.toLowerCase();
+            return PROFANITY_WORDS.some(w => lower.includes(w));
+        }
+
+        function sanitizeName(text, fallback) {
+            const trimmed = (text || '').trim();
+            if (!trimmed || isProfane(trimmed)) {
+                return fallback;
+            }
+            return trimmed.replace(/[<>"]/g, '');
+        }
+
+        // Init & Location Detection
         window.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth();
-        });
-
-        async function checkAuth() {
+            // 1. Check logged in user
             try {
                 const { data: { session } } = await _supabase.auth.getSession();
-                if (session?.user) {
-                    const { data: player } = await _supabase.from('players').select('*').eq('id', session.user.id).maybeSingle();
-                    if (player) {
-                        currentUser = player;
-                    } else {
-                        const newName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
-                        await _supabase.from('players').upsert({
-                            id: session.user.id,
-                            username: newName,
-                            display_name: newName,
-                            email: session.user.email,
-                            elo: 1300,
-                            wins: 0,
-                            losses: 0
-                        }, { onConflict: 'id' });
-                        currentUser = { id: session.user.id, username: newName };
+                if (session?.user) _currentUser = session.user;
+            } catch (_) {}
+
+            // 2. Fetch IP Geo via Netlify Edge Function
+            try {
+                const res = await fetch('/.netlify/functions/geo');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.city) _geoData.city = data.city;
+                    if (data.country) _geoData.country = data.country;
+                    if (data.latitude && data.longitude) {
+                        _geoData.lat = parseFloat(data.latitude);
+                        _geoData.lng = parseFloat(data.longitude);
                     }
+                    updateLocationDisplay();
                 }
-            } catch (e) { console.warn('Auth check:', e); }
-        }
+            } catch (_) {}
 
-        // ============================================
-        // VIEW SWITCHING
-        // ============================================
-        function showView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // ============================================
-        // STEP 1: VALIDATE SERIAL against hardware_registry
-        // ============================================
-        async function validateSerial() {
-            fullSerial = document.getElementById('reg-serial').value.trim().toUpperCase();
-            const statusEl = document.getElementById('serial-status');
-            statusEl.className = 'status-msg'; statusEl.style.display = 'none';
-
-            if (!fullSerial || fullSerial.length < 4) {
-                showSerialStatus('Please enter the full serial number from your product sticker.', 'error');
-                return;
+            // 3. Request precise GPS location smoothly
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        _geoData.lat = pos.coords.latitude;
+                        _geoData.lng = pos.coords.longitude;
+                        _geoData.precise = true;
+                        updateLocationDisplay(true);
+                    },
+                    () => { updateLocationDisplay(); },
+                    { timeout: 6000 }
+                );
+            } else {
+                updateLocationDisplay();
             }
+        });
 
-            const btn = document.getElementById('btn-validate');
+        function updateLocationDisplay(isGps = false) {
+            const cityEl = document.getElementById('detected-city');
+            const statusEl = document.getElementById('detected-status');
+            const locationStr = [_geoData.city, _geoData.country].filter(Boolean).join(', ') || 'Global';
+            cityEl.textContent = locationStr;
+            statusEl.textContent = isGps ? '📍 High accuracy GPS active' : '🌐 Telemetry location ready';
+            if (isGps) statusEl.style.color = '#4caf50';
+        }
+
+        function setType(type) {
+            _pinType = type;
+            document.getElementById('btn-public').classList.toggle('active', type === 'public');
+            document.getElementById('btn-home').classList.toggle('active', type === 'home');
+            
+            const nameInput = document.getElementById('venue-name');
+            const presets = document.getElementById('presets-container');
+            const nameLabel = document.getElementById('name-label');
+
+            if (type === 'home') {
+                nameLabel.textContent = 'Home / Table Nickname (Optional)';
+                nameInput.placeholder = 'e.g. Basement Stadium, Home Arena';
+                presets.innerHTML = `
+                    <span class="preset-tag" onclick="applyPreset('Home Stadium')">🏠 Home Stadium</span>
+                    <span class="preset-tag" onclick="applyPreset('Game Room')">🎯 Game Room</span>
+                    <span class="preset-tag" onclick="applyPreset('Backyard Arena')">🌳 Backyard Arena</span>
+                `;
+            } else {
+                nameLabel.textContent = 'Venue / Location Name';
+                nameInput.placeholder = 'e.g. Kallio Bar, Office Lounge...';
+                presets.innerHTML = `
+                    <span class="preset-tag" onclick="applyPreset('Sports Bar & Lounge')">🍺 Sports Bar</span>
+                    <span class="preset-tag" onclick="applyPreset('Office Arena')">💼 Office Arena</span>
+                    <span class="preset-tag" onclick="applyPreset('School Gym')">🏫 School</span>
+                    <span class="preset-tag" onclick="applyPreset('Youth Club')">🎮 Youth Club</span>
+                `;
+            }
+        }
+
+        function applyPreset(name) {
+            document.getElementById('venue-name').value = name;
+        }
+
+        async function submitPin() {
+            const btn = document.getElementById('btn-pin');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i>CHECKING...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> PINNING TABLE...';
 
             try {
-                // Look up serial in hardware_registry
-                const { data: hw, error } = await _supabase
-                    .from('hardware_registry')
-                    .select('*')
-                    .ilike('serial_number', fullSerial)
-                    .maybeSingle();
-
-                if (error) throw error;
-
-                if (!hw) {
-                    showSerialStatus(`Serial number "${fullSerial}" not found. Please check the code and try again.`, 'error');
-                    return;
+                // Rate limit: Max 1 pin per device per 24 hours (unless logged in)
+                const lastPinned = localStorage.getItem('subsoccer_last_pinned_ts');
+                if (lastPinned && !_currentUser) {
+                    const diffHours = (Date.now() - parseInt(lastPinned, 10)) / (1000 * 60 * 60);
+                    if (diffHours < 24) {
+                        alert('You have already pinned a table today! To manage or edit your tables, open My Games.');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-map-pin"></i> <span>PIN THIS TABLE</span>';
+                        return;
+                    }
                 }
 
-                if (hw.is_claimed) {
-                    showSerialStatus(`This serial number is already registered. If you just bought this product, contact support@subsoccer.com`, 'error');
-                    return;
+                let lat = _geoData.lat;
+                let lng = _geoData.lng;
+
+                // Smart Deduplication: Check if there's already an active table within ~300 meters
+                if (lat && lng) {
+                    const RADIUS = 0.003; // ~300m
+                    const { data: existingNearby } = await _supabase
+                        .from('games')
+                        .select('id, game_name, location, latitude, longitude')
+                        .eq('is_public', true)
+                        .gte('latitude', lat - RADIUS)
+                        .lte('latitude', lat + RADIUS)
+                        .gte('longitude', lng - RADIUS)
+                        .lte('longitude', lng + RADIUS)
+                        .limit(1);
+
+                    if (existingNearby && existingNearby.length > 0) {
+                        const existingTable = existingNearby[0];
+                        // Table already exists here! Link to existing instead of creating duplicate
+                        document.getElementById('form-card').style.display = 'none';
+                        document.getElementById('success-view').style.display = 'block';
+                        document.getElementById('success-text').innerHTML = `A Subsoccer table (<strong>${existingTable.game_name}</strong>) is already active at this location! Your games will be tracked here.`;
+
+                        const shareText = encodeURIComponent(`📍 Playing Subsoccer at "${existingTable.game_name}"! Check the map: https://subsoccer.pro`);
+                        document.getElementById('whatsapp-share').href = `https://api.whatsapp.com/send?text=${shareText}`;
+
+                        setTimeout(() => {
+                            const previewMap = L.map('preview-map', { zoomControl: false, attributionControl: false }).setView([existingTable.latitude, existingTable.longitude], 14);
+                            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(previewMap);
+                            L.marker([existingTable.latitude, existingTable.longitude]).addTo(previewMap);
+                        }, 100);
+                        return;
+                    }
                 }
 
-                // Valid & unclaimed!
-                hardwareRecord = hw;
-
-                // Show product badge
-                const modelKey = hw.product_model?.toUpperCase() || hw.product_category?.toUpperCase() || '';
-                const display = MODEL_DISPLAY[modelKey] || { name: hw.product_model || 'Subsoccer Product', icon: 'fa-solid fa-trophy' };
-
-                document.getElementById('product-badge').style.display = 'flex';
-                document.getElementById('badge-model-name').textContent = display.name;
-                document.getElementById('badge-model-type').textContent = `SN: ${fullSerial}`;
-                document.getElementById('badge-icon').className = display.icon + ' badge-icon';
-
-                // Go to step 2
-                showView('view-account');
-
-                if (currentUser) {
-                    document.getElementById('logged-in-section').style.display = 'block';
-                    document.getElementById('signup-section').style.display = 'none';
-                    document.getElementById('login-section').style.display = 'none';
-                    document.getElementById('logged-in-name').textContent = currentUser.username;
+                // Home privacy protection: add jitter (500m - 1km) so exact home address isn't published
+                if (_pinType === 'home') {
+                    lat += (Math.random() - 0.5) * 0.012;
+                    lng += (Math.random() - 0.5) * 0.012;
                 }
+
+                const locationStr = [_geoData.city, _geoData.country].filter(Boolean).join(', ') || 'Global';
+                const defaultName = _pinType === 'home' ? `Home Stadium (${_geoData.city || 'Subsoccer'})` : `Subsoccer Table (${_geoData.city || 'Subsoccer'})`;
+                const rawName = document.getElementById('venue-name').value;
+                const finalName = sanitizeName(rawName, defaultName);
+                const uniqueCode = 'COMMUNITY-' + Date.now();
+
+                // Insert into Supabase games table
+                const { data, error } = await _supabase.from('games').insert([{
+                    unique_code: uniqueCode,
+                    game_name: finalName,
+                    location: locationStr,
+                    latitude: lat,
+                    longitude: lng,
+                    is_public: true,
+                    verified: false,
+                    owner_id: _currentUser?.id || null,
+                    registered_at: new Date().toISOString()
+                }]).select().single();
+
+                // Mark throttle and save game ID to device storage so guest can manage it in My Games
+                localStorage.setItem('subsoccer_last_pinned_ts', Date.now().toString());
+                try {
+                    const myPinned = JSON.parse(localStorage.getItem('subsoccer_my_pinned_tables') || '[]');
+                    if (data?.id && !myPinned.includes(data.id)) {
+                        myPinned.push(data.id);
+                        localStorage.setItem('subsoccer_my_pinned_tables', JSON.stringify(myPinned));
+                    }
+                } catch (_) {}
+
+                // Show success view
+                document.getElementById('form-card').style.display = 'none';
+                document.getElementById('success-view').style.display = 'block';
+                document.getElementById('success-text').innerHTML = `<strong>${finalName}</strong> in ${locationStr} is now pinned to the global map!`;
+
+                // Set WhatsApp share link
+                const shareText = encodeURIComponent(`📍 We just pinned our Subsoccer table "${finalName}" (${locationStr}) to the global Subsoccer map! Check it out: https://subsoccer.pro`);
+                document.getElementById('whatsapp-share').href = `https://api.whatsapp.com/send?text=${shareText}`;
+
+                // Render miniature preview map
+                setTimeout(() => {
+                    const previewMap = L.map('preview-map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 13);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(previewMap);
+                    L.marker([lat, lng]).addTo(previewMap);
+                }, 100);
 
             } catch (err) {
-                showSerialStatus('Error checking serial: ' + err.message, 'error');
-            } finally {
+                console.error('Pin error:', err);
+                alert('Could not pin table: ' + (err.message || 'Network error'));
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-arrow-right" style="margin-right: 8px;"></i>CONTINUE';
-            }
-        }
-
-        // ============================================
-        // STEP 2: AUTH + REGISTER
-        // ============================================
-        async function signupAndRegister() {
-            const username = document.getElementById('reg-username').value.trim().toUpperCase();
-            const email = document.getElementById('reg-email').value.trim();
-            const password = document.getElementById('reg-password').value;
-            const tableName = document.getElementById('reg-name').value.trim();
-            const location = document.getElementById('reg-location').value.trim();
-
-            if (!username || !email || !password) { showAccountStatus('Please fill all account fields.', 'error'); return; }
-            if (password.length < 6) { showAccountStatus('Password must be at least 6 characters.', 'error'); return; }
-            if (!tableName) { showAccountStatus('Give your product a name.', 'error'); return; }
-
-            try {
-                showAccountStatus('Creating account...', 'success');
-                const { data, error } = await _supabase.auth.signUp({
-                    email, password,
-                    options: { data: { username, display_name: username } }
-                });
-                if (error) {
-                    if (error.message.includes('already') || error.status === 422) {
-                        showAccountStatus('Email already registered. Try logging in instead.', 'error'); return;
-                    }
-                    throw error;
-                }
-                if (data.user) {
-                    await _supabase.from('players').upsert({ id: data.user.id, username, email, elo: 1300, wins: 0, losses: 0 }, { onConflict: 'id' });
-                    currentUser = { id: data.user.id, username };
-                    await claimHardware(tableName, location);
-                }
-            } catch (err) { showAccountStatus('Error: ' + err.message, 'error'); }
-        }
-
-        async function loginAndRegister() {
-            const userInput = document.getElementById('login-user').value.trim();
-            const password = document.getElementById('login-pass').value;
-            const tableName = document.getElementById('reg-name-login').value.trim();
-            const location = document.getElementById('reg-location-login').value.trim();
-
-            if (!userInput || !password) { showAccountStatus('Please fill login fields.', 'error'); return; }
-            if (!tableName) { showAccountStatus('Give your product a name.', 'error'); return; }
-
-            try {
-                showAccountStatus('Logging in...', 'success');
-                let email = userInput;
-                if (!userInput.includes('@')) {
-                    // Security: use player_profiles view (no email exposed to anon)
-                    // Username login requires the user to enter their email directly
-                    showAccountStatus('Please enter your email address to log in.', 'error');
-                    return;
-                }
-                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                const { data: profile } = await _supabase.from('players').select('*').eq('id', data.user.id).maybeSingle();
-                currentUser = profile || { id: data.user.id, username: userInput };
-                await claimHardware(tableName, location);
-            } catch (err) { showAccountStatus('Login failed: ' + err.message, 'error'); }
-        }
-
-        async function completeRegistration() {
-            const tableName = document.getElementById('reg-name-li').value.trim();
-            const location = document.getElementById('reg-location-li').value.trim();
-            if (!tableName) { showAccountStatus('Give your product a name.', 'error'); return; }
-            await claimHardware(tableName, location);
-        }
-
-        // ============================================
-        // CLAIM: Update hardware_registry + create game
-        // ============================================
-        async function claimHardware(tableName, location) {
-            try {
-                showAccountStatus('Registering product...', 'success');
-
-                // 1. Claim in hardware_registry
-                const { error: hwErr } = await _supabase
-                    .from('hardware_registry')
-                    .update({
-                        is_claimed: true,
-                        owner_id: currentUser.id,
-                        claimed_at: new Date().toISOString(),
-                        location_type: location ? 'specified' : null
-                    })
-                    .eq('id', hardwareRecord.id)
-                    .eq('is_claimed', false);  // Safety: only claim if still unclaimed
-
-                if (hwErr) throw hwErr;
-
-                // 2. Geocode location text to get lat/lng for map display
-                let geoLat = null, geoLng = null;
-                if (location) {
-                    try {
-                        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`, {
-                            headers: { 'Accept-Language': 'en' }
-                        });
-                        const geoData = await geoRes.json();
-                        if (geoData && geoData.length > 0) {
-                            geoLat = parseFloat(geoData[0].lat);
-                            geoLng = parseFloat(geoData[0].lon);
-                        }
-                    } catch (e) { console.warn('Geocoding failed:', e); }
-                }
-
-                // 3. Also create a game entry (for map, stats, instant-play linking)
-                const realSerial = hardwareRecord.serial_number;
-                const uniqueCode = realSerial.replace(/[^a-zA-Z0-9]/g, '');
-                await _supabase.from('games').insert([{
-                    unique_code: uniqueCode,
-                    game_name: tableName,
-                    location: location || 'Unknown',
-                    latitude: geoLat,
-                    longitude: geoLng,
-                    owner_id: currentUser.id,
-                    is_public: false,
-                    serial_number: realSerial,
-                    verified: true,
-                    model: hardwareRecord.product_model,
-                    registered_at: new Date().toISOString()
-                }]).then(({ error }) => {
-                    if (error) console.warn('Game entry warning (may already exist):', error.message);
-                });
-
-                // 3. Show success
-                document.getElementById('success-desc').innerHTML = `
-                    <strong>${tableName}</strong><br>
-                    <span style="color:var(--sub-accent)">${realSerial}</span><br><br>
-                    Registered to <strong>${currentUser.username}</strong>.<br>
-                    Your product is now part of the Subsoccer network!
-                `;
-                document.getElementById('btn-play-now').onclick = () => {
-                    window.location.href = 'instant-play.html?sn=' + encodeURIComponent(realSerial);
-                };
-                showView('view-success');
-
-            } catch (err) { showAccountStatus('Registration failed: ' + err.message, 'error'); }
-        }
-
-        // ============================================
-        // HELPERS
-        // ============================================
-        function showLoginForm() { document.getElementById('signup-section').style.display = 'none'; document.getElementById('login-section').style.display = 'block'; }
-        function showSignupForm() { document.getElementById('signup-section').style.display = 'block'; document.getElementById('login-section').style.display = 'none'; }
-        function showSerialStatus(msg, type) { const el = document.getElementById('serial-status'); el.textContent = msg; el.className = 'status-msg ' + type; }
-        function showAccountStatus(msg, type) { const el = document.getElementById('account-status'); el.textContent = msg; el.className = 'status-msg ' + type; }
-
-        // ============================================
-        // COMMUNITY LOCATION FLOW
-        // ============================================
-        let communityLat = null;
-        let communityLng = null;
-
-        function showSerialFlow() {
-            showView('view-serial');
-            document.getElementById('reg-serial').focus();
-        }
-
-        function startCommunityFlow() {
-            showView('view-community');
-            if (currentUser) {
-                document.getElementById('community-logged-in').style.display = 'block';
-                document.getElementById('community-signup').style.display = 'none';
-                document.getElementById('community-login').style.display = 'none';
-                document.getElementById('community-logged-name').textContent = currentUser.username;
-            }
-        }
-
-        function showCommunityLogin() {
-            document.getElementById('community-signup').style.display = 'none';
-            document.getElementById('community-login').style.display = 'block';
-        }
-
-        function showCommunitySignup() {
-            document.getElementById('community-signup').style.display = 'block';
-            document.getElementById('community-login').style.display = 'none';
-        }
-
-        function showCommunityStatus(msg, type) {
-            const el = document.getElementById('community-status');
-            el.textContent = msg;
-            el.className = 'status-msg ' + type;
-        }
-
-        async function detectCommunityLocation() {
-            const statusEl = document.getElementById('comm-location-status');
-            const btn = document.getElementById('comm-detect-btn');
-            btn.disabled = true;
-            statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i>Detecting location...';
-            statusEl.style.color = '#888';
-
-            if (!navigator.geolocation) {
-                statusEl.innerHTML = '<i class="fa-solid fa-xmark" style="margin-right: 5px; color: var(--sub-red);"></i>Geolocation not available. Type location manually.';
-                statusEl.style.color = 'var(--sub-red)';
-                btn.disabled = false;
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                async (pos) => {
-                    communityLat = pos.coords.latitude;
-                    communityLng = pos.coords.longitude;
-                    statusEl.innerHTML = `<i class="fa-solid fa-check" style="margin-right: 5px; color: #4caf50;"></i>Location detected (${communityLat.toFixed(4)}, ${communityLng.toFixed(4)})`;
-                    statusEl.style.color = '#4caf50';
-                    btn.innerHTML = '<i class="fa-solid fa-check" style="margin-right: 8px;"></i>LOCATION DETECTED';
-                    btn.style.borderColor = '#4caf50';
-                    btn.style.color = '#4caf50';
-
-                    // Reverse geocode for city name
-                    try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${communityLat}&lon=${communityLng}`);
-                        const data = await res.json();
-                        if (data && data.address) {
-                            const city = data.address.city || data.address.town || data.address.village || data.address.municipality || '';
-                            const country = data.address.country || '';
-                            const locationText = [city, country].filter(Boolean).join(', ');
-                            document.getElementById('comm-location-text').value = locationText;
-                        }
-                    } catch (e) { /* reverse geocode failed, user can type manually */ }
-                },
-                (err) => {
-                    statusEl.innerHTML = '<i class="fa-solid fa-xmark" style="margin-right: 5px; color: var(--sub-red);"></i>Location denied. Type location manually.';
-                    statusEl.style.color = 'var(--sub-red)';
-                    btn.disabled = false;
-                },
-                { timeout: 8000, enableHighAccuracy: false }
-            );
-        }
-
-        async function submitCommunityLocation() {
-            const venueName = document.getElementById('comm-venue-name').value.trim();
-            const locationText = document.getElementById('comm-location-text').value.trim();
-
-            if (!venueName) { showCommunityStatus('Please enter a venue name.', 'error'); return; }
-            if (!locationText) { showCommunityStatus('Please detect or type a location.', 'error'); return; }
-
-            // Auth: signup or login if not logged in
-            if (!currentUser) {
-                const signupVisible = document.getElementById('community-signup').style.display !== 'none';
-                if (signupVisible) {
-                    const username = document.getElementById('comm-username').value.trim().toUpperCase();
-                    const email = document.getElementById('comm-email').value.trim();
-                    const password = document.getElementById('comm-password').value;
-                    if (!username || !email || !password) { showCommunityStatus('Please fill all account fields.', 'error'); return; }
-                    if (password.length < 6) { showCommunityStatus('Password must be at least 6 characters.', 'error'); return; }
-
-                    try {
-                        showCommunityStatus('Creating account...', 'success');
-                        const { data, error } = await _supabase.auth.signUp({
-                            email, password,
-                            options: { data: { username, display_name: username } }
-                        });
-                        if (error) {
-                            if (error.message.includes('already') || error.status === 422) {
-                                showCommunityStatus('Email already registered. Try logging in instead.', 'error'); return;
-                            }
-                            throw error;
-                        }
-                        if (data.user) {
-                            await _supabase.from('players').upsert({ id: data.user.id, username, email, elo: 1300, wins: 0, losses: 0 }, { onConflict: 'id' });
-                            currentUser = { id: data.user.id, username };
-                        }
-                    } catch (err) { showCommunityStatus('Error: ' + err.message, 'error'); return; }
-                } else {
-                    const userInput = document.getElementById('comm-login-user').value.trim();
-                    const password = document.getElementById('comm-login-pass').value;
-                    if (!userInput || !password) { showCommunityStatus('Please fill login fields.', 'error'); return; }
-
-                    try {
-                        showCommunityStatus('Logging in...', 'success');
-                        let email = userInput;
-                        if (!userInput.includes('@')) {
-                            // Security: use player_profiles view (no email exposed to anon)
-                            showCommunityStatus('Please enter your email address to log in.', 'error');
-                            return;
-                        }
-                        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-                        if (error) throw error;
-                        const { data: profile } = await _supabase.from('players').select('*').eq('id', data.user.id).maybeSingle();
-                        currentUser = profile || { id: data.user.id, username: userInput };
-                    } catch (err) { showCommunityStatus('Login failed: ' + err.message, 'error'); return; }
-                }
-            }
-
-            // Fallback geocoding if lat/lng is missing but we have locationText
-            if (!communityLat && !communityLng && locationText) {
-                try {
-                    showCommunityStatus('Looking up address coordinates...', 'success');
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText)}`);
-                    const data = await res.json();
-                    if (data && data.length > 0) {
-                        communityLat = parseFloat(data[0].lat);
-                        communityLng = parseFloat(data[0].lon);
-                    }
-                } catch (e) {
-                    console.warn("Geocoding failed:", e);
-                }
-            }
-
-            // Insert community location
-            try {
-                showCommunityStatus('Adding location...', 'success');
-                const { error } = await _supabase.from('games').insert([{
-                    unique_code: 'COMMUNITY-' + Date.now(),
-                    game_name: venueName,
-                    location: locationText,
-                    latitude: communityLat || null,
-                    longitude: communityLng || null,
-                    owner_id: currentUser.id,
-                    is_public: true,
-                    serial_number: null,
-                    verified: false,
-                    registered_at: new Date().toISOString()
-                }]);
-                if (error) throw error;
-
-                // Show success
-                document.getElementById('success-desc').innerHTML = `
-                    <strong>${venueName}</strong><br>
-                    <span style="color:#888">${locationText}</span><br><br>
-                    📍 Added by <strong>${currentUser.username}</strong>.<br>
-                    This location is now visible on the map!
-                `;
-                document.getElementById('btn-play-now').style.display = 'none';
-                document.getElementById('product-badge').style.display = 'none';
-                showView('view-success');
-            } catch (err) { showCommunityStatus('Failed to add location: ' + err.message, 'error'); }
-        }
-        async function signUpWithGoogle() {
-            try {
-                const { error } = await _supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: { redirectTo: window.location.href }
-                });
-                if (error) throw error;
-            } catch (e) {
-                console.error("Google login error:", e);
-                alert("Google login failed.");
-            }
-        }
-        async function signUpWithApple() {
-            try {
-                // Check if running inside Apple's WKWebView (native iOS app context)
-                const isWKWebView = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers['apple-sign-in'];
-                if (isWKWebView) {
-                    window.handleAppleSignInResult = async (token, error) => {
-                        delete window.handleAppleSignInResult;
-                        if (error) {
-                            console.error("Native Apple sign in error:", error);
-                            alert("Apple login failed: " + error);
-                            return;
-                        }
-                        try {
-                            const { error: sbErr } = await _supabase.auth.signInWithIdToken({
-                                provider: 'apple',
-                                token: token
-                            });
-                            if (sbErr) throw sbErr;
-                            // Reload or handle login success
-                            window.location.reload();
-                        } catch (e) {
-                            console.error("Supabase Apple ID token sign in failed:", e);
-                            alert(e.message || "Apple login failed");
-                        }
-                    };
-                    window.webkit.messageHandlers['apple-sign-in'].postMessage({});
-                } else {
-                    // Fallback to web standard OAuth redirect flow
-                    const { error } = await _supabase.auth.signInWithOAuth({
-                        provider: 'apple',
-                        options: { redirectTo: window.location.href }
-                    });
-                    if (error) throw error;
-                }
-            } catch (e) {
-                console.error("Apple login error:", e);
-                alert(e.message || "Apple login failed");
+                btn.innerHTML = '<i class="fa-solid fa-map-pin"></i> <span>PIN THIS TABLE</span>';
             }
         }
     </script>
-<script data-goatcounter="https://subsoccer-pro.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-</body>
 </html>
