@@ -52,7 +52,6 @@
 
     <!-- Open Graph / Social Media Cover Meta Tags -->
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Subsoccer GO">
     <meta property="og:url" content="https://subsoccer.pro/">
     <meta property="og:title" content="Subsoccer GO — Global Bench Soccer App">
     <meta property="og:description" content="Play, track ELO rankings and run tournaments. Subsoccer GO is active in 80+ countries — no registration required.">
@@ -60,7 +59,6 @@
     <meta property="og:image:width" content="1536">
     <meta property="og:image:height" content="1024">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@subsoccer">
     <meta name="twitter:title" content="Subsoccer GO — Global Bench Soccer App">
     <meta name="twitter:description" content="Play, track ELO rankings and run tournaments. Active in 80+ countries — no registration required.">
     <meta name="twitter:image" content="https://subsoccer.pro/subsoccer-teams.jpg">
@@ -151,7 +149,7 @@
           "name": "In how many countries is Subsoccer played?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Subsoccer GO is actively used in over 75 countries and 540 cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Germany, Singapore, the Philippines, and Indonesia. The app supports 22 languages."
+            "text": "Subsoccer GO is actively used in over 70 countries and nearly 400 cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Germany, Singapore, the Philippines, and Indonesia. The app supports 22 languages."
           }
         },
         {
@@ -299,100 +297,17 @@
             color: rgba(255, 255, 255, 0.5) !important;
         }
 
-
-
-        /* Match Prediction Cards */
-        .match-prediction {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        .match-prediction-title {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 3px;
-            color: rgba(255,255,255,0.4);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-        .match-card {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            padding: 10px 16px;
-            margin-bottom: 8px;
-            border-radius: 2px;
-            background: transparent;
-            border: 2px solid rgba(255,255,255,0.25);
-            cursor: pointer;
-            transition: transform 0.15s, background 0.2s, border-color 0.2s;
-            text-decoration: none;
-            box-sizing: border-box;
-        }
-        .match-card:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255,255,255,0.45);
-        }
-        .match-card:active { transform: scale(0.97); }
-        .match-flag { font-size: 2rem; line-height: 1; }
-        .match-vs {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.35);
-            letter-spacing: 2px;
-        }
-        .match-name {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,0.7);
+        /* Dark mode: Scan to Join button */
+        body.dark-mode .btn-scan-join {
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.04);
         }
 
-        /* Manifesto section */
-        .manifesto-section {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 32px 20px 8px;
-            box-sizing: border-box;
-            text-align: center;
+        body.dark-mode .btn-scan-join:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.55);
         }
-        .manifesto-lead {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #999;
-            margin: 0 0 12px;
-        }
-        .manifesto-text {
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #666;
-            margin: 0 0 10px;
-        }
-        .manifesto-text strong {
-            color: #c41e2a;
-            font-weight: 600;
-        }
-        .manifesto-highlight {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #444;
-            margin: 16px 0 0;
-            padding-top: 16px;
-            border-top: 1px solid rgba(0,0,0,0.08);
-        }
-        body.dark-mode .manifesto-lead { color: rgba(255,255,255,0.35); }
-        body.dark-mode .manifesto-text { color: rgba(255,255,255,0.55); }
-        body.dark-mode .manifesto-text strong { color: #c41e2a; }
-        body.dark-mode .manifesto-highlight { color: rgba(255,255,255,0.7); border-top-color: rgba(255,255,255,0.08); }
 
         /* Dark mode: stats numbers */
         body.dark-mode .social-proof-number {
@@ -531,16 +446,11 @@
             width: 100%;
             max-width: 600px;
             height: clamp(180px, 30vh, 350px);
+            background-image: url('subsoccer-teams.jpg');
+            background-size: cover;
+            background-position: center 35%;
             margin: 10px auto 25px;
             position: relative;
-            overflow: hidden;
-        }
-        .content-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center 35%;
-            display: block;
         }
 
         @media (min-width: 600px) {
@@ -591,51 +501,66 @@
             box-shadow: none;
         }
 
-        /* Secondary action icons row */
-        .hub-secondary-actions {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-top: 4px;
-        }
-        .btn-icon-action {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            background: none;
+        .btn-find-table {
+            width: 100%;
+            max-width: 400px;
+            background: transparent;
+            color: #888;
             border: none;
-            cursor: pointer;
-            padding: 8px 12px;
-            transition: transform 0.15s, opacity 0.2s;
-        }
-        .btn-icon-action i {
-            font-size: 1.3rem;
-            color: #999;
-            transition: color 0.2s;
-        }
-        .btn-icon-action span {
+            padding: 8px 16px;
+            border-radius: 2px;
             font-family: 'Resolve', sans-serif;
-            font-size: 0.55rem;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #999;
+            font-size: 0.85rem !important;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
             transition: color 0.2s;
+            letter-spacing: 0.5px;
         }
-        .btn-icon-action:hover i,
-        .btn-icon-action:hover span {
+
+        .btn-find-table:hover {
+            color: #fff;
+        }
+
+        body.dark-mode .btn-find-table {
+            color: rgba(255,255,255,0.65) !important;
+            border: none !important;
+            background: transparent !important;
+        }
+
+        body.dark-mode .btn-find-table:hover {
+            color: rgba(255,255,255,1) !important;
+        }
+
+        .btn-scan-join {
+            width: 100%;
+            max-width: 400px;
+            background: transparent;
             color: #c41e2a;
+            border: 2px solid #c41e2a;
+            padding: 10px 16px;
+            border-radius: 2px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1rem !important;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.2s, color 0.2s;
         }
-        .btn-icon-action:active {
-            transform: scale(0.93);
+
+        .btn-scan-join:active {
+            transform: scale(0.97);
         }
-        body.dark-mode .btn-icon-action i,
-        body.dark-mode .btn-icon-action span {
-            color: rgba(255,255,255,0.45);
-        }
-        body.dark-mode .btn-icon-action:hover i,
-        body.dark-mode .btn-icon-action:hover span {
-            color: #c41e2a;
+
+        .btn-scan-join:hover {
+            background: #c41e2a;
+            color: #fff;
         }
 
         /* SOCIAL PROOF BAR */
@@ -976,12 +901,11 @@
     <main id="main-content">
         <div class="page-title-container">
             <h1><span class="page-title-subsoccer">SUBSOCCER</span> <span class="page-title-go">GO</span></h1>
-
-
+            <div class="page-tagline" data-i18n="tagline">Create · Join · Compete</div>
         </div>
 
         <!-- KUVABLOKKI -->
-        <div class="content-image"><img src="subsoccer-teams.jpg" alt="Players competing at a Subsoccer table" width="1536" height="1024" fetchpriority="high"></div>
+        <div class="content-image"></div>
 
         <!-- PÄÄVALIKKO / TARINAN VALINTA -->
         <div class="hub-menu">
@@ -994,18 +918,16 @@
                     style="margin-left: 2px; font-size: 0.85em;"></i>
             </button>
 
+            <!-- KAKKOSVALINTA: SKANNAA -->
+            <button class="btn-scan-join" onclick="window.location.href='scan-code.html'">
+                <i class="fa-solid fa-qrcode"></i> <span data-i18n="scan_to_join">Scan to Join</span>
+            </button>
 
-            <!-- SECONDARY ACTIONS -->
-            <div class="hub-secondary-actions">
-                <button class="btn-icon-action" onclick="window.location.href='scan-code.html'" aria-label="Scan to Join">
-                    <i class="fa-solid fa-qrcode"></i>
-                    <span data-i18n="scan_to_join">Scan</span>
-                </button>
-                <button class="btn-icon-action" onclick="openMapOverlay()" aria-label="Find Public Game">
-                    <i class="fa-solid fa-map-location-dot"></i>
-                    <span data-i18n="find_public_game">Map</span>
-                </button>
-            </div>
+
+
+            <button class="btn-find-table" onclick="openMapOverlay()">
+                <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="find_public_game">Find Public Game</span>
+            </button>
 
         </div>
 
@@ -1016,7 +938,7 @@
                 <span class="social-proof-label" data-i18n="cities">Cities</span>
             </div>
             <div class="social-proof-item">
-                <span class="social-proof-number">15K+</span>
+                <span class="social-proof-number">10K+</span>
                 <span class="social-proof-label" data-i18n="games">Games</span>
             </div>
             <div class="social-proof-item">
@@ -1024,12 +946,6 @@
                 <span class="social-proof-label" data-i18n="views">Views</span>
             </div>
         </div>
-
-        <!-- MANIFESTO -->
-        <div class="manifesto-section">
-            <p class="manifesto-highlight">We're not just building a game. We're building a new kind of sport — and a shared identity that starts with the players.</p>
-        </div>
-
     </main>
 
     <!-- FAQ SECTION (English only) -->
@@ -1064,7 +980,7 @@
                 In how many countries is Subsoccer played?
             </button>
             <div class="faq-answer">
-                Subsoccer GO is actively used in over 75 countries and 540 cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Singapore, the Philippines, Indonesia, and Germany.
+                Subsoccer GO is actively used in over 70 countries and nearly 400 cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Singapore, the Philippines, Indonesia, and Germany.
             </div>
         </div>
         <div class="faq-item">
@@ -1231,9 +1147,6 @@
                 <a href="pro-leagues.html" id="menu-league-link"
                     style="color: #c41e2a; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
                         class="fa-solid fa-crown" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="pro_leagues">PRO LEAGUES</span></a>
-                <a href="events/"
-                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
-                        class="fa-solid fa-calendar-days" style="color: #666; width: 40px; text-align: center;"></i> <span>EVENTS</span></a>
 
                 <!-- 2. Kokoelma ja Omistajuus (Assets) -->
                 <a href="my-collection.html" id="menu-owner-link"
@@ -1252,8 +1165,6 @@
                 <a href="https://subsoccer.com" target="_blank"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
                         class="fa-solid fa-cart-shopping" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="buy_your_own">BUY YOUR OWN SUBSOCCER</span></a>
-
-
                 <a href="#"
                     onclick="triggerFeedbackPrompt(); document.getElementById('main-nav-menu').style.display='none'; return false;"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
@@ -1869,7 +1780,6 @@
             });
         }
     </script>
-<script data-goatcounter="https://subsoccer-pro.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 
 </html>
