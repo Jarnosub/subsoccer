@@ -1447,6 +1447,8 @@
                 // Passed check
                 document.getElementById('auth-wall').style.display = 'none';
                 document.getElementById('mod-content').style.display = 'block';
+                loadPlayers();
+                fetchFeedback();
 
                 const partnerFilterEl = document.getElementById('partnerFilter');
                 const partnerFilter = partnerFilterEl ? partnerFilterEl.value : 'all';
@@ -2946,7 +2948,7 @@
                             : `<div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#555; font-size:0.9rem;"><i class="fas fa-user"></i></div>`
                         }
                         <div style="min-width:0; flex:1;">
-                            <div style="font-weight:600; font-size:0.8rem; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name} ${country ? '<span style="font-size:0.7rem; color:var(--text-secondary);">' + country + '</span>' : ''}</div>
+                            <div style="font-weight:600; font-size:0.8rem; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(name)} ${country ? '<span style="font-size:0.7rem; color:var(--text-secondary);">' + escapeHtml(country) + '</span>' : ''}</div>
                             <div style="font-size:0.7rem; color:var(--text-secondary); display:flex; gap:8px; margin-top:2px;">
                                 <span style="color:var(--accent-blue);">${elo} ELO</span>
                                 <span>${matches} games</span>
@@ -3234,13 +3236,11 @@
 
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
         // Initialize
         fetchData();
-        loadPlayers();
-        fetchFeedback();
         setInterval(fetchData, 60000); // 1 minuutti
 
         // Feedback Logic
@@ -3288,9 +3288,9 @@
                         const ts = new Date(item.created_at).toLocaleString('fi-FI');
                         tr.innerHTML = `
                             <td>${ts}</td>
-                            <td><span class="badge ${item.user_id !== 'guest' ? 'registered' : 'guest'}">${item.user_id === 'guest' ? 'Guest' : item.user_id.substring(0,8)+'...'}</span></td>
-                            <td>${item.page || '-'}</td>
-                            <td style="white-space: pre-wrap; word-break: break-all;">${item.message}</td>
+                            <td><span class="badge ${item.user_id !== 'guest' ? 'registered' : 'guest'}">${item.user_id === 'guest' ? 'Guest' : escapeHtml(item.user_id.substring(0,8))+'...'}</span></td>
+                            <td>${escapeHtml(item.page || '-')}</td>
+                            <td style="white-space: pre-wrap; word-break: break-all;">${escapeHtml(item.message)}</td>
                         `;
                         tbody.appendChild(tr);
                     });

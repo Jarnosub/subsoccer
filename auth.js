@@ -149,7 +149,7 @@ async function refreshUserProfile(userId) {
         if (profile) {
             state.user = profile;
             localStorage.setItem('subsoccer-user', JSON.stringify(profile));
-            console.log("👤 CURRENT USER ID (Copy this for config.js):", profile.id);
+
         } else {
             // Profiili puuttuu players-taulusta, mutta käyttäjä on Auth-istunnossa.
             // Luodaan profiili automaattisesti käyttäen Auth-metadatan tietoja.
@@ -634,13 +634,13 @@ export async function handleAuth(event) {
             // 1. Kokeillaan ensin migroituja tilejä (UUID + Email)
             const migratedMatch = nameMatches.find(m => isUuid(m.id) && m.email);
             if (migratedMatch) {
-                console.log("Migrated record found, attempting Auth login for:", migratedMatch.email);
+
                 const { data: authData, error: authErr } = await _supabase.auth.signInWithPassword({
                     email: migratedMatch.email,
                     password: p
                 });
                 if (!authErr) {
-                    console.log("Auth login successful for:", migratedMatch.email);
+
                     showNotification("Welcome back!", "success");
                     return;
                 }
