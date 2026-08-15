@@ -930,6 +930,28 @@
                 </div>
             </div>
 
+            <!-- User Feedback -->
+            <div class="table-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
+                <h2 style="display:flex; align-items:center; justify-content:space-between;">
+                    <span><i class="fas fa-comment-dots" style="color: var(--accent-yellow); margin-right: 8px;"></i>User Feedback</span>
+                    <span id="feedback-count" style="color:var(--text-secondary); font-weight:400; font-size:0.8rem;"></span>
+                </h2>
+                <div class="activity-feed-wrapper" style="overflow-y: auto; max-height: 400px; flex: 1;">
+                    <table class="activity-feed">
+                        <thead>
+                            <tr>
+                                <th>When</th>
+                                <th>User</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedback-table-body">
+                            <tr><td colspan="3" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="table-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
                 <h2>Top Countries <i class="fas fa-flag" style="color: var(--accent-blue); margin-left: 8px;"></i></h2>
                 <div class="countries-list-wrapper" style="overflow-x: auto; flex: 1;">
@@ -3171,9 +3193,43 @@
             }
         });
 
+        // Fetch user feedback
+        async function fetchFeedback() {
+            try {
+                const { data, error } = await client.from('feedback').select('*').order('created_at', { ascending: false }).limit(100);
+                if (error) throw error;
+                const tbody = document.getElementById('feedback-table-body');
+                const countEl = document.getElementById('feedback-count');
+                if (countEl) countEl.textContent = `(${data.length})`;
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#666;">No feedback yet</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(fb => {
+                    const ago = timeAgo(new Date(fb.created_at));
+                    const userId = fb.user_id === 'guest' ? '<span style="color:#666;">guest</span>' : `<span style="color:var(--accent-blue);">${fb.user_id.substring(0, 8)}…</span>`;
+                    const page = fb.page ? `<span style="color:#666; font-size:0.75rem;">[${fb.page}]</span> ` : '';
+                    return `<tr>
+                        <td style="white-space:nowrap; color:var(--text-secondary); font-size:0.8rem;">${ago}</td>
+                        <td style="font-size:0.8rem;">${userId}</td>
+                        <td style="font-size:0.85rem;">${page}${escapeHtml(fb.message)}</td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                console.error('Feedback fetch error:', e);
+                document.getElementById('feedback-table-body').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#666;">Error loading feedback</td></tr>';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
         // Initialize
         fetchData();
         loadPlayers();
+        fetchFeedback();
         setInterval(fetchData, 60000); // 1 minuutti
 
         // Feedback Logic
