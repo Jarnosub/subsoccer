@@ -1538,24 +1538,32 @@
                 }
 
                 let userId = 'guest';
+                let username = null;
+                let email = null;
                 const cached = localStorage.getItem('subsoccer-user');
                 if (cached) {
                     try {
                         const user = JSON.parse(cached);
                         if (user && user.id) userId = user.id;
-                        else if (user && user.username) {
+                        if (user && user.username) username = user.username;
+                        if (!userId || userId === 'guest') {
                             const { data: { session } } = await sb.auth.getSession();
-                            if (session && session.user) userId = session.user.id;
+                            if (session && session.user) { userId = session.user.id; email = session.user.email; }
+                        } else {
+                            const { data: { session } } = await sb.auth.getSession();
+                            if (session && session.user) email = session.user.email;
                         }
                     } catch (e) {}
                 } else {
                     const { data: { session } } = await sb.auth.getSession();
-                    if (session && session.user) userId = session.user.id;
+                    if (session && session.user) { userId = session.user.id; email = session.user.email; }
                 }
 
                 const { error } = await sb.from('feedback').insert([{
                     message: msg,
                     user_id: userId,
+                    username: username,
+                    email: email,
                     page: 'hub'
                 }]);
 

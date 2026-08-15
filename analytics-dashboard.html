@@ -3206,12 +3206,23 @@
                     return;
                 }
                 tbody.innerHTML = data.map(fb => {
-                    const ago = timeAgo(new Date(fb.created_at));
-                    const userId = fb.user_id === 'guest' ? '<span style="color:#666;">guest</span>' : `<span style="color:var(--accent-blue);">${fb.user_id.substring(0, 8)}…</span>`;
+                    const d = new Date(fb.created_at);
+                    const diffMs = Date.now() - d.getTime();
+                    const mins = Math.floor(diffMs / 60000);
+                    const hrs = Math.floor(diffMs / 3600000);
+                    const days = Math.floor(diffMs / 86400000);
+                    const ago = mins < 1 ? 'just now' : mins < 60 ? mins + 'm ago' : hrs < 24 ? hrs + 'h ago' : days + 'd ago';
+                    let userDisplay = '<span style="color:#666;">guest</span>';
+                    if (fb.username) {
+                        userDisplay = `<span style="color:var(--accent-blue); font-weight:600;">${escapeHtml(fb.username)}</span>`;
+                    } else if (fb.user_id && fb.user_id !== 'guest') {
+                        userDisplay = `<span style="color:var(--accent-blue);">${fb.user_id.substring(0, 8)}…</span>`;
+                    }
+                    const emailDisplay = fb.email ? `<br><span style="color:#888; font-size:0.7rem;">${escapeHtml(fb.email)}</span>` : '';
                     const page = fb.page ? `<span style="color:#666; font-size:0.75rem;">[${fb.page}]</span> ` : '';
                     return `<tr>
                         <td style="white-space:nowrap; color:var(--text-secondary); font-size:0.8rem;">${ago}</td>
-                        <td style="font-size:0.8rem;">${userId}</td>
+                        <td style="font-size:0.8rem;">${userDisplay}${emailDisplay}</td>
                         <td style="font-size:0.85rem;">${page}${escapeHtml(fb.message)}</td>
                     </tr>`;
                 }).join('');
