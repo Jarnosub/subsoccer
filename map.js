@@ -117,8 +117,8 @@ export async function fetchPublicGamesMap() {
             mapContainer.appendChild(locateBtn);
         }
 
-        // Initial Render (Verified Focus)
-        filterMap('verified');
+        // Initial Render (All public games visible)
+        filterMap('all');
 
         // Initial Nearest List (based on map center)
         const center = state.publicMap.getCenter();
@@ -189,7 +189,7 @@ export function filterMap(type) {
                 popupContent += `
                     <b style="font-size:1.1rem; text-transform:uppercase; color:#fff; display:block; margin-bottom:5px; font-family:'Russo One';">${g.game_name}</b>
                     <div style="color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">
-                        <i class="fa-solid fa-location-dot" style="color:${iconColor}; margin-right:5px;"></i>${g.location}
+                        <i class="fa-solid fa-location-dot" style="color:${iconColor}; margin-right:5px;"></i>${(g.location || '').replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '').trim()}
                     </div>
                 </div>`;
 
@@ -295,7 +295,7 @@ function updateNearestList(lat, lng) {
                     <div style="font-family:'Russo One'; color:${titleColor}; font-size:0.95rem; margin-bottom:3px; text-transform:uppercase;">
                         ${badge}${escapeHTML(g.game_name)}
                     </div>
-                    <div style="font-size:0.75rem; color:#888;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${escapeHTML(g.location)}</div>
+                    <div style="font-size:0.75rem; color:#888;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${escapeHTML((g.location || '').replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '').trim())}</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:0.8rem; font-weight:bold; color:#ccc; margin-bottom:3px;">${distDisplay}</div>

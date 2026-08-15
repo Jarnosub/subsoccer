@@ -846,10 +846,9 @@
             btn.textContent = 'Updating...';
 
             try {
+                // Use RPC function (SECURITY DEFINER) to bypass RLS
                 const { error } = await _supabase
-                    .from('players')
-                    .update({ is_admin: !currentlyAdmin })
-                    .eq('id', playerId);
+                    .rpc('toggle_admin_status', { p_target: playerId });
 
                 if (error) throw error;
 

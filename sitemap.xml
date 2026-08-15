@@ -150,9 +150,17 @@
   <!-- Feature Roadmap -->
   <url>
     <loc>https://subsoccer.pro/feature-roadmap.html</loc>
-    <lastmod>2026-06-10</lastmod>
+    <lastmod>2026-07-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+
+  <!-- SEO Landing: Table Football Scoreboard -->
+  <url>
+    <loc>https://subsoccer.pro/table-football-scoreboard.html</loc>
+    <lastmod>2026-07-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
 </urlset>

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Free Table Football Scoreboard & App | ELO Rankings & Tournaments | Subsoccer GO</title>
+    <meta name="description" content="The best free digital scoreboard for table football, foosball & table soccer. Track ELO rankings, run tournaments, and compete globally — no download, no registration.">
+    <link rel="canonical" href="https://subsoccer.pro/table-football-scoreboard.html">
+
+    <!-- Hreflang -->
+    <link rel="alternate" hreflang="x-default" href="https://subsoccer.pro/table-football-scoreboard.html">
+    <link rel="alternate" hreflang="en" href="https://subsoccer.pro/table-football-scoreboard.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://subsoccer.pro/table-football-scoreboard.html">
+    <meta property="og:site_name" content="Subsoccer GO">
+    <meta property="og:title" content="Free Table Football Scoreboard — ELO Rankings & Tournaments">
+    <meta property="og:description" content="Digital scoreboard for table football, foosball & table soccer. Track ELO, run tournaments, compete globally. No download needed.">
+    <meta property="og:image" content="https://subsoccer.pro/subsoccer-teams.jpg">
+    <meta property="og:image:width" content="1536">
+    <meta property="og:image:height" content="1024">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@subsoccer">
+    <meta name="twitter:title" content="Free Table Football Scoreboard — ELO Rankings & Tournaments">
+    <meta name="twitter:description" content="Digital scoreboard for table football & foosball. Track ELO, run tournaments. No app download needed.">
+    <meta name="twitter:image" content="https://subsoccer.pro/subsoccer-teams.jpg">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Subsoccer GO — Table Football Scoreboard",
+      "description": "Free digital scoreboard and tournament platform for table football, foosball, and table soccer. Features ELO rankings, live scoring, and global leaderboards.",
+      "url": "https://subsoccer.pro/table-football-scoreboard.html",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR",
+        "availability": "https://schema.org/InStock"
+      },
+      "featureList": "Digital Scoreboard, ELO Ranking System, Tournament Brackets, Live Scoring, QR Code Play, Global Leaderboard, No Download Required",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Subsoccer",
+        "url": "https://subsoccer.pro",
+        "logo": "https://subsoccer.pro/subsoccer_logo.svg"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "146",
+        "bestRating": "5"
+      }
+    }
+    </script>
+
+    <!-- FAQPage Schema for rich snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the best free scoreboard app for table football?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Subsoccer GO is a free web-based scoreboard for table football (foosball). It works on any phone — just scan a QR code and start keeping score. No app download or registration required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does the ELO ranking system work for table football?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Subsoccer GO uses an ELO rating system similar to chess. After each match, both players' ratings are adjusted based on the result and the difference in their ratings. Beat a higher-ranked player and you gain more points."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I run a foosball tournament with an app?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! Subsoccer GO has a built-in tournament system for 2-8 players. It automatically generates brackets, tracks scores, and determines the winner. Perfect for office tournaments, bar nights, or competitive leagues."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to download an app to use Subsoccer GO?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Subsoccer GO is a Progressive Web App (PWA) that runs entirely in your browser. Just visit subsoccer.pro or scan the QR code on any Subsoccer table. You can optionally add it to your home screen."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Theme -->
+    <meta name="theme-color" content="#E30613">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" type="image/svg+xml" href="/subsoccer_logo.svg">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+    <!-- Fonts: Use Subsoccer's own font system -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @font-face {
+            font-family: 'SubsoccerLogo';
+            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'), url('fonts/Subsoccer-2-Regular.woff') format('woff'), url('fonts/Subsoccer-2-Regular.otf') format('opentype');
+        }
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+        }
+        @font-face {
+            font-family: 'ResolveRegular';
+            src: url('fonts/Resolve-RegularCn.otf') format('opentype');
+        }
+        @font-face {
+            font-family: 'Open Sans';
+            src: url('https://fonts.gstatic.com/s/opensans/v34/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --sub-red: #c41e2a;
+            --sub-red-hover: #a81823;
+            --sub-black: #000000;
+            --sub-charcoal: #111111;
+            --sub-white: #FFFFFF;
+            --sub-gold: #FFD700;
+            --sub-border: rgba(255, 255, 255, 0.08);
+            --sub-surface: rgba(16, 16, 16, 0.95);
+            --sub-radius: 2px;
+            --sub-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+            --sub-logo-font: 'SubsoccerLogo', sans-serif;
+            --sub-name-font: 'Resolve', sans-serif;
+            --sub-body-font: 'ResolveRegular', sans-serif;
+            --text-secondary: #888;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--sub-body-font);
+            background-color: var(--sub-black);
+            color: var(--sub-white);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Navigation */
+        .nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 48px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-family: var(--sub-name-font);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+        }
+        .back-btn:hover { color: var(--sub-white); }
+
+        .logo-link { text-decoration: none; }
+        .logo-link img { height: 32px; }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(196, 30, 42, 0.15);
+            color: var(--sub-red);
+            padding: 6px 16px;
+            border-radius: var(--sub-radius);
+            font-family: var(--sub-name-font);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-family: var(--sub-name-font);
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--sub-red);
+            color: white;
+            border: none;
+            border-radius: var(--sub-radius);
+            font-family: var(--sub-name-font);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: var(--sub-red-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(196, 30, 42, 0.3);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: transparent;
+            color: var(--sub-white);
+            border: 1px solid var(--sub-border);
+            border-radius: var(--sub-radius);
+            font-family: var(--sub-name-font);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Feature Grid */
+        .section-title {
+            font-family: var(--sub-name-font);
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .section-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 64px;
+        }
+
+        .feature-card {
+            background: var(--sub-surface);
+            border: 1px solid var(--sub-border);
+            border-radius: var(--sub-radius);
+            padding: 28px;
+            transition: all 0.3s;
+        }
+        .feature-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--sub-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-icon.red { background: rgba(196, 30, 42, 0.15); color: var(--sub-red); }
+        .feature-icon.blue { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+        .feature-icon.green { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
+        .feature-icon.purple { background: rgba(168, 85, 247, 0.12); color: #a855f7; }
+        .feature-icon.amber { background: rgba(255, 215, 0, 0.12); color: var(--sub-gold); }
+        .feature-icon.cyan { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
+
+        .feature-card h3 {
+            font-family: var(--sub-name-font);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* How It Works */
+        .steps {
+            margin-bottom: 64px;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--sub-border);
+        }
+        .step:last-child { border-bottom: none; }
+
+        .step-number {
+            min-width: 44px;
+            height: 44px;
+            border-radius: var(--sub-radius);
+            background: rgba(196, 30, 42, 0.15);
+            color: var(--sub-red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--sub-name-font);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .step h3 {
+            font-family: var(--sub-name-font);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .step p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Comparison Table */
+        .comparison {
+            margin-bottom: 64px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--sub-surface);
+            border: 1px solid var(--sub-border);
+            border-radius: var(--sub-radius);
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 14px 16px;
+            text-align: left;
+            font-family: var(--sub-name-font);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+        }
+        .comparison-table th:first-child { text-align: left; }
+        .comparison-table th:not(:first-child) { text-align: center; }
+
+        .comparison-table td {
+            padding: 14px 16px;
+            border-top: 1px solid var(--sub-border);
+            font-size: 0.9rem;
+        }
+        .comparison-table td:not(:first-child) { text-align: center; }
+
+        .comparison-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .check { color: #22c55e; font-size: 1.1rem; }
+        .cross { color: #444; font-size: 1.1rem; }
+
+        .highlight-row td {
+            background: rgba(196, 30, 42, 0.04);
+        }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 64px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 24px 16px;
+            background: var(--sub-surface);
+            border: 1px solid var(--sub-border);
+            border-radius: var(--sub-radius);
+        }
+
+        .stat-number {
+            font-family: var(--sub-name-font);
+            font-size: 2rem;
+            color: var(--sub-red);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-family: var(--sub-name-font);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+
+        /* FAQ */
+        .faq { margin-bottom: 64px; }
+
+        .faq-item {
+            border-bottom: 1px solid var(--sub-border);
+            padding: 20px 0;
+        }
+        .faq-item:last-child { border-bottom: none; }
+
+        .faq-question {
+            font-family: var(--sub-name-font);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .faq-question::before {
+            content: '▸';
+            color: var(--sub-red);
+            font-size: 0.8rem;
+        }
+
+        .faq-answer {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            padding-left: 22px;
+        }
+
+        /* CTA Bottom */
+        .cta-bottom {
+            text-align: center;
+            padding: 48px 24px;
+            background: var(--sub-surface);
+            border: 1px solid var(--sub-border);
+            border-radius: var(--sub-radius);
+            margin-bottom: 48px;
+        }
+
+        .cta-bottom h2 {
+            font-family: var(--sub-name-font);
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+        .cta-bottom p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        .page-footer {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            padding: 24px 0;
+            border-top: 1px solid var(--sub-border);
+            letter-spacing: 0.5px;
+        }
+
+        .page-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        .page-footer a:hover { color: var(--sub-white); }
+
+        @media (max-width: 600px) {
+            .container { padding: 24px 16px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .comparison-table { font-size: 0.85rem; }
+            .comparison-table th, .comparison-table td { padding: 10px 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Navigation -->
+    <nav class="nav-header">
+        <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Subsoccer GO</a>
+        <a href="/" class="logo-link"><img src="/subsoccer_logo.svg" alt="Subsoccer Logo"></a>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+        <div class="hero-badge">Free — No Download Required</div>
+        <h1>The Digital Scoreboard for Bench Soccer</h1>
+        <p>Subsoccer is the world's first bench soccer game — played like real football, not foosball. Track scores, build ELO rankings, and run tournaments. Works on any phone — just scan and play.</p>
+        <div class="cta-group">
+            <a href="/instant-play.html" class="btn-primary" id="cta-play-now"><i class="fas fa-play"></i> Play Now — Free</a>
+            <a href="/login.html" class="btn-secondary" id="cta-create-profile"><i class="fas fa-user-plus"></i> Create Player Profile</a>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number">80+</div>
+            <div class="stat-label">Countries</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">0€</div>
+            <div class="stat-label">Always Free</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">0s</div>
+            <div class="stat-label">Setup Time</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">4.8★</div>
+            <div class="stat-label">Player Rating</div>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <h2 class="section-title">Everything You Need</h2>
+    <p class="section-subtitle">A complete digital companion for Subsoccer — the bench soccer game played in 80+ countries.</p>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon red"><i class="fas fa-bullseye"></i></div>
+            <h3>Live Scoreboard</h3>
+            <p>Tap to score. Both players see the result in real time. No arguments about the score.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon blue"><i class="fas fa-chart-line"></i></div>
+            <h3>ELO Rankings</h3>
+            <p>Every match updates your global ELO rating, just like chess. See where you stand against bench soccer players worldwide.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon green"><i class="fas fa-trophy"></i></div>
+            <h3>Instant Tournaments</h3>
+            <p>Set up a tournament for 2–8 players in seconds. Auto-generated brackets and live standings.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon purple"><i class="fas fa-qrcode"></i></div>
+            <h3>QR Code Play</h3>
+            <p>Scan the code on any Subsoccer table and you're in. No app download, no account needed.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon amber"><i class="fas fa-id-card"></i></div>
+            <h3>Player Cards</h3>
+            <p>Get a personalized digital player card with your stats, avatar, and career highlights.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon cyan"><i class="fas fa-globe"></i></div>
+            <h3>Global Leaderboard</h3>
+            <p>Compare your ranking with players from 80+ countries. Climb the ladder match by match.</p>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <h2 class="section-title">How It Works</h2>
+    <p class="section-subtitle">From QR code to scoreboard in 3 seconds.</p>
+
+    <div class="steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <div>
+                <h3>Scan the QR Code</h3>
+                <p>Every Subsoccer table has a unique QR code. Scan it with your phone camera.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <div>
+                <h3>Start Scoring</h3>
+                <p>Tap to add goals. The scoreboard updates in real time for both players.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <div>
+                <h3>Track Your Progress</h3>
+                <p>Optionally create a free profile to save your stats, ELO rating, and match history.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison -->
+    <div class="comparison">
+        <h2 class="section-title">Why Subsoccer GO?</h2>
+        <p class="section-subtitle">How we compare to other table game apps and scoreboards.</p>
+
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Subsoccer GO</th>
+                    <th>Others</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="highlight-row">
+                    <td>No download required</td>
+                    <td><span class="check"><i class="fas fa-check-circle"></i></span></td>
+                    <td><span class="cross"><i class="fas fa-times-circle"></i></span></td>
+                </tr>
+                <tr>
+                    <td>No registration to play</td>
+                    <td><span class="check"><i class="fas fa-check-circle"></i></span></td>
+                    <td><span class="cross"><i class="fas fa-times-circle"></i></span></td>
+                </tr>
+                <tr>
+                    <td>ELO ranking system</td>
+                    <td><span class="check"><i class="fas fa-check-circle"></i></span></td>
+                    <td>Some</td>
+                </tr>
+                <tr>
+                    <td>Tournament brackets</td>
+                    <td><span class="check"><i class="fas fa-check-circle"></i></span></td>
+                    <td>Some</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td>QR code instant access</td>
+                    <td><span class="check"><i class="fas fa-check-circle"></i></span></td>
+                    <td><span class="cross"><i class="fas fa-times-circle"></i></span></td>
+                </tr>
+                <tr>
+                    <td>Global leaderboard</td>
+                    <td><span class="check"><i class="fas fa-check-circle"></i></span></td>
+                    <td><span class="cross"><i class="fas fa-times-circle"></i></span></td>
+                </tr>
+                <tr>
+                    <td>Completely free</td>
+                    <td><span class="check"><i class="fas fa-check-circle"></i></span></td>
+                    <td>Freemium</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Everything you need to know about Subsoccer GO.</p>
+
+        <div class="faq-item">
+            <div class="faq-question">What is the best free scoreboard app for table football?</div>
+            <div class="faq-answer">Subsoccer GO is a free web-based scoreboard built for Subsoccer — a bench soccer game played like real football (not foosball). It works on any phone — just scan a QR code on any Subsoccer table and start keeping score. No app download or registration required.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How does the ELO ranking system work for table football?</div>
+            <div class="faq-answer">Subsoccer GO uses an ELO rating system similar to chess. After each match, both players' ratings are adjusted based on the result and the difference in their ratings. Beat a higher-ranked player and you gain more points.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">Can I run a foosball tournament with an app?</div>
+            <div class="faq-answer">Yes! Subsoccer GO has a built-in tournament system for 2–8 players. It automatically generates brackets, tracks scores, and determines the winner. Perfect for office tournaments, events, bar nights, or competitive leagues.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">Do I need to download an app to use Subsoccer GO?</div>
+            <div class="faq-answer">No. Subsoccer GO is a Progressive Web App (PWA) that runs entirely in your browser. Just visit subsoccer.pro or scan the QR code on any Subsoccer table. You can optionally add it to your home screen.</div>
+        </div>
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="cta-bottom">
+        <h2>Ready to Play?</h2>
+        <p>Find a Subsoccer table near you, scan the QR code, and start scoring.</p>
+        <a href="/instant-play.html" class="btn-primary" id="cta-bottom-play"><i class="fas fa-play"></i> Start Playing — It's Free</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+        <p>&copy; 2026 <a href="https://subsoccer.com">Subsoccer</a> — The world's first bench soccer game. <a href="/privacy-policy.html">Privacy Policy</a></p>
+    </footer>
+
+</div>
+
+<script data-goatcounter="https://subsoccer-pro.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

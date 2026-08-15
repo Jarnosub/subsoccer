@@ -52,6 +52,7 @@
 
     <!-- Open Graph / Social Media Cover Meta Tags -->
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Subsoccer GO">
     <meta property="og:url" content="https://subsoccer.pro/">
     <meta property="og:title" content="Subsoccer GO — Global Bench Soccer App">
     <meta property="og:description" content="Play, track ELO rankings and run tournaments. Subsoccer GO is active in 80+ countries — no registration required.">
@@ -59,6 +60,7 @@
     <meta property="og:image:width" content="1536">
     <meta property="og:image:height" content="1024">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@subsoccer">
     <meta name="twitter:title" content="Subsoccer GO — Global Bench Soccer App">
     <meta name="twitter:description" content="Play, track ELO rankings and run tournaments. Active in 80+ countries — no registration required.">
     <meta name="twitter:image" content="https://subsoccer.pro/subsoccer-teams.jpg">
@@ -149,7 +151,7 @@
           "name": "In how many countries is Subsoccer played?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Subsoccer GO is actively used in over 59 countries and 300+ cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Germany, Singapore, the Philippines, and Indonesia. The app supports 22 languages."
+            "text": "Subsoccer GO is actively used in over 75 countries and 540 cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Germany, Singapore, the Philippines, and Indonesia. The app supports 22 languages."
           }
         },
         {
@@ -307,6 +309,56 @@
         body.dark-mode .btn-scan-join:hover {
             background: rgba(255, 255, 255, 0.12);
             border-color: rgba(255, 255, 255, 0.55);
+        }
+
+        /* Match Prediction Cards */
+        .match-prediction {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .match-prediction-title {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .match-card {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 10px 16px;
+            margin-bottom: 8px;
+            border-radius: 2px;
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.25);
+            cursor: pointer;
+            transition: transform 0.15s, background 0.2s, border-color 0.2s;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+        .match-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.45);
+        }
+        .match-card:active { transform: scale(0.97); }
+        .match-flag { font-size: 2rem; line-height: 1; }
+        .match-vs {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 2px;
+        }
+        .match-name {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.7);
         }
 
         /* Dark mode: stats numbers */
@@ -918,6 +970,7 @@
                     style="margin-left: 2px; font-size: 0.85em;"></i>
             </button>
 
+
             <!-- KAKKOSVALINTA: SKANNAA -->
             <button class="btn-scan-join" onclick="window.location.href='scan-code.html'">
                 <i class="fa-solid fa-qrcode"></i> <span data-i18n="scan_to_join">Scan to Join</span>
@@ -938,7 +991,7 @@
                 <span class="social-proof-label" data-i18n="cities">Cities</span>
             </div>
             <div class="social-proof-item">
-                <span class="social-proof-number">10K+</span>
+                <span class="social-proof-number">15K+</span>
                 <span class="social-proof-label" data-i18n="games">Games</span>
             </div>
             <div class="social-proof-item">
@@ -980,7 +1033,7 @@
                 In how many countries is Subsoccer played?
             </button>
             <div class="faq-answer">
-                Subsoccer GO is actively used in over 59 countries and 157 cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Singapore, the Philippines, Indonesia, and Germany.
+                Subsoccer GO is actively used in over 75 countries and 540 cities worldwide. The most active communities are in Finland, the United States, United Kingdom, Singapore, the Philippines, Indonesia, and Germany.
             </div>
         </div>
         <div class="faq-item">
@@ -1165,6 +1218,9 @@
                 <a href="https://subsoccer.com" target="_blank"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
                         class="fa-solid fa-cart-shopping" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="buy_your_own">BUY YOUR OWN SUBSOCCER</span></a>
+                <a href="/events/"
+                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
+                        class="fa-solid fa-calendar-days" style="color: #666; width: 40px; text-align: center;"></i> <span>EVENTS</span></a>
                 <a href="#"
                     onclick="triggerFeedbackPrompt(); document.getElementById('main-nav-menu').style.display='none'; return false;"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
@@ -1651,92 +1707,60 @@
             // Listen for language changes to update the ticker live!
             window.addEventListener('subsoccer-language-changed', updateTicker);
 
-            // Helper: parse city name from location string
+            // Helper: parse city name from location string (v3 — includes country code for dedup)
             function parseCityFromLocation(loc) {
                 if (!loc) return null;
-                let city;
-                if (loc.includes('(')) {
-                    const parenIndex = loc.indexOf('(');
-                    const mainPart = loc.substring(0, parenIndex).trim();
-                    const parenEnd = loc.indexOf(')');
-                    const timezone = loc.substring(parenIndex + 1, parenEnd).trim();
-                    
-                    let parsedCity = mainPart;
-                    const commaIndex = mainPart.indexOf(',');
-                    if (commaIndex > -1) {
-                        parsedCity = mainPart.substring(0, commaIndex).trim();
-                    }
-                    
-                    if (parsedCity.length <= 2 && timezone && timezone.includes('/')) {
-                        const parts = timezone.split('/');
-                        city = parts[parts.length - 1].replace(/_/g, ' ');
-                    } else {
-                        city = parsedCity;
-                    }
-                } else {
-                    const parts = loc.split('/');
-                    city = parts.length > 1 ? parts[parts.length - 1] : loc;
-                }
+                // Only count proper "City, XX (timezone)" format — skip timezone-only and country-only
+                if (!loc.includes(',') || !loc.includes('(')) return null;
+                
+                const parenIndex = loc.indexOf('(');
+                const mainPart = loc.substring(0, parenIndex).trim();
+                const commaIndex = mainPart.indexOf(',');
+                
+                let city = commaIndex > -1 ? mainPart.substring(0, commaIndex).trim() : mainPart;
                 city = city.replace(/_/g, ' ').toUpperCase();
-                return (city && city !== 'UNKNOWN' && city.length > 2) ? city : null;
+                if (!city || city === 'UNKNOWN' || city.length <= 2) return null;
+
+                // Extract country code (e.g., "Birmingham, GB" → "GB")
+                const cc = commaIndex > -1 ? mainPart.substring(commaIndex + 1).trim().toUpperCase() : '';
+                return cc ? `${city}, ${cc}` : city;
             }
 
-            // Paginated fetch — now includes match_score and event_type
+            // Optimized fetch — single RPC call returns pre-aggregated city data
+            // (replaces 10+ paginated queries that fetched ~10,000 rows)
             async function fetchAllLocations() {
-                let allData = [];
-                let page = 0;
-                const pageSize = 1000;
-                while (true) {
-                    const res = await fetch(
-                        `${SUPABASE_URL}/rest/v1/public_tracking?select=location,match_score,event_type&location=not.is.null&order=client_time.desc&limit=${pageSize}&offset=${page * pageSize}`,
-                        { headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` } }
-                    );
-                    const pageData = await res.json();
-                    if (!pageData || pageData.length === 0) break;
-                    allData.push(...pageData);
-                    if (pageData.length < pageSize) break;
-                    page++;
-                    if (page > 20) break; // Safety
-                }
-                return allData;
+                const res = await fetch(
+                    `${SUPABASE_URL}/rest/v1/rpc/get_city_ticker_data`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_ANON,
+                            'Authorization': `Bearer ${SUPABASE_ANON}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: '{}'
+                    }
+                );
+                return await res.json();
             }
 
             fetchAllLocations().then(data => {
                     if (data && data.length > 0) {
-                        // Build city → last match score map (data is already ordered by client_time desc)
-                        const cityScoreMap = {};  // city → first match score found (= most recent)
-                        const seenCities = [];    // ordered unique cities
+                        // RPC returns unique locations with latest match score, ordered by recency
+                        const cityScoreMap = {};
+                        const seenCities = [];
 
-                        data.forEach(ev => {
-                            const city = parseCityFromLocation(ev.location);
+                        data.forEach(row => {
+                            const city = parseCityFromLocation(row.location);
                             if (!city) return;
 
                             if (!(city in cityScoreMap)) {
-                                // First time seeing this city — check if this event has a score
-                                const isMatch = ev.event_type === 'game_finished' || ev.event_type === 'tournament_match_finished';
-                                const score = (isMatch && ev.match_score) ? ev.match_score : null;
-                                cityScoreMap[city] = score || ''; // empty = no match found yet
+                                cityScoreMap[city] = row.match_score || '';
                                 seenCities.push(city);
-                            } else if (cityScoreMap[city] === '') {
-                                // We've seen this city but haven't found a score yet
-                                const isMatch = ev.event_type === 'game_finished' || ev.event_type === 'tournament_match_finished';
-                                if (isMatch && ev.match_score) {
-                                    cityScoreMap[city] = ev.match_score;
-                                }
+                            } else if (cityScoreMap[city] === '' && row.match_score) {
+                                // Multiple locations may map to same city — use first score found
+                                cityScoreMap[city] = row.match_score;
                             }
-                        });
-
-                        // Second pass: for cities with no score from their first event,
-                        // find the most recent match score from any event in that city
-                        seenCities.forEach(city => {
-                            if (cityScoreMap[city] !== '') return; // already has a score
-                            const matchEv = data.find(ev => {
-                                const c = parseCityFromLocation(ev.location);
-                                return c === city
-                                    && (ev.event_type === 'game_finished' || ev.event_type === 'tournament_match_finished')
-                                    && ev.match_score;
-                            });
-                            if (matchEv) cityScoreMap[city] = matchEv.match_score;
                         });
 
                         // Update social proof with real city count
@@ -1812,6 +1836,7 @@
             });
         }
     </script>
+<script data-goatcounter="https://subsoccer-pro.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 
 </html>

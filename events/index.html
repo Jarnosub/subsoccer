@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer for Events | The World's #1 Football Experience</title>
+    <meta name="description" content="Bring the world's best football activity to your event. Subsoccer delivers unforgettable moments at Fan Zones, festivals, corporate events, and more.">
+    <meta property="og:title" content="Subsoccer for Events">
+    <meta property="og:description" content="The world's #1 football experience for events, fan zones, and activations.">
+    <meta property="og:image" content="https://subsoccer.pro/events/images/Game-events-2.jpg">
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        @font-face {
+            font-family: 'SubsoccerLogo';
+            src: url('/fonts/Subsoccer-2-Regular.woff2') format('woff2'),
+                url('/fonts/Subsoccer-2-Regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --brand-red: #D02B2F;
+            --brand-blue: #1A5B74;
+            --bg-color: #FFFFFF;
+            --text-dark: #111;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* HEADER */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+        }
+
+        .announcement-bar {
+            background: #111;
+            text-align: center;
+            padding: 10px 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.7rem;
+            color: #fff;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .nav-left { display: flex; align-items: center; flex: 1; }
+        .nav-logo img { height: 50px; }
+        .nav-links { display: flex; gap: 35px; align-items: center; justify-content: center; flex: 2; }
+        .nav-links a {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #111;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--brand-red); }
+        .nav-right { flex: 1; display: flex; justify-content: flex-end; }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 5px;
+        }
+        .hamburger span { display: block; width: 22px; height: 2px; background: #111; }
+
+        /* HERO */
+        .hero {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 140px 40px 80px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            min-height: 70vh;
+            box-sizing: border-box;
+        }
+
+        .hero-text { flex: 0 0 380px; }
+
+        .hero-text h1 {
+            font-family: 'SubsoccerLogo', 'Inter', sans-serif;
+            font-size: 6rem;
+            line-height: 0.9;
+            margin: 0;
+            font-weight: normal;
+            text-transform: uppercase;
+        }
+
+        .hero-text h1 .line1 { color: #2b2b2b; display: block; }
+        .hero-text h1 .line2 { color: var(--brand-red); font-size: 6.5rem; display: block; margin-top: -3px; }
+
+        .hero-subtitle {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #999;
+            margin-top: 25px;
+            padding-left: 15px;
+            border-left: 3px solid var(--brand-red);
+        }
+
+        .hero-image { flex: 1; }
+        .hero-image img { width: 100%; height: auto; border-radius: 4px; }
+
+        /* CTA */
+        .cta-button {
+            display: inline-block;
+            margin-top: 35px;
+            background-color: var(--brand-red);
+            color: white;
+            text-decoration: none;
+            padding: 14px 30px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .cta-button:hover { background-color: #b82226; transform: translateY(-2px); }
+
+        /* USE CASE SECTION */
+        .usecase-section {
+            background-color: #f3f3f0;
+            padding: 100px 40px;
+            border-top: 1px solid #ddd;
+        }
+
+        .usecase-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: row-reverse;
+            align-items: center;
+            gap: 80px;
+        }
+
+        .usecase-text { flex: 1; max-width: 700px; }
+
+        .uc-headline {
+            font-family: 'SubsoccerLogo', 'Inter', sans-serif;
+            font-weight: normal;
+            font-size: 4.5rem;
+            color: #333;
+            margin: 0;
+            line-height: 0.9;
+        }
+
+        .uc-subhead {
+            font-family: 'SubsoccerLogo', 'Inter', sans-serif;
+            font-weight: normal;
+            font-size: 2.8rem;
+            color: var(--brand-red);
+            margin: 15px 0 50px 0;
+            line-height: 1;
+        }
+
+        .uc-features { display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px; }
+
+        .uc-feature { display: flex; align-items: flex-start; gap: 15px; }
+
+        .uc-feature-bullet { width: 24px; height: 24px; flex-shrink: 0; margin-top: 2px; }
+
+        .uc-feature-title {
+            font-weight: 800;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: #222;
+        }
+
+        .uc-feature-desc {
+            font-size: 1.0rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .usecase-image { flex: 1; }
+        .usecase-image img { width: 100%; max-width: 600px; height: auto; border-radius: 8px; }
+
+        /* SUBSOCCER GO SECTION */
+        .go-section {
+            background-color: #ffffff;
+            padding: 100px 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .go-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .go-text { flex: 1; }
+
+        .go-headline {
+            font-family: 'SubsoccerLogo', 'Inter', sans-serif;
+            font-size: 5.5rem;
+            color: #111;
+            margin: 0 0 20px 0;
+            font-weight: normal;
+            line-height: 1;
+        }
+
+        .go-highlight { color: var(--brand-red); }
+
+        .go-desc {
+            font-size: 1.3rem;
+            color: #555;
+            max-width: 700px;
+            line-height: 1.6;
+        }
+
+        .go-features { display: flex; flex-direction: column; gap: 20px; margin-top: 30px; margin-bottom: 30px; }
+
+        .go-image { flex-shrink: 0; max-width: 500px; width: 100%; }
+        .go-image img { width: 100%; height: auto; border-radius: 8px; }
+
+        /* DATA SECTION */
+        .data-section {
+            background: #111;
+            padding: 80px 40px;
+            text-align: center;
+        }
+
+        .data-section h2 {
+            font-family: 'SubsoccerLogo', 'Inter', sans-serif;
+            font-size: 3.5rem;
+            color: #fff;
+            margin: 0 0 50px 0;
+            font-weight: normal;
+        }
+
+        .data-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .data-item-number {
+            font-family: 'SubsoccerLogo', 'Inter', sans-serif;
+            font-size: 3.5rem;
+            color: var(--brand-red);
+            font-weight: normal;
+        }
+
+        .data-item-label {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        /* FOOTER CTA */
+        .footer-cta {
+            background: #f3f3f0;
+            padding: 80px 40px;
+            text-align: center;
+            border-top: 1px solid #ddd;
+        }
+
+        .footer-cta h2 {
+            font-family: 'SubsoccerLogo', 'Inter', sans-serif;
+            font-size: 4rem;
+            color: #333;
+            margin: 0 0 15px 0;
+            font-weight: normal;
+        }
+
+        .footer-cta p {
+            font-size: 1.2rem;
+            color: #666;
+            margin: 0 0 30px 0;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .hero {
+                flex-direction: column;
+                padding: 110px 20px 40px;
+                min-height: auto;
+            }
+            .hero-text { flex: none; }
+            .hero-text h1 { font-size: 3.5rem; }
+            .hero-text h1 .line2 { font-size: 4rem; }
+            .usecase-content { flex-direction: column; gap: 30px; }
+            .uc-headline { font-size: 3rem; text-align: center; }
+            .uc-subhead { font-size: 1.8rem; text-align: center; }
+            .go-container { flex-direction: column; }
+            .go-headline { font-size: 3.5rem; text-align: center; }
+            .go-desc { text-align: center; }
+            .data-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+            .nav-links { display: none; }
+            .nav-bar { padding: 12px 20px; }
+            .nav-logo { position: absolute; left: 50%; transform: translateX(-50%); }
+            .nav-logo img { height: 35px; }
+            .hamburger { display: flex; }
+            .footer-cta h2 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="announcement-bar">The World's #1 Football Experience</div>
+        <nav class="nav-bar">
+            <div class="nav-left">
+                <button class="hamburger" onclick="history.back()">
+                    <span></span><span></span><span></span>
+                </button>
+                <a href="https://www.subsoccer.com" class="nav-logo"><img src="/events/images/subsoccer_logo.svg" alt="Subsoccer"></a>
+            </div>
+            <div class="nav-links">
+                <a href="https://www.subsoccer.com">Home</a>
+                <a href="https://www.subsoccer.com/collections/games">Games</a>
+                <a href="https://www.subsoccer.com/collections/accessories">Accessories</a>
+                <a href="https://www.subsoccer.com/pages/the-subsoccer-story">About Us</a>
+                <a href="https://www.subsoccer.com/pages/contact">Contact</a>
+            </div>
+            <div class="nav-right"></div>
+        </nav>
+    </header>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-text">
+            <h1>
+                <span class="line1">SUBSOCCER</span>
+                <span class="line2">EXPERIENCE</span>
+            </h1>
+            <div class="hero-subtitle">For Events & Leagues</div>
+        </div>
+        <div class="hero-image">
+            <img src="/events/images/Game-events-2.jpg" alt="Subsoccer at a live event">
+        </div>
+    </div>
+
+    <!-- USE CASE: EVENTS -->
+    <div class="usecase-section">
+        <div class="usecase-content">
+            <div class="usecase-text">
+                <h2 class="uc-headline">STAND OUT AT EVENTS</h2>
+                <h3 class="uc-subhead">MAGNET FOR CROWDS & LEAGUES</h3>
+
+                <div class="uc-features">
+                    <div class="uc-feature">
+                        <div class="uc-feature-bullet">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--brand-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <div class="uc-feature-title">Crowd Puller</div>
+                            <div class="uc-feature-desc">Attract players and spectators instantly at any event. People don't post about products — they post about moments.</div>
+                        </div>
+                    </div>
+                    <div class="uc-feature">
+                        <div class="uc-feature-bullet">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--brand-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <div class="uc-feature-title">Brand Visibility</div>
+                            <div class="uc-feature-desc">Fully customizable wraps to showcase your sponsors and maximize brand exposure at every event.</div>
+                        </div>
+                    </div>
+                    <div class="uc-feature">
+                        <div class="uc-feature-bullet">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--brand-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <div class="uc-feature-title">Subsoccer GO — Built-in Tournament Engine</div>
+                            <div class="uc-feature-desc">Build tournaments or run a complete league effortlessly with the app — no other tools needed. QR scan and play.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="https://www.subsoccer.com/pages/contact" class="cta-button">Plan Your Event ⚽</a>
+            </div>
+            <div class="usecase-image">
+                <img src="/events/images/champions-league-event.jpg" alt="Subsoccer at a championship event">
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBSOCCER GO -->
+    <div class="go-section">
+        <div class="go-container">
+            <div class="go-text">
+                <h2 class="go-headline">Subsoccer <span class="go-highlight">GO</span></h2>
+                <p class="go-desc">Your complete event management platform — built into every table.</p>
+
+                <div class="go-features">
+                    <div class="uc-feature">
+                        <div class="uc-feature-bullet">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--brand-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <div class="uc-feature-title">Tournaments & Leagues</div>
+                            <div class="uc-feature-desc">Organize events or run a full season — no other tools needed.</div>
+                        </div>
+                    </div>
+                    <div class="uc-feature">
+                        <div class="uc-feature-bullet">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--brand-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <div class="uc-feature-title">Player Cards</div>
+                            <div class="uc-feature-desc">Every player gets a personal stats card that levels up with each match.</div>
+                        </div>
+                    </div>
+                    <div class="uc-feature">
+                        <div class="uc-feature-bullet">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--brand-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <div class="uc-feature-title">TV Casting</div>
+                            <div class="uc-feature-desc">Cast a massive scoreboard to any screen for a stadium-like experience.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="https://subsoccer.pro" class="cta-button">Try Subsoccer GO →</a>
+            </div>
+            <div class="go-image">
+                <img src="/events/images/Game-home-card.jpg" alt="Subsoccer GO App">
+            </div>
+        </div>
+    </div>
+
+    <!-- DATA SECTION -->
+    <div class="data-section">
+        <h2>TRUSTED WORLDWIDE</h2>
+        <div class="data-grid">
+            <div class="data-item">
+                <div class="data-item-number">15K+</div>
+                <div class="data-item-label">Games Sold</div>
+            </div>
+            <div class="data-item">
+                <div class="data-item-number">75+</div>
+                <div class="data-item-label">Countries</div>
+            </div>
+            <div class="data-item">
+                <div class="data-item-number">600+</div>
+                <div class="data-item-label">Cities</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOMIZE SECTION -->
+    <div style="background-color: #3b3e40; padding: 100px 20px; text-align: center;">
+        <h2 style="font-family: 'SubsoccerLogo', 'Inter', sans-serif; font-size: 4.5rem; color: #fff; margin: 0 0 15px 0; font-weight: normal; line-height: 1;">CUSTOMIZE YOUR SUBSOCCER</h2>
+        <p style="font-family: 'Inter', sans-serif; font-size: 1.2rem; color: #ddd; margin: 0 0 50px 0;">Choose a Subsoccer model to start customizing wraps.</p>
+
+        <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto;">
+            <a href="https://subsoccer-studio.netlify.app/?model=Subsoccer%20S3" style="background: #fff; border-radius: 8px; padding: 20px; width: 320px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column;"
+               onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 30px rgba(0,0,0,0.3)'"
+               onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                <div style="border-radius: 4px; width: 100%; overflow: hidden; margin-bottom: 20px;">
+                    <img src="/events/images/Game-home-4.jpg" alt="Subsoccer S3" style="width: 100%; height: auto; display: block;">
+                </div>
+                <div style="font-family: 'SubsoccerLogo', 'Inter', sans-serif; font-size: 2.5rem; color: #333; margin: 0; line-height: 1;">SUBSOCCER S3</div>
+                <div style="font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--brand-red); margin-top: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 5px;">Customize in 3D <span>➔</span></div>
+            </a>
+
+            <a href="https://subsoccer-studio.netlify.app/?model=Subsoccer%20S7" style="background: #fff; border-radius: 8px; padding: 20px; width: 320px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column;"
+               onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 30px rgba(0,0,0,0.3)'"
+               onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                <div style="border-radius: 4px; width: 100%; overflow: hidden; margin-bottom: 20px;">
+                    <img src="/events/images/Game-events-4.jpg" alt="Subsoccer S7" style="width: 100%; height: auto; display: block;">
+                </div>
+                <div style="font-family: 'SubsoccerLogo', 'Inter', sans-serif; font-size: 2.5rem; color: #333; margin: 0; line-height: 1;">SUBSOCCER S7</div>
+                <div style="font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--brand-red); margin-top: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 5px;">Customize in 3D <span>➔</span></div>
+            </a>
+
+            <a href="https://subsoccer-studio.netlify.app/?model=Subsoccer%20Arcade" style="background: #fff; border-radius: 8px; padding: 20px; width: 320px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column;"
+               onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 30px rgba(0,0,0,0.3)'"
+               onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                <div style="border-radius: 4px; width: 100%; overflow: hidden; margin-bottom: 20px;">
+                    <img src="/events/images/Game-Arcade-4.jpg" alt="Subsoccer Arcade" style="width: 100%; height: auto; display: block;">
+                </div>
+                <div style="font-family: 'SubsoccerLogo', 'Inter', sans-serif; font-size: 2.5rem; color: #333; margin: 0; line-height: 1;">SUBSOCCER ARCADE</div>
+                <div style="font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--brand-red); margin-top: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 5px;">Customize in 3D <span>➔</span></div>
+            </a>
+        </div>
+    </div>
+
+    <!-- FOOTER CTA -->
+    <div class="footer-cta">
+        <h2>BRING SUBSOCCER TO YOUR EVENT</h2>
+        <p>From Fan Zones to corporate activations — we deliver unforgettable football experiences.</p>
+        <a href="https://www.subsoccer.com/pages/contact" class="cta-button">Get in Touch →</a>
+    </div>
+
+    <!-- FOOTER -->
+    <footer style="background: #111; padding: 30px 40px; text-align: center; font-family: 'Inter', sans-serif; font-size: 0.8rem; color: #666;">
+        <p style="margin: 0;">© 2026 Subsoccer. Subsoccer® is a patented game. For more information, visit <a href="https://www.subsoccer.com" style="color: #999; text-decoration: underline;">subsoccer.com</a></p>
+    </footer>
+
+</body>
+</html>

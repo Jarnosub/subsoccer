@@ -587,13 +587,30 @@
 
                 if (hwErr) throw hwErr;
 
-                // 2. Also create a game entry (for map, stats, instant-play linking)
+                // 2. Geocode location text to get lat/lng for map display
+                let geoLat = null, geoLng = null;
+                if (location) {
+                    try {
+                        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`, {
+                            headers: { 'Accept-Language': 'en' }
+                        });
+                        const geoData = await geoRes.json();
+                        if (geoData && geoData.length > 0) {
+                            geoLat = parseFloat(geoData[0].lat);
+                            geoLng = parseFloat(geoData[0].lon);
+                        }
+                    } catch (e) { console.warn('Geocoding failed:', e); }
+                }
+
+                // 3. Also create a game entry (for map, stats, instant-play linking)
                 const realSerial = hardwareRecord.serial_number;
                 const uniqueCode = realSerial.replace(/[^a-zA-Z0-9]/g, '');
                 await _supabase.from('games').insert([{
                     unique_code: uniqueCode,
                     game_name: tableName,
                     location: location || 'Unknown',
+                    latitude: geoLat,
+                    longitude: geoLng,
                     owner_id: currentUser.id,
                     is_public: false,
                     serial_number: realSerial,
@@ -860,5 +877,6 @@
             }
         }
     </script>
+<script data-goatcounter="https://subsoccer-pro.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

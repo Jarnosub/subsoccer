@@ -373,7 +373,7 @@
             try {
                 // Security fix #16: only fetch needed fields, password is checked server-side
                 const res = await fetch(
-                    `${SUPA_URL}/rest/v1/brands?slug=eq.${brandSlug}&is_active=eq.true&select=id,slug,name,subtitle,logo_url,hero_url,is_active,has_password&limit=1`,
+                    `${SUPA_URL}/rest/v1/brands?slug=eq.${brandSlug}&is_active=eq.true&select=id,slug,name,subtitle,logo_url,hero_url,is_active,password&limit=1`,
                     { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
                 );
                 const brands = await res.json();
@@ -411,7 +411,7 @@
 
             // Show gate or content
             // Security fix #16: password is never sent to client
-            if (brandConfig.has_password) {
+            if (brandConfig.password && brandConfig.password.length > 0) {
                 const authKey = `brand-auth-${brandSlug}`;
                 if (sessionStorage.getItem(authKey) === 'true') {
                     document.getElementById('main-content').style.display = 'block';

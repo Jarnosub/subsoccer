@@ -18,7 +18,7 @@ let isLoggedIn = false;
 let currentUserId = null;
 let _sb = null;
 const MAX_PLAYERS_GUEST = 8;
-const MAX_PLAYERS_LOGGED = 8;
+const MAX_PLAYERS_LOGGED = 16;
 
 // --- SMART MIRROR (TV CAST) ---
 let tvRoomCode = null;
@@ -39,15 +39,16 @@ const locationPromise = (async function() {
             const city = data.city ? data.city.trim() : '';
             const country = data.country ? data.country.trim() : '';
             const timezone = data.timezone ? data.timezone.trim() : clientTimezone;
+            const coords = (data.latitude && data.longitude) ? ` [${data.latitude},${data.longitude}]` : '';
             
             if (city && country) {
-                return `${city}, ${country} (${timezone})`;
+                return `${city}, ${country} (${timezone})${coords}`;
             } else if (city) {
-                return `${city} (${timezone})`;
+                return `${city} (${timezone})${coords}`;
             } else if (country) {
-                return `${country} (${timezone})`;
+                return `${country} (${timezone})${coords}`;
             } else {
-                return timezone;
+                return timezone + coords;
             }
         }
     } catch (e) {
@@ -118,11 +119,56 @@ function updateAddPlayerButton() {
     const count = container.children.length;
     const max = getMaxPlayers();
     
-    // Hide BOTH 'ADD PLAYER' and 'QR JOIN' buttons when max limit is reached
+    // Remove existing upsell if present
+    const existingUpsell = document.getElementById('m-upsell-16');
+    if (existingUpsell) existingUpsell.remove();
+    
     if (count >= max) {
-        addContainer.style.display = 'none';
+        if (!isLoggedIn && MAX_PLAYERS_LOGGED > MAX_PLAYERS_GUEST) {
+            // Guest hit limit — show upsell
+            addContainer.style.display = 'none';
+            const upsell = document.createElement('div');
+            upsell.id = 'm-upsell-16';
+            upsell.style.cssText = 'width: 100%; text-align: center; padding: 12px 0;';
+            upsell.innerHTML = `
+                <button onclick="upsellSignup()" style="
+                    width: 100%; padding: 14px 20px; border: 1px solid rgba(255,215,0,0.4);
+                    background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05));
+                    color: #ffd700; border-radius: 6px; cursor: pointer;
+                    font-family: 'Resolve', sans-serif; font-size: 0.9rem; font-weight: 600;
+                    letter-spacing: 1px; text-transform: uppercase;
+                    display: flex; align-items: center; justify-content: center; gap: 8px;
+                ">
+                    <span style="font-size: 1.1rem;">🔓</span>
+                    UNLOCK ${MAX_PLAYERS_LOGGED} PLAYERS
+                </button>
+                <div style="font-size: 0.7rem; color: #666; margin-top: 6px;">Sign up free to continue adding players</div>
+            `;
+            addContainer.parentNode.insertBefore(upsell, addContainer.nextSibling);
+        } else {
+            // Logged in user hit max — just hide
+            addContainer.style.display = 'none';
+        }
     } else {
         addContainer.style.display = 'flex';
+    }
+}
+
+// Save player names and redirect to signup
+function upsellSignup() {
+    const container = document.getElementById('m-players-list');
+    if (container) {
+        const names = [];
+        container.querySelectorAll('input').forEach(input => {
+            names.push(input.value || input.placeholder);
+        });
+        sessionStorage.setItem('subsoccer_pending_players', JSON.stringify(names));
+    }
+    // Navigate to login
+    if (window.showAuthPage) {
+        window.showAuthPage('auth');
+    } else {
+        window.location.href = 'index.html#login';
     }
 }
 
@@ -144,6 +190,8 @@ let currentPendingMatch = null;
 let matchResults = []; // Track all match results for leaderboard
 
 const GOALS_TO_WIN = 3; // Best of 5: first to 3 wins
+let matchStartTime = null;       // When current match started
+let matchGoalTimestamps = [];    // [{p: playerNumber, t: secondsSinceStart}, ...]
 
 // ============================================================
 // TOURNAMENT PERSISTENCE
@@ -279,8 +327,9 @@ window.mobileStartTournament = function() {
         }
     });
 
-    if (players.length < 2 || players.length > 8) {
-        alert(window.t ? window.t('tournament_requires_players') : "Tournament requires 2 to 8 players.");
+    const maxPlayers = getMaxPlayers();
+    if (players.length < 2 || players.length > maxPlayers) {
+        alert(`Tournament requires 2 to ${maxPlayers} players.`);
         return;
     }
 
@@ -390,6 +439,8 @@ window.mobileStartMatch = function() {
     gameState.p2Name = currentPendingMatch.p2;
     gameState.isTournament = true;
     pMatchProcessing = false;
+    matchStartTime = Date.now();
+    matchGoalTimestamps = [];
 
     // Update scoreboard UI
     document.getElementById('m-p1-name').innerText = gameState.p1Name;
@@ -418,6 +469,11 @@ window.mobileGoal = function(playerNumber) {
     }
 
     if (navigator.vibrate) navigator.vibrate(50);
+
+    // Record goal timestamp for match_details
+    if (matchStartTime) {
+        matchGoalTimestamps.push({ p: playerNumber, t: Math.round((Date.now() - matchStartTime) / 1000) });
+    }
 
     // Check if someone reached 3 goals
     if (gameState.p1Score >= GOALS_TO_WIN) {
@@ -496,6 +552,31 @@ function finishMatch(winnerName, winnerIndex) {
                 location: userLoc,
                 is_returning: isRet,
                 session_id: sessionStorage.getItem('subsoccer-session-id') || (() => { const s = crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); sessionStorage.setItem('subsoccer-session-id', s); return s; })()
+            }).then(() => {}).catch(() => {});
+
+            // Send detailed in-game data
+            const mDur = matchStartTime ? Math.round((Date.now() - matchStartTime) / 1000) : null;
+            let mComeback = false;
+            let ms1 = 0, ms2 = 0;
+            for (const g of matchGoalTimestamps) {
+                if (g.p === 1) ms1++; else ms2++;
+                if ((winnerIndex === 1 && ms1 < ms2) || (winnerIndex === 2 && ms2 < ms1)) { mComeback = true; break; }
+            }
+            _sb.from('public_tracking').insert({
+                event_type: 'match_details',
+                game_code: 'MOBILE-TOURNAMENT',
+                match_score: JSON.stringify({
+                    duration: mDur,
+                    goals: matchGoalTimestamps,
+                    first: matchGoalTimestamps[0]?.p || null,
+                    comeback: mComeback,
+                    win_score: GOALS_TO_WIN
+                }),
+                source_partner: isLoggedIn ? 'registered' : 'guest',
+                user_agent: navigator.userAgent,
+                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
+                location: userLoc,
+                session_id: sessionStorage.getItem('subsoccer-session-id')
             }).then(() => {}).catch(() => {});
         });
     }
@@ -676,10 +757,10 @@ function showTournamentComplete() {
         const safeName = escapeHtml(name);
         row.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="color: ${idx === 0 ? '#c41e2a' : '#666'}; font-weight: 900; width: 24px;">#${idx + 1}</span>
-                <span style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff;">${safeName}</span>
+                <span style="font-family: 'Resolve', sans-serif; color: ${idx === 0 ? '#c41e2a' : '#666'}; font-weight: 900; width: 24px;">#${idx + 1}</span>
+                <span style="font-family: 'Resolve', sans-serif; font-size: 1.2rem; color: #fff; letter-spacing: 0.5px;">${safeName}</span>
             </div>
-            <div style="font-family: 'Resolve', sans-serif; color: ${idx === 0 ? '#c41e2a' : '#888'}; font-size: 0.9rem;">${w} WINS</div>
+            <div style="font-family: 'Resolve', sans-serif; color: ${idx === 0 ? '#c41e2a' : '#888'}; font-size: 0.9rem; letter-spacing: 1px;">${w} WINS</div>
         `;
         leaderboardEl.appendChild(row);
     });
@@ -689,7 +770,167 @@ function showTournamentComplete() {
     // Tournament stats panel removed — cluttered the winner screen
     
     broadcastTvState();
+
+    // Initialize "Add to Map" prompt
+    initAddToMapPrompt();
 }
+
+// ============================================================
+// ADD TO MAP — post-game location registration (v2 — frictionless)
+// ============================================================
+
+let _mapCityLat = null;
+let _mapCityLng = null;
+let _mapCityName = null;
+
+async function initAddToMapPrompt() {
+    const card = document.getElementById('add-to-map-card');
+    if (!card) return;
+
+    // 1. Get location from Netlify geo (IP-based, no permission needed)
+    //    This is already resolved by the time the tournament ends
+    let locationStr = null;
+    try {
+        locationStr = await locationPromise;
+    } catch (_) {}
+
+    // Extract city name from location string (e.g., "Helsinki, FI (Europe/Helsinki)" → "Helsinki")
+    let cityName = '';
+    if (locationStr && locationStr.includes(',')) {
+        cityName = locationStr.split(',')[0].trim();
+    } else if (locationStr && locationStr.includes('(')) {
+        cityName = locationStr.split('(')[0].trim();
+    }
+
+    if (!cityName || cityName === 'Unknown') {
+        // Fallback: use timezone as rough location
+        cityName = Intl.DateTimeFormat().resolvedOptions().timeZone?.split('/').pop()?.replace(/_/g, ' ') || '';
+    }
+
+    _mapCityName = locationStr || cityName || 'Unknown';
+
+    // 2. Try to get GPS for precise map pin (optional, non-blocking)
+    let lat = userLat;
+    let lng = userLng;
+    if (!lat && navigator.geolocation) {
+        try {
+            const pos = await new Promise((resolve, reject) =>
+                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 })
+            );
+            lat = pos.coords.latitude;
+            lng = pos.coords.longitude;
+            userLat = lat; userLng = lng;
+        } catch (_) { /* GPS denied — that's fine, we'll use geo IP */ }
+    }
+
+    // Use GPS if available, otherwise try reverse-geocode from Netlify geo
+    if (lat && lng) {
+        _mapCityLat = Math.round(lat * 100) / 100; // ~1km precision for privacy
+        _mapCityLng = Math.round(lng * 100) / 100;
+
+        // Reverse geocode for better city name (non-blocking)
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`, {
+                headers: { 'Accept-Language': 'en' }
+            });
+            const geo = await res.json();
+            if (geo?.address) {
+                const geoCity = geo.address.city || geo.address.town || geo.address.village || geo.address.municipality || '';
+                const geoCountry = geo.address.country_code ? geo.address.country_code.toUpperCase() : '';
+                if (geoCity) {
+                    _mapCityName = geoCountry ? `${geoCity}, ${geoCountry}` : geoCity;
+                    cityName = geoCity;
+                }
+                _mapCityLat = parseFloat(geo.lat) || _mapCityLat;
+                _mapCityLng = parseFloat(geo.lon) || _mapCityLng;
+                _mapCityLat = Math.round(_mapCityLat * 100) / 100;
+                _mapCityLng = Math.round(_mapCityLng * 100) / 100;
+            }
+        } catch (_) { /* reverse geocode failed — use what we have */ }
+    }
+
+    // 3. Pre-fill game name suggestion
+    const nameInput = document.getElementById('map-game-name');
+    if (nameInput && cityName) {
+        nameInput.placeholder = `e.g. Subsoccer ${cityName}`;
+    }
+
+    // 4. Show the card — always show if we have any location info
+    document.getElementById('map-detected-city').textContent = cityName || _mapCityName || 'your location';
+    card.style.display = 'block';
+    card.style.animation = 'fadeIn 0.4s ease';
+}
+
+async function submitAddToMap() {
+    const nameInput = document.getElementById('map-game-name');
+    let gameName = (nameInput.value || '').trim();
+    
+    // Auto-generate name if empty — no friction
+    if (!gameName) {
+        const cityPart = _mapCityName?.split(',')[0]?.split('(')[0]?.trim() || 'Game';
+        gameName = `Subsoccer ${cityPart}`;
+    }
+
+    const btn = document.getElementById('map-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+    try {
+        // Use Supabase if available, otherwise direct REST
+        const client = _sb || window._supabase;
+        if (!client) throw new Error('No database client');
+
+        // Dedup: check if same user already added a game at this location recently
+        if (currentUserId && _mapCityName) {
+            try {
+                const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                const { data: existing } = await client.from('games')
+                    .select('id')
+                    .eq('owner_id', currentUserId)
+                    .eq('location', _mapCityName)
+                    .gte('registered_at', since)
+                    .limit(1);
+                if (existing && existing.length > 0) {
+                    // Already added recently — show success silently
+                    document.getElementById('map-prompt-state').style.display = 'none';
+                    document.getElementById('map-success-state').style.display = 'block';
+                    return;
+                }
+            } catch (_) { /* dedup check failed — proceed with insert */ }
+        }
+
+        const insertData = {
+            unique_code: 'COMMUNITY-' + Date.now(),
+            game_name: gameName,
+            location: _mapCityName || 'Unknown',
+            owner_id: currentUserId || null,
+            is_public: true,
+            serial_number: null,
+            verified: false,
+            privacy_mode: 'city_only',
+            registered_at: new Date().toISOString()
+        };
+
+        // Add coordinates if available
+        if (_mapCityLat && _mapCityLng) {
+            insertData.latitude = _mapCityLat;
+            insertData.longitude = _mapCityLng;
+        }
+
+        const { error } = await client.from('games').insert(insertData);
+
+        if (error) throw new Error(error.message || JSON.stringify(error));
+
+        // Success!
+        document.getElementById('map-prompt-state').style.display = 'none';
+        document.getElementById('map-success-state').style.display = 'block';
+    } catch (e) {
+        console.warn('Add to Map failed:', e);
+        document.getElementById('map-prompt-state').style.display = 'none';
+        document.getElementById('map-error-state').style.display = 'block';
+    }
+}
+window.submitAddToMap = submitAddToMap;
 
 // ============================================================
 // SETUP UI HELPERS (Player add/remove for setup screen)

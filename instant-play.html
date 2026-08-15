@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="apple-itunes-app" content="app-id=6777437223">
-    <title>Subsoccer GO — Free Table Football Scoreboard | Play Instantly</title>
+    <title>Subsoccer GO — Free Table Football App | Tournaments, ELO & Live Scoring</title>
     <meta name="description" content="Play Subsoccer instantly — no download, no registration. Tap to score, track results, and compete with players worldwide. The free digital scoreboard for any Subsoccer table.">
     <link rel="canonical" href="https://subsoccer.pro/instant-play.html">
 
@@ -1008,7 +1008,8 @@
                 }
             }
 
-            /* Pin It Map Card */
+            /* Pin It Map Card — HIDDEN: causes friction in demos (no-friction rule) */
+            .pin-it-card, .pin-it-already { display: none !important; }
             .pin-it-card {
                 width: 100%;
                 max-width: 320px;
@@ -1172,15 +1173,16 @@
                     const city = data.city ? data.city.trim() : '';
                     const country = data.country ? data.country.trim() : '';
                     const timezone = data.timezone ? data.timezone.trim() : clientTimezone;
+                    const coords = (data.latitude && data.longitude) ? ` [${data.latitude},${data.longitude}]` : '';
                     
                     if (city && country) {
-                        return `${city}, ${country} (${timezone})`;
+                        return `${city}, ${country} (${timezone})${coords}`;
                     } else if (city) {
-                        return `${city} (${timezone})`;
+                        return `${city} (${timezone})${coords}`;
                     } else if (country) {
-                        return `${country} (${timezone})`;
+                        return `${country} (${timezone})${coords}`;
                     } else {
-                        return timezone;
+                        return timezone + coords;
                     }
                 }
             } catch (e) {
@@ -1204,17 +1206,81 @@
             const keys = ['utm_source', 'utm_medium', 'utm_campaign'];
             keys.forEach(k => { if (url.get(k)) sessionStorage.setItem(k, url.get(k)); });
 
-            // Auto-detect referrer from subsoccer.com (product pages, etc.)
+            // Auto-detect traffic source from document.referrer
             if (!sessionStorage.getItem('utm_source') && document.referrer) {
                 try {
                     const ref = new URL(document.referrer);
-                    if (ref.hostname.includes('subsoccer.com')) {
-                        // Extract product name from path: /products/subsoccer-s7 → s7
+                    const host = ref.hostname.toLowerCase();
+
+                    // Search engines
+                    if (host.includes('google.')) {
+                        sessionStorage.setItem('utm_source', 'google');
+                        sessionStorage.setItem('utm_medium', 'organic');
+                    } else if (host.includes('bing.com')) {
+                        sessionStorage.setItem('utm_source', 'bing');
+                        sessionStorage.setItem('utm_medium', 'organic');
+                    } else if (host.includes('duckduckgo.com')) {
+                        sessionStorage.setItem('utm_source', 'duckduckgo');
+                        sessionStorage.setItem('utm_medium', 'organic');
+                    } else if (host.includes('yahoo.com') || host.includes('search.yahoo')) {
+                        sessionStorage.setItem('utm_source', 'yahoo');
+                        sessionStorage.setItem('utm_medium', 'organic');
+
+                    // AI assistants
+                    } else if (host.includes('chatgpt.com') || host.includes('chat.openai.com')) {
+                        sessionStorage.setItem('utm_source', 'chatgpt');
+                        sessionStorage.setItem('utm_medium', 'ai');
+                    } else if (host.includes('gemini.google.com') || host.includes('bard.google.com')) {
+                        sessionStorage.setItem('utm_source', 'gemini');
+                        sessionStorage.setItem('utm_medium', 'ai');
+                    } else if (host.includes('perplexity.ai')) {
+                        sessionStorage.setItem('utm_source', 'perplexity');
+                        sessionStorage.setItem('utm_medium', 'ai');
+                    } else if (host.includes('copilot.microsoft.com')) {
+                        sessionStorage.setItem('utm_source', 'copilot');
+                        sessionStorage.setItem('utm_medium', 'ai');
+
+                    // Social media
+                    } else if (host.includes('facebook.com') || host.includes('fb.com') || host.includes('l.facebook.com')) {
+                        sessionStorage.setItem('utm_source', 'facebook');
+                        sessionStorage.setItem('utm_medium', 'social');
+                    } else if (host.includes('instagram.com') || host.includes('l.instagram.com')) {
+                        sessionStorage.setItem('utm_source', 'instagram');
+                        sessionStorage.setItem('utm_medium', 'social');
+                    } else if (host.includes('twitter.com') || host.includes('x.com') || host.includes('t.co')) {
+                        sessionStorage.setItem('utm_source', 'twitter');
+                        sessionStorage.setItem('utm_medium', 'social');
+                    } else if (host.includes('linkedin.com') || host.includes('lnkd.in')) {
+                        sessionStorage.setItem('utm_source', 'linkedin');
+                        sessionStorage.setItem('utm_medium', 'social');
+                    } else if (host.includes('tiktok.com')) {
+                        sessionStorage.setItem('utm_source', 'tiktok');
+                        sessionStorage.setItem('utm_medium', 'social');
+                    } else if (host.includes('reddit.com')) {
+                        sessionStorage.setItem('utm_source', 'reddit');
+                        sessionStorage.setItem('utm_medium', 'social');
+                    } else if (host.includes('youtube.com') || host.includes('youtu.be')) {
+                        sessionStorage.setItem('utm_source', 'youtube');
+                        sessionStorage.setItem('utm_medium', 'social');
+                    } else if (host.includes('whatsapp.com') || host.includes('wa.me')) {
+                        sessionStorage.setItem('utm_source', 'whatsapp');
+                        sessionStorage.setItem('utm_medium', 'messaging');
+
+                    // Subsoccer properties
+                    } else if (host.includes('subsoccer.com')) {
                         const pathMatch = ref.pathname.match(/\/products\/subsoccer-(.+)/);
                         const campaign = pathMatch ? pathMatch[1] : ref.pathname.replace(/\//g, '') || 'homepage';
                         sessionStorage.setItem('utm_source', 'subsoccer.com');
                         sessionStorage.setItem('utm_medium', 'product_page');
                         sessionStorage.setItem('utm_campaign', campaign);
+                    } else if (host.includes('subsoccer.pro') && !host.includes(location.hostname)) {
+                        sessionStorage.setItem('utm_source', 'subsoccer.pro');
+                        sessionStorage.setItem('utm_medium', 'internal');
+
+                    // Other known referrer — store the domain
+                    } else if (host && !host.includes(location.hostname)) {
+                        sessionStorage.setItem('utm_source', host);
+                        sessionStorage.setItem('utm_medium', 'referral');
                     }
                 } catch (_) { /* invalid referrer URL, ignore */ }
             }
@@ -1435,6 +1501,9 @@
         let currentGameId = null;
         let WIN_SCORE = 3;
         let lastGoalTime = 0;
+        let matchPrediction = null; // Match prediction mode data
+        let gameStartTime = null;    // When game actually started (enterFullscreenGame)
+        let goalTimestamps = [];     // [{p: playerNumber, t: secondsSinceStart}, ...]
         
         // Shelly Smart Plug Integration for physical hardware FX
         let shellyIP = localStorage.getItem('shelly_ip') || null;
@@ -1469,6 +1538,24 @@
             // Allow setting win score via URL (e.g. ?win_score=5)
             const urlWinScore = urlParams.get('win_score');
             if (urlWinScore) WIN_SCORE = parseInt(urlWinScore);
+
+            // Match Prediction Mode (from landing page cards)
+            const p1Name = urlParams.get('p1');
+            const p2Name = urlParams.get('p2');
+            if (p1Name && p2Name) {
+                const p1Flag = urlParams.get('p1flag') || '';
+                const p2Flag = urlParams.get('p2flag') || '';
+                const matchType = urlParams.get('match') || 'friendly';
+                matchPrediction = { p1: p1Name, p2: p2Name, p1Flag: p1Flag, p2Flag: p2Flag, type: matchType };
+
+                // Set player labels
+                const labels = document.querySelectorAll('.player-label');
+                if (labels[0]) labels[0].textContent = p1Flag ? p1Flag + ' ' + p1Name : p1Name;
+                if (labels[1]) labels[1].textContent = p2Flag ? p2Flag + ' ' + p2Name : p2Name;
+
+                // Log prediction start
+                logTrackingEvent('prediction_start', matchType + ':' + p1Name + '-' + p2Name);
+            }
 
             // Costco Bilingual Rules Check
             if (urlParams.get('partner') === 'costco') {
@@ -1808,6 +1895,10 @@
 
         // Enter Fullscreen and Start
         window.enterFullscreenGame = function () {
+            // Start tracking game time
+            gameStartTime = Date.now();
+            goalTimestamps = [];
+
             // Hide overlay immediately to ensure game starts
             document.getElementById('actual-rules-overlay').style.display = 'none';
 
@@ -1870,6 +1961,11 @@
             // Add to history for undo
             goalHistory.push(player);
 
+            // Record goal timestamp for game_details
+            if (gameStartTime) {
+                goalTimestamps.push({ p: player, t: Math.round((Date.now() - gameStartTime) / 1000) });
+            }
+
             // Play sound
             if (window.soundEffects) window.soundEffects.playGoalSound();
 
@@ -1905,7 +2001,37 @@
         // Show winner
         function showWinner(player) {
             logTrackingEvent('game_finished', scoreP1 + '-' + scoreP2);
-            let winText = `PLAYER ${player} WINS!`;
+
+            // Send detailed in-game data
+            const gameDuration = gameStartTime ? Math.round((Date.now() - gameStartTime) / 1000) : null;
+            let isComeback = false;
+            let s1 = 0, s2 = 0;
+            for (const g of goalTimestamps) {
+                if (g.p === 1) s1++; else s2++;
+                if ((player === 1 && s1 < s2) || (player === 2 && s2 < s1)) { isComeback = true; break; }
+            }
+            logTrackingEvent('game_details', JSON.stringify({
+                duration: gameDuration,
+                goals: goalTimestamps,
+                first: goalTimestamps[0]?.p || null,
+                comeback: isComeback,
+                win_score: WIN_SCORE
+            }));
+
+            // Match Prediction: log result with team names
+            if (matchPrediction) {
+                const winner = player === 1 ? matchPrediction.p1 : matchPrediction.p2;
+                logTrackingEvent('prediction_result', matchPrediction.type + ':' + scoreP1 + '-' + scoreP2 + ':' + winner);
+            }
+
+            let winText;
+            if (matchPrediction) {
+                const winnerName = player === 1 ? matchPrediction.p1 : matchPrediction.p2;
+                const winnerFlag = player === 1 ? matchPrediction.p1Flag : matchPrediction.p2Flag;
+                winText = (winnerFlag ? winnerFlag + ' ' : '') + winnerName.toUpperCase() + ' WINS!';
+            } else {
+                winText = `PLAYER ${player} WINS!`;
+            }
             if (window.costcoCurrentLang === 'fr') {
                 winText = `JOUEUR ${player} GAGNE !`;
             }
@@ -2089,6 +2215,8 @@
             scoreP1 = 0;
             scoreP2 = 0;
             goalHistory = [];
+            gameStartTime = Date.now();
+            goalTimestamps = [];
             document.getElementById('score-p1').textContent = '0';
             document.getElementById('score-p2').textContent = '0';
             updateGoalVisuals();
@@ -2403,6 +2531,7 @@
             }
         });
     </script>
+<script data-goatcounter="https://subsoccer-pro.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 
 </html>
