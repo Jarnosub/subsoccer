@@ -1978,6 +1978,7 @@
         let currentGameId = null;
         let WIN_SCORE = 3;
         let lastGoalTime = 0;
+        let isMatchEnding = false;   // Guards against goals during showWinner delay
         let matchPrediction = null; // Match prediction mode data
         let gameStartTime = null;    // When game actually started (enterFullscreenGame)
         let goalTimestamps = [];     // [{p: playerNumber, t: secondsSinceStart}, ...]
@@ -2600,6 +2601,9 @@
                 return;
             }
 
+            // Block goals if match is ending (waiting for showWinner delay)
+            if (isMatchEnding) return;
+
             const now = Date.now();
             // Estä liian nopeat peräkkäiset maalit (800ms viive)
             if (document.getElementById('winner-overlay').classList.contains('show') || (now - lastGoalTime < 800)) {
@@ -2643,8 +2647,10 @@
 
             // Check for winner
             if (scoreP1 >= WIN_SCORE) {
+                isMatchEnding = true;
                 setTimeout(() => showWinner(1), 800);
             } else if (scoreP2 >= WIN_SCORE) {
+                isMatchEnding = true;
                 setTimeout(() => showWinner(2), 800);
             }
         }
@@ -2831,9 +2837,9 @@
                     date: new Date().toLocaleDateString()
                 };
 
-                // Server-side authoritative recording
+                // Server-side authoritative recording (with retry)
                 if (_rankedP1.id && _rankedP2.id) {
-                    _supabase.rpc('record_quick_match_v1', {
+                    const rpcPayload = {
                         p1_id: _rankedP1.id,
                         p2_id: _rankedP2.id,
                         p1_won: p1Won,
@@ -2847,10 +2853,32 @@
                             player2_score: scoreP2,
                             game_id: null
                         }
-                    }).then(({ error }) => {
-                        if (error) console.warn('Server ELO update failed:', error);
-                        else console.log('✅ Match recorded and ELO updated authoritative on Supabase!');
-                    });
+                    };
+
+                    const maxRetries = 3;
+                    let attempt = 0;
+                    const tryRecord = async () => {
+                        attempt++;
+                        try {
+                            const { error } = await _supabase.rpc('record_quick_match_v1', rpcPayload);
+                            if (error) throw error;
+                            console.log('✅ Match recorded and ELO updated authoritative on Supabase!');
+                        } catch (err) {
+                            console.warn(`Server ELO update failed (attempt ${attempt}/${maxRetries}):`, err);
+                            if (attempt < maxRetries) {
+                                setTimeout(tryRecord, 2000 * attempt);
+                            } else {
+                                console.error('❌ Match recording failed after all retries. Match data:', rpcPayload.match_data);
+                                // Store failed match in localStorage so it can be recovered
+                                try {
+                                    const failed = JSON.parse(localStorage.getItem('subsoccer_failed_matches') || '[]');
+                                    failed.push({ ...rpcPayload, timestamp: Date.now() });
+                                    localStorage.setItem('subsoccer_failed_matches', JSON.stringify(failed));
+                                } catch(e) { /* ignore storage errors */ }
+                            }
+                        }
+                    };
+                    tryRecord();
                 }
             } else {
                 const guestBox = document.getElementById('guest-victory-box');
@@ -2973,6 +3001,15 @@
                 window.location.reload();
                 return;
             }
+
+            // Update ranked player ELO for rematch so next game calculates correctly
+            if (_rankedP1 && _rankedMatchPayload) {
+                _rankedP1.elo = _rankedMatchPayload.p1EloAfter;
+            }
+            if (_rankedP2 && _rankedMatchPayload) {
+                _rankedP2.elo = _rankedMatchPayload.p2EloAfter;
+            }
+            _rankedMatchPayload = null;
             
             resetGame();
             document.getElementById('winner-overlay').classList.remove('show');
@@ -3031,19 +3068,18 @@
         }
 
         // Reset game
-        // Reset game
         function resetGame() {
             scoreP1 = 0;
             scoreP2 = 0;
             goalHistory = [];
             gameStartTime = Date.now();
             goalTimestamps = [];
+            isMatchEnding = false;
             document.getElementById('score-p1').textContent = '0';
             document.getElementById('score-p2').textContent = '0';
             updateGoalVisuals();
             document.getElementById('winner-overlay').classList.remove('show');
             stopLasers();
-
 
             BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
         }
