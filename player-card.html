@@ -1147,7 +1147,9 @@
             if (backQr && typeof QRCode !== 'undefined') {
                 backQr.innerHTML = '';
                 try {
-                    const matchUrl = `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(name)}`;
+                    const matchUrl = player.id
+                        ? `https://subsoccer.pro/instant-play.html?match_vs_id=${encodeURIComponent(player.id)}`
+                        : `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(name)}`;
                     new QRCode(backQr, {
                         text: matchUrl,
                         width: 56,
@@ -2587,8 +2589,10 @@
             const playerName = _currentPlayer?.username || document.getElementById('pc-card-name')?.textContent || 'PLAYER';
             if (nameEl) nameEl.textContent = playerName;
 
-            // Generate match URL that opponent scans
-            const matchUrl = `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(playerName)}`;
+            // Generate match URL that opponent scans (use player ID for permanence)
+            const matchUrl = _currentPlayer?.id
+                ? `https://subsoccer.pro/instant-play.html?match_vs_id=${encodeURIComponent(_currentPlayer.id)}`
+                : `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(playerName)}`;
             
             qrContainer.innerHTML = '';
             try {

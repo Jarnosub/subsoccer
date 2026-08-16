@@ -87,7 +87,8 @@
     <script>
         (function() {
             try {
-                if (new URLSearchParams(window.location.search).has('match_vs')) {
+                const p = new URLSearchParams(window.location.search);
+                if (p.has('match_vs') || p.has('match_vs_id')) {
                     document.documentElement.classList.add('is-ranked-intro');
                 }
             } catch(_) {}
@@ -1240,6 +1241,9 @@
                     <button id="vs-start-btn" onclick="startRankedMatch()" class="vs-center-btn">
                         ⚔️ START MATCH
                     </button>
+                    <button id="vs-swap-btn" onclick="swapSides()" style="display:none; width:100%; margin-top:8px; padding:10px 14px; background:transparent; border:1px solid rgba(255,255,255,0.2); border-radius:2px; color:rgba(255,255,255,0.6); font-family:'Subsoccer', sans-serif; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.2s;">
+                        🔄 SWAP SIDES
+                    </button>
                     <a id="vs-login-btn" href="login.html" class="vs-center-btn" style="display:none; text-decoration:none;">
                         LOG IN TO PLAY RANKED
                     </a>
@@ -2046,16 +2050,7 @@
 
             // Render Player 2 (Opponent) on Red side
             const l2 = document.getElementById('label-p2');
-            if (l2) l2.textContent = oppData.username;
-            const elo2 = document.getElementById('vs-p2-elo');
-            if (elo2) elo2.textContent = `${oppData.elo || 1300} ELO`;
-            const p2Img = document.getElementById('vs-p2-avatar');
-            if (p2Img) {
-                p2Img.src = oppData.avatar_url || getSubsoccerPresetAvatar(oppData.username, 2);
-                p2Img.style.display = 'block';
-            }
-
-            // 2. Fetch Current Logged-in Player (Player 1)
+            // Self-challenge guard: can't play against yourself
             let currentUser = null;
             try {
                 const localUserStr = localStorage.getItem('subsoccer-user');
@@ -2072,6 +2067,46 @@
                 }
             } catch(e) {
                 console.warn('Failed to fetch current user:', e);
+            }
+
+            if (currentUser && oppData && currentUser.id && oppData.id && currentUser.id === oppData.id) {
+                document.documentElement.classList.remove('is-ranked-intro');
+                const stakesEl = document.getElementById('vs-elo-stakes');
+                if (stakesEl) {
+                    stakesEl.innerHTML = `<span style="color:#f87171;">You can't challenge yourself!</span><br><span style="color:#aaa; font-size:0.7rem;">Share this link with your opponent instead.</span>`;
+                }
+                const startBtn = document.getElementById('vs-start-btn');
+                if (startBtn) startBtn.style.display = 'none';
+                const swapBtn = document.getElementById('vs-swap-btn');
+                if (swapBtn) swapBtn.style.display = 'none';
+                // Show a "Share" button instead
+                const actionWrap = document.getElementById('vs-action-wrap');
+                if (actionWrap) {
+                    const shareBtn = document.createElement('button');
+                    shareBtn.className = 'vs-center-btn';
+                    shareBtn.textContent = '📤 SHARE CHALLENGE LINK';
+                    shareBtn.onclick = () => {
+                        const url = window.location.href;
+                        if (navigator.share) {
+                            navigator.share({ title: `${oppData.username} challenges you!`, url }).catch(() => {});
+                        } else {
+                            navigator.clipboard.writeText(url).then(() => alert('Link copied!'));
+                        }
+                    };
+                    actionWrap.appendChild(shareBtn);
+                }
+                return;
+            }
+
+            // Render Player 2 (Opponent) on Red side
+            const l2 = document.getElementById('label-p2');
+            if (l2) l2.textContent = oppData.username;
+            const elo2 = document.getElementById('vs-p2-elo');
+            if (elo2) elo2.textContent = `${oppData.elo || 1300} ELO`;
+            const p2Img = document.getElementById('vs-p2-avatar');
+            if (p2Img) {
+                p2Img.src = oppData.avatar_url || getSubsoccerPresetAvatar(oppData.username, 2);
+                p2Img.style.display = 'block';
             }
 
             const startBtn = document.getElementById('vs-start-btn');
@@ -2109,6 +2144,9 @@
                     startBtn.textContent = '⚔️ START RANKED MATCH';
                 }
                 if (loginBtn) loginBtn.style.display = 'none';
+                // Show swap sides button
+                const swapBtn = document.getElementById('vs-swap-btn');
+                if (swapBtn) swapBtn.style.display = 'block';
             } else {
                 // User is a guest
                 _isRankedMatch = false;
@@ -2171,15 +2209,79 @@
             }
         };
 
+        window.swapSides = function() {
+            if (!_rankedP1 || !_rankedP2) return;
+            // Swap player data
+            const temp = _rankedP1;
+            _rankedP1 = _rankedP2;
+            _rankedP2 = temp;
+
+            // Re-render P1 (left/blue)
+            const l1 = document.getElementById('label-p1');
+            if (l1) l1.textContent = _rankedP1.username;
+            const elo1 = document.getElementById('vs-p1-elo');
+            if (elo1) elo1.textContent = `${_rankedP1.elo || 1300} ELO`;
+            const p1Img = document.getElementById('vs-p1-avatar');
+            if (p1Img) p1Img.src = _rankedP1.avatar_url || getSubsoccerPresetAvatar(_rankedP1.username, 1);
+
+            // Re-render P2 (right/red)
+            const l2 = document.getElementById('label-p2');
+            if (l2) l2.textContent = _rankedP2.username;
+            const elo2 = document.getElementById('vs-p2-elo');
+            if (elo2) elo2.textContent = `${_rankedP2.elo || 1300} ELO`;
+            const p2Img = document.getElementById('vs-p2-avatar');
+            if (p2Img) p2Img.src = _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2);
+
+            // Recalculate ELO stakes
+            const p1Elo = _rankedP1.elo || 1300;
+            const p2Elo = _rankedP2.elo || 1300;
+            const expP1 = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400));
+            const p1WinGain = Math.max(1, Math.round(32 * (1 - expP1)));
+            const p1LossLoss = Math.max(1, Math.round(32 * expP1));
+            const stakesEl = document.getElementById('vs-elo-stakes');
+            if (stakesEl) {
+                stakesEl.innerHTML = `FIRST TO 3 GOALS WINS<br>WIN: <span style="color:#4ade80; font-weight:bold;">+${p1WinGain} ELO</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-${p1LossLoss} ELO</span>`;
+            }
+
+            // Brief visual flash
+            const overlay = document.getElementById('vs-center-overlay');
+            if (overlay) {
+                overlay.style.transition = 'opacity 0.15s';
+                overlay.style.opacity = '0.5';
+                setTimeout(() => { overlay.style.opacity = '1'; }, 150);
+            }
+        };
+
         // Initialize
         window.addEventListener('load', () => {
             logTrackingEvent('app_opened');
             // Check for Game ID or Serial Number (sn) in URL
             const urlParams = new URLSearchParams(window.location.search);
 
-            // Ranked Match Mode (?match_vs=USERNAME)
+            // Ranked Match Mode (?match_vs=USERNAME or ?match_vs_id=UUID)
             const matchVs = urlParams.get('match_vs');
-            if (matchVs) {
+            const matchVsId = urlParams.get('match_vs_id');
+            if (matchVsId) {
+                // UUID-based: fetch username from ID first, then init
+                (async () => {
+                    try {
+                        const { data } = await _supabase
+                            .from('players')
+                            .select('username')
+                            .eq('id', matchVsId)
+                            .maybeSingle();
+                        if (data && data.username) {
+                            initRankedMatch(data.username);
+                        } else {
+                            console.warn('Player ID not found:', matchVsId);
+                            initRankedMatch(matchVsId); // fallback: use as name
+                        }
+                    } catch(e) {
+                        console.warn('UUID lookup failed:', e);
+                        initRankedMatch(matchVsId);
+                    }
+                })();
+            } else if (matchVs) {
                 initRankedMatch(matchVs);
             } else if (urlParams.get('mode') !== 'display' && !urlParams.get('p1')) {
                 // Show rules overlay only for standard anonymous quick play

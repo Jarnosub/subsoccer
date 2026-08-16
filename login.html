@@ -2008,7 +2008,8 @@ async function shareTournamentWin() {
         'border:1px solid #1e1e1e'
     ].join(';');
 
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&color=ffffff&bgcolor=0a0a0a&data=${encodeURIComponent('https://subsoccer.pro')}`;
+    const qrData = `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(playerName)}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&color=ffffff&bgcolor=0a0a0a&data=${encodeURIComponent(qrData)}`;
 
     card.innerHTML = `
         <!-- Red top accent -->
@@ -2100,10 +2101,10 @@ function challengeMe() {
         return;
     }
 
-    const challengeUrl = `${window.location.origin}/login.html?challenge=${encodeURIComponent(username)}`;
+    const challengeUrl = `${window.location.origin}/instant-play.html?match_vs=${encodeURIComponent(username)}`;
     const eloEl  = document.getElementById('profile-elo');
     const elo    = eloEl?.innerText || '1300';
-    const shareText = `⚡ ${username} (ELO ${elo}) challenges you to a Subsoccer match! Can you beat me?`;
+    const shareText = `⚡ ${username} (ELO ${elo}) challenges you to a ranked Subsoccer match! Scan or tap to play:`;
 
     if (navigator.share) {
         navigator.share({

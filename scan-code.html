@@ -500,16 +500,25 @@
             let displayDesc = 'OPENING LINK...';
 
             // Parse known subsoccer URL patterns
-            if (rawValue.includes('match_vs=') || rawValue.includes('player-card.html?u=')) {
+            if (rawValue.includes('match_vs') || rawValue.includes('player-card.html?u=')) {
                 let opponent = 'OPPONENT';
+                let matchParam = '';
                 try {
                     const parsedUrl = new URL(rawValue, window.location.origin);
-                    opponent = parsedUrl.searchParams.get('match_vs') || parsedUrl.searchParams.get('u') || 'OPPONENT';
+                    const vsId = parsedUrl.searchParams.get('match_vs_id');
+                    const vsName = parsedUrl.searchParams.get('match_vs') || parsedUrl.searchParams.get('u');
+                    if (vsId) {
+                        matchParam = `match_vs_id=${encodeURIComponent(vsId)}`;
+                        opponent = vsName || 'RANKED PLAYER';
+                    } else if (vsName) {
+                        matchParam = `match_vs=${encodeURIComponent(vsName)}`;
+                        opponent = vsName;
+                    }
                 } catch(e) {}
                 displayTitle = `⚔️ OPPONENT: ${opponent.toUpperCase()}`;
                 displayDesc = `START 1-ON-1 RANKED MATCH (PLAY TO 3)`;
                 action.innerText = 'START MATCH';
-                targetUrl = `instant-play.html?match_vs=${encodeURIComponent(opponent)}`;
+                targetUrl = `instant-play.html?${matchParam}`;
             } else if (rawValue.includes('lounge-remote') || rawValue.includes('table-')) {
                 displayTitle = 'TABLE DETECTED';
                 displayDesc = 'ARCADE TABLE QR CODE';
