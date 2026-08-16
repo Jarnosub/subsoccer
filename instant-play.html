@@ -2660,20 +2660,27 @@
                     statsEl.textContent = `MATCH TIME: ${mins}:${secs}${isComeback ? ' • COMEBACK VICTORY' : ''}`;
                 }
 
-                // Prepare 1080x1080 Victory Share Card payload
+                // Prepare 1080x1080 Victory Share Card payload (1:1 with match screen)
+                const mins = gameDuration ? Math.floor(gameDuration / 60) : 0;
+                const secs = gameDuration ? (gameDuration % 60).toString().padStart(2, '0') : '45';
+
                 _rankedMatchPayload = {
-                    winnerName: p1Won ? _rankedP1.username : _rankedP2.username,
-                    loserName: p1Won ? _rankedP2.username : _rankedP1.username,
+                    p1Name: p1DisplayName,
+                    p2Name: p2DisplayName,
+                    p1Score: scoreP1,
+                    p2Score: scoreP2,
+                    p1EloBefore: p1OldElo,
+                    p1EloAfter: p1NewElo,
+                    p2EloBefore: p2OldElo,
+                    p2EloAfter: p2NewElo,
+                    p1AvatarUrl: _rankedP1.avatar_url || getSubsoccerPresetAvatar(_rankedP1.username, 1),
+                    p2AvatarUrl: _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2),
+                    winnerNumber: p1Won ? 1 : 2,
+                    winnerName: p1Won ? p1DisplayName : p2DisplayName,
                     winnerScore: p1Won ? scoreP1 : scoreP2,
                     loserScore: p1Won ? scoreP2 : scoreP1,
-                    winnerEloBefore: p1Won ? p1OldElo : p2OldElo,
-                    winnerEloAfter: p1Won ? p1NewElo : p2NewElo,
-                    loserEloBefore: p1Won ? p2OldElo : p1OldElo,
-                    loserEloAfter: p1Won ? p2NewElo : p1NewElo,
-                    winnerAvatarUrl: p1Won ? _rankedP1.avatar_url : _rankedP2.avatar_url,
-                    loserAvatarUrl: p1Won ? _rankedP2.avatar_url : _rankedP1.avatar_url,
-                    winnerCountry: p1Won ? _rankedP1.country : _rankedP2.country,
-                    loserCountry: p1Won ? _rankedP2.country : _rankedP1.country,
+                    matchDuration: gameDuration,
+                    matchDurationStr: `${mins}:${secs}`,
                     date: new Date().toLocaleDateString()
                 };
 

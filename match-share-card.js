@@ -42,21 +42,7 @@ export const MatchShareCard = {
     /**
      * Renders the 1080x1080 Match Victory Card onto a canvas
      */
-    async renderCardCanvas({
-        winnerName = 'WINNER',
-        loserName = 'OPPONENT',
-        winnerScore = 3,
-        loserScore = 1,
-        winnerEloBefore = 1300,
-        winnerEloAfter = 1318,
-        loserEloBefore = 1300,
-        loserEloAfter = 1282,
-        winnerAvatarUrl = null,
-        loserAvatarUrl = null,
-        winnerCountry = '',
-        loserCountry = '',
-        date = new Date().toLocaleDateString()
-    }) {
+    async renderCardCanvas(payload = {}) {
         await document.fonts.ready;
 
         const W = 1080;
@@ -66,196 +52,203 @@ export const MatchShareCard = {
         canvas.height = H;
         const ctx = canvas.getContext('2d');
 
+        // Resolve parameters with backward-compatible fallbacks
+        const p1Name = payload.p1Name || (payload.winnerNumber === 1 ? payload.winnerName : payload.loserName) || 'PLAYER 1';
+        const p2Name = payload.p2Name || (payload.winnerNumber === 2 ? payload.winnerName : payload.loserName) || 'PLAYER 2';
+        const p1Score = payload.p1Score !== undefined ? payload.p1Score : (payload.winnerNumber === 1 ? payload.winnerScore : payload.loserScore);
+        const p2Score = payload.p2Score !== undefined ? payload.p2Score : (payload.winnerNumber === 2 ? payload.winnerScore : payload.loserScore);
+        const p1EloBefore = payload.p1EloBefore !== undefined ? payload.p1EloBefore : (payload.winnerNumber === 1 ? payload.winnerEloBefore : payload.loserEloBefore) || 1300;
+        const p1EloAfter = payload.p1EloAfter !== undefined ? payload.p1EloAfter : (payload.winnerNumber === 1 ? payload.winnerEloAfter : payload.loserEloAfter) || 1300;
+        const p2EloBefore = payload.p2EloBefore !== undefined ? payload.p2EloBefore : (payload.winnerNumber === 2 ? payload.winnerEloBefore : payload.loserEloBefore) || 1300;
+        const p2EloAfter = payload.p2EloAfter !== undefined ? payload.p2EloAfter : (payload.winnerNumber === 2 ? payload.winnerEloAfter : payload.loserEloAfter) || 1300;
+        const p1AvatarUrl = payload.p1AvatarUrl || (payload.winnerNumber === 1 ? payload.winnerAvatarUrl : payload.loserAvatarUrl);
+        const p2AvatarUrl = payload.p2AvatarUrl || (payload.winnerNumber === 2 ? payload.winnerAvatarUrl : payload.loserAvatarUrl);
+        const winnerName = payload.winnerName || (payload.winnerNumber === 1 ? p1Name : p2Name);
+        const p1Won = payload.winnerNumber ? (payload.winnerNumber === 1) : (p1Score > p2Score || winnerName === p1Name);
+        const durationStr = payload.matchDurationStr || (payload.matchDuration ? `${Math.floor(payload.matchDuration / 60)}:${(payload.matchDuration % 60).toString().padStart(2, '0')}` : '0:45');
+
         // Load avatar images in parallel
-        const [winnerImg, loserImg] = await Promise.all([
-            this.loadImage(winnerAvatarUrl),
-            this.loadImage(loserAvatarUrl)
+        const [p1Img, p2Img] = await Promise.all([
+            this.loadImage(p1AvatarUrl),
+            this.loadImage(p2AvatarUrl)
         ]);
 
-        // 1. BACKGROUND: Deep dark stadium atmosphere
-        const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 100, W / 2, H / 2, W * 0.75);
-        bgGrad.addColorStop(0, '#1c1c22');
-        bgGrad.addColorStop(0.6, '#0f0f12');
-        bgGrad.addColorStop(1, '#050507');
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, W, H);
+        // 1. BACKGROUND: Split Stadium Arena (Left Petrol Navy, Right Subsoccer Red)
+        // Left Half
+        const leftGrad = ctx.createLinearGradient(0, 0, W / 2, H);
+        leftGrad.addColorStop(0, '#101c24');
+        leftGrad.addColorStop(0.5, '#1c2b36');
+        leftGrad.addColorStop(1, '#0e171e');
+        ctx.fillStyle = leftGrad;
+        ctx.fillRect(0, 0, W / 2, H);
 
-        // Carbon fiber pattern overlay
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
-        for (let y = 0; y < H; y += 12) {
-            for (let x = 0; x < W; x += 12) {
-                const offset = (Math.floor(y / 12) % 2) * 6;
-                ctx.fillRect(x + offset, y, 6, 6);
-            }
-        }
+        // Right Half
+        const rightGrad = ctx.createLinearGradient(W / 2, 0, W, H);
+        rightGrad.addColorStop(0, '#8a0b12');
+        rightGrad.addColorStop(0.5, '#b8151f');
+        rightGrad.addColorStop(1, '#66080d');
+        ctx.fillStyle = rightGrad;
+        ctx.fillRect(W / 2, 0, W / 2, H);
 
-        // Glowing red flare
-        const flareLeft = ctx.createRadialGradient(280, 480, 10, 280, 480, 300);
-        flareLeft.addColorStop(0, 'rgba(196, 30, 42, 0.25)');
-        flareLeft.addColorStop(1, 'transparent');
-        ctx.fillStyle = flareLeft;
-        ctx.fillRect(0, 200, 600, 600);
-
-        // Gold subtle border
-        ctx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
-        ctx.lineWidth = 4;
-        this.roundRect(ctx, 24, 24, W - 48, H - 48, 24);
+        // Subtle split line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(W / 2, 0);
+        ctx.lineTo(W / 2, H);
         ctx.stroke();
 
-        // 2. HEADER: SUBSOCCER PRO MATCH
+        // Dark stadium vignette overlay
+        const vignette = ctx.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, W * 0.72);
+        vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        vignette.addColorStop(1, 'rgba(0, 0, 0, 0.65)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, W, H);
+
+        // 2. TOP BRAND BADGE: SUBSOCCER
+        const badgeW = 200;
+        const badgeH = 46;
+        const badgeX = (W - badgeW) / 2;
+        const badgeY = 60;
         ctx.fillStyle = '#c41e2a';
-        ctx.font = '800 28px "Resolve", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.letterSpacing = '4px';
-        ctx.fillText('SUBSOCCER // OFFICIAL RANKED MATCH', W / 2, 70);
+        this.roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+        this.roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
+        ctx.stroke();
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.font = '600 20px "Resolve", sans-serif';
-        ctx.letterSpacing = '2px';
-        ctx.fillText(date.toUpperCase(), W / 2, 110);
-
-        // 3. CENTER SCORE BOARD
-        const scoreY = 460;
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 130px "Subsoccer", "SubsoccerLogo", sans-serif';
+        ctx.font = '900 28px "Subsoccer", "SubsoccerLogo", "Open Sans", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(`${winnerScore} — ${loserScore}`, W / 2, scoreY);
+        ctx.letterSpacing = '3px';
+        ctx.fillText('SUBSOCCER', W / 2, badgeY + badgeH / 2 + 1);
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.font = '800 22px "Resolve", sans-serif';
+        // 3. HEADER LABELS
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.font = '700 20px "Resolve", "Open Sans", sans-serif';
+        ctx.letterSpacing = '5px';
+        ctx.fillText('MATCH RESULT', W / 2, 145);
+
+        // Winner Announcement
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 42px "Subsoccer", "SubsoccerLogo", sans-serif';
+        ctx.letterSpacing = '2px';
+        ctx.fillText(`🏆 ${winnerName.toUpperCase()} WINS!`, W / 2, 205);
+
+        // 4. GIANT MATCH SCORE (P1_SCORE — P2_SCORE)
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 135px "Subsoccer", "SubsoccerLogo", sans-serif';
         ctx.letterSpacing = '4px';
-        ctx.fillText('FINAL SCORE', W / 2, scoreY + 85);
+        ctx.fillText(`${p1Score} — ${p2Score}`, W / 2, 330);
 
-        // Helper to draw player card block
-        const drawPlayerCard = (x, y, name, avatarImg, eloBefore, eloAfter, isWinner, country) => {
-            const cardW = 320;
-            const cardH = 460;
-            const cx = x + cardW / 2;
+        // 5. HELPER TO DRAW PLAYER PORTRAIT & CARD
+        const drawPlayerSide = (cx, name, avatarImg, eloBefore, eloAfter, isWinner) => {
+            const photoSize = 250;
+            const photoX = cx - photoSize / 2;
+            const photoY = 430;
 
-            // Card background
-            ctx.fillStyle = isWinner ? 'rgba(26, 22, 18, 0.85)' : 'rgba(20, 20, 24, 0.7)';
-            this.roundRect(ctx, x, y, cardW, cardH, 18);
-            ctx.fill();
-
-            // Border
-            ctx.strokeStyle = isWinner ? 'rgba(212, 175, 55, 0.7)' : 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = isWinner ? 3 : 1.5;
-            this.roundRect(ctx, x, y, cardW, cardH, 18);
-            ctx.stroke();
-
-            // Crown / Status pill for winner
-            if (isWinner) {
-                ctx.fillStyle = '#c41e2a';
-                this.roundRect(ctx, cx - 75, y - 18, 150, 36, 18);
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '800 16px "Resolve", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.letterSpacing = '2px';
-                ctx.fillText('👑 WINNER', cx, y);
-            }
-
-            // Avatar frame
-            const avSize = 190;
-            const avX = cx - avSize / 2;
-            const avY = y + 45;
-
+            // Photo wrapper background & clip
             ctx.save();
-            this.roundRect(ctx, avX, avY, avSize, avSize, 14);
+            this.roundRect(ctx, photoX, photoY, photoSize, photoSize, 12);
             ctx.clip();
 
             if (avatarImg) {
-                ctx.drawImage(avatarImg, avX, avY, avSize, avSize);
+                ctx.drawImage(avatarImg, photoX, photoY, photoSize, photoSize);
             } else {
-                ctx.fillStyle = '#222';
-                ctx.fillRect(avX, avY, avSize, avSize);
-                ctx.fillStyle = '#666';
-                ctx.font = '900 64px "Subsoccer", sans-serif';
+                ctx.fillStyle = isWinner ? '#221111' : '#111822';
+                ctx.fillRect(photoX, photoY, photoSize, photoSize);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 80px "Subsoccer", sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(name.charAt(0).toUpperCase(), cx, avY + avSize / 2);
+                ctx.fillText(name.charAt(0).toUpperCase(), cx, photoY + photoSize / 2);
             }
             ctx.restore();
 
-            // Avatar border
-            ctx.strokeStyle = isWinner ? '#ffd700' : 'rgba(255,255,255,0.15)';
-            ctx.lineWidth = isWinner ? 3 : 1.5;
-            this.roundRect(ctx, avX, avY, avSize, avSize, 14);
+            // Photo Border (solid white for winner, semi-white for other)
+            ctx.strokeStyle = isWinner ? '#ffffff' : 'rgba(255, 255, 255, 0.35)';
+            ctx.lineWidth = isWinner ? 3.5 : 2;
+            this.roundRect(ctx, photoX, photoY, photoSize, photoSize, 12);
             ctx.stroke();
 
-            // Player Name
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '900 36px "Subsoccer", "SubsoccerLogo", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'top';
-            ctx.letterSpacing = '1px';
-            const displayName = name.length > 10 ? name.slice(0, 9) + '…' : name;
-            ctx.fillText(displayName.toUpperCase(), cx, y + 255);
-
-            // Country if available
-            if (country) {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.font = '700 16px "Resolve", sans-serif';
+            // Winner Badge if winner
+            if (isWinner) {
+                const bw = 105;
+                const bh = 30;
+                const bx = photoX + 10;
+                const by = photoY + 10;
+                ctx.fillStyle = '#c41e2a';
+                this.roundRect(ctx, bx, by, bw, bh, 5);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 15px "Resolve", "Open Sans", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 ctx.letterSpacing = '1.5px';
-                ctx.fillText(`📍 ${country.toUpperCase()}`, cx, y + 300);
+                ctx.fillText('WINNER', bx + bw / 2, by + bh / 2 + 1);
             }
 
-            // ELO Pill box
-            const eloPillY = y + 340;
-            ctx.fillStyle = isWinner ? 'rgba(196, 30, 42, 0.2)' : 'rgba(255, 255, 255, 0.04)';
-            this.roundRect(ctx, cx - 120, eloPillY, 240, 75, 10);
+            // Player Name below photo
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 32px "Subsoccer", "SubsoccerLogo", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.letterSpacing = '1.5px';
+            const cleanName = name.length > 12 ? name.slice(0, 11) + '…' : name;
+            ctx.fillText(cleanName.toUpperCase(), cx, photoY + photoSize + 22);
+
+            // ELO Pill Box
+            const pillW = 240;
+            const pillH = 54;
+            const pillX = cx - pillW / 2;
+            const pillY = photoY + photoSize + 70;
+
+            ctx.fillStyle = isWinner ? 'rgba(0, 60, 20, 0.7)' : 'rgba(0, 0, 0, 0.6)';
+            this.roundRect(ctx, pillX, pillY, pillW, pillH, 8);
             ctx.fill();
-            ctx.strokeStyle = isWinner ? 'rgba(196, 30, 42, 0.6)' : 'rgba(255, 255, 255, 0.08)';
-            ctx.lineWidth = 1;
-            this.roundRect(ctx, cx - 120, eloPillY, 240, 75, 10);
+            ctx.strokeStyle = isWinner ? 'rgba(40, 200, 100, 0.4)' : 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1.5;
+            this.roundRect(ctx, pillX, pillY, pillW, pillH, 8);
             ctx.stroke();
 
-            // ELO numbers and diff
             const eloDiff = eloAfter - eloBefore;
             const diffSign = eloDiff >= 0 ? `+${eloDiff}` : `${eloDiff}`;
 
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '900 32px "Subsoccer", sans-serif';
+            ctx.font = '900 22px "Subsoccer", "Open Sans", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(`${eloAfter}`, cx - 35, eloPillY + 38);
-
-            ctx.fillStyle = eloDiff >= 0 ? '#4ade80' : '#f87171';
-            ctx.font = '800 22px "Resolve", sans-serif';
             ctx.letterSpacing = '1px';
-            ctx.fillText(`(${diffSign})`, cx + 55, eloPillY + 38);
+            ctx.fillStyle = eloDiff >= 0 ? '#4ade80' : '#f87171';
+            ctx.fillText(`${eloBefore} → ${eloAfter} (${diffSign})`, cx, pillY + pillH / 2);
         };
 
-        // Draw Left: Winner Card
-        drawPlayerCard(100, 220, winnerName, winnerImg, winnerEloBefore, winnerEloAfter, true, winnerCountry);
+        // Draw Player 1 (Left Navy Side: CX = 270)
+        drawPlayerSide(270, p1Name, p1Img, p1EloBefore, p1EloAfter, p1Won);
 
-        // Draw Right: Loser Card
-        drawPlayerCard(660, 220, loserName, loserImg, loserEloBefore, loserEloAfter, false, loserCountry);
+        // Draw Player 2 (Right Red Side: CX = 810)
+        drawPlayerSide(810, p2Name, p2Img, p2EloBefore, p2EloAfter, !p1Won);
 
-        // 4. FOOTER: CTA
-        const footerY = 870;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
-        this.roundRect(ctx, 100, footerY, W - 200, 130, 16);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.lineWidth = 1;
-        this.roundRect(ctx, 100, footerY, W - 200, 130, 16);
-        ctx.stroke();
-
-        ctx.fillStyle = '#ffd700';
-        ctx.font = '800 24px "Resolve", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.letterSpacing = '2px';
-        ctx.fillText(`🏆 ${winnerName.toUpperCase()} TAKES THE WIN`, W / 2, footerY + 28);
-
+        // Center "VS"
         ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.font = '600 18px "Resolve", sans-serif';
+        ctx.font = '900 28px "Subsoccer", "Resolve", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.letterSpacing = '2px';
+        ctx.fillText('VS', W / 2, 555);
+
+        // 6. FOOTER STATS & BRANDING
+        const footerY = 900;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.font = '700 20px "Resolve", "Open Sans", sans-serif';
         ctx.letterSpacing = '3px';
-        ctx.fillText('PLAY & CLIMB THE GLOBAL LEADERBOARD // SUBSOCCER.PRO', W / 2, footerY + 72);
+        ctx.fillText(`MATCH TIME: ${durationStr}`, W / 2, footerY);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.font = '700 16px "Resolve", "Open Sans", sans-serif';
+        ctx.letterSpacing = '4px';
+        ctx.fillText('SUBSOCCER.PRO // THE OFFICIAL BENCH SOCCER APP', W / 2, footerY + 45);
 
         return canvas;
     },
