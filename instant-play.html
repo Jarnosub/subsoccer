@@ -2439,8 +2439,9 @@
 
         // Add goal
         function addGoal(player) {
+            // Must press START MATCH first
             if (document.documentElement.classList.contains('is-ranked-intro')) {
-                startRankedMatch();
+                return;
             }
 
             const now = Date.now();
