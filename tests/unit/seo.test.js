@@ -101,21 +101,11 @@ describe('JSON-LD structured data', () => {
     });
 });
 
-// ─── FAQ section ───
-describe('FAQ section', () => {
-    it('should exist in the HTML', () => {
+// ─── Visual FAQ block removed from DOM (JSON-LD FAQPage in <head> remains for SEO) ───
+describe('Visual FAQ cleanup', () => {
+    it('visual #faq element should not clutter the main DOM', () => {
         const faq = doc.getElementById('faq');
-        expect(faq).not.toBeNull();
-    });
-
-    it('should have 6 question buttons', () => {
-        const questions = doc.querySelectorAll('#faq .faq-question');
-        expect(questions.length).toBe(6);
-    });
-
-    it('should be hidden by default (non-English)', () => {
-        const faq = doc.getElementById('faq');
-        expect(faq.style.display).toBe('none');
+        expect(faq).toBeNull();
     });
 });
 
