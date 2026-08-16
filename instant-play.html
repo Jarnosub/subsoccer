@@ -105,16 +105,15 @@
             pointer-events: none;
         }
 
-        /* Suunnikas (Parallelogram) Avatar Box */
+        /* Angular Portrait Avatar Box (No Skew, No Shadows) */
         .vs-intro-avatar-wrap {
-            width: clamp(100px, 22vw, 140px);
-            height: clamp(120px, 26vw, 170px);
-            transform: skewX(-10deg);
-            border-radius: 3px;
+            width: clamp(110px, 25vw, 150px);
+            height: clamp(145px, 33vw, 195px);
+            border-radius: 2px;
             overflow: hidden;
             background: #111111;
             border: 2px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            box-shadow: none;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -133,32 +132,28 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform: skewX(10deg) scale(1.22);
         }
 
         .vs-intro-avatar-wrap i {
-            font-size: clamp(2.2rem, 6vw, 3.2rem);
+            font-size: clamp(2.5rem, 7vw, 3.5rem);
             color: rgba(255, 255, 255, 0.4);
-            transform: skewX(10deg);
         }
 
-        /* Suunnikas ELO Badge */
+        /* Angular ELO Badge (White Text, No Shadows) */
         .vs-intro-elo {
-            transform: skewX(-10deg);
-            background: #000000;
-            padding: 6px 16px;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 6px 14px;
             border-radius: 2px;
-            border: 1px solid rgba(255, 215, 0, 0.5);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: none;
         }
 
         .vs-intro-elo span {
             display: inline-block;
-            transform: skewX(10deg);
             font-family: 'Resolve', sans-serif;
             font-size: clamp(0.8rem, 2.2vw, 0.95rem);
             font-weight: 800;
-            color: #ffd700;
+            color: #ffffff !important;
             letter-spacing: 2px;
             white-space: nowrap;
         }
@@ -178,23 +173,22 @@
             text-align: center;
         }
 
-        /* Center VS Badge on Divider */
+        /* Center VS Badge on Divider (No Shadows) */
         .vs-center-badge {
             position: absolute;
             top: clamp(-180px, -24vh, -130px);
             left: 50%;
-            transform: translate(-50%, -50%) skewX(-10deg);
+            transform: translate(-50%, -50%);
             background: #000000;
             border: 2px solid #333333;
             padding: 4px 16px;
             border-radius: 2px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+            box-shadow: none;
             pointer-events: none;
         }
 
         .vs-center-badge span {
             display: inline-block;
-            transform: skewX(10deg);
             font-family: 'Subsoccer', sans-serif;
             font-size: clamp(1.8rem, 5.5vw, 2.4rem);
             color: #ffffff;
@@ -203,12 +197,12 @@
 
         .vs-card-panel {
             background: #0a0a0a;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
             padding: 14px 16px;
             width: 100%;
             box-sizing: border-box;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
+            box-shadow: none;
         }
 
         .vs-center-stakes {
@@ -216,7 +210,7 @@
             font-size: clamp(0.68rem, 1.9vw, 0.78rem);
             font-weight: 700;
             letter-spacing: 1.5px;
-            color: #888888;
+            color: #ffffff;
             margin-bottom: 12px;
             line-height: 1.4;
             text-transform: uppercase;
@@ -233,16 +227,15 @@
             font-size: clamp(1.1rem, 3.2vw, 1.3rem);
             letter-spacing: 2px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            transition: transform 0.15s, opacity 0.2s;
+            box-shadow: none;
+            transition: opacity 0.2s;
             box-sizing: border-box;
             text-transform: uppercase;
             display: block;
         }
 
         .vs-center-btn:active {
-            transform: scale(0.98);
-            opacity: 0.9;
+            opacity: 0.85;
         }
 
         /* While Ranked Match Intro is Active */
@@ -1895,7 +1888,7 @@
                 if (elo1) elo1.textContent = 'UNRANKED';
 
                 if (stakesEl) {
-                    stakesEl.innerHTML = `Challenging <strong>${oppData.username}</strong>!<br><span style="color:#ffd700;">Log in to record match to your Pro Card:</span>`;
+                    stakesEl.innerHTML = `Challenging <strong>${oppData.username}</strong>!<br><span style="color:#ffffff; font-weight:bold;">Log in to record match to your Pro Card:</span>`;
                 }
 
                 if (loginBtn) {
