@@ -464,14 +464,14 @@
             -webkit-backdrop-filter: blur(10px);
         }
 
-        /* Winner overlay - Clean Dark Arena */
+        /* Winner overlay - Split Stadium Arena matching the game */
         .winner-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 50% 30%, #151820 0%, #08090c 100%);
+            background: linear-gradient(to right, #1c2b36 0%, #121e2b 49.8%, #000000 49.8%, #000000 50.2%, #a8101a 50.2%, #6b050b 100%);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -2487,10 +2487,15 @@
             // Send detailed in-game data
             const gameDuration = gameStartTime ? Math.round((Date.now() - gameStartTime) / 1000) : null;
             let isComeback = false;
-            let s1 = 0, s2 = 0;
-            for (const g of goalTimestamps) {
-                if (g.p === 1) s1++; else s2++;
-                if ((player === 1 && s1 < s2) || (player === 2 && s2 < s1)) { isComeback = true; break; }
+            if (gameDuration && gameDuration >= 20) {
+                let s1 = 0, s2 = 0;
+                let maxDeficit = 0;
+                for (const g of goalTimestamps) {
+                    if (g.p === 1) s1++; else s2++;
+                    const deficit = (player === 1) ? (s2 - s1) : (s1 - s2);
+                    if (deficit > maxDeficit) maxDeficit = deficit;
+                }
+                if (maxDeficit >= 2) isComeback = true;
             }
             logTrackingEvent('game_details', JSON.stringify({
                 duration: gameDuration,
@@ -2508,8 +2513,10 @@
 
             let winText;
             if (_isRankedMatch && _rankedP1 && _rankedP2) {
-                const winnerObj = player === 1 ? _rankedP1 : _rankedP2;
-                winText = `🏆 ${winnerObj.username.toUpperCase()} WINS!`;
+                const isSameName = _rankedP1.username && _rankedP2.username && (_rankedP1.username.toUpperCase() === _rankedP2.username.toUpperCase());
+                const p1Label = isSameName ? `${_rankedP1.username} (YOU)` : _rankedP1.username;
+                const winnerDisplayName = player === 1 ? p1Label : _rankedP2.username;
+                winText = `🏆 ${winnerDisplayName.toUpperCase()} WINS!`;
             } else if (matchPrediction) {
                 const winnerName = player === 1 ? matchPrediction.p1 : matchPrediction.p2;
                 const winnerFlag = player === 1 ? matchPrediction.p1Flag : matchPrediction.p2Flag;
@@ -2536,7 +2543,11 @@
                 if (rankedBox) rankedBox.style.display = 'flex';
 
                 const p1Won = (player === 1);
-                const winnerObj = p1Won ? _rankedP1 : _rankedP2;
+                const isSameName = _rankedP1.username && _rankedP2.username && (_rankedP1.username.toUpperCase() === _rankedP2.username.toUpperCase());
+                const p1DisplayName = isSameName ? `${_rankedP1.username} (YOU)` : _rankedP1.username;
+                const p2DisplayName = _rankedP2.username;
+                const winnerDisplayName = p1Won ? p1DisplayName : p2DisplayName;
+
                 const p1OldElo = _rankedP1.elo || 1300;
                 const p2OldElo = _rankedP2.elo || 1300;
 
@@ -2559,43 +2570,43 @@
 
                 // Hero Header
                 const rTitle = document.getElementById('ranked-winner-title');
-                if (rTitle) rTitle.textContent = `🏆 ${winnerObj.username.toUpperCase()} WINS!`;
+                if (rTitle) rTitle.textContent = `🏆 ${winnerDisplayName.toUpperCase()} WINS!`;
 
                 const rScore = document.getElementById('ranked-final-score');
                 if (rScore) rScore.textContent = `${scoreP1} — ${scoreP2}`;
 
-                // Player 1 Card Details
+                // Player 1 Card Details (Petrol Blue half)
                 const resP1Name = document.getElementById('ranked-res-p1-name');
                 const resP1Elo = document.getElementById('ranked-res-p1-elo');
                 const resP1Img = document.getElementById('ranked-res-p1-img');
                 const resP1Badge = document.getElementById('ranked-res-p1-badge');
                 const resP1Wrap = document.getElementById('ranked-res-p1-wrap');
 
-                if (resP1Name) resP1Name.textContent = _rankedP1.username;
+                if (resP1Name) resP1Name.textContent = p1DisplayName;
                 if (resP1Img) resP1Img.src = _rankedP1.avatar_url || getSubsoccerPresetAvatar(_rankedP1.username, 1);
                 if (resP1Badge) resP1Badge.style.display = p1Won ? 'block' : 'none';
                 if (resP1Wrap) {
                     resP1Wrap.style.borderColor = p1Won ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.2)';
-                    resP1Wrap.style.opacity = p1Won ? '1' : '0.7';
+                    resP1Wrap.style.opacity = p1Won ? '1' : '0.65';
                 }
                 if (resP1Elo) {
                     resP1Elo.textContent = `${p1OldElo} → ${p1NewElo} (${p1Diff >= 0 ? '+' : ''}${p1Diff})`;
                     resP1Elo.style.color = p1Diff >= 0 ? '#4ade80' : '#f87171';
                 }
 
-                // Player 2 Card Details
+                // Player 2 Card Details (Subsoccer Red half)
                 const resP2Name = document.getElementById('ranked-res-p2-name');
                 const resP2Elo = document.getElementById('ranked-res-p2-elo');
                 const resP2Img = document.getElementById('ranked-res-p2-img');
                 const resP2Badge = document.getElementById('ranked-res-p2-badge');
                 const resP2Wrap = document.getElementById('ranked-res-p2-wrap');
 
-                if (resP2Name) resP2Name.textContent = _rankedP2.username;
+                if (resP2Name) resP2Name.textContent = p2DisplayName;
                 if (resP2Img) resP2Img.src = _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2);
                 if (resP2Badge) resP2Badge.style.display = !p1Won ? 'block' : 'none';
                 if (resP2Wrap) {
                     resP2Wrap.style.borderColor = !p1Won ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.2)';
-                    resP2Wrap.style.opacity = !p1Won ? '1' : '0.7';
+                    resP2Wrap.style.opacity = !p1Won ? '1' : '0.65';
                 }
                 if (resP2Elo) {
                     resP2Elo.textContent = `${p2OldElo} → ${p2NewElo} (${p2Diff >= 0 ? '+' : ''}${p2Diff})`;
