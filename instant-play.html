@@ -837,6 +837,50 @@
 
 
 
+    <!-- RANKED MATCH VS INTRO OVERLAY -->
+    <div id="ranked-vs-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,10,13,0.98); z-index:10000; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);" onclick="event.stopPropagation()">
+        <div style="font-family:'Resolve', sans-serif; font-size:0.75rem; color:#c41e2a; letter-spacing:3px; font-weight:bold; margin-bottom:18px;">SUBSOCCER // RANKED 1-ON-1 MATCH</div>
+        
+        <div style="display:flex; align-items:center; justify-content:center; gap:16px; width:100%; max-width:380px; margin-bottom:20px;">
+            <!-- Player 1 -->
+            <div style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(196,30,42,0.5); border-radius:10px; padding:14px 8px; text-align:center;">
+                <div style="width:64px; height:64px; margin:0 auto 8px; border-radius:50%; overflow:hidden; border:2px solid #c41e2a; background:#222; display:flex; align-items:center; justify-content:center;">
+                    <img id="vs-p1-avatar" src="avatar-human-1.png" style="width:100%; height:100%; object-fit:cover; display:none;">
+                    <i id="vs-p1-avatar-icon" class="fa-solid fa-user" style="color:#666; font-size:1.5rem;"></i>
+                </div>
+                <div id="vs-p1-name" style="font-family:'Subsoccer', sans-serif; font-size:1.1rem; color:#fff; word-break:break-word; line-height:1.1;">PLAYER 1</div>
+                <div id="vs-p1-elo" style="font-family:'Resolve', sans-serif; font-size:0.75rem; color:#ffd700; font-weight:bold; margin-top:4px;">1300 ELO</div>
+            </div>
+
+            <!-- VS Badge -->
+            <div style="font-family:'Subsoccer', sans-serif; font-size:1.8rem; color:#c41e2a; font-weight:bold;">VS</div>
+
+            <!-- Player 2 -->
+            <div style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:14px 8px; text-align:center;">
+                <div style="width:64px; height:64px; margin:0 auto 8px; border-radius:50%; overflow:hidden; border:2px solid rgba(255,255,255,0.25); background:#222; display:flex; align-items:center; justify-content:center;">
+                    <img id="vs-p2-avatar" src="avatar-human-2.png" style="width:100%; height:100%; object-fit:cover; display:none;">
+                    <i id="vs-p2-avatar-icon" class="fa-solid fa-user" style="color:#666; font-size:1.5rem;"></i>
+                </div>
+                <div id="vs-p2-name" style="font-family:'Subsoccer', sans-serif; font-size:1.1rem; color:#fff; word-break:break-word; line-height:1.1;">PLAYER 2</div>
+                <div id="vs-p2-elo" style="font-family:'Resolve', sans-serif; font-size:0.75rem; color:#ffd700; font-weight:bold; margin-top:4px;">1300 ELO</div>
+            </div>
+        </div>
+
+        <div id="vs-elo-stakes" style="font-family:'Resolve', sans-serif; font-size:0.75rem; color:#aaa; letter-spacing:1px; margin-bottom:20px; line-height:1.4;">
+            FIRST TO 3 GOALS WINS<br>
+            <span style="color:#ffd700; font-weight:bold;">OFFICIAL ELO UPDATE ON VICTORY</span>
+        </div>
+
+        <div id="vs-action-wrap" style="width:100%; max-width:280px;">
+            <button id="vs-start-btn" onclick="startRankedMatch()" style="width:100%; padding:15px 20px; background:linear-gradient(135deg, #c41e2a 0%, #a01520 100%); color:#fff; border:none; border-radius:6px; font-family:'Subsoccer', sans-serif; font-size:1.15rem; letter-spacing:2px; cursor:pointer; box-shadow:0 4px 20px rgba(196,30,42,0.4);">
+                ⚔️ START MATCH
+            </button>
+            <a id="vs-login-btn" href="login.html" style="display:none; width:100%; padding:15px 20px; background:linear-gradient(135deg, #c41e2a 0%, #a01520 100%); color:#fff; text-decoration:none; border-radius:6px; font-family:'Resolve', sans-serif; font-size:0.85rem; font-weight:bold; letter-spacing:1.5px; box-sizing:border-box; box-shadow:0 4px 20px rgba(196,30,42,0.4);">
+                LOG IN TO PLAY RANKED
+            </a>
+        </div>
+    </div>
+
     <!-- Table ID Display -->
     <div id="table-id-display" class="table-id">GAME: <span id="table-id-value"></span></div>
 
@@ -844,7 +888,7 @@
     <div class="scoreboard">
         <!-- Player 1 (Left) -->
         <div class="player-side player-left" onclick="addGoal(1)">
-            <div class="player-label">Player 1</div>
+            <div class="player-label" id="label-p1">Player 1</div>
             <div class="score" id="score-p1">0</div>
             <div class="goals-visual" id="goals-p1">○○○</div>
         </div>
@@ -854,7 +898,7 @@
 
         <!-- Player 2 (Right) -->
         <div class="player-side player-right" onclick="addGoal(2)">
-            <div class="player-label">Player 2</div>
+            <div class="player-label" id="label-p2">Player 2</div>
             <div class="score" id="score-p2">0</div>
             <div class="goals-visual" id="goals-p2">○○○</div>
         </div>
@@ -1139,7 +1183,39 @@
                 <div class="pin-it-already-name" id="pin-it-already-name"></div>
             </div>
 
-            <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
+            <!-- Ranked Victory Box -->
+            <div id="ranked-victory-box" style="display:none; width:100%; max-width:320px; flex-direction:column; align-items:center; gap:10px; margin-bottom:15px;">
+                <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(212,175,55,0.5); border-radius:10px; padding:12px 14px; width:100%; box-sizing:border-box; text-align:center;">
+                    <div style="font-family:'Resolve', sans-serif; font-size:0.65rem; color:#ffd700; letter-spacing:2px; margin-bottom:8px;">OFFICIAL ELO UPDATE</div>
+                    
+                    <div style="display:flex; justify-content:space-around; align-items:center; width:100%;">
+                        <div>
+                            <div id="ranked-res-p1-name" style="font-family:'Subsoccer', sans-serif; font-size:0.95rem; color:#fff;">P1</div>
+                            <div id="ranked-res-p1-elo" style="font-family:'Resolve', sans-serif; font-size:0.85rem; font-weight:bold; color:#4ade80; margin-top:2px;">1300 (+16)</div>
+                        </div>
+                        <div style="font-family:'Subsoccer', sans-serif; font-size:1.2rem; color:#666; padding:0 8px;">vs</div>
+                        <div>
+                            <div id="ranked-res-p2-name" style="font-family:'Subsoccer', sans-serif; font-size:0.95rem; color:#fff;">P2</div>
+                            <div id="ranked-res-p2-elo" style="font-family:'Resolve', sans-serif; font-size:0.85rem; font-weight:bold; color:#f87171; margin-top:2px;">1300 (-16)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-share-ranked-result" onclick="shareRankedResult()" style="width:100%; padding:14px; background:linear-gradient(135deg, #c41e2a 0%, #a01520 100%); color:#fff; border:none; border-radius:6px; font-family:'Subsoccer', sans-serif; font-size:1.15rem; letter-spacing:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 15px rgba(196,30,42,0.4);">
+                    <i class="fa-solid fa-share-nodes"></i> SHARE RESULT CARD
+                </button>
+
+                <button class="claim-victory-btn w-btn-claim" style="background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.2); font-family:'Subsoccer', sans-serif; font-size:1.1rem; letter-spacing:2px; width:100%; padding:12px;" onclick="playAgain()">
+                    <i class="fa-solid fa-rotate-right" style="margin-right:8px;"></i> REMATCH
+                </button>
+
+                <a href="player-card.html" style="color:rgba(255,255,255,0.6); font-family:'Resolve', sans-serif; font-size:0.75rem; letter-spacing:1px; text-decoration:none; padding:6px 0;">
+                    <i class="fa-solid fa-id-card" style="margin-right:6px;"></i> BACK TO MY PRO CARD
+                </a>
+            </div>
+
+            <!-- Standard Guest Controls -->
+            <div id="guest-victory-box" style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
 
                 <button class="claim-victory-btn w-btn-claim"
                     style="background: var(--sub-red); color: #fff; border: none; font-family: 'Subsoccer', sans-serif; font-weight: normal; font-size: 1.3rem; letter-spacing: 2px; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.3);"
@@ -1169,6 +1245,14 @@
     <script type="module">
         import { BroadcastService } from './broadcast-service.js';
         import { _supabase } from './config.js';
+        import { MatchShareCard } from './match-share-card.js';
+        import { MatchService } from './match-service.js';
+
+        // --- Ranked Match State ---
+        let _isRankedMatch = false;
+        let _rankedP1 = null;
+        let _rankedP2 = null;
+        let _rankedMatchPayload = null;
 
         const locationPromise = (async function() {
             const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
@@ -1524,11 +1608,181 @@
                 .catch(err => console.warn("Shelly command failed:", err));
         }
 
+        // --- Ranked Match Helper Functions ---
+        async function initRankedMatch(opponentUsername) {
+            const vsOverlay = document.getElementById('ranked-vs-overlay');
+            const rulesOverlay = document.getElementById('actual-rules-overlay');
+            if (!vsOverlay) return;
+
+            // Hide standard rules overlay
+            if (rulesOverlay) rulesOverlay.style.display = 'none';
+            vsOverlay.style.display = 'flex';
+
+            // 1. Fetch Opponent Data
+            let oppData = null;
+            try {
+                const { data, error } = await _supabase
+                    .from('players')
+                    .select('id, username, elo, avatar_url, country, wins, losses')
+                    .ilike('username', opponentUsername.trim())
+                    .maybeSingle();
+                if (data) oppData = data;
+            } catch(e) {
+                console.warn('Failed to fetch opponent:', e);
+            }
+
+            if (!oppData) {
+                oppData = {
+                    id: null,
+                    username: opponentUsername.toUpperCase(),
+                    elo: 1300,
+                    avatar_url: null,
+                    country: ''
+                };
+            }
+            _rankedP2 = oppData;
+
+            // Render Player 2 (Opponent) in VS screen
+            document.getElementById('vs-p2-name').textContent = oppData.username;
+            document.getElementById('vs-p2-elo').textContent = `${oppData.elo || 1300} ELO`;
+            if (oppData.avatar_url) {
+                const p2Img = document.getElementById('vs-p2-avatar');
+                p2Img.src = oppData.avatar_url;
+                p2Img.style.display = 'block';
+                document.getElementById('vs-p2-avatar-icon').style.display = 'none';
+            }
+
+            // 2. Fetch Current Logged-in Player (Player 1)
+            let currentUser = null;
+            try {
+                const localUserStr = localStorage.getItem('subsoccer-user');
+                if (localUserStr) {
+                    const parsed = JSON.parse(localUserStr);
+                    if (parsed && (parsed.id || parsed.username)) {
+                        const { data } = await _supabase
+                            .from('players')
+                            .select('id, username, elo, avatar_url, country, wins, losses')
+                            .eq('id', parsed.id)
+                            .maybeSingle();
+                        currentUser = data || parsed;
+                    }
+                }
+            } catch(e) {
+                console.warn('Failed to fetch current user:', e);
+            }
+
+            const startBtn = document.getElementById('vs-start-btn');
+            const loginBtn = document.getElementById('vs-login-btn');
+            const stakesEl = document.getElementById('vs-elo-stakes');
+
+            if (currentUser && currentUser.username) {
+                _rankedP1 = currentUser;
+                _isRankedMatch = true;
+
+                // Render Player 1 (Current User) in VS screen
+                document.getElementById('vs-p1-name').textContent = currentUser.username;
+                document.getElementById('vs-p1-elo').textContent = `${currentUser.elo || 1300} ELO`;
+                if (currentUser.avatar_url) {
+                    const p1Img = document.getElementById('vs-p1-avatar');
+                    p1Img.src = currentUser.avatar_url;
+                    p1Img.style.display = 'block';
+                    document.getElementById('vs-p1-avatar-icon').style.display = 'none';
+                }
+
+                // Calculate potential ELO change
+                const p1Elo = currentUser.elo || 1300;
+                const p2Elo = oppData.elo || 1300;
+                const expP1 = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400));
+                const p1WinGain = Math.max(1, Math.round(32 * (1 - expP1)));
+                const p1LossLoss = Math.max(1, Math.round(32 * expP1));
+
+                if (stakesEl) {
+                    stakesEl.innerHTML = `FIRST TO 3 GOALS WINS<br>WIN: <span style="color:#4ade80; font-weight:bold;">+${p1WinGain} ELO</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-${p1LossLoss} ELO</span>`;
+                }
+
+                if (startBtn) {
+                    startBtn.style.display = 'block';
+                    startBtn.textContent = '⚔️ START RANKED MATCH';
+                }
+                if (loginBtn) loginBtn.style.display = 'none';
+            } else {
+                // User is a guest
+                _isRankedMatch = false;
+                _rankedP1 = { username: 'GUEST', elo: 1300, avatar_url: null, country: '' };
+                document.getElementById('vs-p1-name').textContent = 'GUEST (YOU)';
+                document.getElementById('vs-p1-elo').textContent = 'UNRANKED';
+
+                if (stakesEl) {
+                    stakesEl.innerHTML = `Challenging <strong>${oppData.username}</strong>!<br><span style="color:#aaa;">Log in to record match & gain ELO:</span>`;
+                }
+
+                if (loginBtn) {
+                    loginBtn.style.display = 'block';
+                    loginBtn.href = `login.html?return_to=${encodeURIComponent(window.location.href)}`;
+                }
+                if (startBtn) {
+                    startBtn.style.display = 'block';
+                    startBtn.textContent = 'PLAY UNRANKED (GUEST)';
+                    startBtn.style.marginTop = '10px';
+                    startBtn.style.background = 'rgba(255,255,255,0.06)';
+                    startBtn.style.border = '1px solid rgba(255,255,255,0.2)';
+                    startBtn.style.fontSize = '0.9rem';
+                    startBtn.style.boxShadow = 'none';
+                }
+            }
+        }
+
+        window.startRankedMatch = function() {
+            const vsOverlay = document.getElementById('ranked-vs-overlay');
+            if (vsOverlay) vsOverlay.style.display = 'none';
+
+            WIN_SCORE = 3;
+
+            // Set player label names on scoreboard
+            if (_rankedP1 && _rankedP1.username) {
+                const l1 = document.getElementById('label-p1');
+                if (l1) l1.textContent = _rankedP1.username;
+            }
+            if (_rankedP2 && _rankedP2.username) {
+                const l2 = document.getElementById('label-p2');
+                if (l2) l2.textContent = _rankedP2.username;
+            }
+
+            if (typeof enterFullscreenGame === 'function') {
+                enterFullscreenGame();
+            }
+        };
+
+        window.shareRankedResult = async function() {
+            if (!_rankedMatchPayload) return;
+            const btn = document.getElementById('btn-share-ranked-result');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GENERATING CARD...';
+                btn.disabled = true;
+            }
+            try {
+                await MatchShareCard.shareMatchResult(_rankedMatchPayload);
+            } catch(e) {
+                console.warn('Share failed:', e);
+            } finally {
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-share-nodes"></i> SHARE RESULT CARD';
+                    btn.disabled = false;
+                }
+            }
+        };
+
         // Initialize
         window.addEventListener('load', () => {
             logTrackingEvent('app_opened');
             // Check for Game ID or Serial Number (sn) in URL
             const urlParams = new URLSearchParams(window.location.search);
+
+            // Ranked Match Mode (?match_vs=USERNAME)
+            const matchVs = urlParams.get('match_vs');
+            if (matchVs) {
+                initRankedMatch(matchVs);
+            }
             
             // Check if user provided a Shelly IP parameter directly in the URL to pair the hardware
             if (urlParams.has('shelly')) {
@@ -2031,7 +2285,10 @@
             }
 
             let winText;
-            if (matchPrediction) {
+            if (_isRankedMatch && _rankedP1 && _rankedP2) {
+                const winnerObj = player === 1 ? _rankedP1 : _rankedP2;
+                winText = `🏆 ${winnerObj.username.toUpperCase()} WINS!`;
+            } else if (matchPrediction) {
                 const winnerName = player === 1 ? matchPrediction.p1 : matchPrediction.p2;
                 const winnerFlag = player === 1 ? matchPrediction.p1Flag : matchPrediction.p2Flag;
                 winText = (winnerFlag ? winnerFlag + ' ' : '') + winnerName.toUpperCase() + ' WINS!';
@@ -2043,6 +2300,96 @@
             }
             document.getElementById('winner-text').textContent = winText;
             document.getElementById('winner-overlay').classList.add('show');
+
+            // Ranked Match ELO Calculation & Persistence
+            if (_isRankedMatch && _rankedP1 && _rankedP2) {
+                const guestBox = document.getElementById('guest-victory-box');
+                const rankedBox = document.getElementById('ranked-victory-box');
+                if (guestBox) guestBox.style.display = 'none';
+                if (rankedBox) rankedBox.style.display = 'flex';
+
+                const p1Won = (player === 1);
+                const p1OldElo = _rankedP1.elo || 1300;
+                const p2OldElo = _rankedP2.elo || 1300;
+
+                // Client expected score for instant visual feedback
+                const expA = 1.0 / (1.0 + Math.pow(10.0, (p2OldElo - p1OldElo) / 400.0));
+                const expB = 1.0 / (1.0 + Math.pow(10.0, (p1OldElo - p2OldElo) / 400.0));
+                const actA = p1Won ? 1 : 0;
+                const actB = p1Won ? 0 : 1;
+
+                let p1NewElo = Math.round(p1OldElo + 32.0 * (actA - expA));
+                let p2NewElo = Math.round(p2OldElo + 32.0 * (actB - expB));
+
+                if (actA === 1 && p1NewElo <= p1OldElo) p1NewElo = p1OldElo + 1;
+                if (actB === 1 && p2NewElo <= p2OldElo) p2NewElo = p2OldElo + 1;
+                if (actA === 0 && p1NewElo >= p1OldElo) p1NewElo = Math.max(0, p1OldElo - 1);
+                if (actB === 0 && p2NewElo >= p2OldElo) p2NewElo = Math.max(0, p2OldElo - 1);
+
+                const p1Diff = p1NewElo - p1OldElo;
+                const p2Diff = p2NewElo - p2OldElo;
+
+                const resP1Name = document.getElementById('ranked-res-p1-name');
+                const resP1Elo = document.getElementById('ranked-res-p1-elo');
+                const resP2Name = document.getElementById('ranked-res-p2-name');
+                const resP2Elo = document.getElementById('ranked-res-p2-elo');
+
+                if (resP1Name) resP1Name.textContent = _rankedP1.username;
+                if (resP2Name) resP2Name.textContent = _rankedP2.username;
+
+                if (resP1Elo) {
+                    resP1Elo.textContent = `${p1NewElo} (${p1Diff >= 0 ? '+' : ''}${p1Diff})`;
+                    resP1Elo.style.color = p1Diff >= 0 ? '#4ade80' : '#f87171';
+                }
+                if (resP2Elo) {
+                    resP2Elo.textContent = `${p2NewElo} (${p2Diff >= 0 ? '+' : ''}${p2Diff})`;
+                    resP2Elo.style.color = p2Diff >= 0 ? '#4ade80' : '#f87171';
+                }
+
+                // Prepare 1080x1080 Victory Share Card payload
+                _rankedMatchPayload = {
+                    winnerName: p1Won ? _rankedP1.username : _rankedP2.username,
+                    loserName: p1Won ? _rankedP2.username : _rankedP1.username,
+                    winnerScore: p1Won ? scoreP1 : scoreP2,
+                    loserScore: p1Won ? scoreP2 : scoreP1,
+                    winnerEloBefore: p1Won ? p1OldElo : p2OldElo,
+                    winnerEloAfter: p1Won ? p1NewElo : p2NewElo,
+                    loserEloBefore: p1Won ? p2OldElo : p1OldElo,
+                    loserEloAfter: p1Won ? p2NewElo : p1NewElo,
+                    winnerAvatarUrl: p1Won ? _rankedP1.avatar_url : _rankedP2.avatar_url,
+                    loserAvatarUrl: p1Won ? _rankedP2.avatar_url : _rankedP1.avatar_url,
+                    winnerCountry: p1Won ? _rankedP1.country : _rankedP2.country,
+                    loserCountry: p1Won ? _rankedP2.country : _rankedP1.country,
+                    date: new Date().toLocaleDateString()
+                };
+
+                // Server-side authoritative recording
+                if (_rankedP1.id && _rankedP2.id) {
+                    _supabase.rpc('record_quick_match_v1', {
+                        p1_id: _rankedP1.id,
+                        p2_id: _rankedP2.id,
+                        p1_won: p1Won,
+                        p1_new_elo_client: null,
+                        p2_new_elo_client: null,
+                        match_data: {
+                            player1: _rankedP1.username,
+                            player2: _rankedP2.username,
+                            winner: p1Won ? _rankedP1.username : _rankedP2.username,
+                            player1_score: scoreP1,
+                            player2_score: scoreP2,
+                            game_id: null
+                        }
+                    }).then(({ error }) => {
+                        if (error) console.warn('Server ELO update failed:', error);
+                        else console.log('✅ Match recorded and ELO updated authoritative on Supabase!');
+                    });
+                }
+            } else {
+                const guestBox = document.getElementById('guest-victory-box');
+                const rankedBox = document.getElementById('ranked-victory-box');
+                if (guestBox) guestBox.style.display = 'flex';
+                if (rankedBox) rankedBox.style.display = 'none';
+            }
 
             // Generate a fake, motivating ELO gain for the session to hook the player
             // In reality, actual ELO will be calculated by the backend after Claim.
