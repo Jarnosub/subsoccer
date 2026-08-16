@@ -100,32 +100,33 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin-top: clamp(20px, 4vh, 40px);
+            margin-top: clamp(25px, 5vh, 50px);
             z-index: 5;
             pointer-events: none;
         }
 
-        /* Angular Portrait Avatar Box (No Skew, No Shadows) */
+        /* Heroic Portrait Avatar Box (Subsoccer Pro Card Proportions) */
         .vs-intro-avatar-wrap {
-            width: clamp(110px, 25vw, 150px);
-            height: clamp(145px, 33vw, 195px);
+            width: clamp(135px, 36vw, 210px);
+            height: clamp(180px, 46vw, 280px);
             border-radius: 2px;
             overflow: hidden;
             background: #111111;
-            border: 2px solid rgba(255, 255, 255, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.45);
             box-shadow: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
+            position: relative;
         }
 
         .player-left .vs-intro-avatar-wrap {
-            border-color: rgba(255, 255, 255, 0.5);
+            border-color: rgba(255, 255, 255, 0.45);
         }
 
         .player-right .vs-intro-avatar-wrap {
-            border-color: rgba(255, 255, 255, 0.7);
+            border-color: rgba(255, 255, 255, 0.65);
         }
 
         .vs-intro-avatar-wrap img {
@@ -135,16 +136,16 @@
         }
 
         .vs-intro-avatar-wrap i {
-            font-size: clamp(2.5rem, 7vw, 3.5rem);
-            color: rgba(255, 255, 255, 0.4);
+            font-size: clamp(3rem, 8vw, 4.5rem);
+            color: rgba(255, 255, 255, 0.35);
         }
 
         /* Angular ELO Badge (White Text, No Shadows) */
         .vs-intro-elo {
-            background: rgba(0, 0, 0, 0.65);
-            padding: 6px 14px;
+            background: #000000;
+            padding: 6px 16px;
             border-radius: 2px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: none;
         }
 
@@ -162,7 +163,7 @@
         .vs-center-overlay {
             display: none;
             position: absolute;
-            bottom: clamp(20px, 6vh, 45px);
+            bottom: clamp(16px, 4vh, 36px);
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
@@ -176,12 +177,12 @@
         /* Center VS Badge on Divider (No Shadows) */
         .vs-center-badge {
             position: absolute;
-            top: clamp(-180px, -24vh, -130px);
+            top: clamp(-200px, -27vh, -145px);
             left: 50%;
             transform: translate(-50%, -50%);
             background: #000000;
             border: 2px solid #333333;
-            padding: 4px 16px;
+            padding: 6px 18px;
             border-radius: 2px;
             box-shadow: none;
             pointer-events: none;
@@ -190,7 +191,7 @@
         .vs-center-badge span {
             display: inline-block;
             font-family: 'Subsoccer', sans-serif;
-            font-size: clamp(1.8rem, 5.5vw, 2.4rem);
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
             color: #ffffff;
             letter-spacing: 2px;
         }
