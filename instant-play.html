@@ -784,9 +784,9 @@
 
 
 
-    <!-- Actual Rules Overlay shown before playing -->
+    <!-- Actual Rules Overlay shown before playing (hidden for ranked match players) -->
     <div id="actual-rules-overlay" class="rules-overlay"
-        style="display: flex; background: rgba(10,10,10,0.98); z-index: 1000;" onclick="event.stopPropagation()">
+        style="display: none; background: rgba(10,10,10,0.98); z-index: 1000;" onclick="event.stopPropagation()">
         <div class="rules-header">OFFICIAL RULES</div>
         <div class="rules-list">
             <div class="rule-item">
@@ -1782,6 +1782,10 @@
             const matchVs = urlParams.get('match_vs');
             if (matchVs) {
                 initRankedMatch(matchVs);
+            } else if (urlParams.get('mode') !== 'display' && !urlParams.get('p1')) {
+                // Show rules overlay only for standard anonymous quick play
+                const ro = document.getElementById('actual-rules-overlay');
+                if (ro) ro.style.display = 'flex';
             }
             
             // Check if user provided a Shelly IP parameter directly in the URL to pair the hardware
