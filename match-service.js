@@ -172,8 +172,8 @@ export const MatchService = {
             const { error: rpcError } = await withTimeout(_supabase.rpc('record_quick_match_v1', {
                 p1_id: (p1.isGuest || !isUuid(p1.id)) ? null : p1.id,
                 p2_id: (p2.isGuest || !isUuid(p2.id)) ? null : p2.id,
-                p1_new_elo: p1EloFinal,
-                p2_new_elo: p2EloFinal,
+                p1_new_elo_client: p1EloFinal,
+                p2_new_elo_client: p2EloFinal,
                 p1_won: winnerName === player1Name,
                 match_data: {
                     player1: player1Name,
