@@ -107,7 +107,7 @@ export const MatchShareCard = {
 
         // 2. TOP BRAND BADGE: SUBSOCCER
         const badgeW = 200;
-        const badgeH = 46;
+        const badgeH = 44;
         const badgeX = (W - badgeW) / 2;
         const badgeY = 60;
         ctx.fillStyle = '#c41e2a';
@@ -119,28 +119,30 @@ export const MatchShareCard = {
         ctx.stroke();
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 28px "Subsoccer", "SubsoccerLogo", "Open Sans", sans-serif';
+        ctx.font = 'normal 26px "Subsoccer", "Open Sans", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.letterSpacing = '3px';
         ctx.fillText('SUBSOCCER', W / 2, badgeY + badgeH / 2 + 1);
 
         // 3. HEADER LABELS
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.font = '700 20px "Resolve", "Open Sans", sans-serif';
-        ctx.letterSpacing = '5px';
+        ctx.font = 'bold 18px "Resolve", "Open Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillText('MATCH RESULT', W / 2, 145);
 
-        // Winner Announcement
+        // Winner Announcement (single clean outline)
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 42px "Subsoccer", "SubsoccerLogo", sans-serif';
-        ctx.letterSpacing = '2px';
-        ctx.fillText(`🏆 ${winnerName.toUpperCase()} WINS!`, W / 2, 205);
+        ctx.font = 'normal 44px "Subsoccer", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`🏆  ${winnerName.toUpperCase()} WINS!`, W / 2, 205);
 
         // 4. GIANT MATCH SCORE (P1_SCORE — P2_SCORE)
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 135px "Subsoccer", "SubsoccerLogo", sans-serif';
-        ctx.letterSpacing = '4px';
+        ctx.font = 'normal 130px "Subsoccer", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillText(`${p1Score} — ${p2Score}`, W / 2, 330);
 
         // 5. HELPER TO DRAW PLAYER PORTRAIT & CARD
@@ -160,7 +162,7 @@ export const MatchShareCard = {
                 ctx.fillStyle = isWinner ? '#221111' : '#111822';
                 ctx.fillRect(photoX, photoY, photoSize, photoSize);
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 80px "Subsoccer", sans-serif';
+                ctx.font = 'normal 80px "Subsoccer", sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(name.charAt(0).toUpperCase(), cx, photoY + photoSize / 2);
@@ -183,19 +185,17 @@ export const MatchShareCard = {
                 this.roundRect(ctx, bx, by, bw, bh, 5);
                 ctx.fill();
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 15px "Resolve", "Open Sans", sans-serif';
+                ctx.font = 'bold 14px "Resolve", "Open Sans", sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.letterSpacing = '1.5px';
                 ctx.fillText('WINNER', bx + bw / 2, by + bh / 2 + 1);
             }
 
             // Player Name below photo
             ctx.fillStyle = '#ffffff';
-            ctx.font = '900 32px "Subsoccer", "SubsoccerLogo", sans-serif';
+            ctx.font = 'normal 32px "Subsoccer", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            ctx.letterSpacing = '1.5px';
             const cleanName = name.length > 12 ? name.slice(0, 11) + '…' : name;
             ctx.fillText(cleanName.toUpperCase(), cx, photoY + photoSize + 22);
 
@@ -216,10 +216,9 @@ export const MatchShareCard = {
             const eloDiff = eloAfter - eloBefore;
             const diffSign = eloDiff >= 0 ? `+${eloDiff}` : `${eloDiff}`;
 
-            ctx.font = '900 22px "Subsoccer", "Open Sans", sans-serif';
+            ctx.font = 'bold 22px "Open Sans", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.letterSpacing = '1px';
             ctx.fillStyle = eloDiff >= 0 ? '#4ade80' : '#f87171';
             ctx.fillText(`${eloBefore} → ${eloAfter} (${diffSign})`, cx, pillY + pillH / 2);
         };
@@ -232,23 +231,24 @@ export const MatchShareCard = {
 
         // Center "VS"
         ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.font = '900 28px "Subsoccer", "Resolve", sans-serif';
+        ctx.font = 'bold 24px "Resolve", "Open Sans", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.letterSpacing = '2px';
         ctx.fillText('VS', W / 2, 555);
 
         // 6. FOOTER STATS & BRANDING
         const footerY = 900;
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.font = '700 20px "Resolve", "Open Sans", sans-serif';
-        ctx.letterSpacing = '3px';
+        ctx.font = 'bold 18px "Resolve", "Open Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillText(`MATCH TIME: ${durationStr}`, W / 2, footerY);
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.font = '700 16px "Resolve", "Open Sans", sans-serif';
-        ctx.letterSpacing = '4px';
-        ctx.fillText('SUBSOCCER.PRO // THE OFFICIAL BENCH SOCCER APP', W / 2, footerY + 45);
+        ctx.font = 'bold 15px "Resolve", "Open Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('SUBSOCCER.PRO // THE OFFICIAL BENCH SOCCER APP', W / 2, footerY + 38);
 
         return canvas;
     },
