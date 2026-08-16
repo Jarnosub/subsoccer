@@ -482,6 +482,26 @@
             overflow-y: auto;
         }
 
+        /* Action Links / Buttons */
+        .sub-back-link {
+            font-family: 'Subsoccer', 'Open Sans', sans-serif !important;
+            font-size: 1.1rem !important;
+            letter-spacing: 2px !important;
+            color: #ffffff !important;
+            text-decoration: none !important;
+            text-transform: uppercase !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 10px !important;
+            padding: 12px 0 !important;
+            cursor: pointer !important;
+            transition: opacity 0.2s;
+        }
+        .sub-back-link:hover {
+            opacity: 0.8;
+        }
+
         .winner-text,
         .winner-subtitle,
         .claim-victory-btn,
@@ -1415,8 +1435,9 @@
                     </button>
 
                     <!-- 3. Tertiary: Back to Pro Card -->
-                    <a href="player-card.html" style="color:#ffffff !important; font-family:'Subsoccer', sans-serif !important; font-size:1.05rem; letter-spacing:2px; text-decoration:none !important; padding:10px 0; text-transform:uppercase; display:inline-block; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                        ← BACK TO MY PRO CARD
+                    <a href="player-card.html" class="sub-back-link">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>BACK TO MY PRO CARD</span>
                     </a>
                 </div>
             </div>
@@ -1436,10 +1457,9 @@
                     <i class="fa-solid fa-trophy" style="margin-right:10px; color: #fff;"></i> HOST A TOURNAMENT
                 </button>
 
-                <a href="register" 
-                    style="display: flex; align-items: center; justify-content: center; gap: 8px; color: rgba(255,255,255,0.6); font-family: 'Open Sans', sans-serif; font-size: 0.8rem; letter-spacing: 1px; text-decoration: none; padding: 10px 0; margin-top: 4px; transition: color 0.2s;"
-                    onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">
-                    <i class="fa-solid fa-map-location-dot"></i> Register your game to the map
+                <a href="register.html" class="sub-back-link" style="font-size: 0.85rem !important; opacity: 0.75;">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>REGISTER YOUR GAME TO THE MAP</span>
                 </a>
 
                 <button id="end-game-btn" class="play-again-btn"
