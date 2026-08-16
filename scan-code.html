@@ -500,7 +500,17 @@
             let displayDesc = 'OPENING LINK...';
 
             // Parse known subsoccer URL patterns
-            if (rawValue.includes('lounge-remote') || rawValue.includes('table-')) {
+            if (rawValue.includes('match_vs=') || rawValue.includes('player-card.html?u=')) {
+                let opponent = 'OPPONENT';
+                try {
+                    const parsedUrl = new URL(rawValue, window.location.origin);
+                    opponent = parsedUrl.searchParams.get('match_vs') || parsedUrl.searchParams.get('u') || 'OPPONENT';
+                } catch(e) {}
+                displayTitle = `⚔️ OPPONENT: ${opponent.toUpperCase()}`;
+                displayDesc = `START 1-ON-1 RANKED MATCH (PLAY TO 3)`;
+                action.innerText = 'START MATCH';
+                targetUrl = `instant-play.html?match_vs=${encodeURIComponent(opponent)}`;
+            } else if (rawValue.includes('lounge-remote') || rawValue.includes('table-')) {
                 displayTitle = 'TABLE DETECTED';
                 displayDesc = 'ARCADE TABLE QR CODE';
                 action.innerText = 'JOIN TABLE';
