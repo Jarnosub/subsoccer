@@ -830,6 +830,18 @@
 
                         <div class="kpi-card">
                             <div class="kpi-header">
+                                <span>PINNED ON MAP</span>
+                                <i class="fa-solid fa-map-location-dot" style="color: var(--accent-red);"></i>
+                            </div>
+                            <div style="display:flex; align-items:baseline; gap:8px;">
+                                <div class="kpi-value" id="kpi-pinned-games" style="color: var(--accent-red);"><i class="fas fa-spinner fa-spin" style="font-size: 1rem;"></i></div>
+                                <span id="kpi-pinned-period-badge" style="font-size:0.8rem; font-weight:600; color:var(--accent-green); display:none;"></span>
+                            </div>
+                            <div class="kpi-trend" style="color: #888;" id="kpi-pinned-trend"><i class="fa-solid fa-map-pin"></i> Registered game tables</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-header">
                                 <span>ACTIVE DEVICES</span>
                                 <i class="fas fa-gamepad" style="color: #BB86FC;"></i>
                             </div>
@@ -1509,8 +1521,11 @@
                 if (startDateStr) matchesQuery = matchesQuery.gte('created_at', startDateStr);
                 if (endDateStr) matchesQuery = matchesQuery.lte('created_at', endDateStr);
 
+                // Fetch public games pinned on the map
+                let gamesQuery = client.from('games').select('id, game_name, registered_at, created_at, is_public').eq('is_public', true);
+
                 // Players count is always "all time" (total registrations)
-                const [usersRes, historyRes, matchesRes, topPlayersRes] = await Promise.all([
+                const [usersRes, historyRes, matchesRes, topPlayersRes, gamesRes] = await Promise.all([
                     client.from('players').select('id', { count: 'exact' })
                         .not('username', 'ilike', 'AUTOTEST%')
                         .not('username', 'ilike', 'TOURTEST%')
@@ -1522,12 +1537,14 @@
                         .not('username', 'ilike', 'TOURTEST%')
                         .not('username', 'ilike', 'REDIRECTTEST%')
                         .order('elo', { ascending: false })
-                        .limit(10)
+                        .limit(10),
+                    gamesQuery
                 ]);
 
                 if (historyRes.error) console.error("History Error:", historyRes.error);
                 if (matchesRes.error) console.error("Matches Error:", matchesRes.error);
                 if (topPlayersRes.error) console.error("Leaderboard Error:", topPlayersRes.error);
+                if (gamesRes.error) console.error("Games Error:", gamesRes.error);
 
                 // Real data — no hardcoded fallbacks
                 const excludeFiEl = document.getElementById('excludeFiFilter');
@@ -1838,6 +1855,38 @@
                     });
                     est += tzOnly.size;
                     return { total: est, cities: cities.size, tzOnly: tzOnly.size };
+                }
+
+                // Pinned on Map KPI
+                const allPinnedGames = gamesRes.data || [];
+                const totalPinnedCount = allPinnedGames.length;
+
+                // Calculate pinned games added during selected timeframe
+                let periodPinnedCount = 0;
+                if (startDateStr) {
+                    const startTs = new Date(startDateStr).getTime();
+                    const endTs = endDateStr ? new Date(endDateStr).getTime() : Date.now();
+                    periodPinnedCount = allPinnedGames.filter(g => {
+                        const dateStr = g.registered_at || g.created_at;
+                        if (!dateStr) return false;
+                        const gameTs = new Date(dateStr).getTime();
+                        return gameTs >= startTs && gameTs <= endTs;
+                    }).length;
+                } else {
+                    periodPinnedCount = totalPinnedCount;
+                }
+
+                document.getElementById('kpi-pinned-games').textContent = totalPinnedCount.toLocaleString();
+                const periodBadge = document.getElementById('kpi-pinned-period-badge');
+                if (periodBadge) {
+                    if (!isAllTimeFilter && startDateStr) {
+                        periodBadge.textContent = `+${periodPinnedCount} in period`;
+                        periodBadge.style.display = 'inline-block';
+                        document.getElementById('kpi-pinned-trend').innerHTML = `<i class="fa-solid fa-map-pin"></i> <strong>${periodPinnedCount}</strong> added in selected timeframe · <strong>${totalPinnedCount}</strong> total on map`;
+                    } else {
+                        periodBadge.style.display = 'none';
+                        document.getElementById('kpi-pinned-trend').innerHTML = `<i class="fa-solid fa-map-pin"></i> All-time active tables on map`;
+                    }
                 }
 
                 const gameFilter = d => d.event_type === 'game_finished' || d.event_type === 'tournament_match_finished';

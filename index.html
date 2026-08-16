@@ -1619,6 +1619,63 @@
                 })
                 .catch(e => console.error('Map data error:', e));
 
+            // Fetch private/home games and show city-level badges
+            fetch(`${SUPABASE_URL}/rest/v1/games?select=id,location,latitude,longitude&is_public=eq.false&latitude=not.is.null`, {
+                headers: {
+                    'apikey': SUPABASE_ANON,
+                    'Authorization': `Bearer ${SUPABASE_ANON}`
+                }
+            })
+                .then(r => r.json())
+                .then(privateGames => {
+                    if (!privateGames || !Array.isArray(privateGames) || privateGames.length === 0) return;
+
+                    // Group by city (from location field "City, Country")
+                    const cityMap = {};
+                    privateGames.forEach(g => {
+                        const city = (g.location || 'Unknown').split(',')[0].trim();
+                        if (!cityMap[city]) {
+                            cityMap[city] = { count: 0, lat: g.latitude, lng: g.longitude, location: g.location || city };
+                        }
+                        cityMap[city].count++;
+                        // Average coordinates for city center approximation
+                        cityMap[city].lat = (cityMap[city].lat + g.latitude) / 2;
+                        cityMap[city].lng = (cityMap[city].lng + g.longitude) / 2;
+                    });
+
+                    Object.entries(cityMap).forEach(([city, data]) => {
+                        const badgeIcon = L.divIcon({
+                            className: '',
+                            html: `<div style="
+                                background: rgba(196,30,42,0.12);
+                                border: 1.5px dashed rgba(196,30,42,0.4);
+                                color: rgba(196,30,42,0.85);
+                                border-radius: 14px;
+                                padding: 3px 10px;
+                                font-family: 'Open Sans', sans-serif;
+                                font-size: 11px;
+                                font-weight: 700;
+                                white-space: nowrap;
+                                display: flex;
+                                align-items: center;
+                                gap: 4px;
+                                backdrop-filter: blur(4px);
+                            "><span style="font-size:10px;">🏠</span> ${data.count} home</div>`,
+                            iconSize: [null, 28],
+                            iconAnchor: [30, 14]
+                        });
+                        const marker = L.marker([data.lat, data.lng], { icon: badgeIcon, interactive: true }).addTo(hubMap);
+                        marker.bindPopup(`
+                        <div style="font-family: sans-serif; color: #111 !important; background: #fff !important; padding: 12px; border-radius: 8px; border: 1px solid #e0e0e0; min-width: 140px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; color: #000 !important;">🏠 ${data.count} Home Game${data.count > 1 ? 's' : ''}</div>
+                            <div style="color: #666 !important; font-size: 0.75rem;">${data.location}</div>
+                            <div style="color: #999 !important; font-size: 0.65rem; margin-top: 6px;">Private tables in this area</div>
+                        </div>
+                    `, { className: 'light-popup' });
+                    });
+                })
+                .catch(e => console.error('Private games error:', e));
+
             // Try to show user location
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {

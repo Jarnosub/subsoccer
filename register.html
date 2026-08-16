@@ -227,6 +227,47 @@
         }
         .btn-outline:hover { border-color: #888; color: #fff; }
 
+        .visibility-toggle {
+            display: none;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid #333;
+            border-radius: var(--sub-radius);
+            padding: 12px 14px;
+            margin-top: 8px;
+        }
+        .visibility-toggle label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin: 0;
+        }
+        .visibility-toggle .toggle-text i { margin-right: 6px; color: #666; }
+        .toggle-switch {
+            position: relative;
+            width: 40px; height: 22px;
+            background: #333; border-radius: 11px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 16px; height: 16px;
+            background: #888; border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .visibility-toggle input { display: none; }
+        .visibility-toggle input:checked + .toggle-switch {
+            background: var(--sub-red);
+        }
+        .visibility-toggle input:checked + .toggle-switch::after {
+            left: 21px; background: #fff;
+        }
+
         .btn-whatsapp {
             background: #25D366;
             color: #000;
@@ -299,6 +340,15 @@
                     <span class="preset-tag" onclick="applyPreset('School Gym')">🏫 School</span>
                     <span class="preset-tag" onclick="applyPreset('Youth Club')">🎮 Youth Club</span>
                 </div>
+            </div>
+
+            <!-- VISIBILITY TOGGLE (home only) -->
+            <div class="visibility-toggle" id="visibility-toggle">
+                <label>
+                    <span class="toggle-text"><i class="fa-solid fa-eye"></i> Show on public map</span>
+                    <input type="checkbox" id="make-public-toggle">
+                    <span class="toggle-switch"></span>
+                </label>
             </div>
 
             <!-- SUBMIT BUTTON -->
@@ -419,6 +469,8 @@
             const nameInput = document.getElementById('venue-name');
             const presets = document.getElementById('presets-container');
             const nameLabel = document.getElementById('name-label');
+            const visToggle = document.getElementById('visibility-toggle');
+            const makePublicCheckbox = document.getElementById('make-public-toggle');
 
             if (type === 'home') {
                 nameLabel.textContent = 'Home / Table Nickname (Optional)';
@@ -428,6 +480,8 @@
                     <span class="preset-tag" onclick="applyPreset('Game Room')">🎯 Game Room</span>
                     <span class="preset-tag" onclick="applyPreset('Backyard Arena')">🌳 Backyard Arena</span>
                 `;
+                visToggle.style.display = 'block';
+                makePublicCheckbox.checked = false;
             } else {
                 nameLabel.textContent = 'Venue / Location Name';
                 nameInput.placeholder = 'e.g. Kallio Bar, Office Lounge...';
@@ -437,6 +491,7 @@
                     <span class="preset-tag" onclick="applyPreset('School Gym')">🏫 School</span>
                     <span class="preset-tag" onclick="applyPreset('Youth Club')">🎮 Youth Club</span>
                 `;
+                visToggle.style.display = 'none';
             }
         }
 
@@ -481,6 +536,15 @@
                     if (existingNearby && existingNearby.length > 0) {
                         const existingTable = existingNearby[0];
                         // Table already exists here! Link to existing instead of creating duplicate
+                        // Save the existing game ID to localStorage so it appears in My Games
+                        try {
+                            const myPinned = JSON.parse(localStorage.getItem('subsoccer_my_pinned_tables') || '[]');
+                            if (existingTable.id && !myPinned.includes(existingTable.id)) {
+                                myPinned.push(existingTable.id);
+                                localStorage.setItem('subsoccer_my_pinned_tables', JSON.stringify(myPinned));
+                            }
+                        } catch (_) {}
+
                         document.getElementById('form-card').style.display = 'none';
                         document.getElementById('success-view').style.display = 'block';
                         document.getElementById('success-text').innerHTML = `A Subsoccer table (<strong>${existingTable.game_name}</strong>) is already active at this location! Your games will be tracked here.`;
@@ -489,6 +553,8 @@
                         document.getElementById('whatsapp-share').href = `https://api.whatsapp.com/send?text=${shareText}`;
 
                         setTimeout(() => {
+                            const mapEl = document.getElementById('preview-map');
+                            if (mapEl._leaflet_id) { mapEl._leaflet_id = null; mapEl.innerHTML = ''; }
                             const previewMap = L.map('preview-map', { zoomControl: false, attributionControl: false }).setView([existingTable.latitude, existingTable.longitude], 14);
                             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(previewMap);
                             L.marker([existingTable.latitude, existingTable.longitude]).addTo(previewMap);
@@ -507,7 +573,7 @@
                 const defaultName = _pinType === 'home' ? `Home Stadium (${_geoData.city || 'Subsoccer'})` : `Subsoccer Table (${_geoData.city || 'Subsoccer'})`;
                 const rawName = document.getElementById('venue-name').value;
                 const finalName = sanitizeName(rawName, defaultName);
-                const uniqueCode = 'COMMUNITY-' + Date.now();
+                const uniqueCode = 'COMMUNITY-' + (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2, 10));
 
                 // Insert into Supabase games table
                 const { data, error } = await _supabase.from('games').insert([{
@@ -516,7 +582,7 @@
                     location: locationStr,
                     latitude: lat,
                     longitude: lng,
-                    is_public: true,
+                    is_public: _pinType === 'public' || document.getElementById('make-public-toggle').checked,
                     verified: false,
                     owner_id: _currentUser?.id || null,
                     registered_at: new Date().toISOString()
@@ -543,6 +609,8 @@
 
                 // Render miniature preview map
                 setTimeout(() => {
+                    const mapEl = document.getElementById('preview-map');
+                    if (mapEl._leaflet_id) { mapEl._leaflet_id = null; mapEl.innerHTML = ''; }
                     const previewMap = L.map('preview-map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 13);
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(previewMap);
                     L.marker([lat, lng]).addTo(previewMap);

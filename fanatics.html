@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Subsoccer × Fanatics — Executive Proposal</title>
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @font-face { font-family: 'Subsoccer'; src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'); font-display: swap; }
+        @font-face { font-family: 'Resolve'; src: url('fonts/Resolve-BoldNrw.otf') format('opentype'); font-display: swap; }
+        
+        :root {
+            --sub-red: #c41e2a;
+            --fanatics-blue: #002244;
+            --bg-dark: #0a0b0e;
+            --card-bg: #14161d;
+            --border-color: #242732;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: var(--bg-dark);
+            color: #f0f2f5;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* PASSWORD LOCK SCREEN */
+        #lock-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #08090c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            padding: 20px;
+        }
+        .lock-card {
+            background: #14161f;
+            border: 1px solid #282c3f;
+            padding: 40px 30px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+        .lock-title {
+            font-family: 'Resolve', sans-serif;
+            letter-spacing: 2px;
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .lock-sub {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .lock-input {
+            width: 100%;
+            padding: 14px;
+            background: #0d0e14;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
+            letter-spacing: 3px;
+            outline: none;
+            margin-bottom: 15px;
+            font-family: 'Resolve', sans-serif;
+        }
+        .lock-input:focus { border-color: var(--sub-red); }
+        .lock-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--sub-red);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.95rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .lock-btn:hover { opacity: 0.9; }
+
+        /* MAIN CONTENT */
+        #main-content { display: none; }
+
+        .header-bar {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(180deg, #101218 0%, var(--bg-dark) 100%);
+        }
+        .logos {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .logo-sub { font-family: 'Subsoccer', sans-serif; font-size: 2.2rem; color: var(--sub-red); letter-spacing: 3px; }
+        .logo-x { font-family: 'Resolve', sans-serif; font-size: 1.5rem; color: #555; }
+        .logo-fan { font-family: 'Open Sans', sans-serif; font-weight: 800; font-size: 1.8rem; letter-spacing: 3px; color: #fff; text-transform: uppercase; }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px 80px 20px;
+        }
+
+        .hero-statement {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .hero-statement h1 {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2.4rem;
+            line-height: 1.2;
+            letter-spacing: 2px;
+            color: #fff;
+            margin-bottom: 15px;
+            font-weight: normal;
+        }
+        .hero-statement p {
+            font-size: 1.1rem;
+            color: #aaa;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* KPI GRID */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 50px;
+        }
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px 20px;
+            text-align: center;
+        }
+        .kpi-value {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 2.2rem;
+            color: var(--sub-red);
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+        .kpi-label {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.75rem;
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* SECTION CARDS */
+        .section-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 35px 30px;
+            margin-bottom: 30px;
+        }
+        .section-box h2 {
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            color: #fff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: normal;
+        }
+        .section-box h2 i { color: var(--sub-red); font-size: 1.3rem; }
+        .section-box p { color: #aaa; margin-bottom: 20px; font-size: 0.95rem; }
+
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.95rem;
+        }
+        .feature-list li i { color: #4caf50; margin-top: 4px; }
+
+        .footer-cta {
+            text-align: center;
+            padding: 50px 20px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+        }
+        .btn-contact {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--sub-red);
+            color: #fff;
+            padding: 16px 36px;
+            border-radius: 6px;
+            font-family: 'Subsoccer', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        .btn-contact:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <!-- PASSWORD LOCK OVERLAY -->
+    <div id="lock-screen">
+        <div class="lock-card">
+            <div style="color: var(--sub-red); font-size: 2rem; margin-bottom: 15px;"><i class="fa-solid fa-lock"></i></div>
+            <div class="lock-title">CONFIDENTIAL PROPOSAL</div>
+            <div class="lock-sub">Subsoccer × Fanatics Executive Access</div>
+            <input type="password" id="pass-input" class="lock-input" placeholder="ENTER ACCESS CODE" autofocus onkeydown="if(event.key==='Enter') verifyPass()">
+            <button class="lock-btn" onclick="verifyPass()">UNLOCK PROPOSAL</button>
+            <div id="lock-error" style="display:none; color: var(--sub-red); font-size: 0.75rem; margin-top: 12px; font-family:'Resolve',sans-serif; letter-spacing:1px;">INVALID ACCESS CODE</div>
+        </div>
+    </div>
+
+    <!-- MAIN PITCH SITE -->
+    <div id="main-content">
+        
+        <header class="header-bar">
+            <div class="logos">
+                <span class="logo-sub">SUBSOCCER</span>
+                <span class="logo-x">✕</span>
+                <span class="logo-fan">FANATICS</span>
+            </div>
+            <div style="font-family: 'Resolve', sans-serif; color: #888; font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;">
+                Strategic Acquisition & Global Fan Experience Proposal
+            </div>
+        </header>
+
+        <div class="container">
+
+            <div class="hero-statement">
+                <h1>THE GLOBAL PHYGITAL FAN PLATFORM</h1>
+                <p>Fanatics owns the jerseys, the collectibles, and the fan relationships. <strong>Subsoccer brings physical competition to life</strong> — in 2 square meters, connected instantly to digital fan profiles.</p>
+            </div>
+
+            <!-- LIVE TELEMETRY PROOF -->
+            <div class="kpi-grid">
+                <div class="kpi-card" style="border-color: rgba(196, 30, 42, 0.4); background: linear-gradient(180deg, rgba(196,30,42,0.1) 0%, var(--card-bg) 100%);">
+                    <div class="kpi-value" style="color: #ff3344;">700M+</div>
+                    <div class="kpi-label">Social Views This Year</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">82</div>
+                    <div class="kpi-label">Countries Played</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">628</div>
+                    <div class="kpi-label">Active Cities</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">93%</div>
+                    <div class="kpi-label">Mobile Web First</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">6.3</div>
+                    <div class="kpi-label">Tournaments / Session</div>
+                </div>
+            </div>
+
+            <!-- PROVEN COMMERCIAL TRACTION & PARTNERS -->
+            <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 30px;">
+                <div class="kpi-card" style="text-align: left; padding: 20px;">
+                    <div style="color: #ff9900; font-size: 1.3rem; margin-bottom: 6px;"><i class="fa-brands fa-amazon"></i> #1 Global Channel</div>
+                    <div style="font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 4px;">Amazon Global Flagship</div>
+                    <div style="font-size: 0.8rem; color: #aaa;">Proven direct-to-consumer e-commerce demand and top-tier consumer ratings worldwide.</div>
+                </div>
+                <div class="kpi-card" style="text-align: left; padding: 20px;">
+                    <div style="color: #0088cc; font-size: 1.3rem; margin-bottom: 6px;"><i class="fa-solid fa-gamepad"></i> Global Arcade Partner</div>
+                    <div style="font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 4px;">Sega Amusements</div>
+                    <div style="font-size: 0.8rem; color: #aaa;">Official global distribution partner for Subsoccer commercial arcade games in major FECs and venues.</div>
+                </div>
+            </div>
+
+            <!-- PILLAR 1: TOPPS & COLLECTIBLES -->
+            <div class="section-box">
+                <h2><i class="fa-solid fa-id-card"></i> 1. TOPPS & COLLECTIBLES ("Play to Boost")</h2>
+                <p>Connect physical Topps trading cards with live digital Subsoccer Player Cards. Real matches on real tables upgrade fans' digital collectible status.</p>
+                <ul class="feature-list">
+                    <li><i class="fa-solid fa-check"></i> <strong>Live ELO Rating:</strong> Every 1v1 match automatically tracks goals and updates player standings.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Physical-to-Digital:</strong> Scan a Topps card QR code on any Subsoccer table to claim the node and compete for exclusive physical cards.</li>
+                </ul>
+            </div>
+
+            <!-- PILLAR 2: LICENSING MERCHANDISE & UPCOMING $200 MASS-MARKET LAUNCH -->
+            <div class="section-box">
+                <h2><i class="fa-solid fa-shirt"></i> 2. LICENSED MERCHANDISE & NEW $200 MASS-MARKET TABLE</h2>
+                <p>Leverage Fanatics' massive licensing agreements across the Premier League, NFL, NBA, MLB, MLS, and European giants.</p>
+                <ul class="feature-list">
+                    <li><i class="fa-solid fa-check"></i> <strong>Upcoming $200 Mass-Market Table:</strong> Launching next year — a high-volume, accessible price point engineered specifically for custom club branding, retail volume, and holiday gifting.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Turnkey Club Editions:</strong> Official co-branded editions (Real Madrid, Arsenal, Inter Miami, Dallas Cowboys, New York Yankees).</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Proven Retail Scale:</strong> Backed by existing sales leadership on Amazon and commercial arcade rollout via <strong>Sega Amusements</strong>.</li>
+                </ul>
+            </div>
+
+            <!-- PILLAR 3: FANATICS FEST & STADIUMS -->
+            <div class="section-box">
+                <h2><i class="fa-solid fa-stadium"></i> 3. FANATICS FEST & STADIUM ACTIVATIONS</h2>
+                <p>Traditional soccer activations require massive artificial pitches. Subsoccer delivers unmatched spectator density and excitement in just 2 square meters.</p>
+                <ul class="feature-list">
+                    <li><i class="fa-solid fa-check"></i> <strong>60 High-Energy Matches / Hour:</strong> Rapid 1-minute 1v1 grudge matches processed with automated bracket management.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Play in Business Suits or Jeans:</strong> Zero athletic gear required — accessible to every fan, VIP, and celebrity.</li>
+                </ul>
+            </div>
+
+            <!-- PILLAR 4: SOCIAL MEDIA FLYWHEEL -->
+            <div class="section-box">
+                <h2><i class="fa-solid fa-video"></i> 4. VIRAL CONTENT & FANATICS LIVE (700M+ Views in 2026)</h2>
+                <p>Subsoccer is one of the most viral sports phenomena in the world, generating explosive organic attention on TikTok, Instagram Reels, and YouTube Shorts.</p>
+                <ul class="feature-list">
+                    <li><i class="fa-solid fa-check"></i> <strong>700M+ Organic Views This Year:</strong> Massive cultural footprint and brand awareness ready to be converted into merchandise & commerce.</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Fanatics Live Creator Battles:</strong> Pro athletes, creators, and fans competing on Fanatics Live streams in high-stakes 60-second showdowns.</li>
+                </ul>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="footer-cta">
+                <div style="font-family: 'Resolve', sans-serif; font-size: 0.8rem; color: #888; letter-spacing: 2px; margin-bottom: 15px;">READY TO SHAPE THE FUTURE OF FANDOM?</div>
+                <a href="mailto:jarno@subsoccer.com?subject=Subsoccer%20x%20Fanatics%20Executive%20Discussion" class="btn-contact">
+                    <i class="fa-solid fa-envelope"></i> CONNECT WITH FOUNDERS
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Access codes
+        const VALID_CODES = ['fanatics2026', 'subsoccer', 'fanatics', 'jarno'];
+
+        function verifyPass() {
+            const input = document.getElementById('pass-input').value.trim().toLowerCase();
+            const errorEl = document.getElementById('lock-error');
+
+            if (VALID_CODES.includes(input)) {
+                document.getElementById('lock-screen').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                sessionStorage.setItem('fanatics_unlocked', '1');
+            } else {
+                errorEl.style.display = 'block';
+                document.getElementById('pass-input').value = '';
+                document.getElementById('pass-input').focus();
+            }
+        }
+
+        // Auto unlock if previously verified in session
+        if (sessionStorage.getItem('fanatics_unlocked') === '1') {
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
