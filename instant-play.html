@@ -83,6 +83,28 @@
     }
     </script>
 
+    <!-- Prevent FOUC / Scoreboard Flash for Ranked Matches -->
+    <script>
+        (function() {
+            try {
+                if (new URLSearchParams(window.location.search).has('match_vs')) {
+                    document.documentElement.classList.add('is-ranked-init');
+                }
+            } catch(_) {}
+        })();
+    </script>
+    <style>
+        html.is-ranked-init #ranked-vs-overlay {
+            display: flex !important;
+        }
+        html.is-ranked-init .scoreboard,
+        html.is-ranked-init #actual-rules-overlay,
+        html.is-ranked-init #game-logo,
+        html.is-ranked-init #table-id-display {
+            visibility: hidden !important;
+        }
+    </style>
+
     <meta name="theme-color" content="#E30613">
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1733,6 +1755,7 @@
         }
 
         window.startRankedMatch = function() {
+            document.documentElement.classList.remove('is-ranked-init');
             const vsOverlay = document.getElementById('ranked-vs-overlay');
             if (vsOverlay) vsOverlay.style.display = 'none';
 
