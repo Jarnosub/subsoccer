@@ -1021,8 +1021,7 @@
             <!-- VS Intro Left (Visible during ranked intro) -->
             <div class="vs-intro-player" id="vs-intro-p1">
                 <div class="vs-intro-avatar-wrap">
-                    <img id="vs-p1-avatar" src="avatar-human-1.png" style="display:none;">
-                    <i id="vs-p1-avatar-icon" class="fa-solid fa-user"></i>
+                    <img id="vs-p1-avatar" src="avatar-human-1.png" alt="Player 1">
                 </div>
                 <div class="vs-intro-elo"><span id="vs-p1-elo">1300 ELO</span></div>
             </div>
@@ -1041,8 +1040,7 @@
             <!-- VS Intro Right (Visible during ranked intro) -->
             <div class="vs-intro-player" id="vs-intro-p2">
                 <div class="vs-intro-avatar-wrap">
-                    <img id="vs-p2-avatar" src="avatar-human-2.png" style="display:none;">
-                    <i id="vs-p2-avatar-icon" class="fa-solid fa-user"></i>
+                    <img id="vs-p2-avatar" src="avatar-human-2.png" alt="Player 2">
                 </div>
                 <div class="vs-intro-elo"><span id="vs-p2-elo">1300 ELO</span></div>
             </div>
@@ -1776,6 +1774,24 @@
                 .catch(err => console.warn("Shelly command failed:", err));
         }
 
+        // Helper to select a deterministic illustrated Subsoccer avatar preset
+        function getSubsoccerPresetAvatar(name, fallbackIndex = 1) {
+            const presets = [
+                'avatar-human-1.png',
+                'avatar-human-2.png',
+                'avatar-human-3.png',
+                'avatar-human-4.png',
+                'avatar-human-5.png',
+                'avatar-human-6.png'
+            ];
+            if (!name) return presets[(fallbackIndex - 1) % presets.length];
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = (hash + name.charCodeAt(i) * (i + 3)) % presets.length;
+            }
+            return presets[hash];
+        }
+
         // --- Ranked Match Helper Functions ---
         async function initRankedMatch(opponentUsername) {
             document.documentElement.classList.add('is-ranked-intro');
@@ -1811,14 +1827,10 @@
             if (l2) l2.textContent = oppData.username;
             const elo2 = document.getElementById('vs-p2-elo');
             if (elo2) elo2.textContent = `${oppData.elo || 1300} ELO`;
-            if (oppData.avatar_url) {
-                const p2Img = document.getElementById('vs-p2-avatar');
-                if (p2Img) {
-                    p2Img.src = oppData.avatar_url;
-                    p2Img.style.display = 'block';
-                }
-                const p2Icon = document.getElementById('vs-p2-avatar-icon');
-                if (p2Icon) p2Icon.style.display = 'none';
+            const p2Img = document.getElementById('vs-p2-avatar');
+            if (p2Img) {
+                p2Img.src = oppData.avatar_url || getSubsoccerPresetAvatar(oppData.username, 2);
+                p2Img.style.display = 'block';
             }
 
             // 2. Fetch Current Logged-in Player (Player 1)
@@ -1853,14 +1865,10 @@
                 if (l1) l1.textContent = currentUser.username;
                 const elo1 = document.getElementById('vs-p1-elo');
                 if (elo1) elo1.textContent = `${currentUser.elo || 1300} ELO`;
-                if (currentUser.avatar_url) {
-                    const p1Img = document.getElementById('vs-p1-avatar');
-                    if (p1Img) {
-                        p1Img.src = currentUser.avatar_url;
-                        p1Img.style.display = 'block';
-                    }
-                    const p1Icon = document.getElementById('vs-p1-avatar-icon');
-                    if (p1Icon) p1Icon.style.display = 'none';
+                const p1Img = document.getElementById('vs-p1-avatar');
+                if (p1Img) {
+                    p1Img.src = currentUser.avatar_url || getSubsoccerPresetAvatar(currentUser.username, 1);
+                    p1Img.style.display = 'block';
                 }
 
                 // Calculate potential ELO change
@@ -1887,6 +1895,11 @@
                 if (l1) l1.textContent = 'GUEST (YOU)';
                 const elo1 = document.getElementById('vs-p1-elo');
                 if (elo1) elo1.textContent = 'UNRANKED';
+                const p1Img = document.getElementById('vs-p1-avatar');
+                if (p1Img) {
+                    p1Img.src = getSubsoccerPresetAvatar('GUEST', 1);
+                    p1Img.style.display = 'block';
+                }
 
                 if (stakesEl) {
                     stakesEl.innerHTML = `Challenging <strong>${oppData.username}</strong>!<br><span style="color:#ffffff; font-weight:bold;">Log in to record match to your Pro Card:</span>`;
