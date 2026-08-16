@@ -94,7 +94,7 @@
         })();
     </script>
     <style>
-        /* Split-screen Ranked Match Intro */
+        /* Split-screen Ranked Match Intro - Subsoccer Athletic Design */
         .vs-intro-player {
             display: none;
             flex-direction: column;
@@ -103,63 +103,71 @@
             margin-top: clamp(20px, 4vh, 40px);
             z-index: 5;
             pointer-events: none;
-            animation: fadeIn 0.3s ease;
         }
 
+        /* Suunnikas (Parallelogram) Avatar Box */
         .vs-intro-avatar-wrap {
-            width: clamp(90px, 22vw, 130px);
-            height: clamp(90px, 22vw, 130px);
-            border-radius: 50%;
+            width: clamp(100px, 22vw, 140px);
+            height: clamp(120px, 26vw, 170px);
+            transform: skewX(-10deg);
+            border-radius: 3px;
             overflow: hidden;
-            background: rgba(0,0,0,0.4);
-            border: 3px solid rgba(255,255,255,0.8);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            background: #111111;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .player-left .vs-intro-avatar-wrap {
-            border-color: #c41e2a;
-            box-shadow: 0 0 25px rgba(196,30,42,0.6);
+            border-color: rgba(255, 255, 255, 0.5);
         }
 
         .player-right .vs-intro-avatar-wrap {
-            border-color: #ffffff;
-            box-shadow: 0 0 25px rgba(255,255,255,0.5);
+            border-color: rgba(255, 255, 255, 0.7);
         }
 
         .vs-intro-avatar-wrap img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transform: skewX(10deg) scale(1.22);
         }
 
         .vs-intro-avatar-wrap i {
-            font-size: clamp(2rem, 6vw, 3rem);
-            color: rgba(255,255,255,0.6);
+            font-size: clamp(2.2rem, 6vw, 3.2rem);
+            color: rgba(255, 255, 255, 0.4);
+            transform: skewX(10deg);
         }
 
+        /* Suunnikas ELO Badge */
         .vs-intro-elo {
+            transform: skewX(-10deg);
+            background: #000000;
+            padding: 6px 16px;
+            border-radius: 2px;
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .vs-intro-elo span {
+            display: inline-block;
+            transform: skewX(10deg);
             font-family: 'Resolve', sans-serif;
-            font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+            font-size: clamp(0.8rem, 2.2vw, 0.95rem);
             font-weight: 800;
             color: #ffd700;
             letter-spacing: 2px;
-            background: rgba(0,0,0,0.55);
-            padding: 6px 16px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,215,0,0.3);
-            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
             white-space: nowrap;
         }
 
-        /* Floating Center Overlay */
+        /* Floating Center Action Bar */
         .vs-center-overlay {
             display: none;
             position: absolute;
-            bottom: clamp(20px, 8vh, 60px);
+            bottom: clamp(20px, 6vh, 45px);
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
@@ -170,56 +178,71 @@
             text-align: center;
         }
 
+        /* Center VS Badge on Divider */
         .vs-center-badge {
             position: absolute;
-            top: clamp(-180px, -24vh, -120px);
+            top: clamp(-180px, -24vh, -130px);
             left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: 'Subsoccer', sans-serif;
-            font-size: clamp(2.5rem, 8vw, 4rem);
-            color: #ffd700;
-            text-shadow: 0 0 20px rgba(0,0,0,0.9), 0 0 40px rgba(212,175,55,0.7);
-            letter-spacing: 2px;
+            transform: translate(-50%, -50%) skewX(-10deg);
+            background: #000000;
+            border: 2px solid #333333;
+            padding: 4px 16px;
+            border-radius: 2px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
             pointer-events: none;
+        }
+
+        .vs-center-badge span {
+            display: inline-block;
+            transform: skewX(10deg);
+            font-family: 'Subsoccer', sans-serif;
+            font-size: clamp(1.8rem, 5.5vw, 2.4rem);
+            color: #ffffff;
+            letter-spacing: 2px;
+        }
+
+        .vs-card-panel {
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            padding: 14px 16px;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
         }
 
         .vs-center-stakes {
             font-family: 'Resolve', sans-serif;
-            font-size: clamp(0.7rem, 2vw, 0.85rem);
+            font-size: clamp(0.68rem, 1.9vw, 0.78rem);
+            font-weight: 700;
             letter-spacing: 1.5px;
-            color: #ffffff;
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            padding: 10px 18px;
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.15);
-            margin-bottom: 14px;
+            color: #888888;
+            margin-bottom: 12px;
             line-height: 1.4;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            width: 100%;
-            box-sizing: border-box;
+            text-transform: uppercase;
         }
 
         .vs-center-btn {
             width: 100%;
-            padding: clamp(14px, 3vh, 18px);
-            background: linear-gradient(135deg, #c41e2a 0%, #a01520 100%);
-            color: #fff;
+            padding: clamp(14px, 2.5vh, 16px);
+            background: #c41e2a;
+            color: #ffffff;
             border: none;
-            border-radius: 8px;
+            border-radius: 2px;
             font-family: 'Subsoccer', sans-serif;
-            font-size: clamp(1.1rem, 3.5vw, 1.35rem);
+            font-size: clamp(1.1rem, 3.2vw, 1.3rem);
             letter-spacing: 2px;
             cursor: pointer;
-            box-shadow: 0 6px 25px rgba(196,30,42,0.5), 0 0 35px rgba(196,30,42,0.3);
-            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.15s, opacity 0.2s;
             box-sizing: border-box;
             text-transform: uppercase;
+            display: block;
         }
 
         .vs-center-btn:active {
-            transform: scale(0.97);
+            transform: scale(0.98);
+            opacity: 0.9;
         }
 
         /* While Ranked Match Intro is Active */
@@ -1007,7 +1030,7 @@
                     <img id="vs-p1-avatar" src="avatar-human-1.png" style="display:none;">
                     <i id="vs-p1-avatar-icon" class="fa-solid fa-user"></i>
                 </div>
-                <div class="vs-intro-elo" id="vs-p1-elo">1300 ELO</div>
+                <div class="vs-intro-elo"><span id="vs-p1-elo">1300 ELO</span></div>
             </div>
 
             <div class="score" id="score-p1">0</div>
@@ -1027,7 +1050,7 @@
                     <img id="vs-p2-avatar" src="avatar-human-2.png" style="display:none;">
                     <i id="vs-p2-avatar-icon" class="fa-solid fa-user"></i>
                 </div>
-                <div class="vs-intro-elo" id="vs-p2-elo">1300 ELO</div>
+                <div class="vs-intro-elo"><span id="vs-p2-elo">1300 ELO</span></div>
             </div>
 
             <div class="score" id="score-p2">0</div>
@@ -1036,18 +1059,20 @@
 
         <!-- Floating Center Action Overlay (during Ranked Match Intro) -->
         <div class="vs-center-overlay" id="vs-center-overlay" onclick="event.stopPropagation()">
-            <div class="vs-center-badge">VS</div>
-            <div class="vs-center-stakes" id="vs-elo-stakes">
-                FIRST TO 3 GOALS WINS<br>
-                WIN: <span style="color:#4ade80; font-weight:bold;">+16 ELO</span> | LOSS: <span style="color:#f87171; font-weight:bold;">-16 ELO</span>
-            </div>
-            <div id="vs-action-wrap" style="width:100%;">
-                <button id="vs-start-btn" onclick="startRankedMatch()" class="vs-center-btn">
-                    ⚔️ START MATCH
-                </button>
-                <a id="vs-login-btn" href="login.html" class="vs-center-btn" style="display:none; text-decoration:none;">
-                    LOG IN TO PLAY RANKED
-                </a>
+            <div class="vs-center-badge"><span>VS</span></div>
+            <div class="vs-card-panel">
+                <div class="vs-center-stakes" id="vs-elo-stakes">
+                    FIRST TO 3 GOALS WINS<br>
+                    WIN: <span style="color:#4ade80; font-weight:bold;">+16 ELO</span> | LOSS: <span style="color:#f87171; font-weight:bold;">-16 ELO</span>
+                </div>
+                <div id="vs-action-wrap" style="width:100%;">
+                    <button id="vs-start-btn" onclick="startRankedMatch()" class="vs-center-btn">
+                        ⚔️ START MATCH
+                    </button>
+                    <a id="vs-login-btn" href="login.html" class="vs-center-btn" style="display:none; text-decoration:none;">
+                        LOG IN TO PLAY RANKED
+                    </a>
+                </div>
             </div>
         </div>
     </div>
