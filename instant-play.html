@@ -1237,17 +1237,16 @@
         <!-- Floating Center Action Overlay (during Ranked Match Intro) -->
         <div class="vs-center-overlay" id="vs-center-overlay" onclick="event.stopPropagation()">
             <div class="vs-center-badge"><span>VS</span></div>
+            <button id="vs-swap-btn" onclick="swapSides()" style="display:none; background:transparent; border:none; color:rgba(255,255,255,0.45); font-size:0.65rem; letter-spacing:2px; font-family:'Resolve', sans-serif; cursor:pointer; padding:4px 8px; margin-top:-2px; transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">
+                🔄 SWAP
+            </button>
             <div class="vs-card-panel">
                 <div class="vs-center-stakes" id="vs-elo-stakes">
-                    FIRST TO 3 GOALS WINS<br>
-                    WIN: <span style="color:#4ade80; font-weight:bold;">+16 ELO</span> | LOSS: <span style="color:#f87171; font-weight:bold;">-16 ELO</span>
+                    WIN: <span style="color:#4ade80; font-weight:bold;">+16</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-16</span>
                 </div>
                 <div id="vs-action-wrap" style="width:100%;">
                     <button id="vs-start-btn" onclick="startRankedMatch()" class="vs-center-btn">
                         ⚔️ START MATCH
-                    </button>
-                    <button id="vs-swap-btn" onclick="swapSides()" style="display:none; width:100%; margin-top:8px; padding:10px 14px; background:transparent; border:1px solid rgba(255,255,255,0.2); border-radius:2px; color:rgba(255,255,255,0.6); font-family:'Subsoccer', sans-serif; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.2s;">
-                        🔄 SWAP SIDES
                     </button>
                     <a id="vs-login-btn" href="login.html" class="vs-center-btn" style="display:none; text-decoration:none;">
                         LOG IN TO PLAY RANKED
@@ -2129,7 +2128,7 @@
                 const p1LossLoss = Math.max(1, Math.round(32 * expP1));
 
                 if (stakesEl) {
-                    stakesEl.innerHTML = `FIRST TO 3 GOALS WINS<br>WIN: <span style="color:#4ade80; font-weight:bold;">+${p1WinGain} ELO</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-${p1LossLoss} ELO</span>`;
+                    stakesEl.innerHTML = `WIN: <span style="color:#4ade80; font-weight:bold;">+${p1WinGain}</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-${p1LossLoss}</span>`;
                 }
 
                 if (startBtn) {
@@ -2240,7 +2239,7 @@
             const p1LossLoss = Math.max(1, Math.round(32 * expP1));
             const stakesEl = document.getElementById('vs-elo-stakes');
             if (stakesEl) {
-                stakesEl.innerHTML = `FIRST TO 3 GOALS WINS<br>WIN: <span style="color:#4ade80; font-weight:bold;">+${p1WinGain} ELO</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-${p1LossLoss} ELO</span>`;
+                stakesEl.innerHTML = `WIN: <span style="color:#4ade80; font-weight:bold;">+${p1WinGain}</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-${p1LossLoss}</span>`;
             }
 
             // Brief visual flash
