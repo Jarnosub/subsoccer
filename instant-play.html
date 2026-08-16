@@ -928,7 +928,6 @@
         }
 
         html.is-ranked-intro #game-logo,
-        .winner-overlay.show ~ #game-logo,
         body:has(.winner-overlay.show) #game-logo,
         body:has(#winner-overlay.show) #game-logo {
             display: none !important;
@@ -2824,6 +2823,7 @@
                     p2AvatarUrl: _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2),
                     winnerNumber: p1Won ? 1 : 2,
                     winnerName: p1Won ? p1DisplayName : p2DisplayName,
+                    loserName: p1Won ? p2DisplayName : p1DisplayName,
                     winnerScore: p1Won ? scoreP1 : scoreP2,
                     loserScore: p1Won ? scoreP2 : scoreP1,
                     matchDuration: gameDuration,
