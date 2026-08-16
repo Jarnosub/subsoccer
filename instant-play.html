@@ -726,6 +726,71 @@
 
         /* Landscape & Short Screen Optimization */
         @media (max-height: 550px) {
+            .game-logo {
+                top: 8px !important;
+                height: 22px !important;
+            }
+
+            .player-label {
+                top: 8px !important;
+                font-size: 1.1rem !important;
+            }
+
+            .score {
+                margin-top: 15px !important;
+                font-size: clamp(6rem, 22vh, 10rem) !important;
+            }
+
+            .goals-visual {
+                font-size: 1.6rem !important;
+                margin-top: 4px !important;
+                letter-spacing: 10px !important;
+            }
+
+            /* VS Intro in Landscape */
+            .vs-intro-player {
+                margin-top: 5px !important;
+            }
+
+            .vs-intro-avatar-wrap {
+                width: clamp(85px, 20vh, 120px) !important;
+                height: clamp(105px, 26vh, 150px) !important;
+                margin-bottom: 4px !important;
+            }
+
+            .vs-intro-elo {
+                padding: 2px 8px !important;
+            }
+
+            .vs-intro-elo span {
+                font-size: 0.75rem !important;
+            }
+
+            .vs-center-overlay {
+                bottom: 8px !important;
+                max-width: 320px !important;
+            }
+
+            .vs-center-box {
+                padding: 6px 10px !important;
+            }
+
+            .vs-center-title {
+                font-size: 0.65rem !important;
+                margin-bottom: 2px !important;
+            }
+
+            .vs-center-stakes {
+                font-size: 0.65rem !important;
+                margin-bottom: 6px !important;
+            }
+
+            .vs-center-btn {
+                padding: 8px 12px !important;
+                font-size: 0.9rem !important;
+            }
+
+            /* Winner Overlay in Landscape */
             .winner-overlay {
                 gap: 6px !important;
                 padding: 6px !important;
@@ -857,9 +922,16 @@
             transform: translateX(-50%);
             height: 35px;
             width: auto;
-            z-index: 500;
+            z-index: 50;
             opacity: 0.9;
             filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+        }
+
+        html.is-ranked-intro #game-logo,
+        .winner-overlay.show ~ #game-logo,
+        body:has(.winner-overlay.show) #game-logo,
+        body:has(#winner-overlay.show) #game-logo {
+            display: none !important;
         }
 
         /* Start Overlay (Click to Fullscreen) */
