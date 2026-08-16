@@ -199,9 +199,13 @@ async function refreshUserProfile(userId) {
             }
 
             // Ei löytynyt legacy-profiilia — luodaan kokonaan uusi
+            // Check for saved gamertag from pre-OAuth signup flow
+            const pendingGamertag = localStorage.getItem('subsoccer_pending_gamertag');
+            if (pendingGamertag) localStorage.removeItem('subsoccer_pending_gamertag');
+            
             const newProfile = {
                 id: userId,
-                username: user?.user_metadata?.full_name?.toUpperCase() || user?.user_metadata?.username || userEmail?.split('@')[0].toUpperCase() || 'PLAYER',
+                username: pendingGamertag || user?.user_metadata?.full_name?.toUpperCase() || user?.user_metadata?.username || userEmail?.split('@')[0].toUpperCase() || 'PLAYER',
                 email: userEmail,
                 elo: 1300,
                 wins: 0,
@@ -1011,6 +1015,11 @@ export async function saveProfile(e) {
 
 export async function signInWithGoogle() {
     try {
+        // Save gamertag before redirect so it persists through OAuth flow
+        const gamertagInput = document.getElementById('reg-user');
+        if (gamertagInput && gamertagInput.value.trim()) {
+            localStorage.setItem('subsoccer_pending_gamertag', gamertagInput.value.trim().toUpperCase());
+        }
         const { error } = await _supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
@@ -1064,6 +1073,11 @@ export async function signInWithApple() {
             });
         }
 
+        // Save gamertag before redirect so it persists through OAuth flow
+        const gamertagInput = document.getElementById('reg-user');
+        if (gamertagInput && gamertagInput.value.trim()) {
+            localStorage.setItem('subsoccer_pending_gamertag', gamertagInput.value.trim().toUpperCase());
+        }
         const { error } = await _supabase.auth.signInWithOAuth({
             provider: 'apple',
             options: {

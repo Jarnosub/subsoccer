@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Subsoccer - Player Card</title>
+    <meta property="og:title" content="Subsoccer Pro Card">
+    <meta property="og:description" content="View this player's Subsoccer Pro Card — ELO rating, win ratio, and match stats.">
+    <meta property="og:image" content="https://subsoccer.pro/subsoccer-teams.jpg">
+    <meta property="og:type" content="profile">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=4">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,6 +20,12 @@
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        a.pc-visitor-btn, a.pc-visitor-btn:visited, a.pc-visitor-btn:hover {
+            font-family: 'Resolve', sans-serif !important;
+            font-size: 0.8rem !important;
+            letter-spacing: 1.5px !important;
+        }
 
         /* Override global Resolve !important from style.css line 1259 */
         .subsoccer-font {
@@ -346,9 +357,9 @@
             color: #ffffff;
             border: none;
             padding: 16px;
-            border-radius: 2px;
+            border-radius: 6px;
             font-family: 'Resolve', sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             letter-spacing: 2px;
             cursor: pointer;
             font-weight: 700;
@@ -628,7 +639,7 @@
         .profile-accordion-btn {
             width: 100%; background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 12px;
+            border-radius: 6px;
             padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
             cursor: pointer; color: #888;
             font-family: 'Resolve', sans-serif; font-size: 0.75rem; font-weight: bold;
@@ -638,13 +649,13 @@
         .profile-accordion-btn:hover { border-color: rgba(255,255,255,0.12); color: #aaa; }
         .profile-accordion-btn .chevron { transition: transform 0.3s; color: #c41e2a; }
         .profile-accordion-btn.open .chevron { transform: rotate(180deg); }
-        .profile-accordion-btn.open { border-radius: 2px 2px 0 0; border-bottom-color: transparent; }
+        .profile-accordion-btn.open { border-radius: 6px 6px 0 0; border-bottom-color: transparent; }
         .profile-accordion-body {
             max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.06);
             border-top: none;
-            border-radius: 0 0 2px 2px;
+            border-radius: 0 0 6px 6px;
             opacity: 0;
             transition: max-height 0.4s ease, opacity 0.3s ease;
         }
@@ -876,10 +887,10 @@
         </div>
     </div>
 
-    <!-- SECTION: AI PORTRAIT STUDIO ACCORDION -->
+    <!-- SECTION: UPLOAD PHOTO + SAVE -->
     <div class="profile-accordion" style="margin-bottom: 12px;">
         <button class="profile-accordion-btn" id="studio-accordion-btn" onclick="toggleStudioAccordion()">
-            <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="pc_ai_portrait_studio">AI PORTRAIT STUDIO</span></span>
+            <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-camera"></i> UPLOAD PHOTO</span>
             <i class="fa-solid fa-chevron-down chevron"></i>
         </button>
         <div class="profile-accordion-body" id="studio-accordion-body">
@@ -887,13 +898,9 @@
                 <div class="ai-hero" style="gap: 12px;">
                     <label class="ai-upload-btn" id="ai-upload-label" style="width:100%; margin:0;">
                         <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
-                        <span id="ai-selfie-label" data-i18n="pc_take_selfie">TAKE SELFIE</span>
+                        <span id="ai-selfie-label">CHOOSE PHOTO</span>
                         <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
                     </label>
-                    
-                    <button class="ai-generate-btn" id="btn-generate-ai" onclick="generateAIAvatar(event)" style="width:100%; margin:0;">
-                        <i class="fa-solid fa-bolt"></i> <span data-i18n="pc_generate_avatar">GENERATE AVATAR</span>
-                    </button>
                     
                     <hr style="border:0; height:1px; background:rgba(255,255,255,0.05); margin: 2px 0;">
 
@@ -940,10 +947,27 @@
 
     <!-- DOWNLOAD PRINT CARD -->
     <div style="max-width: 420px; margin: 0 auto; padding: 0 20px 8px;">
-        <button class="pc-save-btn" id="btn-print-card" onclick="generatePrintCard()" style="width:100%; background:linear-gradient(135deg, #1a1a1a, #2a2a2a); border:1px solid rgba(255,255,255,0.1); color: #ccc; box-shadow: none;">
+        <button class="pc-save-btn" id="btn-print-card" onclick="generatePrintCard()" style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); color: #888; box-shadow: none; font-size: 0.75rem;">
             <i class="fa-solid fa-print" style="margin-right:8px;"></i><span data-i18n="pc_download_print">DOWNLOAD PRINT CARD</span>
         </button>
         <div id="print-card-status" class="pc-save-status" style="margin-top: 4px; min-height: 12px; font-size: 0.55rem;"></div>
+    </div>
+
+    <!-- SHARE & VISITOR CTA -->
+    <div id="pc-share-section" style="max-width: 420px; margin: 0 auto; padding: 0 20px 8px;">
+        <button class="pc-save-btn" id="btn-share-card" onclick="shareProCard()" style="width:100%;">
+            <i class="fa-solid fa-share-nodes" style="margin-right:8px;"></i>SHARE PRO CARD
+        </button>
+    </div>
+
+    <!-- VISITOR CTA (hidden by default, shown when viewing someone else) -->
+    <div id="pc-visitor-cta" style="display:none; max-width: 420px; margin: 0 auto; padding: 20px 20px 40px; text-align: center;">
+        <div style="border-top: 1px solid #222; padding-top: 20px; margin-top: 8px;">
+            <div style="font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 2px; color: #666; margin-bottom: 12px;">WANT YOUR OWN PRO CARD?</div>
+            <a href="login.html#signup" class="pc-visitor-btn" style="display: block; padding: 16px; background: linear-gradient(135deg, #c41e2a, #a01020); color: #fff; border-radius: 6px; text-decoration: none; text-align: center; box-shadow: 0 4px 15px rgba(196,30,42,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-id-card" style="margin-right: 8px;"></i>CREATE YOUR FREE PRO CARD
+            </a>
+        </div>
     </div>
 
     <input type="hidden" id="selected-avatar-url" value="avatar-human-1.png">
@@ -1116,6 +1140,8 @@
                     sel.value = player.country;
                 }, 500);
             }
+            
+            document.title = `${player.username || 'Player'} — Subsoccer Pro Card`;
         }
 
         // Toggle accordions
@@ -1903,11 +1929,9 @@
                 const file = input.files[0];
                 const lbl = document.getElementById('ai-selfie-label');
                 const uploadBtn = document.getElementById('ai-upload-label');
-                const btn = document.getElementById('btn-generate-ai');
                 
-                lbl.innerText = 'SELFIE READY';
-                uploadBtn.classList.add('ready');
-                btn.classList.add('ready');
+                lbl.innerText = '✓ PHOTO READY';
+                if (uploadBtn) uploadBtn.classList.add('ready');
 
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -1937,6 +1961,12 @@
 
                         const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                         _aiSelfieB64 = dataUrl.split(',')[1];
+                        
+                        // Store base64 for save (preview updates after save+moderation)
+                        const b64Input = document.getElementById('selected-avatar-b64');
+                        if (b64Input) b64Input.value = _aiSelfieB64;
+                        const urlInput = document.getElementById('selected-avatar-url');
+                        if (urlInput) urlInput.value = '';
                     };
                     img.src = e.target.result;
                 };
@@ -2243,6 +2273,32 @@
                 const avatarUrl = document.getElementById('selected-avatar-url').value;
                 const avatarB64 = document.getElementById('selected-avatar-b64').value;
 
+                // Content moderation check for custom avatars
+                if (avatarB64 || (avatarUrl && avatarUrl.includes('/avatars/tmp_'))) {
+                    try {
+                        btn.innerText = 'CHECKING IMAGE...';
+                        const imageToCheck = avatarB64 || null;
+                        if (imageToCheck) {
+                            const modRes = await fetch('/.netlify/functions/moderate-image', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ image_b64: imageToCheck })
+                            });
+                            const modData = await modRes.json();
+                            if (!modData.safe && !modData.skipped) {
+                                msg.style.color = '#E30613';
+                                msg.innerText = modData.message || 'Image violates content policy.';
+                                btn.disabled = false;
+                                btn.innerText = 'SAVE AVATAR';
+                                return;
+                            }
+                        }
+                    } catch (modErr) {
+                        console.warn('Moderation check failed, allowing:', modErr.message);
+                    }
+                    btn.innerText = 'SAVING...';
+                }
+
                 if (avatarB64) {
                     // AI-generated avatar: upload via Supabase JS client (handles auth automatically)
                     const path = `avatars/${userId}_ai_${Date.now()}.png`;
@@ -2455,8 +2511,76 @@
             }
         }
 
+        async function shareProCard() {
+            const playerName = document.getElementById('pc-card-name')?.textContent || 'Player';
+            const elo = document.getElementById('pc-card-elo')?.textContent || '1300';
+            const shareUrl = `https://subsoccer.pro/player-card.html?u=${encodeURIComponent(playerName)}`;
+            const shareText = `Check out ${playerName}'s Subsoccer Pro Card — ELO ${elo} ⚽🏆`;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: `${playerName} — Subsoccer Pro Card`,
+                        text: shareText,
+                        url: shareUrl
+                    });
+                } catch(e) {
+                    if (e.name !== 'AbortError') console.warn('Share failed:', e);
+                }
+            } else {
+                // Clipboard fallback for desktop
+                try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    const btn = document.getElementById('btn-share-card');
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-check" style="margin-right:8px;"></i>LINK COPIED!';
+                    btn.style.background = '#2a7a3a';
+                    setTimeout(() => { btn.innerHTML = orig; btn.style.background = '#c41e2a'; }, 2000);
+                } catch(e) {
+                    prompt('Copy this link:', shareUrl);
+                }
+            }
+        }
+
         // Load profile
         (async function loadProfile() {
+            // 0. Check ?u= param FIRST — if viewing someone else's profile, skip localStorage
+            const params = new URLSearchParams(window.location.search);
+            const usernameParam = params.get('u');
+            if (usernameParam) {
+                try {
+                    const profiles = await directQuery('GET', 'player_profiles', {
+                        'username': `ilike.${usernameParam}`,
+                        'select': '*'
+                    });
+                    if (profiles && profiles[0]) {
+                        window._isViewingOtherProfile = true;
+                        applyPlayerData(profiles[0]);
+                        console.log('✅ Profile loaded via URL u:', profiles[0].username);
+                        
+                        // Hide all owner-only sections for visitor mode
+                        document.querySelectorAll('.profile-accordion').forEach(el => el.style.display = 'none');
+                        // Hide avatar carousel and its parent section
+                        const avatarSection = document.getElementById('avatar-selection');
+                        if (avatarSection) {
+                            let parent = avatarSection.closest('div[style*="flex-direction: column"]');
+                            if (parent) parent.style.display = 'none';
+                        }
+                        // Hide download print card button
+                        const printBtn = document.getElementById('btn-print-card');
+                        if (printBtn && printBtn.closest('div[style*="max-width: 420px"]')) {
+                            printBtn.closest('div[style*="max-width: 420px"]').style.display = 'none';
+                        }
+                        // Show visitor CTA
+                        const visitorCta = document.getElementById('pc-visitor-cta');
+                        if (visitorCta) visitorCta.style.display = 'block';
+                        return; // Done — don't load own profile
+                    }
+                } catch(e) {
+                    console.warn('URL u load failed:', e.message);
+                }
+            }
+
             // 1. Try localStorage first (instant, no network)
             const cached = localStorage.getItem('subsoccer-user');
             let cachedUser = null;
@@ -2511,7 +2635,6 @@
             }
 
             // 3. If no cached ID, try URL params
-            const params = new URLSearchParams(window.location.search);
             const uid = params.get('uid');
             if (uid) {
                 try {
