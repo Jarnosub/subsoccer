@@ -2866,13 +2866,7 @@
                 if (rTitle) rTitle.textContent = `${winnerDisplayName.toUpperCase()} WINS!`;
 
                 const rScore = document.getElementById('ranked-final-score');
-                if (rScore) {
-                    if (p1Won) {
-                        rScore.innerHTML = `🏆 ${scoreP1} — ${scoreP2}`;
-                    } else {
-                        rScore.innerHTML = `${scoreP1} — ${scoreP2} 🏆`;
-                    }
-                }
+                if (rScore) rScore.textContent = `${scoreP1} — ${scoreP2}`;
 
                 // Player 1 Card Details (Petrol Blue half)
                 const resP1Name = document.getElementById('ranked-res-p1-name');
