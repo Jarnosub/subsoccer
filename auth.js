@@ -60,20 +60,31 @@ export async function initApp() {
 
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
-                if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-                    const isE2ETest = navigator.webdriver || window.location.search.includes('e2e=true');
-                    if (window.location.pathname.includes('login') && !isE2ETest) {
-                        // Varmistetaan että profiili on välimuistissa ennen redirectiä
-                        if (!state.user || state.user.id !== session.user.id) {
-                            await refreshUserProfile(session.user.id);
-                        }
+                const isE2ETest = navigator.webdriver || window.location.search.includes('e2e=true');
+                const isLoginPage = window.location.pathname.includes('login');
+                const isExplicitAuth = window.location.hash.includes('login') || window.location.hash.includes('signup');
+
+                if (event === 'SIGNED_IN' && session) {
+                    if (!state.user || state.user.id !== session.user.id) {
+                        await refreshUserProfile(session.user.id);
+                    }
+                    if (isLoginPage && !isE2ETest) {
                         window.location.replace('index.html');
                         return;
                     }
-
-                    // Normal in-app flow (other pages)
+                } else if (event === 'INITIAL_SESSION' && session) {
                     if (!state.user || state.user.id !== session.user.id) {
                         await refreshUserProfile(session.user.id);
+                    }
+                    // Jos profiilia ei löydy (orpo auth-token), siivotaan sessio pois jotta käyttäjä voi kirjautua
+                    if (!state.user && isLoginPage) {
+                        await _supabase.auth.signOut().catch(() => {});
+                        return;
+                    }
+                    // Ohjataan etusivulle vain jos käyttäjällä on aito profiili EIKÄ hän ole erikseen pyytänyt kirjautumissivua
+                    if (isLoginPage && !isE2ETest && state.user && state.user.username && !isExplicitAuth) {
+                        window.location.replace('index.html');
+                        return;
                     }
                 } else if (event === 'SIGNED_OUT') {
                     state.user = null;
