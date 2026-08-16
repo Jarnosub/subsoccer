@@ -661,7 +661,7 @@
             opacity: 0;
             transition: max-height 0.4s ease, opacity 0.3s ease;
         }
-        .profile-accordion-body.open { max-height: 500px; opacity: 1; }
+        .profile-accordion-body.open { max-height: 600px; opacity: 1; }
         .profile-accordion-inner {
             padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 10px;
         }
@@ -840,79 +840,73 @@
         </div>
     </div>
 
-    <!-- AVATAR STUDIO CONTROLS -->
-    
-    <!-- SECTION: CHOOSE AVATAR -->
-    <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; padding: 0 10px;">
-        <!-- Title aligned to the 280px card width -->
-        <div style="width: 280px; max-width: 100%;">
-            <div class="studio-section-label" style="margin-bottom: 8px;"><i class="fa-solid fa-palette"></i> <span data-i18n="pc_your_avatars">YOUR AVATARS</span></div>
-        </div>
-        
-        <!-- Carousel wrap: Arrows outside, track inside (280px max) -->
-        <div class="avatar-carousel-wrap" style="width: 100%; max-width: 380px; justify-content: center; gap: 12px; margin-bottom: 0;">
-            <button class="avatar-carousel-btn" id="avatar-prev" onclick="avatarCarouselStep(-1)" disabled>
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <div class="avatar-carousel-track-outer" style="flex: 0 0 280px; max-width: calc(100% - 92px);">
-                <div class="avatar-carousel-track" id="avatar-selection">
-                    <div class="avatar-option selected" data-avatar="avatar-human-1.png" onclick="selectAvatar(this)">
-                        <img src="avatar-human-1.png" alt="Character 1">
-                    </div>
-                    <div class="avatar-option" data-avatar="avatar-human-2.png" onclick="selectAvatar(this)">
-                        <img src="avatar-human-2.png" alt="Character 2">
-                    </div>
-                    <div class="avatar-option" data-avatar="avatar-human-3.png" onclick="selectAvatar(this)">
-                        <img src="avatar-human-3.png" alt="Character 3">
-                    </div>
-                    <div class="avatar-option" data-avatar="avatar-human-4.png" onclick="selectAvatar(this)">
-                        <img src="avatar-human-4.png" alt="Character 4">
-                    </div>
-                    <div class="avatar-option" data-avatar="avatar-human-5.png" onclick="selectAvatar(this)">
-                        <img src="avatar-human-5.png" alt="Character 5">
-                    </div>
-                    <div class="avatar-option" data-avatar="avatar-human-6.png" onclick="selectAvatar(this)">
-                        <img src="avatar-human-6.png" alt="Character 6">
-                    </div>
-                </div>
-            </div>
-            <button class="avatar-carousel-btn" id="avatar-next" onclick="avatarCarouselStep(1)">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
-        </div>
-
-        <!-- Delete text -->
-        <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:8px;">
-            <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#555; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#c41e2a'" onmouseout="this.style.color='#555'">
-                <i class="fa-solid fa-trash-can" style="margin-right:4px;"></i><span data-i18n="pc_delete_avatar">DELETE AVATAR</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- SECTION: UPLOAD PHOTO + SAVE -->
+    <!-- SECTION: CHANGE AVATAR & PHOTO -->
     <div class="profile-accordion" style="margin-bottom: 12px;">
         <button class="profile-accordion-btn" id="studio-accordion-btn" onclick="toggleStudioAccordion()">
-            <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-camera"></i> UPLOAD PHOTO</span>
+            <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-user-pen"></i> CHANGE AVATAR / PHOTO</span>
             <i class="fa-solid fa-chevron-down chevron"></i>
         </button>
         <div class="profile-accordion-body" id="studio-accordion-body">
             <div class="profile-accordion-inner">
-                <div class="ai-hero" style="gap: 12px;">
-                    <label class="ai-upload-btn" id="ai-upload-label" style="width:100%; margin:0;">
-                        <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
-                        <span id="ai-selfie-label">CHOOSE PHOTO</span>
-                        <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
-                    </label>
+                <!-- Carousel inside -->
+                <div style="width:100%; margin-bottom:4px;">
+                    <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-bottom:8px;"><i class="fa-solid fa-palette"></i> SAVED AVATARS</div>
                     
-                    <hr style="border:0; height:1px; background:rgba(255,255,255,0.05); margin: 2px 0;">
+                    <div class="avatar-carousel-wrap" style="width:100%; justify-content:center; gap:8px; margin-bottom:0;">
+                        <button class="avatar-carousel-btn" id="avatar-prev" onclick="avatarCarouselStep(-1)" disabled>
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div class="avatar-carousel-track-outer" style="flex: 1; max-width: 180px;">
+                            <div class="avatar-carousel-track" id="avatar-selection">
+                                <div class="avatar-option selected" data-avatar="avatar-human-1.png" onclick="selectAvatar(this)">
+                                    <img src="avatar-human-1.png" alt="Character 1">
+                                </div>
+                                <div class="avatar-option" data-avatar="avatar-human-2.png" onclick="selectAvatar(this)">
+                                    <img src="avatar-human-2.png" alt="Character 2">
+                                </div>
+                                <div class="avatar-option" data-avatar="avatar-human-3.png" onclick="selectAvatar(this)">
+                                    <img src="avatar-human-3.png" alt="Character 3">
+                                </div>
+                                <div class="avatar-option" data-avatar="avatar-human-4.png" onclick="selectAvatar(this)">
+                                    <img src="avatar-human-4.png" alt="Character 4">
+                                </div>
+                                <div class="avatar-option" data-avatar="avatar-human-5.png" onclick="selectAvatar(this)">
+                                    <img src="avatar-human-5.png" alt="Character 5">
+                                </div>
+                                <div class="avatar-option" data-avatar="avatar-human-6.png" onclick="selectAvatar(this)">
+                                    <img src="avatar-human-6.png" alt="Character 6">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="avatar-carousel-btn" id="avatar-next" onclick="avatarCarouselStep(1)">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
 
-                    <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%; margin:0;">
-                        <i class="fa-solid fa-check" style="margin-right:8px;"></i><span data-i18n="pc_save_avatar">SAVE AVATAR</span>
-                    </button>
-
-                    <div id="pc-ai-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
-                    <div id="pc-edit-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
+                    <!-- Delete text -->
+                    <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:6px;">
+                        <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#555; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#c41e2a'" onmouseout="this.style.color='#555'">
+                            <i class="fa-solid fa-trash-can" style="margin-right:4px;"></i><span>DELETE AVATAR</span>
+                        </a>
+                    </div>
                 </div>
+
+                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-top:8px; margin-bottom:-4px;"><i class="fa-solid fa-camera"></i> OR UPLOAD NEW PHOTO</div>
+
+                <label class="ai-upload-btn" id="ai-upload-label" style="width:100%; margin:0;">
+                    <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
+                    <span id="ai-selfie-label">CHOOSE PHOTO</span>
+                    <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
+                </label>
+                
+                <hr style="border:0; height:1px; background:rgba(255,255,255,0.05); margin: 2px 0;">
+
+                <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%; margin:0;">
+                    <i class="fa-solid fa-check" style="margin-right:8px;"></i><span>SAVE AVATAR</span>
+                </button>
+
+                <div id="pc-ai-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
+                <div id="pc-edit-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
             </div>
         </div>
     </div>
