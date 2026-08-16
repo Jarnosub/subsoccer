@@ -119,6 +119,8 @@
             justify-content: center;
             margin-bottom: 12px;
             position: relative;
+            pointer-events: auto;
+            cursor: default;
         }
 
         .player-left .vs-intro-avatar-wrap {
@@ -147,6 +149,8 @@
             border-radius: 2px;
             border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: none;
+            pointer-events: auto;
+            cursor: default;
         }
 
         .vs-intro-elo span {
@@ -1039,10 +1043,10 @@
 
             <!-- VS Intro Left (Visible during ranked intro) -->
             <div class="vs-intro-player" id="vs-intro-p1">
-                <div class="vs-intro-avatar-wrap">
+                <div class="vs-intro-avatar-wrap" onclick="event.stopPropagation()">
                     <img id="vs-p1-avatar" src="avatar-human-1.png" alt="Player 1">
                 </div>
-                <div class="vs-intro-elo"><span id="vs-p1-elo">1300 ELO</span></div>
+                <div class="vs-intro-elo" onclick="event.stopPropagation()"><span id="vs-p1-elo">1300 ELO</span></div>
             </div>
 
             <div class="score" id="score-p1">0</div>
@@ -1058,10 +1062,10 @@
 
             <!-- VS Intro Right (Visible during ranked intro) -->
             <div class="vs-intro-player" id="vs-intro-p2">
-                <div class="vs-intro-avatar-wrap">
+                <div class="vs-intro-avatar-wrap" onclick="event.stopPropagation()">
                     <img id="vs-p2-avatar" src="avatar-human-2.png" alt="Player 2">
                 </div>
-                <div class="vs-intro-elo"><span id="vs-p2-elo">1300 ELO</span></div>
+                <div class="vs-intro-elo" onclick="event.stopPropagation()"><span id="vs-p2-elo">1300 ELO</span></div>
             </div>
 
             <div class="score" id="score-p2">0</div>
@@ -2435,6 +2439,10 @@
 
         // Add goal
         function addGoal(player) {
+            if (document.documentElement.classList.contains('is-ranked-intro')) {
+                startRankedMatch();
+            }
+
             const now = Date.now();
             // Estä liian nopeat peräkkäiset maalit (800ms viive)
             if (document.getElementById('winner-overlay').classList.contains('show') || (now - lastGoalTime < 800)) {
