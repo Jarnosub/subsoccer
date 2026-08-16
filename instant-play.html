@@ -480,20 +480,23 @@
 
         /* Winner overlay - Split Stadium Arena matching the game */
         .winner-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
             background: linear-gradient(to right, #1c2b36 0%, #121e2b 49.8%, #000000 49.8%, #000000 50.2%, #a8101a 50.2%, #6b050b 100%);
             display: none;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             z-index: 100;
-            padding: 20px;
+            padding: 10px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            box-sizing: border-box;
         }
 
         /* Action Links / Buttons */
@@ -721,32 +724,104 @@
             }
         }
 
-        /* Landscape optimization for mobile screens */
-        @media (orientation: landscape) and (max-height: 500px) {
+        /* Landscape & Short Screen Optimization */
+        @media (max-height: 550px) {
             .winner-overlay {
-                gap: 10px;
-                padding: 15px;
+                gap: 6px !important;
+                padding: 6px !important;
+            }
+
+            .winner-content-box {
+                padding: max(env(safe-area-inset-top), 4px) 10px max(env(safe-area-inset-bottom), 6px) 10px !important;
+            }
+
+            #ranked-victory-box {
+                max-width: 620px !important;
+                padding: 2px 0 !important;
+            }
+
+            #ranked-winner-title {
+                font-size: 1.3rem !important;
+                margin-bottom: 2px !important;
+            }
+
+            #ranked-final-score {
+                font-size: 2.2rem !important;
+                margin-bottom: 4px !important;
+            }
+
+            #ranked-card-p1, #ranked-card-p2 {
+                max-width: 110px !important;
+            }
+
+            #ranked-res-p1-wrap, #ranked-res-p2-wrap {
+                max-height: 80px !important;
+            }
+
+            #ranked-res-p1-name, #ranked-res-p2-name {
+                font-size: 0.85rem !important;
+                margin-top: 2px !important;
+            }
+
+            #ranked-res-p1-elo-box, #ranked-res-p2-elo-box {
+                padding: 2px 6px !important;
+                margin-top: 2px !important;
+            }
+
+            #ranked-res-p1-elo, #ranked-res-p2-elo {
+                font-size: 0.7rem !important;
+            }
+
+            #ranked-match-stats {
+                font-size: 0.65rem !important;
+                margin-bottom: 6px !important;
+            }
+
+            .ranked-action-btns {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                max-width: 520px !important;
+                gap: 6px !important;
+            }
+
+            #btn-share-ranked-result {
+                flex: 1 1 200px !important;
+                padding: 8px 12px !important;
+                font-size: 0.95rem !important;
+            }
+
+            .btn-ranked-rematch {
+                flex: 1 1 130px !important;
+                padding: 8px 12px !important;
+                font-size: 0.95rem !important;
+            }
+
+            .sub-back-link {
+                width: 100% !important;
+                padding: 2px 0 !important;
+                font-size: 0.8rem !important;
             }
 
             .winner-text {
-                font-size: 2.5rem;
+                font-size: 2.2rem !important;
             }
 
             .winner-subtitle {
-                font-size: 1rem;
+                font-size: 0.9rem !important;
             }
 
             .winner-motivation {
-                padding: 10px 15px;
-                font-size: 0.8rem;
-                max-width: 600px;
-                margin: 0;
+                padding: 8px 12px !important;
+                font-size: 0.75rem !important;
+                max-width: 500px !important;
+                margin: 0 !important;
             }
 
             .claim-victory-btn,
             .play-again-btn {
-                padding: 10px 30px;
-                font-size: 1rem;
+                padding: 8px 20px !important;
+                font-size: 0.95rem !important;
             }
         }
 
@@ -1437,14 +1512,14 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:320px;">
+                <div class="ranked-action-btns" style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:320px;">
                     <!-- 1. Primary: Share Result Card -->
                     <button id="btn-share-ranked-result" onclick="shareRankedResult()" style="width:100%; padding:15px; background:#c41e2a; color:#fff; border:none; border-radius:2px; font-family:'Subsoccer', sans-serif; font-size:1.2rem; letter-spacing:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; text-transform:uppercase;">
                         <i class="fa-solid fa-share-nodes"></i> SHARE RESULT CARD
                     </button>
 
                     <!-- 2. Secondary: Rematch -->
-                    <button onclick="playAgain()" style="width:100%; padding:14px; background:#111111; color:#fff; border:1px solid rgba(255,255,255,0.25); border-radius:2px; font-family:'Subsoccer', sans-serif; font-size:1.1rem; letter-spacing:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; text-transform:uppercase;">
+                    <button class="btn-ranked-rematch" onclick="playAgain()" style="width:100%; padding:14px; background:#111111; color:#fff; border:1px solid rgba(255,255,255,0.25); border-radius:2px; font-family:'Subsoccer', sans-serif; font-size:1.1rem; letter-spacing:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; text-transform:uppercase;">
                         <i class="fa-solid fa-rotate-right"></i> REMATCH
                     </button>
 
