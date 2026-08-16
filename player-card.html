@@ -826,9 +826,14 @@
                             </div>
                         </div>
                         
-                        <div style="margin-top: 10px; text-align: center; background: rgba(196,30,42,0.1); border: 1px solid rgba(196,30,42,0.3); padding: 10px; border-radius: 4px;">
-                            <div style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.6rem; letter-spacing:2px; margin-bottom:4px;" data-i18n="pc_tournaments_won">TOURNAMENTS WON</div>
-                            <div id="pc-back-tourneys" style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
+                        <div style="margin-top: 8px; text-align: center; background: rgba(196,30,42,0.08); border: 1px solid rgba(196,30,42,0.25); padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                            <div style="background: #fff; padding: 4px; border-radius: 4px; line-height: 0;">
+                                <div id="pc-card-back-qr" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;"></div>
+                            </div>
+                            <div style="text-align: left;">
+                                <div style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.65rem; font-weight: 800; letter-spacing:1.5px;">MATCH QR</div>
+                                <div style="font-size:0.55rem; color:#aaa; line-height:1.2; margin-top:2px;">Scan to start instant 1-on-1 match</div>
+                            </div>
                         </div>
                     </div>
                     
@@ -838,6 +843,13 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- PRIMARY ACTION: MY MATCH QR -->
+    <div style="width: 280px; max-width: 100%; margin: 0 auto 16px; padding: 0;">
+        <button class="pc-save-btn" id="btn-match-qr" onclick="showMyMatchQr()" style="width:100%; background:linear-gradient(135deg, #c41e2a 0%, #a01520 100%); color: #fff; font-size: 0.85rem; padding: 16px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:6px; box-shadow:0 4px 15px rgba(196,30,42,0.35);">
+            <i class="fa-solid fa-qrcode" style="font-size:1.1rem;"></i><span>MY MATCH QR</span>
+        </button>
     </div>
 
     <!-- SECTION: CHANGE AVATAR & PHOTO -->
@@ -939,13 +951,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- MY MATCH QR MODAL TRIGGER -->
-    <div style="width: 280px; max-width: 100%; margin: 0 auto 24px; padding: 0;">
-        <button class="pc-save-btn" id="btn-match-qr" onclick="showMyMatchQr()" style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); color: #ccc; box-shadow: none; font-size: 0.75rem;">
-            <i class="fa-solid fa-qrcode" style="margin-right:8px; color: #c41e2a;"></i><span>MY MATCH QR</span>
-        </button>
     </div>
 
     <!-- MATCH QR MODAL -->
@@ -1134,10 +1139,27 @@
             document.getElementById('pc-back-ratio').innerText = ratio + '%';
             document.getElementById('pc-back-matches').innerText = matches;
             document.getElementById('pc-back-wins').innerText = wins;
-            document.getElementById('pc-back-tourneys').innerText = (player.tournaments_won || 0);
-
             const tier = elo >= 1800 ? 'LEGEND' : elo >= 1500 ? 'PRO PLAYER' : elo >= 1300 ? 'CHALLENGER' : 'ROOKIE';
             document.getElementById('pc-card-tier').innerText = tier;
+
+            // Generate Card Back QR code
+            const backQr = document.getElementById('pc-card-back-qr');
+            if (backQr && typeof QRCode !== 'undefined') {
+                backQr.innerHTML = '';
+                try {
+                    const matchUrl = `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(name)}`;
+                    new QRCode(backQr, {
+                        text: matchUrl,
+                        width: 56,
+                        height: 56,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } catch(qrErr) {
+                    console.warn('Card back QR generation failed:', qrErr);
+                }
+            }
 
             if (player.is_owner || player.is_admin) {
                 const modBtn = document.getElementById('pc-mod-btn');
