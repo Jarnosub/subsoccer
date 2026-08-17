@@ -417,7 +417,7 @@
                     </div>
                 </div>
 
-                <a href="https://subsoccer-studio.netlify.app/#" class="cta-button" target="_blank">Plan Your Event ⚽</a>
+                <a href="#" class="cta-button" onclick="event.preventDefault();openTournamentPlanner()">Plan Your Tournament ⚽</a>
             </div>
             <div class="usecase-image">
                 <img src="/events/images/champions-league-event.jpg" alt="Subsoccer at a championship event">
@@ -538,6 +538,103 @@
     <footer style="background: #111; padding: 30px 40px; text-align: center; font-family: 'Inter', sans-serif; font-size: 0.8rem; color: #666;">
         <p style="margin: 0;">© 2026 Subsoccer. Subsoccer® is a patented game. For more information, visit <a href="https://www.subsoccer.com" style="color: #999; text-decoration: underline;">subsoccer.com</a></p>
     </footer>
+
+    <!-- Tournament Planner Modal -->
+    <div id="planner-overlay" class="planner-overlay" style="display:none;" onclick="if(event.target===this)closePlanner()">
+        <div class="planner-modal">
+            <button class="planner-close" onclick="closePlanner()">&times;</button>
+            <h2 class="planner-title">Plan Your <span style="color:#c41e2a;">Tournament</span></h2>
+            <p class="planner-intro">Estimate how long your Subsoccer tournament will take. Suitable for all ages 7–100!</p>
+
+            <div class="planner-input-group">
+                <label for="planner-players">Number of players</label>
+                <div class="planner-slider-row">
+                    <input type="range" id="planner-players" min="4" max="64" value="8" oninput="updatePlanner()">
+                    <span id="planner-player-count" class="planner-count">8</span>
+                </div>
+            </div>
+
+            <div class="planner-input-group">
+                <label for="planner-tables">Number of tables</label>
+                <div class="planner-slider-row">
+                    <input type="range" id="planner-tables" min="1" max="8" value="1" oninput="updatePlanner()">
+                    <span id="planner-table-count" class="planner-count">1</span>
+                </div>
+            </div>
+
+            <div class="planner-results">
+                <div class="planner-stat"><div class="planner-stat-value" id="planner-matches">7</div><div class="planner-stat-label">Matches</div></div>
+                <div class="planner-stat"><div class="planner-stat-value" id="planner-duration">~18 min</div><div class="planner-stat-label">Duration</div></div>
+                <div class="planner-stat"><div class="planner-stat-value" id="planner-rounds">3</div><div class="planner-stat-label">Rounds</div></div>
+            </div>
+
+            <div class="planner-info">
+                <p>⏱️ Each match takes approximately <strong>2.5 minutes</strong></p>
+                <p>🏆 Single elimination format — every match matters!</p>
+                <p>👥 Ages <strong>7 to 100</strong> — perfect as a side event for any audience</p>
+            </div>
+
+            <a href="https://subsoccer.pro" class="cta-button" style="margin-top:20px; text-align:center; display:block;">Start with Subsoccer GO →</a>
+        </div>
+    </div>
+
+    <style>
+        .planner-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10002; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+        .planner-modal { background:#fff; border-radius:16px; padding:40px; max-width:480px; width:90%; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:plannerIn 0.3s ease; }
+        @keyframes plannerIn { from{opacity:0;transform:scale(0.95) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+        .planner-close { position:absolute; top:15px; right:20px; background:none; border:none; font-size:1.8rem; cursor:pointer; color:#999; transition:color 0.2s; }
+        .planner-close:hover { color:#333; }
+        .planner-title { font-family:'Subsoccer','Inter',sans-serif; font-size:1.8rem; margin-bottom:8px; font-weight:normal; }
+        .planner-intro { font-family:'Inter',sans-serif; font-size:0.9rem; color:#666; margin-bottom:30px; line-height:1.5; }
+        .planner-input-group { margin-bottom:30px; }
+        .planner-input-group label { font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:600; color:#333; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:12px; }
+        .planner-slider-row { display:flex; align-items:center; gap:20px; }
+        .planner-slider-row input[type="range"] { flex:1; -webkit-appearance:none; height:6px; background:#e0e0e0; border-radius:3px; outline:none; }
+        .planner-slider-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:#c41e2a; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.2); }
+        .planner-count { font-family:'Subsoccer','Inter',sans-serif; font-size:2.2rem; color:#c41e2a; min-width:50px; text-align:center; font-weight:normal; }
+        .planner-results { display:flex; gap:15px; margin-bottom:25px; }
+        .planner-stat { flex:1; background:#f5f5f0; border-radius:12px; padding:18px 12px; text-align:center; }
+        .planner-stat-value { font-family:'Subsoccer','Inter',sans-serif; font-size:1.5rem; color:#111; font-weight:normal; margin-bottom:4px; }
+        .planner-stat-label { font-family:'Inter',sans-serif; font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:1px; }
+        .planner-info { border-top:1px solid #eee; padding-top:20px; }
+        .planner-info p { font-family:'Inter',sans-serif; font-size:0.85rem; color:#555; margin-bottom:8px; line-height:1.5; }
+        @media(max-width:480px) { .planner-modal{padding:25px;margin:10px} .planner-title{font-size:1.4rem} }
+    </style>
+
+    <script>
+        function openTournamentPlanner() {
+            document.getElementById('planner-overlay').style.display = 'flex';
+            updatePlanner();
+        }
+        function closePlanner() {
+            document.getElementById('planner-overlay').style.display = 'none';
+        }
+        function updatePlanner() {
+            const players = parseInt(document.getElementById('planner-players').value);
+            const tables = parseInt(document.getElementById('planner-tables').value);
+            document.getElementById('planner-player-count').textContent = players;
+            document.getElementById('planner-table-count').textContent = tables;
+            const matches = players - 1;
+            const rounds = Math.ceil(Math.log2(players));
+            let totalMinutes = 0, remaining = players;
+            for (let r = 0; r < rounds; r++) {
+                const matchesInRound = Math.floor(remaining / 2);
+                const slotsNeeded = Math.ceil(matchesInRound / tables);
+                totalMinutes += slotsNeeded * 2.5;
+                remaining = Math.ceil(remaining / 2);
+            }
+            const durationMin = Math.round(totalMinutes);
+            document.getElementById('planner-matches').textContent = matches;
+            document.getElementById('planner-rounds').textContent = rounds;
+            if (durationMin >= 60) {
+                const hrs = Math.floor(durationMin / 60);
+                const mins = durationMin % 60;
+                document.getElementById('planner-duration').textContent = mins > 0 ? `~${hrs}h ${mins}min` : `~${hrs}h`;
+            } else {
+                document.getElementById('planner-duration').textContent = `~${durationMin} min`;
+            }
+        }
+    </script>
 
 </body>
 </html>

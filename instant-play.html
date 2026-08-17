@@ -811,11 +811,35 @@
             .winner-content-box {
                 padding: max(env(safe-area-inset-top), 2px) 10px max(env(safe-area-inset-bottom), 2px) 10px !important;
                 justify-content: center !important;
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
             }
 
             #ranked-victory-box {
                 max-width: 620px !important;
                 padding: 2px 0 !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            .ranked-action-btns {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                max-width: 620px !important;
+                gap: 8px !important;
+                justify-content: center !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+            .ranked-action-btns > button {
+                flex: 1 1 45% !important;
+                min-width: 0 !important;
+            }
+            .ranked-action-btns > a.sub-back-link {
+                flex: 0 0 100% !important;
+                text-align: center !important;
             }
 
             #ranked-winner-title {
