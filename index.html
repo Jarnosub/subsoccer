@@ -982,7 +982,7 @@
         <!-- SOCIAL PROOF -->
         <div class="social-proof">
             <div class="social-proof-item">
-                <span class="social-proof-number" id="sp-cities">750+</span>
+                <span class="social-proof-number" id="sp-cities">670+</span>
                 <span class="social-proof-label" data-i18n="cities">Cities</span>
             </div>
             <div class="social-proof-item">
@@ -1840,7 +1840,7 @@
                         });
 
                         // Update social proof with cumulative real city count (never decreases)
-                        const CUMULATIVE_BASE_CITIES = 750;
+                        const CUMULATIVE_BASE_CITIES = 671;
                         const storedMax = parseInt(localStorage.getItem('subsoccer_max_cities') || '0', 10);
                         const cityCount = Math.max(CUMULATIVE_BASE_CITIES, storedMax, seenCities.length);
                         try { localStorage.setItem('subsoccer_max_cities', cityCount.toString()); } catch(e) {}
