@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Subsoccer Community Highlights &amp; Feed | Subsoccer Pro</title>
+    <meta name="description" content="Watch the coolest Subsoccer trick shots, insane goals, and epic rallies from players around the world. Tag #subsoccer on Instagram to get featured!">
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://ujxmmrsmdwrgcwatdhvx.supabase.co">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    <!-- Font Awesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Supabase JS & Instagram Embed -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script async defer src="https://www.instagram.com/embed.js"></script>
+    <script src="version.js" defer></script>
+    <script src="translations.js" defer></script>
+
+    <style>
+        @font-face {
+            font-family: 'Subsoccer';
+            src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'),
+                 url('fonts/Subsoccer-2-Regular.woff') format('woff'),
+                 url('fonts/Subsoccer-2-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Resolve';
+            src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+            display: swap;
+        }
+        @font-face {
+            font-family: 'Open Sans';
+            src: url('https://fonts.gstatic.com/s/opensans/v34/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #0d0d0d;
+            color: #ffffff;
+            font-family: 'Open Sans', sans-serif;
+            min-height: 100dvh;
+            padding-bottom: calc(70px + env(safe-area-inset-bottom, 20px));
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Top Header */
+        .feed-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(13, 13, 13, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid #222222;
+            padding: 10px 16px;
+            padding-top: calc(10px + env(safe-area-inset-top, 0px));
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+            justify-self: start;
+        }
+        .btn-back:hover { background: #222; }
+
+        .brand-logo-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            justify-self: center;
+        }
+
+        .brand-logo {
+            height: 22px;
+            display: block;
+            cursor: pointer;
+        }
+
+        .feed-badge {
+            background: rgba(196, 30, 42, 0.15);
+            border: 1px solid rgba(196, 30, 42, 0.35);
+            color: #c41e2a;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            padding: 3px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            justify-self: end;
+        }
+
+        /* Hero Banner */
+        .feed-hero {
+            padding: 20px 16px 14px;
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .feed-hero h1 {
+            font-family: 'Subsoccer', sans-serif !important;
+            font-weight: normal;
+            font-size: clamp(3.0rem, 11.5vw, 4.4rem);
+            line-height: 0.95;
+            letter-spacing: 0;
+            margin: 0 0 8px;
+            color: #ffffff;
+            text-transform: uppercase;
+            white-space: nowrap;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+        }
+        .feed-hero h1 span { color: #c41e2a; }
+
+        .feed-hero p {
+            font-family: 'Resolve', sans-serif;
+            color: #888888;
+            font-size: clamp(0.68rem, 2.4vw, 0.76rem);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0 0 16px;
+            line-height: 1.4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-create-highlight {
+            width: 100%;
+            max-width: 400px;
+            background: #c41e2a;
+            color: #ffffff;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 2px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.15rem !important;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 0 auto;
+            box-sizing: border-box;
+            transition: transform 0.15s, opacity 0.2s, background 0.15s;
+        }
+        .btn-create-highlight:hover {
+            background: #a51824;
+            box-shadow: 0 6px 20px rgba(196, 30, 42, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-create-highlight:active {
+            transform: scale(0.97);
+            box-shadow: none;
+        }
+
+
+
+        /* Feed Grid & Cards */
+        .feed-container {
+            max-width: 400px;
+            width: 100%;
+            margin: 20px auto;
+            padding: 0 16px 80px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+        }
+
+        .feed-card {
+            background: #141414;
+            border: 1px solid #262626;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .feed-card:hover {
+            border-color: #383838;
+        }
+        .feed-card.is-featured {
+            border-color: rgba(196, 30, 42, 0.45);
+            background: linear-gradient(180deg, rgba(196, 30, 42, 0.08) 0%, #141414 40%);
+        }
+
+        .card-header {
+            padding: 14px 16px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .creator-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .creator-avatar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #222;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c41e2a;
+            font-size: 1rem;
+        }
+        .creator-names {
+            display: flex;
+            flex-direction: column;
+        }
+        .creator-handle {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+        }
+        .creator-handle:hover { color: #c41e2a; }
+        .post-time {
+            font-size: 0.72rem;
+            color: #777;
+        }
+
+        .card-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.68rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .card-badge.badge-featured {
+            background: rgba(196, 30, 42, 0.2);
+            border: 1px solid #c41e2a;
+            color: #ff4d5a;
+            font-weight: bold;
+        }
+        .card-badge.badge-category {
+            background: #222;
+            color: #aaa;
+        }
+
+        /* Instagram Reel Preview Card */
+        .card-embed-wrapper {
+            background: #000;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reel-preview-cover {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        .reel-preview-cover:hover {
+            transform: scale(1.01);
+        }
+        .reel-overlay-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 100%);
+        }
+        .reel-play-btn-wrap {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s ease;
+        }
+        .reel-preview-cover:hover .reel-play-btn-wrap {
+            transform: scale(1.08);
+        }
+        .reel-play-icon {
+            width: 56px;
+            height: 56px;
+            background: #c41e2a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 20px rgba(196, 30, 42, 0.6);
+            padding-left: 4px;
+        }
+        .reel-play-text {
+            color: #ffffff;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.82rem;
+            font-weight: bold;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        }
+        .reel-badge-duration {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.68rem;
+            font-weight: bold;
+            letter-spacing: 0.8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-footer {
+            padding: 14px 16px;
+            border-top: 1px solid #202020;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            color: #eee;
+            margin: 0 0 10px;
+            line-height: 1.4;
+        }
+
+        .footer-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .btn-action-like {
+            background: #202020;
+            border: 1px solid #333;
+            color: #ccc;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-action-like:hover, .btn-action-like.liked {
+            background: rgba(196, 30, 42, 0.15);
+            border-color: #c41e2a;
+            color: #c41e2a;
+        }
+
+        .btn-action-ig {
+            background: transparent;
+            border: 1px solid #333;
+            color: #aaa;
+            text-decoration: none;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-action-ig:hover {
+            color: #fff;
+            border-color: #666;
+            background: #222;
+        }
+
+        /* Loading / Empty States */
+        .feed-loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #777;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .feed-empty {
+            text-align: center;
+            padding: 50px 20px;
+            background: #141414;
+            border: 1px dashed #333;
+            border-radius: 12px;
+            color: #888;
+        }
+        .feed-empty i {
+            font-size: 2.2rem;
+            color: #555;
+            margin-bottom: 12px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="feed-header">
+        <button class="btn-back" onclick="window.location.href='index.html'" aria-label="Back">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="brand-logo-wrap">
+            <img src="subsoccer_logo.svg" alt="Subsoccer" class="brand-logo" onclick="window.location.href='index.html'" onerror="this.src='subsoccer_logo.png'">
+        </div>
+        <span class="feed-badge">COMMUNITY FEED</span>
+    </header>
+
+    <!-- Hero / Creator CTA -->
+    <section class="feed-hero">
+        <h1>BEST OF <span>BENCH SOCCER</span></h1>
+        <p>
+            <span>HIGHLIGHT REELS</span>
+            <span style="color:#c41e2a;">·</span>
+            <span>INSANE TRICKS</span>
+            <span style="color:#c41e2a;">·</span>
+            <span>FASTEST GOALS</span>
+        </p>
+        <a href="highlight-creator.html" class="btn-create-highlight">
+            <i class="fa-solid fa-clapperboard"></i> CREATE YOUR OWN HIGHLIGHT
+        </a>
+    </section>
+
+    <!-- Feed List -->
+    <main class="feed-container" id="feed-container">
+        <div class="feed-loading" id="feed-loading">
+            <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: #c41e2a; margin-bottom: 12px; display: block;"></i>
+            LOADING BENCH SOCCER HIGHLIGHTS...
+        </div>
+    </main>
+
+    <!-- Feed Logic -->
+    <script>
+        const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        let sb = null;
+
+        // Fallback seed items
+        const DEFAULT_SEED_ITEMS = [
+            {
+                id: 'seed-1',
+                instagram_id: 'C_jK2sKsfMh',
+                url: 'https://www.instagram.com/reel/C_jK2sKsfMh/',
+                title: 'Unbelievable rally & trick shot finish! 🔥⚽ #subsoccer',
+                creator_handle: '@subsoccer_official',
+                category: 'rallies',
+                is_featured: true,
+                likes_count: 248,
+                created_at: new Date().toISOString()
+            },
+            {
+                id: 'seed-2',
+                instagram_id: 'C-7oE7kM1sF',
+                url: 'https://www.instagram.com/reel/C-7oE7kM1sF/',
+                title: 'Insane nutmeg trick shot in sudden death overtime! 🎯',
+                creator_handle: '@subsoccer_official',
+                category: 'tricks',
+                is_featured: true,
+                likes_count: 189,
+                created_at: new Date(Date.now() - 86400000).toISOString()
+            },
+            {
+                id: 'seed-3',
+                instagram_id: 'C9rM0vKs_7Q',
+                url: 'https://www.instagram.com/reel/C9rM0vKs_7Q/',
+                title: 'Fastest 3-0 clean sweep in Subsoccer Pro history ⚡',
+                creator_handle: '@subsoccer_official',
+                category: 'goals',
+                is_featured: false,
+                likes_count: 142,
+                created_at: new Date(Date.now() - 172800000).toISOString()
+            }
+        ];
+
+        let allFeedItems = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.supabase) {
+                sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+            }
+            await loadFeed();
+        });
+
+        async function loadFeed() {
+            try {
+                if (sb) {
+                    const { data, error } = await sb
+                        .from('subsoccer_feed')
+                        .select('*')
+                        .eq('is_active', true)
+                        .order('sort_order', { ascending: true })
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data && data.length > 0) {
+                        allFeedItems = data;
+                    } else {
+                        allFeedItems = DEFAULT_SEED_ITEMS;
+                    }
+                } else {
+                    allFeedItems = DEFAULT_SEED_ITEMS;
+                }
+            } catch (err) {
+                console.warn('Could not fetch from Supabase, using defaults:', err);
+                allFeedItems = DEFAULT_SEED_ITEMS;
+            }
+
+            renderFeed();
+        }
+
+        function renderFeed() {
+            const container = document.getElementById('feed-container');
+            container.innerHTML = '';
+
+            if (allFeedItems.length === 0) {
+                container.innerHTML = `
+                    <div class="feed-empty">
+                        <i class="fa-solid fa-video-slash"></i>
+                        <h3>No highlights yet</h3>
+                        <p>Be the first to share your skills! Tag <b>#subsoccer</b> on Instagram to get featured.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            allFeedItems.forEach(item => {
+                const card = createFeedCard(item);
+                container.appendChild(card);
+            });
+        }
+
+        function extractCode(item) {
+            if (item.instagram_id) return item.instagram_id;
+            if (item.url) {
+                const match = item.url.match(/\/(?:reel|p|reels)\/([A-Za-z0-9_-]+)/);
+                if (match) return match[1];
+            }
+            return '';
+        }
+
+        function createFeedCard(item) {
+            const card = document.createElement('article');
+            card.className = `feed-card ${item.is_featured ? 'is-featured' : ''}`;
+
+            const handle = item.creator_handle || '@subsoccer_official';
+            const code = extractCode(item);
+            const cleanUrl = code ? `https://www.instagram.com/reel/${code}/` : (item.url || 'https://www.instagram.com/subsoccer_official/');
+            const likedKey = `subsoccer_liked_${item.id}`;
+            const isLiked = localStorage.getItem(likedKey) === '1';
+
+            let captionText = item.title || '';
+            let customThumb = '';
+            try {
+                if (item.title && item.title.startsWith('{')) {
+                    const parsed = JSON.parse(item.title);
+                    captionText = parsed.caption || '';
+                    customThumb = parsed.thumb || '';
+                }
+            } catch(e) {}
+
+            const posterUrl = customThumb || item.thumbnail_url || 'Subsoccer_tournament_2.jpg';
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="creator-info">
+                        <div class="creator-avatar-icon">
+                            <i class="fa-brands fa-instagram"></i>
+                        </div>
+                        <div class="creator-names">
+                            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="creator-handle">${handle}</a>
+                            <span class="post-time">${formatDate(item.created_at)}</span>
+                        </div>
+                    </div>
+                    <div>
+                        ${item.is_featured ? '<span class="card-badge badge-featured"><i class="fa-solid fa-fire"></i> FEATURED</span>' : ''}
+                    </div>
+                </div>
+
+                <div class="card-embed-wrapper">
+                    <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="reel-preview-cover" style="background-image: url('${escapeHtml(posterUrl)}');">
+                        <div class="reel-overlay-gradient"></div>
+                        <div class="reel-play-btn-wrap">
+                            <div class="reel-play-icon">
+                                <i class="fa-solid fa-play"></i>
+                            </div>
+                            <span class="reel-play-text">WATCH ON INSTAGRAM</span>
+                        </div>
+                        <div class="reel-badge-duration">
+                            <i class="fa-brands fa-instagram"></i> REEL
+                        </div>
+                    </a>
+                </div>
+
+                <div class="card-footer">
+                    <div style="width: 100%;">
+                        ${captionText ? `<p class="card-title">${escapeHtml(captionText)}</p>` : ''}
+                        <div class="footer-actions">
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-action-like ${isLiked ? 'liked' : ''}" onclick="toggleLike('${item.id}', this)" aria-label="Like highlight">
+                                    <i class="fa-${isLiked ? 'solid' : 'regular'} fa-heart"></i>
+                                    <span class="like-count">${(item.likes_count || 0) + (isLiked ? 1 : 0)}</span>
+                                </button>
+                                <button class="btn-action-like" onclick="sharePost('${escapeHtml(cleanUrl)}', this)" aria-label="Share highlight">
+                                    <i class="fa-solid fa-arrow-up-from-bracket"></i> Share
+                                </button>
+                            </div>
+                            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="btn-action-ig">
+                                <i class="fa-brands fa-instagram"></i> Open
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function sharePost(url, btn) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Subsoccer Highlight',
+                    text: 'Check out this Subsoccer highlight reel! ⚽',
+                    url: url
+                }).catch(() => {});
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(url);
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check" style="color:#2ecc71;"></i> Copied!';
+                setTimeout(() => { btn.innerHTML = orig; }, 1800);
+            }
+        }
+
+        function toggleLike(itemId, btn) {
+            const likedKey = `subsoccer_liked_${itemId}`;
+            const isLiked = localStorage.getItem(likedKey) === '1';
+            const countEl = btn.querySelector('.like-count');
+            const icon = btn.querySelector('i');
+            let count = parseInt(countEl.textContent, 10) || 0;
+
+            if (isLiked) {
+                localStorage.removeItem(likedKey);
+                btn.classList.remove('liked');
+                icon.className = 'fa-regular fa-heart';
+                count = Math.max(0, count - 1);
+            } else {
+                localStorage.setItem(likedKey, '1');
+                btn.classList.add('liked');
+                icon.className = 'fa-solid fa-heart';
+                count += 1;
+            }
+            countEl.textContent = count;
+        }
+
+        function formatDate(dStr) {
+            if (!dStr) return '';
+            const d = new Date(dStr);
+            return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const decoded = str
+                .replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => {
+                    try { return String.fromCodePoint(parseInt(hex, 16)); } catch(e) { return match; }
+                })
+                .replace(/&#([0-9]+);/g, (match, dec) => {
+                    try { return String.fromCodePoint(parseInt(dec, 10)); } catch(e) { return match; }
+                })
+                .replace(/&amp;/g, '&')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'");
+
+            return decoded.replace(/[<>'"]/g, tag => ({
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag));
+        }
+    </script>
+</body>
+</html>

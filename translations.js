@@ -3,6 +3,8 @@
 const TRANSLATIONS = {
     en: {
         my_profile: "MY PROFILE",
+        highlight_creator: "HIGHLIGHT CREATOR",
+        community_feed: "COMMUNITY HIGHLIGHTS",
         rules_and_guide: "RULES & GUIDE",
         my_games: "MY GAMES",
         register_a_game: "REGISTER A GAME",
@@ -156,6 +158,8 @@ const TRANSLATIONS = {
     },
     fr: {
         my_profile: "MON PROFIL",
+        highlight_creator: "CRÉATEUR DE HIGHLIGHTS",
+        community_feed: "VIDÉOS DE LA COMMUNAUTÉ",
         my_games: "MES JEUX",
         register_a_game: "ENREGISTRER UN JEU",
         buy_your_own: "ACHETER VOTRE SUBSOCCER",
@@ -302,6 +306,8 @@ const TRANSLATIONS = {
     },
     es: {
         my_profile: "MI PERFIL",
+        highlight_creator: "CREADOR DE HIGHLIGHTS",
+        community_feed: "HIGHLIGHTS DE LA COMUNIDAD",
         my_games: "MIS JUEGOS",
         register_a_game: "REGISTRAR UN JUEGO",
         buy_your_own: "COMPRA TU PROPIO SUBSOCCER",
@@ -448,6 +454,8 @@ const TRANSLATIONS = {
     },
     de: {
         my_profile: "MEIN PROFIL",
+        highlight_creator: "HIGHLIGHT CREATOR",
+        community_feed: "COMMUNITY HIGHLIGHTS",
         my_games: "MEINE SPIELE",
         register_a_game: "SPIEL REGISTRIEREN",
         buy_your_own: "KAUFE DEIN EIGENES SUBSOCCER",
@@ -594,6 +602,8 @@ const TRANSLATIONS = {
     },
     pt: {
         my_profile: "MEU PERFIL",
+        highlight_creator: "CRIADOR DE HIGHLIGHTS",
+        community_feed: "DESTAQUES DA COMUNIDADE",
         my_games: "MEUS JOGOS",
         register_a_game: "REGISTRAR UM JOGO",
         buy_your_own: "COMPRE SEU PRÓPRIO SUBSOCCER",
@@ -740,6 +750,8 @@ const TRANSLATIONS = {
     fi: {
         rules_and_guide: "SÄÄNNÖT & OHJEET",
         my_profile: "OMA PROFIILI",
+        highlight_creator: "HIGHLIGHT CREATOR",
+        community_feed: "YHTEISÖN KOHOKOHDAT",
         my_games: "OMAT PELIT",
         register_a_game: "REKISTERÖI PELI",
         buy_your_own: "OSTA OMA SUBSOCCER",
@@ -889,6 +901,8 @@ const TRANSLATIONS = {
     },
     sv: {
         my_profile: 'MIN PROFIL',
+        highlight_creator: 'HIGHLIGHT CREATOR',
+        community_feed: "COMMUNITY HIGHLIGHTS",
         my_games: 'MINA SPEL',
         register_a_game: 'REGISTRERA ETT SPEL',
         buy_your_own: 'KÖP DIN EGEN SUBSOCCER',
@@ -1034,6 +1048,8 @@ const TRANSLATIONS = {
     },
     nb: {
         my_profile: 'MIN PROFIL',
+        highlight_creator: 'HIGHLIGHT CREATOR',
+        community_feed: "COMMUNITY HIGHLIGHTS",
         my_games: 'MINE SPILL',
         register_a_game: 'REGISTRER ET SPILL',
         buy_your_own: 'KJØP DIN EGEN SUBSOCCER',
@@ -1179,6 +1195,8 @@ const TRANSLATIONS = {
     },
     da: {
         my_profile: 'MIN PROFIL',
+        highlight_creator: 'HIGHLIGHT CREATOR',
+        community_feed: "COMMUNITY HIGHLIGHTS",
         my_games: 'MINE SPIL',
         register_a_game: 'REGISTRER ET SPIL',
         buy_your_own: 'KØB DIN EGEN SUBSOCCER',
@@ -1324,6 +1342,8 @@ const TRANSLATIONS = {
     },
     it: {
         my_profile: 'IL MIO PROFILO',
+        highlight_creator: 'CREATORE HIGHLIGHT',
+        community_feed: "HIGHLIGHT DELLA COMMUNITY",
         my_games: 'I MIEI GIOCHI',
         register_a_game: 'REGISTRA UN GIOCO',
         buy_your_own: 'ACQUISTA IL TUO SUBSOCCER',
@@ -1469,6 +1489,8 @@ const TRANSLATIONS = {
     },
     nl: {
         my_profile: 'MIJN PROFIEL',
+        highlight_creator: 'HIGHLIGHT CREATOR',
+        community_feed: "COMMUNITY HIGHLIGHTS",
         my_games: 'MIJN SPELLEN',
         register_a_game: 'REGISTREER EEN SPEL',
         buy_your_own: 'KOOP JE EIGEN SUBSOCCER',
@@ -1614,6 +1636,8 @@ const TRANSLATIONS = {
     },
     cs: {
         my_profile: 'MŮJ PROFIL',
+        highlight_creator: 'TVŮRCE HIGHLIGHTŮ',
+        community_feed: "HIGHLIGHTY KOMUNITY",
         my_games: 'MOJE HRY',
         register_a_game: 'ZAREGISTROVAT HRU',
         buy_your_own: 'KUPTE SI VLASTNÍ SUBSOCCER',
@@ -1759,6 +1783,8 @@ const TRANSLATIONS = {
     },
     tr: {
         my_profile: 'PROFİLİM',
+        highlight_creator: 'ÖNE ÇIKANLAR OLUŞTURUCU',
+        community_feed: "TOPLULUK ÖNE ÇIKANLARI",
         my_games: 'OYUNLARIM',
         register_a_game: 'BİR OYUN KAYDET',
         buy_your_own: 'KENDİ SUBSOCCER\'INI AL',
@@ -1904,6 +1930,8 @@ const TRANSLATIONS = {
     },
     hu: {
         my_profile: 'PROFILOM',
+        highlight_creator: 'HIGHLIGHT KÉSZÍTŐ',
+        community_feed: "KÖZÖSSÉGI HIGHLIGHTEK",
         my_games: 'JÁTÉKAIM',
         register_a_game: 'JÁTÉK REGISZTRÁLÁSA',
         buy_your_own: 'VÁSÁROLD MEG A SAJÁT SUBSOCCER-ED',
@@ -2049,6 +2077,8 @@ const TRANSLATIONS = {
     },
     id: {
         my_profile: 'PROFIL SAYA',
+        highlight_creator: 'PEMBUAT HIGHLIGHT',
+        community_feed: "HIGHLIGHT KOMUNITAS",
         my_games: 'PERMAINAN SAYA',
         register_a_game: 'DAFTARKAN PERMAINAN',
         buy_your_own: 'BELI SUBSOCCER ANDA SENDIRI',
@@ -2194,6 +2224,8 @@ const TRANSLATIONS = {
     },
     vi: {
         my_profile: 'HỒ SƠ CỦA TÔI',
+        highlight_creator: 'TẠO HIGHLIGHT',
+        community_feed: "HIGHLIGHT CỘNG ĐỒNG",
         my_games: 'TRÒ CHƠI CỦA TÔI',
         register_a_game: 'ĐĂNG KÝ TRÒ CHƠI',
         buy_your_own: 'MUA SUBSOCCER CỦA BẠN',
@@ -2339,6 +2371,8 @@ const TRANSLATIONS = {
     },
     pl: {
         my_profile: 'MÓJ PROFIL',
+        highlight_creator: 'KREATOR HIGHLIGHTÓW',
+        community_feed: "HIGHLIGHTY SPOŁECZNOŚCI",
         my_games: 'MOJE GRY',
         register_a_game: 'ZAREJESTRUJ GRĘ',
         buy_your_own: 'KUP SWÓJ WŁASNY SUBSOCCER',
@@ -2485,6 +2519,8 @@ const TRANSLATIONS = {
     ja: {
         rules_and_guide: 'ルール＆ガイド',
         my_profile: 'プロフィール',
+        highlight_creator: 'ハイライト作成',
+        community_feed: "コミュニティハイライト",
         my_games: '試合履歴',
         register_a_game: 'テーブル登録',
         buy_your_own: 'テーブル購入',
@@ -2629,6 +2665,8 @@ const TRANSLATIONS = {
     },
     zh: {
         my_profile: '个人主页',
+        highlight_creator: '精彩集锦制作',
+        community_feed: "社区精彩集锦",
         my_games: '我的比赛',
         register_a_game: '登记比赛',
         buy_your_own: '购买您自己的 SUBSOCCER',
@@ -2774,6 +2812,8 @@ const TRANSLATIONS = {
     },
     ko: {
         my_profile: '프로필',
+        highlight_creator: '하이라이트 생성기',
+        community_feed: "커뮤니티 하이라이트",
         my_games: '나의 경기',
         register_a_game: '경기 등록',
         buy_your_own: '나만의 SUBSOCCER 구매하기',
@@ -2924,6 +2964,8 @@ const TRANSLATIONS = {
     },
     ar: {
         my_profile: 'ملفي الشخصي',
+        highlight_creator: 'صانع اللقطات البارزة',
+        community_feed: "لقطات المجتمع البارزة",
         my_games: 'مبارياتي',
         register_a_game: 'تسجيل مباراة',
         buy_your_own: 'اشترِ طاولة SUBSOCCER الخاصة بك',
@@ -3074,6 +3116,8 @@ const TRANSLATIONS = {
     },
     az: {
         my_profile: 'Profilim',
+        highlight_creator: 'HIGHLIGHT YARADICI',
+        community_feed: "İCMA HIGHLIGHTLARI",
         my_games: 'Oyunlarım',
         register_a_game: 'Oyun qeydiyyatı',
         buy_your_own: 'Öz SUBSOCCER masanı al',
@@ -3264,11 +3308,394 @@ function translateDefaultPlayerNames() {
     });
 }
 
+// Dynamic translation keys for simplified registration custom toggle
+const newRegTranslations = {
+    en: { signup_customize_avatar: "Customize Avatar & AI (Optional)" },
+    fi: { signup_customize_avatar: "Muokkaa hahmoa & tekoälyä (Valinnainen)" },
+    de: { signup_customize_avatar: "Avatar & AI anpassen (Optional)" },
+    es: { signup_customize_avatar: "Personalizar avatar e IA (Opcional)" },
+    fr: { signup_customize_avatar: "Personnaliser l'avatar et l'IA (Optionnel)" },
+    sv: { signup_customize_avatar: "Anpassa avatar & AI (Valfritt)" },
+    nb: { signup_customize_avatar: "Legg til tilpasning (Valgfritt)" },
+    da: { signup_customize_avatar: "Tilpas avatar & AI (Valgfrit)" },
+    it: { signup_customize_avatar: "Personalizza Avatar e AI (Opzionale)" },
+    nl: { signup_customize_avatar: "Avatar & AI aanpassen (Optioneel)" },
+    pt: { signup_customize_avatar: "Personalizar avatar e IA (Opcional)" },
+    pl: { signup_customize_avatar: "Dostosuj awatara i AI (Opcjonalnie)" },
+    tr: { signup_customize_avatar: "Avatar ve AI Özelleştir (İsteğe Bağlı)" },
+    hu: { signup_customize_avatar: "Avatar és AI testreszabása (Opcionális)" },
+    cs: { signup_customize_avatar: "Přizpůsobit avatara a AI (Volitelné)" },
+    id: { signup_customize_avatar: "Sesuaikan Avatar & AI (Opsional)" },
+    vi: { signup_customize_avatar: "Tùy chỉnh Avatar & AI (Tùy chọn)" },
+    ja: { signup_customize_avatar: "アバターとAIをカスタマイズ（オプション）" },
+    zh: { signup_customize_avatar: "自定义头像与AI（可选）" },
+    ko: { signup_customize_avatar: "아바타 및 AI 맞춤 설정 (선택 사항)" },
+    ar: { signup_customize_avatar: "تخصيص الصورة الرمزية والذكاء الاصطناعي (اختياري)" },
+    az: { signup_customize_avatar: "Avatar və AI fərdiləşdir (İstəyə bağlı)" }
+};
+
+const authTranslations = {
+    en: { login_apple: "Continue with Apple", login_username: "Username or Email", login_password: "Password" },
+    fi: { login_apple: "Jatka Applella", login_username: "Käyttäjätunnus tai sähköposti", login_password: "Salasana" },
+    de: { login_apple: "Mit Apple fortfahren", login_username: "Benutzername oder E-Mail", login_password: "Passwort" },
+    es: { login_apple: "Continuar con Apple", login_username: "Usuario o correo", login_password: "Contraseña" },
+    fr: { login_apple: "Continuer avec Apple", login_username: "Nom d'utilisateur ou e-mail", login_password: "Mot de passe" },
+    sv: { login_apple: "Fortsätt med Apple", login_username: "Användarnamn eller e-post", login_password: "Lösenord" },
+    nb: { login_apple: "Fortsett med Apple", login_username: "Brukernavn eller e-post", login_password: "Passord" },
+    da: { login_apple: "Fortsæt med Apple", login_username: "Brugernavn eller e-mail", login_password: "Adgangskode" },
+    it: { login_apple: "Continua con Apple", login_username: "Nome utente o e-mail", login_password: "Password" },
+    nl: { login_apple: "Doorgaan met Apple", login_username: "Gebruikersnaam of e-mail", login_password: "Wachtwoord" },
+    pt: { login_apple: "Continuar com Apple", login_username: "Usuário ou e-mail", login_password: "Senha" },
+    pl: { login_apple: "Kontynuuj przez Apple", login_username: "Nazwa użytkownika lub e-mail", login_password: "Hasło" },
+    tr: { login_apple: "Apple ile Devam Et", login_username: "Kullanıcı Adı veya E-posta", login_password: "Şifre" },
+    hu: { login_apple: "Folytatás Apple-fiókkal", login_username: "Felhasználónév vagy e-mail", login_password: "Jelszó" },
+    cs: { login_apple: "Pokračovat přes Apple", login_username: "Uživatelské jméno nebo e-mail", login_password: "Heslo" },
+    id: { login_apple: "Lanjutkan dengan Apple", login_username: "Nama Pengguna atau Email", login_password: "Kata Sandi" },
+    vi: { login_apple: "Tiếp tục với Apple", login_username: "Tên người dùng hoặc Email", login_password: "Mật khẩu" },
+    ja: { login_apple: "Appleで続ける", login_username: "ユーザー名またはメール", login_password: "パスワード" },
+    zh: { login_apple: "通过 Apple 继续", login_username: "用户名或邮箱", login_password: "密码" },
+    ko: { login_apple: "Apple로 계속하기", login_username: "사용자 이름 또는 이메일", login_password: "비밀번호" },
+    ar: { login_apple: "المتابعة مع Apple", login_username: "اسم المستخدم أو البريد الإلكتروني", login_password: "كلمة المرور" },
+    az: { login_apple: "Apple ilə davam et", login_username: "İstifadəçi adı və ya e-poçt", login_password: "Şifrə" }
+};
+
+for (const lang in newRegTranslations) {
+    if (TRANSLATIONS[lang]) {
+        Object.assign(TRANSLATIONS[lang], newRegTranslations[lang]);
+    }
+}
+for (const lang in authTranslations) {
+    if (TRANSLATIONS[lang]) {
+        Object.assign(TRANSLATIONS[lang], authTranslations[lang]);
+    }
+}
+
+
+// Dynamic translation keys for Subsoccer Feedback & Support Chat Widget (22 languages)
+const feedbackTranslations = {
+    en: {
+        fb_btn: "Feedback",
+        fb_title: "SUBSOCCER FEEDBACK",
+        fb_subtitle: "We read & reply to every message",
+        fb_tag_idea: "💡 Idea",
+        fb_tag_bug: "🐛 Bug",
+        fb_tag_question: "⚽ Question",
+        fb_msg_placeholder: "How can we help or improve Subsoccer?",
+        fb_email_placeholder: "Your email (optional, for replies)",
+        fb_send_btn: "SEND MESSAGE",
+        fb_sending: "SENDING...",
+        fb_success_title: "THANK YOU!",
+        fb_success_desc: "Our team has received your message."
+    },
+    fi: {
+        fb_btn: "Palaute",
+        fb_title: "SUBSOCCER TUKI & PALAUTE",
+        fb_subtitle: "Kuuntelemme ja vastaamme kaikkiin viesteihin",
+        fb_tag_idea: "💡 Idea",
+        fb_tag_bug: "🐛 Bugi",
+        fb_tag_question: "⚽ Kysymys",
+        fb_msg_placeholder: "Miten voimme auttaa tai parantaa Subsocceria?",
+        fb_email_placeholder: "Sähköpostisi (valinnainen, vastausta varten)",
+        fb_send_btn: "LÄHETÄ VIESTI",
+        fb_sending: "LÄHETETÄÄN...",
+        fb_success_title: "KIITOS VIESTISTÄSI!",
+        fb_success_desc: "Tiimimme on vastaanottanut palautteesi."
+    },
+    sv: {
+        fb_btn: "Feedback",
+        fb_title: "SUBSOCCER FEEDBACK",
+        fb_subtitle: "Vi läser och svarar på alla meddelanden",
+        fb_tag_idea: "💡 Idé",
+        fb_tag_bug: "🐛 Bugg",
+        fb_tag_question: "⚽ Fråga",
+        fb_msg_placeholder: "Hur kan vi hjälpa eller förbättra Subsoccer?",
+        fb_email_placeholder: "Din e-post (valfritt, för svar)",
+        fb_send_btn: "SKICKA MEDDELANDE",
+        fb_sending: "SKICKAR...",
+        fb_success_title: "TACK SÅ MYCKET!",
+        fb_success_desc: "Vårt team har tagit emot ditt meddelande."
+    },
+    nb: {
+        fb_btn: "Tilbakemelding",
+        fb_title: "SUBSOCCER TILBAKEMELDING",
+        fb_subtitle: "Vi leser og svarer på alle meldinger",
+        fb_tag_idea: "💡 Idé",
+        fb_tag_bug: "🐛 Feil",
+        fb_tag_question: "⚽ Spørsmål",
+        fb_msg_placeholder: "Hvordan kan vi hjelpe eller forbedre Subsoccer?",
+        fb_email_placeholder: "Din e-post (valgfritt, for svar)",
+        fb_send_btn: "SEND MELDING",
+        fb_sending: "SENDER...",
+        fb_success_title: "TUSEN TAKK!",
+        fb_success_desc: "Teamet vårt har mottatt meldingen din."
+    },
+    da: {
+        fb_btn: "Feedback",
+        fb_title: "SUBSOCCER FEEDBACK",
+        fb_subtitle: "Vi læser og svarar på alle beskeder",
+        fb_tag_idea: "💡 Idé",
+        fb_tag_bug: "🐛 Fejl",
+        fb_tag_question: "⚽ Spørgsmål",
+        fb_msg_placeholder: "Hvordan kan vi hjælpe eller forbedre Subsoccer?",
+        fb_email_placeholder: "Din e-mail (valgfrit, til svar)",
+        fb_send_btn: "SEND BESKED",
+        fb_sending: "SENDER...",
+        fb_success_title: "MANGE TAK!",
+        fb_success_desc: "Vores team har modtaget din besked."
+    },
+    de: {
+        fb_btn: "Feedback",
+        fb_title: "SUBSOCCER FEEDBACK & SUPPORT",
+        fb_subtitle: "Wir lesen und beantworten jede Nachricht",
+        fb_tag_idea: "💡 Idee",
+        fb_tag_bug: "🐛 Fehler",
+        fb_tag_question: "⚽ Frage",
+        fb_msg_placeholder: "Wie können wir helfen oder Subsoccer verbessern?",
+        fb_email_placeholder: "Ihre E-Mail (optional, für Antworten)",
+        fb_send_btn: "NACHRICHT SENDEN",
+        fb_sending: "SENDEN...",
+        fb_success_title: "VIELEN DANK!",
+        fb_success_desc: "Unser Team hat Ihre Nachricht erhalten."
+    },
+    fr: {
+        fb_btn: "Retour",
+        fb_title: "SUPPORT & COMMENTAIRES",
+        fb_subtitle: "Nous lisons et répondons à chaque message",
+        fb_tag_idea: "💡 Idée",
+        fb_tag_bug: "🐛 Bug",
+        fb_tag_question: "⚽ Question",
+        fb_msg_placeholder: "Comment pouvons-nous aider ou améliorer Subsoccer ?",
+        fb_email_placeholder: "Votre email (optionnel, pour réponse)",
+        fb_send_btn: "ENVOYER LE MESSAGE",
+        fb_sending: "ENVOI...",
+        fb_success_title: "MERCI BEAUCOUP !",
+        fb_success_desc: "Notre équipe a bien reçu votre message."
+    },
+    es: {
+        fb_btn: "Sugerencias",
+        fb_title: "SOPORTE Y SUGERENCIAS",
+        fb_subtitle: "Leemos y respondemos a cada mensaje",
+        fb_tag_idea: "💡 Idea",
+        fb_tag_bug: "🐛 Error",
+        fb_tag_question: "⚽ Pregunta",
+        fb_msg_placeholder: "¿Cómo podemos ayudar o mejorar Subsoccer?",
+        fb_email_placeholder: "Tu email (opcional, para respuestas)",
+        fb_send_btn: "ENVIAR MENSAJE",
+        fb_sending: "ENVIANDO...",
+        fb_success_title: "¡MUCHAS GRACIAS!",
+        fb_success_desc: "Nuestro equipo ha recibido tu mensaje."
+    },
+    pt: {
+        fb_btn: "Feedback",
+        fb_title: "SUPORTE E FEEDBACK",
+        fb_subtitle: "Lemos e respondemos a todas as mensagens",
+        fb_tag_idea: "💡 Ideia",
+        fb_tag_bug: "🐛 Erro",
+        fb_tag_question: "⚽ Dúvida",
+        fb_msg_placeholder: "Como podemos ajudar ou melhorar o Subsoccer?",
+        fb_email_placeholder: "Seu e-mail (opcional, para resposta)",
+        fb_send_btn: "ENVIAR MENSAGEM",
+        fb_sending: "ENVIANDO...",
+        fb_success_title: "MUITO OBRIGADO!",
+        fb_success_desc: "Nossa equipe recebeu sua mensagem."
+    },
+    it: {
+        fb_btn: "Feedback",
+        fb_title: "SUPPORTO E FEEDBACK",
+        fb_subtitle: "Leggiamo e rispondiamo a ogni messaggio",
+        fb_tag_idea: "💡 Idea",
+        fb_tag_bug: "🐛 Bug",
+        fb_tag_question: "⚽ Domanda",
+        fb_msg_placeholder: "Come possiamo aiutare o migliorare Subsoccer?",
+        fb_email_placeholder: "La tua email (opzionale, per risposta)",
+        fb_send_btn: "INVIA MESSAGGIO",
+        fb_sending: "INVIO IN CORSO...",
+        fb_success_title: "GRAZIE MILLE!",
+        fb_success_desc: "Il nostro team ha ricevuto il tuo messaggio."
+    },
+    nl: {
+        fb_btn: "Feedback",
+        fb_title: "SUBSOCCER FEEDBACK & SUPPORT",
+        fb_subtitle: "We lezen en beantwoorden elk bericht",
+        fb_tag_idea: "💡 Idee",
+        fb_tag_bug: "🐛 Foutje",
+        fb_tag_question: "⚽ Vraag",
+        fb_msg_placeholder: "Hoe kunnen we helpen of Subsoccer verbeteren?",
+        fb_email_placeholder: "Je e-mail (optioneel, voor antwoord)",
+        fb_send_btn: "BERICHT VERSTUREN",
+        fb_sending: "VERSTUREN...",
+        fb_success_title: "HARTELIJK DANK!",
+        fb_success_desc: "Ons team heeft je bericht ontvangen."
+    },
+    pl: {
+        fb_btn: "Opinie",
+        fb_title: "WSPARCIE I OPINIE",
+        fb_subtitle: "Czytamy i odpowiadamy na każdą wiadomość",
+        fb_tag_idea: "💡 Pomysł",
+        fb_tag_bug: "🐛 Błąd",
+        fb_tag_question: "⚽ Pytanie",
+        fb_msg_placeholder: "Jak możemy pomóc lub ulepszyć Subsoccer?",
+        fb_email_placeholder: "Twój e-mail (opcjonalnie, do odpowiedzi)",
+        fb_send_btn: "WYŚLIJ WIADOMOŚĆ",
+        fb_sending: "WYSYŁANIE...",
+        fb_success_title: "DZIĘKUJEMY!",
+        fb_success_desc: "Nasz zespół otrzymał Twoją wiadomość."
+    },
+    cs: {
+        fb_btn: "Zpětná vazba",
+        fb_title: "PODPORA A ZPĚTNÁ VAZBA",
+        fb_subtitle: "Čteme a odpovídáme na každou zprávu",
+        fb_tag_idea: "💡 Nápad",
+        fb_tag_bug: "🐛 Chyba",
+        fb_tag_question: "⚽ Dotaz",
+        fb_msg_placeholder: "Jak můžeme pomoci nebo vylepšit Subsoccer?",
+        fb_email_placeholder: "Váš e-mail (volitelné, pro odpověď)",
+        fb_send_btn: "ODESLAT ZPRÁVU",
+        fb_sending: "ODESÍLÁM...",
+        fb_success_title: "DĚKUJEME!",
+        fb_success_desc: "Náš tým přijal vaši zprávu."
+    },
+    hu: {
+        fb_btn: "Visszajelzés",
+        fb_title: "SUBSOCCER VISSZAJELZÉS",
+        fb_subtitle: "Minden üzenetet elolvasunk és válaszolunk",
+        fb_tag_idea: "💡 Ötlet",
+        fb_tag_bug: "🐛 Hiba",
+        fb_tag_question: "⚽ Kérdés",
+        fb_msg_placeholder: "Hogyan segíthetünk vagy fejleszthetjük a Subsoccert?",
+        fb_email_placeholder: "E-mail címed (opcionális, válaszhoz)",
+        fb_send_btn: "ÜZENET KÜLDÉSE",
+        fb_sending: "KÜLDÉS...",
+        fb_success_title: "KÖSZÖNJÜK SZÉPEN!",
+        fb_success_desc: "Csapatunk megkapta az üzenetedet."
+    },
+    tr: {
+        fb_btn: "Geri Bildirim",
+        fb_title: "DESTEK VE GERİ BİLDİRİM",
+        fb_subtitle: "Her mesajı okuyor ve yanıtlıyoruz",
+        fb_tag_idea: "💡 Fikir",
+        fb_tag_bug: "🐛 Hata",
+        fb_tag_question: "⚽ Soru",
+        fb_msg_placeholder: "Subsoccer'ı nasıl geliştirebilir veya yardımcı olabiliriz?",
+        fb_email_placeholder: "E-postanız (isteğe bağlı, yanıt için)",
+        fb_send_btn: "MESAJ GÖNDER",
+        fb_sending: "GÖNDERİLİYOR...",
+        fb_success_title: "TEŞEKKÜR EDERİZ!",
+        fb_success_desc: "Ekibimiz mesajınızı aldı."
+    },
+    id: {
+        fb_btn: "Umpan Balik",
+        fb_title: "DUKUNGAN & UMPAN BALIK",
+        fb_subtitle: "Kami membaca dan membalas setiap pesan",
+        fb_tag_idea: "💡 Ide",
+        fb_tag_bug: "🐛 Masalah",
+        fb_tag_question: "⚽ Pertanyaan",
+        fb_msg_placeholder: "Bagaimana kami dapat membantu atau meningkatkan Subsoccer?",
+        fb_email_placeholder: "Email Anda (opsional, untuk balasan)",
+        fb_send_btn: "KIRIM PESAN",
+        fb_sending: "MENGIRIM...",
+        fb_success_title: "TERIMA KASIH!",
+        fb_success_desc: "Tim kami telah menerima pesan Anda."
+    },
+    vi: {
+        fb_btn: "Phản hồi",
+        fb_title: "HỖ TRỢ & PHẢN HỒI",
+        fb_subtitle: "Chúng tôi đọc và trả lời từng tin nhắn",
+        fb_tag_idea: "💡 Ý tưởng",
+        fb_tag_bug: "🐛 Lỗi",
+        fb_tag_question: "⚽ Câu hỏi",
+        fb_msg_placeholder: "Làm thế nào chúng tôi có thể giúp cải thiện Subsoccer?",
+        fb_email_placeholder: "Email của bạn (tùy chọn, để nhận phản hồi)",
+        fb_send_btn: "GỬI TIN NHẮN",
+        fb_sending: "ĐANG GỬI...",
+        fb_success_title: "CẢM ƠN BẠN!",
+        fb_success_desc: "Đội ngũ của chúng tôi đã nhận được tin nhắn của bạn."
+    },
+    ja: {
+        fb_btn: "フィードバック",
+        fb_title: "サポート＆フィードバック",
+        fb_subtitle: "すべてのメッセージを確認し返信します",
+        fb_tag_idea: "💡 アイデア",
+        fb_tag_bug: "🐛 不具合",
+        fb_tag_question: "⚽ ご質問",
+        fb_msg_placeholder: "ご意見や改善のご要望をお聞かせください",
+        fb_email_placeholder: "メールアドレス（返信をご希望の場合）",
+        fb_send_btn: "送信する",
+        fb_sending: "送信中...",
+        fb_success_title: "ありがとうございます！",
+        fb_success_desc: "メッセージを受け付けました。"
+    },
+    zh: {
+        fb_btn: "反馈与支持",
+        fb_title: "SUBSOCCER 反馈与支持",
+        fb_subtitle: "我们会认真阅读并回复每一条信息",
+        fb_tag_idea: "💡 建议",
+        fb_tag_bug: "🐛 问题",
+        fb_tag_question: "⚽ 咨询",
+        fb_msg_placeholder: "我们能为您提供什么帮助或改进建议？",
+        fb_email_placeholder: "您的邮箱（选填，用于回复）",
+        fb_send_btn: "发送信息",
+        fb_sending: "发送中...",
+        fb_success_title: "非常感谢！",
+        fb_success_desc: "我们的团队已收到您的信息。"
+    },
+    ko: {
+        fb_btn: "피드백",
+        fb_title: "고객 지원 및 피드백",
+        fb_subtitle: "모든 메시지를 확인하고 답변해 드립니다",
+        fb_tag_idea: "💡 제안",
+        fb_tag_bug: "🐛 오류",
+        fb_tag_question: "⚽ 질문",
+        fb_msg_placeholder: "Subsoccer에 대한 의견이나 질문을 남겨주세요",
+        fb_email_placeholder: "이메일 주소 (답변용, 선택 사항)",
+        fb_send_btn: "메시지 보내기",
+        fb_sending: "전송 중...",
+        fb_success_title: "감사합니다!",
+        fb_success_desc: "메시지가 성공적으로 전달되었습니다."
+    },
+    ar: {
+        fb_btn: "ملاحظات",
+        fb_title: "الدعم والملاحظات",
+        fb_subtitle: "نقرأ ونرد على كل رسالة",
+        fb_tag_idea: "💡 فكرة",
+        fb_tag_bug: "🐛 خطأ",
+        fb_tag_question: "⚽ استفسار",
+        fb_msg_placeholder: "كيف يمكننا المساعدة أو تحسين ساب سوكر؟",
+        fb_email_placeholder: "بريدك الإلكتروني (اختياري للرد)",
+        fb_send_btn: "إرسال الرسالة",
+        fb_sending: "جارٍ الإرسال...",
+        fb_success_title: "شكراً جزيلاً!",
+        fb_success_desc: "لقد استلم فريقنا رسالتك بنجاح."
+    },
+    az: {
+        fb_btn: "Rəy",
+        fb_title: "DƏSTƏK VƏ RƏY",
+        fb_subtitle: "Hər bir mesajı oxuyur və cavablandırırıq",
+        fb_tag_idea: "💡 İdeya",
+        fb_tag_bug: "🐛 Problem",
+        fb_tag_question: "⚽ Sual",
+        fb_msg_placeholder: "Subsoccer-i necə təkmilləşdirə bilərik?",
+        fb_email_placeholder: "E-poçtunuz (istəyə bağlı)",
+        fb_send_btn: "MESAJI GÖNDƏR",
+        fb_sending: "GÖNDƏRİLİR...",
+        fb_success_title: "TƏŞƏKKÜR EDİRİK!",
+        fb_success_desc: "Komandamız mesajınızı qəbul etdi."
+    }
+};
+
+for (const lang in feedbackTranslations) {
+    if (TRANSLATIONS[lang]) {
+        Object.assign(TRANSLATIONS[lang], feedbackTranslations[lang]);
+    }
+}
+
 function translateDOM(root = document) {
     root.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         const translation = t(key);
-        if (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'email' || el.type === 'password' || el.placeholder)) {
+        if (el.tagName === 'TEXTAREA') {
+            el.placeholder = translation;
+        } else if (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'email' || el.type === 'password' || el.hasAttribute('placeholder'))) {
             el.placeholder = translation;
         } else {
             el.textContent = translation;
@@ -3342,31 +3769,6 @@ if (document.readyState === 'loading') {
     updateHeaderFlag(currentLang);
 }
 
-// Dynamic translation keys for simplified registration custom toggle
-const newRegTranslations = {
-    en: { signup_customize_avatar: "Customize Avatar & AI (Optional)" },
-    fi: { signup_customize_avatar: "Muokkaa hahmoa & tekoälyä (Valinnainen)" },
-    de: { signup_customize_avatar: "Avatar & AI anpassen (Optional)" },
-    es: { signup_customize_avatar: "Personalizar avatar e IA (Opcional)" },
-    fr: { signup_customize_avatar: "Personnaliser l'avatar et l'IA (Optionnel)" },
-    sv: { signup_customize_avatar: "Anpassa avatar & AI (Valfritt)" },
-    nb: { signup_customize_avatar: "Legg til tilpasning (Valgfritt)" },
-    da: { signup_customize_avatar: "Tilpas avatar & AI (Valgfrit)" },
-    it: { signup_customize_avatar: "Personalizza Avatar e AI (Opzionale)" },
-    nl: { signup_customize_avatar: "Avatar & AI aanpassen (Optioneel)" },
-    pt: { signup_customize_avatar: "Personalizar avatar e IA (Opcional)" },
-    pl: { signup_customize_avatar: "Dostosuj awatara i AI (Opcjonalnie)" },
-    tr: { signup_customize_avatar: "Avatar ve AI Özelleştir (İsteğe Bağlı)" },
-    hu: { signup_customize_avatar: "Avatar és AI testreszabása (Opcionális)" },
-    cs: { signup_customize_avatar: "Přizpůsobit avatara a AI (Volitelné)" },
-    id: { signup_customize_avatar: "Sesuaikan Avatar & AI (Opsional)" },
-    vi: { signup_customize_avatar: "Tùy chỉnh Avatar & AI (Tùy chọn)" },
-    ja: { signup_customize_avatar: "アバターとAIをカスタマイズ（オプション）" },
-    zh: { signup_customize_avatar: "自定义头像与AI（可选）" },
-    ko: { signup_customize_avatar: "아바타 및 AI 맞춤 설정 (선택 사항)" },
-    ar: { signup_customize_avatar: "تخصيص الصورة الرمزية والذكاء الاصطناعي (اختياري)" },
-    az: { signup_customize_avatar: "Avatar və AI fərdiləşdir (İstəyə bağlı)" }
-};
 
 for (const lang in newRegTranslations) {
     if (TRANSLATIONS[lang]) {

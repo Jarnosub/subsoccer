@@ -717,6 +717,31 @@
             font-size: 0.75rem;
         }
 
+        .footer-feedback-btn {
+            color: #ff3344 !important;
+            background: rgba(227, 6, 19, 0.16);
+            border: 1px solid rgba(227, 6, 19, 0.4);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 1px;
+            font-size: 0.72rem !important;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .footer-feedback-btn:hover {
+            background: rgba(227, 6, 19, 0.35) !important;
+            border-color: #ff4d5a !important;
+            color: #ffffff !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
+        }
+
+
         /* ─── FAQ Section ─── */
         .faq-section {
             max-width: 680px;
@@ -933,7 +958,7 @@
         </div>
 
         <!-- KUVABLOKKI -->
-        <div class="content-image"><img src="hero-real.jpg" alt="People playing Subsoccer in a park" width="1024" height="684" fetchpriority="high"></div>
+        <div class="content-image"><img src="hero-real.jpg?v=20260818" alt="Players competing in an intense Subsoccer match with cheering crowd" width="1024" height="722" fetchpriority="high"></div>
 
         <!-- PÄÄVALIKKO / TARINAN VALINTA -->
         <div class="hub-menu">
@@ -957,7 +982,7 @@
         <!-- SOCIAL PROOF -->
         <div class="social-proof">
             <div class="social-proof-item">
-                <span class="social-proof-number" id="sp-cities">150+</span>
+                <span class="social-proof-number" id="sp-cities">750+</span>
                 <span class="social-proof-label" data-i18n="cities">Cities</span>
             </div>
             <div class="social-proof-item">
@@ -1079,17 +1104,22 @@
 
     <!-- BLACK FOOTER BAR -->
     <div class="footer-bar">
-        <span style="color: #888; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px;">© 2026
-            Subsoccer</span>
+        <span style="color: #888; font-family: 'Resolve', sans-serif; font-size: 0.65rem; letter-spacing: 1px;">© 2026 Subsoccer</span>
         <span>|</span>
         <a href="https://www.subsoccer.com/policies/privacy-policy" target="_blank" data-i18n="privacy">Privacy</a>
         <span>|</span>
         <a href="https://www.subsoccer.com/policies/terms-of-service" target="_blank" data-i18n="terms">Terms</a>
         <span>|</span>
+        <a href="javascript:void(0)" onclick="toggleFeedbackWidget(true)" class="footer-feedback-btn">
+            <i class="fa-solid fa-comment-dots"></i>
+            <span data-i18n="fb_btn">FEEDBACK</span>
+        </a>
+        <span>|</span>
         <button class="theme-toggle" id="theme-toggle" onclick="toggleDarkMode()" title="Toggle dark/light mode">
             <i class="fa-solid fa-moon"></i>
         </button>
     </div>
+
 
     <!-- MAIN HAMBURGER MENU OVERLAY -->
     <div id="main-nav-menu" onclick="if(event.target === this) this.style.display='none'"
@@ -1113,45 +1143,34 @@
                 <a href="player-card.html" id="menu-profile-link"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
                         class="fa-solid fa-user" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="my_profile">MY PROFILE</span></a>
+                <a href="highlight-creator.html" id="menu-highlight-link"
+                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
+                        class="fa-solid fa-clapperboard" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="highlight_creator">HIGHLIGHT CREATOR</span></a>
+                <a href="feed.html" id="menu-feed-link"
+                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
+                        class="fa-solid fa-fire" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="community_feed">COMMUNITY HIGHLIGHTS</span></a>
                 <a href="#" id="menu-rules-link" onclick="openRulesOverlay(); document.getElementById('main-nav-menu').style.display='none'; return false;"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
                         class="fa-solid fa-book-open" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="rules_and_guide">RULES & GUIDE</span></a>
                 <a href="scan-code.html"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
                         class="fa-solid fa-qrcode" style="color: #666; width: 40px; text-align: center;"></i> <span>SCAN TO JOIN</span></a>
-                <a href="#" onclick="openMapOverlay(); document.getElementById('main-nav-menu').style.display='none'; return false;"
-                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
-                        class="fa-solid fa-map-location-dot" style="color: #666; width: 40px; text-align: center;"></i> <span>FIND PUBLIC GAME</span></a>
-                <a href="pro-leagues.html" id="menu-league-link"
-                    style="color: #c41e2a; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
-                        class="fa-solid fa-crown" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span data-i18n="pro_leagues">PRO LEAGUES</span></a>
                 <a href="events/"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
                         class="fa-solid fa-calendar-days" style="color: #666; width: 40px; text-align: center;"></i> <span>EVENTS</span></a>
+
 
                 <!-- 2. Kokoelma ja Omistajuus (Assets) -->
                 <a href="my-collection.html" id="menu-owner-link"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: none; align-items: center;"><i
                         class="fa-solid fa-layer-group" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="my_games">MY GAMES</span></a>
-                <a href="register.html"
-                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
-                        class="fa-solid fa-map-pin" style="color: #c41e2a; width: 40px; text-align: center;"></i> <span>PIN TABLE TO MAP</span></a>
 
-                <!-- 3. Kauppa & Tuki (Secondary) -->
-                <!--
-                <a href="podcast.html"
-                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
-                        class="fa-solid fa-microphone" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="podcast_menu">PODCAST & CASE STUDY</span></a>
-                -->
+
+                <!-- 3. Kauppa (Secondary) -->
                 <a href="https://subsoccer.com" target="_blank"
                     style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
                         class="fa-solid fa-cart-shopping" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="buy_your_own">BUY YOUR OWN SUBSOCCER</span></a>
 
-
-                <a href="#"
-                    onclick="triggerFeedbackPrompt(); document.getElementById('main-nav-menu').style.display='none'; return false;"
-                    style="color: #111; text-decoration: none; border-bottom: 1px solid #eee; padding-bottom: 15px; display: flex; align-items: center;"><i
-                        class="fa-solid fa-comment-dots" style="color: #666; width: 40px; text-align: center;"></i> <span data-i18n="give_feedback">GIVE FEEDBACK</span></a>
 
                 <!-- 4. Järjestelmä (Bottom) -->
                 <a href="moderator/index.html" id="menu-mod-link"
@@ -1303,7 +1322,7 @@
                             document.getElementById('hub-login-btn').style.display = 'flex';
                             document.getElementById('hub-player-card').style.display = 'none';
                             document.getElementById('menu-profile-link').style.display = 'none';
-                            document.getElementById('menu-league-link').style.display = 'none';
+                            document.getElementById('menu-highlight-link').style.display = 'none';
                             document.getElementById('menu-logout-link').style.display = 'none';
                             document.getElementById('menu-owner-link').style.display = 'none';
                             document.getElementById('menu-mod-link').style.display = 'none';
@@ -1383,98 +1402,166 @@
 
             // Menu toggles
             document.getElementById('menu-profile-link').style.display = 'flex';
+            document.getElementById('menu-highlight-link').style.display = 'flex';
             document.getElementById('menu-logout-link').style.display = 'flex';
 
             // My Collection is visible to every registered user
             document.getElementById('menu-owner-link').style.display = 'flex';
-
-            // Pro Leagues - grayed out for standard users (only admins can click)
-            const leagueLink = document.getElementById('menu-league-link');
-            leagueLink.style.display = 'flex';
-            if (player.is_admin || player.is_owner) {
-                leagueLink.style.opacity = '1';
-                leagueLink.onclick = null;
-            } else {
-                leagueLink.style.opacity = '0.3';
-                leagueLink.onclick = (e) => {
-                    e.preventDefault();
-                    alert("Pro Leagues is currently in closed beta. Only verified organizers can host tournaments.");
-                };
-            }
 
             if (player.is_admin) {
                 document.getElementById('menu-mod-link').style.display = 'flex';
             }
         }
 
-        async function triggerFeedbackPrompt() {
-            const msg = prompt("Describe the issue or suggestion:");
-            if (!msg) return;
 
-            function showToast(text, type = 'success') {
-                let container = document.getElementById('notification-container');
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = 'notification-container';
-                    document.body.appendChild(container);
+        let _fbSelectedTag = 'Idea';
+
+        function setFbTag(btn, tag) {
+            _fbSelectedTag = tag;
+            document.querySelectorAll('.fb-tag-btn').forEach(b => {
+                b.style.background = 'rgba(255,255,255,0.05)';
+                b.style.borderColor = 'rgba(255,255,255,0.1)';
+                b.style.color = '#aaa';
+            });
+            btn.style.background = 'rgba(227,6,19,0.2)';
+            btn.style.borderColor = '#c41e2a';
+            btn.style.color = '#fff';
+        }
+
+        function toggleFeedbackWidget(forceState) {
+            const overlay = document.getElementById('feedback-widget-container');
+            if (!overlay) return;
+            const isVisible = overlay.style.display === 'flex';
+            const shouldOpen = typeof forceState === 'boolean' ? forceState : !isVisible;
+            
+            // Close hamburger menu if open
+            const menu = document.getElementById('main-nav-menu');
+            if (menu && shouldOpen) menu.style.display = 'none';
+
+            if (shouldOpen) {
+                overlay.style.display = 'flex';
+                const formView = document.getElementById('fb-form-view');
+                const successView = document.getElementById('fb-success-view');
+                if (formView) formView.style.display = 'flex';
+                if (successView) successView.style.display = 'none';
+                
+                if (typeof translateDOM === 'function') {
+                    translateDOM(overlay);
                 }
-                const toast = document.createElement('div');
-                toast.className = 'toast-notification ' + (type === 'error' ? 'error' : 'success');
-                toast.innerText = text;
-                container.appendChild(toast);
-                setTimeout(() => toast.remove(), 4000);
+
+                // Pre-fill email if available
+                const emailInput = document.getElementById('fb-input-email');
+                if (emailInput && !emailInput.value) {
+                    try {
+                        const cached = localStorage.getItem('subsoccer-user');
+                        if (cached) {
+                            const u = JSON.parse(cached);
+                            if (u && u.email) emailInput.value = u.email;
+                        }
+                    } catch(_) {}
+                }
+                
+                setTimeout(() => {
+                    const msgInput = document.getElementById('fb-input-msg');
+                    if (msgInput) msgInput.focus();
+                }, 100);
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+
+
+
+        async function submitFeedbackWidget() {
+            const msgInput = document.getElementById('fb-input-msg');
+            const emailInput = document.getElementById('fb-input-email');
+            const submitBtn = document.getElementById('fb-submit-btn');
+            
+            const msg = msgInput ? msgInput.value.trim() : '';
+            if (!msg) {
+                if (msgInput) {
+                    msgInput.style.borderColor = '#ff4444';
+                    msgInput.focus();
+                }
+                return;
+            }
+            
+            const email = emailInput ? emailInput.value.trim() : '';
+            const tag = _fbSelectedTag || 'Feedback';
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = (typeof t === 'function' ? t('fb_sending') : 'SENDING...');
             }
 
             try {
-                showToast("Sending...", "success");
-
                 const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
                 const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
                 if (!window._hubSb) {
                     window._hubSb = window.supabase ? supabase.createClient(SUPA_URL, SUPA_KEY) : null;
                 }
                 const sb = window._hubSb;
-                if (!sb) {
-                    throw new Error("Supabase client not initialized.");
-                }
+                if (!sb) throw new Error("Supabase client not initialized.");
 
                 let userId = 'guest';
-                let username = null;
-                let email = null;
+                let username = 'Guest';
+                let userEmail = email;
+
                 const cached = localStorage.getItem('subsoccer-user');
                 if (cached) {
                     try {
                         const user = JSON.parse(cached);
                         if (user && user.id) userId = user.id;
                         if (user && user.username) username = user.username;
-                        if (!userId || userId === 'guest') {
-                            const { data: { session } } = await sb.auth.getSession();
-                            if (session && session.user) { userId = session.user.id; email = session.user.email; }
-                        } else {
-                            const { data: { session } } = await sb.auth.getSession();
-                            if (session && session.user) email = session.user.email;
-                        }
+                        if (user && user.email && !userEmail) userEmail = user.email;
                     } catch (e) {}
-                } else {
-                    const { data: { session } } = await sb.auth.getSession();
-                    if (session && session.user) { userId = session.user.id; email = session.user.email; }
+                }
+                if (!userEmail) {
+                    try {
+                        const { data: { session } } = await sb.auth.getSession();
+                        if (session && session.user) {
+                            if (userId === 'guest') userId = session.user.id;
+                            userEmail = session.user.email;
+                        }
+                    } catch (_) {}
                 }
 
                 const { error } = await sb.from('feedback').insert([{
-                    message: msg,
+                    message: `[${tag}] ${msg}`,
                     user_id: userId,
                     username: username,
-                    email: email,
+                    email: userEmail || null,
                     page: 'hub'
                 }]);
 
                 if (error) throw error;
-                showToast("Thanks for your feedback!", "success");
+
+                // Show Success View
+                const formView = document.getElementById('fb-form-view');
+                const successView = document.getElementById('fb-success-view');
+                if (formView) formView.style.display = 'none';
+                if (successView) successView.style.display = 'flex';
+                if (msgInput) msgInput.value = '';
+
+                setTimeout(() => {
+                    toggleFeedbackWidget(false);
+                }, 2500);
+
             } catch (e) {
                 console.error(e);
-                showToast("Error sending feedback", "error");
+                alert("Error sending feedback. Please try again.");
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<span data-i18n="fb_send_btn">${typeof t === 'function' ? t('fb_send_btn') : 'SEND MESSAGE'}</span>`;
+                }
             }
         }
+
+        function triggerFeedbackPrompt() {
+            toggleFeedbackWidget(true);
+        }
+
 
         async function hubLogout() {
             if (!confirm('Log out?')) return;
@@ -1755,10 +1842,14 @@
                             }
                         });
 
-                        // Update social proof with real city count
-                        const cityCount = seenCities.length;
+                        // Update social proof with cumulative real city count (never decreases)
+                        const CUMULATIVE_BASE_CITIES = 750;
+                        const storedMax = parseInt(localStorage.getItem('subsoccer_max_cities') || '0', 10);
+                        const cityCount = Math.max(CUMULATIVE_BASE_CITIES, storedMax, seenCities.length);
+                        try { localStorage.setItem('subsoccer_max_cities', cityCount.toString()); } catch(e) {}
+
                         const spEl = document.getElementById('sp-cities');
-                        if (spEl && cityCount > 10) {
+                        if (spEl) {
                             spEl.textContent = cityCount + '+';
                         }
 
@@ -1828,6 +1919,86 @@
             });
         }
     </script>
+    <!-- FEEDBACK CHAT MODAL OVERLAY -->
+    <div id="feedback-widget-container" onclick="if(event.target === this) toggleFeedbackWidget(false)" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 5000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+        font-family: 'Open Sans', sans-serif;
+    ">
+        <!-- Chat Modal / Card -->
+        <div id="feedback-card" style="
+            position: relative;
+            width: 100%;
+            max-width: 380px;
+            background: #141414;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        ">
+            <!-- Top bar -->
+            <div style="background: linear-gradient(135deg, #c41e2a 0%, #900 100%); padding: 15px 18px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
+                <div>
+                    <div data-i18n="fb_title" style="font-family: 'Subsoccer', sans-serif; font-size: 1rem; letter-spacing: 1px; line-height: 1.1;">SUBSOCCER FEEDBACK</div>
+                    <div data-i18n="fb_subtitle" style="font-size: 0.72rem; opacity: 0.9; margin-top: 2px;">We read &amp; reply to every message</div>
+                </div>
+                <button onclick="toggleFeedbackWidget(false)" style="background: rgba(0,0,0,0.25); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.95rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.45)'" onmouseout="this.style.background='rgba(0,0,0,0.25)'" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Body Form -->
+            <div id="fb-form-view" style="padding: 18px; display: flex; flex-direction: column; gap: 12px;">
+                <!-- Category Chips -->
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="fb-tag-btn" data-tag="Idea" onclick="setFbTag(this, 'Idea')" style="flex: 1; padding: 8px 4px; background: rgba(227,6,19,0.2); border: 1px solid #c41e2a; color: #fff; border-radius: 6px; font-size: 0.76rem; font-family: 'Open Sans', sans-serif; font-weight: bold; cursor: pointer; transition: all 0.15s;">
+                        <span data-i18n="fb_tag_idea">💡 Idea</span>
+                    </button>
+                    <button type="button" class="fb-tag-btn" data-tag="Bug" onclick="setFbTag(this, 'Bug')" style="flex: 1; padding: 8px 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #aaa; border-radius: 6px; font-size: 0.76rem; font-family: 'Open Sans', sans-serif; font-weight: bold; cursor: pointer; transition: all 0.15s;">
+                        <span data-i18n="fb_tag_bug">🐛 Bug</span>
+                    </button>
+                    <button type="button" class="fb-tag-btn" data-tag="Question" onclick="setFbTag(this, 'Question')" style="flex: 1; padding: 8px 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #aaa; border-radius: 6px; font-size: 0.76rem; font-family: 'Open Sans', sans-serif; font-weight: bold; cursor: pointer; transition: all 0.15s;">
+                        <span data-i18n="fb_tag_question">⚽ Question</span>
+                    </button>
+                </div>
+
+                <!-- Message Area -->
+                <textarea id="fb-input-msg" rows="4" placeholder="How can we help or improve Subsoccer?" data-i18n="fb_msg_placeholder" style="width: 100%; box-sizing: border-box; background: #0c0c0c; border: 1px solid #282828; color: #fff; padding: 11px 13px; border-radius: 8px; font-family: 'Open Sans', sans-serif; font-size: 0.88rem; resize: none; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c41e2a'" onblur="this.style.borderColor='#282828'"></textarea>
+
+                <!-- Email (Optional) -->
+                <input type="email" id="fb-input-email" placeholder="Your email (optional, for replies)" data-i18n="fb_email_placeholder" style="width: 100%; box-sizing: border-box; background: #0c0c0c; border: 1px solid #282828; color: #fff; padding: 11px 13px; border-radius: 8px; font-family: 'Open Sans', sans-serif; font-size: 0.85rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#c41e2a'" onblur="this.style.borderColor='#282828'">
+
+                <!-- Send Button -->
+                <button id="fb-submit-btn" onclick="submitFeedbackWidget()" style="background: #c41e2a; color: #fff; border: none; padding: 13px; border-radius: 8px; font-family: 'Resolve', sans-serif; font-size: 0.92rem; font-weight: bold; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(196, 30, 42, 0.35); margin-top: 4px;" onmouseover="this.style.background='#d82330'" onmouseout="this.style.background='#c41e2a'">
+                    <span data-i18n="fb_send_btn">SEND MESSAGE</span>
+                </button>
+            </div>
+
+            <!-- Success View -->
+            <div id="fb-success-view" style="display: none; padding: 40px 20px; text-align: center; flex-direction: column; align-items: center; gap: 10px;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(74, 222, 128, 0.15); border: 2px solid #4ade80; color: #4ade80; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <div data-i18n="fb_success_title" style="font-family: 'Subsoccer', sans-serif; font-size: 1.2rem; color: #fff; letter-spacing: 1px; margin-top: 4px;">THANK YOU!</div>
+                <div data-i18n="fb_success_desc" style="font-size: 0.82rem; color: #aaa; max-width: 260px; line-height: 1.35;">Our team has received your message.</div>
+            </div>
+        </div>
+    </div>
+
 <script data-goatcounter="https://subsoccer-pro.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 

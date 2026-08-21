@@ -195,6 +195,11 @@ test.describe('Subsoccer Pro E2E', () => {
             await signupSwitch.click();
         }
 
+        const emailToggle1 = page.locator('#toggle-email-signup');
+        if (await emailToggle1.isVisible()) {
+            await emailToggle1.click();
+        }
+
         await page.fill('#reg-user', testUser.username);
         await page.fill('#reg-email', testUser.email);
         await page.fill('#reg-pass', testUser.password);
@@ -235,10 +240,16 @@ test.describe('Subsoccer Pro E2E', () => {
             await signupSwitch.click();
         }
 
+        const emailToggle2 = page.locator('#toggle-email-signup');
+        if (await emailToggle2.isVisible()) {
+            await emailToggle2.click();
+        }
+
         await page.fill('#reg-user', tourUser.username);
         await page.fill('#reg-email', tourUser.email);
         await page.fill('#reg-pass', tourUser.password);
         await page.click('#btn-register');
+
 
         // Verify successful login
         await expect(page.locator('#profile-card-container')).toContainText(tourUser.username.toUpperCase(), { timeout: 10000 });
@@ -325,10 +336,16 @@ test.describe('Subsoccer Pro E2E', () => {
             await signupSwitch.click();
         }
 
+        const emailToggle3 = page.locator('#toggle-email-signup');
+        if (await emailToggle3.isVisible()) {
+            await emailToggle3.click();
+        }
+
         await page.fill('#reg-user', testUser.username);
         await page.fill('#reg-email', testUser.email);
         await page.fill('#reg-pass', testUser.password);
         await page.click('#btn-register');
+
 
         // Verify that after registration/login, the user is redirected to index.html
         await page.waitForURL('**/index.html', { timeout: 10000 });

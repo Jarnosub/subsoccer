@@ -96,7 +96,7 @@
            ======================================== */
         .pc-showcase {
             width: 100%;
-            max-width: 340px;
+            min-height: 380px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -105,75 +105,6 @@
             position: relative;
             padding: 20px 0 0;
             background: transparent;
-        }
-
-        /* ========================================
-           CROP TOOL
-           ======================================== */
-        .crop-tool {
-            display: none;
-            width: 100%;
-            margin: 10px 0 4px;
-            padding: 10px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .crop-tool.active { display: block; }
-        .crop-preview-container {
-            width: 100%;
-            height: 160px;
-            overflow: hidden;
-            position: relative;
-            border-radius: 3px;
-            background: #111;
-            cursor: grab;
-            touch-action: none;
-            user-select: none;
-        }
-        .crop-preview-container:active { cursor: grabbing; }
-        .crop-preview-container img {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            object-fit: cover;
-            pointer-events: none;
-        }
-        .crop-crosshair {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 30px; height: 30px;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .crop-crosshair::before, .crop-crosshair::after {
-            content: '';
-            position: absolute;
-            background: rgba(255,255,255,0.2);
-        }
-        .crop-crosshair::before { top: 50%; left: 0; right: 0; height: 1px; }
-        .crop-crosshair::after { left: 50%; top: 0; bottom: 0; width: 1px; }
-        .crop-zoom-row {
-            display: flex; align-items: center; gap: 8px;
-            margin-top: 8px;
-        }
-        .crop-zoom-row label {
-            font-family: 'Resolve', sans-serif;
-            font-size: 0.55rem; color: #888;
-            letter-spacing: 1px; white-space: nowrap;
-        }
-        .crop-zoom-row input[type=range] {
-            flex: 1; height: 4px;
-            -webkit-appearance: none; appearance: none;
-            background: #333; border-radius: 2px; outline: none;
-        }
-        .crop-zoom-row input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none;
-            width: 16px; height: 16px;
-            background: #c41e2a; border-radius: 50%; cursor: pointer;
         }
 
         .pc-spotlight {
@@ -972,23 +903,6 @@
                     </div>
                 </div>
 
-                <!-- CROP TOOL -->
-                <div class="crop-tool" id="crop-tool">
-                    <div style="font-family:'Resolve',sans-serif; font-size:0.55rem; color:#888; letter-spacing:2px; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between;">
-                        <span><i class="fa-solid fa-crop-simple"></i> ADJUST POSITION</span>
-                        <span style="color:#555; font-size:0.5rem;">DRAG TO MOVE</span>
-                    </div>
-                    <div class="crop-preview-container" id="crop-preview">
-                        <img id="crop-preview-img" src="" alt="Crop preview">
-                        <div class="crop-crosshair"></div>
-                    </div>
-                    <div class="crop-zoom-row">
-                        <label><i class="fa-solid fa-magnifying-glass-minus"></i></label>
-                        <input type="range" id="crop-zoom" min="100" max="200" value="100" step="5" oninput="onCropZoom(this.value)">
-                        <label><i class="fa-solid fa-magnifying-glass-plus"></i></label>
-                    </div>
-                </div>
-
                 <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-top:8px; margin-bottom:-4px;"><i class="fa-solid fa-camera"></i> OR UPLOAD NEW PHOTO</div>
 
                 <label class="ai-upload-btn" id="ai-upload-label" style="width:100%; margin:0;">
@@ -1182,12 +1096,6 @@
                 photo.style.display = 'block';
                 document.getElementById('pc-card-icon').style.display = 'none';
 
-                // Apply saved crop/position data
-                document.getElementById('selected-avatar-url').value = player.avatar_url;
-                loadCropData();
-                applyCropToCard();
-                showCropTool(optAvatarUrl);
-
                 // Check if current avatar is a preset or custom
                 const isPreset = player.avatar_url.includes('avatar-human-');
                 const track = document.getElementById('avatar-selection');
@@ -1239,9 +1147,7 @@
             if (backQr && typeof QRCode !== 'undefined') {
                 backQr.innerHTML = '';
                 try {
-                    const matchUrl = player.id
-                        ? `https://subsoccer.pro/instant-play.html?match_vs_id=${encodeURIComponent(player.id)}`
-                        : `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(name)}`;
+                    const matchUrl = `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(name)}`;
                     new QRCode(backQr, {
                         text: matchUrl,
                         width: 56,
@@ -1352,7 +1258,7 @@
                     },
                     body: JSON.stringify({
                         prefix: 'avatars/',
-                        search: `${player.id}_`,
+                        search: `${player.id}_ai_`,
                         limit: 20,
                         offset: 0,
                         sortBy: { column: 'created_at', order: 'desc' }
@@ -1454,145 +1360,6 @@
             track.querySelectorAll('.avatar-option:not([data-custom])').forEach(el => el.classList.remove('selected'));
         }
 
-        // ===== CROP TOOL (CSS object-position + scale) =====
-        let _cropState = { x: 50, y: 50, zoom: 100 }; // percentages
-        let _cropDragging = false;
-        let _cropStartX = 0, _cropStartY = 0;
-        let _cropStartPosX = 50, _cropStartPosY = 50;
-
-        function getCropKey() {
-            const url = document.getElementById('selected-avatar-url')?.value || '';
-            const base = url.split('?')[0];
-            const userId = _currentPlayer?.id || 'unknown';
-            return `subsoccer_crop_${userId}_${btoa(base).slice(0, 20)}`;
-        }
-
-        function saveCropData() {
-            try {
-                localStorage.setItem(getCropKey(), JSON.stringify(_cropState));
-            } catch(e) {}
-        }
-
-        function loadCropData() {
-            try {
-                const data = JSON.parse(localStorage.getItem(getCropKey()));
-                if (data) {
-                    _cropState = { x: data.x || 50, y: data.y || 50, zoom: data.zoom || 100 };
-                } else {
-                    _cropState = { x: 50, y: 50, zoom: 100 };
-                }
-            } catch(e) {
-                _cropState = { x: 50, y: 50, zoom: 100 };
-            }
-        }
-
-        function applyCropToCard() {
-            const photo = document.getElementById('pc-card-photo');
-            if (!photo) return;
-            photo.style.objectPosition = `${_cropState.x}% ${_cropState.y}%`;
-            if (_cropState.zoom > 100) {
-                const s = _cropState.zoom / 100;
-                photo.style.transform = `scale(${s})`;
-                photo.style.transformOrigin = `${_cropState.x}% ${_cropState.y}%`;
-            } else {
-                photo.style.transform = '';
-                photo.style.transformOrigin = '';
-            }
-        }
-
-        function applyCropToPreview() {
-            const img = document.getElementById('crop-preview-img');
-            if (!img) return;
-            img.style.objectPosition = `${_cropState.x}% ${_cropState.y}%`;
-            if (_cropState.zoom > 100) {
-                const s = _cropState.zoom / 100;
-                img.style.transform = `scale(${s})`;
-                img.style.transformOrigin = `${_cropState.x}% ${_cropState.y}%`;
-            } else {
-                img.style.transform = '';
-                img.style.transformOrigin = '';
-            }
-        }
-
-        function showCropTool(avatarSrc) {
-            const tool = document.getElementById('crop-tool');
-            const previewImg = document.getElementById('crop-preview-img');
-            const zoomSlider = document.getElementById('crop-zoom');
-            if (!tool || !previewImg || !avatarSrc) { if (tool) tool.classList.remove('active'); return; }
-
-            // Don't show for preset avatars (they're already perfect)
-            if (avatarSrc.includes('avatar-human-') || avatarSrc.includes('avatar-bear') || avatarSrc.includes('avatar-lion') || avatarSrc.includes('avatar-wolf')) {
-                tool.classList.remove('active');
-                return;
-            }
-
-            previewImg.src = avatarSrc;
-            loadCropData();
-            zoomSlider.value = _cropState.zoom;
-            applyCropToPreview();
-            tool.classList.add('active');
-        }
-
-        function onCropZoom(val) {
-            _cropState.zoom = parseInt(val);
-            applyCropToPreview();
-            applyCropToCard();
-            saveCropData();
-        }
-
-        // Drag handling
-        (function initCropDrag() {
-            document.addEventListener('DOMContentLoaded', () => {
-                const container = document.getElementById('crop-preview');
-                if (!container) return;
-
-                function startDrag(x, y) {
-                    _cropDragging = true;
-                    _cropStartX = x;
-                    _cropStartY = y;
-                    _cropStartPosX = _cropState.x;
-                    _cropStartPosY = _cropState.y;
-                }
-
-                function moveDrag(x, y) {
-                    if (!_cropDragging) return;
-                    const rect = container.getBoundingClientRect();
-                    const dx = ((x - _cropStartX) / rect.width) * -100;
-                    const dy = ((y - _cropStartY) / rect.height) * -100;
-                    _cropState.x = Math.max(0, Math.min(100, _cropStartPosX + dx));
-                    _cropState.y = Math.max(0, Math.min(100, _cropStartPosY + dy));
-                    applyCropToPreview();
-                    applyCropToCard();
-                }
-
-                function endDrag() {
-                    if (_cropDragging) {
-                        _cropDragging = false;
-                        saveCropData();
-                    }
-                }
-
-                // Mouse
-                container.addEventListener('mousedown', (e) => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
-                document.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
-                document.addEventListener('mouseup', endDrag);
-
-                // Touch
-                container.addEventListener('touchstart', (e) => {
-                    if (e.touches.length === 1) {
-                        e.preventDefault();
-                        startDrag(e.touches[0].clientX, e.touches[0].clientY);
-                    }
-                }, { passive: false });
-                document.addEventListener('touchmove', (e) => {
-                    if (_cropDragging && e.touches.length === 1) {
-                        moveDrag(e.touches[0].clientX, e.touches[0].clientY);
-                    }
-                }, { passive: true });
-                document.addEventListener('touchend', endDrag);
-            });
-        })();
-
         // Avatar selection
         function selectAvatar(element) {
             document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
@@ -1607,11 +1374,10 @@
             icon.style.display = 'none';
             photo.style.display = 'block';
 
-            let imgSrc = newSrc;
             if (newSrc === 'ai-custom') {
                 // Newly generated AI avatar (not yet saved)
                 const img = element.querySelector('img');
-                if (img) { photo.src = img.src; imgSrc = img.src; }
+                if (img) photo.src = img.src;
             } else if (isCustom || newSrc.startsWith('http')) {
                 // Custom avatar from Storage history — use full URL
                 photo.src = newSrc;
@@ -1619,11 +1385,6 @@
                 // Preset avatar
                 photo.src = newSrc;
             }
-
-            // Load crop data for this avatar and show crop tool
-            loadCropData();
-            applyCropToCard();
-            showCropTool(imgSrc);
 
             // Auto-save when an avatar is selected (if user is loaded)
             if (_currentPlayer && _currentPlayer.id) {
@@ -2600,10 +2361,6 @@
                     const currentBase = (_currentPlayer?.avatar_url || '').split('?')[0];
                     const newBase = avatarUrl.split('?')[0];
                     if (newBase !== currentBase) {
-                        // Preserve current custom avatar in gallery before switching
-                        if (currentBase && currentBase.includes('supabase.co/storage') && userId) {
-                            addToAvatarGallery(userId, currentBase);
-                        }
                         if (avatarUrl.startsWith('avatar-')) {
                             updates.avatar_url = window.location.origin + '/' + avatarUrl;
                         } else if (avatarUrl.includes('/avatars/tmp_')) {
@@ -2830,10 +2587,8 @@
             const playerName = _currentPlayer?.username || document.getElementById('pc-card-name')?.textContent || 'PLAYER';
             if (nameEl) nameEl.textContent = playerName;
 
-            // Generate match URL that opponent scans (use player ID for permanence)
-            const matchUrl = _currentPlayer?.id
-                ? `https://subsoccer.pro/instant-play.html?match_vs_id=${encodeURIComponent(_currentPlayer.id)}`
-                : `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(playerName)}`;
+            // Generate match URL that opponent scans
+            const matchUrl = `https://subsoccer.pro/instant-play.html?match_vs=${encodeURIComponent(playerName)}`;
             
             qrContainer.innerHTML = '';
             try {

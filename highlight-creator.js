@@ -20,7 +20,12 @@ const progressBar   = document.getElementById('progress-bar');
 const progressText  = document.getElementById('progress-text');
 const downloadSection = document.getElementById('download-section');
 const downloadLink  = document.getElementById('download-link');
+const exportResultVideo = document.getElementById('export-result-video');
 const matchForm     = document.getElementById('match-form');
+const formatOriginalBtn = document.getElementById('format-original-btn');
+const formatSquareBtn   = document.getElementById('format-square-btn');
+const logoOffBtn        = document.getElementById('logo-off-btn');
+const logoOnBtn         = document.getElementById('logo-on-btn');
 
 const ctx = previewCanvas.getContext('2d');
 
@@ -29,9 +34,84 @@ let videoFile = null;
 let matchInfo = null;
 let previewRAF = null;
 let logoImg = null;
+let cropMode = 'original'; // 'original' | 'square'
+let showLogo = false;      // false = NO LOGO (Clean), true = SHOW LOGO
 const CLIP_DURATION = 7; // seconds — the magic number
 let clipStart = 0; // start time of 7s clip
 let isExporting = false; // prevent preview loop from interfering
+
+// Format selector handlers
+if (formatOriginalBtn && formatSquareBtn) {
+    formatOriginalBtn.addEventListener('click', () => setCropMode('original'));
+    formatSquareBtn.addEventListener('click', () => setCropMode('square'));
+}
+
+// Logo toggle handlers
+if (logoOffBtn && logoOnBtn) {
+    logoOffBtn.addEventListener('click', () => setLogoVisibility(false));
+    logoOnBtn.addEventListener('click', () => setLogoVisibility(true));
+}
+
+function setLogoVisibility(visible) {
+    showLogo = visible;
+    if (visible) {
+        logoOnBtn?.classList.add('active');
+        logoOffBtn?.classList.remove('active');
+    } else {
+        logoOffBtn?.classList.add('active');
+        logoOnBtn?.classList.remove('active');
+    }
+    if (sourceVideo.readyState >= 2 && !isExporting) {
+        drawVideoFrame(ctx, previewCanvas.width, previewCanvas.height);
+        readMatchInfo();
+        drawOverlay(ctx, previewCanvas.width, previewCanvas.height);
+    }
+}
+
+function setCropMode(mode) {
+    cropMode = mode;
+    if (mode === 'square') {
+        formatSquareBtn?.classList.add('active');
+        formatOriginalBtn?.classList.remove('active');
+    } else {
+        formatOriginalBtn?.classList.add('active');
+        formatSquareBtn?.classList.remove('active');
+    }
+    updateCanvasDimensions();
+    if (sourceVideo.readyState >= 2 && !isExporting) {
+        drawVideoFrame(ctx, previewCanvas.width, previewCanvas.height);
+        readMatchInfo();
+        drawOverlay(ctx, previewCanvas.width, previewCanvas.height);
+    }
+}
+
+
+function updateCanvasDimensions() {
+    if (!sourceVideo.videoWidth) return;
+    if (cropMode === 'square') {
+        const size = Math.min(sourceVideo.videoWidth, sourceVideo.videoHeight);
+        if (previewCanvas.width !== size || previewCanvas.height !== size) {
+            previewCanvas.width  = size;
+            previewCanvas.height = size;
+        }
+    } else {
+        if (previewCanvas.width !== sourceVideo.videoWidth || previewCanvas.height !== sourceVideo.videoHeight) {
+            previewCanvas.width  = sourceVideo.videoWidth;
+            previewCanvas.height = sourceVideo.videoHeight;
+        }
+    }
+}
+
+function drawVideoFrame(c, targetW, targetH) {
+    if (cropMode === 'square') {
+        const size = Math.min(sourceVideo.videoWidth, sourceVideo.videoHeight);
+        const sx = (sourceVideo.videoWidth - size) / 2;
+        const sy = (sourceVideo.videoHeight - size) / 2;
+        c.drawImage(sourceVideo, sx, sy, size, size, 0, 0, targetW, targetH);
+    } else {
+        c.drawImage(sourceVideo, 0, 0, targetW, targetH);
+    }
+}
 
 // Trim DOM refs
 const trimSlider  = document.getElementById('trim-slider');
@@ -41,11 +121,20 @@ const trimEndEl    = document.getElementById('trim-end');
 const shareBtn     = document.getElementById('share-btn');
 let lastExportBlob = null;
 
-// Preload logo
-(function loadLogo() {
+// Preload logo and font
+(function preloadAssets() {
     logoImg = new Image();
     logoImg.src = 'subsoccer_logo.svg';
+    if (document.fonts) {
+        document.fonts.load("20px Subsoccer");
+        document.fonts.ready.then(() => {
+            if (previewCanvas.width > 0 && matchInfo) {
+                drawOverlay(ctx, previewCanvas.width, previewCanvas.height);
+            }
+        });
+    }
 })();
+
 
 // ───────────────────────────────────────────
 // Drag & drop
@@ -80,8 +169,7 @@ function loadVideo(file) {
     sourceVideo.onloadedmetadata = () => {
         const dur = sourceVideo.duration;
         // Set canvas dimensions
-        previewCanvas.width  = sourceVideo.videoWidth;
-        previewCanvas.height = sourceVideo.videoHeight;
+        updateCanvasDimensions();
         // Show preview, hide dropzone
         dropzone.style.display = 'none';
         previewWrap.style.display = 'block';
@@ -119,7 +207,8 @@ function startPreviewLoop() {
             if (!sourceVideo.paused && sourceVideo.currentTime >= clipEnd) {
                 sourceVideo.currentTime = clipStart;
             }
-            ctx.drawImage(sourceVideo, 0, 0, previewCanvas.width, previewCanvas.height);
+            updateCanvasDimensions();
+            drawVideoFrame(ctx, previewCanvas.width, previewCanvas.height);
             readMatchInfo();
             drawOverlay(ctx, previewCanvas.width, previewCanvas.height);
         }
@@ -128,6 +217,7 @@ function startPreviewLoop() {
     }
     loop();
 }
+
 
 function stopPreviewLoop() {
     if (previewRAF) {
@@ -197,92 +287,78 @@ function formatTime(s) {
 function drawOverlay(c, w, h) {
     if (!matchInfo) return;
 
-    const { player1, player2, score } = matchInfo;
+    const { player1, player2, score1, score2 } = matchInfo;
 
     // Scale based on video height — works for any resolution (720p to 4K)
     const s = h / 100; // 1% of video height as base unit
     const pad = Math.round(2.5 * s); // horizontal padding
 
-    // ── Top bar (branding) ──
-    const topH = Math.round(5 * s);  // 5% of height
-    // Gradient background
-    const topGrad = c.createLinearGradient(0, 0, 0, topH + Math.round(2 * s));
-    topGrad.addColorStop(0, 'rgba(0,0,0,0.85)');
-    topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-    c.fillStyle = topGrad;
-    c.fillRect(0, 0, w, topH + Math.round(2 * s));
+    // ── Top bar (branding) — only drawn if showLogo is enabled ──
+    if (showLogo) {
+        const topH = Math.round(5.5 * s);  // ~5.5% of height
+        const borderThick = Math.max(1, Math.round(0.08 * s)); // Thin light border (~1px at 1080p, scales proportionally)
 
-    // Red accent line under top bar
-    c.fillStyle = '#c41e2a';
-    c.fillRect(0, topH, w, Math.max(2, Math.round(0.25 * s)));
+        // 60% transparent black background
+        c.fillStyle = 'rgba(0, 0, 0, 0.60)';
+        c.fillRect(0, 0, w, topH);
 
-    // Logo
-    if (logoImg && logoImg.complete && logoImg.naturalHeight > 0) {
-        const logoH = Math.round(2.5 * s);
-        const logoW = logoH * (logoImg.naturalWidth / logoImg.naturalHeight);
-        c.drawImage(logoImg, pad, Math.round((topH - logoH) / 2), logoW, logoH);
+        // Thin light line at bottom of top bar
+        c.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        c.fillRect(0, topH - borderThick, w, borderThick);
+
+        // Logo only (no GO word)
+        if (logoImg && logoImg.complete && logoImg.naturalHeight > 0) {
+            const logoH = Math.round(3.0 * s);
+            const logoW = logoH * (logoImg.naturalWidth / logoImg.naturalHeight);
+            c.drawImage(logoImg, pad, Math.round((topH - logoH) / 2), logoW, logoH);
+        }
     }
 
-    // "SUBSOCCER GO" text
-    const fontSize_brand = Math.round(2 * s);
-    c.font = `800 ${fontSize_brand}px Inter, sans-serif`;
-    c.textBaseline = 'middle';
-    c.textAlign = 'left';
-    const textX = pad + (logoImg && logoImg.complete && logoImg.naturalHeight > 0
-        ? Math.round(2.5 * s) * (logoImg.naturalWidth / logoImg.naturalHeight) + Math.round(1 * s)
-        : 0);
-    c.fillStyle = '#ffffff';
-    c.fillText('SUBSOCCER', textX, topH / 2);
-    const subsW = c.measureText('SUBSOCCER').width;
-    c.fillStyle = '#c41e2a';
-    c.fillText(' GO', textX + subsW, topH / 2);
 
-    // ── Bottom scoreboard ──
-    const botH = Math.round(8 * s);
-    const botY = h - botH;
+    // ── Side Badges (Player 1 on Left, Player 2 on Right) ──
+    const badgeW = Math.round(11.5 * s);
+    const badgeH = Math.round(19.5 * s);
+    const badgeY = Math.round((h - badgeH) / 2); // Centered vertically
+    const maxTextW = badgeW * 0.88;
 
-    // Gradient background (fading from bottom)
-    const botGrad = c.createLinearGradient(0, botY - Math.round(3 * s), 0, h);
-    botGrad.addColorStop(0, 'rgba(0,0,0,0)');
-    botGrad.addColorStop(0.25, 'rgba(0,0,0,0.8)');
-    botGrad.addColorStop(1, 'rgba(0,0,0,0.9)');
-    c.fillStyle = botGrad;
-    c.fillRect(0, botY - Math.round(3 * s), w, botH + Math.round(3 * s));
+    // ── Helper to draw a badge with auto-fitted name & large score ──
+    function drawPlayerBadge(name, scoreVal, startX, bgFill) {
+        c.fillStyle = bgFill;
+        c.fillRect(startX, badgeY, badgeW, badgeH);
 
-    // Red accent line on top of scoreboard
-    c.fillStyle = '#c41e2a';
-    c.fillRect(0, botY, w, Math.max(3, Math.round(0.3 * s)));
+        const centerX = startX + (badgeW / 2);
 
-    const contentY = botY + Math.round(1.8 * s);
+        // Player Name (Auto-fit to badge width)
+        let nameFontSize = Math.round(3.4 * s);
+        c.font = `${nameFontSize}px 'Subsoccer', Subsoccer, sans-serif`;
+        const measured = c.measureText(name).width;
+        if (measured > maxTextW && measured > 0) {
+            nameFontSize = Math.max(Math.round(1.8 * s), Math.floor(nameFontSize * (maxTextW / measured)));
+            c.font = `${nameFontSize}px 'Subsoccer', Subsoccer, sans-serif`;
+        }
+        c.fillStyle = '#ffffff';
+        c.textAlign = 'center';
+        c.textBaseline = 'top';
+        c.fillText(name, centerX, badgeY + Math.round(1.4 * s));
 
-    // ── Player names + score (main row) ──
-    const nameSize = Math.round(3 * s);     // ~3% of height
-    const scoreSize = Math.round(4 * s);    // ~4% of height — big and bold
+        // Player Score (Large, fills lower area)
+        const scoreFontSize = Math.round(11.8 * s);
+        c.font = `${scoreFontSize}px 'Subsoccer', Subsoccer, sans-serif`;
+        c.fillText(String(scoreVal !== undefined ? scoreVal : '0'), centerX, badgeY + Math.round(5.4 * s));
+    }
 
-    c.textBaseline = 'top';
 
-    // Player 1 (left-aligned)
-    c.textAlign = 'left';
-    c.fillStyle = '#ffffff';
-    c.font = `700 ${nameSize}px Inter, sans-serif`;
-    c.fillText(player1.toUpperCase(), pad, contentY);
+    // Draw Left Badge: Player 1 (50% Dark Blue)
+    drawPlayerBadge((player1 || 'Player 1').toUpperCase(), score1, 0, 'rgba(29, 58, 98, 0.50)');
 
-    // Score (center, larger)
-    c.textAlign = 'center';
-    c.fillStyle = '#c41e2a';
-    c.font = `900 ${scoreSize}px Inter, sans-serif`;
-    c.fillText(score, w / 2, contentY - Math.round(0.5 * s));
+    // Draw Right Badge: Player 2 (50% Red)
+    drawPlayerBadge((player2 || 'Player 2').toUpperCase(), score2, w - badgeW, 'rgba(196, 30, 42, 0.50)');
 
-    // Player 2 (right-aligned)
-    c.textAlign = 'right';
-    c.fillStyle = '#ffffff';
-    c.font = `700 ${nameSize}px Inter, sans-serif`;
-    c.fillText(player2.toUpperCase(), w - pad, contentY);
-
-    // Reset
+    // Reset canvas text alignment
     c.textAlign = 'left';
     c.textBaseline = 'alphabetic';
 }
+
 
 // ───────────────────────────────────────────
 // Match info from form
@@ -297,7 +373,7 @@ function readMatchInfo() {
     const s1 = fd.get('score1') || '0';
     const s2 = fd.get('score2') || '0';
     if (p1 && p2) {
-        matchInfo = { player1: p1, player2: p2, score: `${s1}-${s2}` };
+        matchInfo = { player1: p1, player2: p2, score1: s1, score2: s2, score: `${s1}-${s2}` };
     } else {
         matchInfo = null;
     }
@@ -309,6 +385,63 @@ function updateExportState() {
 }
 
 // ───────────────────────────────────────────
+// Dimension & Codec helpers for iOS / Mobile / WebCodecs
+// ───────────────────────────────────────────
+function getExportDimensions(videoWidth, videoHeight, isSquare) {
+    let w = videoWidth || 720;
+    let h = videoHeight || 1280;
+    if (isSquare) {
+        const minDim = Math.min(w, h);
+        w = minDim;
+        h = minDim;
+    }
+    // Cap max dimension to 1080 to prevent out-of-memory crashes on mobile/iOS
+    const MAX_DIM = 1080;
+    if (w > MAX_DIM || h > MAX_DIM) {
+        if (w >= h) {
+            h = Math.round((h * MAX_DIM) / w);
+            w = MAX_DIM;
+        } else {
+            w = Math.round((w * MAX_DIM) / h);
+            h = MAX_DIM;
+        }
+    }
+    // Crucial for H.264 encoder: both width and height MUST be even numbers (divisible by 2)
+    w = Math.floor(w / 2) * 2;
+    h = Math.floor(h / 2) * 2;
+    w = Math.max(128, w);
+    h = Math.max(128, h);
+    return { width: w, height: h };
+}
+
+async function findSupportedCodec(width, height, fps) {
+    const candidates = [
+        'avc1.4d002a', // Main Profile Level 4.2 (Standard 1080p)
+        'avc1.640028', // High Profile Level 4.0
+        'avc1.420028', // Baseline Profile Level 4.0
+        'avc1.42001f', // Baseline Profile Level 3.1
+        'avc1.42e01f', // Constrained Baseline Level 3.1
+        'avc1.42001e', // Baseline Profile Level 3.0
+    ];
+    for (const codec of candidates) {
+        try {
+            const config = {
+                codec,
+                width,
+                height,
+                bitrate: 3_000_000,
+                framerate: fps,
+            };
+            const res = await VideoEncoder.isConfigSupported(config);
+            if (res && res.supported) {
+                return res.config.codec || codec;
+            }
+        } catch (e) {}
+    }
+    return null;
+}
+
+// ───────────────────────────────────────────
 // Export pipeline — try WebCodecs first, fall back to MediaRecorder
 // ───────────────────────────────────────────
 exportBtn.addEventListener('click', async () => {
@@ -316,37 +449,49 @@ exportBtn.addEventListener('click', async () => {
     if (!matchInfo || !videoFile) return;
 
     exportBtn.disabled = true;
-    exportBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing…';
+    exportBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Rendering...';
     progressContainer.style.display = 'block';
     downloadSection.style.display = 'none';
     setProgress(0);
 
-    try {
-        if ('VideoEncoder' in window && typeof OffscreenCanvas !== 'undefined') {
-            try {
-                await exportWithWebCodecs();
-            } catch (wcErr) {
-                console.warn('WebCodecs failed, trying MediaRecorder:', wcErr);
-                await exportWithMediaRecorder();
-            }
-        } else {
-            await exportWithMediaRecorder();
+    let exportSucceeded = false;
+
+    // 1. Try WebCodecs first (fast & highest quality H.264 MP4)
+    if (typeof VideoEncoder !== 'undefined') {
+        try {
+            console.log('Attempting export with WebCodecs...');
+            await exportWithWebCodecs();
+            exportSucceeded = true;
+        } catch (webcodecsErr) {
+            console.warn('WebCodecs export failed, falling back to MediaRecorder:', webcodecsErr);
         }
+    }
+
+    // 2. Fall back to MediaRecorder if WebCodecs was not available or failed
+    if (!exportSucceeded) {
+        try {
+            console.log('Attempting export with MediaRecorder fallback...');
+            await exportWithMediaRecorder();
+            exportSucceeded = true;
+        } catch (mediaRecErr) {
+            console.error('MediaRecorder export failed:', mediaRecErr);
+            alert('Export failed on this device: ' + mediaRecErr.message);
+        }
+    }
+
+    if (exportSucceeded) {
         downloadSection.style.display = 'block';
         downloadSection.scrollIntoView({ behavior: 'smooth' });
-    } catch (err) {
-        console.error('Export failed:', err);
-        alert('Export failed: ' + err.message);
-    } finally {
-        exportBtn.disabled = false;
-        exportBtn.innerHTML = '<i class="fa-solid fa-film"></i> Export MP4';
-        progressContainer.style.display = 'none';
     }
+
+    exportBtn.disabled = false;
+    exportBtn.innerHTML = '<i class="fa-solid fa-film"></i> Export MP4';
+    progressContainer.style.display = 'none';
 });
 
 function setProgress(pct) {
-    progressBar.style.width = pct + '%';
-    progressText.textContent = Math.round(pct) + '%';
+    progressBar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+    progressText.textContent = Math.round(Math.min(100, Math.max(0, pct))) + '%';
 }
 
 // ───────────────────────────────────────────
@@ -358,31 +503,26 @@ async function exportWithWebCodecs() {
     stopPreviewLoop();
     video.pause();
 
-    const width  = video.videoWidth;
-    const height = video.videoHeight;
+    const { width, height } = getExportDimensions(video.videoWidth, video.videoHeight, cropMode === 'square');
     const fps = 30;
+    const frameDurationMicros = Math.round(1_000_000 / fps);
     const actualClipDur = Math.min(CLIP_DURATION, video.duration - clipStart);
     const totalFrames = Math.floor(actualClipDur * fps);
 
     // Check encoder support
-    const codecString = 'avc1.42001f';
+    const chosenCodec = await findSupportedCodec(width, height, fps);
+    if (!chosenCodec) {
+        throw new Error('No supported H.264 codec found for WebCodecs');
+    }
+
     const encConfig = {
-        codec: codecString,
+        codec: chosenCodec,
         width,
         height,
-        bitrate: 2_500_000,
+        bitrate: 3_000_000,
         framerate: fps,
+        avc: { format: 'avc' },
     };
-    const support = await VideoEncoder.isConfigSupported(encConfig);
-    if (!support.supported) {
-        // Try baseline profile
-        encConfig.codec = 'avc1.420028';
-        const s2 = await VideoEncoder.isConfigSupported(encConfig);
-        if (!s2.supported) throw new Error('H.264 encoding not supported on this device');
-        encConfig.codec = s2.config.codec;
-    } else {
-        encConfig.codec = support.config.codec;
-    }
 
     // Setup muxer
     const target = new ArrayBufferTarget();
@@ -407,9 +547,11 @@ async function exportWithWebCodecs() {
     });
     encoder.configure(encConfig);
 
-    // OffscreenCanvas for overlay compositing
-    const offCanvas = new OffscreenCanvas(width, height);
-    const offCtx = offCanvas.getContext('2d');
+    // Standard HTMLCanvasElement for highest browser & iOS compatibility
+    const encCanvas = document.createElement('canvas');
+    encCanvas.width = width;
+    encCanvas.height = height;
+    const encCtx = encCanvas.getContext('2d');
 
     // Process each frame
     for (let i = 0; i < totalFrames; i++) {
@@ -419,14 +561,25 @@ async function exportWithWebCodecs() {
         await seekTo(video, time);
 
         // Draw video frame + overlay graphics
-        offCtx.clearRect(0, 0, width, height);
-        offCtx.drawImage(video, 0, 0, width, height);
-        drawOverlay(offCtx, width, height);
+        encCtx.clearRect(0, 0, width, height);
+        drawVideoFrame(encCtx, width, height);
+        drawOverlay(encCtx, width, height);
 
-        // Create VideoFrame from canvas
-        const frame = new VideoFrame(offCanvas, {
-            timestamp: Math.round((i / fps) * 1_000_000), // relative timestamp from 0
-        });
+        // Create VideoFrame with explicit duration
+        let frame;
+        try {
+            frame = new VideoFrame(encCanvas, {
+                timestamp: i * frameDurationMicros,
+                duration: frameDurationMicros,
+            });
+        } catch (vfErr) {
+            const bmp = await createImageBitmap(encCanvas);
+            frame = new VideoFrame(bmp, {
+                timestamp: i * frameDurationMicros,
+                duration: frameDurationMicros,
+            });
+            bmp.close();
+        }
 
         const keyFrame = (i % (fps * 2) === 0); // keyframe every 2s
         encoder.encode(frame, { keyFrame });
@@ -450,6 +603,13 @@ async function exportWithWebCodecs() {
     const blob = new Blob([target.buffer], { type: 'video/mp4' });
     lastExportBlob = blob;
     const url = URL.createObjectURL(blob);
+
+    if (exportResultVideo) {
+        exportResultVideo.src = url;
+        exportResultVideo.load();
+        exportResultVideo.play().catch(() => {});
+    }
+
     downloadLink.href = url;
     downloadLink.download = 'subsoccer-highlight.mp4';
 
@@ -460,12 +620,22 @@ async function exportWithWebCodecs() {
 
 function seekTo(video, time) {
     return new Promise((resolve) => {
-        if (Math.abs(video.currentTime - time) < 0.01) { resolve(); return; }
-        const handler = () => {
-            video.removeEventListener('seeked', handler);
+        if (Math.abs(video.currentTime - time) < 0.03) {
+            resolve();
+            return;
+        }
+        let done = false;
+        const finish = () => {
+            if (done) return;
+            done = true;
+            video.removeEventListener('seeked', onSeeked);
+            clearTimeout(timeoutId);
             resolve();
         };
-        video.addEventListener('seeked', handler);
+        const onSeeked = () => finish();
+        // 350ms failsafe timeout in case iOS drops the seeked event
+        const timeoutId = setTimeout(finish, 350);
+        video.addEventListener('seeked', onSeeked, { once: true });
         video.currentTime = time;
     });
 }
@@ -481,8 +651,7 @@ async function exportWithMediaRecorder() {
     stopPreviewLoop();
     video.pause();
 
-    const w = video.videoWidth;
-    const h = video.videoHeight;
+    const { width: w, height: h } = getExportDimensions(video.videoWidth, video.videoHeight, cropMode === 'square');
     const actualClipDur = Math.min(CLIP_DURATION, video.duration - clipStart);
 
     const recCanvas = document.createElement('canvas');
@@ -490,20 +659,38 @@ async function exportWithMediaRecorder() {
     recCanvas.height = h;
     const recCtx = recCanvas.getContext('2d');
 
-    let mimeType = 'video/webm;codecs=vp9';
-    if (MediaRecorder.isTypeSupported('video/mp4')) {
-        mimeType = 'video/mp4';
-    } else if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'video/webm';
+    const candidateMimes = [
+        'video/mp4;codecs=avc1',
+        'video/mp4;codecs=h264',
+        'video/mp4',
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm',
+    ];
+    let mimeType = '';
+    if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function') {
+        for (const m of candidateMimes) {
+            if (MediaRecorder.isTypeSupported(m)) {
+                mimeType = m;
+                break;
+            }
+        }
     }
 
-    const stream = recCanvas.captureStream(30);
-    const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
+    const stream = recCanvas.captureStream ? recCanvas.captureStream(30) : previewCanvas.captureStream(30);
+    const options = { videoBitsPerSecond: 3_000_000 };
+    if (mimeType) options.mimeType = mimeType;
+
+    const recorder = new MediaRecorder(stream, options);
     const chunks = [];
     let stopped = false;
 
-    recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
-    const recDone = new Promise((resolve) => { recorder.onstop = resolve; });
+    recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
+    const recDone = new Promise((resolve) => {
+        recorder.onstop = resolve;
+    });
 
     function stopRecording() {
         if (stopped) return;
@@ -512,18 +699,29 @@ async function exportWithMediaRecorder() {
         try { recorder.stop(); } catch(e) {}
     }
 
-    // Safety timeout — never run longer than clip + 3s buffer
+    // Safety timeout — never run longer than clip + 4s buffer
     const safetyTimeout = setTimeout(() => {
         console.warn('Export safety timeout reached');
         stopRecording();
-    }, (actualClipDur + 3) * 1000);
+    }, (actualClipDur + 4) * 1000);
 
     // Seek to clip start, wait for seek, then start
     video.currentTime = clipStart;
-    await new Promise(r => { video.onseeked = r; });
+    await new Promise(r => {
+        const onSeek = () => {
+            video.removeEventListener('seeked', onSeek);
+            r();
+        };
+        video.addEventListener('seeked', onSeek, { once: true });
+        setTimeout(onSeek, 400); // failsafe
+    });
 
     recorder.start(100);
-    await video.play();
+    try {
+        await video.play();
+    } catch (e) {
+        console.warn('Playback start error during recording:', e);
+    }
 
     const clipEnd = clipStart + actualClipDur;
     function drawLoop() {
@@ -532,9 +730,11 @@ async function exportWithMediaRecorder() {
             stopRecording();
             return;
         }
-        recCtx.drawImage(video, 0, 0, w, h);
+        recCtx.clearRect(0, 0, w, h);
+        drawVideoFrame(recCtx, w, h);
         drawOverlay(recCtx, w, h);
-        setProgress(((video.currentTime - clipStart) / actualClipDur) * 100);
+        const elapsed = Math.max(0, video.currentTime - clipStart);
+        setProgress(Math.min(99, (elapsed / actualClipDur) * 100));
         requestAnimationFrame(drawLoop);
     }
     drawLoop();
@@ -547,20 +747,31 @@ async function exportWithMediaRecorder() {
     isExporting = false;
     startPreviewLoop();
 
-    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-    const blob = new Blob(chunks, { type: mimeType });
+    const outputType = (mimeType && mimeType.includes('webm')) ? 'video/webm' : 'video/mp4';
+    const ext = outputType.includes('webm') ? 'webm' : 'mp4';
+    const blob = new Blob(chunks, { type: outputType });
     lastExportBlob = blob;
     const url = URL.createObjectURL(blob);
+
+    if (exportResultVideo) {
+        exportResultVideo.src = url;
+        exportResultVideo.load();
+        exportResultVideo.play().catch(() => {});
+    }
+
     downloadLink.href = url;
     downloadLink.download = `subsoccer-highlight.${ext}`;
 }
 
 // ───────────────────────────────────────────
-// Web Share API (native share on mobile)
+// Web Share API & Download Intercept for Mobile
 // ───────────────────────────────────────────
 shareBtn.addEventListener('click', async () => {
     if (!lastExportBlob) return;
-    const file = new File([lastExportBlob], 'subsoccer-highlight.mp4', { type: 'video/mp4' });
+    const isMp4 = lastExportBlob.type.includes('mp4');
+    const ext = isMp4 ? 'mp4' : 'webm';
+    const mime = isMp4 ? 'video/mp4' : 'video/webm';
+    const file = new File([lastExportBlob], `subsoccer-highlight.${ext}`, { type: mime });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
             await navigator.share({
@@ -572,7 +783,22 @@ shareBtn.addEventListener('click', async () => {
             if (e.name !== 'AbortError') console.error('Share failed:', e);
         }
     } else {
-        // Fallback: just trigger download
-        downloadLink.click();
+        // Fallback: trigger direct download
+        const url = URL.createObjectURL(lastExportBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `subsoccer-highlight.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+});
+
+// Intercept direct download on mobile devices to prevent black screen / raw blob navigation
+downloadLink.addEventListener('click', (e) => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile && navigator.canShare) {
+        e.preventDefault();
+        shareBtn.click();
     }
 });

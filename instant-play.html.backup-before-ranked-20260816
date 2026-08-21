@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="apple-itunes-app" content="app-id=6777437223">
-    <title>Subsoccer GO — Free Table Football App | Tournaments, Rating & Live Scoring</title>
+    <title>Subsoccer GO — Free Table Football App | Tournaments, ELO & Live Scoring</title>
     <meta name="description" content="Play Subsoccer instantly — no download, no registration. Tap to score, track results, and compete with players worldwide. The free digital scoreboard for any Subsoccer table.">
     <link rel="canonical" href="https://subsoccer.pro/instant-play.html">
 
@@ -83,375 +83,6 @@
     }
     </script>
 
-    <!-- Seamless Split-Screen Ranked Match Intro -->
-    <script>
-        (function() {
-            try {
-                const p = new URLSearchParams(window.location.search);
-                if (p.has('match_vs') || p.has('match_vs_id')) {
-                    document.documentElement.classList.add('is-ranked-intro');
-                }
-            } catch(_) {}
-        })();
-    </script>
-    <style>
-        /* Split-screen Ranked Match Intro - Subsoccer Athletic Design */
-        .vs-intro-player {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: clamp(25px, 5vh, 50px);
-            z-index: 5;
-            pointer-events: none;
-        }
-
-        /* Heroic Portrait Avatar Box (Subsoccer Pro Card Proportions) */
-        .vs-intro-avatar-wrap {
-            width: clamp(160px, 40vw, 300px);
-            aspect-ratio: 2.5 / 4;
-            border-radius: 6px;
-            overflow: hidden;
-            background: #111111;
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 0;
-            position: relative;
-            pointer-events: auto;
-            cursor: default;
-        }
-
-        .player-left .vs-intro-avatar-wrap {
-            border-color: rgba(138, 180, 248, 0.3);
-        }
-
-        .player-right .vs-intro-avatar-wrap {
-            border-color: rgba(196, 30, 42, 0.4);
-        }
-
-        .vs-card-header {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 10px 4px;
-            box-sizing: border-box;
-            flex-shrink: 0;
-            z-index: 2;
-        }
-
-        .vs-card-header-label {
-            font-size: clamp(0.45rem, 1.3vw, 0.65rem);
-            color: #c41e2a;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            font-family: 'Resolve', sans-serif;
-        }
-
-        .vs-card-header-icon {
-            color: #c41e2a;
-            font-size: clamp(0.6rem, 1.5vw, 0.8rem);
-        }
-
-        .vs-card-photo {
-            width: 100%;
-            flex: 1;
-            min-height: 50px;
-            background: #1a1a1a;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .vs-card-photo img {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .vs-card-photo i {
-            font-size: clamp(2rem, 6vw, 3rem);
-            color: rgba(255, 255, 255, 0.2);
-        }
-
-        .vs-card-info {
-            width: 100%;
-            padding: 10px 10px 12px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex-shrink: 0;
-            z-index: 2;
-        }
-
-        .vs-card-name {
-            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
-            font-size: clamp(1.1rem, 3.5vw, 1.8rem);
-            text-transform: uppercase;
-            color: #fff;
-            line-height: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-        }
-
-        .vs-card-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .vs-card-rating {
-            background: #c41e2a;
-            color: #fff;
-            padding: 3px 10px;
-            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
-            font-size: clamp(0.85rem, 2.2vw, 1.15rem);
-            border-radius: 4px;
-            line-height: 1.2;
-        }
-
-        .vs-card-winratio {
-            text-align: right;
-        }
-
-        .vs-card-winratio-label {
-            font-size: clamp(0.35rem, 1vw, 0.5rem);
-            color: #888;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            font-family: 'Resolve', sans-serif;
-        }
-
-        .vs-card-winratio-value {
-            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
-            font-size: clamp(0.85rem, 2.2vw, 1.15rem);
-            color: #fff;
-            line-height: 1;
-        }
-
-        /* Remove old separate ELO badge — now integrated into card */
-        .vs-intro-elo {
-            display: none;
-        }
-
-        /* Floating Center Action Bar */
-        .vs-center-overlay {
-            display: none;
-            position: absolute;
-            bottom: clamp(16px, 4vh, 36px);
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 380px;
-            z-index: 100;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        /* Center VS Badge on Divider (No Shadows) */
-        .vs-center-badge {
-            position: absolute;
-            top: clamp(-200px, -27vh, -145px);
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #000000;
-            border: 2px solid #333333;
-            padding: 6px 18px;
-            border-radius: 2px;
-            box-shadow: none;
-            pointer-events: none;
-        }
-
-        .vs-center-badge span {
-            display: inline-block;
-            font-family: 'Subsoccer', sans-serif;
-            font-size: clamp(1.8rem, 5vw, 2.5rem);
-            color: #ffffff;
-            letter-spacing: 2px;
-        }
-
-        .vs-card-panel {
-            background: #0a0a0a;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 2px;
-            padding: 14px 16px;
-            width: 100%;
-            box-sizing: border-box;
-            box-shadow: none;
-        }
-
-        .vs-center-stakes {
-            font-family: 'Resolve', sans-serif;
-            font-size: clamp(0.68rem, 1.9vw, 0.78rem);
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            color: #ffffff;
-            margin-bottom: 12px;
-            line-height: 1.4;
-            text-transform: uppercase;
-        }
-
-        .vs-center-btn {
-            width: 100%;
-            padding: clamp(14px, 2.5vh, 16px);
-            background: #c41e2a;
-            color: #ffffff;
-            border: none;
-            border-radius: 2px;
-            font-family: 'Subsoccer', sans-serif;
-            font-size: clamp(1.1rem, 3.2vw, 1.3rem);
-            letter-spacing: 2px;
-            cursor: pointer;
-            box-shadow: none;
-            transition: opacity 0.2s;
-            box-sizing: border-box;
-            text-transform: uppercase;
-            display: block;
-        }
-
-        .vs-center-btn:active {
-            opacity: 0.85;
-        }
-
-        /* While Ranked Match Intro is Active */
-        html.is-ranked-intro .player-label {
-            display: none !important; /* Hide duplicate top name in intro as well */
-        }
-
-        html.is-ranked-intro .vs-intro-player {
-            display: flex !important;
-            margin-top: clamp(10px, 3vh, 30px);
-            margin-bottom: clamp(10px, 3vh, 30px);
-        }
-
-        html.is-ranked-intro .vs-intro-avatar-wrap {
-            width: clamp(160px, 28vw, 260px);
-            aspect-ratio: 2.5 / 4;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.45);
-        }
-
-        html.is-ranked-intro .vs-center-overlay {
-            display: flex !important;
-        }
-
-        /* Hide everything until data loads to prevent placeholder flash */
-        html.is-ranked-intro:not(.vs-loaded) #main-scoreboard {
-            opacity: 0;
-        }
-
-        html.is-ranked-intro.vs-loaded #main-scoreboard {
-            opacity: 1;
-            transition: opacity 0.3s ease;
-        }
-
-        html.is-ranked-intro .score,
-        html.is-ranked-intro .goals-visual,
-        html.is-ranked-intro #actual-rules-overlay {
-            display: none !important;
-        }
-
-        /* During Active Ranked Match — show mini player cards and balance layout */
-        html.is-ranked-playing .player-label {
-            display: none !important; /* Hide duplicate top name so card acts as the sole identity */
-        }
-
-        html.is-ranked-playing .vs-intro-player {
-            display: flex !important;
-            pointer-events: none;
-            margin-top: clamp(6px, 1.5vh, 20px);
-            margin-bottom: clamp(8px, 2vh, 18px);
-            z-index: 3;
-        }
-
-        html.is-ranked-playing .vs-intro-avatar-wrap {
-            width: clamp(140px, 24vw, 240px) !important;
-            aspect-ratio: 2.5 / 4 !important;
-            opacity: 1;
-            border-radius: 8px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.45);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        html.is-ranked-playing .player-left .vs-intro-avatar-wrap {
-            border-color: rgba(138, 180, 248, 0.55);
-        }
-
-        html.is-ranked-playing .player-right .vs-intro-avatar-wrap {
-            border-color: rgba(255, 255, 255, 0.55);
-        }
-
-        html.is-ranked-playing .vs-intro-elo {
-            display: none !important;
-        }
-
-        html.is-ranked-playing .vs-card-header {
-            padding: 6px 12px 4px;
-        }
-
-        html.is-ranked-playing .vs-card-header-label {
-            font-size: clamp(0.42rem, 1.1vw, 0.58rem);
-            letter-spacing: 1.5px;
-        }
-
-        html.is-ranked-playing .vs-card-header-icon {
-            font-size: clamp(0.55rem, 1.3vw, 0.75rem);
-        }
-
-        html.is-ranked-playing .vs-card-info {
-            padding: 10px 12px 12px;
-            gap: 4px;
-        }
-
-        html.is-ranked-playing .vs-card-name {
-            font-size: clamp(0.95rem, 2.5vw, 1.4rem);
-            letter-spacing: 1.2px;
-        }
-
-        html.is-ranked-playing .vs-card-rating {
-            font-size: clamp(0.78rem, 1.8vw, 1.05rem);
-            padding: 2px 8px;
-            border-radius: 4px;
-            letter-spacing: 0.5px;
-        }
-
-        html.is-ranked-playing .vs-card-winratio-label {
-            font-size: clamp(0.35rem, 0.9vw, 0.48rem);
-            color: rgba(255, 255, 255, 0.7) !important;
-            letter-spacing: 1px;
-        }
-
-        html.is-ranked-playing .vs-card-winratio-value {
-            font-size: clamp(0.78rem, 1.8vw, 1.05rem);
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        /* Score & Goals tight & centered under card */
-        html.is-ranked-playing .score {
-            font-size: clamp(7rem, 22vh, 15rem);
-            margin-top: 0 !important;
-            line-height: 0.95;
-        }
-
-        html.is-ranked-playing .goals-visual {
-            font-size: clamp(1.8rem, 4.5vh, 3.2rem);
-            margin-top: clamp(6px, 1.2vh, 12px);
-        }
-    </style>
-
     <meta name="theme-color" content="#E30613">
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -488,16 +119,6 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        a, button, input, select {
-            font-family: inherit;
-            text-decoration: none;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
         }
 
         body {
@@ -671,45 +292,23 @@
             -webkit-backdrop-filter: blur(10px);
         }
 
-        /* Winner overlay - Split Stadium Arena matching the game */
+        /* Winner overlay */
         .winner-overlay {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            background: linear-gradient(to right, #1c2b36 0%, #121e2b 49.8%, #000000 49.8%, #000000 50.2%, #a8101a 50.2%, #6b050b 100%);
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.9)), url('subsoccer-teams-ny2.jpg') no-repeat center center;
+            background-size: cover;
             display: none;
             flex-direction: column;
-            justify-content: flex-start;
+            justify-content: center;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             z-index: 100;
-            padding: 10px;
+            padding: 20px;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            box-sizing: border-box;
-        }
-
-        /* Action Links / Buttons */
-        .sub-back-link {
-            font-family: 'Subsoccer', 'Open Sans', sans-serif !important;
-            font-size: 1.1rem !important;
-            letter-spacing: 2px !important;
-            color: #ffffff !important;
-            text-decoration: none !important;
-            text-transform: uppercase !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 10px !important;
-            padding: 12px 0 !important;
-            cursor: pointer !important;
-            transition: opacity 0.2s;
-        }
-        .sub-back-link:hover {
-            opacity: 0.8;
         }
 
         .winner-text,
@@ -917,250 +516,32 @@
             }
         }
 
-        /* Landscape & Short Screen Optimization (Mobile Landscape / Laptops) */
-        @media (max-height: 550px) {
-            .game-logo {
-                top: 8px !important;
-                height: 20px !important;
-            }
-
-            .player-label {
-                top: 6px !important;
-                font-size: 1rem !important;
-            }
-
-            .score {
-                margin-top: 10px !important;
-                font-size: clamp(5rem, 20vh, 8rem) !important;
-            }
-
-            .goals-visual {
-                font-size: 1.3rem !important;
-                margin-top: 2px !important;
-                letter-spacing: 6px !important;
-            }
-
-            /* VS Intro in Short Landscape — height-driven scaling so photo is never crushed */
-            .vs-intro-player {
-                margin-top: clamp(2px, 1vh, 8px) !important;
-            }
-
-            .vs-intro-avatar-wrap {
-                width: clamp(100px, 24vh, 150px) !important;
-                height: auto !important;
-                aspect-ratio: 2.5 / 4 !important;
-                margin-bottom: 0 !important;
-                border-radius: 6px !important;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.45) !important;
-            }
-
-            .vs-card-header {
-                padding: 3px 6px 1px !important;
-            }
-
-            .vs-card-header-label {
-                font-size: 0.38rem !important;
-                letter-spacing: 1px !important;
-            }
-
-            .vs-card-header-icon {
-                font-size: 0.48rem !important;
-            }
-
-            .vs-card-photo {
-                min-height: 45px !important;
-            }
-
-            .vs-card-info {
-                padding: 4px 6px 6px !important;
-                gap: 2px !important;
-            }
-
-            .vs-card-name {
-                font-size: clamp(0.7rem, 2.4vh, 0.95rem) !important;
-            }
-
-            .vs-card-rating {
-                font-size: clamp(0.55rem, 1.8vh, 0.75rem) !important;
-                padding: 1px 4px !important;
-            }
-
-            .vs-card-winratio-label {
-                font-size: 0.28rem !important;
-            }
-
-            .vs-card-winratio-value {
-                font-size: clamp(0.55rem, 1.8vh, 0.75rem) !important;
-            }
-
-            .vs-center-overlay {
-                bottom: 6px !important;
-                max-width: 290px !important;
-            }
-
-            .vs-center-box {
-                padding: 4px 8px !important;
-            }
-
-            .vs-center-title {
-                font-size: 0.6rem !important;
-                margin-bottom: 2px !important;
-            }
-
-            .vs-center-stakes {
-                font-size: 0.6rem !important;
-                margin-bottom: 4px !important;
-            }
-
-            .vs-center-btn {
-                padding: 6px 10px !important;
-                font-size: 0.8rem !important;
-            }
-
-            /* During Active Match in Short Landscape */
-            html.is-ranked-playing .vs-intro-player {
-                margin-top: clamp(2px, 1vh, 8px) !important;
-                margin-bottom: clamp(10px, 2.5vh, 20px) !important; /* Clean space between card and score */
-            }
-
-            html.is-ranked-playing .vs-intro-avatar-wrap {
-                width: clamp(80px, 18vh, 120px) !important;
-                height: auto !important;
-                aspect-ratio: 2.5 / 4 !important;
-                border-radius: 5px !important;
-                box-shadow: 0 3px 12px rgba(0,0,0,0.4) !important; /* Tighter, softer shadow */
-            }
-
-            html.is-ranked-playing .score {
-                font-size: clamp(3rem, 19vh, 5.2rem) !important;
-                margin-top: 0 !important;
-                line-height: 0.9 !important;
-            }
-
-            html.is-ranked-playing .goals-visual {
-                font-size: clamp(0.9rem, 3vh, 1.4rem) !important;
-                margin-top: 2px !important;
-                letter-spacing: 6px !important;
-            }
-
-            /* Winner Overlay in Landscape */
+        /* Landscape optimization for mobile screens */
+        @media (orientation: landscape) and (max-height: 500px) {
             .winner-overlay {
-                gap: 4px !important;
-                padding: 4px !important;
-                justify-content: center !important;
-            }
-
-            .winner-content-box {
-                padding: max(env(safe-area-inset-top), 2px) 10px max(env(safe-area-inset-bottom), 2px) 10px !important;
-                justify-content: center !important;
-                width: 100% !important;
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-            }
-
-            #ranked-victory-box {
-                max-width: 620px !important;
-                padding: 2px 0 !important;
-                margin-left: auto !important;
-                margin-right: auto !important;
-            }
-
-            .ranked-action-btns {
-                flex-direction: row !important;
-                flex-wrap: wrap !important;
-                max-width: 620px !important;
-                gap: 8px !important;
-                justify-content: center !important;
-                margin-left: auto !important;
-                margin-right: auto !important;
-            }
-            .ranked-action-btns > button {
-                flex: 1 1 45% !important;
-                min-width: 0 !important;
-            }
-            .ranked-action-btns > a.sub-back-link {
-                flex: 0 0 100% !important;
-                text-align: center !important;
-            }
-
-            #ranked-winner-title {
-                font-size: 1.3rem !important;
-                margin-bottom: 2px !important;
-            }
-
-            #ranked-final-score {
-                font-size: 2.2rem !important;
-                margin-bottom: 4px !important;
-            }
-
-            #ranked-card-p1, #ranked-card-p2 {
-                max-width: 110px !important;
-            }
-
-            #ranked-res-p1-wrap, #ranked-res-p2-wrap {
-                max-height: 80px !important;
-            }
-
-            #ranked-res-p1-name, #ranked-res-p2-name {
-                font-size: 0.85rem !important;
-                margin-top: 2px !important;
-            }
-
-            #ranked-res-p1-elo-box, #ranked-res-p2-elo-box {
-                padding: 0 !important;
-                margin-top: 2px !important;
-            }
-
-            #ranked-res-p1-elo, #ranked-res-p2-elo {
-                font-size: 0.7rem !important;
-            }
-
-            .ranked-action-btns {
-                flex-direction: row !important;
-                flex-wrap: wrap !important;
-                justify-content: center !important;
-                max-width: 520px !important;
-                gap: 6px !important;
-            }
-
-            #btn-share-ranked-result {
-                flex: 1 1 200px !important;
-                padding: 8px 12px !important;
-                font-size: 0.95rem !important;
-            }
-
-            .btn-ranked-rematch {
-                flex: 1 1 130px !important;
-                padding: 8px 12px !important;
-                font-size: 0.95rem !important;
-            }
-
-            .sub-back-link {
-                width: 100% !important;
-                padding: 2px 0 !important;
-                font-size: 0.8rem !important;
+                gap: 10px;
+                padding: 15px;
             }
 
             .winner-text {
-                font-size: 2.2rem !important;
+                font-size: 2.5rem;
             }
 
             .winner-subtitle {
-                font-size: 0.9rem !important;
+                font-size: 1rem;
             }
 
             .winner-motivation {
-                padding: 8px 12px !important;
-                font-size: 0.75rem !important;
-                max-width: 500px !important;
-                margin: 0 !important;
+                padding: 10px 15px;
+                font-size: 0.8rem;
+                max-width: 600px;
+                margin: 0;
             }
 
             .claim-victory-btn,
             .play-again-btn {
-                padding: 8px 20px !important;
-                font-size: 0.95rem !important;
+                padding: 10px 30px;
+                font-size: 1rem;
             }
         }
 
@@ -1196,15 +577,9 @@
             transform: translateX(-50%);
             height: 35px;
             width: auto;
-            z-index: 50;
+            z-index: 500;
             opacity: 0.9;
             filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
-        }
-
-        html.is-ranked-intro #game-logo,
-        body:has(.winner-overlay.show) #game-logo,
-        body:has(#winner-overlay.show) #game-logo {
-            display: none !important;
         }
 
         /* Start Overlay (Click to Fullscreen) */
@@ -1409,9 +784,9 @@
 
 
 
-    <!-- Actual Rules Overlay shown before playing (hidden for ranked match players) -->
+    <!-- Actual Rules Overlay shown before playing -->
     <div id="actual-rules-overlay" class="rules-overlay"
-        style="display: none; background: rgba(10,10,10,0.98); z-index: 1000;" onclick="event.stopPropagation()">
+        style="display: flex; background: rgba(10,10,10,0.98); z-index: 1000;" onclick="event.stopPropagation()">
         <div class="rules-header">OFFICIAL RULES</div>
         <div class="rules-list">
             <div class="rule-item">
@@ -1466,36 +841,10 @@
     <div id="table-id-display" class="table-id">GAME: <span id="table-id-value"></span></div>
 
     <!-- Main scoreboard -->
-    <div class="scoreboard" id="main-scoreboard">
-        <!-- Player 1 (Left - Petrol Blue) -->
+    <div class="scoreboard">
+        <!-- Player 1 (Left) -->
         <div class="player-side player-left" onclick="addGoal(1)">
-            <div class="player-label" id="label-p1">Player 1</div>
-
-            <!-- VS Intro Left (Visible during ranked intro) -->
-            <div class="vs-intro-player" id="vs-intro-p1">
-                <div class="vs-intro-avatar-wrap" onclick="event.stopPropagation()">
-                    <div class="vs-card-header">
-                        <span class="vs-card-header-label">PRO CARD // 2026</span>
-                        <i class="fa-solid fa-crown vs-card-header-icon"></i>
-                    </div>
-                    <div class="vs-card-photo">
-                        <i class="fa-solid fa-user-astronaut"></i>
-                        <img id="vs-p1-avatar" src="avatar-human-1.png" alt="Player 1">
-                    </div>
-                    <div class="vs-card-info">
-                        <div class="vs-card-name" id="vs-p1-card-name">PLAYER 1</div>
-                        <div class="vs-card-stats">
-                            <div class="vs-card-rating" id="vs-p1-card-rating">1300</div>
-                            <div class="vs-card-winratio">
-                                <div class="vs-card-winratio-label">WIN RATIO</div>
-                                <div class="vs-card-winratio-value" id="vs-p1-card-wr">0%</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="vs-intro-elo" onclick="event.stopPropagation()"><span id="vs-p1-elo">1300 RATING</span></div>
-            </div>
-
+            <div class="player-label">Player 1</div>
             <div class="score" id="score-p1">0</div>
             <div class="goals-visual" id="goals-p1">○○○</div>
         </div>
@@ -1503,60 +852,12 @@
         <!-- Center divider -->
         <div class="center-divider"></div>
 
-        <!-- Player 2 (Right - Subsoccer Red) -->
+        <!-- Player 2 (Right) -->
         <div class="player-side player-right" onclick="addGoal(2)">
-            <div class="player-label" id="label-p2">Player 2</div>
-
-            <!-- VS Intro Right (Visible during ranked intro) -->
-            <div class="vs-intro-player" id="vs-intro-p2">
-                <div class="vs-intro-avatar-wrap" onclick="event.stopPropagation()">
-                    <div class="vs-card-header">
-                        <span class="vs-card-header-label">PRO CARD // 2026</span>
-                        <i class="fa-solid fa-crown vs-card-header-icon"></i>
-                    </div>
-                    <div class="vs-card-photo">
-                        <i class="fa-solid fa-user-astronaut"></i>
-                        <img id="vs-p2-avatar" src="avatar-human-2.png" alt="Player 2">
-                    </div>
-                    <div class="vs-card-info">
-                        <div class="vs-card-name" id="vs-p2-card-name">PLAYER 2</div>
-                        <div class="vs-card-stats">
-                            <div class="vs-card-rating" id="vs-p2-card-rating">1300</div>
-                            <div class="vs-card-winratio">
-                                <div class="vs-card-winratio-label">WIN RATIO</div>
-                                <div class="vs-card-winratio-value" id="vs-p2-card-wr">0%</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="vs-intro-elo" onclick="event.stopPropagation()"><span id="vs-p2-elo">1300 RATING</span></div>
-            </div>
-
+            <div class="player-label">Player 2</div>
             <div class="score" id="score-p2">0</div>
             <div class="goals-visual" id="goals-p2">○○○</div>
         </div>
-
-        <!-- Floating Center Action Overlay (during Ranked Match Intro) -->
-        <div class="vs-center-overlay" id="vs-center-overlay" onclick="event.stopPropagation()">
-            <div class="vs-center-badge"><span>VS</span></div>
-            <button id="vs-swap-btn" onclick="swapSides()" style="display:none; background:transparent; border:none; color:rgba(255,255,255,0.45); font-size:0.65rem; letter-spacing:2px; font-family:'Resolve', sans-serif; cursor:pointer; padding:4px 8px; margin-top:-2px; transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">
-                🔄 SWAP
-            </button>
-            <div class="vs-card-panel">
-                <div class="vs-center-stakes" id="vs-elo-stakes">
-                    WIN: <span style="color:#4ade80; font-weight:bold;">+16</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-16</span>
-                </div>
-                <div id="vs-action-wrap" style="width:100%;">
-                    <button id="vs-start-btn" onclick="startRankedMatch()" class="vs-center-btn">
-                        ⚔️ START MATCH
-                    </button>
-                    <a id="vs-login-btn" href="login.html" class="vs-center-btn" style="display:none; text-decoration:none;">
-                        LOG IN TO PLAY RANKED
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
 
         <!-- Controls (Hidden for standard Instant Play users) -->
         <div class="pro-controls-bar" style="display: none !important;">
@@ -1821,15 +1122,15 @@
 
             <!-- Pin It Card -->
             <div class="pin-it-card" id="pin-it-card">
-                <div class="pin-it-title"><i class="fa-solid fa-map-pin" style="margin-right:4px;"></i> PIN THIS TABLE TO THE MAP</div>
+                <div class="pin-it-title">📍 PIN THIS TABLE TO THE MAP</div>
                 <div class="pin-it-subtitle" id="pin-it-subtitle"></div>
                 <div class="pin-it-type-btns" id="pin-it-type-btns">
-                    <button class="pin-it-type-btn" onclick="selectPinType('public')"><i class="fa-solid fa-building" style="margin-right:4px;"></i> Public venue</button>
-                    <button class="pin-it-type-btn" onclick="selectPinType('home')"><i class="fa-solid fa-house" style="margin-right:4px;"></i> Home</button>
+                    <button class="pin-it-type-btn" onclick="selectPinType('public')">🏢 Public venue</button>
+                    <button class="pin-it-type-btn" onclick="selectPinType('home')">🏠 Home</button>
                 </div>
                 <input class="pin-it-venue-input" id="pin-it-venue" type="text" placeholder="Venue name (optional)">
-                <button class="pin-it-submit" id="pin-it-submit" onclick="submitPin()"><i class="fa-solid fa-map-pin" style="margin-right:4px;"></i> PIN IT</button>
-                <div class="pin-it-success" id="pin-it-success"><i class="fa-solid fa-check" style="margin-right:4px;"></i> Added to the global map!</div>
+                <button class="pin-it-submit" id="pin-it-submit" onclick="submitPin()">📍 PIN IT</button>
+                <div class="pin-it-success" id="pin-it-success">✅ Added to the global map!</div>
             </div>
 
             <!-- Already on map -->
@@ -1838,70 +1139,7 @@
                 <div class="pin-it-already-name" id="pin-it-already-name"></div>
             </div>
 
-            <!-- Ranked Victory Hero Container -->
-            <div id="ranked-victory-box" style="display:none; width:100%; max-width:440px; flex-direction:column; align-items:center; text-align:center; padding:6px 0;">
-                
-                <!-- Winner Title -->
-                <div id="ranked-winner-title" style="font-family:'Subsoccer', sans-serif; font-size:clamp(1.6rem, 5vw, 2.4rem); color:#fff; text-transform:uppercase; letter-spacing:2px; line-height:1.1; margin-bottom:4px;">
-                    JARNO WINS!
-                </div>
-
-                <!-- Big Final Match Score with trophy next to winner's number -->
-                <div id="ranked-final-score" style="font-family:'Subsoccer', sans-serif; font-size:clamp(3.5rem, 10vw, 4.8rem); color:#ffffff; letter-spacing:4px; line-height:1; margin-bottom:12px;">
-                    3 — 1
-                </div>
-
-                <!-- Both Players Comparison Cards (Side-by-Side) -->
-                <div style="display:flex; justify-content:center; align-items:center; gap:16px; width:100%; margin-bottom:14px;">
-                    
-                    <!-- Player 1 Card -->
-                    <div id="ranked-card-p1" style="flex:1; max-width:140px; display:flex; flex-direction:column; align-items:center;">
-                        <div id="ranked-res-p1-wrap" style="width:100%; aspect-ratio:3/4; max-height:140px; border-radius:2px; overflow:hidden; background:#111; border:2px solid rgba(255,255,255,0.4); position:relative;">
-                            <img id="ranked-res-p1-img" src="avatar-human-1.png" style="width:100%; height:100%; object-fit:cover; display:block;">
-                        </div>
-                        <div id="ranked-res-p1-name" style="font-family:'Subsoccer', sans-serif; font-size:1rem; color:#fff; letter-spacing:1px; margin-top:6px; text-transform:uppercase;">JARNO</div>
-                        <div id="ranked-res-p1-elo-box" style="padding:0; margin-top:2px;">
-                            <span id="ranked-res-p1-elo" style="font-family:'Resolve', sans-serif; font-size:0.85rem; font-weight:800; color:#fff; letter-spacing:1px;">+16</span>
-                        </div>
-                    </div>
-
-                    <!-- VS Divider -->
-                    <div style="font-family:'Subsoccer', sans-serif; font-size:1.4rem; color:rgba(255,255,255,0.4); font-weight:bold;">VS</div>
-
-                    <!-- Player 2 Card -->
-                    <div id="ranked-card-p2" style="flex:1; max-width:140px; display:flex; flex-direction:column; align-items:center;">
-                        <div id="ranked-res-p2-wrap" style="width:100%; aspect-ratio:3/4; max-height:140px; border-radius:2px; overflow:hidden; background:#111; border:2px solid rgba(255,255,255,0.4); position:relative;">
-                            <img id="ranked-res-p2-img" src="avatar-human-2.png" style="width:100%; height:100%; object-fit:cover; display:block;">
-                        </div>
-                        <div id="ranked-res-p2-name" style="font-family:'Subsoccer', sans-serif; font-size:1rem; color:#fff; letter-spacing:1px; margin-top:6px; text-transform:uppercase;">OPPONENT</div>
-                        <div id="ranked-res-p2-elo-box" style="padding:0; margin-top:2px;">
-                            <span id="ranked-res-p2-elo" style="font-family:'Resolve', sans-serif; font-size:0.85rem; font-weight:800; color:#fff; letter-spacing:1px;">-16</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="ranked-action-btns" style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:320px;">
-                    <!-- 1. Primary: Share Result Card -->
-                    <button id="btn-share-ranked-result" onclick="shareRankedResult()" style="width:100%; padding:14px; background:#c41e2a; color:#fff; border:none; border-radius:2px; font-family:'Subsoccer', sans-serif; font-size:1.1rem; letter-spacing:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; text-transform:uppercase;">
-                        <i class="fa-solid fa-share-nodes"></i> SHARE RESULT
-                    </button>
-
-                    <!-- 2. Secondary: Rematch -->
-                    <button class="btn-ranked-rematch" onclick="playAgain()" style="width:100%; padding:13px; background:#111111; color:#fff; border:1px solid rgba(255,255,255,0.25); border-radius:2px; font-family:'Subsoccer', sans-serif; font-size:1rem; letter-spacing:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; text-transform:uppercase;">
-                        <i class="fa-solid fa-rotate-right"></i> REMATCH
-                    </button>
-
-                    <!-- 3. Tertiary: Back to Pro Card -->
-                    <a href="player-card.html" class="sub-back-link">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        <span>BACK TO MY PRO CARD</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Standard Guest Controls -->
-            <div id="guest-victory-box" style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
+            <div style="flex: 1; display:flex; flex-direction:column; align-items:center; gap: 15px; width: 100%;">
 
                 <button class="claim-victory-btn w-btn-claim"
                     style="background: var(--sub-red); color: #fff; border: none; font-family: 'Subsoccer', sans-serif; font-weight: normal; font-size: 1.3rem; letter-spacing: 2px; box-shadow: 0 5px 20px rgba(227, 6, 19, 0.3);"
@@ -1915,9 +1153,10 @@
                     <i class="fa-solid fa-trophy" style="margin-right:10px; color: #fff;"></i> HOST A TOURNAMENT
                 </button>
 
-                <a href="register.html" class="sub-back-link" style="font-size: 0.85rem !important; opacity: 0.75;">
-                    <i class="fa-solid fa-map-location-dot"></i>
-                    <span>REGISTER YOUR GAME TO THE MAP</span>
+                <a href="register" 
+                    style="display: flex; align-items: center; justify-content: center; gap: 8px; color: rgba(255,255,255,0.6); font-family: 'Open Sans', sans-serif; font-size: 0.8rem; letter-spacing: 1px; text-decoration: none; padding: 10px 0; margin-top: 4px; transition: color 0.2s;"
+                    onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">
+                    <i class="fa-solid fa-map-location-dot"></i> Register your game to the map
                 </a>
 
                 <button id="end-game-btn" class="play-again-btn"
@@ -1930,14 +1169,6 @@
     <script type="module">
         import { BroadcastService } from './broadcast-service.js';
         import { _supabase } from './config.js';
-        import { MatchShareCard } from './match-share-card.js';
-        import { MatchService } from './match-service.js';
-
-        // --- Ranked Match State ---
-        let _isRankedMatch = false;
-        let _rankedP1 = null;
-        let _rankedP2 = null;
-        let _rankedMatchPayload = null;
 
         const locationPromise = (async function() {
             const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
@@ -2276,7 +1507,6 @@
         let currentGameId = null;
         let WIN_SCORE = 3;
         let lastGoalTime = 0;
-        let isMatchEnding = false;   // Guards against goals during showWinner delay
         let matchPrediction = null; // Match prediction mode data
         let gameStartTime = null;    // When game actually started (enterFullscreenGame)
         let goalTimestamps = [];     // [{p: playerNumber, t: secondsSinceStart}, ...]
@@ -2294,314 +1524,11 @@
                 .catch(err => console.warn("Shelly command failed:", err));
         }
 
-        // Helper to select a deterministic illustrated Subsoccer avatar preset
-        function getSubsoccerPresetAvatar(name, fallbackIndex = 1) {
-            const presets = [
-                'avatar-human-1.png',
-                'avatar-human-2.png',
-                'avatar-human-3.png',
-                'avatar-human-4.png',
-                'avatar-human-5.png',
-                'avatar-human-6.png'
-            ];
-            if (!name) return presets[(fallbackIndex - 1) % presets.length];
-            let hash = 0;
-            for (let i = 0; i < name.length; i++) {
-                hash = (hash + name.charCodeAt(i) * (i + 3)) % presets.length;
-            }
-            return presets[hash];
-        }
-
-        // --- Ranked Match Helper Functions ---
-        function populateVsCard(playerNum, data) {
-            const nameEl = document.getElementById(`vs-p${playerNum}-card-name`);
-            const ratingEl = document.getElementById(`vs-p${playerNum}-card-rating`);
-            const wrEl = document.getElementById(`vs-p${playerNum}-card-wr`);
-            if (nameEl) nameEl.textContent = data.username || 'PLAYER';
-            if (ratingEl) ratingEl.textContent = data.elo || 1300;
-            const w = data.wins || 0, l = data.losses || 0;
-            const wr = (w + l) > 0 ? Math.round(w / (w + l) * 100) : 0;
-            if (wrEl) wrEl.textContent = wr + '%';
-        }
-
-        async function initRankedMatch(opponentUsername) {
-          try {
-            document.documentElement.classList.add('is-ranked-intro');
-            const rulesOverlay = document.getElementById('actual-rules-overlay');
-            if (rulesOverlay) rulesOverlay.style.display = 'none';
-
-            // 1. Fetch Opponent Data
-            let oppData = null;
-            try {
-                const { data, error } = await _supabase
-                    .from('players')
-                    .select('id, username, elo, avatar_url, country, wins, losses')
-                    .ilike('username', opponentUsername.trim())
-                    .maybeSingle();
-                if (data) oppData = data;
-            } catch(e) {
-                console.warn('Failed to fetch opponent:', e);
-            }
-
-            if (!oppData) {
-                oppData = {
-                    id: null,
-                    username: opponentUsername.toUpperCase(),
-                    elo: 1300,
-                    avatar_url: null,
-                    country: ''
-                };
-            }
-            _rankedP2 = oppData;
-
-            // Self-challenge guard: can't play against yourself
-            let currentUser = null;
-            try {
-                // Try localStorage first for quick lookup
-                const localUserStr = localStorage.getItem('subsoccer-user');
-                let userId = null;
-                if (localUserStr) {
-                    const parsed = JSON.parse(localUserStr);
-                    if (parsed && parsed.id) userId = parsed.id;
-                }
-
-                // Fallback: check Supabase auth session if no localStorage user
-                if (!userId) {
-                    try {
-                        const { data: sessionData } = await _supabase.auth.getSession();
-                        if (sessionData && sessionData.session) {
-                            userId = sessionData.session.user.id;
-                        }
-                    } catch(authErr) {
-                        console.warn('Auth session check failed:', authErr);
-                    }
-                }
-
-                // Fetch fresh profile from DB (always prefer DB over localStorage cache)
-                if (userId) {
-                    const { data } = await _supabase
-                        .from('players')
-                        .select('id, username, elo, avatar_url, country, wins, losses')
-                        .eq('id', userId)
-                        .maybeSingle();
-                    if (data) {
-                        currentUser = data;
-                        // Update localStorage cache with fresh data
-                        localStorage.setItem('subsoccer-user', JSON.stringify(data));
-                    }
-                }
-            } catch(e) {
-                console.warn('Failed to fetch current user:', e);
-            }
-
-            if (currentUser && oppData && currentUser.id && oppData.id && currentUser.id === oppData.id) {
-                // Owner opened own challenge link — let them play locally against a guest
-                currentUser = null;
-            }
-
-            // Render Player 2 (Opponent) on Red side
-            const l2 = document.getElementById('label-p2');
-            if (l2) l2.textContent = oppData.username;
-            const elo2 = document.getElementById('vs-p2-elo');
-            if (elo2) elo2.textContent = `${oppData.elo || 1300} RATING`;
-            populateVsCard(2, oppData);
-            const p2Img = document.getElementById('vs-p2-avatar');
-            if (p2Img) {
-                p2Img.src = oppData.avatar_url || getSubsoccerPresetAvatar(oppData.username, 2);
-                p2Img.style.display = 'block';
-            }
-
-            const startBtn = document.getElementById('vs-start-btn');
-            const loginBtn = document.getElementById('vs-login-btn');
-            const stakesEl = document.getElementById('vs-elo-stakes');
-
-            if (currentUser && currentUser.username) {
-                _rankedP1 = currentUser;
-                _isRankedMatch = true;
-
-                // Render Player 1 (Current User) on Petrol Blue side
-                const l1 = document.getElementById('label-p1');
-                if (l1) l1.textContent = currentUser.username;
-                const elo1 = document.getElementById('vs-p1-elo');
-                if (elo1) elo1.textContent = `${currentUser.elo || 1300} RATING`;
-                populateVsCard(1, currentUser);
-                const p1Img = document.getElementById('vs-p1-avatar');
-                if (p1Img) {
-                    p1Img.src = currentUser.avatar_url || getSubsoccerPresetAvatar(currentUser.username, 1);
-                    p1Img.style.display = 'block';
-                }
-
-                // Calculate potential ELO change
-                const p1Elo = currentUser.elo || 1300;
-                const p2Elo = oppData.elo || 1300;
-                const expP1 = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400));
-                const p1WinGain = Math.max(1, Math.round(32 * (1 - expP1)));
-                const p1LossLoss = Math.max(1, Math.round(32 * expP1));
-
-                if (stakesEl) {
-                    stakesEl.innerHTML = `WIN: <span style="color:#4ade80; font-weight:bold;">+${p1WinGain}</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-${p1LossLoss}</span>`;
-                }
-
-                if (startBtn) {
-                    startBtn.style.display = 'block';
-                    startBtn.textContent = '⚔️ START RANKED MATCH';
-                }
-                if (loginBtn) loginBtn.style.display = 'none';
-                // Show swap sides button
-                const swapBtn = document.getElementById('vs-swap-btn');
-                if (swapBtn) swapBtn.style.display = 'block';
-            } else {
-                // User is a guest
-                _isRankedMatch = false;
-                _rankedP1 = { username: 'GUEST', elo: 1300, avatar_url: null, country: '', wins: 0, losses: 0 };
-                const l1 = document.getElementById('label-p1');
-                if (l1) l1.textContent = 'GUEST (YOU)';
-                const elo1 = document.getElementById('vs-p1-elo');
-                if (elo1) elo1.textContent = 'UNRANKED';
-                populateVsCard(1, { username: 'GUEST', elo: '—', wins: 0, losses: 0 });
-                const p1Img = document.getElementById('vs-p1-avatar');
-                if (p1Img) {
-                    p1Img.src = getSubsoccerPresetAvatar('GUEST', 1);
-                    p1Img.style.display = 'block';
-                }
-
-                if (stakesEl) {
-                    stakesEl.innerHTML = `Challenging <strong>${oppData.username}</strong>!<br><span style="color:#ffffff; font-weight:bold;">Log in to record match to your Pro Card:</span>`;
-                }
-
-                if (loginBtn) {
-                    loginBtn.style.display = 'block';
-                    loginBtn.href = `login.html?return_to=${encodeURIComponent(window.location.href)}`;
-                }
-                if (startBtn) {
-                    startBtn.style.display = 'block';
-                    startBtn.textContent = 'PLAY UNRANKED (GUEST)';
-                    startBtn.style.marginTop = '10px';
-                    startBtn.style.background = 'rgba(255,255,255,0.08)';
-                    startBtn.style.border = '1px solid rgba(255,255,255,0.2)';
-                    startBtn.style.fontSize = '0.95rem';
-                    startBtn.style.boxShadow = 'none';
-                }
-            }
-
-          } finally {
-            // Always reveal VS intro, even on errors or early returns won't reach here
-            // but the try block ensures we show something
-            document.documentElement.classList.add('vs-loaded');
-          }
-        }
-
-        window.startRankedMatch = function() {
-            document.documentElement.classList.remove('is-ranked-intro');
-            document.documentElement.classList.remove('vs-loaded');
-            document.documentElement.classList.add('is-ranked-playing');
-            WIN_SCORE = 3;
-
-            if (typeof enterFullscreenGame === 'function') {
-                enterFullscreenGame();
-            }
-        };
-
-        window.shareRankedResult = async function() {
-            if (!_rankedMatchPayload) return;
-            const btn = document.getElementById('btn-share-ranked-result');
-            if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GENERATING CARD...';
-                btn.disabled = true;
-            }
-            try {
-                await MatchShareCard.shareMatchResult(_rankedMatchPayload);
-            } catch(e) {
-                console.warn('Share failed:', e);
-            } finally {
-                if (btn) {
-                    btn.innerHTML = '<i class="fa-solid fa-share-nodes"></i> SHARE RESULT CARD';
-                    btn.disabled = false;
-                }
-            }
-        };
-
-        window.swapSides = function() {
-            if (!_rankedP1 || !_rankedP2) return;
-            // Swap player data
-            const temp = _rankedP1;
-            _rankedP1 = _rankedP2;
-            _rankedP2 = temp;
-
-            // Re-render P1 (left/blue)
-            const l1 = document.getElementById('label-p1');
-            if (l1) l1.textContent = _rankedP1.username;
-            const elo1 = document.getElementById('vs-p1-elo');
-            if (elo1) elo1.textContent = `${_rankedP1.elo || 1300} RATING`;
-            populateVsCard(1, _rankedP1);
-            const p1Img = document.getElementById('vs-p1-avatar');
-            if (p1Img) p1Img.src = _rankedP1.avatar_url || getSubsoccerPresetAvatar(_rankedP1.username, 1);
-
-            // Re-render P2 (right/red)
-            const l2 = document.getElementById('label-p2');
-            if (l2) l2.textContent = _rankedP2.username;
-            const elo2 = document.getElementById('vs-p2-elo');
-            if (elo2) elo2.textContent = `${_rankedP2.elo || 1300} RATING`;
-            populateVsCard(2, _rankedP2);
-            const p2Img = document.getElementById('vs-p2-avatar');
-            if (p2Img) p2Img.src = _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2);
-
-            // Recalculate ELO stakes
-            const p1Elo = _rankedP1.elo || 1300;
-            const p2Elo = _rankedP2.elo || 1300;
-            const expP1 = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400));
-            const p1WinGain = Math.max(1, Math.round(32 * (1 - expP1)));
-            const p1LossLoss = Math.max(1, Math.round(32 * expP1));
-            const stakesEl = document.getElementById('vs-elo-stakes');
-            if (stakesEl) {
-                stakesEl.innerHTML = `WIN: <span style="color:#4ade80; font-weight:bold;">+${p1WinGain}</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-${p1LossLoss}</span>`;
-            }
-
-            // Brief visual flash
-            const overlay = document.getElementById('vs-center-overlay');
-            if (overlay) {
-                overlay.style.transition = 'opacity 0.15s';
-                overlay.style.opacity = '0.5';
-                setTimeout(() => { overlay.style.opacity = '1'; }, 150);
-            }
-        };
-
         // Initialize
         window.addEventListener('load', () => {
             logTrackingEvent('app_opened');
             // Check for Game ID or Serial Number (sn) in URL
             const urlParams = new URLSearchParams(window.location.search);
-
-            // Ranked Match Mode (?match_vs=USERNAME or ?match_vs_id=UUID)
-            const matchVs = urlParams.get('match_vs');
-            const matchVsId = urlParams.get('match_vs_id');
-            if (matchVsId) {
-                // UUID-based: fetch username from ID first, then init
-                (async () => {
-                    try {
-                        const { data } = await _supabase
-                            .from('players')
-                            .select('username')
-                            .eq('id', matchVsId)
-                            .maybeSingle();
-                        if (data && data.username) {
-                            initRankedMatch(data.username);
-                        } else {
-                            console.warn('Player ID not found:', matchVsId);
-                            initRankedMatch(matchVsId); // fallback: use as name
-                        }
-                    } catch(e) {
-                        console.warn('UUID lookup failed:', e);
-                        initRankedMatch(matchVsId);
-                    }
-                })();
-            } else if (matchVs) {
-                initRankedMatch(matchVs);
-            } else if (urlParams.get('mode') !== 'display' && !urlParams.get('p1')) {
-                // Show rules overlay only for standard anonymous quick play
-                const ro = document.getElementById('actual-rules-overlay');
-                if (ro) ro.style.display = 'flex';
-            }
             
             // Check if user provided a Shelly IP parameter directly in the URL to pair the hardware
             if (urlParams.has('shelly')) {
@@ -3012,14 +1939,6 @@
 
         // Add goal
         function addGoal(player) {
-            // Must press START MATCH first
-            if (document.documentElement.classList.contains('is-ranked-intro')) {
-                return;
-            }
-
-            // Block goals if match is ending (waiting for showWinner delay)
-            if (isMatchEnding) return;
-
             const now = Date.now();
             // Estä liian nopeat peräkkäiset maalit (800ms viive)
             if (document.getElementById('winner-overlay').classList.contains('show') || (now - lastGoalTime < 800)) {
@@ -3063,10 +1982,8 @@
 
             // Check for winner
             if (scoreP1 >= WIN_SCORE) {
-                isMatchEnding = true;
                 setTimeout(() => showWinner(1), 800);
             } else if (scoreP2 >= WIN_SCORE) {
-                isMatchEnding = true;
                 setTimeout(() => showWinner(2), 800);
             }
         }
@@ -3094,15 +2011,10 @@
             // Send detailed in-game data
             const gameDuration = gameStartTime ? Math.round((Date.now() - gameStartTime) / 1000) : null;
             let isComeback = false;
-            if (gameDuration && gameDuration >= 20) {
-                let s1 = 0, s2 = 0;
-                let maxDeficit = 0;
-                for (const g of goalTimestamps) {
-                    if (g.p === 1) s1++; else s2++;
-                    const deficit = (player === 1) ? (s2 - s1) : (s1 - s2);
-                    if (deficit > maxDeficit) maxDeficit = deficit;
-                }
-                if (maxDeficit >= 2) isComeback = true;
+            let s1 = 0, s2 = 0;
+            for (const g of goalTimestamps) {
+                if (g.p === 1) s1++; else s2++;
+                if ((player === 1 && s1 < s2) || (player === 2 && s2 < s1)) { isComeback = true; break; }
             }
             logTrackingEvent('game_details', JSON.stringify({
                 duration: gameDuration,
@@ -3119,12 +2031,7 @@
             }
 
             let winText;
-            if (_isRankedMatch && _rankedP1 && _rankedP2) {
-                const isSameName = _rankedP1.username && _rankedP2.username && (_rankedP1.username.toUpperCase() === _rankedP2.username.toUpperCase());
-                const p1Label = isSameName ? `${_rankedP1.username} (YOU)` : _rankedP1.username;
-                const winnerDisplayName = player === 1 ? p1Label : _rankedP2.username;
-                winText = `🏆 ${winnerDisplayName.toUpperCase()} WINS!`;
-            } else if (matchPrediction) {
+            if (matchPrediction) {
                 const winnerName = player === 1 ? matchPrediction.p1 : matchPrediction.p2;
                 const winnerFlag = player === 1 ? matchPrediction.p1Flag : matchPrediction.p2Flag;
                 winText = (winnerFlag ? winnerFlag + ' ' : '') + winnerName.toUpperCase() + ' WINS!';
@@ -3134,170 +2041,15 @@
             if (window.costcoCurrentLang === 'fr') {
                 winText = `JOUEUR ${player} GAGNE !`;
             }
-
-            const winTextEl = document.getElementById('winner-text');
-            if (winTextEl) {
-                winTextEl.textContent = winText;
-                winTextEl.style.display = (_isRankedMatch && _rankedP1 && _rankedP2) ? 'none' : 'block';
-            }
-            document.documentElement.classList.remove('is-ranked-playing');
+            document.getElementById('winner-text').textContent = winText;
             document.getElementById('winner-overlay').classList.add('show');
-
-            // Ranked Match ELO Calculation & Heroic Victory Screen
-            if (_isRankedMatch && _rankedP1 && _rankedP2) {
-                const guestBox = document.getElementById('guest-victory-box');
-                const rankedBox = document.getElementById('ranked-victory-box');
-                if (guestBox) guestBox.style.display = 'none';
-                if (rankedBox) rankedBox.style.display = 'flex';
-
-                const p1Won = (player === 1);
-                const isSameName = _rankedP1.username && _rankedP2.username && (_rankedP1.username.toUpperCase() === _rankedP2.username.toUpperCase());
-                const p1DisplayName = isSameName ? `${_rankedP1.username} (YOU)` : _rankedP1.username;
-                const p2DisplayName = _rankedP2.username;
-                const winnerDisplayName = p1Won ? p1DisplayName : p2DisplayName;
-
-                const p1OldElo = _rankedP1.elo || 1300;
-                const p2OldElo = _rankedP2.elo || 1300;
-
-                // Client expected score for instant visual feedback
-                const expA = 1.0 / (1.0 + Math.pow(10.0, (p2OldElo - p1OldElo) / 400.0));
-                const expB = 1.0 / (1.0 + Math.pow(10.0, (p1OldElo - p2OldElo) / 400.0));
-                const actA = p1Won ? 1 : 0;
-                const actB = p1Won ? 0 : 1;
-
-                let p1NewElo = Math.round(p1OldElo + 32.0 * (actA - expA));
-                let p2NewElo = Math.round(p2OldElo + 32.0 * (actB - expB));
-
-                if (actA === 1 && p1NewElo <= p1OldElo) p1NewElo = p1OldElo + 1;
-                if (actB === 1 && p2NewElo <= p2OldElo) p2NewElo = p2OldElo + 1;
-                if (actA === 0 && p1NewElo >= p1OldElo) p1NewElo = Math.max(0, p1OldElo - 1);
-                if (actB === 0 && p2NewElo >= p2OldElo) p2NewElo = Math.max(0, p2OldElo - 1);
-
-                const p1Diff = p1NewElo - p1OldElo;
-                const p2Diff = p2NewElo - p2OldElo;
-
-                // Hero Header — trophy next to winner's score number
-                const rTitle = document.getElementById('ranked-winner-title');
-                if (rTitle) rTitle.textContent = `${winnerDisplayName.toUpperCase()} WINS!`;
-
-                const rScore = document.getElementById('ranked-final-score');
-                if (rScore) rScore.textContent = `${scoreP1} — ${scoreP2}`;
-
-                // Player 1 Card Details (Petrol Blue half)
-                const resP1Name = document.getElementById('ranked-res-p1-name');
-                const resP1Elo = document.getElementById('ranked-res-p1-elo');
-                const resP1Img = document.getElementById('ranked-res-p1-img');
-                const resP1Wrap = document.getElementById('ranked-res-p1-wrap');
-
-                if (resP1Name) resP1Name.textContent = p1DisplayName;
-                if (resP1Img) resP1Img.src = _rankedP1.avatar_url || getSubsoccerPresetAvatar(_rankedP1.username, 1);
-                if (resP1Wrap) {
-                    resP1Wrap.style.borderColor = p1Won ? '#ffffff' : 'rgba(255,255,255,0.35)';
-                    resP1Wrap.style.opacity = '1';
-                }
-                if (resP1Elo) {
-                    resP1Elo.textContent = `${p1Diff >= 0 ? '+' : ''}${p1Diff}`;
-                    resP1Elo.style.color = p1Diff >= 0 ? '#4ade80' : '#f87171';
-                }
-
-                // Player 2 Card Details (Subsoccer Red half)
-                const resP2Name = document.getElementById('ranked-res-p2-name');
-                const resP2Elo = document.getElementById('ranked-res-p2-elo');
-                const resP2Img = document.getElementById('ranked-res-p2-img');
-                const resP2Wrap = document.getElementById('ranked-res-p2-wrap');
-
-                if (resP2Name) resP2Name.textContent = p2DisplayName;
-                if (resP2Img) resP2Img.src = _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2);
-                if (resP2Wrap) {
-                    resP2Wrap.style.borderColor = !p1Won ? '#ffffff' : 'rgba(255,255,255,0.35)';
-                    resP2Wrap.style.opacity = '1';
-                }
-                if (resP2Elo) {
-                    resP2Elo.textContent = `${p2Diff >= 0 ? '+' : ''}${p2Diff}`;
-                    resP2Elo.style.color = p2Diff >= 0 ? '#4ade80' : '#f87171';
-                }
-
-                // Prepare 1080x1080 Victory Share Card payload (1:1 with match screen)
-                const mins = gameDuration ? Math.floor(gameDuration / 60) : 0;
-                const secs = gameDuration ? (gameDuration % 60).toString().padStart(2, '0') : '45';
-
-                _rankedMatchPayload = {
-                    p1Name: p1DisplayName,
-                    p2Name: p2DisplayName,
-                    p1Score: scoreP1,
-                    p2Score: scoreP2,
-                    p1EloBefore: p1OldElo,
-                    p1EloAfter: p1NewElo,
-                    p2EloBefore: p2OldElo,
-                    p2EloAfter: p2NewElo,
-                    p1AvatarUrl: _rankedP1.avatar_url || getSubsoccerPresetAvatar(_rankedP1.username, 1),
-                    p2AvatarUrl: _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2),
-                    winnerNumber: p1Won ? 1 : 2,
-                    winnerName: p1Won ? p1DisplayName : p2DisplayName,
-                    loserName: p1Won ? p2DisplayName : p1DisplayName,
-                    winnerScore: p1Won ? scoreP1 : scoreP2,
-                    loserScore: p1Won ? scoreP2 : scoreP1,
-                    matchDuration: gameDuration,
-                    matchDurationStr: `${mins}:${secs}`,
-                    date: new Date().toLocaleDateString()
-                };
-
-                // Server-side authoritative recording (with retry)
-                if (_rankedP1.id && _rankedP2.id) {
-                    const rpcPayload = {
-                        p1_id: _rankedP1.id,
-                        p2_id: _rankedP2.id,
-                        p1_won: p1Won,
-                        p1_new_elo_client: null,
-                        p2_new_elo_client: null,
-                        match_data: {
-                            player1: _rankedP1.username,
-                            player2: _rankedP2.username,
-                            winner: p1Won ? _rankedP1.username : _rankedP2.username,
-                            player1_score: scoreP1,
-                            player2_score: scoreP2,
-                            game_id: null
-                        }
-                    };
-
-                    const maxRetries = 3;
-                    let attempt = 0;
-                    const tryRecord = async () => {
-                        attempt++;
-                        try {
-                            const { error } = await _supabase.rpc('record_quick_match_v1', rpcPayload);
-                            if (error) throw error;
-                            console.log('✅ Match recorded and ELO updated authoritative on Supabase!');
-                        } catch (err) {
-                            console.warn(`Server ELO update failed (attempt ${attempt}/${maxRetries}):`, err);
-                            if (attempt < maxRetries) {
-                                setTimeout(tryRecord, 2000 * attempt);
-                            } else {
-                                console.error('❌ Match recording failed after all retries. Match data:', rpcPayload.match_data);
-                                // Store failed match in localStorage so it can be recovered
-                                try {
-                                    const failed = JSON.parse(localStorage.getItem('subsoccer_failed_matches') || '[]');
-                                    failed.push({ ...rpcPayload, timestamp: Date.now() });
-                                    localStorage.setItem('subsoccer_failed_matches', JSON.stringify(failed));
-                                } catch(e) { /* ignore storage errors */ }
-                            }
-                        }
-                    };
-                    tryRecord();
-                }
-            } else {
-                const guestBox = document.getElementById('guest-victory-box');
-                const rankedBox = document.getElementById('ranked-victory-box');
-                if (guestBox) guestBox.style.display = 'flex';
-                if (rankedBox) rankedBox.style.display = 'none';
-            }
 
             // Generate a fake, motivating ELO gain for the session to hook the player
             // In reality, actual ELO will be calculated by the backend after Claim.
             const simulatedEloGain = Math.floor(Math.random() * (45 - 20 + 1)) + 20;
             const gainEl = document.getElementById('victory-elo-gain');
             if (gainEl) {
-                gainEl.textContent = `+${simulatedEloGain} RATING`;
+                gainEl.textContent = `+${simulatedEloGain} ELO`;
             }
 
             // Check mode (Casual vs Guest)
@@ -3406,15 +2158,6 @@
                 window.location.reload();
                 return;
             }
-
-            // Update ranked player ELO for rematch so next game calculates correctly
-            if (_rankedP1 && _rankedMatchPayload) {
-                _rankedP1.elo = _rankedMatchPayload.p1EloAfter;
-            }
-            if (_rankedP2 && _rankedMatchPayload) {
-                _rankedP2.elo = _rankedMatchPayload.p2EloAfter;
-            }
-            _rankedMatchPayload = null;
             
             resetGame();
             document.getElementById('winner-overlay').classList.remove('show');
@@ -3473,18 +2216,19 @@
         }
 
         // Reset game
+        // Reset game
         function resetGame() {
             scoreP1 = 0;
             scoreP2 = 0;
             goalHistory = [];
             gameStartTime = Date.now();
             goalTimestamps = [];
-            isMatchEnding = false;
             document.getElementById('score-p1').textContent = '0';
             document.getElementById('score-p2').textContent = '0';
             updateGoalVisuals();
             document.getElementById('winner-overlay').classList.remove('show');
             stopLasers();
+
 
             BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
         }

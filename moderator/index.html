@@ -44,7 +44,13 @@
 
         .section-title { font-family: 'Resolve', sans-serif; margin-top: 35px; margin-bottom: 15px; font-size: 0.7rem; color: #999; letter-spacing: 2px; text-transform: uppercase; }
 
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 6px rgba(196,30,42,0.6); }
+            50% { transform: scale(1.06); box-shadow: 0 0 14px rgba(196,30,42,0.9); }
+        }
+
         /* Dark mode */
+
         body.dark-mode { background: #1a1a1a; color: #ffffff; }
         body.dark-mode .mod-header { background: #111111; border-bottom-color: #333333; }
         body.dark-mode .mod-header button { color: #ffffff !important; }
@@ -87,64 +93,21 @@
     </div>
 
     <div class="mod-container">
-        <!-- Control Room -->
-        <button class="mod-btn" onclick="window.open('https://subsoccer.pro/control-room.html', '_blank')">
-            <i class="fa-solid fa-satellite-dish"></i>
-            <div>
-                <div style="font-weight: bold; margin-bottom: 4px;">CONTROL ROOM</div>
-                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">System administration for live screens</div>
-            </div>
-            <i class="fa-solid fa-chevron-right arrow"></i>
-        </button>
-
-        <!-- QR Campaign Exporter -->
-        <button class="mod-btn" onclick="window.open('../qr-batch-exporter.html', '_blank')">
-            <i class="fa-solid fa-qrcode"></i>
-            <div>
-                <div style="font-weight: bold; margin-bottom: 4px;">QR CAMPAIGN EXPORTER</div>
-                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">Generate batch EPS vectors</div>
-            </div>
-            <i class="fa-solid fa-chevron-right arrow"></i>
-        </button>
-
-        <!-- Arcade Venue Manager -->
-        <button class="mod-btn" onclick="window.location.href='../owner-dashboard.html'">
-            <i class="fa-solid fa-gamepad"></i>
-            <div>
-                <div style="font-weight: bold; margin-bottom: 4px;">VENUE MANAGER</div>
-                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">Arcade fleet and Pay2Play configuration</div>
-            </div>
-            <i class="fa-solid fa-chevron-right arrow"></i>
-        </button>
-
-        <!-- Brand Builder -->
-        <button class="mod-btn" onclick="window.location.href='../brand-builder.html'">
-            <i class="fa-solid fa-palette"></i>
-            <div>
-                <div style="font-weight: bold; margin-bottom: 4px;">BRAND BUILDER</div>
-                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #666; text-transform: none; letter-spacing: 0;">White-label Subsoccer GO for brands</div>
-            </div>
-            <i class="fa-solid fa-chevron-right arrow"></i>
-        </button>
-
-        <!-- Global Theme Editor -->
-        <button class="mod-btn" onclick="window.location.href='../theme-editor.html'">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <div>
-                <div style="font-weight: bold; margin-bottom: 4px;">GLOBAL THEME EDITOR</div>
-                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #666; text-transform: none; letter-spacing: 0;">Configure platform default background</div>
-            </div>
-            <i class="fa-solid fa-chevron-right arrow"></i>
-        </button>
-
         <!-- Analytics Engine -->
-        <div class="section-title">ANALYTICS ENGINE</div>
+        <div class="section-title" style="margin-top: 10px;">ANALYTICS ENGINE</div>
 
         <button class="mod-btn" onclick="window.location.href='../analytics-dashboard.html'">
             <i class="fa-solid fa-chart-simple"></i>
-            <span style="font-weight: bold;">GLOBAL METRICS &amp; ANALYTICS</span>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: bold;">GLOBAL METRICS &amp; ANALYTICS</span>
+                <span id="mod-feedback-badge" style="display: none; align-items: center; gap: 5px; background: #c41e2a; color: #fff; font-size: 0.68rem; padding: 3px 9px; border-radius: 12px; font-weight: bold; letter-spacing: 0.5px; font-family: 'Resolve', sans-serif; animation: pulse-badge 2s infinite; margin-right: 6px;">
+                    <i class="fa-solid fa-comment-dots" style="color: #fff; font-size: 0.75rem; width: auto;"></i>
+                    <span id="mod-feedback-count">0</span> NEW
+                </span>
+            </div>
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
+
 
         <!-- Registered Players -->
         <button class="mod-btn" onclick="window.location.href='registered-players.html'">
@@ -179,6 +142,108 @@
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
 
+        <!-- Feed Manager -->
+        <button class="mod-btn" onclick="window.location.href='feed-manager.html'">
+            <i class="fa-solid fa-fire"></i>
+            <div>
+                <div style="font-weight: bold; margin-bottom: 4px;">COMMUNITY FEED MANAGER</div>
+                <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">Curate #subsoccer Instagram reels &amp; top highlights</div>
+            </div>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </button>
+
+        <!-- Collapsible DEVELOPMENT TOOLS section (closed by default) -->
+        <div style="margin-top: 30px;">
+            <button type="button" onclick="toggleDevTools()" style="
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(255,255,255,0.03);
+                border: 1px dashed rgba(255,255,255,0.2);
+                border-radius: 6px;
+                padding: 13px 18px;
+                color: #aaaaaa;
+                font-family: 'Resolve', sans-serif;
+                font-size: 0.75rem;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                margin-bottom: 8px;
+            "
+            onmouseover="this.style.background='rgba(255,255,255,0.07)'; this.style.color='#ffffff'; this.style.borderColor='rgba(255,255,255,0.35)';"
+            onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.color='#aaaaaa'; this.style.borderColor='rgba(255,255,255,0.2)';">
+                <span style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-code" style="color: #c41e2a; font-size: 0.95rem;"></i>
+                    <span style="font-weight: bold;">DEVELOPMENT TOOLS</span>
+                </span>
+                <i id="dev-tools-arrow" class="fa-solid fa-chevron-down" style="font-size: 0.8rem; transition: transform 0.25s ease;"></i>
+            </button>
+
+            <div id="dev-tools-container" style="display: none; flex-direction: column;">
+                <!-- Control Room -->
+                <button class="mod-btn" onclick="window.open('https://subsoccer.pro/control-room.html', '_blank')">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 4px;">CONTROL ROOM</div>
+                        <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">System administration for live screens</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow"></i>
+                </button>
+
+                <!-- QR Campaign Exporter -->
+                <button class="mod-btn" onclick="window.open('../qr-batch-exporter.html', '_blank')">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 4px;">QR CAMPAIGN EXPORTER</div>
+                        <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">Generate batch EPS vectors</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow"></i>
+                </button>
+
+                <!-- Arcade Venue Manager -->
+                <button class="mod-btn" onclick="window.location.href='../owner-dashboard.html'">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 4px;">VENUE MANAGER</div>
+                        <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">Arcade fleet and Pay2Play configuration</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow"></i>
+                </button>
+
+                <!-- Brand Builder -->
+                <button class="mod-btn" onclick="window.location.href='../brand-builder.html'">
+                    <i class="fa-solid fa-palette"></i>
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 4px;">BRAND BUILDER</div>
+                        <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #666; text-transform: none; letter-spacing: 0;">White-label Subsoccer GO for brands</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow"></i>
+                </button>
+
+                <!-- Global Theme Editor -->
+                <button class="mod-btn" onclick="window.location.href='../theme-editor.html'">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 4px;">GLOBAL THEME EDITOR</div>
+                        <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #666; text-transform: none; letter-spacing: 0;">Configure platform default background</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow"></i>
+                </button>
+
+                <!-- Pro Leagues -->
+                <button class="mod-btn" onclick="window.location.href='../pro-leagues.html'">
+                    <i class="fa-solid fa-crown" style="color: #c41e2a;"></i>
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 4px;">PRO LEAGUES</div>
+                        <div style="font-family: 'Open Sans'; font-size: 0.7rem; color: #999; text-transform: none; letter-spacing: 0;">Tournament and league management</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow"></i>
+                </button>
+            </div>
+        </div>
+
         <div class="section-title" style="color: #832;">DANGER ZONE</div>
 
         <!-- Purge Global Leaderboard -->
@@ -188,6 +253,7 @@
             <i class="fa-solid fa-chevron-right arrow"></i>
         </button>
     </div>
+
     </div><!-- /mod-content -->
 
     <script>
@@ -214,6 +280,7 @@
                 if (data.session.user.id === SUPER_ADMIN_ID) {
                     document.getElementById('auth-wall').style.display = 'none';
                     document.getElementById('mod-content').style.display = 'block';
+                    checkUnreadFeedback();
                     return;
                 }
 
@@ -226,6 +293,8 @@
 
                 document.getElementById('auth-wall').style.display = 'none';
                 document.getElementById('mod-content').style.display = 'block';
+                checkUnreadFeedback();
+
             } catch (err) {
                 console.error('Moderator auth error:', err);
                 const msg = err.message === 'AUTH_TIMEOUT'
@@ -239,6 +308,43 @@
                     '<i class="fas fa-redo" style="margin-right:6px;"></i>RETRY</button></div>';
             }
         })();
+
+        function toggleDevTools() {
+            const container = document.getElementById('dev-tools-container');
+            const arrow = document.getElementById('dev-tools-arrow');
+            if (!container) return;
+            const isClosed = container.style.display === 'none' || !container.style.display;
+            if (isClosed) {
+                container.style.display = 'flex';
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+            } else {
+                container.style.display = 'none';
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        async function checkUnreadFeedback() {
+            try {
+                const lastSeen = localStorage.getItem('subsoccer_last_feedback_seen') || '1970-01-01T00:00:00.000Z';
+                const { count, error } = await _sb
+                    .from('feedback')
+                    .select('*', { count: 'exact', head: true })
+                    .gt('created_at', lastSeen);
+
+                if (!error && count && count > 0) {
+                    const badge = document.getElementById('mod-feedback-badge');
+                    const countEl = document.getElementById('mod-feedback-count');
+                    if (badge && countEl) {
+                        countEl.textContent = count;
+                        badge.style.display = 'inline-flex';
+                    }
+                }
+            } catch (e) {
+                console.warn('Feedback badge check error:', e);
+            }
+        }
     </script>
 </body>
 </html>
+
+

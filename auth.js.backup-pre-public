@@ -60,31 +60,20 @@ export async function initApp() {
 
         if (!isAuthListenerSet) {
             _supabase.auth.onAuthStateChange(async (event, session) => {
-                const isE2ETest = navigator.webdriver || window.location.search.includes('e2e=true');
-                const isLoginPage = window.location.pathname.includes('login');
-                const isExplicitAuth = window.location.hash.includes('login') || window.location.hash.includes('signup');
+                if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+                    const isE2ETest = navigator.webdriver || window.location.search.includes('e2e=true');
+                    if (window.location.pathname.includes('login') && !isE2ETest) {
+                        // Varmistetaan että profiili on välimuistissa ennen redirectiä
+                        if (!state.user || state.user.id !== session.user.id) {
+                            await refreshUserProfile(session.user.id);
+                        }
+                        window.location.replace('index.html');
+                        return;
+                    }
 
-                if (event === 'SIGNED_IN' && session) {
+                    // Normal in-app flow (other pages)
                     if (!state.user || state.user.id !== session.user.id) {
                         await refreshUserProfile(session.user.id);
-                    }
-                    if (isLoginPage && !isE2ETest) {
-                        window.location.replace('index.html');
-                        return;
-                    }
-                } else if (event === 'INITIAL_SESSION' && session) {
-                    if (!state.user || state.user.id !== session.user.id) {
-                        await refreshUserProfile(session.user.id);
-                    }
-                    // Jos profiilia ei löydy (orpo auth-token), siivotaan sessio pois jotta käyttäjä voi kirjautua
-                    if (!state.user && isLoginPage) {
-                        await _supabase.auth.signOut().catch(() => {});
-                        return;
-                    }
-                    // Ohjataan etusivulle vain jos käyttäjällä on aito profiili EIKÄ hän ole erikseen pyytänyt kirjautumissivua
-                    if (isLoginPage && !isE2ETest && state.user && state.user.username && !isExplicitAuth) {
-                        window.location.replace('index.html');
-                        return;
                     }
                 } else if (event === 'SIGNED_OUT') {
                     state.user = null;
@@ -210,13 +199,9 @@ async function refreshUserProfile(userId) {
             }
 
             // Ei löytynyt legacy-profiilia — luodaan kokonaan uusi
-            // Check for saved gamertag from pre-OAuth signup flow
-            const pendingGamertag = localStorage.getItem('subsoccer_pending_gamertag');
-            if (pendingGamertag) localStorage.removeItem('subsoccer_pending_gamertag');
-            
             const newProfile = {
                 id: userId,
-                username: pendingGamertag || user?.user_metadata?.full_name?.toUpperCase() || user?.user_metadata?.username || userEmail?.split('@')[0].toUpperCase() || 'PLAYER',
+                username: user?.user_metadata?.full_name?.toUpperCase() || user?.user_metadata?.username || userEmail?.split('@')[0].toUpperCase() || 'PLAYER',
                 email: userEmail,
                 elo: 1300,
                 wins: 0,
@@ -734,12 +719,6 @@ export async function handleLogout() {
     window.location.replace('index.html');
 }
 
-// Store pending avatar file for Android compatibility
-// (Android may kill the page when camera/gallery opens, clearing input.files)
-let _pendingAvatarFile = null;
-export function getPendingAvatarFile() { return _pendingAvatarFile; }
-export function clearPendingAvatarFile() { _pendingAvatarFile = null; }
-
 /**
  * Preview avatar file before upload
  */
@@ -770,11 +749,6 @@ export function previewAvatarFile(input, previewImgId = 'avatar-preview', fileNa
     reader.onload = (e) => {
         const previewImg = document.getElementById(previewImgId);
         if (previewImg) previewImg.src = e.target.result;
-
-        // Store file for Android compatibility (survives page kill)
-        if (previewImgId === 'avatar-preview') {
-            _pendingAvatarFile = file;
-        }
 
         // Backward compatibility for window function if needed
         if (previewImgId === 'avatar-preview' && window.updateAvatarPreview) {
@@ -912,7 +886,7 @@ export async function saveProfile(e) {
         }
 
         const fileInput = document.getElementById('avatar-file-input');
-        const file = fileInput?.files[0] || _pendingAvatarFile;
+        const file = fileInput?.files[0];
 
         const usernameInput = document.getElementById('edit-username')?.value.trim();
         const fullName = document.getElementById('edit-full-name')?.value.trim();
@@ -1023,7 +997,6 @@ export async function saveProfile(e) {
 
             // UI päivittyy automaattisesti state.user muutoksesta
             showNotification("Profile updated successfully!", "success");
-            _pendingAvatarFile = null; // Clear pending file after successful save
         }
     } catch (error) {
         console.error('Save profile error:', error);
@@ -1038,11 +1011,6 @@ export async function saveProfile(e) {
 
 export async function signInWithGoogle() {
     try {
-        // Save gamertag before redirect so it persists through OAuth flow
-        const gamertagInput = document.getElementById('reg-user');
-        if (gamertagInput && gamertagInput.value.trim()) {
-            localStorage.setItem('subsoccer_pending_gamertag', gamertagInput.value.trim().toUpperCase());
-        }
         const { error } = await _supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
@@ -1096,11 +1064,6 @@ export async function signInWithApple() {
             });
         }
 
-        // Save gamertag before redirect so it persists through OAuth flow
-        const gamertagInput = document.getElementById('reg-user');
-        if (gamertagInput && gamertagInput.value.trim()) {
-            localStorage.setItem('subsoccer_pending_gamertag', gamertagInput.value.trim().toUpperCase());
-        }
         const { error } = await _supabase.auth.signInWithOAuth({
             provider: 'apple',
             options: {
