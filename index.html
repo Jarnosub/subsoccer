@@ -1841,13 +1841,17 @@
 
                         // Update social proof with cumulative real city count (never decreases)
                         const CUMULATIVE_BASE_CITIES = 671;
-                        const storedMax = parseInt(localStorage.getItem('subsoccer_max_cities') || '0', 10);
+                        let storedMax = parseInt(localStorage.getItem('subsoccer_max_cities') || '0', 10);
+                        if (storedMax > 700) {
+                            storedMax = 0;
+                            try { localStorage.removeItem('subsoccer_max_cities'); } catch(e) {}
+                        }
                         const cityCount = Math.max(CUMULATIVE_BASE_CITIES, storedMax, seenCities.length);
                         try { localStorage.setItem('subsoccer_max_cities', cityCount.toString()); } catch(e) {}
 
                         const spEl = document.getElementById('sp-cities');
                         if (spEl) {
-                            spEl.textContent = cityCount + '+';
+                            spEl.textContent = cityCount > 671 ? (cityCount + '+') : '670+';
                         }
 
                         // Top 10 cities for ticker, each with their last score
