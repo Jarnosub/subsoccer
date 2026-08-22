@@ -1605,12 +1605,28 @@
                         : (Date.now() - new Date(startDateStr).getTime());
                     const prevEndStr = startDateStr;
                     const prevStartStr = new Date(new Date(startDateStr).getTime() - periodMs).toISOString();
-                    const { data: prevPage } = await client.from('public_tracking')
-                        .select('event_type,location,client_time')
-                        .gte('client_time', prevStartStr)
-                        .lt('client_time', prevEndStr)
-                        .limit(5000);
-                    if (prevPage) prevTrackingData = prevPage;
+
+                    let prevPageNum = 0;
+                    while (true) {
+                        let prevQuery = client.from('public_tracking')
+                            .select('event_type,location,client_time,is_returning,source_partner')
+                            .gte('client_time', prevStartStr)
+                            .lt('client_time', prevEndStr)
+                            .order('client_time', { ascending: false })
+                            .range(prevPageNum * pageSize, (prevPageNum + 1) * pageSize - 1);
+
+                        if (partnerFilter !== 'all') {
+                            prevQuery = prevQuery.ilike('source_partner', `%${partnerFilter}%`);
+                        }
+
+                        const { data: pageRows, error: prevErr } = await prevQuery;
+                        if (prevErr) break;
+                        if (!pageRows || pageRows.length === 0) break;
+                        prevTrackingData.push(...pageRows);
+                        if (pageRows.length < pageSize) break;
+                        prevPageNum++;
+                        if (prevPageNum > 30) break;
+                    }
                 }
 
                 let historyQuery = client.from('tournament_history').select('*', { count: 'exact' });
