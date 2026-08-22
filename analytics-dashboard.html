@@ -722,14 +722,14 @@
                 </div>
             </div>
 
-            <!-- Section: Game Insights -->
+            <!-- Section: Game Insights (collapsed by default) -->
             <div class="kpi-section">
-                <div class="kpi-section-header" onclick="toggleSection(this)">
+                <div class="kpi-section-header collapsed" onclick="toggleSection(this)">
                     <span class="section-icon">⚽</span>
                     <span class="section-title">Game Insights</span>
                     <i class="fas fa-chevron-down section-chevron"></i>
                 </div>
-                <div class="kpi-section-body">
+                <div class="kpi-section-body collapsed">
                     <div class="kpi-grid">
                         <div class="kpi-card">
                             <div class="kpi-header">
@@ -847,6 +847,114 @@
                 </div>
             </div>
 
+            <!-- Section: Retention & Growth (Industry Standard) -->
+            <div class="kpi-section">
+                <div class="kpi-section-header" onclick="toggleSection(this)">
+                    <span class="section-icon">📈</span>
+                    <span class="section-title">Retention & Growth</span>
+                    <i class="fas fa-chevron-down section-chevron"></i>
+                </div>
+                <div class="kpi-section-body">
+                    <!-- Retention KPI Cards -->
+                    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div class="kpi-card" style="border-left: 3px solid var(--accent-green);">
+                            <div class="kpi-header">
+                                <span>D7 RETENTION</span>
+                                <i class="fas fa-calendar-week" style="color: var(--accent-green);"></i>
+                            </div>
+                            <div class="kpi-value" id="kpi-d7-retention" style="color: var(--accent-green);">—</div>
+                            <div class="kpi-trend" id="kpi-d7-trend" style="color: #888;"><i class="fas fa-hourglass-half"></i> Computing...</div>
+                        </div>
+
+                        <div class="kpi-card" style="border-left: 3px solid var(--accent-yellow);">
+                            <div class="kpi-header">
+                                <span>D30 RETENTION</span>
+                                <i class="fas fa-calendar-alt" style="color: var(--accent-yellow);"></i>
+                            </div>
+                            <div class="kpi-value" id="kpi-d30-retention" style="color: var(--accent-yellow);">—</div>
+                            <div class="kpi-trend" id="kpi-d30-trend" style="color: #888;"><i class="fas fa-hourglass-half"></i> Computing...</div>
+                        </div>
+
+                        <div class="kpi-card" style="border-left: 3px solid #BB86FC;">
+                            <div class="kpi-header">
+                                <span>STICKINESS (DAU/MAU)</span>
+                                <i class="fas fa-magnet" style="color: #BB86FC;"></i>
+                            </div>
+                            <div class="kpi-value" id="kpi-stickiness" style="color: #BB86FC;">—</div>
+                            <div class="kpi-trend" id="kpi-stickiness-trend" style="color: #888;"><i class="fas fa-hourglass-half"></i> Computing...</div>
+                        </div>
+                    </div>
+
+                    <!-- DAU / WAU / MAU row -->
+                    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-top: 16px;">
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <span>DAU (DAILY ACTIVE)</span>
+                                <i class="fas fa-user" style="color: #8ab4f8;"></i>
+                            </div>
+                            <div class="kpi-value" id="kpi-dau">—</div>
+                            <div class="kpi-trend" id="kpi-dau-trend" style="color: #888;"><i class="fas fa-mobile-alt"></i> Unique devices in 24h</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <span>WAU (WEEKLY ACTIVE)</span>
+                                <i class="fas fa-users" style="color: var(--accent-green);"></i>
+                            </div>
+                            <div class="kpi-value" id="kpi-wau">—</div>
+                            <div class="kpi-trend" id="kpi-wau-trend" style="color: #888;"><i class="fas fa-mobile-alt"></i> Unique devices in 7 days</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <span>MAU (MONTHLY ACTIVE)</span>
+                                <i class="fas fa-globe" style="color: var(--accent-yellow);"></i>
+                            </div>
+                            <div class="kpi-value" id="kpi-mau">—</div>
+                            <div class="kpi-trend" id="kpi-mau-trend" style="color: #888;"><i class="fas fa-mobile-alt"></i> Unique devices in 30 days</div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Cohort Retention Table -->
+                    <div style="margin-top: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+                        <h3 style="margin: 0 0 12px; font-size: 0.85rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-table" style="color: var(--accent-blue);"></i>
+                            Weekly Cohort Retention
+                            <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 400;">— new users by week & return rates</span>
+                        </h3>
+                        <div style="overflow-x: auto;">
+                            <table class="activity-feed" style="width: 100%; font-size: 0.8rem;" id="cohort-retention-table">
+                                <thead>
+                                    <tr>
+                                        <th style="min-width: 100px;">Week</th>
+                                        <th style="text-align: center;">New Users</th>
+                                        <th style="text-align: center;">D7</th>
+                                        <th style="text-align: center;">D7 #</th>
+                                        <th style="text-align: center;">D30</th>
+                                        <th style="text-align: center;">D30 #</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cohort-table-body">
+                                    <tr><td colspan="6" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Computing retention cohorts...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- D7 Retention Trend Chart -->
+                    <div style="margin-top: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+                        <h3 style="margin: 0 0 12px; font-size: 0.85rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-chart-line" style="color: var(--accent-green);"></i>
+                            D7 Retention Trend
+                            <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 400;">— is the product getting stickier?</span>
+                        </h3>
+                        <div style="position: relative; height: 220px; width: 100%;">
+                            <canvas id="retentionTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Section: Users & Devices (collapsed by default) -->
             <div class="kpi-section">
                 <div class="kpi-section-header collapsed" onclick="toggleSection(this)">
@@ -933,14 +1041,16 @@
             </div>
         </div>
 
-        <!-- Dedicated Matches Section -->
-        <div class="table-card" style="margin-bottom: 24px;">
-            <h2 style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                <span style="display:flex; align-items:center; gap:8px;">
-                    <i class="fas fa-futbol" style="color: #c41e2a;"></i>
-                    All Played Matches
-                    <span id="matches-table-badge" style="font-size:0.75rem; background:rgba(196,30,42,0.15); color:#ff4d5a; border:1px solid rgba(196,30,42,0.3); padding:2px 8px; border-radius:10px; font-weight:600;">0 matches</span>
-                </span>
+        <!-- Dedicated Matches Section (collapsed by default) -->
+        <div class="kpi-section" style="margin-bottom: 24px;">
+            <div class="kpi-section-header collapsed" onclick="toggleSection(this)">
+                <span class="section-icon"><i class="fas fa-futbol" style="color: #c41e2a;"></i></span>
+                <span class="section-title">All Played Matches <span id="matches-table-badge" style="font-size:0.7rem; background:rgba(196,30,42,0.15); color:#ff4d5a; border:1px solid rgba(196,30,42,0.3); padding:2px 8px; border-radius:10px; font-weight:600; margin-left:8px;">0</span></span>
+                <i class="fas fa-chevron-down section-chevron"></i>
+            </div>
+            <div class="kpi-section-body collapsed" style="padding: 0;">
+            <div class="table-card" style="margin-bottom: 0; border: none; border-radius: 0;">
+            <div style="display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:10px; padding: 12px 16px; border-bottom: 1px solid var(--border-color);">
                 <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                     <select id="matches-type-filter" onchange="renderMatchesTable(true)" 
                         style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; cursor:pointer;">
@@ -957,10 +1067,7 @@
                         style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; width:190px;"
                         oninput="renderMatchesTable(true)">
                 </div>
-            </h2>
-            <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:-6px; margin-bottom:14px;">
-                Complete chronological log of all individual 1v1 matches played on Subsoccer tables worldwide (both Instant 1v1 games and Tournament bracket matches).
-            </p>
+            </div>
             <div class="activity-feed-wrapper" style="overflow-x: auto; max-height: 480px; overflow-y: auto;">
                 <table class="activity-feed" style="width:100%;">
                     <thead>
@@ -982,75 +1089,11 @@
                 </button>
             </div>
         </div>
+        </div>
+        </div>
 
         <!-- Data Tables Row -->
         <div class="grid-tables">
-            <div class="table-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
-                <h2 style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                    <span>Recent Global Activity Feed</span>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <select id="activity-time-scope" onchange="renderData(true)" 
-                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; cursor:pointer;">
-                            <option value="all" selected>All Recent</option>
-                            <option value="today">Today Only</option>
-                        </select>
-                        <input type="text" id="activity-search" placeholder="Search location/score..." 
-                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; width:180px;"
-                            oninput="renderData(true)">
-                    </div>
-                </h2>
-                <div class="activity-feed-wrapper" style="overflow-x: auto; flex: 1;">
-                    <table class="activity-feed">
-                        <thead>
-                            <tr>
-                                <th>When / Where</th>
-                                <th>
-                                    <select id="event-type-filter" onchange="renderData(true)" style="background:transparent; border:none; color:inherit; font-family:inherit; font-size:inherit; font-weight:bold; cursor:pointer; padding:0; outline:none; -webkit-appearance:none; -moz-appearance:none; appearance:none;">
-                                        <option value="ALL" style="background:#1e1f22; color:#fff;">Event (All) ▾</option>
-                                        <option value="game_finished" style="background:#1e1f22; color:#fff;">MATCH</option>
-                                        <option value="game_start" style="background:#1e1f22; color:#fff;">LIVE</option>
-                                        <option value="tournament_finished" style="background:#1e1f22; color:#fff;">TOURNEY</option>
-                                        <option value="tournament_match_finished" style="background:#1e1f22; color:#fff;">T-MATCH</option>
-                                        <option value="avatar_generated" style="background:#1e1f22; color:#fff;">AVATAR</option>
-                                    </select>
-                                </th>
-                                <th style="text-align:right;">Score</th>
-                            </tr>
-                        </thead>
-                        <tbody id="activity-table-body">
-                            <!-- Javascript will populate this -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="load-more-container" style="text-align: center; padding: 12px; border-top: 1px solid var(--border-color); display: none;">
-                    <button id="btn-load-more" onclick="loadMoreActivity()" style="background: transparent; border: 1px solid var(--border-color); color: var(--accent-blue); padding: 6px 16px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: 0.2s;">
-                        <i class="fas fa-chevron-down"></i> Load More
-                    </button>
-                </div>
-            </div>
-
-            <!-- User Feedback -->
-            <div class="table-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
-                <h2 style="display:flex; align-items:center; justify-content:space-between;">
-                    <span><i class="fas fa-comment-dots" style="color: var(--accent-yellow); margin-right: 8px;"></i>User Feedback</span>
-                    <span id="feedback-count" style="color:var(--text-secondary); font-weight:400; font-size:0.8rem;"></span>
-                </h2>
-                <div class="activity-feed-wrapper" style="overflow-y: auto; max-height: 400px; flex: 1;">
-                    <table class="activity-feed">
-                        <thead>
-                            <tr>
-                                <th>When</th>
-                                <th>User</th>
-                                <th>Message</th>
-                            </tr>
-                        </thead>
-                        <tbody id="feedback-table-body">
-                            <tr><td colspan="3" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
             <div class="table-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
                 <h2>Top Countries <i class="fas fa-flag" style="color: var(--accent-blue); margin-left: 8px;"></i></h2>
                 <div class="countries-list-wrapper" style="overflow-x: auto; flex: 1;">
@@ -1133,19 +1176,6 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-
-        <!-- Registered Players -->
-        <div class="table-card">
-            <h2 style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                <span>Registered Players <span id="players-count" style="color:var(--text-secondary); font-weight:400; font-size:0.85rem;"></span></span>
-                <input type="text" id="player-search" placeholder="Search players..." 
-                    style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:6px 12px; border-radius:4px; font-size:0.8rem; width:200px;"
-                    oninput="filterPlayers(this.value)">
-            </h2>
-            <div id="players-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; padding:20px; max-height:600px; overflow-y:auto;">
-                <div style="text-align:center; padding:40px; color:#666; grid-column:1/-1;"><i class="fas fa-spinner fa-spin"></i> Loading players...</div>
             </div>
         </div>
 
@@ -2325,6 +2355,9 @@
                 // Kirjoitetaan datamuuttujaan
                 globalTrackingData = trackingData;
                 globalPrevTrackingData = prevTrackingData;
+
+                // ─── Retention & Growth Computation ───
+                computeRetentionMetrics(trackingData, isAllTimeFilter);
                 
                 // Renderöi
                 renderData();
@@ -2428,6 +2461,7 @@
 
             // Populate Table — show only game events (skip app_opened)
             const tbody = document.getElementById('activity-table-body');
+            if (!tbody) { /* Activity Feed removed from DOM */ } else {
             tbody.innerHTML = '';
             
             const gameEvents = filteredData.filter(r => r.event_type !== 'app_opened' && r.event_type !== 'game_details' && r.event_type !== 'match_details');
@@ -2517,6 +2551,7 @@
                     loadMoreEl.style.display = 'none';
                 }
             }
+            } // end activity table guard
 
             const chartData = filteredData.filter(r => r.event_type !== 'game_details' && r.event_type !== 'match_details');
             initCharts(chartData);
@@ -2659,6 +2694,290 @@
             const loadMoreEl = document.getElementById('matches-load-more-container');
             if (loadMoreEl) {
                 loadMoreEl.style.display = matchEvents.length > matchesLimit ? 'block' : 'none';
+            }
+        }
+
+        // ─── Retention & Growth Computation Engine ───
+        let retentionTrendChartInstance = null;
+
+        function computeRetentionMetrics(trackingData, isAllTimeFilter) {
+            if (!trackingData || trackingData.length === 0) return;
+
+            // Show/hide scope notice
+            let scopeNotice = document.getElementById('retention-scope-notice');
+            if (!scopeNotice) {
+                // Create scope notice element dynamically
+                const cohortTableContainer = document.getElementById('cohort-retention-table');
+                if (cohortTableContainer) {
+                    scopeNotice = document.createElement('div');
+                    scopeNotice.id = 'retention-scope-notice';
+                    scopeNotice.style.cssText = 'background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.3); border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.78rem; color: #8ab4f8; display: flex; align-items: center; gap: 8px;';
+                    scopeNotice.innerHTML = '<i class="fas fa-info-circle"></i> <span>Retention metrics use <b>all available data</b> in the current time scope. Switch to <b>All Time</b> for the most accurate retention rates.</span>';
+                    // Insert before the first kpi-grid in the retention section
+                    const retSection = cohortTableContainer.closest('.kpi-section-body');
+                    if (retSection) retSection.insertBefore(scopeNotice, retSection.firstChild);
+                }
+            }
+            if (scopeNotice) {
+                scopeNotice.style.display = isAllTimeFilter ? 'none' : 'flex';
+            }
+
+            // Filter app_opened events across all loaded data for device cohort analysis
+            const validData = trackingData.filter(d => d.client_time && d.event_type === 'app_opened');
+
+            if (validData.length === 0) return;
+
+            // Device fingerprint: user_agent + location combo
+            const deviceKey = (r) => (r.user_agent || '') + '||' + (r.location || '');
+
+            // Sort chronologically
+            validData.sort((a, b) => a.client_time.localeCompare(b.client_time));
+
+            // Build device first-seen and all-days maps
+            const deviceFirstDay = {};
+            const deviceDays = {};
+
+            validData.forEach(r => {
+                const key = deviceKey(r);
+                const day = r.client_time.slice(0, 10);
+                if (!deviceFirstDay[key]) deviceFirstDay[key] = day;
+                if (!deviceDays[key]) deviceDays[key] = new Set();
+                deviceDays[key].add(day);
+            });
+
+            const today = new Date();
+            let d1Eligible = 0, d1Retained = 0;
+            let d7Eligible = 0, d7Retained = 0;
+            let d30Eligible = 0, d30Retained = 0;
+
+            for (const [key, firstDay] of Object.entries(deviceFirstDay)) {
+                const firstDate = new Date(firstDay);
+                const daysSinceFirst = Math.floor((today - firstDate) / 86400000);
+                const days = deviceDays[key];
+
+                // D1: device at least 1 day old, came back on day+1
+                if (daysSinceFirst >= 1) {
+                    d1Eligible++;
+                    const nextDay = new Date(firstDate.getTime() + 86400000).toISOString().slice(0, 10);
+                    if (days.has(nextDay)) d1Retained++;
+                }
+
+                // D7: device at least 7 days old, came back within 7 days
+                if (daysSinceFirst >= 7) {
+                    d7Eligible++;
+                    for (let d = 1; d <= 7; d++) {
+                        const checkDay = new Date(firstDate.getTime() + d * 86400000).toISOString().slice(0, 10);
+                        if (days.has(checkDay)) { d7Retained++; break; }
+                    }
+                }
+
+                // D30: device at least 30 days old, came back within 30 days
+                if (daysSinceFirst >= 30) {
+                    d30Eligible++;
+                    for (let d = 1; d <= 30; d++) {
+                        const checkDay = new Date(firstDate.getTime() + d * 86400000).toISOString().slice(0, 10);
+                        if (days.has(checkDay)) { d30Retained++; break; }
+                    }
+                }
+            }
+
+            // DAU / WAU / MAU
+            const now = new Date();
+            const oneDayAgo = new Date(now - 86400000);
+            const sevenDaysAgo = new Date(now - 7 * 86400000);
+            const thirtyDaysAgo = new Date(now - 30 * 86400000);
+
+            const dauDevices = new Set();
+            const wauDevices = new Set();
+            const mauDevices = new Set();
+
+            validData.forEach(r => {
+                const d = new Date(r.client_time);
+                const key = deviceKey(r);
+                if (d >= oneDayAgo) dauDevices.add(key);
+                if (d >= sevenDaysAgo) wauDevices.add(key);
+                if (d >= thirtyDaysAgo) mauDevices.add(key);
+            });
+
+            const dau = dauDevices.size;
+            const wau = wauDevices.size;
+            const mau = mauDevices.size;
+            const stickiness = mau > 0 ? Math.round(dau / mau * 100) : 0;
+
+            // ─── Update DOM: Retention KPIs ───
+            const d7Pct = d7Eligible > 0 ? Math.round(d7Retained / d7Eligible * 100) : 0;
+            const d30Pct = d30Eligible > 0 ? Math.round(d30Retained / d30Eligible * 100) : 0;
+
+            document.getElementById('kpi-d7-retention').textContent = d7Pct + '%';
+            document.getElementById('kpi-d7-trend').innerHTML = `<i class="fas fa-calendar-week"></i> ${d7Retained.toLocaleString()}/${d7Eligible.toLocaleString()} returned within 7 days`;
+
+            document.getElementById('kpi-d30-retention').textContent = d30Pct + '%';
+            document.getElementById('kpi-d30-trend').innerHTML = `<i class="fas fa-calendar-alt"></i> ${d30Retained.toLocaleString()}/${d30Eligible.toLocaleString()} returned within 30 days`;
+
+            document.getElementById('kpi-stickiness').textContent = stickiness + '%';
+            document.getElementById('kpi-stickiness-trend').innerHTML = `<i class="fas fa-magnet"></i> ${dau} daily / ${mau.toLocaleString()} monthly active`;
+
+            // ─── Update DOM: DAU/WAU/MAU ───
+            document.getElementById('kpi-dau').textContent = dau.toLocaleString();
+            document.getElementById('kpi-dau-trend').innerHTML = `<i class="fas fa-mobile-alt"></i> ${dau} unique devices in last 24h`;
+
+            document.getElementById('kpi-wau').textContent = wau.toLocaleString();
+            document.getElementById('kpi-wau-trend').innerHTML = `<i class="fas fa-mobile-alt"></i> ${wau} unique devices in last 7 days`;
+
+            document.getElementById('kpi-mau').textContent = mau.toLocaleString();
+            document.getElementById('kpi-mau-trend').innerHTML = `<i class="fas fa-mobile-alt"></i> ${mau.toLocaleString()} unique devices in last 30 days`;
+
+            // ─── Weekly Cohort Retention Table ───
+            const weekCohorts = {};
+            function getWeekStart(dateStr) {
+                const d = new Date(dateStr);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                return new Date(d.getFullYear(), d.getMonth(), diff).toISOString().slice(0, 10);
+            }
+
+            for (const [key, firstDay] of Object.entries(deviceFirstDay)) {
+                const weekStart = getWeekStart(firstDay);
+                if (!weekCohorts[weekStart]) weekCohorts[weekStart] = { total: 0, d1: 0, d7: 0, d7Eligible: 0, d30: 0, d30Eligible: 0 };
+                const firstDate = new Date(firstDay);
+                const daysSinceFirst = Math.floor((today - firstDate) / 86400000);
+                const days = deviceDays[key];
+
+                weekCohorts[weekStart].total++;
+
+                if (daysSinceFirst >= 1) {
+                    const nextDay = new Date(firstDate.getTime() + 86400000).toISOString().slice(0, 10);
+                    if (days.has(nextDay)) weekCohorts[weekStart].d1++;
+                }
+                if (daysSinceFirst >= 7) {
+                    weekCohorts[weekStart].d7Eligible++;
+                    for (let d = 1; d <= 7; d++) {
+                        const checkDay = new Date(firstDate.getTime() + d * 86400000).toISOString().slice(0, 10);
+                        if (days.has(checkDay)) { weekCohorts[weekStart].d7++; break; }
+                    }
+                }
+                if (daysSinceFirst >= 30) {
+                    weekCohorts[weekStart].d30Eligible++;
+                    for (let d = 1; d <= 30; d++) {
+                        const checkDay = new Date(firstDate.getTime() + d * 86400000).toISOString().slice(0, 10);
+                        if (days.has(checkDay)) { weekCohorts[weekStart].d30++; break; }
+                    }
+                }
+            }
+
+            const sortedWeeks = Object.entries(weekCohorts)
+                .sort((a, b) => b[0].localeCompare(a[0]))
+                .slice(0, isAllTimeFilter ? 60 : 10);
+
+            const cohortBody = document.getElementById('cohort-table-body');
+            if (cohortBody) {
+                cohortBody.innerHTML = '';
+
+                function retentionBadge(pct, eligible) {
+                    if (eligible === false) return `<span style="color:#555;">—</span>`;
+                    let color = '#f28b82'; // red
+                    if (pct >= 15) color = '#fde293'; // yellow
+                    if (pct >= 25) color = '#81c995'; // green
+                    return `<span style="color:${color}; font-weight:bold;">${pct}%</span>`;
+                }
+
+                sortedWeeks.forEach(([week, data]) => {
+                    const weekDate = new Date(week);
+                    const daysSince = Math.floor((today - weekDate) / 86400000);
+                    const d7Pct = data.d7Eligible > 0 ? Math.round(data.d7 / data.d7Eligible * 100) : 0;
+                    const d30Pct = data.d30Eligible > 0 ? Math.round(data.d30 / data.d30Eligible * 100) : 0;
+
+                    const tr = document.createElement('tr');
+                    const weekLabel = weekDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+
+                    tr.innerHTML = `
+                        <td style="font-weight:600; color:#fff;">${weekLabel}</td>
+                        <td style="text-align:center; font-weight:bold; color:var(--accent-blue);">${data.total}</td>
+                        <td style="text-align:center;">${daysSince >= 7 ? retentionBadge(d7Pct, true) : retentionBadge(0, false)}</td>
+                        <td style="text-align:center; color:#888; font-size:0.75rem;">${daysSince >= 7 ? data.d7 : '—'}</td>
+                        <td style="text-align:center;">${daysSince >= 30 ? retentionBadge(d30Pct, true) : retentionBadge(0, false)}</td>
+                        <td style="text-align:center; color:#888; font-size:0.75rem;">${daysSince >= 30 ? data.d30 : '—'}</td>
+                    `;
+                    cohortBody.appendChild(tr);
+                });
+
+                if (sortedWeeks.length === 0) {
+                    cohortBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#666;">Not enough data for cohort analysis yet.</td></tr>';
+                }
+            }
+
+            // ─── D7 Retention Trend Chart ───
+            const chartWeeks = Object.entries(weekCohorts)
+                .filter(([week]) => {
+                    const daysSince = Math.floor((today - new Date(week)) / 86400000);
+                    return daysSince >= 7; // only weeks old enough for D7
+                })
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .slice(-12); // last 12 eligible weeks
+
+            const chartLabels = chartWeeks.map(([week]) => {
+                return new Date(week).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+            });
+            const chartD7 = chartWeeks.map(([, data]) => {
+                return data.total > 0 ? Math.round(data.d7 / data.total * 100) : 0;
+            });
+
+            const retCtx = document.getElementById('retentionTrendChart');
+            if (retCtx && typeof Chart !== 'undefined') {
+                if (retentionTrendChartInstance) retentionTrendChartInstance.destroy();
+
+                retentionTrendChartInstance = new Chart(retCtx, {
+                    type: 'line',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'D7 Retention %',
+                            data: chartD7,
+                            borderColor: '#81c995',
+                            backgroundColor: 'rgba(129, 201, 149, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: '#81c995',
+                            pointBorderColor: '#81c995',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1e1f22',
+                                titleColor: '#fff',
+                                bodyColor: '#ccc',
+                                borderColor: '#333',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: (ctx) => `D7 Retention: ${ctx.parsed.y}%`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#888', font: { size: 10 } },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: Math.max(40, Math.max(...chartD7) + 10),
+                                ticks: {
+                                    color: '#888',
+                                    font: { size: 10 },
+                                    callback: (v) => v + '%'
+                                },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            }
+                        }
+                    }
+                });
             }
         }
 
@@ -3247,16 +3566,19 @@
 
                 if (error) throw error;
                 _allPlayers = data || [];
-                document.getElementById('players-count').textContent = `(${_allPlayers.length})`;
+                const playersCountEl = document.getElementById('players-count');
+                if (playersCountEl) playersCountEl.textContent = `(${_allPlayers.length})`;
                 renderPlayers(_allPlayers);
             } catch (e) {
                 console.error('Failed to load players:', e);
-                document.getElementById('players-grid').innerHTML = '<div style="color:var(--accent-red); padding:20px; grid-column:1/-1;">Failed to load players</div>';
+                const gridEl = document.getElementById('players-grid');
+                if (gridEl) gridEl.innerHTML = '<div style="color:var(--accent-red); padding:20px; grid-column:1/-1;">Failed to load players</div>';
             }
         }
 
         function renderPlayers(players) {
             const grid = document.getElementById('players-grid');
+            if (!grid) return;
             if (players.length === 0) {
                 grid.innerHTML = '<div style="text-align:center; padding:40px; color:#666; grid-column:1/-1;">No players found</div>';
                 return;
@@ -3536,6 +3858,7 @@
                 const tbody = document.getElementById('feedback-table-body');
                 const countEl = document.getElementById('feedback-count');
                 if (countEl) countEl.textContent = `(${data.length})`;
+                if (!tbody) return; // inline feedback section removed
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#666;">No feedback yet</td></tr>';
                     return;
@@ -3563,7 +3886,8 @@
                 }).join('');
             } catch (e) {
                 console.error('Feedback fetch error:', e);
-                document.getElementById('feedback-table-body').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#666;">Error loading feedback</td></tr>';
+                const errBody = document.getElementById('feedback-table-body');
+                if (errBody) errBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#666;">Error loading feedback</td></tr>';
             }
         }
 
