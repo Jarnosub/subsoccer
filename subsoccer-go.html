@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Subsoccer GO</title>
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#060810;
+  touch-action:none;-webkit-user-select:none;user-select:none;
+  font-family:-apple-system,'Segoe UI',sans-serif;}
+canvas{display:block;width:100%;height:100%;}
+#hud{position:fixed;top:0;left:0;right:0;
+  padding:calc(env(safe-area-inset-top,10px)+8px) 16px 8px;
+  display:flex;justify-content:space-between;align-items:center;
+  pointer-events:none;z-index:10;}
+.hpanel{background:rgba(0,0,0,0.8);border:1px solid rgba(255,255,255,0.12);
+  border-radius:12px;padding:5px 14px;display:flex;align-items:center;gap:10px;}
+.av{width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#fff;}
+.lbl{font-size:9px;color:#7a8da0;font-weight:700;text-transform:uppercase;}
+.pts{font-size:24px;color:#fff;font-weight:900;line-height:1;}
+#timer{font-size:20px;font-weight:900;color:#fff;padding:5px 18px;}
+#timer.red{color:#ff3344;animation:blink .5s infinite alternate;}
+@keyframes blink{to{opacity:.4;}}
+.screen{position:fixed;inset:0;background:rgba(4,6,12,0.96);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:30;gap:18px;padding:24px;text-align:center;backdrop-filter:blur(10px);}
+h1{font-size:36px;color:#fff;font-weight:900;letter-spacing:3px;}
+.sub{font-size:11px;color:#00ffcc;letter-spacing:4px;text-transform:uppercase;margin-top:-10px;}
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;padding:16px 22px;max-width:360px;width:100%;text-align:left;}
+.card p{font-size:13px;color:#b0c4d8;margin:7px 0;display:flex;gap:10px;align-items:center;}
+.card span{color:#00ffcc;font-weight:700;min-width:72px;}
+.gobtn{background:linear-gradient(135deg,#e30613,#8a0006);color:#fff;
+  font-size:20px;font-weight:900;padding:15px 52px;border:none;border-radius:28px;
+  cursor:pointer;letter-spacing:1px;box-shadow:0 10px 28px rgba(227,6,19,.4);}
+.gobtn:active{transform:scale(.95);}
+#over{display:none;}
+.rtxt{font-size:32px;font-weight:900;}
+.sbtxt{font-size:54px;font-weight:900;color:#ffd700;}
+#goal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.5);z-index:20;pointer-events:none;}
+.gtxt{font-size:60px;font-weight:900;
+  text-shadow:0 0 30px currentColor,0 4px 16px rgba(0,0,0,.8);
+  animation:pop .45s cubic-bezier(.175,.885,.32,1.275);}
+@keyframes pop{from{transform:scale(.1) rotate(-10deg);opacity:0;}to{transform:scale(1);opacity:1;}}
+/* control zone hint */
+#hint{position:fixed;bottom:calc(env(safe-area-inset-bottom,10px)+8px);
+  left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.25);
+  letter-spacing:1px;pointer-events:none;z-index:5;}
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div class="hpanel">
+    <div class="av" style="background:#0088cc">Y</div>
+    <div><div class="lbl">YOU</div><div class="pts" id="sy">0</div></div>
+  </div>
+  <div class="hpanel" id="timer">00:45</div>
+  <div class="hpanel">
+    <div class="av" style="background:#e30613">C</div>
+    <div><div class="lbl">CPU</div><div class="pts" id="sc">0</div></div>
+  </div>
+</div>
+
+<canvas id="c"></canvas>
+
+<div id="hint">left hand = left foot  •  right hand = right foot  •  swipe up = kick</div>
+
+<div id="goal"><div class="gtxt" id="gtxt">GOAL!</div></div>
+
+<div class="screen" id="start">
+  <h1>SUBSOCCER GO</h1>
+  <div class="sub">Digital Bench Football</div>
+  <div class="card">
+    <p><span>← Left half →</span>Control your left foot</p>
+    <p><span>← Right half →</span>Control your right foot</p>
+    <p><span>↑ Swipe up</span>Kick toward CPU's goal</p>
+    <p><span>Win</span>First to 3 goals or most in 45s</p>
+  </div>
+  <button class="gobtn" id="bstart">KICK OFF ⚽</button>
+</div>
+
+<div class="screen" id="over">
+  <div class="rtxt" id="rtxt">YOU WIN!</div>
+  <div class="sbtxt" id="stxt">3 – 1</div>
+  <button class="gobtn" id="bagain">PLAY AGAIN</button>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+const dpr    = Math.min(window.devicePixelRatio||1, 2);
+let W=0, H=0;
+
+function resize(){
+  W=canvas.offsetWidth; H=canvas.offsetHeight;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  // canvas.width assignment resets transform, so apply fresh scale
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  initField();
+}
+window.addEventListener('resize', resize);
+
+// ─── State (declared early so initField can set foot positions) ──
+const WIN=3, SECS=45;
+const BALL_R=9, FW=44, FH=12;
+let state='start';
+let sY=0, sC=0, tLeft=SECS, ticker=null;
+let ball={x:0,y:0,vx:0,vy:0};
+let pLX=0, pRX=0;   // player left foot X, right foot X
+let cLX=0, cRX=0;   // cpu left foot X, right foot X
+let cpuCD=0;
+let shX=0, shY=0;
+
+// ─── Field geometry ───────────────────────────────────────
+let F={};
+function initField(){
+  const hh   = document.getElementById('hud').offsetHeight||60;
+  const maxH = H - hh - 4 - (H*0.22); // leave 22% for control zone
+  const maxW = W;
+
+  // Real Subsoccer table from above: height ≈ 1.50× width (portrait, tall & narrow)
+  const RATIO = 1.50; // h/w
+  let fh = maxH;
+  let fw = fh / RATIO;
+  if(fw > maxW * 0.92){ fw = maxW * 0.92; fh = fw * RATIO; }
+
+  F.w  = fw;
+  F.h  = fh;
+  F.x  = (W - F.w) / 2;          // centered horizontally
+  F.y  = hh + 4 + (maxH - F.h) * 0.3; // slight top bias
+  F.cx = F.x + F.w/2;
+  F.cy = F.y + F.h/2;
+  F.gw = F.w * 0.85;  // goals slightly narrower than field (like real table)
+  F.gx = F.cx - F.gw/2;
+  F.gd = 20;
+  F.ctrlY = F.y + F.h;
+  // Always (re)position feet when field is (re)calculated
+  pLX = F.x + F.w*0.25;
+  pRX = F.x + F.w*0.75;
+  cLX = F.x + F.w*0.25;
+  cRX = F.x + F.w*0.75;
+}
+
+
+
+// ─── Input: multi-touch for two feet ─────────────────────
+// Track up to 2 simultaneous touches, one per half
+let touches = {}; // keyed by touch identifier
+
+function screenToFootX(screenX, side){
+  // Map screen X to foot X, clamped to its half of the field
+  const mid = F.cx;
+  const ratio = (screenX - F.x) / F.w;
+  const footX = F.x + FW/2 + Math.max(0,Math.min(1,ratio)) * (F.w - FW);
+  if(side === 'left')  return Math.min(footX, mid - FW/2);
+  if(side === 'right') return Math.max(footX, mid + FW/2);
+  return footX;
+}
+
+function getSide(screenX){
+  return screenX < W/2 ? 'left' : 'right';
+}
+
+function getPt(e){
+  const t = e.changedTouches ? e.changedTouches[0]
+          : e.touches         ? e.touches[0]
+          : e;
+  return {x: t.clientX, y: t.clientY};
+}
+
+// Touch events (multi-touch)
+canvas.addEventListener('touchstart', (e) => {
+  if(state!=='playing') return;
+  e.preventDefault();
+  for(const t of e.changedTouches){
+    const side = getSide(t.clientX);
+    touches[t.identifier] = { side, x0: t.clientX, y0: t.clientY, x: t.clientX, y: t.clientY, t0: Date.now() };
+    if(side === 'left')  pLX = screenToFootX(t.clientX, 'left');
+    else                 pRX = screenToFootX(t.clientX, 'right');
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchmove', (e) => {
+  if(state!=='playing') return;
+  e.preventDefault();
+  for(const t of e.changedTouches){
+    const td = touches[t.identifier];
+    if(!td) continue;
+    td.x = t.clientX; td.y = t.clientY;
+    if(td.side === 'left')  pLX = screenToFootX(t.clientX, 'left');
+    else                    pRX = screenToFootX(t.clientX, 'right');
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchend', (e) => {
+  if(state!=='playing') return;
+  e.preventDefault();
+  for(const t of e.changedTouches){
+    const td = touches[t.identifier];
+    if(!td) continue;
+    const dy = td.y0 - t.clientY;
+    const dx = Math.abs(t.clientX - td.x0);
+    const dt = Date.now() - td.t0;
+    if(dy > 25 && dy > dx && dt < 500){
+      const footX = td.side === 'left' ? pLX : pRX;
+      doKick(dy, t.clientX - td.x0, footX);
+    }
+    delete touches[t.identifier];
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchcancel', (e) => {
+  for(const t of e.changedTouches) delete touches[t.identifier];
+}, {passive:false});
+
+// Mouse (single foot, picks whichever side cursor is on)
+let mouseInp = { down:false, side:'left', x0:0, y0:0, x:0, y:0, t0:0 };
+
+canvas.addEventListener('mousedown', (e) => {
+  if(state!=='playing') return;
+  e.preventDefault();
+  const side = getSide(e.clientX);
+  mouseInp = { down:true, side, x0:e.clientX, y0:e.clientY, x:e.clientX, y:e.clientY, t0:Date.now() };
+  if(side === 'left')  pLX = screenToFootX(e.clientX, 'left');
+  else                 pRX = screenToFootX(e.clientX, 'right');
+});
+
+document.addEventListener('mousemove', (e) => {
+  if(!mouseInp.down || state!=='playing') return;
+  mouseInp.x = e.clientX; mouseInp.y = e.clientY;
+  if(mouseInp.side === 'left')  pLX = screenToFootX(e.clientX, 'left');
+  else                          pRX = screenToFootX(e.clientX, 'right');
+});
+
+document.addEventListener('mouseup', (e) => {
+  if(!mouseInp.down) return;
+  mouseInp.down = false;
+  const dy = mouseInp.y0 - e.clientY;
+  const dx = Math.abs(e.clientX - mouseInp.x0);
+  const dt = Date.now() - mouseInp.t0;
+  if(dy > 25 && dy > dx && dt < 500){
+    const footX = mouseInp.side === 'left' ? pLX : pRX;
+    doKick(dy, e.clientX - mouseInp.x0, footX);
+  }
+});
+
+// ─── Kick logic ───────────────────────────────────────────
+function doKick(upDist, sideSwipe, footX){
+  const ballOff  = ball.x - footX;
+  const swipeDir = sideSwipe / (W * 0.5);
+  const aimX     = ballOff * 0.5 + swipeDir * F.w * 0.25;
+  const power    = Math.min(1, upDist / 140);
+
+  ball.vx = Math.max(-9, Math.min(9, aimX * 0.06));
+  ball.vy = -(10 + power * 8);
+
+  bump(4 + power*5);
+  beep('kick');
+}
+
+// ─── AI (two feet) ───────────────────────────────────────
+const CPU_Y = () => F.y + 32;
+
+function updateAI(){
+  cpuCD = Math.max(0, cpuCD-1);
+  const mid = F.cx;
+  const spd = 4.5;
+
+  // Left CPU foot: tracks ball when ball is on left half
+  const leftTarget = ball.x < mid ? ball.x + (Math.sin(Date.now()*0.004)*0.15) * F.w*0.08
+                                  : F.x + F.w * 0.25; // park in quarter
+  cLX += (Math.max(F.x + FW/2, Math.min(mid - FW/2, leftTarget)) - cLX) * 0.12;
+
+  // Right CPU foot: tracks ball when ball is on right half
+  const rightTarget = ball.x >= mid ? ball.x + (Math.sin(Date.now()*0.003)*0.2) * F.w*0.08
+                                    : F.x + F.w * 0.75;
+  cRX += (Math.max(mid + FW/2, Math.min(F.x + F.w - FW/2, rightTarget)) - cRX) * 0.12;
+
+  // Kick: check both feet
+  const cpuFY = CPU_Y();
+  const checkKick = (fx) => {
+    const distX = Math.abs(ball.x - fx);
+    const distY = Math.abs(ball.y - cpuFY);
+    if(distX < FW*0.75 && distY < 28 && cpuCD===0 && ball.vy < 4){
+      const cornerX = F.gx + (Math.random()>0.5 ? F.gw*0.25 : F.gw*0.75);
+      const aimX    = (cornerX - fx) * 0.04;
+      ball.vx = Math.max(-8, Math.min(8, aimX + (Math.random()-.5)*0.8));
+      ball.vy = 10 + Math.random()*5;
+      cpuCD   = 20 + Math.random()*20|0;
+      beep('kick');
+    }
+  };
+  checkKick(cLX);
+  checkKick(cRX);
+}
+
+// ─── Physics ─────────────────────────────────────────────
+const PLAYER_Y = () => F.y + F.h - 32;
+
+function updateBall(){
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+  ball.vx *= 0.990;
+  ball.vy *= 0.990;
+
+  // Sides
+  if(ball.x-BALL_R < F.x){
+    ball.x=F.x+BALL_R; ball.vx=Math.abs(ball.vx)*0.82; beep('wall');
+  }
+  if(ball.x+BALL_R > F.x+F.w){
+    ball.x=F.x+F.w-BALL_R; ball.vx=-Math.abs(ball.vx)*0.82; beep('wall');
+  }
+
+  // CPU goal (top)
+  if(ball.y-BALL_R < F.y){
+    if(ball.x > F.gx && ball.x < F.gx+F.gw){ score('you'); return; }
+    ball.y=F.y+BALL_R; ball.vy=Math.abs(ball.vy)*0.82; beep('wall');
+  }
+
+  // Player goal (bottom)
+  if(ball.y+BALL_R > F.y+F.h){
+    if(ball.x > F.gx && ball.x < F.gx+F.gw){ score('cpu'); return; }
+    ball.y=F.y+F.h-BALL_R; ball.vy=-Math.abs(ball.vy)*0.82; beep('wall');
+  }
+
+  // Foot collisions — all 4 feet
+  hitFoot(pLX, PLAYER_Y(), -1);
+  hitFoot(pRX, PLAYER_Y(), -1);
+  hitFoot(cLX, CPU_Y(),    +1);
+  hitFoot(cRX, CPU_Y(),    +1);
+}
+
+function hitFoot(fx, fy, dir){
+  const dx=ball.x-fx, dy=ball.y-fy;
+  if(Math.abs(dx)<FW/2+BALL_R && Math.abs(dy)<FH/2+BALL_R){
+    ball.y  = dir===-1 ? fy-FH/2-BALL_R : fy+FH/2+BALL_R;
+    ball.vy = dir * (Math.abs(ball.vy)*0.85 + 1.5);
+    ball.vx += dx/(FW/2) * 2.5;
+    beep('hit');
+  }
+}
+
+
+// ─── Score / Flow ─────────────────────────────────────────
+function score(who){
+  if(state!=='playing') return;
+  state='goal';
+  if(who==='you'){ sY++; document.getElementById('sy').textContent=sY; }
+  else           { sC++; document.getElementById('sc').textContent=sC; }
+  showGoal(who);
+  bump(12);
+  beep(who==='you'?'goal':'oops');
+  const done = sY>=WIN || sC>=WIN;
+  setTimeout(()=>{
+    hideGoal();
+    if(done){ endGame(); return; }
+    pLX=F.x+F.w*0.25; pRX=F.x+F.w*0.75; cLX=F.x+F.w*0.25; cRX=F.x+F.w*0.75;
+    resetBall(who==='you'?1:-1);
+    state='playing';
+  }, 1500);
+}
+
+function showGoal(who){
+  const el=document.getElementById('goal'), txt=document.getElementById('gtxt');
+  txt.textContent = who==='you' ? 'GOAL! ⚽' : 'CPU scores!';
+  txt.style.color = who==='you' ? '#ffd700' : '#ff4455';
+  el.style.display='flex';
+}
+function hideGoal(){ document.getElementById('goal').style.display='none'; }
+
+function resetBall(dir){
+  ball.x=F.cx; ball.y=F.cy;
+  ball.vx=(Math.random()-.5)*2.5;
+  ball.vy=dir*3.8;
+}
+
+function startGame(){
+  sY=0; sC=0; tLeft=SECS;
+  document.getElementById('sy').textContent='0';
+  document.getElementById('sc').textContent='0';
+  document.getElementById('start').style.display='none';
+  document.getElementById('over').style.display='none';
+  hideGoal();
+  initField();
+  pLX=F.x+F.w*0.25; pRX=F.x+F.w*0.75; cLX=F.x+F.w*0.25; cRX=F.x+F.w*0.75;
+  resetBall(1);
+  state='playing';
+  if(ticker) clearInterval(ticker);
+  ticker=setInterval(()=>{
+    if(state!=='playing') return;
+    tLeft=Math.max(0,tLeft-1);
+    timerUI();
+    if(tLeft===0) endGame();
+  },1000);
+  timerUI();
+}
+
+function timerUI(){
+  const el=document.getElementById('timer');
+  const m=tLeft/60|0, s=tLeft%60;
+  el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  el.classList.toggle('red',tLeft<=10);
+}
+
+function endGame(){
+  state='over';
+  if(ticker) clearInterval(ticker);
+  const r=document.getElementById('rtxt');
+  if(sY>sC){r.textContent='🏆 YOU WIN!';r.style.color='#00ffcc';}
+  else if(sC>sY){r.textContent='YOU LOSE';r.style.color='#ff3344';}
+  else{r.textContent='DRAW';r.style.color='#ffd700';}
+  document.getElementById('stxt').textContent=sY+' – '+sC;
+  document.getElementById('over').style.display='flex';
+}
+
+// ─── Screen shake ─────────────────────────────────────────
+function bump(n){ shX=(Math.random()-.5)*n; shY=(Math.random()-.5)*n; }
+
+// ─── Audio ────────────────────────────────────────────────
+let ac=null;
+function getAC(){ if(!ac) ac=new(window.AudioContext||window.webkitAudioContext)(); return ac; }
+function beep(t){
+  try{
+    const a=getAC(),o=a.createOscillator(),g=a.createGain();
+    o.connect(g);g.connect(a.destination);
+    if(t==='kick'){ o.type='triangle'; o.frequency.setValueAtTime(220,a.currentTime); o.frequency.exponentialRampToValueAtTime(75,a.currentTime+.13); g.gain.setValueAtTime(.35,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.13); o.start();o.stop(a.currentTime+.13); }
+    if(t==='wall'){ o.type='sine';     o.frequency.setValueAtTime(260,a.currentTime); o.frequency.exponentialRampToValueAtTime(90,a.currentTime+.07);  g.gain.setValueAtTime(.12,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.07);  o.start();o.stop(a.currentTime+.07); }
+    if(t==='hit'){  o.type='sine';     o.frequency.setValueAtTime(340,a.currentTime); o.frequency.exponentialRampToValueAtTime(110,a.currentTime+.09); g.gain.setValueAtTime(.18,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.09); o.start();o.stop(a.currentTime+.09); }
+    if(t==='goal'){ o.type='sawtooth'; o.frequency.setValueAtTime(280,a.currentTime); o.frequency.exponentialRampToValueAtTime(680,a.currentTime+.38); g.gain.setValueAtTime(.38,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.48); o.start();o.stop(a.currentTime+.48); }
+    if(t==='oops'){ o.type='sawtooth'; o.frequency.setValueAtTime(220,a.currentTime); o.frequency.exponentialRampToValueAtTime(70,a.currentTime+.38);  g.gain.setValueAtTime(.28,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.48); o.start();o.stop(a.currentTime+.48); }
+  }catch(e){}
+}
+
+// ─── Render ───────────────────────────────────────────────
+function draw(){
+  ctx.setTransform(dpr,0,0,dpr,0,0); // ensure correct scale every frame
+  ctx.save();
+  ctx.translate(shX|0, shY|0);
+  shX*=.78; shY*=.78;
+  ctx.clearRect(-10,-10,W+20,H+20);
+
+  // ── Background ──
+  ctx.fillStyle='#060810'; ctx.fillRect(0,0,W,H);
+
+  if(!F.w){ctx.restore();return;}
+
+  // ── Pitch ──
+  // Shadow
+  ctx.shadowColor='rgba(0,0,0,.6)'; ctx.shadowBlur=20;
+  ctx.fillStyle='#174d20';
+  ctx.fillRect(F.x,F.y,F.w,F.h);
+  ctx.shadowBlur=0;
+
+  // Lighter stripes
+  for(let i=0;i<6;i++){
+    const sw=F.w/6;
+    ctx.fillStyle=i%2===0?'rgba(255,255,255,.03)':'rgba(0,0,0,0)';
+    ctx.fillRect(F.x+i*sw,F.y,sw,F.h);
+  }
+
+  // Center line
+  ctx.strokeStyle='rgba(0,0,0,0.7)'; ctx.lineWidth=2;
+  ctx.setLineDash([10,7]);
+  ctx.beginPath(); ctx.moveTo(F.x,F.cy); ctx.lineTo(F.x+F.w,F.cy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Center circle
+  ctx.beginPath(); ctx.arc(F.cx,F.cy,F.w*.09,0,Math.PI*2); ctx.stroke();
+
+  // ── Side walls (extend past goals) ──
+  const wt=8;
+  const gd=14; // goal bar thickness
+  ctx.fillStyle='#c8d4e0';
+  ctx.fillRect(F.x-wt, F.y-gd, wt, F.h+gd*2);   // left wall (full height + goals)
+  ctx.fillRect(F.x+F.w, F.y-gd, wt, F.h+gd*2);   // right wall
+
+  // ── End walls (the parts outside the goal openings) ──
+  // Top end wall — left of goal
+  ctx.fillRect(F.x-wt, F.y-gd, F.gx-F.x+wt, gd);
+  // Top end wall — right of goal
+  ctx.fillRect(F.gx+F.gw, F.y-gd, F.x+F.w-(F.gx+F.gw)+wt, gd);
+  // Bottom end wall — left of goal
+  ctx.fillRect(F.x-wt, F.y+F.h, F.gx-F.x+wt, gd);
+  // Bottom end wall — right of goal
+  ctx.fillRect(F.gx+F.gw, F.y+F.h, F.x+F.w-(F.gx+F.gw)+wt, gd);
+
+  // ── BLUE goal bar (top — CPU) ──
+  ctx.fillStyle='#0055cc';
+  ctx.fillRect(F.gx, F.y-gd, F.gw, gd);
+
+  // ── RED goal bar (bottom — Player) ──
+  ctx.fillStyle='#cc0011';
+  ctx.fillRect(F.gx, F.y+F.h, F.gw, gd);
+
+  // ── Goal area boxes — match goal width exactly ──
+  const boxH = F.h * 0.18;
+  ctx.strokeStyle='rgba(0,0,0,0.7)'; ctx.lineWidth=1.5;
+  // CPU box (top)
+  ctx.beginPath();
+  ctx.moveTo(F.gx, F.y);
+  ctx.lineTo(F.gx, F.y + boxH);
+  ctx.lineTo(F.gx + F.gw, F.y + boxH);
+  ctx.lineTo(F.gx + F.gw, F.y);
+  ctx.stroke();
+  // Player box (bottom)
+  ctx.beginPath();
+  ctx.moveTo(F.gx, F.y + F.h);
+  ctx.lineTo(F.gx, F.y + F.h - boxH);
+  ctx.lineTo(F.gx + F.gw, F.y + F.h - boxH);
+  ctx.lineTo(F.gx + F.gw, F.y + F.h);
+  ctx.stroke();
+
+
+  // ── SUBSOCCER center logo ──
+  ctx.save();
+  ctx.translate(F.cx, F.cy);
+  // Red box
+  const lw=Math.min(60, F.w*0.16), lh=Math.min(24, F.h*0.22);
+  ctx.fillStyle='#e30613';
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(-lw/2,-lh/2,lw,lh,4);
+  else ctx.rect(-lw/2,-lh/2,lw,lh);
+  ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.font=`bold ${Math.round(lh*0.6)}px -apple-system,sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('SUBSOCCER',0,0);
+  ctx.restore();
+
+
+  // ── CPU feet (red) ──
+  const cpuFY=CPU_Y();
+  ctx.fillStyle='#e30613';
+  ctx.shadowColor='rgba(227,6,19,.6)'; ctx.shadowBlur=10;
+  // Left CPU foot
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(cLX-FW/2, cpuFY-FH/2, FW, FH, 4);
+  else ctx.rect(cLX-FW/2, cpuFY-FH/2, FW, FH);
+  ctx.fill();
+  // Right CPU foot
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(cRX-FW/2, cpuFY-FH/2, FW, FH, 4);
+  else ctx.rect(cRX-FW/2, cpuFY-FH/2, FW, FH);
+  ctx.fill();
+  ctx.shadowBlur=0;
+
+  // ── Player feet (blue) ──
+  const pFY=PLAYER_Y();
+  ctx.fillStyle='#2979ff';
+  ctx.shadowColor='rgba(41,121,255,.7)'; ctx.shadowBlur=14;
+  // Left player foot
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(pLX-FW/2, pFY-FH/2, FW, FH, 4);
+  else ctx.rect(pLX-FW/2, pFY-FH/2, FW, FH);
+  ctx.fill();
+  // Right player foot
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(pRX-FW/2, pFY-FH/2, FW, FH, 4);
+  else ctx.rect(pRX-FW/2, pFY-FH/2, FW, FH);
+  ctx.fill();
+  ctx.shadowBlur=0;
+
+  // ── Control zone visual (subtle) ──
+  const ctrlTop=F.ctrlY+4;
+  ctx.fillStyle='rgba(41,121,255,.04)';
+  ctx.fillRect(0, ctrlTop, W, H-ctrlTop);
+  ctx.strokeStyle='rgba(41,121,255,.15)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([6,6]);
+  ctx.beginPath(); ctx.moveTo(0,ctrlTop); ctx.lineTo(W,ctrlTop); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Finger position indicator (mouse)
+  if(mouseInp.down && state==='playing'){
+    ctx.fillStyle='rgba(41,121,255,.20)';
+    ctx.beginPath(); ctx.arc(mouseInp.x, mouseInp.y, 22, 0, Math.PI*2); ctx.fill();
+    if(mouseInp.y0 - mouseInp.y > 10){
+      ctx.strokeStyle='rgba(0,255,200,.5)'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(mouseInp.x,mouseInp.y0); ctx.lineTo(mouseInp.x,mouseInp.y); ctx.stroke();
+    }
+  }
+  // Touch indicators
+  for(const id in touches){
+    const td = touches[id];
+    ctx.fillStyle='rgba(41,121,255,.18)';
+    ctx.beginPath(); ctx.arc(td.x, td.y, 22, 0, Math.PI*2); ctx.fill();
+  }
+
+  // ── Ball ──
+  const spd=Math.sqrt(ball.vx*ball.vx+ball.vy*ball.vy);
+  // Trail
+  if(spd>3){
+    ctx.strokeStyle=`rgba(255,255,255,${Math.min(.45,spd/22)})`;
+    ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(ball.x,ball.y); ctx.lineTo(ball.x-ball.vx*2.8,ball.y-ball.vy*2.8); ctx.stroke();
+  }
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,.3)';
+  ctx.beginPath(); ctx.ellipse(ball.x+3,ball.y+5,BALL_R*1.15,BALL_R*.45,0,0,Math.PI*2); ctx.fill();
+  // Ball
+  const bg=ctx.createRadialGradient(ball.x-3,ball.y-3,1,ball.x,ball.y,BALL_R);
+  bg.addColorStop(0,'#fff'); bg.addColorStop(.65,'#d6dce8'); bg.addColorStop(1,'#7a8496');
+  ctx.fillStyle=bg;
+  ctx.shadowColor='rgba(255,255,255,.4)'; ctx.shadowBlur=5;
+  ctx.beginPath(); ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  // Seam
+  ctx.strokeStyle='rgba(80,90,110,.5)'; ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.arc(ball.x,ball.y,BALL_R*.55,0,Math.PI*2); ctx.stroke();
+
+  ctx.restore();
+}
+
+// ─── Loop ─────────────────────────────────────────────────
+function loop(){
+  if(state==='playing'){
+    updateAI();
+    updateBall();
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ─── Init ─────────────────────────────────────────────────
+document.getElementById('bstart').addEventListener('click', startGame);
+document.getElementById('bagain').addEventListener('click', startGame);
+
+resize();
+loop();
+</script>
+</body>
+</html>
