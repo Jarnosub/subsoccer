@@ -554,7 +554,7 @@ function finishMatch(winnerName, winnerIndex) {
                 session_id: sessionStorage.getItem('subsoccer-session-id') || (() => { const s = crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); sessionStorage.setItem('subsoccer-session-id', s); return s; })()
             }).then(() => {}).catch(() => {});
 
-            // Send detailed in-game data
+            // Send detailed in-game data with player names
             const mDur = matchStartTime ? Math.round((Date.now() - matchStartTime) / 1000) : null;
             let mComeback = false;
             let ms1 = 0, ms2 = 0;
@@ -570,7 +570,10 @@ function finishMatch(winnerName, winnerIndex) {
                     goals: matchGoalTimestamps,
                     first: matchGoalTimestamps[0]?.p || null,
                     comeback: mComeback,
-                    win_score: GOALS_TO_WIN
+                    win_score: GOALS_TO_WIN,
+                    p1: gameState.p1Name || 'P1',
+                    p2: gameState.p2Name || 'P2',
+                    winner: winnerName || null
                 }),
                 source_partner: isLoggedIn ? 'registered' : 'guest',
                 user_agent: navigator.userAgent,
@@ -666,6 +669,24 @@ async function trackTournamentAnonymously(results) {
             session_duration: duration,
             session_id: sessionStorage.getItem('subsoccer-session-id') || (() => { const s = crypto.randomUUID ? crypto.randomUUID() : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); sessionStorage.setItem('subsoccer-session-id', s); return s; })()
         });
+
+        // Also track tournament player roster
+        if (participants.length > 0) {
+            await _sb.from('public_tracking').insert({
+                event_type: 'tournament_details',
+                game_code: 'MOBILE-TOURNAMENT',
+                match_score: JSON.stringify({
+                    duration: duration,
+                    participants: participants,
+                    winner: results && results[0] ? results[0].name : null
+                }),
+                source_partner: isLoggedIn ? 'registered' : 'guest',
+                user_agent: navigator.userAgent,
+                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
+                location: userLoc,
+                session_id: sessionStorage.getItem('subsoccer-session-id')
+            });
+        }
     } catch (_) { /* silent */ }
 }
 

@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Subsoccer GO</title>
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root {
+  --sub-red: #E30613;
+  --sub-gold: #FFD700;
+  --sub-black: #0a0a0a;
+  --sub-radius: 4px;
+}
+@font-face {
+  font-family: 'Subsoccer';
+  src: url('/fonts/Subsoccer-2-Regular.woff2') format('woff2'),
+       url('/fonts/Subsoccer-2-Regular.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Resolve';
+  src: url('/fonts/Resolve-RegularNrw.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Resolve';
+  src: url('/fonts/Resolve-BoldNrw.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--sub-black);color:#fff;
+  touch-action:none;-webkit-user-select:none;user-select:none;
+  font-family:'Resolve',-apple-system,sans-serif;}
+canvas{display:block;width:100%;height:100%;}
+#hud{position:fixed;top:0;left:0;right:0;
+  padding:calc(env(safe-area-inset-top,10px)+8px) 16px 8px;
+  display:flex;justify-content:space-between;align-items:center;
+  pointer-events:none;z-index:10;}
+.hpanel{background:rgba(12,12,14,0.88);border:1px solid rgba(255,255,255,0.12);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-radius:4px;padding:6px 14px;display:flex;align-items:center;gap:12px;}
+.av{width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;
+  font-family:'Resolve',sans-serif;letter-spacing:0.5px;}
+.lbl{font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;font-family:'Resolve',sans-serif;}
+.pts{font-size:32px;color:#fff;font-weight:normal;line-height:1;font-family:'Subsoccer',sans-serif;letter-spacing:1px;}
+.screen{position:fixed;inset:0;background:var(--sub-black);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:30;gap:18px;padding:24px;text-align:center;}
+h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
+  font-family:'Subsoccer',sans-serif;line-height:1;}
+.sub{font-size:11px;color:var(--sub-red);letter-spacing:5px;text-transform:uppercase;
+  font-weight:700;margin-top:-6px;font-family:'Resolve',sans-serif;}
+.card{background:#111;border:1px solid rgba(255,255,255,0.08);
+  border-radius:var(--sub-radius);padding:0;max-width:360px;width:100%;text-align:left;}
+.rule{display:flex;gap:16px;align-items:center;padding:14px 16px;
+  border-left:3px solid var(--sub-red);background:#181818;margin-bottom:2px;}
+.rule:first-child{border-radius:var(--sub-radius) var(--sub-radius) 0 0;}
+.rule:last-child{border-radius:0 0 var(--sub-radius) var(--sub-radius);margin-bottom:0;}
+.rule-num{font-size:20px;color:rgba(255,255,255,0.2);font-weight:700;min-width:20px;flex-shrink:0;}
+.rule-title{font-size:14px;color:var(--sub-gold);font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;}
+.rule-desc{font-size:13px;color:#ccc;margin-top:3px;line-height:1.5;font-weight:400;}
+/* Button — matches subsoccer.pro brand exactly */
+.gobtn{background:var(--sub-red);color:#fff;
+  font-size:1.1rem;font-weight:normal;padding:14px 20px;
+  border:none;border-radius:2px;cursor:pointer;
+  letter-spacing:2.5px;font-family:'Subsoccer',sans-serif;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 4px 18px rgba(227,6,19,0.35);
+  transition:transform 0.15s, background 0.2s, box-shadow 0.2s;
+  width:100%;}
+.gobtn:hover{background:#c41e2a;box-shadow:0 6px 22px rgba(227,6,19,0.45);transform:translateY(-1px);}
+.gobtn:active{transform:scale(0.98);box-shadow:none;}
+.gobtn-secondary{background:#181818;color:#fff;border:1px solid rgba(255,255,255,0.18);
+  box-shadow:0 4px 14px rgba(0,0,0,0.5);}
+.gobtn-secondary:hover{background:#222222;border-color:rgba(255,255,255,0.32);box-shadow:0 6px 18px rgba(0,0,0,0.7);transform:translateY(-1px);}
+#over{display:none;}
+.rtxt{font-size:36px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  font-family:'Resolve',sans-serif;}
+.sbtxt{font-size:72px;font-weight:normal;color:var(--sub-gold);font-family:'Subsoccer',sans-serif;}
+#goal{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;
+  z-index:20;pointer-events:none;}
+.gtxt{font-size:28px;font-weight:normal;font-family:'Subsoccer',sans-serif;letter-spacing:4px;
+  text-transform:uppercase;color:#fff !important;
+  animation:pop .35s cubic-bezier(.175,.885,.32,1.275);}
+@keyframes pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+#hint{position:fixed;bottom:calc(env(safe-area-inset-bottom,10px)+8px);
+  left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.2);
+  letter-spacing:1px;pointer-events:none;z-index:5;font-family:'Resolve',sans-serif;}
+/* RPS Kickoff draw screen */
+#draw{display:none;
+  background:linear-gradient(to right, #1c2b36 0%, #121e2b 49.8%, #000 49.8%, #000 50.2%, #a8101a 50.2%, #6b050b 100%);}
+.draw-label{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:4px;text-transform:uppercase;
+  font-family:'Resolve',sans-serif;font-weight:700;margin-bottom:32px;}
+.draw-arena{display:flex;align-items:center;justify-content:center;gap:24px;width:100%;}
+.draw-player{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.draw-icon{font-size:72px;line-height:1;display:block;will-change:transform;}
+.draw-icon.shaking{animation:rps-shake 0.12s infinite;}
+.draw-icon.locked{animation:rps-lock 0.3s cubic-bezier(.175,.885,.32,1.275) forwards;}
+.draw-name{font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:3px;text-transform:uppercase;
+  font-family:'Resolve',sans-serif;font-weight:700;}
+.draw-vs{font-family:'Subsoccer',sans-serif;font-size:28px;color:rgba(255,255,255,0.2);
+  align-self:center;padding-bottom:28px;}
+.draw-result{font-size:36px;color:#fff;font-family:'Subsoccer',sans-serif;
+  letter-spacing:2px;margin-top:28px;opacity:0;transition:opacity 0.35s;text-align:center;}
+.draw-result.show{opacity:1;}
+.draw-result.you{color:#fff;}
+.draw-result.cpu{color:#fff;}
+.draw-sub{font-size:12px;color:rgba(255,255,255,0.5);font-family:'Resolve',sans-serif;font-weight:700;
+  margin-top:6px;letter-spacing:3px;text-transform:uppercase;
+  opacity:0;transition:opacity 0.35s 0.15s;text-align:center;}
+.draw-sub.show{opacity:1;}
+@keyframes rps-shake{0%{transform:translateY(0);}50%{transform:translateY(-8px);}100%{transform:translateY(0);}}
+@keyframes rps-lock{0%{transform:scale(1.4);}60%{transform:scale(0.9);}100%{transform:scale(1);}}
+@keyframes pulse-dot {
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:0.4;transform:scale(0.7);}
+}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+
+<!-- Landscape blocker -->
+<div id="rotate-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#060810;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+  <div style="font-size:4rem;animation:spin90 1.2s ease-in-out infinite alternate;">📱</div>
+  <div style="font-family:'Subsoccer-2-Regular',sans-serif;font-size:1.4rem;color:#fff;letter-spacing:2px;">ROTATE YOUR PHONE</div>
+  <div style="font-family:'Resolve-Regular',sans-serif;font-size:0.8rem;color:#888;letter-spacing:1px;">Game is designed for portrait</div>
+</div>
+<style>
+@keyframes spin90 {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(90deg); }
+}
+</style>
+
+<div id="hud">
+  <div class="hpanel">
+    <a href="/" id="exit-btn" title="Exit" style="pointer-events:auto;color:rgba(255,255,255,0.6);text-decoration:none;font-size:16px;font-weight:700;padding:6px 12px 6px 4px;margin:-6px 0 -6px -10px;line-height:1;display:flex;align-items:center;cursor:pointer;-webkit-tap-highlight-color:rgba(255,255,255,0.2);">✕</a>
+    <div style="width:1px;height:18px;background:rgba(255,255,255,0.12);margin-right:4px;"></div>
+    <div class="av" style="background:#e30613">Y</div>
+    <div><div class="lbl">YOU</div><div class="pts" id="sy">0</div></div>
+  </div>
+  <div class="hpanel" style="padding:6px 14px;min-width:100px;justify-content:center;">
+    <div id="hud-timer" style="font-size:14px;color:rgba(255,255,255,0.85);letter-spacing:1px;font-weight:700;font-family:'Resolve',monospace;">0.0s</div>
+    <div id="mp-ping" style="display:none;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:0.5px;"></div>
+  </div>
+  <div class="hpanel">
+    <div class="av" style="background:#0077cc" id="opp-av">C</div>
+    <div><div class="lbl" id="opp-lbl">CPU</div><div class="pts" id="sc">0</div></div>
+  </div>
+</div>
+
+<canvas id="c"></canvas>
+
+<div id="hint">left hand = left foot  •  right hand = right foot  •  swipe up = kick</div>
+
+<div id="goal"><div class="gtxt" id="gtxt">GOAL!</div></div>
+
+<div class="screen" id="start">
+  <h1>SUBSOCCER GO</h1>
+  <div class="sub">Digital Bench Soccer</div>
+  <div class="card">
+    <div class="rule"><span class="rule-num">1</span><div><div class="rule-title">Kick-Off</div><div class="rule-desc">Kick-off is taken inside your own goal area.</div></div></div>
+    <div class="rule"><span class="rule-num">2</span><div><div class="rule-title">Controls</div><div class="rule-desc">Left half = left foot · Right half = right foot · Swipe up to kick.</div></div></div>
+    <div class="rule"><span class="rule-num">3</span><div><div class="rule-title">Daily Speedrun</div><div class="rule-desc">Score 3 goals as fast as possible to claim today's #1 spot!</div></div></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;">
+    <button class="gobtn" id="bstart">
+      <i class="fa-solid fa-gamepad" style="font-size:1.15rem;"></i> VS CPU
+    </button>
+    <button class="gobtn gobtn-secondary" id="bstart-online">
+      <i class="fa-solid fa-user-group" style="font-size:1rem;color:var(--sub-gold);"></i> VS FRIEND (ONLINE)
+    </button>
+  </div>
+</div>
+
+<div class="screen" id="draw">
+  <div class="draw-label">Rock · Paper · Scissors</div>
+  <div class="draw-arena">
+    <div class="draw-player">
+      <span class="draw-icon" id="draw-you">✊</span>
+      <span class="draw-name">You</span>
+    </div>
+    <div class="draw-vs">VS</div>
+    <div class="draw-player">
+      <span class="draw-icon" id="draw-cpu">✊</span>
+      <span class="draw-name">CPU</span>
+    </div>
+  </div>
+  <div class="draw-result" id="draw-result"></div>
+  <div class="draw-sub" id="draw-sub">kicks off</div>
+</div>
+
+<!-- MP Lobby -->
+<div class="screen" id="mp-lobby" style="display:none;gap:14px;">
+  <h1 style="font-size:36px;">ONLINE</h1>
+  <div class="sub">Play with a Friend</div>
+  <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px;">
+    <button class="gobtn" id="mp-create-btn">+ Create Match</button>
+    <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:2px;">── OR ──</div>
+    <div style="display:flex;gap:8px;">
+      <input id="mp-join-input" type="text" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters"
+        style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:14px 12px;font-family:'Resolve',monospace;font-size:22px;font-weight:700;letter-spacing:6px;text-align:center;text-transform:uppercase;outline:none;">
+      <button class="gobtn" id="mp-join-btn" style="padding:14px 18px;font-size:0.85rem;width:auto;">Join</button>
+    </div>
+  </div>
+  <button id="mp-lobby-back" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">← BACK</button>
+</div>
+
+<!-- MP Waiting -->
+<div class="screen" id="mp-waiting" style="display:none;gap:16px;">
+  <div style="font-size:48px;">⏳</div>
+  <h1 style="font-size:36px;">WAITING...</h1>
+  <div style="font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-align:center;max-width:280px;line-height:1.4;">Send the link to your friend and the game starts automatically when they join.</div>
+  <button id="mp-share-btn" class="gobtn" style="width:100%;max-width:320px;padding:16px 20px;font-size:1.05rem;">
+    <i class="fa-solid fa-share-nodes" style="font-size:1.1rem;"></i> Share Game Link
+  </button>
+  <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);font-size:12px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--sub-gold);animation:pulse-dot 1.2s ease-in-out infinite;"></div>
+    Waiting for opponent...
+  </div>
+  <button id="mp-cancel-btn" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">Cancel</button>
+</div>
+
+<!-- MP Disconnected -->
+<div class="screen" id="mp-disconnected" style="display:none;gap:14px;">
+  <div style="font-size:48px;">📵</div>
+  <h1 style="font-size:28px;">CONNECTION LOST</h1>
+  <div style="font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-align:center;">Opponent left the match</div>
+  <button id="mp-dc-back" class="gobtn" style="max-width:320px;"><i class="fa-solid fa-arrow-left"></i> Back to Menu</button>
+</div>
+
+<div id="over" style="display:none;position:fixed;inset:0;z-index:30;
+  background:linear-gradient(to right, #1c2b36 0%, #121e2b 49.8%, #000 49.8%, #000 50.2%, #a8101a 50.2%, #6b050b 100%);
+  flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;
+  padding:max(env(safe-area-inset-top,16px),16px) 16px 20px;overflow-y:auto;box-sizing:border-box;">
+  
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;margin-top:2px;">
+    <div id="rtxt" style="font-family:'Subsoccer',sans-serif;font-size:2.2rem;color:#fff;
+      letter-spacing:2px;text-align:center;text-transform:uppercase;"></div>
+    <div id="stxt" style="font-family:'Subsoccer',sans-serif;font-size:3.8rem;color:#fff;
+      letter-spacing:4px;line-height:1;text-align:center;"></div>
+    
+    <!-- Match Time Badge -->
+    <div id="match-time-card" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:6px 16px;display:flex;align-items:center;gap:8px;margin-top:2px;">
+      <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;font-weight:700;">MATCH TIME</span>
+      <span id="final-time-val" style="font-family:'Resolve',sans-serif;font-weight:700;font-size:20px;color:var(--sub-gold);letter-spacing:0.5px;">--.-s</span>
+    </div>
+  </div>
+
+  <!-- Nickname Entry Box (shown on win) -->
+  <div id="name-entry-box" style="display:none;width:100%;max-width:320px;flex-direction:column;gap:6px;">
+    <div style="font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;font-weight:700;text-align:center;">
+      Enter name for Daily Leaderboard:
+    </div>
+    <div style="display:flex;gap:6px;width:100%;">
+      <input type="text" id="player-nickname" maxlength="14" placeholder="Your nickname" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:9px 12px;font-family:'Resolve',sans-serif;font-size:13px;outline:none;">
+      <button id="save-score-btn" style="background:var(--sub-red);color:#fff;border:none;border-radius:2px;padding:9px 14px;font-family:'Resolve',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;">SUBMIT</button>
+    </div>
+  </div>
+
+  <!-- Daily Leaderboard Card -->
+  <div id="leaderboard-section" style="width:100%;max-width:320px;background:rgba(10,12,16,0.75);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:10px 14px;box-sizing:border-box;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <span style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--sub-gold);text-transform:uppercase;display:flex;align-items:center;gap:4px;">
+        🏆 TODAY'S FASTEST WINS
+      </span>
+      <span id="lb-refresh" style="font-size:10px;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;cursor:pointer;">TOP 10</span>
+    </div>
+    <div id="leaderboard-rows" style="display:flex;flex-direction:column;gap:5px;font-family:'Resolve',sans-serif;font-size:12px;min-height:40px;">
+      <div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">Loading fastest times...</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:320px;padding-bottom:max(env(safe-area-inset-bottom,16px),16px);margin-top:2px;">
+    <button id="bagain"
+      style="width:100%;padding:14px;background:var(--sub-red);color:#fff;border:none;border-radius:2px;
+      font-family:'Subsoccer',sans-serif;font-size:1.15rem;letter-spacing:2px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:10px;text-transform:uppercase;
+      box-shadow:0 4px 16px rgba(227,6,19,0.3);">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Play Again
+    </button>
+    <a href="/" style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.45);text-decoration:none;text-transform:uppercase;padding:4px 16px;cursor:pointer;">
+      ← Back to lobby
+    </a>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+const dpr    = Math.min(window.devicePixelRatio||1, 2);
+let W=0, H=0;
+
+// ─── Multiplayer state ────────────────────────────────────
+const SB_URL2  = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+const SB_ANON  = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+let _sbClient  = null;
+let gameMode   = 'cpu';    // 'cpu' | 'online'
+let mpRole     = null;     // 'host' | 'guest'
+let mpChannel  = null;
+let mpRoomCode = null;
+let mpConnected = false;
+let mpLatency  = 0;
+let opFeet     = { lx: 0.5, ly: 0.15, rx: 0.5, ry: 0.15 };  // normalised 0-1
+let ballRemote = null;     // last received ball state from host
+let ballInterp = null;     // interpolated ball for guest rendering
+let _mpSeq     = 0;        // outgoing sequence counter
+let _mpFeetThrottle = 0;
+let _mpStateThrottle = 0;
+let _pingInterval = null;
+let _pingT = 0;
+
+// ─── WebRTC P2P Direct DataChannel ────────────────────────
+let rtcPeer    = null;
+let rtcChannel = null;
+let rtcReady   = false;
+const RTC_CONFIG = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' }
+  ]
+};
+
+// Preload Subsoccer logo for field center
+const logoImg = new Image();
+logoImg.src = '/subsoccer-go-logo.png';
+
+// Preload shoe images (right shoe — mirrored for left foot)
+const blueShoeImg = new Image();
+blueShoeImg.src = '/subsoccer-go-shoe-blue.png';
+const redShoeImg = new Image();
+redShoeImg.src = '/subsoccer-go-shoe-red.png';
+
+// Preload Subsoccer ball
+const ballImg = new Image();
+ballImg.src = '/subsoccer-go-ball.png';
+
+// ─── Analytics & Leaderboard ───────────────────────────────
+const SB_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+const SB_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+let gameStartTime = null;
+let _playerCountry = null;
+let _matchDuration = 0;
+let _scoreSubmitted = false;
+
+// Fetch country once on load (non-blocking), then fire app_opened tracking
+fetch('/.netlify/functions/geo')
+  .then(r => r.json())
+  .then(d => { if(d.country) _playerCountry = d.country; })
+  .catch(() => {})
+  .finally(() => { trackGoAppOpened(); });
+
+function trackGoAppOpened() {
+  try {
+    fetch(`${SB_URL}/rest/v1/public_tracking`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        event_type: 'app_opened',
+        game_code: 'SUBSOCCER-GO',
+        source_partner: 'digital',
+        user_agent: navigator.userAgent.slice(0, 120),
+        location: _playerCountry || null,
+        client_time: new Date().toISOString()
+      })
+    }).catch(() => {});
+  } catch(e) {}
+}
+
+function formatDuration(s){
+  if(!s || isNaN(s)) return '--.-s';
+  const num = Number(s);
+  return num.toFixed(1) + 's';
+}
+
+function getFlagEmoji(countryCode) {
+  if (!countryCode || countryCode.length !== 2) return '🌐';
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+async function fetchLeaderboard(){
+  const rowsEl = document.getElementById('leaderboard-rows');
+  if(!rowsEl) return;
+  try {
+    const res = await fetch('/.netlify/functions/digital-leaderboard?mode=today');
+    if(!res.ok) throw new Error('Failed to fetch');
+    const data = await res.json();
+    renderLeaderboard(data.leaderboard || []);
+  } catch(e) {
+    rowsEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">No records yet today. Be the first!</div>';
+  }
+}
+
+function renderLeaderboard(list){
+  const rowsEl = document.getElementById('leaderboard-rows');
+  if(!rowsEl) return;
+  if(!list || list.length === 0){
+    rowsEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">No wins recorded yet today. Be the first!</div>';
+    return;
+  }
+
+  let html = '';
+  list.slice(0, 10).forEach((item, idx) => {
+    const rank = idx + 1;
+    const rankBadge = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+    const name = item.player_name ? escapeHtml(item.player_name) : 'Anonymous';
+    const flag = getFlagEmoji(item.country);
+    const timeStr = formatDuration(item.duration_s);
+    
+    html += `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="display:flex;align-items:center;gap:6px;overflow:hidden;">
+          <span style="font-weight:700;color:${rank<=3?'var(--sub-gold)':'rgba(255,255,255,0.5)'};min-width:20px;">${rankBadge}</span>
+          <span>${flag}</span>
+          <span style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;font-weight:${rank<=3?'700':'400'};">${name}</span>
+        </div>
+        <div style="color:var(--sub-gold);font-weight:700;font-family:'Resolve',monospace;">${timeStr}</div>
+      </div>
+    `;
+  });
+  rowsEl.innerHTML = html;
+}
+
+async function submitScoreWithName(nickname){
+  if(_scoreSubmitted) return;
+  _scoreSubmitted = true;
+  const name = (nickname || '').trim() || 'Anonymous';
+  localStorage.setItem('subsoccer_nickname', name);
+
+  const saveBtn = document.getElementById('save-score-btn');
+  if(saveBtn) { saveBtn.textContent = 'SAVED ✓'; saveBtn.disabled = true; }
+
+  try {
+    await fetch('/.netlify/functions/digital-leaderboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        winner: 'player',
+        score_player: sY,
+        score_cpu: sC,
+        duration_s: Number(_matchDuration),
+        player_name: name,
+        country: _playerCountry
+      })
+    });
+    // Refresh leaderboard with new entry
+    setTimeout(fetchLeaderboard, 400);
+  } catch(e){}
+}
+
+async function trackGameResult(winner, scorePlayer, scoreCpu){
+  try {
+    const payload = {
+      // Use 'tracked' so this analytics row doesn't appear in the leaderboard
+      // (leaderboard only shows winner='player', set via submitScoreWithName)
+      winner: 'tracked_' + winner,
+      score_player: scorePlayer, score_cpu: scoreCpu,
+      duration_s: Number(_matchDuration) || null,
+      user_agent: navigator.userAgent.slice(0,120)
+    };
+    if(_playerCountry) payload.country = _playerCountry;
+
+    const opts = {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload)
+    };
+    let r = await fetch(`${SB_URL}/rest/v1/digital_game_plays`, opts);
+
+    // If country column doesn't exist yet → retry without it
+    if(!r.ok && payload.country){
+      delete payload.country;
+      opts.body = JSON.stringify(payload);
+      await fetch(`${SB_URL}/rest/v1/digital_game_plays`, opts);
+    }
+  } catch(e){ /* silent fail — tracking is non-critical */ }
+}
+
+function updateTimer(){
+  if(state === 'playing' && gameStartTime){
+    const elapsed = (Date.now() - gameStartTime) / 1000;
+    const timerEl = document.getElementById('hud-timer');
+    if(timerEl) timerEl.textContent = elapsed.toFixed(1) + 's';
+  }
+}
+
+function resize(){
+  W=canvas.offsetWidth; H=canvas.offsetHeight;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  // canvas.width assignment resets transform, so apply fresh scale
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  initField();
+}
+window.addEventListener('resize', resize);
+
+// ─── Orientation lock (portrait only) ────────────────────
+const _rotEl = document.getElementById('rotate-overlay');
+function checkOrientation(){
+  const landscape = window.innerWidth > window.innerHeight;
+  _rotEl.style.display = landscape ? 'flex' : 'none';
+}
+checkOrientation();
+window.addEventListener('resize', checkOrientation);
+// Try to lock orientation on mobile (supported on most Android Chrome)
+try {
+  screen.orientation.lock('portrait').catch(()=>{});
+} catch(e){}
+
+// ─── State (declared early so initField can set foot positions) ──
+const WIN=3;
+const BALL_R=13, FW=44, FH=12;
+let state='start';
+let sY=0, sC=0;
+let ball={x:0,y:0,vx:0,vy:0,rot:0};
+let pLX=0, pRX=0;   // player left foot X, right foot X
+let pLY=0, pRY=0;   // player left foot Y, right foot Y
+let targetPLY=0, targetPRY=0;
+let cLX=0, cRX=0;   // cpu left foot X, right foot X
+let cpuCD=0, cpuReact=0; // cpuReact = frames before CPU reacts to ball in its half
+let shX=0, shY=0;
+let pLKick=0, pRKick=0;  // player foot kick anim (0→1→0)
+let cLKick=0, cRKick=0;  // CPU foot kick anim
+
+// ─── Multiplayer & WebRTC P2P helpers ─────────────────────
+function getSbClient(){
+  if(!_sbClient && window.supabase){
+    _sbClient = window.supabase.createClient(SB_URL2, SB_ANON);
+  }
+  return _sbClient;
+}
+
+function generateRoomCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';
+  for(let i=0;i<4;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+
+function normFeet(){
+  return {
+    lx: (pLX - F.x) / F.w,
+    ly: (pLY - F.y) / F.h,
+    rx: (pRX - F.x) / F.w,
+    ry: (pRY - F.y) / F.h
+  };
+}
+
+function applyOpponentFeet(nf, isFlipped){
+  const lx = isFlipped ? (1 - nf.lx) : nf.lx;
+  const ly = isFlipped ? (1 - nf.ly) : nf.ly;
+  const rx = isFlipped ? (1 - nf.rx) : nf.rx;
+  const ry = isFlipped ? (1 - nf.ry) : nf.ry;
+  opFeet.lx = F.x + lx * F.w;
+  opFeet.ly = F.y + ly * F.h;
+  opFeet.rx = F.x + rx * F.w;
+  opFeet.ry = F.y + ry * F.h;
+}
+
+let _iceQueue = [];
+
+function cleanupWebRTC(){
+  rtcReady = false;
+  _iceQueue = [];
+  if(rtcChannel){
+    try { rtcChannel.close(); } catch(e){}
+    rtcChannel = null;
+  }
+  if(rtcPeer){
+    try { rtcPeer.close(); } catch(e){}
+    rtcPeer = null;
+  }
+}
+
+function setupDataChannel(dc){
+  rtcChannel = dc;
+  dc.binaryType = 'arraybuffer';
+  dc.onopen = () => {
+    rtcReady = true;
+    console.log('⚡ WebRTC DataChannel OPEN — Direct P2P Active!');
+    updatePingDisplay();
+  };
+  dc.onclose = () => {
+    rtcReady = false;
+    console.log('WebRTC DataChannel closed — using Supabase fallback');
+    updatePingDisplay();
+  };
+  dc.onerror = (err) => {
+    console.warn('WebRTC DataChannel error:', err);
+  };
+  dc.onmessage = (evt) => {
+    try {
+      const msg = JSON.parse(evt.data);
+      if(msg && msg.e){
+        handleGameMessage(msg.e, msg.d, true);
+      }
+    } catch(e){}
+  };
+}
+
+async function flushIceQueue(){
+  if(!rtcPeer || !rtcPeer.remoteDescription) return;
+  while(_iceQueue.length > 0){
+    const cand = _iceQueue.shift();
+    try {
+      await rtcPeer.addIceCandidate(new RTCIceCandidate(cand));
+    } catch(e){}
+  }
+}
+
+async function initWebRTCHost(){
+  cleanupWebRTC();
+  try {
+    rtcPeer = new RTCPeerConnection(RTC_CONFIG);
+    const dc = rtcPeer.createDataChannel('game', {
+      ordered: false,
+      maxRetransmits: 0
+    });
+    setupDataChannel(dc);
+
+    rtcPeer.onicecandidate = (evt) => {
+      if(evt.candidate && mpChannel){
+        mpChannel.send({ type:'broadcast', event:'rtc_ice', payload:{ candidate: evt.candidate } });
+      }
+    };
+
+    const offer = await rtcPeer.createOffer();
+    await rtcPeer.setLocalDescription(offer);
+    mpChannel.send({ type:'broadcast', event:'rtc_offer', payload:{ offer } });
+  } catch(err){
+    console.warn('WebRTC Host init error:', err);
+  }
+}
+
+async function handleWebRTCOffer(offer){
+  cleanupWebRTC();
+  try {
+    rtcPeer = new RTCPeerConnection(RTC_CONFIG);
+    rtcPeer.ondatachannel = (evt) => {
+      setupDataChannel(evt.channel);
+    };
+    rtcPeer.onicecandidate = (evt) => {
+      if(evt.candidate && mpChannel){
+        mpChannel.send({ type:'broadcast', event:'rtc_ice', payload:{ candidate: evt.candidate } });
+      }
+    };
+
+    await rtcPeer.setRemoteDescription(new RTCSessionDescription(offer));
+    await flushIceQueue();
+    const answer = await rtcPeer.createAnswer();
+    await rtcPeer.setLocalDescription(answer);
+    mpChannel.send({ type:'broadcast', event:'rtc_answer', payload:{ answer } });
+  } catch(err){
+    console.warn('WebRTC Guest answer error:', err);
+  }
+}
+
+async function handleWebRTCAnswer(answer){
+  if(!rtcPeer) return;
+  try {
+    if(rtcPeer.signalingState !== 'stable'){
+      await rtcPeer.setRemoteDescription(new RTCSessionDescription(answer));
+      await flushIceQueue();
+    }
+  } catch(err){
+    console.warn('WebRTC Host setRemoteDescription error:', err);
+  }
+}
+
+async function handleWebRTCIce(candidate){
+  if(!candidate) return;
+  if(!rtcPeer || !rtcPeer.remoteDescription){
+    _iceQueue.push(candidate);
+    return;
+  }
+  try {
+    await rtcPeer.addIceCandidate(new RTCIceCandidate(candidate));
+  } catch(err){}
+}
+
+function sendNetMessage(event, payload){
+  if(rtcReady && rtcChannel && rtcChannel.readyState === 'open'){
+    try {
+      rtcChannel.send(JSON.stringify({ e: event, d: payload }));
+      return;
+    } catch(err){}
+  }
+  if(mpChannel && mpConnected){
+    mpChannel.send({ type:'broadcast', event, payload });
+  }
+}
+
+function updatePingDisplay(){
+  const el = document.getElementById('mp-ping');
+  if(!el) return;
+  if(mpLatency > 0){
+    el.textContent = mpLatency + 'ms' + (rtcReady ? ' (P2P)' : '');
+    el.style.color = rtcReady ? '#2ecc71' : 'rgba(255,255,255,0.5)';
+    el.title = rtcReady ? 'Direct WebRTC P2P Connection' : 'Supabase Relay Connection';
+  }
+}
+
+function handleGameMessage(event, payload, fromRtc){
+  // If WebRTC is active, ignore duplicate high-rate state events coming from Supabase
+  if(!fromRtc && rtcReady && (event === 'feet' || event === 'game_state' || event === 'ping' || event === 'pong')){
+    return;
+  }
+
+  switch(event){
+    case 'feet':
+      if(!mpConnected) return;
+      applyOpponentFeet(payload, true);
+      break;
+
+    case 'game_state':
+      if(mpRole !== 'guest') return;
+      ballRemote = payload;
+      if(payload.sH !== undefined){
+        const myScore = payload.sG;
+        const oppScore = payload.sH;
+        if(myScore !== sY || oppScore !== sC){
+          sY = myScore; sC = oppScore;
+          document.getElementById('sy').textContent = sY;
+          document.getElementById('sc').textContent = sC;
+        }
+      }
+      break;
+
+    case 'kick':
+      if(mpRole !== 'host' || state !== 'playing') return;
+      const footX = payload.foot === 'left' ? opFeet.lx : opFeet.rx;
+      const footY = payload.foot === 'left' ? opFeet.ly : opFeet.ry;
+      const distX = Math.abs(ball.x - footX);
+      const distY = footY - ball.y;
+      const maxReachX = FW + BALL_R * 3;
+      const maxReachY = 120;
+      if(distX > maxReachX || distY < -30 || distY > maxReachY) return;
+      const ballOff = ball.x - footX;
+      const swipeDir = -(payload.sideSwipe) / (W * 0.5);
+      const aimX = ballOff * 0.5 + swipeDir * F.w * 0.25;
+      const power = Math.min(1, payload.dy / 140);
+      ball.vx = Math.max(-9, Math.min(9, aimX * 0.06));
+      ball.vy = 10 + power * 8; // downward
+      bump(4 + power*5);
+      beep('kick');
+      break;
+
+    case 'goal':
+      if(mpRole !== 'guest') return;
+      const who = payload.scorer === 'host' ? 'opp' : 'you';
+      showGoalOnline(who);
+      break;
+
+    case 'kps_result':
+      if(mpRole !== 'guest') return;
+      document.getElementById('draw').style.display = 'none';
+      resetBall(1);
+      gameStartTime = Date.now();
+      state = 'playing';
+      break;
+
+    case 'game_over':
+      if(mpRole === 'guest'){
+        setTimeout(() => endGame(), 1500);
+      }
+      break;
+
+    case 'rematch_ready':
+      if(!mpConnected) return;
+      const w = document.getElementById('rematch-wait');
+      if(w) w.remove();
+      startOnlineGame();
+      break;
+
+    case 'ping':
+      sendNetMessage('pong', { t: payload.t });
+      break;
+
+    case 'pong':
+      mpLatency = Math.round((Date.now() - payload.t) / 2);
+      updatePingDisplay();
+      break;
+  }
+}
+
+function broadcastFeet(){
+  if(!mpConnected) return;
+  const now = Date.now();
+  const throttleTime = rtcReady ? 16 : 45; // 60fps on P2P, 22fps on Supabase
+  if(now - _mpFeetThrottle < throttleTime) return;
+  _mpFeetThrottle = now;
+  sendNetMessage('feet', normFeet());
+}
+
+function broadcastGameState(){
+  if(!mpConnected || mpRole !== 'host') return;
+  const now = Date.now();
+  const throttleTime = rtcReady ? 16 : 33; // 60fps on P2P, 30fps on Supabase
+  if(now - _mpStateThrottle < throttleTime) return;
+  _mpStateThrottle = now;
+  _mpSeq++;
+  sendNetMessage('game_state', {
+    seq: _mpSeq,
+    bx: (ball.x - F.x) / F.w,
+    by: (ball.y - F.y) / F.h,
+    vx: ball.vx / F.w,
+    vy: ball.vy / F.h,
+    rot: ball.rot,
+    sH: sY,
+    sG: sC
+  });
+}
+
+function interpolateBall(){
+  if(!ballRemote) return;
+  const bx = 1 - ballRemote.bx;
+  const by = 1 - ballRemote.by;
+  const tx = F.x + bx * F.w;
+  const ty = F.y + by * F.h;
+  if(!ballInterp){ ballInterp = {x:tx, y:ty}; ball.x = tx; ball.y = ty; }
+  // Higher lerp factor when on P2P for instantaneous sync
+  const lerpFactor = rtcReady ? 0.55 : 0.35;
+  ball.x += (tx - ball.x) * lerpFactor;
+  ball.y += (ty - ball.y) * lerpFactor;
+  ball.vx = -ballRemote.vx * F.w;
+  ball.vy = -ballRemote.vy * F.h;
+  ball.rot = -ballRemote.rot;
+}
+
+let _joinRetryInterval = null;
+
+function setupChannelHandlers(){
+  mpChannel
+    .on('broadcast', { event:'join' }, ({ payload }) => {
+      if(mpRole === 'host'){
+        // Always acknowledge join so guest knows host received it
+        mpChannel.send({ type:'broadcast', event:'host_ack', payload:{ ok:true } });
+        if(!mpConnected){
+          mpConnected = true;
+          showScreen(null);
+          startOnlineGame();
+          initWebRTCHost(); // Start P2P direct handshake
+        }
+      }
+    })
+    .on('broadcast', { event:'host_ack' }, ({ payload }) => {
+      if(mpRole === 'guest'){
+        if(_joinRetryInterval){ clearInterval(_joinRetryInterval); _joinRetryInterval = null; }
+        if(!mpConnected){
+          mpConnected = true;
+          showScreen(null);
+          startOnlineGame();
+        }
+      }
+    })
+    .on('broadcast', { event:'rtc_offer' }, ({ payload }) => {
+      if(mpRole === 'guest' && payload.offer){
+        handleWebRTCOffer(payload.offer);
+      }
+    })
+    .on('broadcast', { event:'rtc_answer' }, ({ payload }) => {
+      if(mpRole === 'host' && payload.answer){
+        handleWebRTCAnswer(payload.answer);
+      }
+    })
+    .on('broadcast', { event:'rtc_ice' }, ({ payload }) => {
+      if(payload.candidate){
+        handleWebRTCIce(payload.candidate);
+      }
+    })
+    .on('broadcast', { event:'feet' }, ({ payload }) => handleGameMessage('feet', payload, false))
+    .on('broadcast', { event:'game_state' }, ({ payload }) => handleGameMessage('game_state', payload, false))
+    .on('broadcast', { event:'goal' }, ({ payload }) => handleGameMessage('goal', payload, false))
+    .on('broadcast', { event:'kps_result' }, ({ payload }) => handleGameMessage('kps_result', payload, false))
+    .on('broadcast', { event:'game_over' }, ({ payload }) => handleGameMessage('game_over', payload, false))
+    .on('broadcast', { event:'rematch_ready' }, ({ payload }) => handleGameMessage('rematch_ready', payload, false))
+    .on('broadcast', { event:'kick' }, ({ payload }) => handleGameMessage('kick', payload, false))
+    .on('broadcast', { event:'ping' }, ({ payload }) => handleGameMessage('ping', payload, false))
+    .on('broadcast', { event:'pong' }, ({ payload }) => handleGameMessage('pong', payload, false))
+    .on('presence', { event:'leave' }, ({ leftPresences }) => {
+      if(mpConnected && state === 'playing'){
+        mpConnected = false;
+        state = 'over';
+        cleanupWebRTC();
+        showMpDisconnected();
+      }
+    })
+    .subscribe(async (status) => {
+      if(status === 'SUBSCRIBED' && mpRole === 'guest'){
+        await mpChannel.track({ role: 'guest' });
+        // Send join immediately and retry every 400ms until host_ack is received (max 15s)
+        mpChannel.send({ type:'broadcast', event:'join', payload:{ role:'guest' } });
+        let attempts = 0;
+        if(_joinRetryInterval) clearInterval(_joinRetryInterval);
+        _joinRetryInterval = setInterval(() => {
+          attempts++;
+          if(mpConnected || attempts > 35){
+            clearInterval(_joinRetryInterval);
+            _joinRetryInterval = null;
+            return;
+          }
+          if(mpChannel) mpChannel.send({ type:'broadcast', event:'join', payload:{ role:'guest' } });
+        }, 400);
+      }
+      if(status === 'SUBSCRIBED' && mpRole === 'host'){
+        await mpChannel.track({ role: 'host' });
+      }
+    });
+}
+
+function startPingLoop(){
+  if(_pingInterval) clearInterval(_pingInterval);
+  _pingInterval = setInterval(() => {
+    if(mpConnected){
+      sendNetMessage('ping', { t: Date.now() });
+    }
+  }, 1200);
+}
+
+function showScreen(id){
+  // Hide all screens
+  ['start','draw','mp-lobby','mp-waiting','mp-disconnected'].forEach(s => {
+    const el = document.getElementById(s);
+    if(el) el.style.display = 'none';
+  });
+  document.getElementById('over').style.display = 'none';
+  if(id){
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'flex';
+  }
+}
+
+async function createRoom(){
+  const sb = getSbClient();
+  if(!sb){ alert('Network error — could not load Supabase'); return; }
+  mpRoomCode = generateRoomCode();
+  mpRole = 'host';
+  gameMode = 'online';
+  mpConnected = false;
+  mpChannel = sb.channel('sg_' + mpRoomCode, {
+    config: { broadcast: { ack: false, self: false }, presence: { key: 'host' } }
+  });
+  setupChannelHandlers();
+  const rcEl = document.getElementById('mp-room-code'); if(rcEl) rcEl.textContent = mpRoomCode;
+  showScreen('mp-waiting');
+}
+
+async function joinRoom(code){
+  const sb = getSbClient();
+  if(!sb){ alert('Network error'); return; }
+  code = code.trim().toUpperCase();
+  if(code.length !== 4){ alert('Enter a 4-letter code'); return; }
+  mpRoomCode = code;
+  mpRole = 'guest';
+  gameMode = 'online';
+  mpConnected = false;
+  mpChannel = sb.channel('sg_' + mpRoomCode, {
+    config: { broadcast: { ack: false, self: false }, presence: { key: 'guest' } }
+  });
+  setupChannelHandlers();
+  showScreen('mp-waiting');
+  const rcEl2 = document.getElementById('mp-room-code'); if(rcEl2) rcEl2.textContent = '...joining ' + code;
+}
+
+function leaveRoom(){
+  cleanupWebRTC();
+  if(mpChannel){ mpChannel.unsubscribe(); mpChannel = null; }
+  if(_pingInterval){ clearInterval(_pingInterval); _pingInterval = null; }
+  gameMode = 'cpu';
+  mpRole = null;
+  mpConnected = false;
+  mpRoomCode = null;
+  ballRemote = null;
+  ballInterp = null;
+  const el = document.getElementById('mp-ping');
+  if(el){ el.style.display='none'; el.textContent=''; }
+  const lbl = document.getElementById('opp-lbl');
+  if(lbl) lbl.textContent = 'CPU';
+  const av = document.getElementById('opp-av');
+  if(av) av.textContent = 'C';
+}
+
+function showMpDisconnected(){
+  cleanupWebRTC();
+  if(_pingInterval){ clearInterval(_pingInterval); _pingInterval = null; }
+  ['start','draw','mp-lobby','mp-waiting'].forEach(s => {
+    const el = document.getElementById(s);
+    if(el) el.style.display = 'none';
+  });
+  document.getElementById('over').style.display = 'none';
+  document.getElementById('mp-disconnected').style.display = 'flex';
+}
+
+function startOnlineGame(){
+  // Update HUD labels
+  const lbl = document.getElementById('opp-lbl');
+  if(lbl) lbl.textContent = 'OPP';
+  const av = document.getElementById('opp-av');
+  if(av) av.textContent = 'O';
+  const pingEl = document.getElementById('mp-ping');
+  if(pingEl) pingEl.style.display = 'block';
+
+  // Reset game state
+  sY=0; sC=0;
+  gameStartTime = null;
+  _matchDuration = 0;
+  _scoreSubmitted = false;
+  opFeet = { lx: F.x + F.w*0.5, ly: F.y + F.h*0.15, rx: F.x + F.w*0.5, ry: F.y + F.h*0.15 };
+  ballRemote = null;
+  ballInterp = null;
+  const timerEl = document.getElementById('hud-timer');
+  if(timerEl) timerEl.textContent = '0.0s';
+  document.getElementById('sy').textContent='0';
+  document.getElementById('sc').textContent='0';
+  hideGoal();
+  initField();
+  // opFeet as real coords now
+  opFeet = { lx: F.x + F.w*0.25, ly: F.y + F.h*0.15, rx: F.x + F.w*0.75, ry: F.y + F.h*0.15 };
+
+  startPingLoop();
+
+  // KPS draw — host decides after short delay (gives guest time to show draw screen)
+  if(mpRole === 'host'){
+    setTimeout(() => {
+      showDrawOnline((dir) => {
+        resetBall(dir);
+        gameStartTime = Date.now();
+        state='playing';
+        // Broadcast KPS result to guest
+        sendNetMessage('kps_result', { dir });
+      });
+    }, 600); // 600ms lets guest render the waiting draw screen first
+  } else {
+    // Guest: näytä myös KPS-animaatio — tulos tulee hostilta kps_result:lla
+    showScreen(null);
+    showDrawOnline(() => {
+      // Tyhjä callback — peli käynnistyy kun kps_result saapuu setupChannelHandlers:issa
+    });
+  }
+}
+
+function showDrawOnline(callback){
+  const RPS   = ['✊','🖐️','✌️'];
+  const NAMES = ['Rock','Paper','Scissors'];
+  const beats = [2, 0, 1];
+  const drawEl   = document.getElementById('draw');
+  const youEl    = document.getElementById('draw-you');
+  const cpuEl    = document.getElementById('draw-cpu');
+  const resultEl = document.getElementById('draw-result');
+  const subEl    = document.getElementById('draw-sub');
+  resultEl.className = 'draw-result';
+  subEl.className    = 'draw-sub';
+  resultEl.textContent = '';
+  drawEl.style.display = 'flex';
+  youEl.className = 'draw-icon shaking';
+  cpuEl.className = 'draw-icon shaking';
+  let frame = 0;
+  const cycleInterval = setInterval(() => {
+    frame++;
+    youEl.textContent = RPS[frame % 3];
+    cpuEl.textContent = RPS[(frame + 1) % 3];
+  }, 100);
+  setTimeout(() => {
+    clearInterval(cycleInterval);
+    let yMove, cMove;
+    do { yMove = Math.floor(Math.random()*3); cMove = Math.floor(Math.random()*3); } while(yMove===cMove);
+    const youWins = beats[yMove] === cMove;
+    youEl.textContent = RPS[yMove]; cpuEl.textContent = RPS[cMove];
+    youEl.className = 'draw-icon locked'; cpuEl.className = 'draw-icon locked';
+    setTimeout(() => {
+      resultEl.textContent = youWins ? 'Host Wins!' : 'Guest Wins!';
+      resultEl.className = 'draw-result show ' + (youWins ? 'you' : 'cpu');
+      subEl.textContent = (youWins ? NAMES[yMove] : NAMES[cMove]) + ' beats ' + (youWins ? NAMES[cMove] : NAMES[yMove]);
+      subEl.className = 'draw-sub show';
+    }, 350);
+    setTimeout(() => {
+      drawEl.style.display = 'none';
+      callback(youWins ? 1 : -1);
+    }, 2200);
+  }, 1400);
+}
+
+function scoreOnline(who){
+  // Host calculates scores and broadcasts
+  if(state!=='playing') return;
+  state='goal';
+  if(who==='you'){ sY++; document.getElementById('sy').textContent=sY; }
+  else           { sC++; document.getElementById('sc').textContent=sC; }
+  showGoalOnline(who);
+  bump(12);
+  beep(who==='you'?'goal':'oops');
+  if(mpRole === 'host'){
+    sendNetMessage('goal', { scorer: who==='you'?'host':'guest' });
+  }
+  const done = sY>=WIN || sC>=WIN;
+  if(done && gameStartTime && !_matchDuration){
+    _matchDuration = ((Date.now()-gameStartTime)/1000).toFixed(1);
+    const timerEl = document.getElementById('hud-timer');
+    if(timerEl) timerEl.textContent = _matchDuration + 's';
+  }
+  setTimeout(() => {
+    hideGoal();
+    if(done){
+      if(mpRole==='host'){
+        sendNetMessage('game_over', {});
+      }
+      endGame();
+      return;
+    }
+    pLX=F.x+F.w*0.25; pRX=F.x+F.w*0.75;
+    pLY=PLAYER_Y();   pRY=PLAYER_Y();
+    targetPLY=PLAYER_Y(); targetPRY=PLAYER_Y();
+    const dir = who==='you' ? 1 : -1;
+    resetBall(dir);
+    state='playing';
+  }, 1500);
+}
+
+function showGoalOnline(who){
+  const el  = document.getElementById('goal');
+  const txt = document.getElementById('gtxt');
+  txt.textContent = who==='you' ? 'GOAL!' : 'OPP SCORES';
+  const topPx = who==='you'
+    ? F.y + F.h * 0.68
+    : F.y + F.h * 0.12;
+  el.style.paddingTop = topPx + 'px';
+  el.style.display = 'flex';
+}
+
+// ─── Field geometry ───────────────────────────────────────
+let F={};
+function initField(){
+  const hh     = document.getElementById('hud').offsetHeight || 60;
+  const safeB  = 24; // bottom margin (home bar / safe area)
+  const maxH   = H - hh - safeB;
+  const maxW   = W;
+
+  // Real Subsoccer table from above: height ≈ 1.50× width (portrait, tall & narrow)
+  const RATIO = 1.50; // h/w
+  let fh = maxH;
+  let fw = fh / RATIO;
+  if(fw > maxW * 0.92){ fw = maxW * 0.92; fh = fw * RATIO; }
+
+  F.w  = fw;
+  F.h  = fh;
+  F.x  = (W - F.w) / 2;                       // centered horizontally
+  F.y  = hh + (maxH - F.h) / 2;               // centered vertically in available space
+  F.cx = F.x + F.w/2;
+  F.cy = F.y + F.h/2;
+  F.gw = F.w * 0.85;
+  F.gx = F.cx - F.gw/2;
+  F.gd = 20;
+  F.ctrlY = F.y + F.h;
+  pLX = F.x + F.w*0.25;
+  pRX = F.x + F.w*0.75;
+  pLY = F.y + F.h - 32;
+  pRY = F.y + F.h - 32;
+  targetPLY = pLY;
+  targetPRY = pRY;
+  cLX = F.x + F.w*0.25;
+  cRX = F.x + F.w*0.75;
+}
+
+// ─── Input: multi-touch for two feet ─────────────────────
+// Track up to 2 simultaneous touches, one per half
+let touches = {}; // keyed by touch identifier
+
+function screenToFootX(screenX, side){
+  // Map screen X to foot X, clamped to its half of the field
+  const mid = F.cx;
+  const ratio = (screenX - F.x) / F.w;
+  const footX = F.x + FW/2 + Math.max(0,Math.min(1,ratio)) * (F.w - FW);
+  if(side === 'left')  return Math.min(footX, mid - FW/2);
+  if(side === 'right') return Math.max(footX, mid + FW/2);
+  return footX;
+}
+
+function screenToFootY(screenY){
+  // Allow dragging shoe forward up to near the center circle
+  const maxForwardY = F.cy + 36;
+  const maxBackY = F.y + F.h - 22;
+  return Math.max(maxForwardY, Math.min(maxBackY, screenY));
+}
+
+function getSide(screenX){
+  return screenX < W/2 ? 'left' : 'right';
+}
+
+function getPt(e){
+  const t = e.changedTouches ? e.changedTouches[0]
+          : e.touches         ? e.touches[0]
+          : e;
+  return {x: t.clientX, y: t.clientY};
+}
+
+// Touch events (multi-touch)
+canvas.addEventListener('touchstart', (e) => {
+  if(state!=='playing') return;
+  e.preventDefault();
+  for(const t of e.changedTouches){
+    if(t.clientY < F.cy) continue; // Don't grab touches in top/HUD half
+    const side = getSide(t.clientX);
+    touches[t.identifier] = { side, x0: t.clientX, y0: t.clientY, x: t.clientX, y: t.clientY, t0: Date.now() };
+    if(side === 'left')  { pLX = screenToFootX(t.clientX, 'left');  targetPLY = screenToFootY(t.clientY); }
+    else                 { pRX = screenToFootX(t.clientX, 'right'); targetPRY = screenToFootY(t.clientY); }
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchmove', (e) => {
+  if(state!=='playing') return;
+  e.preventDefault();
+  for(const t of e.changedTouches){
+    const td = touches[t.identifier];
+    if(!td) continue;
+    td.x = t.clientX; td.y = t.clientY;
+    if(td.side === 'left')  { pLX = screenToFootX(t.clientX, 'left');  targetPLY = screenToFootY(t.clientY); }
+    else                    { pRX = screenToFootX(t.clientX, 'right'); targetPRY = screenToFootY(t.clientY); }
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchend', (e) => {
+  if(state!=='playing') return;
+  e.preventDefault();
+  for(const t of e.changedTouches){
+    const td = touches[t.identifier];
+    if(!td) continue;
+    if(td.side === 'left') targetPLY = PLAYER_Y();
+    else                   targetPRY = PLAYER_Y();
+
+    const dy = td.y0 - t.clientY;
+    const dx = Math.abs(t.clientX - td.x0);
+    const dt = Date.now() - td.t0;
+    if(dy > 25 && dy > dx && dt < 500){
+      const footX = td.side === 'left' ? pLX : pRX;
+      const footY = td.side === 'left' ? pLY : pRY;
+      if(gameMode === 'online' && mpRole === 'guest' && mpConnected){
+        // Fast direct dispatch to host (via WebRTC DataChannel if open)
+        sendNetMessage('kick', { dy, sideSwipe: t.clientX - td.x0, foot: td.side });
+      } else {
+        doKick(dy, t.clientX - td.x0, footX, footY);
+      }
+    }
+    delete touches[t.identifier];
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchcancel', (e) => {
+  for(const t of e.changedTouches) {
+    const td = touches[t.identifier];
+    if(td && td.side === 'left') targetPLY = PLAYER_Y();
+    if(td && td.side === 'right') targetPRY = PLAYER_Y();
+    delete touches[t.identifier];
+  }
+}, {passive:false});
+
+// Mouse (single foot, picks whichever side cursor is on)
+let mouseInp = { down:false, side:'left', x0:0, y0:0, x:0, y:0, t0:0 };
+
+canvas.addEventListener('mousedown', (e) => {
+  if(state!=='playing') return;
+  if(e.clientY < F.cy) return;
+  e.preventDefault();
+  const side = getSide(e.clientX);
+  mouseInp = { down:true, side, x0:e.clientX, y0:e.clientY, x:e.clientX, y:e.clientY, t0:Date.now() };
+  if(side === 'left')  { pLX = screenToFootX(e.clientX, 'left');  targetPLY = screenToFootY(e.clientY); }
+  else                 { pRX = screenToFootX(e.clientX, 'right'); targetPRY = screenToFootY(e.clientY); }
+});
+
+document.addEventListener('mousemove', (e) => {
+  if(!mouseInp.down || state!=='playing') return;
+  mouseInp.x = e.clientX; mouseInp.y = e.clientY;
+  if(mouseInp.side === 'left')  { pLX = screenToFootX(e.clientX, 'left');  targetPLY = screenToFootY(e.clientY); }
+  else                          { pRX = screenToFootX(e.clientX, 'right'); targetPRY = screenToFootY(e.clientY); }
+});
+
+document.addEventListener('mouseup', (e) => {
+  if(!mouseInp.down) return;
+  mouseInp.down = false;
+  if(mouseInp.side === 'left') targetPLY = PLAYER_Y();
+  else                         targetPRY = PLAYER_Y();
+
+  const dy = mouseInp.y0 - e.clientY;
+  const dx = Math.abs(e.clientX - mouseInp.x0);
+  const dt = Date.now() - mouseInp.t0;
+  if(dy > 25 && dy > dx && dt < 500){
+    const footX = mouseInp.side === 'left' ? pLX : pRX;
+    const footY = mouseInp.side === 'left' ? pLY : pRY;
+    doKick(dy, e.clientX - mouseInp.x0, footX, footY);
+  }
+});
+
+// ─── Kick logic ───────────────────────────────────────────
+function doKick(upDist, sideSwipe, footX, footY){
+  // Trigger kick animation on the swiped foot for visual feedback
+  if(footX < F.cx) pLKick = 1.0; else pRKick = 1.0;
+
+  // Ball must be in player's half
+  if(ball.y < F.cy) return;
+
+  const fY = footY !== undefined ? footY : PLAYER_Y();
+  const distX = Math.abs(ball.x - footX);
+  const distY = fY - ball.y; // Distance in front of foot (toes point UP)
+
+  // Must be horizontally aligned with the shoe (shoe width ~42px + ball radius ~13px)
+  const maxReachX = FW/2 + BALL_R + 8; // ~43px
+  if(distX > maxReachX) return;
+
+  // Must be in front of the shoe and within reach (not behind shoe, not too far up)
+  if(distY < -8 || distY > 50) return;
+
+  const ballOff  = ball.x - footX;
+  const swipeDir = sideSwipe / (W * 0.5);
+  const aimX     = ballOff * 0.5 + swipeDir * F.w * 0.25;
+  const power    = Math.min(1, upDist / 140);
+
+  ball.vx = Math.max(-9, Math.min(9, aimX * 0.06));
+  ball.vy = -(10 + power * 8);
+
+  bump(4 + power*5);
+  beep('kick');
+}
+
+// ─── AI (two feet) ───────────────────────────────────────
+const CPU_Y = () => F.y + 32;
+
+// Track whether ball was in CPU half last frame (to detect entry)
+let _ballWasInCpuHalf = false;
+
+function updateAI(){
+  cpuCD = Math.max(0, cpuCD-1);
+  const mid = F.cx;
+  const inCpuHalf = ball.y < F.cy;
+
+  // Reaction delay: when ball first enters CPU half, start a countdown
+  // CPU doesn't react until it expires (~12 frames = ~200ms at 60fps)
+  if(inCpuHalf && !_ballWasInCpuHalf){
+    cpuReact = 12 + Math.random()*8|0;
+  }
+  _ballWasInCpuHalf = inCpuHalf;
+  if(cpuReact > 0) cpuReact--;
+
+  // Only track actively once reaction delay is done
+  const reacting = inCpuHalf && cpuReact === 0;
+  const lerpSpeed = reacting ? 0.12 : 0.05;
+
+  // Left CPU foot — wobble keeps it from being pixel-perfect
+  const leftTarget = ball.x < mid
+    ? ball.x + Math.sin(Date.now()*0.005) * F.w*0.12
+    : F.x + F.w * 0.25;
+  cLX += (Math.max(F.x + FW/2, Math.min(mid - FW/2, leftTarget)) - cLX) * lerpSpeed;
+
+  // Right CPU foot
+  const rightTarget = ball.x >= mid
+    ? ball.x + Math.sin(Date.now()*0.004) * F.w*0.12
+    : F.x + F.w * 0.75;
+  cRX += (Math.max(mid + FW/2, Math.min(F.x + F.w - FW/2, rightTarget)) - cRX) * lerpSpeed;
+
+  // Kick: only when ball is near and reaction delay has passed
+  const cpuFY = CPU_Y();
+  const checkKick = (fx, isLeft) => {
+    const distX = Math.abs(ball.x - fx);
+    const distY = ball.y - cpuFY; // Toes point DOWN (+y)
+    const maxReachX = FW/2 + BALL_R + 8;
+    if(distX < maxReachX && distY >= -8 && distY <= 50 && cpuCD === 0 && ball.vy < 6 && cpuReact === 0){
+      const cornerX = F.gx + (Math.random() > 0.5 ? F.gw*0.2 : F.gw*0.8);
+      const aimX    = (cornerX - fx) * 0.05;
+      ball.vx = Math.max(-9, Math.min(9, aimX + (Math.random()-.5)*1.6));
+      ball.vy = 11 + Math.random() * 4;
+      cpuCD   = 22 + Math.random()*18|0;
+      if(isLeft) cLKick = 1.0; else cRKick = 1.0;
+      beep('kick');
+    }
+  };
+  checkKick(cLX, true);
+  checkKick(cRX, false);
+
+  // Decay all kick animations
+  pLKick *= 0.72; pRKick *= 0.72;
+  cLKick *= 0.72; cRKick *= 0.72;
+}
+
+// ─── Shoe drawing (real photo, rotated per foot) ──────────
+function drawShoe(cx, cy, img, facing, isLeftOnScreen){
+  // facing: -1 = toes point UP (player), +1 = toes point DOWN (CPU)
+  // isLeftOnScreen: mirrors the right-shoe image to make a left shoe
+  const sw = 42;
+  const sh = (img.complete && img.naturalWidth)
+    ? sw * (img.naturalHeight / img.naturalWidth)
+    : sw * 1.5;
+
+  // Ground shadow ellipse (drawn before rotation, in world space)
+  ctx.save();
+  ctx.translate(cx, cy + 4);
+  const sg = ctx.createRadialGradient(0, 0, 2, 0, 0, sw * 0.72);
+  sg.addColorStop(0, 'rgba(0,0,0,0.35)');
+  sg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sg;
+  ctx.scale(1, 0.38);
+  ctx.beginPath(); ctx.arc(0, 0, sw * 0.72, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Base rotation: toes naturally point UP in the image
+  // Player (facing=-1): 0 rad   CPU (facing=+1): π rad (flip 180°)
+  const baseRot = facing === +1 ? Math.PI : 0;
+  // Natural outward toe angle (~8°) — left foot tilts left, right foot right
+  const toeAngle = isLeftOnScreen ? -0.14 : 0.14;
+  ctx.rotate(baseRot + toeAngle);
+
+  // Mirror horizontally to turn right shoe → left shoe
+  if(isLeftOnScreen) ctx.scale(-1, 1);
+
+  if(img.complete && img.naturalWidth){
+    ctx.drawImage(img, -sw/2, -sh/2, sw, sh);
+  } else {
+    // Fallback: white rounded rectangle
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(-sw/2, -sh/2, sw, sh, 6);
+    else ctx.rect(-sw/2, -sh/2, sw, sh);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// ─── Physics ─────────────────────────────────────────────
+const PLAYER_Y = () => F.y + F.h - 32;
+
+function updateBall(){
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+  ball.rot = (ball.rot || 0) + (ball.vx * 0.04 + ball.vy * 0.02);
+  ball.vx *= 0.990;
+  ball.vy *= 0.990;
+
+  // Sides
+  if(ball.x-BALL_R < F.x){
+    ball.x=F.x+BALL_R; ball.vx=Math.abs(ball.vx)*0.82; beep('wall');
+  }
+  if(ball.x+BALL_R > F.x+F.w){
+    ball.x=F.x+F.w-BALL_R; ball.vx=-Math.abs(ball.vx)*0.82; beep('wall');
+  }
+
+  // CPU goal (top)
+  if(ball.y-BALL_R < F.y){
+    if(ball.x > F.gx && ball.x < F.gx+F.gw){ if(gameMode==='cpu') score('you'); else scoreOnline('you'); return; }
+    ball.y=F.y+BALL_R; ball.vy=Math.abs(ball.vy)*0.82; beep('wall');
+  }
+
+  // Player goal (bottom)
+  if(ball.y+BALL_R > F.y+F.h){
+    if(ball.x > F.gx && ball.x < F.gx+F.gw){ if(gameMode==='cpu') score('cpu'); else scoreOnline('opp'); return; }
+    ball.y=F.y+F.h-BALL_R; ball.vy=-Math.abs(ball.vy)*0.82; beep('wall');
+  }
+
+  // Foot collisions — all 4 feet
+  hitFoot(pLX, pLY, -1);
+  hitFoot(pRX, pRY, -1);
+  if(gameMode === 'cpu'){
+    hitFoot(cLX, CPU_Y(), +1);
+    hitFoot(cRX, CPU_Y(), +1);
+  } else {
+    // Online: use received opponent foot positions
+    hitFoot(opFeet.lx, opFeet.ly, +1);
+    hitFoot(opFeet.rx, opFeet.ry, +1);
+  }
+
+  // Stuck-ball rescue: if ball is nearly stationary in CPU half,
+  // nudge it toward CPU_Y so CPU can reach and kick it
+  const speed = Math.abs(ball.vx) + Math.abs(ball.vy);
+  if(ball.y < F.cy && speed < 0.8){
+    _stuckFrames = (_stuckFrames || 0) + 1;
+    if(_stuckFrames > 90){
+      // Push toward CPU's feet row
+      const cpuFY = CPU_Y();
+      ball.vy -= 1.2;                      // nudge upward toward CPU feet
+      ball.vx += (Math.random()-.5) * 1.5; // slight random lateral spin
+      _stuckFrames = 0;
+    }
+  } else {
+    _stuckFrames = 0;
+  }
+}
+
+function hitFoot(fx, fy, dir){
+  const dx=ball.x-fx, dy=ball.y-fy;
+  if(Math.abs(dx)<FW/2+BALL_R && Math.abs(dy)<FH/2+BALL_R){
+    ball.y  = dir===-1 ? fy-FH/2-BALL_R : fy+FH/2+BALL_R;
+    ball.vy = dir * (Math.abs(ball.vy)*0.85 + 1.5);
+    ball.vx += dx/(FW/2) * 2.5;
+    beep('hit');
+  }
+}
+
+
+// ─── Score / Flow ─────────────────────────────────────────
+function score(who){
+  if(state!=='playing') return;
+  state='goal';
+  if(who==='you'){ sY++; document.getElementById('sy').textContent=sY; }
+  else           { sC++; document.getElementById('sc').textContent=sC; }
+  showGoal(who);
+  bump(12);
+  beep(who==='you'?'goal':'oops');
+  const done = sY>=WIN || sC>=WIN;
+  if(done && gameStartTime && !_matchDuration){
+    _matchDuration = ((Date.now() - gameStartTime) / 1000).toFixed(1);
+    const timerEl = document.getElementById('hud-timer');
+    if(timerEl) timerEl.textContent = _matchDuration + 's';
+  }
+  setTimeout(()=>{
+    hideGoal();
+    if(done){ endGame(); return; }
+    pLX=F.x+F.w*0.25; pRX=F.x+F.w*0.75;
+    pLY=PLAYER_Y();   pRY=PLAYER_Y();
+    targetPLY=PLAYER_Y(); targetPRY=PLAYER_Y();
+    cLX=F.x+F.w*0.25; cRX=F.x+F.w*0.75;
+    const dir = who==='you' ? 1 : -1;
+    resetBall(dir);
+    state='playing';
+    // CPU kickoff: fire immediate hard kick (same as opening kick)
+    if(dir === -1){
+      const cornerX = F.gx + (Math.random() > 0.5 ? F.gw*0.15 : F.gw*0.85);
+      const aimX = (cornerX - ball.x) * 0.045;
+      ball.vx = Math.max(-9, Math.min(9, aimX + (Math.random()-.5)*1.2));
+      ball.vy = 13 + Math.random() * 3;
+      cpuCD = 25 + Math.random()*10|0;
+      cLKick = 1.0;
+      beep('kick');
+    }
+  }, 1500);
+}
+
+function showGoal(who){
+  const el  = document.getElementById('goal');
+  const txt = document.getElementById('gtxt');
+  txt.textContent = who==='you' ? 'GOAL!' : 'CPU SCORES';
+  txt.style.color = '';
+  // Position in the scorer's own half, away from the center logo
+  // CPU scores → top quarter of field; you score → bottom quarter
+  const topPx = who==='you'
+    ? F.y + F.h * 0.68   // player's half, lower portion
+    : F.y + F.h * 0.12;  // CPU's half, upper portion
+  el.style.paddingTop = topPx + 'px';
+  el.style.display = 'flex';
+}
+function hideGoal(){ document.getElementById('goal').style.display='none'; }
+
+function resetBall(dir){
+  // Kickoff from own goal area (official Subsoccer rules)
+  // dir=1: player kicks off (their goal = bottom), dir=-1: CPU kicks off (top)
+  ball.x = F.cx + (Math.random()-.5) * F.gw * 0.4;
+  ball.y = dir===1 ? F.y + F.h - F.h*0.12 : F.y + F.h*0.12;
+  ball.vx = (Math.random()-.5)*1.5;
+  ball.vy = -dir * 2.5; // dir=1 → player kicks off → ball goes UP toward CPU goal (negative y)
+}
+
+function showDraw(callback){
+  const RPS   = ['✊','🖐️','✌️']; // rock, paper, scissors
+  const NAMES = ['Rock','Paper','Scissors'];
+  // beats[i] beats beats[i%3+1]: rock(0) beats scissors(2), scissors(2) beats paper(1), paper(1) beats rock(0)
+  const beats = [2, 0, 1]; // beats[i] = what move i beats
+
+  const drawEl   = document.getElementById('draw');
+  const youEl    = document.getElementById('draw-you');
+  const cpuEl    = document.getElementById('draw-cpu');
+  const resultEl = document.getElementById('draw-result');
+  const subEl    = document.getElementById('draw-sub');
+
+  // Reset
+  resultEl.className    = 'draw-result';
+  subEl.className       = 'draw-sub';
+  resultEl.textContent = '';
+  drawEl.style.display  = 'flex';
+
+  // Animate shaking hands through all 3 moves rapidly
+  youEl.className = 'draw-icon shaking';
+  cpuEl.className = 'draw-icon shaking';
+
+  let frame = 0;
+  const cycleInterval = setInterval(() => {
+    frame++;
+    youEl.textContent = RPS[frame % 3];
+    cpuEl.textContent = RPS[(frame + 1) % 3];
+  }, 100);
+
+  // After 1.4s: stop cycling, determine result (re-roll on tie)
+  setTimeout(() => {
+    clearInterval(cycleInterval);
+    let yMove, cMove;
+    do {
+      yMove = Math.floor(Math.random() * 3);
+      cMove = Math.floor(Math.random() * 3);
+    } while (yMove === cMove); // no ties
+
+    const youWins = beats[yMove] === cMove;
+
+    // Lock in icons with pop animation
+    youEl.textContent = RPS[yMove];
+    cpuEl.textContent = RPS[cMove];
+    youEl.className = 'draw-icon locked';
+    cpuEl.className = 'draw-icon locked';
+
+    // Show result text after icons settle
+    setTimeout(() => {
+      resultEl.textContent = youWins ? 'You Win!' : 'CPU Wins!';
+      resultEl.className   = 'draw-result show ' + (youWins ? 'you' : 'cpu');
+      subEl.textContent    = (youWins ? NAMES[yMove] : NAMES[cMove]) + ' beats ' + (youWins ? NAMES[cMove] : NAMES[yMove]);
+      subEl.className      = 'draw-sub show';
+    }, 350);
+
+    // Start game
+    setTimeout(() => {
+      drawEl.style.display = 'none';
+      callback(youWins ? 1 : -1);
+    }, 2200);
+  }, 1400);
+}
+
+function startGame(){
+  sY=0; sC=0; cpuCD=0; cpuReact=0; _ballWasInCpuHalf=false; _stuckFrames=0;
+  gameStartTime = null;
+  _matchDuration = 0;
+  _scoreSubmitted = false;
+  const timerEl = document.getElementById('hud-timer');
+  if(timerEl) timerEl.textContent = '0.0s';
+  document.getElementById('sy').textContent='0';
+  document.getElementById('sc').textContent='0';
+  document.getElementById('start').style.display='none';
+  document.getElementById('over').style.display='none';
+  hideGoal();
+  initField();
+  showDraw((dir) => {
+    resetBall(dir);
+    gameStartTime = Date.now();
+    state='playing';
+    // CPU won the draw → fire an immediate hard opening kick
+    if(dir === -1){
+      const cpuFY = CPU_Y();
+      // Aim at a random corner of the player's goal
+      const cornerX = F.gx + (Math.random() > 0.5 ? F.gw*0.15 : F.gw*0.85);
+      const aimX = (cornerX - ball.x) * 0.045;
+      ball.vx = Math.max(-9, Math.min(9, aimX + (Math.random()-.5)*1.2));
+      ball.vy = 13 + Math.random() * 3; // strong downward kick
+      cpuCD = 25 + Math.random()*10|0;  // cooldown so CPU doesn't instantly kick again
+      cLKick = 1.0; // animate left CPU foot
+      beep('kick');
+    }
+  });
+}
+
+function endGame(){
+  state='over';
+  // Piilota leaderboard-submit online-pelissä (vain CPU-speedrun on kelpoinen)
+  const nameBoxEl2 = document.getElementById('name-entry-box');
+  if(nameBoxEl2 && gameMode === 'online') nameBoxEl2.style.display = 'none';
+  const r = document.getElementById('rtxt');
+  const s = document.getElementById('stxt');
+  const finalTimeEl = document.getElementById('final-time-val');
+  const nameBoxEl = document.getElementById('name-entry-box');
+  const nickEl = document.getElementById('player-nickname');
+  const saveBtn = document.getElementById('save-score-btn');
+
+  if(!_matchDuration && gameStartTime){
+    _matchDuration = ((Date.now() - gameStartTime) / 1000).toFixed(1);
+  }
+  if(finalTimeEl){
+    finalTimeEl.textContent = _matchDuration ? _matchDuration + 's' : '--.-s';
+  }
+
+  let winner;
+  if(sY > sC){
+    r.textContent = gameMode === 'online' ? 'You Win!' : 'You Win!';
+    winner = 'player';
+    if(nameBoxEl && gameMode === 'cpu'){
+      nameBoxEl.style.display = 'flex';
+      const savedNick = localStorage.getItem('subsoccer_nickname') || '';
+      if(nickEl) nickEl.value = savedNick;
+      if(saveBtn) { saveBtn.textContent = 'SUBMIT'; saveBtn.disabled = false; }
+    } else if(nameBoxEl){
+      nameBoxEl.style.display = 'none';
+    }
+  } else if(sC > sY){
+    r.textContent = gameMode === 'online' ? 'OPP Wins!' : 'CPU Wins!';
+    winner = 'cpu';
+    if(nameBoxEl) nameBoxEl.style.display = 'none';
+  } else {
+    r.textContent = 'Draw!';
+    winner = 'draw';
+    if(nameBoxEl) nameBoxEl.style.display = 'none';
+  }
+
+  s.textContent = sY + ' – ' + sC;
+
+  // Online-pelissä piilotetaan koko yksinpelin leaderboard
+  const lbSection = document.getElementById('leaderboard-section');
+  if(lbSection) lbSection.style.display = gameMode === 'online' ? 'none' : 'block';
+
+  document.getElementById('over').style.display = 'flex';
+
+  // Load today's fastest leaderboard (CPU mode only)
+  if(gameMode === 'cpu') fetchLeaderboard();
+
+  // Track result for digital_game_plays (fire-and-forget)
+  trackGameResult(winner, sY, sC);
+
+  // Track for public_tracking retention engine
+  try {
+    fetch(`${SB_URL}/rest/v1/public_tracking`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        event_type: 'game_finished',
+        game_code: 'SUBSOCCER-GO',
+        source_partner: winner === 'player' ? 'player_win' : (winner === 'cpu' ? 'cpu_win' : 'draw'),
+        user_agent: navigator.userAgent.slice(0, 120),
+        location: _playerCountry || null,
+        client_time: new Date().toISOString()
+      })
+    }).catch(() => {});
+  } catch(e) {}
+}
+
+// ─── Screen shake ─────────────────────────────────────────
+function bump(n){ shX=(Math.random()-.5)*n; shY=(Math.random()-.5)*n; }
+
+// ─── Audio ────────────────────────────────────────────────
+let ac=null;
+function getAC(){ if(!ac) ac=new(window.AudioContext||window.webkitAudioContext)(); return ac; }
+function beep(t){
+  try{
+    const a=getAC(),o=a.createOscillator(),g=a.createGain();
+    o.connect(g);g.connect(a.destination);
+    if(t==='kick'){ o.type='triangle'; o.frequency.setValueAtTime(220,a.currentTime); o.frequency.exponentialRampToValueAtTime(75,a.currentTime+.13); g.gain.setValueAtTime(.35,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.13); o.start();o.stop(a.currentTime+.13); }
+    if(t==='wall'){ o.type='sine';     o.frequency.setValueAtTime(260,a.currentTime); o.frequency.exponentialRampToValueAtTime(90,a.currentTime+.07);  g.gain.setValueAtTime(.12,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.07);  o.start();o.stop(a.currentTime+.07); }
+    if(t==='hit'){  o.type='sine';     o.frequency.setValueAtTime(340,a.currentTime); o.frequency.exponentialRampToValueAtTime(110,a.currentTime+.09); g.gain.setValueAtTime(.18,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.09); o.start();o.stop(a.currentTime+.09); }
+    if(t==='goal'){ o.type='sawtooth'; o.frequency.setValueAtTime(280,a.currentTime); o.frequency.exponentialRampToValueAtTime(680,a.currentTime+.38); g.gain.setValueAtTime(.38,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.48); o.start();o.stop(a.currentTime+.48); }
+    if(t==='oops'){ o.type='sawtooth'; o.frequency.setValueAtTime(220,a.currentTime); o.frequency.exponentialRampToValueAtTime(70,a.currentTime+.38);  g.gain.setValueAtTime(.28,a.currentTime); g.gain.exponentialRampToValueAtTime(.01,a.currentTime+.48); o.start();o.stop(a.currentTime+.48); }
+  }catch(e){}
+}
+
+// ─── Render ───────────────────────────────────────────────
+function draw(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.save();
+  ctx.translate(shX|0, shY|0);
+  shX*=.78; shY*=.78;
+  ctx.clearRect(-10,-10,W+20,H+20);
+
+  // ── Background ──
+  ctx.fillStyle='#060810'; ctx.fillRect(0,0,W,H);
+
+  if(!F.w){ctx.restore();return;}
+
+  // ── Pitch halves — Guest näkee oman värinsä (sininen) alhaalla ──
+  const isGuestView = gameMode === 'online' && mpRole === 'guest';
+  const topColor1 = isGuestView ? '#a8101a' : '#1c2b36';
+  const topColor2 = isGuestView ? '#6b050b' : '#121e2b';
+  const botColor1 = isGuestView ? '#1c2b36' : '#a8101a';
+  const botColor2 = isGuestView ? '#121e2b' : '#6b050b';
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=18;
+  const gradTop = ctx.createLinearGradient(F.x, F.y, F.x, F.cy);
+  gradTop.addColorStop(0, topColor1);
+  gradTop.addColorStop(1, topColor2);
+  ctx.fillStyle = gradTop;
+  ctx.fillRect(F.x, F.y, F.w, F.h/2);
+  const gradBot = ctx.createLinearGradient(F.x, F.cy, F.x, F.y+F.h);
+  gradBot.addColorStop(0, botColor1);
+  gradBot.addColorStop(1, botColor2);
+  ctx.fillStyle = gradBot;
+  ctx.fillRect(F.x, F.cy, F.w, F.h/2);
+  ctx.shadowBlur=0;
+  ctx.restore();
+
+
+  // ── Goal depth shading — subtle ──
+  const goalDepthH = F.h * 0.025;
+  const gdTop = ctx.createLinearGradient(0, F.y, 0, F.y + goalDepthH);
+  gdTop.addColorStop(0, 'rgba(0,0,0,0.25)');
+  gdTop.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gdTop;
+  ctx.fillRect(F.gx, F.y, F.gw, goalDepthH);
+  const gdBot = ctx.createLinearGradient(0, F.y + F.h, 0, F.y + F.h - goalDepthH);
+  gdBot.addColorStop(0, 'rgba(0,0,0,0.25)');
+  gdBot.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gdBot;
+  ctx.fillRect(F.gx, F.y + F.h - goalDepthH, F.gw, goalDepthH);
+
+  // ── Center line (dashed) ──
+  ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=3;
+  ctx.setLineDash([10,7]);
+  ctx.beginPath(); ctx.moveTo(F.x, F.cy); ctx.lineTo(F.x+F.w, F.cy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── Center circle ──
+  const circR = F.w * 0.18;
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(F.cx, F.cy, circR, 0, Math.PI*2); ctx.stroke();
+
+  // ── Center spot ──
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.beginPath(); ctx.arc(F.cx, F.cy, 3, 0, Math.PI*2); ctx.fill();
+
+  // ── Subsoccer logo (above center line so circle is visible) ──
+  if(logoImg.complete && logoImg.naturalWidth){
+    const lw = F.w * 0.28;
+    const lh = lw * (logoImg.naturalHeight / logoImg.naturalWidth);
+    ctx.drawImage(logoImg, F.cx - lw/2, F.cy - lh/2, lw, lh);
+  }
+
+  // ── Side walls ──
+  const wt = 8;
+  const gd = 14;
+  ctx.fillStyle = '#999999';
+  ctx.fillRect(F.x-wt, F.y-gd, wt, F.h+gd*2);
+  ctx.fillRect(F.x+F.w, F.y-gd, wt, F.h+gd*2);
+  ctx.fillRect(F.x-wt, F.y-gd, F.gx-F.x+wt, gd);
+  ctx.fillRect(F.gx+F.gw, F.y-gd, F.x+F.w-(F.gx+F.gw)+wt, gd);
+  ctx.fillRect(F.x-wt, F.y+F.h, F.gx-F.x+wt, gd);
+  ctx.fillRect(F.gx+F.gw, F.y+F.h, F.x+F.w-(F.gx+F.gw)+wt, gd);
+
+  // ── Goal bars with highlight edge ──
+  ctx.fillStyle = '#7a7a7a';
+  ctx.fillRect(F.gx, F.y-gd, F.gw, gd);
+  ctx.fillRect(F.gx, F.y+F.h, F.gw, gd);
+  // Inner highlight edge on goal bars
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.fillRect(F.gx, F.y-1, F.gw, 2);
+  ctx.fillRect(F.gx, F.y+F.h-1, F.gw, 2);
+
+  // ── Goal area boxes ──
+  const boxH = F.h * 0.18;
+  ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(F.gx, F.y); ctx.lineTo(F.gx, F.y+boxH);
+  ctx.lineTo(F.gx+F.gw, F.y+boxH); ctx.lineTo(F.gx+F.gw, F.y);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(F.gx, F.y+F.h); ctx.lineTo(F.gx, F.y+F.h-boxH);
+  ctx.lineTo(F.gx+F.gw, F.y+F.h-boxH); ctx.lineTo(F.gx+F.gw, F.y+F.h);
+  ctx.stroke();
+
+  // ── Feet ──
+  const cpuFY = CPU_Y();
+  const KICK_DIST = 38;
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8;
+  // Kenkäväri roolin mukaan: HOST = punainen, GUEST = sininen — sama väri molemmilla näytöillä
+  const myShoe  = (gameMode === 'online' && mpRole === 'guest') ? blueShoeImg : redShoeImg;
+  const oppShoe = (gameMode === 'online' && mpRole === 'guest') ? redShoeImg  : blueShoeImg;
+  if(gameMode === 'cpu'){
+    drawShoe(cLX, cpuFY + cLKick * KICK_DIST, blueShoeImg, +1, true);
+    drawShoe(cRX, cpuFY + cRKick * KICK_DIST, blueShoeImg, +1, false);
+  } else {
+    drawShoe(opFeet.lx, opFeet.ly, oppShoe, +1, true);
+    drawShoe(opFeet.rx, opFeet.ry, oppShoe, +1, false);
+  }
+  drawShoe(pLX, pLY - pLKick * KICK_DIST, myShoe, -1, true);
+  drawShoe(pRX, pRY - pRKick * KICK_DIST, myShoe, -1, false);
+  ctx.shadowBlur = 0;
+
+  // ── Ball ──
+  const spd = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
+  if(spd > 3){
+    ctx.strokeStyle = `rgba(255,255,255,${Math.min(.45,spd/22)})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(ball.x,ball.y);
+    ctx.lineTo(ball.x-ball.vx*2.8, ball.y-ball.vy*2.8); ctx.stroke();
+  }
+  const vrs = BALL_R * 1.6;
+  const shadowGrad = ctx.createRadialGradient(ball.x+2, ball.y+3, vrs*0.3, ball.x+2, ball.y+3, vrs*1.15);
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.45)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = shadowGrad;
+  ctx.beginPath(); ctx.arc(ball.x+2, ball.y+3, vrs*1.15, 0, Math.PI*2); ctx.fill();
+  if(ballImg.complete && ballImg.naturalWidth){
+    ctx.save();
+    ctx.translate(ball.x, ball.y);
+    ctx.rotate(ball.rot || 0);
+    const vr = BALL_R * 1.6;
+    ctx.drawImage(ballImg, -vr, -vr, vr*2, vr*2);
+    ctx.restore();
+  } else {
+    const bg = ctx.createRadialGradient(ball.x-BALL_R*0.3,ball.y-BALL_R*0.3,1,ball.x,ball.y,BALL_R);
+    bg.addColorStop(0,'#ff5566'); bg.addColorStop(.65,'#e30613'); bg.addColorStop(1,'#80000a');
+    ctx.fillStyle = bg;
+    ctx.beginPath(); ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2); ctx.fill();
+  }
+
+  // ── Vignette overlay (darkens canvas corners for depth) ──
+  const vgW = W, vgH = H;
+  const vg = ctx.createRadialGradient(vgW/2, vgH/2, vgH*0.25, vgW/2, vgH/2, vgH*0.82);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.45)');
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, vgW, vgH);
+
+  ctx.restore();
+}
+
+// ─── Loop ─────────────────────────────────────────────────
+function updatePlayer(){
+  pLY += (targetPLY - pLY) * 0.45;
+  pRY += (targetPRY - pRY) * 0.45;
+}
+
+function loop(){
+  if(state==='playing'){
+    updatePlayer();
+    if(gameMode === 'cpu'){
+      updateAI();
+      updateBall();
+    } else {
+      // Online mode
+      if(mpRole === 'host'){
+        updateBall();
+        broadcastGameState();
+      } else {
+        interpolateBall();
+      }
+      broadcastFeet();
+    }
+    updateTimer();
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ─── Init ─────────────────────────────────────────────────
+document.getElementById('bstart').addEventListener('click', startGame);
+document.getElementById('bagain').addEventListener('click', () => {
+  if(gameMode === 'online' && mpConnected){
+    // Two-phase handshake: both send rematch_ready, host starts when both are ready
+    sendNetMessage('rematch_ready', { role: mpRole });
+    document.getElementById('over').style.display = 'none';
+    // Show waiting indicator
+    const waitDiv = document.createElement('div');
+    waitDiv.id = 'rematch-wait';
+    waitDiv.style.cssText = 'position:fixed;inset:0;z-index:35;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+    waitDiv.innerHTML = '<div style="font-size:32px">⏳</div><div style="font-family:\'Resolve\',sans-serif;color:#fff;letter-spacing:2px;font-size:14px;">Waiting for opponent...</div>';
+    document.body.appendChild(waitDiv);
+    if(mpRole === 'host'){
+      // Host waits for guest's ready signal (handled in channel handler)
+    } else {
+      // Guest is ready — host will start when it receives this
+    }
+  } else {
+    leaveRoom();
+    startGame();
+  }
+});
+
+const saveScoreBtn = document.getElementById('save-score-btn');
+const nickInput = document.getElementById('player-nickname');
+if(saveScoreBtn && nickInput){
+  const handleSave = () => {
+    submitScoreWithName(nickInput.value);
+  };
+  saveScoreBtn.addEventListener('click', handleSave);
+  nickInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') handleSave();
+  });
+}
+
+const lbRefresh = document.getElementById('lb-refresh');
+if(lbRefresh) lbRefresh.addEventListener('click', fetchLeaderboard);
+
+const exitBtn = document.getElementById('exit-btn');
+if(exitBtn){
+  const goHome = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.location.href = '/';
+  };
+  exitBtn.addEventListener('click', goHome);
+  exitBtn.addEventListener('touchend', goHome);
+}
+
+// Online mode buttons
+document.getElementById('bstart-online').addEventListener('click', () => {
+  createRoom(); // Luo huone suoraan ja näytä jakolinkki
+});
+
+document.getElementById('mp-lobby-back').addEventListener('click', () => {
+  showScreen('start');
+  document.getElementById('start').style.display = 'flex';
+});
+
+document.getElementById('mp-create-btn').addEventListener('click', createRoom);
+
+document.getElementById('mp-join-btn').addEventListener('click', () => {
+  const code = document.getElementById('mp-join-input').value;
+  joinRoom(code);
+});
+
+document.getElementById('mp-join-input').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') joinRoom(document.getElementById('mp-join-input').value);
+});
+
+document.getElementById('mp-cancel-btn').addEventListener('click', () => {
+  leaveRoom();
+  showScreen('start');
+  document.getElementById('start').style.display = 'flex';
+});
+
+document.getElementById('mp-dc-back').addEventListener('click', () => {
+  leaveRoom();
+  showScreen('start');
+  document.getElementById('start').style.display = 'flex';
+});
+
+document.getElementById('mp-share-btn').addEventListener('click', () => {
+  const url = `${window.location.origin}/play?room=${mpRoomCode}`;
+  if(navigator.share){
+    navigator.share({ title:'Subsoccer Go', text:`Join my game! Code: ${mpRoomCode}`, url });
+  } else {
+    navigator.clipboard.writeText(url);
+    document.getElementById('mp-share-btn').textContent = '✓ Link Copied!';
+    setTimeout(() => { document.getElementById('mp-share-btn').textContent = '📤 Share Link'; }, 2000);
+  }
+});
+
+// mp-copy-btn removed from UI
+
+// Check URL for direct room join on load — liity suoraan ilman klikkausta
+(function initAutoJoin(){
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomParam = urlParams.get('room');
+  if(roomParam && roomParam.length >= 4){
+    let retries = 0;
+    const tryJoin = () => {
+      if(window.supabase && typeof window.supabase.createClient === 'function'){
+        joinRoom(roomParam.trim().toUpperCase());
+      } else if(retries < 40){
+        retries++;
+        setTimeout(tryJoin, 75);
+      } else {
+        alert('Could not initialize network. Please refresh the page.');
+      }
+    };
+    // Give browser time to finish initial layout and script init
+    setTimeout(tryJoin, 150);
+  }
+})();
+
+resize();
+loop();
+</script>
+</body>
+</html>

@@ -242,6 +242,10 @@
             0%, 100% { transform: scale(1); box-shadow: 0 0 6px rgba(196,30,42,0.6); }
             50% { transform: scale(1.06); box-shadow: 0 0 14px rgba(196,30,42,0.9); }
         }
+        @keyframes mapPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
 
         .filters button.btn-export {
 
@@ -647,8 +651,8 @@
                     <button class="btn-refresh" onclick="fetchData()">
                         <i class="fas fa-sync-alt"></i> Refresh Data
                     </button>
-                    <button class="btn-feedbacks" onclick="openFeedbackModal()" style="position: relative; display: inline-flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-comment-dots"></i> Feedbacks
+                    <button class="btn-feedbacks" onclick="openFeedbackModal()" style="position: relative; display: inline-flex; align-items: center; gap: 8px; background: rgba(227,6,19,0.15); border: 1px solid rgba(227,6,19,0.4); color: #fff;">
+                        <i class="fas fa-tasks" style="color:var(--sub-red, #E30613);"></i> Backlog & Feedbacks
                         <span id="btn-feedback-badge" style="display: none; align-items: center; gap: 4px; background: #c41e2a; color: #ffffff; font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; font-weight: bold; letter-spacing: 0.5px; animation: pulse-badge 2s infinite;">
                             <span id="btn-feedback-count">0</span> NEW
                         </span>
@@ -719,6 +723,141 @@
                             <div class="kpi-trend"><i class="fas fa-arrow-up"></i> Total scanned QR codes</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Section: Digital Game (subsoccer.pro/play) -->
+            <div class="kpi-section" id="digital-game-section">
+                <div class="kpi-section-header collapsed" onclick="toggleSection(this)">
+                    <span class="section-icon">🎮</span>
+                    <span class="section-title">Digital Game <span style="font-size:0.7rem;color:#888;font-weight:400;margin-left:6px;">subsoccer.pro/play</span></span>
+                    <i class="fas fa-chevron-down section-chevron"></i>
+                </div>
+                <div class="kpi-section-body collapsed">
+                    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div class="kpi-card" style="border-left: 3px solid #c41e2a;">
+                            <div class="kpi-header">
+                                <span>GAMES PLAYED</span>
+                                <i class="fas fa-gamepad" style="color:#c41e2a;"></i>
+                            </div>
+                            <div class="kpi-value" id="dg-total">—</div>
+                            <div class="kpi-trend"><i class="fas fa-circle" style="color:#c41e2a;font-size:0.6rem;"></i> All time total</div>
+                        </div>
+
+                        <div class="kpi-card" style="border-left: 3px solid #1c6ef2;">
+                            <div class="kpi-header">
+                                <span>CPU WINS</span>
+                                <i class="fas fa-robot" style="color:#1c6ef2;"></i>
+                            </div>
+                            <div class="kpi-value" id="dg-cpu">—</div>
+                            <div class="kpi-trend" id="dg-cpu-pct">—% win rate</div>
+                        </div>
+
+                        <div class="kpi-card" style="border-left: 3px solid #27ae60;">
+                            <div class="kpi-header">
+                                <span>PLAYER WINS</span>
+                                <i class="fas fa-user" style="color:#27ae60;"></i>
+                            </div>
+                            <div class="kpi-value" id="dg-player">—</div>
+                            <div class="kpi-trend" id="dg-player-pct">—% win rate</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <span>AVG. DURATION</span>
+                                <i class="fas fa-clock" style="color:var(--accent-yellow);"></i>
+                            </div>
+                            <div class="kpi-value" id="dg-duration">—</div>
+                            <div class="kpi-trend">seconds per game</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <span>TODAY</span>
+                                <i class="fas fa-calendar-day" style="color:var(--accent-yellow);"></i>
+                            </div>
+                            <div class="kpi-value" id="dg-today">—</div>
+                            <div class="kpi-trend">games today</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <span>LAST 7 DAYS</span>
+                                <i class="fas fa-chart-line" style="color:#aaa;"></i>
+                            </div>
+                            <div class="kpi-value" id="dg-week">—</div>
+                            <div class="kpi-trend">games this week</div>
+                        </div>
+                    </div>
+
+                    <!-- Countries breakdown -->
+                    <div style="margin-top:16px;">
+                        <div style="font-size:0.7rem;letter-spacing:1px;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;">Countries</div>
+                        <div id="dg-countries" style="display:flex;flex-wrap:wrap;gap:8px;">
+                            <span style="color:#555;font-size:0.8rem;">—</span>
+                        </div>
+                    </div>
+
+                    <div id="dg-error" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:8px 0;">No data available yet.</div>
+                </div>
+            </div>
+
+            <!-- Section: Locations — Public Subsoccer tables -->
+            <div class="kpi-section" id="locations-section">
+                <div class="kpi-section-header collapsed" onclick="toggleSection(this)">
+                    <span class="section-icon">📍</span>
+                    <span class="section-title">Locations <span style="font-size:0.7rem;color:#888;font-weight:400;margin-left:6px;">Public Subsoccer tables</span></span>
+                    <i class="fas fa-chevron-down section-chevron"></i>
+                </div>
+                <div class="kpi-section-body collapsed">
+                    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:20px;">
+                        <div class="kpi-card" style="border-left: 3px solid #c41e2a;">
+                            <div class="kpi-header">
+                                <span>PUBLIC TABLES</span>
+                                <i class="fas fa-map-marker-alt" style="color:#c41e2a;"></i>
+                            </div>
+                            <div class="kpi-value" id="loc-total">—</div>
+                            <div class="kpi-trend">Registered public locations</div>
+                        </div>
+                    </div>
+                    <!-- Locations table -->
+                    <div style="overflow-x:auto;">
+                        <table id="loc-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+                            <thead>
+                                <tr style="color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;font-size:0.7rem;border-bottom:1px solid #333;">
+                                    <th style="text-align:left;padding:8px 10px;font-weight:600;">Name</th>
+                                    <th style="text-align:left;padding:8px 10px;font-weight:600;">Location</th>
+                                    <th style="text-align:center;padding:8px 10px;font-weight:600;width:60px;">Edit</th>
+                                    <th style="text-align:center;padding:8px 10px;font-weight:600;width:60px;">Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loc-tbody">
+                                <tr><td colspan="4" style="color:#555;padding:12px 10px;">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="loc-error" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:8px 0;">Could not load locations.</div>
+                </div>
+            </div>
+
+            <!-- Edit Location Modal -->
+            <div id="loc-edit-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+                <div style="background:#1e2124;border:1px solid #333;border-radius:8px;padding:28px;width:90%;max-width:420px;position:relative;">
+                    <div style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:16px;">Edit Location</div>
+                    <input type="hidden" id="loc-edit-id">
+                    <div style="margin-bottom:14px;">
+                        <label style="font-size:0.75rem;color:#aaa;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Name</label>
+                        <input id="loc-edit-name" type="text" style="width:100%;background:#13151a;border:1px solid #333;border-radius:4px;padding:10px 12px;color:#fff;font-size:0.9rem;outline:none;">
+                    </div>
+                    <div style="margin-bottom:20px;">
+                        <label style="font-size:0.75rem;color:#aaa;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Location</label>
+                        <input id="loc-edit-location" type="text" style="width:100%;background:#13151a;border:1px solid #333;border-radius:4px;padding:10px 12px;color:#fff;font-size:0.9rem;outline:none;">
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button onclick="closedLocModal()" style="background:transparent;border:1px solid #444;color:#aaa;padding:9px 20px;border-radius:4px;cursor:pointer;font-size:0.85rem;">Cancel</button>
+                        <button onclick="saveLocEdit()" id="loc-save-btn" style="background:#c41e2a;border:none;color:#fff;padding:9px 20px;border-radius:4px;cursor:pointer;font-size:0.85rem;font-weight:600;">Save</button>
+                    </div>
+                    <div id="loc-edit-error" style="display:none;color:#ff6b6b;font-size:0.8rem;margin-top:10px;"></div>
                 </div>
             </div>
 
@@ -917,11 +1056,19 @@
 
                     <!-- Weekly Cohort Retention Table -->
                     <div style="margin-top: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
-                        <h3 style="margin: 0 0 12px; font-size: 0.85rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-table" style="color: var(--accent-blue);"></i>
-                            Weekly Cohort Retention
-                            <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 400;">— new users by week & return rates</span>
-                        </h3>
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+                            <h3 style="margin:0;font-size:0.85rem;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                                <i class="fas fa-table" style="color:var(--accent-blue);"></i>
+                                Weekly Cohort Retention
+                                <span style="font-size:0.7rem;color:var(--text-secondary);font-weight:400;">— new users by week &amp; return rates</span>
+                            </h3>
+                            <div style="display:flex;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">
+                                <button id="ret-btn-all" onclick="setRetentionFilter('all')" style="padding:4px 12px;font-size:0.75rem;font-weight:600;border:none;cursor:pointer;background:var(--accent-blue);color:#fff;">All</button>
+                                <button id="ret-btn-mobile" onclick="setRetentionFilter('mobile')" style="padding:4px 12px;font-size:0.75rem;font-weight:600;border:none;cursor:pointer;background:var(--card-bg);color:var(--text-secondary);">📱 Mobile</button>
+                                <button id="ret-btn-go" onclick="setRetentionFilter('go')" style="padding:4px 12px;font-size:0.75rem;font-weight:600;border:none;cursor:pointer;background:var(--card-bg);color:var(--text-secondary);">🎮 GO</button>
+                                <button id="ret-btn-mini" onclick="setRetentionFilter('mini')" style="padding:4px 12px;font-size:0.75rem;font-weight:600;border:none;cursor:pointer;background:var(--card-bg);color:var(--text-secondary);">🕹️ Mini</button>
+                            </div>
+                        </div>
                         <div style="overflow-x: auto;">
                             <table class="activity-feed" style="width: 100%; font-size: 0.8rem;" id="cohort-retention-table">
                                 <thead>
@@ -1028,8 +1175,31 @@
 
         <!-- Global Map Row -->
         <div class="table-card">
-            <h2>Live Global Match Map <i class="fas fa-satellite-dish" style="color: var(--accent-blue); margin-left:8px;"></i></h2>
-            <div id="map" style="height: 500px; width: 100%; background: #f4f6f9;"></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+                <h2 style="margin:0;">Live Global Match Map <i class="fas fa-satellite-dish" style="color: var(--accent-blue); margin-left:8px;"></i></h2>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span id="map-live-badge" style="display:none; align-items:center; gap:5px; font-size:0.75rem; color:#ff4444; font-weight:600; letter-spacing:0.5px;">
+                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ff4444; animation: mapPulse 1.2s infinite;"></span>
+                        LIVE
+                    </span>
+                    <div style="display:flex; border:1px solid var(--border-color); border-radius:6px; overflow:hidden;">
+                        <button id="map-btn-all" onclick="setMapMode('all')"
+                            style="padding:6px 14px; font-size:0.8rem; font-weight:600; border:none; cursor:pointer; background:var(--accent-blue); color:#fff; transition:background 0.2s;">
+                            All data
+                        </button>
+                        <button id="map-btn-24h" onclick="setMapMode('24h')"
+                            style="padding:6px 14px; font-size:0.8rem; font-weight:600; border:none; cursor:pointer; background:var(--card-bg); color:var(--text-secondary); transition:background 0.2s;">
+                            Last 24h
+                        </button>
+                        <button id="map-btn-live" onclick="setMapMode('live')"
+                            style="padding:6px 14px; font-size:0.8rem; font-weight:600; border:none; cursor:pointer; background:var(--card-bg); color:var(--text-secondary); transition:background 0.2s;">
+                            Last 1h
+                        </button>
+                    </div>
+                    <span id="map-status" style="font-size:0.75rem; color:var(--text-secondary);"></span>
+                </div>
+            </div>
+            <div id="map" style="height: 500px; width: 100%; background: #f4f6f9; border-radius:6px;"></div>
         </div>
 
         <!-- Top Cities (30d) -->
@@ -1240,7 +1410,31 @@
             'LY':{ name:'Libya', flag:'🇱🇾' }, 'GE':{ name:'Georgia', flag:'🇬🇪' },
             'IS':{ name:'Iceland', flag:'🇮🇸' }, 'CR':{ name:'Costa Rica', flag:'🇨🇷' },
             'UY':{ name:'Uruguay', flag:'🇺🇾' }, 'KZ':{ name:'Kazakhstan', flag:'🇰🇿' },
-            'LB':{ name:'Lebanon', flag:'🇱🇧' }, 'JO':{ name:'Jordan', flag:'🇯🇴' }
+            'LB':{ name:'Lebanon', flag:'🇱🇧' }, 'JO':{ name:'Jordan', flag:'🇯🇴' },
+            'DO':{ name:'Dominican Republic', flag:'🇩🇴' }, 'GT':{ name:'Guatemala', flag:'🇬🇹' },
+            'HN':{ name:'Honduras', flag:'🇭🇳' }, 'SV':{ name:'El Salvador', flag:'🇸🇻' },
+            'NI':{ name:'Nicaragua', flag:'🇳🇮' }, 'PA':{ name:'Panama', flag:'🇵🇦' },
+            'CU':{ name:'Cuba', flag:'🇨🇺' }, 'JM':{ name:'Jamaica', flag:'🇯🇲' },
+            'TT':{ name:'Trinidad & Tobago', flag:'🇹🇹' }, 'PR':{ name:'Puerto Rico', flag:'🇵🇷' },
+            'EC':{ name:'Ecuador', flag:'🇪🇨' }, 'BO':{ name:'Bolivia', flag:'🇧🇴' },
+            'PY':{ name:'Paraguay', flag:'🇵🇾' }, 'VE':{ name:'Venezuela', flag:'🇻🇪' },
+            'IQ':{ name:'Iraq', flag:'🇮🇶' }, 'IR':{ name:'Iran', flag:'🇮🇷' },
+            'KW':{ name:'Kuwait', flag:'🇰🇼' }, 'BH':{ name:'Bahrain', flag:'🇧🇭' },
+            'OM':{ name:'Oman', flag:'🇴🇲' }, 'YE':{ name:'Yemen', flag:'🇾🇪' },
+            'SY':{ name:'Syria', flag:'🇸🇾' }, 'BD':{ name:'Bangladesh', flag:'🇧🇩' },
+            'LK':{ name:'Sri Lanka', flag:'🇱🇰' }, 'NP':{ name:'Nepal', flag:'🇳🇵' },
+            'MM':{ name:'Myanmar', flag:'🇲🇲' }, 'KH':{ name:'Cambodia', flag:'🇰🇭' },
+            'LA':{ name:'Laos', flag:'🇱🇦' }, 'MN':{ name:'Mongolia', flag:'🇲🇳' },
+            'UZ':{ name:'Uzbekistan', flag:'🇺🇿' }, 'TM':{ name:'Turkmenistan', flag:'🇹🇲' },
+            'KG':{ name:'Kyrgyzstan', flag:'🇰🇬' }, 'TJ':{ name:'Tajikistan', flag:'🇹🇯' },
+            'AM':{ name:'Armenia', flag:'🇦🇲' }, 'MD':{ name:'Moldova', flag:'🇲🇩' },
+            'XK':{ name:'Kosovo', flag:'🇽🇰' }, 'LU':{ name:'Luxembourg', flag:'🇱🇺' },
+            'CY':{ name:'Cyprus', flag:'🇨🇾' }, 'MV':{ name:'Maldives', flag:'🇲🇻' },
+            'ET':{ name:'Ethiopia', flag:'🇪🇹' }, 'TZ':{ name:'Tanzania', flag:'🇹🇿' },
+            'UG':{ name:'Uganda', flag:'🇺🇬' }, 'SN':{ name:'Senegal', flag:'🇸🇳' },
+            'CI':{ name:"Côte d'Ivoire", flag:'🇨🇮' }, 'CM':{ name:'Cameroon', flag:'🇨🇲' },
+            'MZ':{ name:'Mozambique', flag:'🇲🇿' }, 'ZM':{ name:'Zambia', flag:'🇿🇲' },
+            'ZW':{ name:'Zimbabwe', flag:'🇿🇼' }, 'MU':{ name:'Mauritius', flag:'🇲🇺' }
         };
 
         const TIMEZONE_TO_COUNTRY = {
@@ -1886,6 +2080,17 @@
                             countryFlag = CODE_TO_COUNTRY[countryName].flag;
                             countryName = CODE_TO_COUNTRY[countryName].name;
                         }
+
+                        // Skip city names stored as country — if name is long and not a recognized country, omit from listing
+                        const _knownNames = new Set(Object.values(CODE_TO_COUNTRY).map(c => c.name).concat(Object.values(TIMEZONE_TO_COUNTRY).map(c => c.name)));
+                        if (!_knownNames.has(countryName) || countryName === 'Unknown') {
+                            // Still count city for uniqueCitiesGlobally if proper format
+                            if (isProperCity) {
+                                const city = parsed.city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
+                                if (city && city !== 'Unknown') uniqueCitiesGlobally.add(city);
+                            }
+                            return; // don't add to country groups
+                        }
                         
                         if (!globalCountryGroups[countryName]) {
                             globalCountryGroups[countryName] = {
@@ -2276,7 +2481,9 @@
                         countryFlag = CODE_TO_COUNTRY[countryName].flag;
                         countryName = CODE_TO_COUNTRY[countryName].name;
                     }
-                    if (!countryName || countryName === 'Unknown') return;
+                    // Skip city names (not recognized country names)
+                    const _knownReg = new Set(Object.values(CODE_TO_COUNTRY).map(c => c.name).concat(Object.values(TIMEZONE_TO_COUNTRY).map(c => c.name)));
+                    if (!countryName || countryName === 'Unknown' || !_knownReg.has(countryName)) return;
 
                     if (!regByCountry[countryName]) regByCountry[countryName] = { flag: countryFlag, registered: 0, guest: 0 };
                     const partner = (d.source_partner || '').toLowerCase();
@@ -2313,12 +2520,22 @@
 
                 // Calculate and Populate Top Countries List
                 const countryCounts = {};
+                const _knownTop = new Set(Object.values(CODE_TO_COUNTRY).map(c => c.name).concat(Object.values(TIMEZONE_TO_COUNTRY).map(c => c.name)));
                 trackingData.forEach(d => {
                     if (d.location && d.location !== 'Unknown') {
                         const parsed = parseLocation(d.location);
                         const countryInfo = TIMEZONE_TO_COUNTRY[d.location] || TIMEZONE_TO_COUNTRY[parsed.timezone];
-                        const countryName = countryInfo ? countryInfo.name : parsed.city;
-                        const countryFlag = countryInfo ? countryInfo.flag : '🌐';
+                        let countryName = countryInfo ? countryInfo.name : (parsed.countryCode || null);
+                        let countryFlag = countryInfo ? countryInfo.flag : '🌐';
+
+                        // Resolve short code to full name
+                        if (countryName && countryName.length <= 3 && CODE_TO_COUNTRY[countryName]) {
+                            countryFlag = CODE_TO_COUNTRY[countryName].flag;
+                            countryName = CODE_TO_COUNTRY[countryName].name;
+                        }
+
+                        // Skip city names and unrecognized entries
+                        if (!countryName || !_knownTop.has(countryName)) return;
                         
                         if (!countryCounts[countryName]) {
                             countryCounts[countryName] = { name: countryName, flag: countryFlag, count: 0 };
@@ -2386,6 +2603,221 @@
                 _isFirstLoad = false;
             }
         }
+
+        // ─── Digital Game Stats ───────────────────────────────
+        let _dgLoaded = false;
+        async function fetchDigitalGameStats() {
+            if (_dgLoaded) return;
+            try {
+                const now = new Date();
+                const todayStr = now.toISOString().slice(0, 10);
+                const weekAgo  = new Date(now - 7 * 86400000).toISOString();
+
+                const { data, error } = await client
+                    .from('digital_game_plays')
+                    .select('winner, duration_s, created_at, country');
+
+                if (error || !data) {
+                    document.getElementById('dg-error').style.display = 'block';
+                    return;
+                }
+
+                const total   = data.length;
+                const cpuW    = data.filter(r => r.winner === 'cpu').length;
+                const playerW = data.filter(r => r.winner === 'player').length;
+                const today   = data.filter(r => r.created_at.slice(0,10) === todayStr).length;
+                const week    = data.filter(r => r.created_at >= weekAgo).length;
+                const durs    = data.map(r => r.duration_s).filter(Boolean);
+                const avgDur  = durs.length ? Math.round(durs.reduce((a,b) => a+b, 0) / durs.length) : null;
+                const pct     = n => total > 0 ? Math.round(n / total * 100) : 0;
+
+                document.getElementById('dg-total').textContent      = total;
+                document.getElementById('dg-cpu').textContent        = cpuW;
+                document.getElementById('dg-cpu-pct').textContent    = `${pct(cpuW)}% win rate`;
+                document.getElementById('dg-player').textContent     = playerW;
+                document.getElementById('dg-player-pct').textContent = `${pct(playerW)}% win rate`;
+                document.getElementById('dg-duration').textContent   = avgDur !== null ? avgDur : '—';
+                document.getElementById('dg-today').textContent      = today;
+                document.getElementById('dg-week').textContent       = week;
+
+                // Countries breakdown
+                const countryCounts = {};
+                data.forEach(r => {
+                    const c = r.country || 'Unknown';
+                    countryCounts[c] = (countryCounts[c] || 0) + 1;
+                });
+                const sorted = Object.entries(countryCounts).sort((a,b) => b[1]-a[1]);
+                const countryEl = document.getElementById('dg-countries');
+                if (sorted.length === 0) {
+                    countryEl.innerHTML = '<span style="color:#555;font-size:0.8rem;">No country data yet</span>';
+                } else {
+                    const flagFor = cc => {
+                        if (!cc || cc === 'Unknown') return '🌍';
+                        try { return cc.toUpperCase().replace(/./g, c => String.fromCodePoint(c.charCodeAt(0) + 127397)); }
+                        catch(e){ return '🌍'; }
+                    };
+                    countryEl.innerHTML = sorted.map(([cc, n]) =>
+                        `<span style="display:inline-flex;align-items:center;gap:5px;background:#1e2024;border:1px solid #333;border-radius:6px;padding:4px 10px;font-size:0.8rem;">
+                            <span style="font-size:1rem;">${flagFor(cc)}</span>
+                            <span style="color:#ddd;">${cc}</span>
+                            <span style="color:#888;font-size:0.75rem;">${n}</span>
+                        </span>`
+                    ).join('');
+                }
+
+                _dgLoaded = true;
+            } catch(e) {
+                document.getElementById('dg-error').style.display = 'block';
+            }
+        }
+
+        // Fetch digital stats when section is toggled open
+        document.addEventListener('DOMContentLoaded', () => {
+            const dgHeader = document.querySelector('#digital-game-section .kpi-section-header');
+            if (dgHeader) {
+                dgHeader.addEventListener('click', () => {
+                    setTimeout(() => {
+                        const body = dgHeader.nextElementSibling;
+                        if (!body.classList.contains('collapsed')) fetchDigitalGameStats();
+                    }, 50);
+                });
+            }
+        });
+
+        // ─── Locations (Public Subsoccer Tables) ──────────────
+        let _locLoaded = false;
+        let _locData = [];
+
+        async function fetchLocations(force = false) {
+            if (_locLoaded && !force) return;
+            document.getElementById('loc-error').style.display = 'none';
+            try {
+                const { data, error } = await client
+                    .from('games')
+                    .select('id,game_name,location,latitude,longitude')
+                    .eq('is_public', true)
+                    .not('latitude', 'is', null)
+                    .order('game_name');
+
+                if (error || !data) {
+                    document.getElementById('loc-error').style.display = 'block';
+                    document.getElementById('loc-tbody').innerHTML = '';
+                    return;
+                }
+
+                _locData = data;
+                document.getElementById('loc-total').textContent = data.length;
+
+                const tbody = document.getElementById('loc-tbody');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="color:#555;padding:12px 10px;">No public locations yet.</td></tr>';
+                } else {
+                    tbody.innerHTML = data.map((g, i) => {
+                        const bg = i % 2 === 0 ? '#1a1c1f' : '#1e2124';
+                        const esc = s => (s||'').replace(/'/g, "\\'");
+                        return `<tr style="background:${bg};border-bottom:1px solid #2a2d31;" id="loc-row-${g.id}">
+                            <td style="padding:9px 10px;color:#ddd;font-weight:500;">${g.game_name || '—'}</td>
+                            <td style="padding:9px 10px;color:#999;">${g.location || '—'}</td>
+                            <td style="padding:9px 10px;text-align:center;">
+                                <button onclick="openLocEdit('${g.id}','${esc(g.game_name)}','${esc(g.location)}')"
+                                    style="background:none;border:none;color:#4a9eff;cursor:pointer;font-size:0.85rem;padding:4px 6px;" title="Edit">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                            </td>
+                            <td style="padding:9px 10px;text-align:center;">
+                                <button onclick="deleteLocation('${g.id}','${esc(g.game_name)}')"
+                                    style="background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:0.85rem;padding:4px 6px;" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                }
+                _locLoaded = true;
+            } catch(e) {
+                document.getElementById('loc-error').style.display = 'block';
+                document.getElementById('loc-error').textContent = 'Error: ' + e.message;
+            }
+        }
+
+        function openLocEdit(id, name, location) {
+            document.getElementById('loc-edit-id').value = id;
+            document.getElementById('loc-edit-name').value = name;
+            document.getElementById('loc-edit-location').value = location;
+            document.getElementById('loc-edit-error').style.display = 'none';
+            const modal = document.getElementById('loc-edit-modal');
+            modal.style.display = 'flex';
+        }
+
+        function closedLocModal() {
+            document.getElementById('loc-edit-modal').style.display = 'none';
+        }
+
+        async function saveLocEdit() {
+            const id   = document.getElementById('loc-edit-id').value;
+            const name = document.getElementById('loc-edit-name').value.trim();
+            const loc  = document.getElementById('loc-edit-location').value.trim();
+            const errEl = document.getElementById('loc-edit-error');
+            const btn   = document.getElementById('loc-save-btn');
+
+            if (!name) { errEl.textContent = 'Name is required.'; errEl.style.display='block'; return; }
+
+            btn.textContent = 'Saving…';
+            btn.disabled = true;
+            errEl.style.display = 'none';
+
+            const { error } = await client
+                .from('games')
+                .update({ game_name: name, location: loc })
+                .eq('id', id);
+
+            btn.textContent = 'Save';
+            btn.disabled = false;
+
+            if (error) {
+                errEl.textContent = 'Save failed: ' + error.message;
+                errEl.style.display = 'block';
+                return;
+            }
+
+            closedLocModal();
+            _locLoaded = false;
+            fetchLocations(true);
+        }
+
+        async function deleteLocation(id, name) {
+            if (!confirm(`Delete "${name}"?\n\nThis will remove the game from the map. The owner's account and data are not affected.`)) return;
+
+            const { error } = await client
+                .from('games')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert('Delete failed: ' + error.message);
+                return;
+            }
+
+            _locLoaded = false;
+            fetchLocations(true);
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('loc-edit-modal').addEventListener('click', function(e) {
+            if (e.target === this) closedLocModal();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const locHeader = document.querySelector('#locations-section .kpi-section-header');
+            if (locHeader) {
+                locHeader.addEventListener('click', () => {
+                    setTimeout(() => {
+                        const body = locHeader.nextElementSibling;
+                        if (!body.classList.contains('collapsed')) fetchLocations();
+                    }, 50);
+                });
+            }
+        });
 
         function getFlag(langStr) {
             if (!langStr) return '🇬🇧';
@@ -2699,9 +3131,40 @@
 
         // ─── Retention & Growth Computation Engine ───
         let retentionTrendChartInstance = null;
+        let _retentionGameFilter = 'all';
+        let _retentionTrackingData = null;
+        let _retentionIsAllTime = false;
+
+        function setRetentionFilter(filter) {
+            _retentionGameFilter = filter;
+            const btns = { all: 'ret-btn-all', mobile: 'ret-btn-mobile', go: 'ret-btn-go', mini: 'ret-btn-mini' };
+            Object.entries(btns).forEach(([key, id]) => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+                const isActive = key === filter;
+                btn.style.background = isActive ? (key === 'go' ? '#c41e2a' : 'var(--accent-blue)') : 'var(--card-bg)';
+                btn.style.color = isActive ? '#fff' : 'var(--text-secondary)';
+            });
+            if (_retentionTrackingData) {
+                computeRetentionMetrics(_retentionTrackingData, _retentionIsAllTime);
+            }
+        }
 
         function computeRetentionMetrics(trackingData, isAllTimeFilter) {
             if (!trackingData || trackingData.length === 0) return;
+            // Cache for re-filtering
+            _retentionTrackingData = trackingData;
+            _retentionIsAllTime = isAllTimeFilter;
+
+            // Apply game_code filter
+            let filteredForRetention = trackingData;
+            if (_retentionGameFilter === 'go') {
+                filteredForRetention = trackingData.filter(d => d.game_code === 'SUBSOCCER-GO');
+            } else if (_retentionGameFilter === 'mini') {
+                filteredForRetention = trackingData.filter(d => d.game_code === 'MINI-GAME');
+            } else if (_retentionGameFilter === 'mobile') {
+                filteredForRetention = trackingData.filter(d => d.game_code !== 'SUBSOCCER-GO' && d.game_code !== 'MINI-GAME');
+            }
 
             // Show/hide scope notice
             let scopeNotice = document.getElementById('retention-scope-notice');
@@ -2723,7 +3186,7 @@
             }
 
             // Filter app_opened events across all loaded data for device cohort analysis
-            const validData = trackingData.filter(d => d.client_time && d.event_type === 'app_opened');
+            const validData = filteredForRetention.filter(d => d.client_time && d.event_type === 'app_opened');
 
             if (validData.length === 0) return;
 
@@ -3014,27 +3477,73 @@
                 });
             }
 
-            const headers = ["Timestamp", "EventType", "UserType", "Score/Details", "Location", "Language"];
-            const rows = filteredData.map(r => [
-                new Date(r.client_time).toISOString(),
-                r.event_type || 'UNKNOWN',
-                r.source_partner || 'UNKNOWN',
-                r.match_score || '-',
-                `"${(r.location || 'Unknown').replace(/"/g, '""')}"`,
-                r.browser_lang || 'unknown'
-            ]);
+            const headers = [
+                "Timestamp",
+                "Event_Type",
+                "Game_Product",
+                "Score_Or_Result",
+                "Partner_Type",
+                "Location",
+                "City",
+                "Country_Code",
+                "Device_Browser",
+                "Session_ID",
+                "Is_Returning_User",
+                "Duration_Seconds",
+                "Language"
+            ];
+
+            const rows = filteredData.map(r => {
+                const loc = r.location || 'Unknown';
+                const parsedLoc = parseLocation ? parseLocation(loc) : { city: '', countryCode: '' };
+                const rawScore = r.match_score || '-';
+                // Clean up JSON strings in match_score for cleaner CSV
+                let displayScore = rawScore;
+                if (typeof rawScore === 'string' && rawScore.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(rawScore);
+                        displayScore = parsed.duration ? `Duration: ${parsed.duration}s, Win: ${parsed.win_score || 3}` : rawScore;
+                    } catch(e) {}
+                }
+
+                const gameCode = r.game_code || 'MOBILE-TOURNAMENT';
+                const gameLabel = gameCode === 'SUBSOCCER-GO' ? 'Subsoccer GO'
+                                : gameCode === 'MINI-GAME' ? 'Mini-Game'
+                                : gameCode === 'MOBILE-TOURNAMENT' ? 'Mobile Tournament'
+                                : gameCode;
+
+                const escapeCsv = (val) => {
+                    const str = String(val ?? '').replace(/"/g, '""');
+                    return `"${str}"`;
+                };
+
+                return [
+                    r.client_time ? new Date(r.client_time).toISOString() : (r.created_at || ''),
+                    r.event_type || 'UNKNOWN',
+                    gameLabel,
+                    displayScore,
+                    r.source_partner || 'guest',
+                    escapeCsv(loc),
+                    escapeCsv(parsedLoc.city || ''),
+                    parsedLoc.countryCode || '',
+                    escapeCsv(r.user_agent || ''),
+                    r.session_id || '',
+                    r.is_returning ? 'Yes' : 'No',
+                    r.session_duration != null ? r.session_duration : '',
+                    r.browser_lang || ''
+                ].map(v => (typeof v === 'string' && v.startsWith('"') && v.endsWith('"')) ? v : escapeCsv(v));
+            });
             
-            let csvContent = "data:text/csv;charset=utf-8," 
-                + headers.join(",") + "\\n"
-                + rows.map(e => e.join(",")).join("\\n");
-                
-            const encodedUri = encodeURI(csvContent);
+            const csvText = [headers.join(",")].concat(rows.map(e => e.join(","))).join("\r\n");
+            const blob = new Blob(["\uFEFF" + csvText], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `subsoccer_analytics_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `subsoccer_raw_analytics_${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         function initCharts(data) {
@@ -3320,6 +3829,7 @@
 
         let mymap = null;
         function initMap(data) {
+            _mapAllData = data; // cache for "All data" mode restore
             if(!mymap) {
                 mymap = L.map('map').setView([25, 0], 2);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -3470,6 +3980,7 @@
                 'Melbourne': [-37.8136, 144.9631], 'Sydney': [-33.8688, 151.2093],
                 'Kuala Lumpur': [3.1390, 101.6869], 'Mariehamn': [60.0970, 19.9348]
             };
+            window._tzCoords = tzCoords; // expose for live map mode
 
             const tzContinents = {
                 'Europe': [48.0, 15.0],
@@ -3551,6 +4062,151 @@
                 }
             }
         }
+
+        // ── Map Mode: All data / Last 24h / Last 1h Live ───────
+        let _mapMode = 'all';
+        let _mapAllData = [];
+        let _liveRefreshTimer = null;
+
+        function setMapMode(mode) {
+            _mapMode = mode;
+
+            const btnAll  = document.getElementById('map-btn-all');
+            const btn24h  = document.getElementById('map-btn-24h');
+            const btnLive = document.getElementById('map-btn-live');
+            const badge   = document.getElementById('map-live-badge');
+
+            // Reset all buttons
+            [btnAll, btn24h, btnLive].forEach(b => {
+                if (b) { b.style.background = 'var(--card-bg)'; b.style.color = 'var(--text-secondary)'; }
+            });
+            clearInterval(_liveRefreshTimer);
+            if (badge) badge.style.display = 'none';
+
+            if (mode === 'live') {
+                if (btnLive) { btnLive.style.background = '#c41e2a'; btnLive.style.color = '#fff'; }
+                if (badge)   badge.style.display = 'flex';
+                loadLiveMapData(1);
+                _liveRefreshTimer = setInterval(() => loadLiveMapData(1), 60000);
+            } else if (mode === '24h') {
+                if (btn24h) { btn24h.style.background = 'var(--accent-blue)'; btn24h.style.color = '#fff'; }
+                loadLiveMapData(24);
+            } else {
+                if (btnAll) { btnAll.style.background = 'var(--accent-blue)'; btnAll.style.color = '#fff'; }
+                document.getElementById('map-status').textContent = '';
+                initMap(_mapAllData);
+            }
+        }
+
+        async function loadLiveMapData(hours = 1) {
+            const statusEl = document.getElementById('map-status');
+            if (statusEl) statusEl.textContent = 'Refreshing…';
+
+            try {
+                const since = new Date(Date.now() - hours * 3600 * 1000).toISOString();
+                const { data, error } = await client
+                    .from('public_tracking')
+                    .select('location, client_time, event_type')
+                    .gte('client_time', since)
+                    .not('location', 'is', null)
+                    .order('client_time', { ascending: false })
+                    .limit(hours === 1 ? 500 : 2000);
+
+                if (error) throw error;
+
+                const now = Date.now();
+                const locData = {};
+                (data || []).forEach(r => {
+                    if (!r.location || r.location === 'Unknown') return;
+                    if (!locData[r.location]) locData[r.location] = { count: 0, latest: r.client_time };
+                    locData[r.location].count++;
+                    if (r.client_time > locData[r.location].latest) locData[r.location].latest = r.client_time;
+                });
+
+                renderLiveMap(locData, now, hours);
+
+                const total = Object.values(locData).reduce((s, v) => s + v.count, 0);
+                const label = hours === 1 ? '1h' : '24h';
+                const updatedAt = new Date().toLocaleTimeString();
+                if (statusEl) statusEl.textContent = total > 0
+                    ? `${total} events · updated ${updatedAt}`
+                    : `No events in last ${label} · updated ${updatedAt}`;
+            } catch(e) {
+                console.error('Live map error:', e);
+                if (statusEl) statusEl.textContent = 'Could not load live data';
+            }
+        }
+
+        function renderLiveMap(locData, now, hours = 1) {
+            if (!mymap) {
+                mymap = L.map('map').setView([25, 0], 2);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '© OpenStreetMap © CartoDB',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(mymap);
+            }
+
+            // Clear old markers
+            mymap.eachLayer(layer => { if (layer instanceof L.Marker) layer.remove(); });
+
+            // Re-use tzCoords lookup from initMap (same variable in outer scope) — call initMap's
+            // coordinate resolution by temporarily building a mini dataset and calling shared resolver
+            const tzCoords = window._tzCoords || {};
+
+            for (const loc in locData) {
+                const { count, latest } = locData[loc];
+                let coords = null;
+
+                // Priority 1: embedded [lat,lng]
+                const coordMatch = loc.match(/\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]/);
+                if (coordMatch) coords = [parseFloat(coordMatch[1]), parseFloat(coordMatch[2])];
+
+                // Priority 2: shared tz/city lookup
+                if (!coords) {
+                    const parsed = parseLocation(loc);
+                    coords = tzCoords[loc] || tzCoords[parsed.city] || tzCoords[parsed.timezone];
+                }
+                if (!coords) continue;
+
+                // Time ago label
+                const minsAgo = Math.round((now - new Date(latest).getTime()) / 60000);
+                const agoStr  = minsAgo <= 1 ? 'just now' : minsAgo < 60 ? `${minsAgo} min ago` : `${Math.round(minsAgo/60)}h ago`;
+
+                const isLive = hours === 1;
+                const bg     = isLive ? 'rgba(220,30,30,0.85)' : 'rgba(26,115,232,0.85)';
+                const border = isLive ? '#ff6666' : '#fff';
+                const shadow = isLive ? '0 0 12px rgba(255,60,60,0.7)' : '0 2px 5px rgba(0,0,0,0.3)';
+                const anim   = isLive ? 'animation: mapPulse 1.5s infinite;' : '';
+
+                const radius = Math.min(Math.max(count * 2, 8), 28);
+                const diameter = radius * 2;
+                const markerHtml = `
+                    <div style="
+                        display:flex; align-items:center; justify-content:center;
+                        width:${diameter}px; height:${diameter}px; border-radius:50%;
+                        background:${bg};
+                        border:2px solid ${border};
+                        color:#fff;
+                        font-size:${Math.max(8, Math.min(13, radius * 0.7))}px;
+                        font-weight:bold;
+                        box-shadow:${shadow};
+                        ${anim}
+                    " class="map-interactive-marker">${count}</div>`;
+
+                const customIcon = L.divIcon({
+                    html: markerHtml,
+                    className: 'custom-map-marker',
+                    iconSize: [diameter, diameter],
+                    iconAnchor: [radius, radius]
+                });
+
+                L.marker(coords, { icon: customIcon })
+                    .bindPopup(`<div style="color:#111"><b>${getDisplayLocation(loc)}</b><br>${count} event${count !== 1 ? 's' : ''}<br><span style="color:#888;font-size:0.85em">Latest: ${agoStr}</span></div>`)
+                    .addTo(mymap);
+            }
+        }
+
         // ── Registered Players ──
         let _allPlayers = [];
 
@@ -3926,9 +4582,19 @@
             openFeedbackModal();
         }
 
-        // Feedback Logic
-        async function openFeedbackModal() {
-            // Mark feedbacks as read
+        // ─── Feedback & Product Backlog Manager ─────────────────
+        let _rawFeedbacks = [];
+        let _feedbackStatuses = JSON.parse(localStorage.getItem('subsoccer_feedback_statuses') || '{}');
+        let _currentFeedbackTab = 'all'; // 'all' | 'selected' | 'progress' | 'done'
+        let _currentFeedbackFilter = 'all'; // 'all' | 'bug' | 'idea' | 'high'
+
+        function saveFeedbackStatuses() {
+            try {
+                localStorage.setItem('subsoccer_feedback_statuses', JSON.stringify(_feedbackStatuses));
+            } catch(e){}
+        }
+
+        async function openFeedbackModal(fetchAllTime = true) {
             localStorage.setItem('subsoccer_last_feedback_seen', new Date().toISOString());
             const badge = document.getElementById('btn-feedback-badge');
             if (badge) badge.style.display = 'none';
@@ -3937,25 +4603,12 @@
             document.getElementById('feedback-loading').style.display = 'block';
             document.getElementById('feedback-tbody').innerHTML = '';
 
-            
             try {
-                // Determine time filter to apply (reuse the dashboard's current filter)
-                const timeFilterEl = document.getElementById('timeFilter');
+                // Fetch all feedbacks (or with time filter if explicitly requested)
                 let query = client.from('feedback').select('*').order('created_at', { ascending: false });
-                
-                if (timeFilterEl && timeFilterEl.value === 'custom') {
-                    const startEl = document.getElementById('startDateFilter');
-                    const endEl = document.getElementById('endDateFilter');
-                    if (startEl && startEl.value) {
-                        const localStart = new Date(startEl.value);
-                        query = query.gte('created_at', new Date(localStart.setHours(0, 0, 0, 0)).toISOString());
-                    }
-                    if (endEl && endEl.value) {
-                        const localEnd = new Date(endEl.value);
-                        query = query.lte('created_at', new Date(localEnd.setHours(23, 59, 59, 999)).toISOString());
-                    }
-                } else {
-                    const days = timeFilterEl ? (parseInt(timeFilterEl.value) || 7) : 7;
+                if (!fetchAllTime) {
+                    const timeFilterEl = document.getElementById('timeFilter');
+                    const days = timeFilterEl ? (parseInt(timeFilterEl.value) || 30) : 30;
                     if (days < 9000) {
                         const d = new Date();
                         d.setDate(d.getDate() - days);
@@ -3965,30 +4618,183 @@
 
                 const { data, error } = await query;
                 if (error) throw error;
-                
+
+                _rawFeedbacks = data || [];
                 document.getElementById('feedback-loading').style.display = 'none';
-                const tbody = document.getElementById('feedback-tbody');
-                
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No feedback entries found.</td></tr>';
-                } else {
-                    data.forEach(item => {
-                        const tr = document.createElement('tr');
-                        const ts = new Date(item.created_at).toLocaleString('fi-FI');
-                        tr.innerHTML = `
-                            <td>${ts}</td>
-                            <td><span class="badge ${item.user_id !== 'guest' ? 'registered' : 'guest'}">${item.user_id === 'guest' ? 'Guest' : escapeHtml(item.user_id.substring(0,8))+'...'}</span></td>
-                            <td>${escapeHtml(item.page || '-')}</td>
-                            <td style="white-space: pre-wrap; word-break: break-all;">${escapeHtml(item.message)}</td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
+                renderFeedbackBacklog();
             } catch(e) {
                 console.error(e);
                 document.getElementById('feedback-loading').style.display = 'none';
-                document.getElementById('feedback-tbody').innerHTML = '<tr><td colspan="4" style="color:red;text-align:center;">Error loading feedbacks</td></tr>';
+                document.getElementById('feedback-tbody').innerHTML = '<tr><td colspan="5" style="color:red;text-align:center;padding:24px;">Error loading feedbacks from database</td></tr>';
             }
+        }
+
+        function setFeedbackTab(tab) {
+            _currentFeedbackTab = tab;
+            document.querySelectorAll('.fb-tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            renderFeedbackBacklog();
+        }
+
+        function setFeedbackFilter(filter) {
+            _currentFeedbackFilter = filter;
+            document.querySelectorAll('.fb-filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            renderFeedbackBacklog();
+        }
+
+        function updateFeedbackItem(id, key, val) {
+            if (!_feedbackStatuses[id]) {
+                _feedbackStatuses[id] = { status: 'inbox', priority: 'medium', notes: '' };
+            }
+            _feedbackStatuses[id][key] = val;
+            saveFeedbackStatuses();
+            renderFeedbackBacklog();
+        }
+
+        function toggleSelectForBacklog(id) {
+            const current = _feedbackStatuses[id]?.status || 'inbox';
+            const next = (current === 'selected' || current === 'progress') ? 'inbox' : 'selected';
+            updateFeedbackItem(id, 'status', next);
+        }
+
+        function copySelectedForAI() {
+            const selectedItems = _rawFeedbacks.filter(f => {
+                const s = _feedbackStatuses[f.id]?.status;
+                return s === 'selected' || s === 'progress';
+            });
+
+            if (selectedItems.length === 0) {
+                alert('Please select at least one feedback item for your backlog first (click the ☆ icon).');
+                return;
+            }
+
+            let text = `Here are the selected product backlog tasks from user feedbacks to implement:\n\n`;
+            selectedItems.forEach((item, idx) => {
+                const meta = _feedbackStatuses[item.id] || {};
+                const prio = meta.priority ? `[Priority: ${meta.priority.toUpperCase()}]` : '';
+                text += `${idx + 1}. ${prio} ${item.message}\n   (User: ${item.username || item.email || item.user_id}, Page: ${item.page || 'hub'})\n\n`;
+            });
+            text += `Let's implement these tasks step by step.`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copy-ai-btn');
+                if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '✓ Copied to Clipboard!';
+                    btn.style.background = '#2ecc71';
+                    setTimeout(() => {
+                        btn.innerHTML = orig;
+                        btn.style.background = 'var(--sub-red, #E30613)';
+                    }, 2200);
+                }
+            }).catch(e => {
+                prompt('Copy tasks here:', text);
+            });
+        }
+
+        function renderFeedbackBacklog() {
+            const tbody = document.getElementById('feedback-tbody');
+            if (!tbody) return;
+
+            // Calculate stats
+            let inboxCount = 0, selectedCount = 0, progressCount = 0, doneCount = 0;
+            _rawFeedbacks.forEach(item => {
+                const s = _feedbackStatuses[item.id]?.status || 'inbox';
+                if (s === 'selected') selectedCount++;
+                else if (s === 'progress') progressCount++;
+                else if (s === 'done') doneCount++;
+                else inboxCount++;
+            });
+
+            document.getElementById('fb-count-all').textContent = _rawFeedbacks.length;
+            document.getElementById('fb-count-selected').textContent = selectedCount;
+            document.getElementById('fb-count-progress').textContent = progressCount;
+            document.getElementById('fb-count-done').textContent = doneCount;
+
+            // Filter items
+            let filtered = _rawFeedbacks.filter(item => {
+                const meta = _feedbackStatuses[item.id] || { status: 'inbox', priority: 'medium' };
+                const s = meta.status || 'inbox';
+                
+                // Tab filter
+                if (_currentFeedbackTab === 'selected' && s !== 'selected') return false;
+                if (_currentFeedbackTab === 'progress' && s !== 'progress') return false;
+                if (_currentFeedbackTab === 'done' && s !== 'done') return false;
+                if (_currentFeedbackTab === 'inbox' && s !== 'inbox') return false;
+
+                // Category/Priority filter
+                const msgLower = (item.message || '').toLowerCase();
+                if (_currentFeedbackFilter === 'bug' && !msgLower.includes('[bug]')) return false;
+                if (_currentFeedbackFilter === 'idea' && !msgLower.includes('[idea]')) return false;
+                if (_currentFeedbackFilter === 'high' && meta.priority !== 'high') return false;
+
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:36px;color:rgba(255,255,255,0.4);font-size:0.9rem;">No feedbacks found in this view.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            filtered.forEach(item => {
+                const meta = _feedbackStatuses[item.id] || { status: 'inbox', priority: 'medium', notes: '' };
+                const isSelected = meta.status === 'selected' || meta.status === 'progress';
+                const isDone = meta.status === 'done';
+
+                const tr = document.createElement('tr');
+                tr.style.background = isSelected ? 'rgba(227, 6, 19, 0.08)' : (isDone ? 'rgba(46, 204, 113, 0.05)' : 'transparent');
+                tr.style.borderLeft = isSelected ? '3px solid var(--sub-red, #E30613)' : (isDone ? '3px solid #2ecc71' : '3px solid transparent');
+
+                const ts = new Date(item.created_at).toLocaleString('en-US', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+                // Detect Tag
+                let tagBadge = '';
+                const msg = item.message || '';
+                if (msg.toLowerCase().includes('[bug]')) {
+                    tagBadge = `<span style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid rgba(231,76,60,0.4);padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:1px;margin-right:6px;">BUG</span>`;
+                } else if (msg.toLowerCase().includes('[idea]')) {
+                    tagBadge = `<span style="background:rgba(241,196,15,0.2);color:#f1c40f;border:1px solid rgba(241,196,15,0.4);padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:1px;margin-right:6px;">IDEA</span>`;
+                }
+
+                // Clean message
+                const displayMsg = msg.replace(/^\[(Bug|Idea|UX)\]\s*/i, '');
+
+                tr.innerHTML = `
+                    <td style="width: 50px; text-align: center;">
+                        <button onclick="toggleSelectForBacklog('${item.id}')" title="${isSelected ? 'Remove from selected' : 'Select for backlog'}" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:${isSelected ? 'var(--sub-gold, #FFD700)' : 'rgba(255,255,255,0.2)'};transition:transform 0.15s;">
+                            ${isSelected ? '★' : '☆'}
+                        </button>
+                    </td>
+                    <td style="white-space: pre-wrap; word-break: break-word;">
+                        <div style="margin-bottom:4px;">${tagBadge}<strong>${escapeHtml(displayMsg)}</strong></div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.4);display:flex;gap:12px;margin-top:6px;">
+                            <span><i class="far fa-clock"></i> ${ts}</span>
+                            <span><i class="far fa-user"></i> ${escapeHtml(item.username || item.email || (item.user_id === 'guest' ? 'Guest' : item.user_id.substring(0,8)+'...'))}</span>
+                            <span><i class="far fa-window-maximize"></i> ${escapeHtml(item.page || 'hub')}</span>
+                        </div>
+                    </td>
+                    <td style="width: 130px;">
+                        <select onchange="updateFeedbackItem('${item.id}', 'priority', this.value)" style="width:100%;background:#18181a;color:#fff;border:1px solid rgba(255,255,255,0.15);padding:5px 8px;border-radius:4px;font-size:11px;font-weight:600;outline:none;">
+                            <option value="high" ${meta.priority==='high'?'selected':''}>🔴 High</option>
+                            <option value="medium" ${(!meta.priority || meta.priority==='medium')?'selected':''}>🟡 Medium</option>
+                            <option value="low" ${meta.priority==='low'?'selected':''}>🟢 Low</option>
+                        </select>
+                    </td>
+                    <td style="width: 150px;">
+                        <select onchange="updateFeedbackItem('${item.id}', 'status', this.value)" style="width:100%;background:#18181a;color:#fff;border:1px solid ${isSelected ? 'var(--sub-red, #E30613)' : (isDone ? '#2ecc71' : 'rgba(255,255,255,0.15)')};padding:5px 8px;border-radius:4px;font-size:11px;font-weight:600;outline:none;">
+                            <option value="inbox" ${meta.status==='inbox'?'selected':''}>📥 Inbox</option>
+                            <option value="selected" ${meta.status==='selected'?'selected':''}>🎯 Selected (Todo)</option>
+                            <option value="progress" ${meta.status==='progress'?'selected':''}>⏳ In Progress</option>
+                            <option value="done" ${meta.status==='done'?'selected':''}>✅ Done</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         function closeFeedbackModal() {
@@ -3996,30 +4802,110 @@
         }
     </script>
 
-    <!-- Feedback Modal -->
-    <div id="feedback-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center; padding: 20px; box-sizing: border-box;">
-        <div style="background:var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; width:100%; max-width: 900px; max-height: 80vh; display: flex; flex-direction: column;">
-            <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin:0; font-size: 1.25rem; color: var(--accent-yellow);"><i class="fas fa-comment-dots"></i> Käyttäjäpalautteet (User Feedbacks)</h2>
-                <button onclick="closeFeedbackModal()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.5rem;"><i class="fas fa-times"></i></button>
+    <!-- Feedback & Product Backlog Modal -->
+    <div id="feedback-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding: 16px; box-sizing: border-box; backdrop-filter:blur(6px);">
+        <div style="background:#121316; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; width:100%; max-width: 1100px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+            
+            <!-- Modal Header -->
+            <div style="padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background:#18191d; border-radius: 8px 8px 0 0;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:36px; height:36px; border-radius:6px; background:rgba(227,6,19,0.15); border:1px solid rgba(227,6,19,0.3); display:flex; align-items:center; justify-content:center; color:var(--sub-red, #E30613); font-size:1.1rem;">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div>
+                        <h2 style="margin:0; font-size: 1.15rem; color: #fff; font-weight:700; letter-spacing:0.5px;">Product Backlog & User Feedbacks</h2>
+                        <div style="font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px;">Review user feedback, organize tasks, and curate your product backlog</div>
+                    </div>
+                </div>
+                
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <button id="copy-ai-btn" onclick="copySelectedForAI()" style="background:var(--sub-red, #E30613); color:#fff; border:none; border-radius:4px; padding:8px 14px; font-size:12px; font-weight:700; letter-spacing:0.5px; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(227,6,19,0.4); transition:all 0.2s;">
+                        <i class="fas fa-robot"></i> Copy Selected for AI
+                    </button>
+                    <button onclick="closeFeedbackModal()" style="background:none; border:none; color:rgba(255,255,255,0.5); cursor:pointer; font-size:1.4rem; padding:4px 8px;"><i class="fas fa-times"></i></button>
+                </div>
             </div>
-            <div style="padding: 20px; overflow-y: auto; position: relative;">
-                <div id="feedback-loading" style="text-align: center; padding: 40px; color: var(--accent-yellow); display: none;">
+
+            <!-- Tabs & Filters Bar -->
+            <div style="padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; background:#141518;">
+                
+                <!-- Status Tabs -->
+                <div style="display:flex; gap:6px;">
+                    <button class="fb-tab-btn active" data-tab="all" onclick="setFeedbackTab('all')">All (<span id="fb-count-all">0</span>)</button>
+                    <button class="fb-tab-btn" data-tab="selected" onclick="setFeedbackTab('selected')">🎯 Selected (<span id="fb-count-selected">0</span>)</button>
+                    <button class="fb-tab-btn" data-tab="progress" onclick="setFeedbackTab('progress')">⏳ In Progress (<span id="fb-count-progress">0</span>)</button>
+                    <button class="fb-tab-btn" data-tab="done" onclick="setFeedbackTab('done')">✅ Done (<span id="fb-count-done">0</span>)</button>
+                </div>
+
+                <!-- Tag Filters -->
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <span style="font-size:11px; color:rgba(255,255,255,0.4); text-transform:uppercase; font-weight:600;">Filter:</span>
+                    <button class="fb-filter-btn active" data-filter="all" onclick="setFeedbackFilter('all')">All</button>
+                    <button class="fb-filter-btn" data-filter="bug" onclick="setFeedbackFilter('bug')">🐛 Bugs</button>
+                    <button class="fb-filter-btn" data-filter="idea" onclick="setFeedbackFilter('idea')">💡 Ideas</button>
+                    <button class="fb-filter-btn" data-filter="high" onclick="setFeedbackFilter('high')">🔴 High Priority</button>
+                </div>
+            </div>
+
+            <style>
+                .fb-tab-btn {
+                    background: transparent;
+                    color: rgba(255,255,255,0.6);
+                    border: 1px solid rgba(255,255,255,0.12);
+                    border-radius: 4px;
+                    padding: 6px 12px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .fb-tab-btn:hover { background: rgba(255,255,255,0.06); color:#fff; }
+                .fb-tab-btn.active {
+                    background: rgba(255,255,255,0.12);
+                    color: #fff;
+                    border-color: rgba(255,255,255,0.3);
+                }
+                .fb-filter-btn {
+                    background: #1c1d22;
+                    color: rgba(255,255,255,0.55);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 3px;
+                    padding: 4px 8px;
+                    font-size: 11px;
+                    cursor: pointer;
+                }
+                .fb-filter-btn:hover { color:#fff; }
+                .fb-filter-btn.active {
+                    background: rgba(241, 196, 15, 0.15);
+                    color: var(--sub-gold, #FFD700);
+                    border-color: rgba(241, 196, 15, 0.4);
+                }
+            </style>
+
+            <!-- Table Body -->
+            <div style="padding: 16px 20px; overflow-y: auto; flex:1; position: relative;">
+                <div id="feedback-loading" style="text-align: center; padding: 40px; color: var(--sub-gold, #FFD700); display: none;">
                     <i class="fas fa-circle-notch fa-spin fa-2x"></i>
                 </div>
-                <table style="width: 100%;">
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0 6px;">
                     <thead>
-                        <tr>
-                            <th style="width: 180px;">Aika (Time)</th>
-                            <th style="width: 120px;">Käyttäjä (User)</th>
-                            <th style="width: 120px;">Sivu (Page)</th>
-                            <th>Palaute (Message)</th>
+                        <tr style="color: rgba(255,255,255,0.4); font-size:11px; text-transform:uppercase; letter-spacing:1px;">
+                            <th style="width: 40px; text-align:center;">Select</th>
+                            <th>Feedback / Task</th>
+                            <th style="width: 130px;">Priority</th>
+                            <th style="width: 150px;">Status</th>
                         </tr>
                     </thead>
                     <tbody id="feedback-tbody">
                         <!-- Loaded dynamically -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Footer info -->
+            <div style="padding: 10px 20px; border-top: 1px solid rgba(255,255,255,0.08); background:#141518; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:rgba(255,255,255,0.4); border-radius: 0 0 8px 8px;">
+                <div>💡 Tip: Click the star <strong>☆</strong> to select items for development, then click <strong>"Copy Selected for AI"</strong>!</div>
+                <button onclick="openFeedbackModal(true)" style="background:none; border:none; color:rgba(255,255,255,0.6); cursor:pointer; font-size:11px;"><i class="fas fa-sync-alt"></i> Refresh Feedbacks</button>
             </div>
         </div>
     </div>

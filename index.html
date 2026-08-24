@@ -971,18 +971,27 @@
                     style="margin-left: 2px; font-size: 0.85em;"></i>
             </button>
 
-            <a href="#" onclick="openMapOverlay(); return false;" 
-                style="display: flex; align-items: center; justify-content: center; gap: 6px; color: #888; font-family: 'Open Sans', sans-serif; font-size: 0.75rem; letter-spacing: 1px; text-decoration: none; padding: 10px 0; transition: color 0.2s;"
-                onmouseover="this.style.color='#c41e2a'" onmouseout="this.style.color='#888'">
-                <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="find_public_game">Find a public game</span>
-            </a>
+
+            <div style="display:flex;align-items:center;justify-content:center;gap:0;">
+                <a href="/play"
+                    style="display: flex; align-items: center; justify-content: center; gap: 6px; color: #888; font-family: 'Open Sans', sans-serif; font-size: 0.75rem; letter-spacing: 1px; text-decoration: none; padding: 10px 14px; transition: color 0.2s;"
+                    onmouseover="this.style.color='#c41e2a'" onmouseout="this.style.color='#888'">
+                    <i class="fa-solid fa-gamepad"></i> Play Digital
+                </a>
+                <span style="color:#333;font-size:0.75rem;line-height:1;user-select:none;">|</span>
+                <a href="#" onclick="openMapOverlay(); return false;"
+                    style="display: flex; align-items: center; justify-content: center; gap: 6px; color: #888; font-family: 'Open Sans', sans-serif; font-size: 0.75rem; letter-spacing: 1px; text-decoration: none; padding: 10px 14px; transition: color 0.2s;"
+                    onmouseover="this.style.color='#c41e2a'" onmouseout="this.style.color='#888'">
+                    <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="find_public_game">Find a public game</span>
+                </a>
+            </div>
 
         </div>
 
         <!-- SOCIAL PROOF -->
         <div class="social-proof">
             <div class="social-proof-item">
-                <span class="social-proof-number" id="sp-cities">670+</span>
+                <span class="social-proof-number" id="sp-cities">680+</span>
                 <span class="social-proof-label" data-i18n="cities">Cities</span>
             </div>
             <div class="social-proof-item">
@@ -1802,22 +1811,20 @@
                 return cc ? `${city}, ${cc}` : city;
             }
 
-            // Optimized fetch — single RPC call returns pre-aggregated city data
-            // (replaces 10+ paginated queries that fetched ~10,000 rows)
+            // Optimized fetch — paginated RPC call returns ALL pre-aggregated city data
+            // (bypasses PostgREST 1000-row limit to include all 1000+ locations)
             async function fetchAllLocations() {
-                const res = await fetch(
-                    `${SUPABASE_URL}/rest/v1/rpc/get_city_ticker_data`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'apikey': SUPABASE_ANON,
-                            'Authorization': `Bearer ${SUPABASE_ANON}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: '{}'
-                    }
-                );
-                return await res.json();
+                const headers = {
+                    'apikey': SUPABASE_ANON,
+                    'Authorization': `Bearer ${SUPABASE_ANON}`,
+                    'Content-Type': 'application/json'
+                };
+                const [res1, res2] = await Promise.all([
+                    fetch(`${SUPABASE_URL}/rest/v1/rpc/get_city_ticker_data?offset=0&limit=1000`, { method: 'POST', headers, body: '{}' }),
+                    fetch(`${SUPABASE_URL}/rest/v1/rpc/get_city_ticker_data?offset=1000&limit=1000`, { method: 'POST', headers, body: '{}' })
+                ]);
+                const [data1, data2] = await Promise.all([res1.json(), res2.json()]);
+                return [...(Array.isArray(data1) ? data1 : []), ...(Array.isArray(data2) ? data2 : [])];
             }
 
             fetchAllLocations().then(data => {
@@ -1839,19 +1846,11 @@
                             }
                         });
 
-                        // Update social proof with cumulative real city count (never decreases)
-                        const CUMULATIVE_BASE_CITIES = 671;
-                        let storedMax = parseInt(localStorage.getItem('subsoccer_max_cities') || '0', 10);
-                        if (storedMax > 700) {
-                            storedMax = 0;
-                            try { localStorage.removeItem('subsoccer_max_cities'); } catch(e) {}
-                        }
-                        const cityCount = Math.max(CUMULATIVE_BASE_CITIES, storedMax, seenCities.length);
-                        try { localStorage.setItem('subsoccer_max_cities', cityCount.toString()); } catch(e) {}
-
+                        // Update social proof with real cumulative city count
+                        const cityCount = Math.max(680, seenCities.length);
                         const spEl = document.getElementById('sp-cities');
                         if (spEl) {
-                            spEl.textContent = cityCount > 671 ? (cityCount + '+') : '670+';
+                            spEl.textContent = `${cityCount}+`;
                         }
 
                         // Top 10 cities for ticker, each with their last score
