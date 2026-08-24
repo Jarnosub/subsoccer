@@ -43,6 +43,12 @@
   status = 404
   force = true
 
+[[redirects]]
+  from = "/play"
+  to = "/subsoccer-go.html"
+  status = 200
+  force = true
+
 # White Label Brands: /brands/SLUG/ → single brands/index.html
 # Assets (brand.json, images) pass through because they match real files
 [[redirects]]

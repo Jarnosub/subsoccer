@@ -88,18 +88,27 @@ function triggerVictory(playerWon) {
     window.lastP2Score = oppGoals;
     if (window.soundEffects) window.soundEffects.fadeOutMusic(5);
 
-    // Track the finished game in public_tracking for the analytics dashboard
+    // Track the finished game — works both in iframe and standalone /play
     try {
-        if (window.parent && window.parent.supabaseClient) {
-            window.parent.supabaseClient.from('public_tracking').insert({
-                event_type: 'game_finished',
-                game_code: 'MINIGAME-QR',
-                match_score: `${playerGoals}-${oppGoals}`,
-                source_partner: 'promo-qr',
-                user_agent: navigator.userAgent,
-                browser_lang: localStorage.getItem('subsoccer-lang') || (navigator.language || 'en').substring(0, 2).toLowerCase(),
-                session_id: sessionStorage.getItem('subsoccer-session-id') || null
-            }).then(() => console.log('Tracked minigame finish.'));
+        const _trackPayload = {
+            event_type: 'game_finished',
+            game_code: 'MINI-GAME',
+            match_score: `${playerGoals}-${oppGoals}`,
+            source_partner: playerWon ? 'player_win' : 'cpu_win',
+            user_agent: navigator.userAgent.slice(0, 120),
+            client_time: new Date().toISOString()
+        };
+        const _SB_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+        const _SB_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+        // Try parent iframe client first, fallback to direct fetch
+        if (window.parent && window.parent !== window && window.parent.supabaseClient) {
+            window.parent.supabaseClient.from('public_tracking').insert(_trackPayload).catch(() => {});
+        } else {
+            fetch(`${_SB_URL}/rest/v1/public_tracking`, {
+                method: 'POST',
+                headers: { 'apikey': _SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                body: JSON.stringify(_trackPayload)
+            }).catch(() => {});
         }
     } catch(e) {}
 

@@ -594,7 +594,7 @@
 
         #turn-announcement {
             position: absolute;
-            top: 50%;
+            top: 35%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.5);
             font-family: 'SubsoccerLogo', sans-serif;
@@ -1393,7 +1393,6 @@
                     const user = JSON.parse(lsData);
                     document.getElementById('mini-player-name').textContent = user.username ? user.username.toUpperCase() : 'PLAYER';
                     document.getElementById('mini-player-elo').textContent = (user.elo || 1300) + ' ELO';
-
                     if (user.avatar_url) {
                         document.getElementById('mini-player-avatar').src = user.avatar_url;
                     }
@@ -1401,6 +1400,23 @@
             } catch (e) {
                 console.warn('Could not load user data for player card', e);
             }
+
+            // Track page open for retention analytics
+            try {
+                const _SB_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+                const _SB_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+                fetch(`${_SB_URL}/rest/v1/public_tracking`, {
+                    method: 'POST',
+                    headers: { 'apikey': _SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({
+                        event_type: 'app_opened',
+                        game_code: 'MINI-GAME',
+                        source_partner: 'web',
+                        user_agent: navigator.userAgent.slice(0, 120),
+                        client_time: new Date().toISOString()
+                    })
+                }).catch(() => {});
+            } catch(e) {}
         });
     </script>
 <script data-goatcounter="https://subsoccer-pro.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

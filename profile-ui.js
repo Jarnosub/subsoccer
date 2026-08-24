@@ -104,6 +104,15 @@ export function showEditProfile() {
         const el = document.getElementById(id);
         if (el) el.value = val || '';
     });
+
+    // Näytetään nykyinen profiilikuva preview-kentässä heti muokkaustilan auetessa
+    const previewImg = document.getElementById('avatar-preview');
+    if (previewImg) {
+        previewImg.src = state.user.avatar_url || 'placeholder-silhouette-5-wide.png';
+    }
+    // Tyhjennetään tiedostonimi kun muokkaustila avataan uudelleen
+    const fileNameDiv = document.getElementById('avatar-file-name');
+    if (fileNameDiv) fileNameDiv.textContent = '';
 }
 
 /**
