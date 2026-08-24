@@ -3009,8 +3009,22 @@
             const badgeEl = document.getElementById('matches-table-badge');
             if (!data || !tbody) return;
 
-            // Only actual completed matches (instant 1v1 and tournament matches)
-            let matchEvents = data.filter(r => r.event_type === 'game_finished' || r.event_type === 'tournament_match_finished');
+            // Build a lookup map of match_details and tournament_details by session_id & timestamp
+            const detailsMap = {};
+            data.forEach(d => {
+                if ((d.event_type === 'match_details' || d.event_type === 'tournament_details') && d.match_score && d.match_score.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(d.match_score);
+                        const k = d.session_id ? `${d.session_id}_${d.client_time?.slice(0, 16)}` : d.client_time?.slice(0, 16);
+                        if (!detailsMap[k]) detailsMap[k] = parsed;
+                        // Also index by session_id alone for fallback
+                        if (d.session_id && !detailsMap[d.session_id]) detailsMap[d.session_id] = parsed;
+                    } catch(e){}
+                }
+            });
+
+            // Only actual completed matches (instant 1v1, tournament matches, and tournaments)
+            let matchEvents = data.filter(r => r.event_type === 'game_finished' || r.event_type === 'tournament_match_finished' || r.event_type === 'tournament_finished');
 
             const typeFilter = document.getElementById('matches-type-filter')?.value || 'ALL';
             const timeScope = document.getElementById('matches-time-scope')?.value || 'all';
@@ -3032,7 +3046,10 @@
                     const loc = (d.location || '').toLowerCase();
                     const score = (d.match_score || '').toLowerCase();
                     const partner = (d.source_partner || '').toLowerCase();
-                    return city.includes(searchQuery) || loc.includes(searchQuery) || score.includes(searchQuery) || partner.includes(searchQuery);
+                    const k = d.session_id ? `${d.session_id}_${d.client_time?.slice(0, 16)}` : d.client_time?.slice(0, 16);
+                    const det = detailsMap[k] || detailsMap[d.session_id] || {};
+                    const playersStr = `${det.p1 || ''} ${det.p2 || ''} ${(det.participants || []).join(' ')}`.toLowerCase();
+                    return city.includes(searchQuery) || loc.includes(searchQuery) || score.includes(searchQuery) || partner.includes(searchQuery) || playersStr.includes(searchQuery);
                 });
             }
 
@@ -3083,9 +3100,15 @@
 
                 // Match Format badge
                 const isInstant = row.event_type === 'game_finished';
-                const formatBadge = isInstant
-                    ? `<span class="badge match-instant"><i class="fas fa-bolt"></i> Instant 1v1</span>`
-                    : `<span class="badge match-tourney"><i class="fas fa-trophy"></i> Tournament</span>`;
+                const isTourneyFinished = row.event_type === 'tournament_finished';
+                let formatBadge = '';
+                if (isInstant) {
+                    formatBadge = `<span class="badge match-instant"><i class="fas fa-bolt"></i> Instant 1v1</span>`;
+                } else if (isTourneyFinished) {
+                    formatBadge = `<span class="badge" style="background:rgba(255,215,0,0.15);color:var(--accent-yellow);border:1px solid rgba(255,215,0,0.3);"><i class="fas fa-crown"></i> Tourney Complete</span>`;
+                } else {
+                    formatBadge = `<span class="badge match-tourney"><i class="fas fa-trophy"></i> Tournament</span>`;
+                }
 
                 const partnerCode = (row.source_partner || '').toUpperCase();
                 const isSpecialPartner = partnerCode && partnerCode !== 'SOCIAL' && partnerCode !== 'GUEST' && partnerCode !== 'UNKNOWN' && partnerCode !== '';
@@ -3094,6 +3117,16 @@
                     : '';
 
                 const score = row.match_score || '-';
+
+                // Look up player names from match details
+                const k = row.session_id ? `${row.session_id}_${row.client_time?.slice(0, 16)}` : row.client_time?.slice(0, 16);
+                const det = detailsMap[k] || detailsMap[row.session_id] || null;
+                let playersSnippet = '';
+                if (det && det.p1 && det.p2 && det.p1 !== 'P1' && det.p2 !== 'P2') {
+                    playersSnippet = `<div style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin-top:3px;"><i class="fas fa-user-friends" style="font-size:0.65rem; color:var(--accent-blue);"></i> <strong>${escapeHtml(det.p1)}</strong> vs <strong>${escapeHtml(det.p2)}</strong></div>`;
+                } else if (det && det.participants && det.participants.length > 0) {
+                    playersSnippet = `<div style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin-top:3px;"><i class="fas fa-users" style="font-size:0.65rem; color:var(--accent-yellow);"></i> ${det.participants.map(p => escapeHtml(p)).join(', ')}</div>`;
+                }
 
                 tr.innerHTML = `
                     <td>
@@ -3111,6 +3144,7 @@
                             ${formatBadge}
                             ${partnerBadge}
                         </div>
+                        ${playersSnippet}
                     </td>
                     <td style="text-align:right;">
                         <span style="font-weight:bold; font-size:1.15rem; color:var(--accent-yellow); font-family:monospace; letter-spacing:1px; text-shadow:0 0 8px rgba(253,226,147,0.3);">${score}</span>
