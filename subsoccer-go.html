@@ -599,16 +599,27 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time saved to your profile & All-Time Ranking!
   </div>
 
+  <!-- Nickname Entry Box for Guests (saves to Daily Leaderboard) -->
+  <div id="name-entry-box" style="display:none;width:100%;max-width:320px;flex-direction:column;gap:6px;background:rgba(10,12,16,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:10px 12px;box-sizing:border-box;">
+    <div style="font-size:10px;color:rgba(255,255,255,0.7);letter-spacing:1px;text-transform:uppercase;font-weight:700;text-align:center;">
+      Save to Today's Leaderboard:
+    </div>
+    <div style="display:flex;gap:6px;width:100%;">
+      <input type="text" id="player-nickname" maxlength="20" placeholder="Your nickname" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:8px 10px;font-family:'Resolve',sans-serif;font-size:13px;outline:none;">
+      <button id="save-score-btn" style="background:var(--sub-red);color:#fff;border:none;border-radius:2px;padding:8px 12px;font-family:'Resolve',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;">SAVE</button>
+    </div>
+  </div>
+
   <!-- Guest Conversion / Save to Ranking Prompt -->
   <div id="guest-conversion-card" style="display:none;width:100%;max-width:320px;background:rgba(20,24,32,0.9);border:1px solid rgba(255,215,0,0.3);border-radius:6px;padding:12px 14px;box-sizing:border-box;flex-direction:column;gap:8px;text-align:center;backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,0.6);">
     <div id="guest-card-title" style="font-family:'Resolve',sans-serif;font-weight:700;font-size:11px;color:var(--sub-gold);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:6px;">
-      <i class="fa-solid fa-trophy"></i> SAVE TIME TO ALL-TIME RANKING
+      <i class="fa-solid fa-trophy"></i> SAVE TO ALL-TIME RANKING
     </div>
     <div id="guest-card-desc" style="font-size:11px;color:rgba(255,255,255,0.75);line-height:1.35;">
-      Sign up for free to record your time to the <strong>All-Time High Ranking</strong> and get your official Player Card!
+      Sign up for free to record your time permanently to the <strong>All-Time High Ranking</strong> and get your official Player Card!
     </div>
     <a href="/login.html#signup" id="guest-signup-btn" class="auth-pill-btn" style="width:100%;box-sizing:border-box;padding:9px 12px;font-size:11px;justify-content:center;margin-top:2px;border-radius:4px;background:rgba(255,215,0,0.18);border:1px solid var(--sub-gold);font-weight:700;">
-      <span>CREATE PROFILE & SAVE TIME</span> <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i>
+      <span>CREATE PROFILE & CLAIM RANK</span> <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i>
     </a>
   </div>
 
@@ -838,7 +849,7 @@ async function submitScoreWithName(nickname){
       })
     });
     // Refresh leaderboard with new entry
-    setTimeout(fetchLeaderboard, 400);
+    setTimeout(() => fetchLeaderboard(currentLbMode), 400);
   } catch(e){}
 }
 
@@ -2267,9 +2278,17 @@ function endGame(){
           savedBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time <strong>${_matchDuration}s</strong> saved to <strong>${escapeHtml(currentUserProfile.username)}</strong>'s profile & All-Time High Ranking!`;
           savedBadge.style.display = 'block';
         }
+        if(nameBoxEl) nameBoxEl.style.display = 'none';
         if(guestCard) guestCard.style.display = 'none';
+        fetchLeaderboard('all_time');
       } else {
-        // Vieraspelaaja: tuloksen tallentamiseksi pitää luoda profiili / rekisteröityä
+        // GUEST: voi tallentaa tuloksen päivälistalle nimellä, ja rekisteröityä All-Time rankingiin
+        if(nameBoxEl){
+          nameBoxEl.style.display = 'flex';
+          const savedNick = localStorage.getItem('subsoccer_nickname') || '';
+          if(nickEl) nickEl.value = savedNick;
+          if(saveBtn){ saveBtn.textContent = 'SAVE'; saveBtn.disabled = false; }
+        }
         try {
           localStorage.setItem('subsoccer_pending_score', JSON.stringify({
             duration: Number(_matchDuration),
@@ -2280,19 +2299,24 @@ function endGame(){
         } catch(e){}
         if(guestCard) guestCard.style.display = 'flex';
         if(savedBadge) savedBadge.style.display = 'none';
+        fetchLeaderboard('today');
       }
     }
   } else if(sC > sY){
     const oppName = (opponentProfile && opponentProfile.username) ? opponentProfile.username.toUpperCase() : 'OPPONENT';
     r.textContent = gameMode === 'online' ? `${oppName} WINS!` : 'CPU WINS!';
     winner = 'cpu';
+    if(nameBoxEl) nameBoxEl.style.display = 'none';
     const guestCard = document.getElementById('guest-conversion-card');
     if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
+    fetchLeaderboard(currentUserProfile ? 'all_time' : 'today');
   } else {
     r.textContent = 'Draw!';
     winner = 'draw';
+    if(nameBoxEl) nameBoxEl.style.display = 'none';
     const guestCard = document.getElementById('guest-conversion-card');
     if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
+    fetchLeaderboard(currentUserProfile ? 'all_time' : 'today');
   }
 
   s.textContent = sY + ' – ' + sC;
@@ -2677,6 +2701,17 @@ document.getElementById('guest-signup-btn')?.addEventListener('click', () => {
         timestamp: Date.now()
       }));
     } catch(e){}
+  }
+});
+
+document.getElementById('save-score-btn')?.addEventListener('click', () => {
+  const nickInput = document.getElementById('player-nickname');
+  const name = nickInput ? nickInput.value : '';
+  submitScoreWithName(name);
+});
+document.getElementById('player-nickname')?.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    submitScoreWithName(e.target.value);
   }
 });
 
