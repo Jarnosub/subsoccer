@@ -168,125 +168,156 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   border-color: var(--sub-gold);
   color: #ffffff !important;
 }
-/* Matchup Screen & Large Pro Player Card Styles */
-.pro-matchup-card {
-  width: 100%;
-  max-width: 320px;
-  height: 215px;
-  border-radius: 8px;
-  overflow: hidden;
-  position: relative;
+/* Matchup Screen & Official Subsoccer Pro Card Styles */
+.official-pro-card {
+  width: 250px;
+  max-width: 82vw;
+  height: 250px;
+  border-radius: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  background-color: #0a0a0a;
+  background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+  background-size: 4px 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), inset 0 0 12px rgba(212, 175, 55, 0.15);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.75);
-  background: #0d1117;
-  box-sizing: border-box;
-}
-.pro-matchup-card.card-blue {
-  border: 2px solid #0099ff;
-  box-shadow: 0 10px 30px rgba(0, 153, 255, 0.4), 0 0 20px rgba(0, 153, 255, 0.25);
-}
-.pro-matchup-card.card-red {
-  border: 2px solid var(--sub-red);
-  box-shadow: 0 10px 30px rgba(227, 6, 19, 0.45), 0 0 20px rgba(227, 6, 19, 0.25);
-}
-.pro-card-hero {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  background: #11151c;
-  display: flex;
   align-items: center;
-  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.pro-card-avatar {
+.official-pro-card-topbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px 4px;
+  box-sizing: border-box;
+  z-index: 2;
+}
+.official-pro-card-label {
+  font-size: 0.6rem;
+  color: #c41e2a;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: 'Resolve', sans-serif;
+}
+.official-pro-card-crown {
+  color: #c41e2a;
+  font-size: 0.95rem;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8));
+}
+.official-pro-card-photo-area {
+  width: 100%;
+  height: 125px;
+  flex-shrink: 0;
+  background: #151515;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.official-pro-card-photo {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
 }
-.pro-card-placeholder-av {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.12);
+.official-pro-card-placeholder {
+  font-size: 2.4rem;
+  color: #383838;
+}
+.official-pro-card-bottom {
+  width: 100%;
+  padding: 8px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  align-items: flex-start;
+  box-sizing: border-box;
+  justify-content: space-between;
+}
+.official-pro-card-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.official-pro-card-location {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-family: 'Subsoccer', sans-serif;
-  font-size: 36px;
-  color: #fff;
+  gap: 4px;
+  color: #c41e2a;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: 'Resolve', sans-serif;
 }
-.pro-card-nameplate {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 24px 12px 6px;
-  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
+.official-pro-card-subsoccer-badge {
+  background: #c41e2a;
+  color: #fff;
+  font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
+  font-size: 0.7rem;
+  padding: 1px 5px;
+  letter-spacing: 1px;
+  line-height: 1.1;
+  border-radius: 1px;
+}
+.official-pro-card-name {
+  font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
+  font-size: 1.9rem;
+  text-transform: uppercase;
+  color: #fff;
+  margin: 1px 0 3px;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.official-pro-card-footer-row {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
 }
-.pro-card-name {
-  font-family: 'Resolve', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
+.official-pro-card-elo-badge {
+  background: #c41e2a;
   color: #fff;
+  padding: 3px 8px;
+  font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
+  font-weight: normal;
+  font-size: 1.2rem;
+  border-radius: 4px;
+  line-height: 1;
+}
+.official-pro-card-winratio-box {
+  text-align: right;
+}
+.official-pro-card-winratio-label {
+  font-size: 0.55rem;
+  color: #888;
+  font-weight: bold;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-}
-.pro-card-tag {
   font-family: 'Resolve', sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--sub-gold);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  background: rgba(0,0,0,0.65);
-  padding: 2px 6px;
-  border-radius: 2px;
-  border: 1px solid rgba(255,215,0,0.35);
-}
-.pro-card-stats {
-  height: 50px;
-  background: #090b0e;
-  border-top: 2px solid;
-  padding: 6px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-sizing: border-box;
-}
-.card-blue .pro-card-stats { border-top-color: #0099ff; }
-.card-red .pro-card-stats { border-top-color: var(--sub-red); }
-
-.pro-stat-item {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-.pro-stat-label {
-  font-family: 'Resolve', sans-serif;
-  font-size: 8px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.45);
-  letter-spacing: 1px;
   text-transform: uppercase;
 }
-.pro-stat-val {
-  font-family: 'Subsoccer', monospace;
-  font-size: 16px;
+.official-pro-card-winratio-val {
+  font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
+  font-size: 1.2rem;
   color: #fff;
-  line-height: 1.1;
-  letter-spacing: 0.5px;
-}
-.pro-stat-val.gold {
-  color: var(--sub-gold);
+  line-height: 1;
 }
 
 .matchup-vs-container {
@@ -294,21 +325,21 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 6px 0;
+  margin: 4px 0;
   z-index: 10;
 }
 .matchup-vs-text {
   font-family: 'Subsoccer', sans-serif;
-  font-size: 56px;
+  font-size: 48px;
   line-height: 1;
   color: #ffffff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(227, 6, 19, 0.4);
   letter-spacing: 2px;
   animation: pulse-vs 1.2s ease-in-out infinite alternate;
 }
 .matchup-vs-sub {
   font-family: 'Resolve', sans-serif;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.6);
   letter-spacing: 2px;
@@ -326,11 +357,11 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   animation: slide-from-bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 @keyframes slide-from-top {
-  0% { opacity: 0; transform: translateY(-50px); }
+  0% { opacity: 0; transform: translateY(-40px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 @keyframes slide-from-bottom {
-  0% { opacity: 0; transform: translateY(50px); }
+  0% { opacity: 0; transform: translateY(40px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 </style>
@@ -456,38 +487,39 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 </div>
 
 <!-- MP Matchup / Player Cards Screen -->
-<div class="screen" id="mp-matchup" style="display:none;padding:12px 12px 18px;z-index:35;background:linear-gradient(to bottom, #0c1c2b 0%, #152f47 40%, #06090d 48%, #06090d 52%, #5c070d 60%, #290205 100%);flex-direction:column;justify-content:space-between;align-items:center;box-sizing:border-box;">
+<div class="screen" id="mp-matchup" style="display:none;padding:8px 12px 14px;z-index:35;background:linear-gradient(to bottom, #0c1c2b 0%, #152f47 40%, #06090d 48%, #06090d 52%, #5c070d 60%, #290205 100%);flex-direction:column;justify-content:space-between;align-items:center;box-sizing:border-box;">
   <!-- Header title -->
-  <div style="font-family:'Resolve',sans-serif;font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-top:4px;">
+  <div style="font-family:'Resolve',sans-serif;font-size:9px;color:rgba(255,255,255,0.55);letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-top:2px;">
     ONLINE 1 VS 1 MATCHUP
   </div>
 
   <!-- Opponent Card (Top - Blue Side) -->
-  <div id="matchup-opp-card" class="pro-matchup-card card-blue matchup-slide-top">
-    <div class="pro-card-hero">
-      <div id="matchup-opp-av-box" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
-        <div class="pro-card-placeholder-av" id="matchup-opp-av">O</div>
-      </div>
-      <div class="pro-card-nameplate">
-        <div style="display:flex;align-items:center;gap:6px;overflow:hidden;">
-          <span id="matchup-opp-flag" style="font-size:18px;">🇫🇮</span>
-          <span id="matchup-opp-name" class="pro-card-name">OPPONENT</span>
-        </div>
-        <span id="matchup-opp-rank" class="pro-card-tag">PRO</span>
-      </div>
+  <div id="matchup-opp-card" class="official-pro-card matchup-slide-top">
+    <!-- Topbar -->
+    <div class="official-pro-card-topbar">
+      <div class="official-pro-card-label" id="matchup-opp-card-type">PRO CARD // 2026</div>
+      <i class="fa-solid fa-crown official-pro-card-crown"></i>
     </div>
-    <div class="pro-card-stats">
-      <div class="pro-stat-item">
-        <span class="pro-stat-label">LEVEL</span>
-        <span id="matchup-opp-lvl" class="pro-stat-val gold">LVL 1</span>
+    <!-- Photo area -->
+    <div class="official-pro-card-photo-area">
+      <i class="fa-solid fa-user-astronaut official-pro-card-placeholder" id="matchup-opp-placeholder"></i>
+      <img src="" id="matchup-opp-photo" class="official-pro-card-photo" alt="Opponent" style="display:none;" crossorigin="anonymous">
+    </div>
+    <!-- Bottom data -->
+    <div class="official-pro-card-bottom">
+      <div class="official-pro-card-meta-row">
+        <div class="official-pro-card-location">
+          <i class="fa-solid fa-location-dot"></i> <span id="matchup-opp-location">FI</span>
+        </div>
+        <div class="official-pro-card-subsoccer-badge">SUBSOCCER</div>
       </div>
-      <div class="pro-stat-item">
-        <span class="pro-stat-label">GLOBAL ELO</span>
-        <span id="matchup-opp-elo" class="pro-stat-val">1000</span>
-      </div>
-      <div class="pro-stat-item" style="text-align:right;">
-        <span class="pro-stat-label">ROLE</span>
-        <span class="pro-stat-val" style="color:#0099ff;">GUEST</span>
+      <div class="official-pro-card-name" id="matchup-opp-name">OPPONENT</div>
+      <div class="official-pro-card-footer-row">
+        <div class="official-pro-card-elo-badge" id="matchup-opp-elo">1000</div>
+        <div class="official-pro-card-winratio-box">
+          <div class="official-pro-card-winratio-label">WIN RATIO</div>
+          <div class="official-pro-card-winratio-val" id="matchup-opp-winratio">50%</div>
+        </div>
       </div>
     </div>
   </div>
@@ -499,38 +531,39 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   </div>
 
   <!-- You Card (Bottom - Red Side) -->
-  <div id="matchup-you-card" class="pro-matchup-card card-red matchup-slide-bottom">
-    <div class="pro-card-hero">
-      <div id="matchup-you-av-box" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
-        <div class="pro-card-placeholder-av" id="matchup-you-av" style="background:rgba(227,6,19,0.25);">Y</div>
-      </div>
-      <div class="pro-card-nameplate">
-        <div style="display:flex;align-items:center;gap:6px;overflow:hidden;">
-          <span id="matchup-you-flag" style="font-size:18px;">🇫🇮</span>
-          <span id="matchup-you-name" class="pro-card-name">YOU</span>
-        </div>
-        <span id="matchup-you-rank" class="pro-card-tag" style="border-color:rgba(227,6,19,0.5);color:#ff6b6b;">YOU</span>
-      </div>
+  <div id="matchup-you-card" class="official-pro-card matchup-slide-bottom">
+    <!-- Topbar -->
+    <div class="official-pro-card-topbar">
+      <div class="official-pro-card-label" id="matchup-you-card-type">PRO CARD // 2026</div>
+      <i class="fa-solid fa-crown official-pro-card-crown"></i>
     </div>
-    <div class="pro-card-stats">
-      <div class="pro-stat-item">
-        <span class="pro-stat-label">LEVEL</span>
-        <span id="matchup-you-lvl" class="pro-stat-val gold">LVL 1</span>
+    <!-- Photo area -->
+    <div class="official-pro-card-photo-area">
+      <i class="fa-solid fa-user-astronaut official-pro-card-placeholder" id="matchup-you-placeholder"></i>
+      <img src="" id="matchup-you-photo" class="official-pro-card-photo" alt="You" style="display:none;" crossorigin="anonymous">
+    </div>
+    <!-- Bottom data -->
+    <div class="official-pro-card-bottom">
+      <div class="official-pro-card-meta-row">
+        <div class="official-pro-card-location">
+          <i class="fa-solid fa-location-dot"></i> <span id="matchup-you-location">FI</span>
+        </div>
+        <div class="official-pro-card-subsoccer-badge">SUBSOCCER</div>
       </div>
-      <div class="pro-stat-item">
-        <span class="pro-stat-label">GLOBAL ELO</span>
-        <span id="matchup-you-elo" class="pro-stat-val">1000</span>
-      </div>
-      <div class="pro-stat-item" style="text-align:right;">
-        <span class="pro-stat-label">ROLE</span>
-        <span class="pro-stat-val" style="color:var(--sub-red);">YOU</span>
+      <div class="official-pro-card-name" id="matchup-you-name">YOU</div>
+      <div class="official-pro-card-footer-row">
+        <div class="official-pro-card-elo-badge" id="matchup-you-elo">1000</div>
+        <div class="official-pro-card-winratio-box">
+          <div class="official-pro-card-winratio-label">WIN RATIO</div>
+          <div class="official-pro-card-winratio-val" id="matchup-you-winratio">50%</div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Footer status -->
-  <div style="display:flex;align-items:center;gap:8px;font-family:'Resolve',sans-serif;font-size:10px;color:var(--sub-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;">
-    <div style="width:6px;height:6px;border-radius:50%;background:var(--sub-gold);animation:pulse-dot 0.8s infinite;"></div>
+  <div style="display:flex;align-items:center;gap:6px;font-family:'Resolve',sans-serif;font-size:9px;color:var(--sub-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;">
+    <div style="width:5px;height:5px;border-radius:50%;background:var(--sub-gold);animation:pulse-dot 0.8s infinite;"></div>
     GET READY FOR KICKOFF...
   </div>
 </div>
@@ -1228,13 +1261,20 @@ function interpolateBall(){
 let opponentProfile = null;
 
 function getMyProfilePayload(){
+  const w = currentUserProfile ? (currentUserProfile.wins || 0) : 0;
+  const l = currentUserProfile ? (currentUserProfile.losses || 0) : 0;
+  const total = w + l;
+  const winRatio = total > 0 ? Math.round((w / total) * 100) + '%' : '0%';
   return {
     username: (currentUserProfile && currentUserProfile.username) ? currentUserProfile.username : 'GUEST',
     avatar_url: (currentUserProfile && currentUserProfile.avatar_url) ? currentUserProfile.avatar_url : null,
     country: (currentUserProfile && currentUserProfile.country) ? currentUserProfile.country : _playerCountry || 'FI',
     level: (currentUserProfile && currentUserProfile.level) ? currentUserProfile.level : 1,
     elo: (currentUserProfile && currentUserProfile.elo) ? currentUserProfile.elo : 1000,
-    rank: (currentUserProfile && currentUserProfile.rank) ? currentUserProfile.rank : 'ROOKIE'
+    rank: (currentUserProfile && currentUserProfile.rank) ? currentUserProfile.rank : 'ROOKIE',
+    wins: w,
+    losses: l,
+    winRatio: winRatio
   };
 }
 
@@ -1245,50 +1285,55 @@ function showMatchupScreen(oppData, onComplete){
     country: 'FI',
     level: 1,
     elo: 1000,
-    rank: 'GUEST'
+    rank: 'GUEST',
+    wins: 0,
+    losses: 0,
+    winRatio: '0%'
   };
 
   const myData = getMyProfilePayload();
 
-  // Populate You Card
-  const youAvBox = document.getElementById('matchup-you-av-box');
-  if(youAvBox){
-    if(myData.avatar_url){
-      youAvBox.innerHTML = `<img src="${myData.avatar_url}" class="pro-card-avatar" alt="Avatar">`;
-    } else {
-      youAvBox.innerHTML = `<div class="pro-card-placeholder-av" id="matchup-you-av" style="background:rgba(227,6,19,0.25);">${myData.username.charAt(0).toUpperCase()}</div>`;
-    }
+  // Populate You Card (Official Subsoccer Pro Card)
+  const youPhoto = document.getElementById('matchup-you-photo');
+  const youPlaceholder = document.getElementById('matchup-you-placeholder');
+  if(myData.avatar_url && myData.avatar_url.trim()){
+    if(youPhoto){ youPhoto.src = myData.avatar_url; youPhoto.style.display = 'block'; }
+    if(youPlaceholder) youPlaceholder.style.display = 'none';
+  } else {
+    if(youPhoto) youPhoto.style.display = 'none';
+    if(youPlaceholder) youPlaceholder.style.display = 'block';
   }
   const youName = document.getElementById('matchup-you-name');
   if(youName) youName.textContent = myData.username.toUpperCase();
-  const youFlag = document.getElementById('matchup-you-flag');
-  if(youFlag) youFlag.textContent = getFlagEmoji(myData.country);
-  const youLvl = document.getElementById('matchup-you-lvl');
-  if(youLvl) youLvl.textContent = `LVL ${myData.level}`;
+  const youLoc = document.getElementById('matchup-you-location');
+  if(youLoc) youLoc.textContent = (myData.country || 'FI').toUpperCase();
   const youElo = document.getElementById('matchup-you-elo');
   if(youElo) youElo.textContent = `${myData.elo}`;
-  const youRank = document.getElementById('matchup-you-rank');
-  if(youRank) youRank.textContent = myData.rank || 'PRO';
+  const youWinRatio = document.getElementById('matchup-you-winratio');
+  if(youWinRatio) youWinRatio.textContent = myData.winRatio || '0%';
+  const youCardType = document.getElementById('matchup-you-card-type');
+  if(youCardType) youCardType.textContent = myData.rank === 'PRO' ? 'PRO CARD // 2026' : 'ROOKIE CARD // 2026';
 
-  // Populate Opponent Card
-  const oppAvBox = document.getElementById('matchup-opp-av-box');
-  if(oppAvBox){
-    if(opponentProfile.avatar_url){
-      oppAvBox.innerHTML = `<img src="${opponentProfile.avatar_url}" class="pro-card-avatar" alt="Avatar">`;
-    } else {
-      oppAvBox.innerHTML = `<div class="pro-card-placeholder-av" id="matchup-opp-av" style="background:rgba(0,153,255,0.25);">${opponentProfile.username.charAt(0).toUpperCase()}</div>`;
-    }
+  // Populate Opponent Card (Official Subsoccer Pro Card)
+  const oppPhoto = document.getElementById('matchup-opp-photo');
+  const oppPlaceholder = document.getElementById('matchup-opp-placeholder');
+  if(opponentProfile.avatar_url && opponentProfile.avatar_url.trim()){
+    if(oppPhoto){ oppPhoto.src = opponentProfile.avatar_url; oppPhoto.style.display = 'block'; }
+    if(oppPlaceholder) oppPlaceholder.style.display = 'none';
+  } else {
+    if(oppPhoto) oppPhoto.style.display = 'none';
+    if(oppPlaceholder) oppPlaceholder.style.display = 'block';
   }
   const oppName = document.getElementById('matchup-opp-name');
   if(oppName) oppName.textContent = opponentProfile.username.toUpperCase();
-  const oppFlag = document.getElementById('matchup-opp-flag');
-  if(oppFlag) oppFlag.textContent = getFlagEmoji(opponentProfile.country);
-  const oppLvl = document.getElementById('matchup-opp-lvl');
-  if(oppLvl) oppLvl.textContent = `LVL ${opponentProfile.level || 1}`;
+  const oppLoc = document.getElementById('matchup-opp-location');
+  if(oppLoc) oppLoc.textContent = (opponentProfile.country || 'FI').toUpperCase();
   const oppElo = document.getElementById('matchup-opp-elo');
   if(oppElo) oppElo.textContent = `${opponentProfile.elo || 1000}`;
-  const oppRank = document.getElementById('matchup-opp-rank');
-  if(oppRank) oppRank.textContent = opponentProfile.rank || 'PRO';
+  const oppWinRatio = document.getElementById('matchup-opp-winratio');
+  if(oppWinRatio) oppWinRatio.textContent = opponentProfile.winRatio || '0%';
+  const oppCardType = document.getElementById('matchup-opp-card-type');
+  if(oppCardType) oppCardType.textContent = opponentProfile.rank === 'PRO' ? 'PRO CARD // 2026' : 'ROOKIE CARD // 2026';
 
   // Update HUD elements immediately
   const hudOppLbl = document.getElementById('opp-lbl');
