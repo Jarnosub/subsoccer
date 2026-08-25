@@ -1643,10 +1643,10 @@ function draw(){
     ctx.beginPath(); ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2); ctx.fill();
   }
 
-  // ── Side walls (over feet) ──
+  // ── Side walls (over feet, 40% darker frame) ──
   const wt = 8;
   const gd = 14;
-  ctx.fillStyle = '#999999';
+  ctx.fillStyle = '#5c5c5c';
   ctx.fillRect(F.x-wt, F.y-gd, wt, F.h+gd*2);
   ctx.fillRect(F.x+F.w, F.y-gd, wt, F.h+gd*2);
   ctx.fillRect(F.x-wt, F.y-gd, F.gx-F.x+wt, gd);
@@ -1654,8 +1654,8 @@ function draw(){
   ctx.fillRect(F.x-wt, F.y+F.h, F.gx-F.x+wt, gd);
   ctx.fillRect(F.gx+F.gw, F.y+F.h, F.x+F.w-(F.gx+F.gw)+wt, gd);
 
-  // ── Goal crossbars (rendered OVER shoes so shoes slide underneath) ──
-  ctx.fillStyle = '#7a7a7a';
+  // ── Goal crossbars (40% darker, rendered OVER shoes) ──
+  ctx.fillStyle = '#484848';
   ctx.fillRect(F.gx, F.y-gd, F.gw, gd);
   ctx.fillRect(F.gx, F.y+F.h, F.gw, gd);
   // Inner highlight edge on goal bars
