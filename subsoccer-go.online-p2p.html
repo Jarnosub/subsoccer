@@ -472,38 +472,38 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 </div>
 
 <!-- MP Lobby -->
-<div class="screen" id="mp-lobby" style="display:none;gap:14px;">
-  <h1 style="font-size:36px;">ONLINE</h1>
-  <div class="sub">Play with a Friend</div>
-  <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px;">
+<div class="screen" id="mp-lobby" style="display:none;gap:14px;background:#09131a url('/subsoccer-split-bg.png') center center / cover no-repeat;">
+  <h1 style="font-size:36px;text-shadow:0 2px 8px rgba(0,0,0,0.8);">ONLINE</h1>
+  <div class="sub" style="text-shadow:0 1px 4px rgba(0,0,0,0.8);">Play with a Friend</div>
+  <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px;background:rgba(8,12,18,0.7);backdrop-filter:blur(8px);padding:16px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);box-sizing:border-box;">
     <button class="gobtn" id="mp-create-btn">+ Create Match</button>
-    <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:2px;">── OR ──</div>
+    <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:2px;justify-content:center;">── OR ──</div>
     <div style="display:flex;gap:8px;">
       <input id="mp-join-input" type="text" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters"
         style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:14px 12px;font-family:'Resolve',monospace;font-size:22px;font-weight:700;letter-spacing:6px;text-align:center;text-transform:uppercase;outline:none;">
       <button class="gobtn" id="mp-join-btn" style="padding:14px 18px;font-size:0.85rem;width:auto;">Join</button>
     </div>
   </div>
-  <button id="mp-lobby-back" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">← BACK</button>
+  <button id="mp-lobby-back" style="background:transparent;border:none;color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">← BACK</button>
 </div>
 
 <!-- MP Waiting -->
-<div class="screen" id="mp-waiting" style="display:none;gap:16px;">
-  <div style="font-size:48px;">⏳</div>
-  <h1 style="font-size:36px;">WAITING...</h1>
-  <div style="font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-align:center;max-width:280px;line-height:1.4;">Send the link to your friend and the game starts automatically when they join.</div>
-  <button id="mp-share-btn" class="gobtn" style="width:100%;max-width:320px;padding:16px 20px;font-size:1.05rem;">
+<div class="screen" id="mp-waiting" style="display:none;gap:16px;background:#09131a url('/subsoccer-split-bg.png') center center / cover no-repeat;">
+  <div style="font-size:48px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8));">⏳</div>
+  <h1 style="font-size:36px;text-shadow:0 2px 8px rgba(0,0,0,0.8);">WAITING...</h1>
+  <div style="font-size:13px;color:rgba(255,255,255,0.8);letter-spacing:1px;text-align:center;max-width:280px;line-height:1.4;text-shadow:0 1px 4px rgba(0,0,0,0.8);">Send the link to your friend and the game starts automatically when they join.</div>
+  <button id="mp-share-btn" class="gobtn" style="width:100%;max-width:320px;padding:16px 20px;font-size:1.05rem;box-shadow:0 6px 20px rgba(227,6,19,0.4);">
     <i class="fa-solid fa-share-nodes" style="font-size:1.1rem;"></i> Share Game Link
   </button>
-  <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);font-size:12px;">
+  <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.7);font-size:12px;background:rgba(0,0,0,0.45);padding:4px 12px;border-radius:12px;">
     <div style="width:8px;height:8px;border-radius:50%;background:var(--sub-gold);animation:pulse-dot 1.2s ease-in-out infinite;"></div>
     Waiting for opponent...
   </div>
-  <button id="mp-cancel-btn" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">Cancel</button>
+  <button id="mp-cancel-btn" style="background:transparent;border:none;color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">Cancel</button>
 </div>
 
 <!-- MP Matchup / Player Cards Screen (Split Screen Side-by-Side) -->
-<div class="screen" id="mp-matchup" style="display:none;position:fixed;inset:0;z-index:35;background:linear-gradient(to right, #09131a 0%, #0d1b24 50%, #54080e 50%, #690910 100%);flex-direction:column;justify-content:space-between;align-items:center;padding:max(env(safe-area-inset-top,20px),20px) 8px max(env(safe-area-inset-bottom,16px),16px);box-sizing:border-box;overflow:hidden;">
+<div class="screen" id="mp-matchup" style="display:none;position:fixed;inset:0;z-index:35;background:#09131a url('/subsoccer-split-bg.png') center center / cover no-repeat;flex-direction:column;justify-content:space-between;align-items:center;padding:max(env(safe-area-inset-top,20px),20px) 8px max(env(safe-area-inset-bottom,16px),16px);box-sizing:border-box;overflow:hidden;">
   
   <!-- Header Title Badge -->
   <div style="background:rgba(8,12,18,0.75);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);padding:6px 16px;border-radius:4px;z-index:20;margin-top:2vh;">
