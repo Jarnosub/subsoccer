@@ -2,7 +2,7 @@
 
 const TRANSLATIONS = {
     en: {
-        create_profile: "CREATE PROFILE / LOG IN",
+        create_profile: "CREATE PROFILE",
         my_profile: "MY PROFILE",
         highlight_creator: "HIGHLIGHT CREATOR",
         community_feed: "COMMUNITY HIGHLIGHTS",
