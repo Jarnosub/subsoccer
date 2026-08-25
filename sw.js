@@ -29,6 +29,7 @@ const ASSETS = [
     '/fonts/Resolve-RegularNrw.otf',
     // Resurssit
     '/subsoccer_logo.svg',
+    '/subsoccer-go-logo-v3.png',
     '/icon-192.png',
     '/icon-512.png',
     '/subsoccer-teams-ny2.jpg'
