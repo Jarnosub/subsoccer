@@ -98,7 +98,7 @@ describe('MatchService offline integration', () => {
 describe('Service Worker cache config', () => {
     it('should include all critical game files in ASSETS', async () => {
         const fs = await import('fs');
-        const swContent = fs.readFileSync('/Users/jarnosaarinen/subsoccer/sw.js', 'utf-8');
+        const swContent = fs.readFileSync(process.cwd() + '/sw.js', 'utf-8');
 
         // Core files
         expect(swContent).toContain("'/index.html'");
@@ -121,7 +121,7 @@ describe('Service Worker cache config', () => {
 
     it('should have network-only paths for admin pages', async () => {
         const fs = await import('fs');
-        const swContent = fs.readFileSync('/Users/jarnosaarinen/subsoccer/sw.js', 'utf-8');
+        const swContent = fs.readFileSync(process.cwd() + '/sw.js', 'utf-8');
         expect(swContent).toContain("'/moderator'");
         expect(swContent).toContain("'/analytics-dashboard'");
     });
@@ -130,7 +130,7 @@ describe('Service Worker cache config', () => {
 describe('CSS offline styles', () => {
     it('should have offline-bar styles', async () => {
         const fs = await import('fs');
-        const cssContent = fs.readFileSync('/Users/jarnosaarinen/subsoccer/style.css', 'utf-8');
+        const cssContent = fs.readFileSync(process.cwd() + '/style.css', 'utf-8');
         expect(cssContent).toContain('#offline-bar');
         expect(cssContent).toContain('#offline-bar.visible');
         expect(cssContent).toContain('.offline-bar-inner');
@@ -141,7 +141,7 @@ describe('CSS offline styles', () => {
 describe('Script.js offline sync integration', () => {
     it('should import OfflineQueue', async () => {
         const fs = await import('fs');
-        const scriptContent = fs.readFileSync('/Users/jarnosaarinen/subsoccer/script.js', 'utf-8');
+        const scriptContent = fs.readFileSync(process.cwd() + '/script.js', 'utf-8');
         expect(scriptContent).toContain("import { OfflineQueue } from './offline-queue.js'");
         expect(scriptContent).toContain('OfflineQueue.init()');
         expect(scriptContent).toContain('OfflineQueue.syncAll()');
@@ -150,7 +150,7 @@ describe('Script.js offline sync integration', () => {
 
     it('should show/hide offline bar based on connection', async () => {
         const fs = await import('fs');
-        const scriptContent = fs.readFileSync('/Users/jarnosaarinen/subsoccer/script.js', 'utf-8');
+        const scriptContent = fs.readFileSync(process.cwd() + '/script.js', 'utf-8');
         expect(scriptContent).toContain("offline-bar");
         expect(scriptContent).toContain("classList.add('visible')");
         expect(scriptContent).toContain("classList.remove('visible')");
@@ -160,7 +160,7 @@ describe('Script.js offline sync integration', () => {
 describe('Quick match offline support', () => {
     it('should pass offlineQueued to showVictory', async () => {
         const fs = await import('fs');
-        const qmContent = fs.readFileSync('/Users/jarnosaarinen/subsoccer/quick-match.js', 'utf-8');
+        const qmContent = fs.readFileSync(process.cwd() + '/quick-match.js', 'utf-8');
         expect(qmContent).toContain('result.offlineQueued');
         expect(qmContent).toContain('offlineQueued = false');
         expect(qmContent).toContain('victory-offline-msg');
@@ -170,7 +170,7 @@ describe('Quick match offline support', () => {
 describe('Mobile game logic offline support', () => {
     it('should handle offlineQueued result in tournament match recording', async () => {
         const fs = await import('fs');
-        const mglContent = fs.readFileSync('/Users/jarnosaarinen/subsoccer/mobile-game-logic.js', 'utf-8');
+        const mglContent = fs.readFileSync(process.cwd() + '/mobile-game-logic.js', 'utf-8');
         expect(mglContent).toContain('result.offlineQueued');
         expect(mglContent).toContain('Match queued offline');
     });
@@ -180,15 +180,15 @@ describe('File integrity checks', () => {
     it('all modified files should exist and have content', async () => {
         const fs = await import('fs');
         const files = [
-            '/Users/jarnosaarinen/subsoccer/offline-queue.js',
-            '/Users/jarnosaarinen/subsoccer/match-service.js',
-            '/Users/jarnosaarinen/subsoccer/sw.js',
-            '/Users/jarnosaarinen/subsoccer/script.js',
-            '/Users/jarnosaarinen/subsoccer/ui.js',
-            '/Users/jarnosaarinen/subsoccer/style.css',
-            '/Users/jarnosaarinen/subsoccer/quick-match.js',
-            '/Users/jarnosaarinen/subsoccer/mobile-game-logic.js',
-            '/Users/jarnosaarinen/subsoccer/version.js',
+            process.cwd() + '/offline-queue.js',
+            process.cwd() + '/match-service.js',
+            process.cwd() + '/sw.js',
+            process.cwd() + '/script.js',
+            process.cwd() + '/ui.js',
+            process.cwd() + '/style.css',
+            process.cwd() + '/quick-match.js',
+            process.cwd() + '/mobile-game-logic.js',
+            process.cwd() + '/version.js',
         ];
 
         for (const file of files) {
@@ -199,7 +199,7 @@ describe('File integrity checks', () => {
 
     it('backup files should exist', async () => {
         const fs = await import('fs');
-        const backupDir = '/Users/jarnosaarinen/subsoccer/backups/offline-mode-backup-20260606/';
+        const backupDir = process.cwd() + '/backups/offline-mode-backup-20260606/';
         const backups = ['match-service.js', 'script.js', 'sw.js', 'ui.js', 'style.css', 'quick-match.js', 'mobile-game-logic.js'];
         
         for (const file of backups) {
@@ -212,14 +212,14 @@ describe('File integrity checks', () => {
 describe('Syntax validation', () => {
     it('quick-match.js should not have duplicate/garbage code', async () => {
         const fs = await import('fs');
-        const content = fs.readFileSync('/Users/jarnosaarinen/subsoccer/quick-match.js', 'utf-8');
+        const content = fs.readFileSync(process.cwd() + '/quick-match.js', 'utf-8');
         // Check no garbage like "}heer();" which was a previous bug
         expect(content).not.toContain('}heer');
     });
 
     it('match-service.js should have balanced braces', async () => {
         const fs = await import('fs');
-        const content = fs.readFileSync('/Users/jarnosaarinen/subsoccer/match-service.js', 'utf-8');
+        const content = fs.readFileSync(process.cwd() + '/match-service.js', 'utf-8');
         const opens = (content.match(/{/g) || []).length;
         const closes = (content.match(/}/g) || []).length;
         expect(opens).toBe(closes);
@@ -227,7 +227,7 @@ describe('Syntax validation', () => {
 
     it('offline-queue.js should have balanced braces', async () => {
         const fs = await import('fs');
-        const content = fs.readFileSync('/Users/jarnosaarinen/subsoccer/offline-queue.js', 'utf-8');
+        const content = fs.readFileSync(process.cwd() + '/offline-queue.js', 'utf-8');
         const opens = (content.match(/{/g) || []).length;
         const closes = (content.match(/}/g) || []).length;
         expect(opens).toBe(closes);
