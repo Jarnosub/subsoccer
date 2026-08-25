@@ -45,7 +45,7 @@ canvas{display:block;width:100%;height:100%;}
 .av{width:26px;height:26px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;
   font-family:'Resolve',sans-serif;letter-spacing:0.5px;}
-.lbl{font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;font-family:'Resolve',sans-serif;}
+.lbl{font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:1px;font-family:'Resolve',sans-serif;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
 .pts{font-size:32px;color:#fff;font-weight:normal;line-height:1;font-family:'Subsoccer',sans-serif;letter-spacing:1px;}
 .screen{position:fixed;inset:0;background:var(--sub-black);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -288,7 +288,7 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
       Enter name for Daily Leaderboard:
     </div>
     <div style="display:flex;gap:6px;width:100%;">
-      <input type="text" id="player-nickname" maxlength="14" placeholder="Your nickname" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:9px 12px;font-family:'Resolve',sans-serif;font-size:13px;outline:none;">
+      <input type="text" id="player-nickname" maxlength="30" placeholder="Your nickname" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:9px 12px;font-family:'Resolve',sans-serif;font-size:13px;outline:none;">
       <button id="save-score-btn" style="background:var(--sub-red);color:#fff;border:none;border-radius:2px;padding:9px 14px;font-family:'Resolve',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;">SUBMIT</button>
     </div>
   </div>
@@ -582,7 +582,7 @@ async function initUserProfile(){
         currentUserProfile.level = playerLevel;
         // Update HUD
         const myLbl = document.getElementById('my-lbl');
-        if(myLbl) myLbl.textContent = profile.username.slice(0, 10).toUpperCase();
+        if(myLbl) myLbl.textContent = profile.username.toUpperCase();
         const myAv = document.getElementById('my-av');
         if(myAv){
           if(profile.avatar_url && profile.avatar_url.trim()){
