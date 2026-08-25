@@ -596,40 +596,32 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 
   <!-- Auto-saved Badge for Logged In User -->
   <div id="profile-saved-badge" style="display:none;width:100%;max-width:320px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:10px 14px;border-radius:4px;font-family:'Resolve',sans-serif;font-size:12px;font-weight:700;box-sizing:border-box;text-align:center;">
-    <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time saved to your profile!
+    <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time saved to your profile & All-Time Ranking!
   </div>
 
-  <!-- Guest Conversion / Profile Creation Prompt -->
-  <div id="guest-conversion-card" style="display:none;width:100%;max-width:320px;background:rgba(20,24,32,0.85);border:1px solid rgba(255,215,0,0.25);border-radius:6px;padding:12px 14px;box-sizing:border-box;flex-direction:column;gap:8px;text-align:center;backdrop-filter:blur(10px);">
+  <!-- Guest Conversion / Save to Ranking Prompt -->
+  <div id="guest-conversion-card" style="display:none;width:100%;max-width:320px;background:rgba(20,24,32,0.9);border:1px solid rgba(255,215,0,0.3);border-radius:6px;padding:12px 14px;box-sizing:border-box;flex-direction:column;gap:8px;text-align:center;backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,0.6);">
     <div id="guest-card-title" style="font-family:'Resolve',sans-serif;font-weight:700;font-size:11px;color:var(--sub-gold);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:6px;">
-      <i class="fa-solid fa-bolt"></i> GET YOUR OFFICIAL PLAYER CARD
+      <i class="fa-solid fa-trophy"></i> SAVE TIME TO ALL-TIME RANKING
     </div>
-    <div id="guest-card-desc" style="font-size:11px;color:rgba(255,255,255,0.7);line-height:1.35;">
-      Create your free profile to track your official ELO rating, tournament stats, and speedrun ranks!
+    <div id="guest-card-desc" style="font-size:11px;color:rgba(255,255,255,0.75);line-height:1.35;">
+      Sign up for free to record your time to the <strong>All-Time High Ranking</strong> and get your official Player Card!
     </div>
-    <a href="/login.html#signup" id="guest-signup-btn" class="auth-pill-btn" style="width:100%;box-sizing:border-box;padding:8px 12px;font-size:11px;justify-content:center;margin-top:2px;border-radius:4px;background:rgba(255,215,0,0.15);border:1px solid var(--sub-gold);">
-      <span>CREATE FREE PROFILE</span> <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i>
+    <a href="/login.html#signup" id="guest-signup-btn" class="auth-pill-btn" style="width:100%;box-sizing:border-box;padding:9px 12px;font-size:11px;justify-content:center;margin-top:2px;border-radius:4px;background:rgba(255,215,0,0.18);border:1px solid var(--sub-gold);font-weight:700;">
+      <span>CREATE PROFILE & SAVE TIME</span> <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i>
     </a>
   </div>
 
-  <!-- Nickname Entry Box (shown on win for guests) -->
-  <div id="name-entry-box" style="display:none;width:100%;max-width:320px;flex-direction:column;gap:6px;">
-    <div style="font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;font-weight:700;text-align:center;">
-      Enter name for Daily Leaderboard:
-    </div>
-    <div style="display:flex;gap:6px;width:100%;">
-      <input type="text" id="player-nickname" maxlength="30" placeholder="Your nickname" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:9px 12px;font-family:'Resolve',sans-serif;font-size:13px;outline:none;">
-      <button id="save-score-btn" style="background:var(--sub-red);color:#fff;border:none;border-radius:2px;padding:9px 14px;font-family:'Resolve',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;">SUBMIT</button>
-    </div>
-  </div>
-
-  <!-- Daily Leaderboard Card -->
+  <!-- Daily / All-Time Leaderboard Card -->
   <div id="leaderboard-section" style="width:100%;max-width:320px;background:rgba(10,12,16,0.75);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:10px 14px;box-sizing:border-box;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);">
-      <span style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--sub-gold);text-transform:uppercase;display:flex;align-items:center;gap:4px;">
-        🏆 TODAY'S FASTEST WINS
+      <span id="lb-title" style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--sub-gold);text-transform:uppercase;display:flex;align-items:center;gap:4px;">
+        🏆 ALL-TIME HIGH RANKING
       </span>
-      <span id="lb-refresh" style="font-size:10px;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;cursor:pointer;">TOP 10</span>
+      <div style="display:flex;gap:4px;">
+        <button id="lb-tab-alltime" style="background:rgba(255,215,0,0.18);border:1px solid var(--sub-gold);color:#fff;font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;cursor:pointer;">ALL-TIME</button>
+        <button id="lb-tab-today" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;cursor:pointer;">TODAY</button>
+      </div>
     </div>
     <div id="leaderboard-rows" style="display:flex;flex-direction:column;gap:5px;font-family:'Resolve',sans-serif;font-size:12px;min-height:40px;">
       <div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">Loading fastest times...</div>
@@ -753,16 +745,43 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-async function fetchLeaderboard(){
+let currentLbMode = 'all_time';
+
+async function fetchLeaderboard(mode = currentLbMode){
+  currentLbMode = mode;
   const rowsEl = document.getElementById('leaderboard-rows');
+  const allTimeTab = document.getElementById('lb-tab-alltime');
+  const todayTab = document.getElementById('lb-tab-today');
+  const titleEl = document.getElementById('lb-title');
+
+  if(allTimeTab && todayTab){
+    if(mode === 'all_time'){
+      allTimeTab.style.background = 'rgba(255,215,0,0.18)';
+      allTimeTab.style.borderColor = 'var(--sub-gold)';
+      allTimeTab.style.color = '#fff';
+      todayTab.style.background = 'transparent';
+      todayTab.style.borderColor = 'rgba(255,255,255,0.2)';
+      todayTab.style.color = 'rgba(255,255,255,0.5)';
+      if(titleEl) titleEl.innerHTML = '🏆 ALL-TIME HIGH RANKING';
+    } else {
+      todayTab.style.background = 'rgba(255,215,0,0.18)';
+      todayTab.style.borderColor = 'var(--sub-gold)';
+      todayTab.style.color = '#fff';
+      allTimeTab.style.background = 'transparent';
+      allTimeTab.style.borderColor = 'rgba(255,255,255,0.2)';
+      allTimeTab.style.color = 'rgba(255,255,255,0.5)';
+      if(titleEl) titleEl.innerHTML = '🏆 TODAY\'S FASTEST WINS';
+    }
+  }
+
   if(!rowsEl) return;
   try {
-    const res = await fetch('/.netlify/functions/digital-leaderboard?mode=today');
+    const res = await fetch(`/.netlify/functions/digital-leaderboard?mode=${mode}`);
     if(!res.ok) throw new Error('Failed to fetch');
     const data = await res.json();
     renderLeaderboard(data.leaderboard || []);
   } catch(e) {
-    rowsEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">No records yet today. Be the first!</div>';
+    rowsEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">No records yet. Be the first to set a time!</div>';
   }
 }
 
@@ -770,7 +789,7 @@ function renderLeaderboard(list){
   const rowsEl = document.getElementById('leaderboard-rows');
   if(!rowsEl) return;
   if(!list || list.length === 0){
-    rowsEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">No wins recorded yet today. Be the first!</div>';
+    rowsEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">No wins recorded yet. Be the first!</div>';
     return;
   }
 
@@ -939,6 +958,22 @@ async function initUserProfile(){
             </div>
           `;
           startBadge.style.display = 'block';
+        }
+        // Check for pending score from guest game before signup
+        const pendingScoreStr = localStorage.getItem('subsoccer_pending_score');
+        if(pendingScoreStr){
+          try {
+            const pScore = JSON.parse(pendingScoreStr);
+            if(pScore && pScore.duration){
+              _matchDuration = pScore.duration;
+              sY = pScore.score_player || 3;
+              sC = pScore.score_cpu || 0;
+              await submitScoreWithName(profile.username);
+              localStorage.removeItem('subsoccer_pending_score');
+            }
+          } catch(e){
+            console.warn('Pending score save error:', e);
+          }
         }
         return;
       }
@@ -2224,41 +2259,38 @@ function endGame(){
     winner = 'player';
     if(gameMode === 'cpu'){
       const guestCard = document.getElementById('guest-conversion-card');
+      const savedBadge = document.getElementById('profile-saved-badge');
       if(currentUserProfile && currentUserProfile.username){
-        // Automaattinen tallennus kirjautuneelle pelaajalle
+        // Automaattinen tallennus kirjautuneelle pelaajalle All-Time Rankingiin
         submitScoreWithName(currentUserProfile.username);
-        const savedBadge = document.getElementById('profile-saved-badge');
         if(savedBadge){
-          savedBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time saved to <strong>${escapeHtml(currentUserProfile.username)}</strong>'s profile!`;
+          savedBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time <strong>${_matchDuration}s</strong> saved to <strong>${escapeHtml(currentUserProfile.username)}</strong>'s profile & All-Time High Ranking!`;
           savedBadge.style.display = 'block';
         }
-        if(nameBoxEl) nameBoxEl.style.display = 'none';
         if(guestCard) guestCard.style.display = 'none';
       } else {
-        if(nameBoxEl){
-          nameBoxEl.style.display = 'flex';
-          const savedNick = localStorage.getItem('subsoccer_nickname') || '';
-          if(nickEl) nickEl.value = savedNick;
-          if(saveBtn) { saveBtn.textContent = 'SUBMIT'; saveBtn.disabled = false; }
-        }
+        // Vieraspelaaja: tuloksen tallentamiseksi pitää luoda profiili / rekisteröityä
+        try {
+          localStorage.setItem('subsoccer_pending_score', JSON.stringify({
+            duration: Number(_matchDuration),
+            score_player: sY,
+            score_cpu: sC,
+            timestamp: Date.now()
+          }));
+        } catch(e){}
         if(guestCard) guestCard.style.display = 'flex';
-        const savedBadge = document.getElementById('profile-saved-badge');
         if(savedBadge) savedBadge.style.display = 'none';
       }
-    } else if(nameBoxEl){
-      nameBoxEl.style.display = 'none';
     }
   } else if(sC > sY){
     const oppName = (opponentProfile && opponentProfile.username) ? opponentProfile.username.toUpperCase() : 'OPPONENT';
     r.textContent = gameMode === 'online' ? `${oppName} WINS!` : 'CPU WINS!';
     winner = 'cpu';
-    if(nameBoxEl) nameBoxEl.style.display = 'none';
     const guestCard = document.getElementById('guest-conversion-card');
     if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
   } else {
     r.textContent = 'Draw!';
     winner = 'draw';
-    if(nameBoxEl) nameBoxEl.style.display = 'none';
     const guestCard = document.getElementById('guest-conversion-card');
     if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
   }
@@ -2271,8 +2303,8 @@ function endGame(){
 
   document.getElementById('over').style.display = 'flex';
 
-  // Load today's fastest leaderboard (CPU mode only)
-  if(gameMode === 'cpu') fetchLeaderboard();
+  // Load all-time fastest leaderboard (CPU mode only)
+  if(gameMode === 'cpu') fetchLeaderboard('all_time');
 
   // Track result for digital_game_plays (fire-and-forget)
   trackGameResult(winner, sY, sC);
@@ -2647,6 +2679,9 @@ document.getElementById('guest-signup-btn')?.addEventListener('click', () => {
     } catch(e){}
   }
 });
+
+document.getElementById('lb-tab-alltime')?.addEventListener('click', () => fetchLeaderboard('all_time'));
+document.getElementById('lb-tab-today')?.addEventListener('click', () => fetchLeaderboard('today'));
 
 initUserProfile();
 resize();
