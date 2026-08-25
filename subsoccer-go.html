@@ -1568,21 +1568,24 @@ function draw(){
   ctx.beginPath(); ctx.moveTo(F.x, F.cy); ctx.lineTo(F.x+F.w, F.cy); ctx.stroke();
   ctx.setLineDash([]);
 
-  // ── Center circle (100% thicker line) ──
-  const circR = F.w * 0.18;
+  // ── Center circle (15% smaller) ──
+  const circR = F.w * 0.153;
   ctx.strokeStyle = 'rgba(255,255,255,0.4)';
   ctx.lineWidth = 4;
   ctx.beginPath(); ctx.arc(F.cx, F.cy, circR, 0, Math.PI*2); ctx.stroke();
 
   // ── Center spot ──
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.beginPath(); ctx.arc(F.cx, F.cy, 3.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.beginPath(); ctx.arc(F.cx, F.cy, 3, 0, Math.PI*2); ctx.fill();
 
-  // ── Subsoccer logo (20% smaller) ──
+  // ── Subsoccer logo (softened 15% grey blend) ──
   if(logoImg.complete && logoImg.naturalWidth){
     const lw = F.w * 0.224;
     const lh = lw * (logoImg.naturalHeight / logoImg.naturalWidth);
+    ctx.save();
+    ctx.globalAlpha = 0.82;
     ctx.drawImage(logoImg, F.cx - lw/2, F.cy - lh/2, lw, lh);
+    ctx.restore();
   }
 
   // ── Side walls ──
