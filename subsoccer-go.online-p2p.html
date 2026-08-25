@@ -168,6 +168,139 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   border-color: var(--sub-gold);
   color: #ffffff !important;
 }
+/* Matchup Screen & Card Styles */
+.matchup-card {
+  width: 100%;
+  max-width: 340px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-sizing: border-box;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+.matchup-avatar-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #1e2430;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Subsoccer', sans-serif;
+  font-size: 20px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.matchup-avatar-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.matchup-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  text-align: left;
+}
+.matchup-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+.matchup-name {
+  font-family: 'Resolve', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.5px;
+}
+.matchup-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.matchup-badge {
+  font-family: 'Resolve', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sub-gold);
+  letter-spacing: 1px;
+}
+.matchup-elo {
+  font-family: 'Resolve', sans-serif;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.5px;
+}
+.matchup-rank-tag {
+  font-family: 'Resolve', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sub-gold);
+  letter-spacing: 1px;
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.matchup-vs-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+}
+.matchup-vs-text {
+  font-family: 'Subsoccer', sans-serif;
+  font-size: 64px;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px rgba(227, 6, 19, 0.4);
+  letter-spacing: 2px;
+  animation: pulse-vs 1.5s ease-in-out infinite alternate;
+}
+.matchup-vs-sub {
+  font-family: 'Resolve', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+@keyframes pulse-vs {
+  0% { transform: scale(1); text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+  100% { transform: scale(1.08); text-shadow: 0 0 25px rgba(255, 255, 255, 0.8), 0 0 35px rgba(227, 6, 19, 0.6); }
+}
+.matchup-slide-top {
+  animation: slide-from-top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.matchup-slide-bottom {
+  animation: slide-from-bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes slide-from-top {
+  0% { opacity: 0; transform: translateY(-40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-from-bottom {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -288,6 +421,58 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     Waiting for opponent...
   </div>
   <button id="mp-cancel-btn" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">Cancel</button>
+</div>
+
+<!-- MP Matchup / Player Cards Screen -->
+<div class="screen" id="mp-matchup" style="display:none;padding:24px 16px;z-index:35;background:radial-gradient(circle at 50% 50%, #151a24 0%, #06080c 100%);flex-direction:column;justify-content:space-between;align-items:center;box-sizing:border-box;">
+  <!-- Header title -->
+  <div style="font-family:'Resolve',sans-serif;font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-top:10px;">
+    ONLINE 1 VS 1 MATCHUP
+  </div>
+
+  <!-- Opponent Card (Top) -->
+  <div id="matchup-opp-card" class="matchup-card matchup-slide-top">
+    <div class="matchup-avatar-wrap" id="matchup-opp-av">O</div>
+    <div class="matchup-info">
+      <div class="matchup-name-row">
+        <span id="matchup-opp-flag" style="font-size:16px;">🇫🇮</span>
+        <span id="matchup-opp-name" class="matchup-name">OPPONENT</span>
+      </div>
+      <div class="matchup-meta">
+        <span id="matchup-opp-lvl" class="matchup-badge">LVL 1</span>
+        <span id="matchup-opp-elo" class="matchup-elo">ELO 1200</span>
+      </div>
+    </div>
+    <div id="matchup-opp-rank" class="matchup-rank-tag">PRO</div>
+  </div>
+
+  <!-- Center VS Element -->
+  <div class="matchup-vs-container">
+    <div class="matchup-vs-text">VS</div>
+    <div class="matchup-vs-sub">FIRST TO 3 GOALS</div>
+  </div>
+
+  <!-- You Card (Bottom) -->
+  <div id="matchup-you-card" class="matchup-card matchup-slide-bottom">
+    <div class="matchup-avatar-wrap" id="matchup-you-av" style="border-color:var(--sub-red);">Y</div>
+    <div class="matchup-info">
+      <div class="matchup-name-row">
+        <span id="matchup-you-flag" style="font-size:16px;">🇫🇮</span>
+        <span id="matchup-you-name" class="matchup-name">YOU</span>
+      </div>
+      <div class="matchup-meta">
+        <span id="matchup-you-lvl" class="matchup-badge">LVL 1</span>
+        <span id="matchup-you-elo" class="matchup-elo">ELO 1200</span>
+      </div>
+    </div>
+    <div id="matchup-you-rank" class="matchup-rank-tag" style="background:rgba(227,6,19,0.15);border-color:rgba(227,6,19,0.4);color:#ff5e62;">YOU</div>
+  </div>
+
+  <!-- Footer status -->
+  <div style="display:flex;align-items:center;gap:8px;font-family:'Resolve',sans-serif;font-size:11px;color:var(--sub-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">
+    <div style="width:7px;height:7px;border-radius:50%;background:var(--sub-gold);animation:pulse-dot 0.8s infinite;"></div>
+    GET READY FOR KICKOFF...
+  </div>
 </div>
 
 <!-- MP Disconnected -->
@@ -980,19 +1165,112 @@ function interpolateBall(){
   ball.rot = -ballRemote.rot;
 }
 
+let opponentProfile = null;
+
+function getMyProfilePayload(){
+  return {
+    username: (currentUserProfile && currentUserProfile.username) ? currentUserProfile.username : 'GUEST',
+    avatar_url: (currentUserProfile && currentUserProfile.avatar_url) ? currentUserProfile.avatar_url : null,
+    country: (currentUserProfile && currentUserProfile.country) ? currentUserProfile.country : _playerCountry || 'FI',
+    level: (currentUserProfile && currentUserProfile.level) ? currentUserProfile.level : 1,
+    elo: (currentUserProfile && currentUserProfile.elo) ? currentUserProfile.elo : 1000,
+    rank: (currentUserProfile && currentUserProfile.rank) ? currentUserProfile.rank : 'ROOKIE'
+  };
+}
+
+function showMatchupScreen(oppData, onComplete){
+  opponentProfile = oppData || {
+    username: 'OPPONENT',
+    avatar_url: null,
+    country: 'FI',
+    level: 1,
+    elo: 1000,
+    rank: 'GUEST'
+  };
+
+  const myData = getMyProfilePayload();
+
+  // Populate You Card
+  const youAv = document.getElementById('matchup-you-av');
+  if(youAv){
+    if(myData.avatar_url){
+      youAv.innerHTML = `<img src="${myData.avatar_url}" alt="Avatar">`;
+    } else {
+      youAv.textContent = myData.username.charAt(0).toUpperCase();
+    }
+  }
+  const youName = document.getElementById('matchup-you-name');
+  if(youName) youName.textContent = myData.username.toUpperCase();
+  const youFlag = document.getElementById('matchup-you-flag');
+  if(youFlag) youFlag.textContent = getFlagEmoji(myData.country);
+  const youLvl = document.getElementById('matchup-you-lvl');
+  if(youLvl) youLvl.textContent = `LVL ${myData.level}`;
+  const youElo = document.getElementById('matchup-you-elo');
+  if(youElo) youElo.textContent = `ELO ${myData.elo}`;
+  const youRank = document.getElementById('matchup-you-rank');
+  if(youRank) youRank.textContent = myData.rank || 'PRO';
+
+  // Populate Opponent Card
+  const oppAv = document.getElementById('matchup-opp-av');
+  if(oppAv){
+    if(opponentProfile.avatar_url){
+      oppAv.innerHTML = `<img src="${opponentProfile.avatar_url}" alt="Avatar">`;
+    } else {
+      oppAv.textContent = opponentProfile.username.charAt(0).toUpperCase();
+    }
+  }
+  const oppName = document.getElementById('matchup-opp-name');
+  if(oppName) oppName.textContent = opponentProfile.username.toUpperCase();
+  const oppFlag = document.getElementById('matchup-opp-flag');
+  if(oppFlag) oppFlag.textContent = getFlagEmoji(opponentProfile.country);
+  const oppLvl = document.getElementById('matchup-opp-lvl');
+  if(oppLvl) oppLvl.textContent = `LVL ${opponentProfile.level || 1}`;
+  const oppElo = document.getElementById('matchup-opp-elo');
+  if(oppElo) oppElo.textContent = `ELO ${opponentProfile.elo || 1000}`;
+  const oppRank = document.getElementById('matchup-opp-rank');
+  if(oppRank) oppRank.textContent = opponentProfile.rank || 'PRO';
+
+  // Update HUD elements immediately
+  const hudOppLbl = document.getElementById('opp-lbl');
+  if(hudOppLbl) hudOppLbl.textContent = opponentProfile.username.toUpperCase();
+  const hudOppAv = document.getElementById('opp-av');
+  if(hudOppAv){
+    if(opponentProfile.avatar_url){
+      hudOppAv.innerHTML = `<img src="${opponentProfile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+      hudOppAv.textContent = opponentProfile.username.charAt(0).toUpperCase();
+    }
+  }
+
+  showScreen('mp-matchup');
+
+  // Trigger CSS animations on cards
+  const oppCard = document.getElementById('matchup-opp-card');
+  const youCard = document.getElementById('matchup-you-card');
+  if(oppCard){ oppCard.classList.remove('matchup-slide-top'); void oppCard.offsetWidth; oppCard.classList.add('matchup-slide-top'); }
+  if(youCard){ youCard.classList.remove('matchup-slide-bottom'); void youCard.offsetWidth; youCard.classList.add('matchup-slide-bottom'); }
+
+  setTimeout(() => {
+    showScreen(null);
+    if(onComplete) onComplete();
+  }, 2600);
+}
+
 let _joinRetryInterval = null;
 
 function setupChannelHandlers(){
   mpChannel
     .on('broadcast', { event:'join' }, ({ payload }) => {
       if(mpRole === 'host'){
-        // Always acknowledge join so guest knows host received it
-        mpChannel.send({ type:'broadcast', event:'host_ack', payload:{ ok:true } });
+        const oppData = payload && payload.profile ? payload.profile : null;
+        // Always acknowledge join so guest knows host received it, and send own profile
+        mpChannel.send({ type:'broadcast', event:'host_ack', payload:{ ok:true, profile: getMyProfilePayload() } });
         if(!mpConnected){
           mpConnected = true;
-          showScreen(null);
-          startOnlineGame();
-          initWebRTCHost(); // Start P2P direct handshake
+          showMatchupScreen(oppData, () => {
+            startOnlineGame();
+            initWebRTCHost(); // Start P2P direct handshake
+          });
         }
       }
     })
@@ -1001,8 +1279,10 @@ function setupChannelHandlers(){
         if(_joinRetryInterval){ clearInterval(_joinRetryInterval); _joinRetryInterval = null; }
         if(!mpConnected){
           mpConnected = true;
-          showScreen(null);
-          startOnlineGame();
+          const oppData = payload && payload.profile ? payload.profile : null;
+          showMatchupScreen(oppData, () => {
+            startOnlineGame();
+          });
         }
       }
     })
@@ -1041,8 +1321,9 @@ function setupChannelHandlers(){
     .subscribe(async (status) => {
       if(status === 'SUBSCRIBED' && mpRole === 'guest'){
         await mpChannel.track({ role: 'guest' });
-        // Send join immediately and retry every 400ms until host_ack is received (max 15s)
-        mpChannel.send({ type:'broadcast', event:'join', payload:{ role:'guest' } });
+        // Send join immediately with profile and retry every 400ms until host_ack is received (max 15s)
+        const joinPayload = { role: 'guest', profile: getMyProfilePayload() };
+        mpChannel.send({ type:'broadcast', event:'join', payload: joinPayload });
         let attempts = 0;
         if(_joinRetryInterval) clearInterval(_joinRetryInterval);
         _joinRetryInterval = setInterval(() => {
@@ -1052,7 +1333,7 @@ function setupChannelHandlers(){
             _joinRetryInterval = null;
             return;
           }
-          if(mpChannel) mpChannel.send({ type:'broadcast', event:'join', payload:{ role:'guest' } });
+          if(mpChannel) mpChannel.send({ type:'broadcast', event:'join', payload: joinPayload });
         }, 400);
       }
       if(status === 'SUBSCRIBED' && mpRole === 'host'){
@@ -1072,7 +1353,7 @@ function startPingLoop(){
 
 function showScreen(id){
   // Hide all screens
-  ['start','draw','mp-lobby','mp-waiting','mp-disconnected'].forEach(s => {
+  ['start','draw','mp-lobby','mp-waiting','mp-matchup','mp-disconnected'].forEach(s => {
     const el = document.getElementById(s);
     if(el) el.style.display = 'none';
   });
@@ -1123,6 +1404,7 @@ function leaveRoom(){
   mpRole = null;
   mpConnected = false;
   mpRoomCode = null;
+  opponentProfile = null;
   ballRemote = null;
   ballInterp = null;
   const el = document.getElementById('mp-ping');
@@ -1136,7 +1418,7 @@ function leaveRoom(){
 function showMpDisconnected(){
   cleanupWebRTC();
   if(_pingInterval){ clearInterval(_pingInterval); _pingInterval = null; }
-  ['start','draw','mp-lobby','mp-waiting'].forEach(s => {
+  ['start','draw','mp-lobby','mp-waiting','mp-matchup'].forEach(s => {
     const el = document.getElementById(s);
     if(el) el.style.display = 'none';
   });
@@ -1145,11 +1427,17 @@ function showMpDisconnected(){
 }
 
 function startOnlineGame(){
-  // Update HUD labels
+  // Update HUD labels with opponent profile if available
   const lbl = document.getElementById('opp-lbl');
-  if(lbl) lbl.textContent = 'OPP';
+  if(lbl) lbl.textContent = (opponentProfile && opponentProfile.username) ? opponentProfile.username.toUpperCase() : 'OPP';
   const av = document.getElementById('opp-av');
-  if(av) av.textContent = 'O';
+  if(av){
+    if(opponentProfile && opponentProfile.avatar_url){
+      av.innerHTML = `<img src="${opponentProfile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+      av.textContent = (opponentProfile && opponentProfile.username) ? opponentProfile.username.charAt(0).toUpperCase() : 'O';
+    }
+  }
   const pingEl = document.getElementById('mp-ping');
   if(pingEl) pingEl.style.display = 'block';
 
@@ -1272,11 +1560,14 @@ function scoreOnline(who){
 function showGoalOnline(who){
   const el  = document.getElementById('goal');
   const txt = document.getElementById('gtxt');
-  txt.textContent = who==='you' ? 'GOAL!' : 'OPP SCORES';
+  const oppName = (opponentProfile && opponentProfile.username) ? opponentProfile.username.toUpperCase() : 'OPP';
+  txt.textContent = who==='you' ? 'GOAL!' : `${oppName} SCORES`;
   const topPx = who==='you'
     ? F.y + F.h * 0.68
     : F.y + F.h * 0.12;
   el.style.paddingTop = topPx + 'px';
+  el.style.display = 'flex';
+}
   el.style.display = 'flex';
 }
 
@@ -1855,7 +2146,8 @@ function endGame(){
       nameBoxEl.style.display = 'none';
     }
   } else if(sC > sY){
-    r.textContent = gameMode === 'online' ? 'OPP Wins!' : 'CPU Wins!';
+    const oppName = (opponentProfile && opponentProfile.username) ? opponentProfile.username.toUpperCase() : 'OPPONENT';
+    r.textContent = gameMode === 'online' ? `${oppName} WINS!` : 'CPU WINS!';
     winner = 'cpu';
     if(nameBoxEl) nameBoxEl.style.display = 'none';
     const guestCard = document.getElementById('guest-conversion-card');
