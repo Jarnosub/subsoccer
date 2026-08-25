@@ -1822,14 +1822,11 @@ function draw(){
   ctx.fillStyle = 'rgba(255,255,255,0.55)';
   ctx.beginPath(); ctx.arc(F.cx, F.cy, 3, 0, Math.PI*2); ctx.fill();
 
-  // ── Subsoccer logo (softened 15% grey blend) ──
+  // ── Subsoccer logo (solid, 100% opacity) ──
   if(logoImg.complete && logoImg.naturalWidth){
     const lw = F.w * 0.224;
     const lh = lw * (logoImg.naturalHeight / logoImg.naturalWidth);
-    ctx.save();
-    ctx.globalAlpha = 0.82;
     ctx.drawImage(logoImg, F.cx - lw/2, F.cy - lh/2, lw, lh);
-    ctx.restore();
   }
 
   // ── Side walls ──
