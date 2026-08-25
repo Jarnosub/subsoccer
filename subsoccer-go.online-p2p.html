@@ -553,10 +553,12 @@ async function initUserProfile(){
     if(!sb) return;
     const { data: { session } } = await sb.auth.getSession();
     if(session && session.user){
-      const { data: profile } = await sb.from('players').select('id, username, avatar_url, country, elo, wins, losses, level').eq('id', session.user.id).maybeSingle();
+      const { data: profile } = await sb.from('players').select('id, username, avatar_url, country, elo, wins, losses, rank').eq('id', session.user.id).maybeSingle();
       if(profile && profile.username){
         currentUserProfile = profile;
         if(profile.country) _playerCountry = profile.country;
+        const playerLevel = Math.max(1, Math.floor(((profile.wins || 0) * 3 + (profile.losses || 0)) / 5) + 1);
+        currentUserProfile.level = playerLevel;
         // Update HUD
         const myLbl = document.getElementById('my-lbl');
         if(myLbl) myLbl.textContent = profile.username.slice(0, 10).toUpperCase();
@@ -578,9 +580,9 @@ async function initUserProfile(){
               </div>
               <div style="flex:1;text-align:left;overflow:hidden;">
                 <div style="font-family:'Resolve',sans-serif;font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(profile.username)}</div>
-                <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Level ${profile.level || 1} · ELO ${profile.elo || 1000}</div>
+                <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Level ${playerLevel} · ELO ${profile.elo || 1000}</div>
               </div>
-              <span style="font-size:9px;color:var(--sub-gold);font-weight:700;letter-spacing:1px;background:rgba(255,215,0,0.1);padding:3px 6px;border-radius:3px;border:1px solid rgba(255,215,0,0.25);">PRO</span>
+              <span style="font-size:9px;color:var(--sub-gold);font-weight:700;letter-spacing:1px;background:rgba(255,215,0,0.1);padding:3px 6px;border-radius:3px;border:1px solid rgba(255,215,0,0.25);">${profile.rank || 'PRO'}</span>
             </div>
           `;
           startBadge.style.display = 'block';
