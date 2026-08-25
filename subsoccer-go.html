@@ -924,8 +924,8 @@ function initField(){
   F.ctrlY = F.y + F.h;
   pLX = F.x + F.w*0.25;
   pRX = F.x + F.w*0.75;
-  pLY = F.y + F.h - 32;
-  pRY = F.y + F.h - 32;
+  pLY = F.y + F.h - 44;
+  pRY = F.y + F.h - 44;
   targetPLY = pLY;
   targetPRY = pRY;
   cLX = F.x + F.w*0.25;
@@ -947,9 +947,9 @@ function screenToFootX(screenX, side){
 }
 
 function screenToFootY(screenY){
-  // Allow dragging shoe forward up to near the center circle
+  // Allow dragging shoe forward near center circle, or slightly back under crossbar
   const maxForwardY = F.cy + 36;
-  const maxBackY = F.y + F.h - 22;
+  const maxBackY = F.y + F.h - 22; // allows heel to slide subtly under crossbar
   return Math.max(maxForwardY, Math.min(maxBackY, screenY));
 }
 
@@ -1093,7 +1093,7 @@ function doKick(upDist, sideSwipe, footX, footY){
 }
 
 // ─── AI (two feet) ───────────────────────────────────────
-const CPU_Y = () => F.y + 32;
+const CPU_Y = () => F.y + 44;
 
 // Track whether ball was in CPU half last frame (to detect entry)
 let _ballWasInCpuHalf = false;
@@ -1199,7 +1199,7 @@ function drawShoe(cx, cy, img, facing, isLeftOnScreen){
 }
 
 // ─── Physics ─────────────────────────────────────────────
-const PLAYER_Y = () => F.y + F.h - 32;
+const PLAYER_Y = () => F.y + F.h - 44;
 
 function updateBall(){
   ball.x += ball.vx;
