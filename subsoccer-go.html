@@ -103,8 +103,8 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 .draw-icon.locked{animation:rps-lock 0.3s cubic-bezier(.175,.885,.32,1.275) forwards;}
 .draw-name{font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:3px;text-transform:uppercase;
   font-family:'Resolve',sans-serif;font-weight:700;}
-.draw-vs{font-family:'Subsoccer',sans-serif;font-size:28px;color:rgba(255,255,255,0.2);
-  align-self:center;padding-bottom:28px;}
+.draw-vs{font-family:'Subsoccer',sans-serif;font-size:28px;color:#ffffff;
+  align-self:center;padding-bottom:28px;text-shadow:0 0 10px rgba(255,255,255,0.4);opacity:1;}
 .draw-result{font-size:36px;color:#fff;font-family:'Subsoccer',sans-serif;
   letter-spacing:2px;margin-top:28px;opacity:0;transition:opacity 0.35s;text-align:center;}
 .draw-result.show{opacity:1;}
@@ -170,7 +170,14 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     <div class="rule"><span class="rule-num">2</span><div><div class="rule-title">Controls</div><div class="rule-desc">Left half = left foot · Right half = right foot · Swipe up to kick.</div></div></div>
     <div class="rule"><span class="rule-num">3</span><div><div class="rule-title">Daily Speedrun</div><div class="rule-desc">Score 3 goals as fast as possible to claim today's #1 spot!</div></div></div>
   </div>
-  <button class="gobtn" id="bstart" style="max-width:320px;">Kick Off</button>
+  <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;">
+    <button class="gobtn" id="bstart">
+      <i class="fa-solid fa-gamepad" style="font-size:1.15rem;"></i> VS CPU
+    </button>
+    <button class="gobtn gobtn-secondary" id="bstart-online">
+      <i class="fa-solid fa-user-group" style="font-size:1rem;color:var(--sub-gold);"></i> VS FRIEND (ONLINE)
+    </button>
+  </div>
 </div>
 
 <div class="screen" id="draw">
@@ -188,6 +195,45 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   </div>
   <div class="draw-result" id="draw-result"></div>
   <div class="draw-sub" id="draw-sub">kicks off</div>
+</div>
+
+<!-- MP Lobby -->
+<div class="screen" id="mp-lobby" style="display:none;gap:14px;">
+  <h1 style="font-size:36px;">ONLINE</h1>
+  <div class="sub">Play with a Friend</div>
+  <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px;">
+    <button class="gobtn" id="mp-create-btn">+ Create Match</button>
+    <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:2px;">── OR ──</div>
+    <div style="display:flex;gap:8px;">
+      <input id="mp-join-input" type="text" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters"
+        style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:14px 12px;font-family:'Resolve',monospace;font-size:22px;font-weight:700;letter-spacing:6px;text-align:center;text-transform:uppercase;outline:none;">
+      <button class="gobtn" id="mp-join-btn" style="padding:14px 18px;font-size:0.85rem;width:auto;">Join</button>
+    </div>
+  </div>
+  <button id="mp-lobby-back" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">← BACK</button>
+</div>
+
+<!-- MP Waiting -->
+<div class="screen" id="mp-waiting" style="display:none;gap:16px;">
+  <div style="font-size:48px;">⏳</div>
+  <h1 style="font-size:36px;">WAITING...</h1>
+  <div style="font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-align:center;max-width:280px;line-height:1.4;">Send the link to your friend and the game starts automatically when they join.</div>
+  <button id="mp-share-btn" class="gobtn" style="width:100%;max-width:320px;padding:16px 20px;font-size:1.05rem;">
+    <i class="fa-solid fa-share-nodes" style="font-size:1.1rem;"></i> Share Game Link
+  </button>
+  <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);font-size:12px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--sub-gold);animation:pulse-dot 1.2s ease-in-out infinite;"></div>
+    Waiting for opponent...
+  </div>
+  <button id="mp-cancel-btn" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">Cancel</button>
+</div>
+
+<!-- MP Disconnected -->
+<div class="screen" id="mp-disconnected" style="display:none;gap:14px;">
+  <div style="font-size:48px;">📵</div>
+  <h1 style="font-size:28px;">CONNECTION LOST</h1>
+  <div style="font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-align:center;">Opponent left the match</div>
+  <button id="mp-dc-back" class="gobtn" style="max-width:320px;"><i class="fa-solid fa-arrow-left"></i> Back to Menu</button>
 </div>
 
 <div id="over" style="display:none;position:fixed;inset:0;z-index:30;
@@ -271,7 +317,18 @@ let _mpFeetThrottle = 0;
 let _mpStateThrottle = 0;
 let _pingInterval = null;
 let _pingT = 0;
-let _kickPredictionUntil = 0; // client-side prediction: timestamp until prediction is active
+
+// ─── WebRTC P2P Direct DataChannel ────────────────────────
+let rtcPeer    = null;
+let rtcChannel = null;
+let rtcReady   = false;
+const RTC_CONFIG = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' }
+  ]
+};
 
 // Preload Subsoccer logo for field center
 const logoImg = new Image();
@@ -481,7 +538,7 @@ let shX=0, shY=0;
 let pLKick=0, pRKick=0;  // player foot kick anim (0→1→0)
 let cLKick=0, cRKick=0;  // CPU foot kick anim
 
-// ─── Multiplayer helpers ─────────────────────────────────
+// ─── Multiplayer & WebRTC P2P helpers ─────────────────────
 function getSbClient(){
   if(!_sbClient && window.supabase){
     _sbClient = window.supabase.createClient(SB_URL2, SB_ANON);
@@ -497,7 +554,6 @@ function generateRoomCode(){
 }
 
 function normFeet(){
-  // Normalise own foot positions to 0-1 relative to field
   return {
     lx: (pLX - F.x) / F.w,
     ly: (pLY - F.y) / F.h,
@@ -507,8 +563,6 @@ function normFeet(){
 }
 
 function applyOpponentFeet(nf, isFlipped){
-  // Convert normalised feet to screen coords for the opponent
-  // If flipped (guest receiving host feet), we flip 180°
   const lx = isFlipped ? (1 - nf.lx) : nf.lx;
   const ly = isFlipped ? (1 - nf.ly) : nf.ly;
   const rx = isFlipped ? (1 - nf.rx) : nf.rx;
@@ -519,32 +573,257 @@ function applyOpponentFeet(nf, isFlipped){
   opFeet.ry = F.y + ry * F.h;
 }
 
+let _iceQueue = [];
+
+function cleanupWebRTC(){
+  rtcReady = false;
+  _iceQueue = [];
+  if(rtcChannel){
+    try { rtcChannel.close(); } catch(e){}
+    rtcChannel = null;
+  }
+  if(rtcPeer){
+    try { rtcPeer.close(); } catch(e){}
+    rtcPeer = null;
+  }
+}
+
+function setupDataChannel(dc){
+  rtcChannel = dc;
+  dc.binaryType = 'arraybuffer';
+  dc.onopen = () => {
+    rtcReady = true;
+    console.log('⚡ WebRTC DataChannel OPEN — Direct P2P Active!');
+    updatePingDisplay();
+  };
+  dc.onclose = () => {
+    rtcReady = false;
+    console.log('WebRTC DataChannel closed — using Supabase fallback');
+    updatePingDisplay();
+  };
+  dc.onerror = (err) => {
+    console.warn('WebRTC DataChannel error:', err);
+  };
+  dc.onmessage = (evt) => {
+    try {
+      const msg = JSON.parse(evt.data);
+      if(msg && msg.e){
+        handleGameMessage(msg.e, msg.d, true);
+      }
+    } catch(e){}
+  };
+}
+
+async function flushIceQueue(){
+  if(!rtcPeer || !rtcPeer.remoteDescription) return;
+  while(_iceQueue.length > 0){
+    const cand = _iceQueue.shift();
+    try {
+      await rtcPeer.addIceCandidate(new RTCIceCandidate(cand));
+    } catch(e){}
+  }
+}
+
+async function initWebRTCHost(){
+  cleanupWebRTC();
+  try {
+    rtcPeer = new RTCPeerConnection(RTC_CONFIG);
+    const dc = rtcPeer.createDataChannel('game', {
+      ordered: false,
+      maxRetransmits: 0
+    });
+    setupDataChannel(dc);
+
+    rtcPeer.onicecandidate = (evt) => {
+      if(evt.candidate && mpChannel){
+        mpChannel.send({ type:'broadcast', event:'rtc_ice', payload:{ candidate: evt.candidate } });
+      }
+    };
+
+    const offer = await rtcPeer.createOffer();
+    await rtcPeer.setLocalDescription(offer);
+    mpChannel.send({ type:'broadcast', event:'rtc_offer', payload:{ offer } });
+  } catch(err){
+    console.warn('WebRTC Host init error:', err);
+  }
+}
+
+async function handleWebRTCOffer(offer){
+  cleanupWebRTC();
+  try {
+    rtcPeer = new RTCPeerConnection(RTC_CONFIG);
+    rtcPeer.ondatachannel = (evt) => {
+      setupDataChannel(evt.channel);
+    };
+    rtcPeer.onicecandidate = (evt) => {
+      if(evt.candidate && mpChannel){
+        mpChannel.send({ type:'broadcast', event:'rtc_ice', payload:{ candidate: evt.candidate } });
+      }
+    };
+
+    await rtcPeer.setRemoteDescription(new RTCSessionDescription(offer));
+    await flushIceQueue();
+    const answer = await rtcPeer.createAnswer();
+    await rtcPeer.setLocalDescription(answer);
+    mpChannel.send({ type:'broadcast', event:'rtc_answer', payload:{ answer } });
+  } catch(err){
+    console.warn('WebRTC Guest answer error:', err);
+  }
+}
+
+async function handleWebRTCAnswer(answer){
+  if(!rtcPeer) return;
+  try {
+    if(rtcPeer.signalingState !== 'stable'){
+      await rtcPeer.setRemoteDescription(new RTCSessionDescription(answer));
+      await flushIceQueue();
+    }
+  } catch(err){
+    console.warn('WebRTC Host setRemoteDescription error:', err);
+  }
+}
+
+async function handleWebRTCIce(candidate){
+  if(!candidate) return;
+  if(!rtcPeer || !rtcPeer.remoteDescription){
+    _iceQueue.push(candidate);
+    return;
+  }
+  try {
+    await rtcPeer.addIceCandidate(new RTCIceCandidate(candidate));
+  } catch(err){}
+}
+
+function sendNetMessage(event, payload){
+  if(rtcReady && rtcChannel && rtcChannel.readyState === 'open'){
+    try {
+      rtcChannel.send(JSON.stringify({ e: event, d: payload }));
+      return;
+    } catch(err){}
+  }
+  if(mpChannel && mpConnected){
+    mpChannel.send({ type:'broadcast', event, payload });
+  }
+}
+
+function updatePingDisplay(){
+  const el = document.getElementById('mp-ping');
+  if(!el) return;
+  if(mpLatency > 0){
+    el.textContent = mpLatency + 'ms' + (rtcReady ? ' (P2P)' : '');
+    el.style.color = rtcReady ? '#2ecc71' : 'rgba(255,255,255,0.5)';
+    el.title = rtcReady ? 'Direct WebRTC P2P Connection' : 'Supabase Relay Connection';
+  }
+}
+
+function handleGameMessage(event, payload, fromRtc){
+  // If WebRTC is active, ignore duplicate high-rate state events coming from Supabase
+  if(!fromRtc && rtcReady && (event === 'feet' || event === 'game_state' || event === 'ping' || event === 'pong')){
+    return;
+  }
+
+  switch(event){
+    case 'feet':
+      if(!mpConnected) return;
+      applyOpponentFeet(payload, true);
+      break;
+
+    case 'game_state':
+      if(mpRole !== 'guest') return;
+      ballRemote = payload;
+      if(payload.sH !== undefined){
+        const myScore = payload.sG;
+        const oppScore = payload.sH;
+        if(myScore !== sY || oppScore !== sC){
+          sY = myScore; sC = oppScore;
+          document.getElementById('sy').textContent = sY;
+          document.getElementById('sc').textContent = sC;
+        }
+      }
+      break;
+
+    case 'kick':
+      if(mpRole !== 'host' || state !== 'playing') return;
+      const footX = payload.foot === 'left' ? opFeet.lx : opFeet.rx;
+      const footY = payload.foot === 'left' ? opFeet.ly : opFeet.ry;
+      const distX = Math.abs(ball.x - footX);
+      const distY = footY - ball.y;
+      const maxReachX = FW + BALL_R * 3;
+      const maxReachY = 120;
+      if(distX > maxReachX || distY < -30 || distY > maxReachY) return;
+      const ballOff = ball.x - footX;
+      const swipeDir = -(payload.sideSwipe) / (W * 0.5);
+      const aimX = ballOff * 0.5 + swipeDir * F.w * 0.25;
+      const power = Math.min(1, payload.dy / 140);
+      ball.vx = Math.max(-9, Math.min(9, aimX * 0.06));
+      ball.vy = 10 + power * 8; // downward
+      bump(4 + power*5);
+      beep('kick');
+      break;
+
+    case 'goal':
+      if(mpRole !== 'guest') return;
+      const who = payload.scorer === 'host' ? 'opp' : 'you';
+      showGoalOnline(who);
+      break;
+
+    case 'kps_result':
+      if(mpRole !== 'guest') return;
+      document.getElementById('draw').style.display = 'none';
+      resetBall(1);
+      gameStartTime = Date.now();
+      state = 'playing';
+      break;
+
+    case 'game_over':
+      if(mpRole === 'guest'){
+        setTimeout(() => endGame(), 1500);
+      }
+      break;
+
+    case 'rematch_ready':
+      if(!mpConnected) return;
+      const w = document.getElementById('rematch-wait');
+      if(w) w.remove();
+      startOnlineGame();
+      break;
+
+    case 'ping':
+      sendNetMessage('pong', { t: payload.t });
+      break;
+
+    case 'pong':
+      mpLatency = Math.round((Date.now() - payload.t) / 2);
+      updatePingDisplay();
+      break;
+  }
+}
+
 function broadcastFeet(){
-  if(!mpChannel || !mpConnected) return;
+  if(!mpConnected) return;
   const now = Date.now();
-  if(now - _mpFeetThrottle < 50) return; // max 20/s
+  const throttleTime = rtcReady ? 16 : 45; // 60fps on P2P, 22fps on Supabase
+  if(now - _mpFeetThrottle < throttleTime) return;
   _mpFeetThrottle = now;
-  mpChannel.send({ type:'broadcast', event:'feet', payload: normFeet() });
+  sendNetMessage('feet', normFeet());
 }
 
 function broadcastGameState(){
-  if(!mpChannel || !mpConnected || mpRole !== 'host') return;
+  if(!mpConnected || mpRole !== 'host') return;
   const now = Date.now();
-  if(now - _mpStateThrottle < 33) return; // max 30/s
+  const throttleTime = rtcReady ? 16 : 33; // 60fps on P2P, 30fps on Supabase
+  if(now - _mpStateThrottle < throttleTime) return;
   _mpStateThrottle = now;
   _mpSeq++;
-  mpChannel.send({
-    type:'broadcast', event:'game_state',
-    payload:{
-      seq: _mpSeq,
-      bx: (ball.x - F.x) / F.w,
-      by: (ball.y - F.y) / F.h,
-      vx: ball.vx / F.w,
-      vy: ball.vy / F.h,
-      rot: ball.rot,
-      sH: sY,  // host score
-      sG: sC   // guest score (sC used as opponent slot)
-    }
+  sendNetMessage('game_state', {
+    seq: _mpSeq,
+    bx: (ball.x - F.x) / F.w,
+    by: (ball.y - F.y) / F.h,
+    vx: ball.vx / F.w,
+    vy: ball.vy / F.h,
+    rot: ball.rot,
+    sH: sY,
+    sG: sC
   });
 }
 
@@ -555,125 +834,89 @@ function interpolateBall(){
   const tx = F.x + bx * F.w;
   const ty = F.y + by * F.h;
   if(!ballInterp){ ballInterp = {x:tx, y:ty}; ball.x = tx; ball.y = ty; }
-  ball.x += (tx - ball.x) * 0.35;
-  ball.y += (ty - ball.y) * 0.35;
+  // Higher lerp factor when on P2P for instantaneous sync
+  const lerpFactor = rtcReady ? 0.55 : 0.35;
+  ball.x += (tx - ball.x) * lerpFactor;
+  ball.y += (ty - ball.y) * lerpFactor;
   ball.vx = -ballRemote.vx * F.w;
   ball.vy = -ballRemote.vy * F.h;
   ball.rot = -ballRemote.rot;
 }
 
+let _joinRetryInterval = null;
+
 function setupChannelHandlers(){
   mpChannel
     .on('broadcast', { event:'join' }, ({ payload }) => {
-      if(mpRole === 'host' && !mpConnected){
-        mpConnected = true;
+      if(mpRole === 'host'){
+        // Always acknowledge join so guest knows host received it
         mpChannel.send({ type:'broadcast', event:'host_ack', payload:{ ok:true } });
-        showScreen(null);
-        startOnlineGame();
-      }
-    })
-    .on('broadcast', { event:'host_ack' }, ({ payload }) => {
-      if(mpRole === 'guest' && !mpConnected){
-        mpConnected = true;
-        showScreen(null);
-        startOnlineGame();
-      }
-    })
-    .on('broadcast', { event:'feet' }, ({ payload }) => {
-      if(!mpConnected) return;
-      // Host receives guest feet (guest's perspective: not flipped)
-      // Guest receives host feet (needs flip since host is at top from guest's view)
-      applyOpponentFeet(payload, true); // always flip: both players' own feet are at bottom, opponent always at top
-    })
-    .on('broadcast', { event:'game_state' }, ({ payload }) => {
-      if(mpRole !== 'guest') return;
-      ballRemote = payload;
-      // Sync scores
-      if(payload.sH !== undefined){
-        // sH = host score = opponent for guest, sG = guest score = player
-        const myScore = payload.sG;
-        const oppScore = payload.sH;
-        if(myScore !== sY || oppScore !== sC){
-          sY = myScore; sC = oppScore;
-          document.getElementById('sy').textContent = sY;
-          document.getElementById('sc').textContent = sC;
+        if(!mpConnected){
+          mpConnected = true;
+          showScreen(null);
+          startOnlineGame();
+          initWebRTCHost(); // Start P2P direct handshake
         }
       }
     })
-    .on('broadcast', { event:'goal' }, ({ payload }) => {
-      if(mpRole !== 'guest') return;
-      // Host tells us who scored
-      const who = payload.scorer === 'host' ? 'opp' : 'you';
-      showGoalOnline(who);
-    })
-    .on('broadcast', { event:'goal_host_view' }, ({ payload }) => {
-      // Guest-side just shows the animation; scores synced via game_state
-    })
-    .on('broadcast', { event:'kps_result' }, ({ payload }) => {
-      if(mpRole !== 'guest') return;
-      // Guest receives KPS result from host — start playing
-      document.getElementById('draw').style.display = 'none';
-      resetBall(1); // guest always at bottom
-      gameStartTime = Date.now();
-      state = 'playing';
-    })
-    .on('broadcast', { event:'game_over' }, ({ payload }) => {
+    .on('broadcast', { event:'host_ack' }, ({ payload }) => {
       if(mpRole === 'guest'){
-        setTimeout(() => endGame(), 1500);
+        if(_joinRetryInterval){ clearInterval(_joinRetryInterval); _joinRetryInterval = null; }
+        if(!mpConnected){
+          mpConnected = true;
+          showScreen(null);
+          startOnlineGame();
+        }
       }
     })
-    .on('broadcast', { event:'rematch_ready' }, ({ payload }) => {
-      if(!mpConnected) return;
-      // Remove waiting overlay if visible
-      const w = document.getElementById('rematch-wait');
-      if(w) w.remove();
-      if(mpRole === 'host'){
-        // Guest is ready → host starts the game for both
-        startOnlineGame();
-      } else {
-        // Host is ready → guest starts (host will drive KPS)
-        startOnlineGame();
+    .on('broadcast', { event:'rtc_offer' }, ({ payload }) => {
+      if(mpRole === 'guest' && payload.offer){
+        handleWebRTCOffer(payload.offer);
       }
     })
-    .on('broadcast', { event:'kick' }, ({ payload }) => {
-      // Host receives guest kick — apply force to ball using guest's foot position
-      if(mpRole !== 'host' || state !== 'playing') return;
-      const footX = payload.foot === 'left' ? opFeet.lx : opFeet.rx;
-      const footY = payload.foot === 'left' ? opFeet.ly : opFeet.ry;
-      // Generous reach to compensate for network lag (~60ms = ball moves ~6px)
-      const distX = Math.abs(ball.x - footX);
-      const distY = footY - ball.y; // positive = ball above foot (correct for top player)
-      const maxReachX = FW + BALL_R * 3;  // 3x normal reach
-      const maxReachY = 120;              // very forgiving vertically
-      if(distX > maxReachX || distY < -30 || distY > maxReachY) return;
-      const ballOff = ball.x - footX;
-      const swipeDir = -(payload.sideSwipe) / (W * 0.5);
-      const aimX = ballOff * 0.5 + swipeDir * F.w * 0.25;
-      const power = Math.min(1, payload.dy / 140);
-      ball.vx = Math.max(-9, Math.min(9, aimX * 0.06));
-      ball.vy = 10 + power * 8; // downward
-      bump(4 + power*5);
-      beep('kick');
+    .on('broadcast', { event:'rtc_answer' }, ({ payload }) => {
+      if(mpRole === 'host' && payload.answer){
+        handleWebRTCAnswer(payload.answer);
+      }
     })
-    .on('broadcast', { event:'ping' }, ({ payload }) => {
-      mpChannel.send({ type:'broadcast', event:'pong', payload:{ t: payload.t } });
+    .on('broadcast', { event:'rtc_ice' }, ({ payload }) => {
+      if(payload.candidate){
+        handleWebRTCIce(payload.candidate);
+      }
     })
-    .on('broadcast', { event:'pong' }, ({ payload }) => {
-      mpLatency = Math.round((Date.now() - payload.t) / 2);
-      const el = document.getElementById('mp-ping');
-      if(el) el.textContent = mpLatency + 'ms';
-    })
+    .on('broadcast', { event:'feet' }, ({ payload }) => handleGameMessage('feet', payload, false))
+    .on('broadcast', { event:'game_state' }, ({ payload }) => handleGameMessage('game_state', payload, false))
+    .on('broadcast', { event:'goal' }, ({ payload }) => handleGameMessage('goal', payload, false))
+    .on('broadcast', { event:'kps_result' }, ({ payload }) => handleGameMessage('kps_result', payload, false))
+    .on('broadcast', { event:'game_over' }, ({ payload }) => handleGameMessage('game_over', payload, false))
+    .on('broadcast', { event:'rematch_ready' }, ({ payload }) => handleGameMessage('rematch_ready', payload, false))
+    .on('broadcast', { event:'kick' }, ({ payload }) => handleGameMessage('kick', payload, false))
+    .on('broadcast', { event:'ping' }, ({ payload }) => handleGameMessage('ping', payload, false))
+    .on('broadcast', { event:'pong' }, ({ payload }) => handleGameMessage('pong', payload, false))
     .on('presence', { event:'leave' }, ({ leftPresences }) => {
       if(mpConnected && state === 'playing'){
         mpConnected = false;
         state = 'over';
+        cleanupWebRTC();
         showMpDisconnected();
       }
     })
     .subscribe(async (status) => {
       if(status === 'SUBSCRIBED' && mpRole === 'guest'){
         await mpChannel.track({ role: 'guest' });
+        // Send join immediately and retry every 400ms until host_ack is received (max 15s)
         mpChannel.send({ type:'broadcast', event:'join', payload:{ role:'guest' } });
+        let attempts = 0;
+        if(_joinRetryInterval) clearInterval(_joinRetryInterval);
+        _joinRetryInterval = setInterval(() => {
+          attempts++;
+          if(mpConnected || attempts > 35){
+            clearInterval(_joinRetryInterval);
+            _joinRetryInterval = null;
+            return;
+          }
+          if(mpChannel) mpChannel.send({ type:'broadcast', event:'join', payload:{ role:'guest' } });
+        }, 400);
       }
       if(status === 'SUBSCRIBED' && mpRole === 'host'){
         await mpChannel.track({ role: 'host' });
@@ -684,10 +927,10 @@ function setupChannelHandlers(){
 function startPingLoop(){
   if(_pingInterval) clearInterval(_pingInterval);
   _pingInterval = setInterval(() => {
-    if(mpChannel && mpConnected){
-      mpChannel.send({ type:'broadcast', event:'ping', payload:{ t: Date.now() } });
+    if(mpConnected){
+      sendNetMessage('ping', { t: Date.now() });
     }
-  }, 2000);
+  }, 1200);
 }
 
 function showScreen(id){
@@ -736,6 +979,7 @@ async function joinRoom(code){
 }
 
 function leaveRoom(){
+  cleanupWebRTC();
   if(mpChannel){ mpChannel.unsubscribe(); mpChannel = null; }
   if(_pingInterval){ clearInterval(_pingInterval); _pingInterval = null; }
   gameMode = 'cpu';
@@ -753,6 +997,7 @@ function leaveRoom(){
 }
 
 function showMpDisconnected(){
+  cleanupWebRTC();
   if(_pingInterval){ clearInterval(_pingInterval); _pingInterval = null; }
   ['start','draw','mp-lobby','mp-waiting'].forEach(s => {
     const el = document.getElementById(s);
@@ -798,7 +1043,7 @@ function startOnlineGame(){
         gameStartTime = Date.now();
         state='playing';
         // Broadcast KPS result to guest
-        mpChannel.send({ type:'broadcast', event:'kps_result', payload:{ dir } });
+        sendNetMessage('kps_result', { dir });
       });
     }, 600); // 600ms lets guest render the waiting draw screen first
   } else {
@@ -861,7 +1106,7 @@ function scoreOnline(who){
   bump(12);
   beep(who==='you'?'goal':'oops');
   if(mpRole === 'host'){
-    mpChannel.send({ type:'broadcast', event:'goal', payload:{ scorer: who==='you'?'host':'guest' } });
+    sendNetMessage('goal', { scorer: who==='you'?'host':'guest' });
   }
   const done = sY>=WIN || sC>=WIN;
   if(done && gameStartTime && !_matchDuration){
@@ -873,7 +1118,7 @@ function scoreOnline(who){
     hideGoal();
     if(done){
       if(mpRole==='host'){
-        mpChannel.send({ type:'broadcast', event:'game_over', payload:{} });
+        sendNetMessage('game_over', {});
       }
       endGame();
       return;
@@ -1004,10 +1249,9 @@ canvas.addEventListener('touchend', (e) => {
     if(dy > 25 && dy > dx && dt < 500){
       const footX = td.side === 'left' ? pLX : pRX;
       const footY = td.side === 'left' ? pLY : pRY;
-      if(gameMode === 'online' && mpRole === 'guest' && mpChannel && mpConnected){
-        // Broadcast kick to host — host applies authoritative physics
-        mpChannel.send({ type:'broadcast', event:'kick',
-          payload:{ dy, sideSwipe: t.clientX - td.x0, foot: td.side } });
+      if(gameMode === 'online' && mpRole === 'guest' && mpConnected){
+        // Fast direct dispatch to host (via WebRTC DataChannel if open)
+        sendNetMessage('kick', { dy, sideSwipe: t.clientX - td.x0, foot: td.side });
       } else {
         doKick(dy, t.clientX - td.x0, footX, footY);
       }
@@ -1725,7 +1969,7 @@ document.getElementById('bstart').addEventListener('click', startGame);
 document.getElementById('bagain').addEventListener('click', () => {
   if(gameMode === 'online' && mpConnected){
     // Two-phase handshake: both send rematch_ready, host starts when both are ready
-    mpChannel.send({ type:'broadcast', event:'rematch_ready', payload:{ role: mpRole } });
+    sendNetMessage('rematch_ready', { role: mpRole });
     document.getElementById('over').style.display = 'none';
     // Show waiting indicator
     const waitDiv = document.createElement('div');
@@ -1769,6 +2013,73 @@ if(exitBtn){
   exitBtn.addEventListener('click', goHome);
   exitBtn.addEventListener('touchend', goHome);
 }
+
+// Online mode buttons
+document.getElementById('bstart-online').addEventListener('click', () => {
+  createRoom(); // Luo huone suoraan ja näytä jakolinkki
+});
+
+document.getElementById('mp-lobby-back').addEventListener('click', () => {
+  showScreen('start');
+  document.getElementById('start').style.display = 'flex';
+});
+
+document.getElementById('mp-create-btn').addEventListener('click', createRoom);
+
+document.getElementById('mp-join-btn').addEventListener('click', () => {
+  const code = document.getElementById('mp-join-input').value;
+  joinRoom(code);
+});
+
+document.getElementById('mp-join-input').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') joinRoom(document.getElementById('mp-join-input').value);
+});
+
+document.getElementById('mp-cancel-btn').addEventListener('click', () => {
+  leaveRoom();
+  showScreen('start');
+  document.getElementById('start').style.display = 'flex';
+});
+
+document.getElementById('mp-dc-back').addEventListener('click', () => {
+  leaveRoom();
+  showScreen('start');
+  document.getElementById('start').style.display = 'flex';
+});
+
+document.getElementById('mp-share-btn').addEventListener('click', () => {
+  const url = `${window.location.origin}/play?room=${mpRoomCode}`;
+  if(navigator.share){
+    navigator.share({ title:'Subsoccer Go', text:`Join my game! Code: ${mpRoomCode}`, url });
+  } else {
+    navigator.clipboard.writeText(url);
+    document.getElementById('mp-share-btn').textContent = '✓ Link Copied!';
+    setTimeout(() => { document.getElementById('mp-share-btn').textContent = '📤 Share Link'; }, 2000);
+  }
+});
+
+// mp-copy-btn removed from UI
+
+// Check URL for direct room join on load — liity suoraan ilman klikkausta
+(function initAutoJoin(){
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomParam = urlParams.get('room');
+  if(roomParam && roomParam.length >= 4){
+    let retries = 0;
+    const tryJoin = () => {
+      if(window.supabase && typeof window.supabase.createClient === 'function'){
+        joinRoom(roomParam.trim().toUpperCase());
+      } else if(retries < 40){
+        retries++;
+        setTimeout(tryJoin, 75);
+      } else {
+        alert('Could not initialize network. Please refresh the page.');
+      }
+    };
+    // Give browser time to finish initial layout and script init
+    setTimeout(tryJoin, 150);
+  }
+})();
 
 resize();
 loop();
