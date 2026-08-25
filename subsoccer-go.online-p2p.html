@@ -143,8 +143,8 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   <div class="hpanel">
     <a href="/" id="exit-btn" title="Exit" style="pointer-events:auto;color:rgba(255,255,255,0.6);text-decoration:none;font-size:16px;font-weight:700;padding:6px 12px 6px 4px;margin:-6px 0 -6px -10px;line-height:1;display:flex;align-items:center;cursor:pointer;-webkit-tap-highlight-color:rgba(255,255,255,0.2);">✕</a>
     <div style="width:1px;height:18px;background:rgba(255,255,255,0.12);margin-right:4px;"></div>
-    <div class="av" style="background:#e30613">Y</div>
-    <div><div class="lbl">YOU</div><div class="pts" id="sy">0</div></div>
+    <div class="av" style="background:#e30613" id="my-av">Y</div>
+    <div><div class="lbl" id="my-lbl">YOU</div><div class="pts" id="sy">0</div></div>
   </div>
   <div class="hpanel" style="padding:6px 14px;min-width:100px;justify-content:center;">
     <div id="hud-timer" style="font-size:14px;color:rgba(255,255,255,0.85);letter-spacing:1px;font-weight:700;font-family:'Resolve',monospace;">0.0s</div>
@@ -165,6 +165,7 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 <div class="screen" id="start">
   <h1>SUBSOCCER GO</h1>
   <div class="sub">Digital Bench Soccer</div>
+  <div id="user-profile-badge" style="display:none;width:100%;max-width:360px;"></div>
   <div class="card">
     <div class="rule"><span class="rule-num">1</span><div><div class="rule-title">Kick-Off</div><div class="rule-desc">Kick-off is taken inside your own goal area.</div></div></div>
     <div class="rule"><span class="rule-num">2</span><div><div class="rule-title">Controls</div><div class="rule-desc">Left half = left foot · Right half = right foot · Swipe up to kick.</div></div></div>
@@ -254,7 +255,12 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     </div>
   </div>
 
-  <!-- Nickname Entry Box (shown on win) -->
+  <!-- Auto-saved Badge for Logged In User -->
+  <div id="profile-saved-badge" style="display:none;width:100%;max-width:320px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:10px 14px;border-radius:4px;font-family:'Resolve',sans-serif;font-size:12px;font-weight:700;box-sizing:border-box;text-align:center;">
+    <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time saved to your profile!
+  </div>
+
+  <!-- Nickname Entry Box (shown on win for guests) -->
   <div id="name-entry-box" style="display:none;width:100%;max-width:320px;flex-direction:column;gap:6px;">
     <div style="font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;font-weight:700;text-align:center;">
       Enter name for Daily Leaderboard:
@@ -263,6 +269,7 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
       <input type="text" id="player-nickname" maxlength="14" placeholder="Your nickname" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:9px 12px;font-family:'Resolve',sans-serif;font-size:13px;outline:none;">
       <button id="save-score-btn" style="background:var(--sub-red);color:#fff;border:none;border-radius:2px;padding:9px 14px;font-family:'Resolve',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;">SUBMIT</button>
     </div>
+    <a href="/login.html" style="font-size:10px;color:rgba(255,255,255,0.4);text-align:center;text-decoration:none;letter-spacing:0.5px;">Want verified ranking? <span style="color:var(--accent-blue);text-decoration:underline;">Log in</span></a>
   </div>
 
   <!-- Daily Leaderboard Card -->
@@ -537,6 +544,53 @@ let cpuCD=0, cpuReact=0; // cpuReact = frames before CPU reacts to ball in its h
 let shX=0, shY=0;
 let pLKick=0, pRKick=0;  // player foot kick anim (0→1→0)
 let cLKick=0, cRKick=0;  // CPU foot kick anim
+let currentUserProfile = null; // Logged in Subsoccer Pro player profile
+
+// ─── Registered User Profile detection ───────────────────
+async function initUserProfile(){
+  try {
+    const sb = getSbClient();
+    if(!sb) return;
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      const { data: profile } = await sb.from('players').select('id, username, avatar_url, country, elo, wins, losses, level').eq('id', session.user.id).maybeSingle();
+      if(profile && profile.username){
+        currentUserProfile = profile;
+        if(profile.country) _playerCountry = profile.country;
+        // Update HUD
+        const myLbl = document.getElementById('my-lbl');
+        if(myLbl) myLbl.textContent = profile.username.slice(0, 10).toUpperCase();
+        const myAv = document.getElementById('my-av');
+        if(myAv){
+          if(profile.avatar_url && profile.avatar_url.trim()){
+            myAv.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+          } else {
+            myAv.textContent = profile.username.charAt(0).toUpperCase();
+          }
+        }
+        // Update Start Screen Badge
+        const startBadge = document.getElementById('user-profile-badge');
+        if(startBadge){
+          startBadge.innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);padding:8px 12px;border-radius:4px;margin-bottom:12px;width:100%;max-width:360px;box-sizing:border-box;">
+              <div style="width:30px;height:30px;border-radius:50%;background:var(--sub-red);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;color:#fff;flex-shrink:0;">
+                ${profile.avatar_url ? `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;">` : profile.username.charAt(0).toUpperCase()}
+              </div>
+              <div style="flex:1;text-align:left;overflow:hidden;">
+                <div style="font-family:'Resolve',sans-serif;font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(profile.username)}</div>
+                <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">Level ${profile.level || 1} · ELO ${profile.elo || 1000}</div>
+              </div>
+              <span style="font-size:9px;color:var(--sub-gold);font-weight:700;letter-spacing:1px;background:rgba(255,215,0,0.1);padding:3px 6px;border-radius:3px;border:1px solid rgba(255,215,0,0.25);">PRO</span>
+            </div>
+          `;
+          startBadge.style.display = 'block';
+        }
+      }
+    }
+  } catch(e){
+    console.warn('Profile init warning:', e);
+  }
+}
 
 // ─── Multiplayer & WebRTC P2P helpers ─────────────────────
 function getSbClient(){
@@ -1691,11 +1745,24 @@ function endGame(){
   if(sY > sC){
     r.textContent = gameMode === 'online' ? 'You Win!' : 'You Win!';
     winner = 'player';
-    if(nameBoxEl && gameMode === 'cpu'){
-      nameBoxEl.style.display = 'flex';
-      const savedNick = localStorage.getItem('subsoccer_nickname') || '';
-      if(nickEl) nickEl.value = savedNick;
-      if(saveBtn) { saveBtn.textContent = 'SUBMIT'; saveBtn.disabled = false; }
+    if(gameMode === 'cpu'){
+      if(currentUserProfile && currentUserProfile.username){
+        // Automaattinen tallennus kirjautuneelle pelaajalle
+        submitScoreWithName(currentUserProfile.username);
+        const savedBadge = document.getElementById('profile-saved-badge');
+        if(savedBadge){
+          savedBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time saved to <strong>${escapeHtml(currentUserProfile.username)}</strong>'s profile!`;
+          savedBadge.style.display = 'block';
+        }
+        if(nameBoxEl) nameBoxEl.style.display = 'none';
+      } else if(nameBoxEl){
+        nameBoxEl.style.display = 'flex';
+        const savedNick = localStorage.getItem('subsoccer_nickname') || '';
+        if(nickEl) nickEl.value = savedNick;
+        if(saveBtn) { saveBtn.textContent = 'SUBMIT'; saveBtn.disabled = false; }
+        const savedBadge = document.getElementById('profile-saved-badge');
+        if(savedBadge) savedBadge.style.display = 'none';
+      }
     } else if(nameBoxEl){
       nameBoxEl.style.display = 'none';
     }
@@ -2081,6 +2148,7 @@ document.getElementById('mp-share-btn').addEventListener('click', () => {
   }
 })();
 
+initUserProfile();
 resize();
 loop();
 </script>
