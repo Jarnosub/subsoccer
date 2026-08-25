@@ -170,14 +170,7 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     <div class="rule"><span class="rule-num">2</span><div><div class="rule-title">Controls</div><div class="rule-desc">Left half = left foot · Right half = right foot · Swipe up to kick.</div></div></div>
     <div class="rule"><span class="rule-num">3</span><div><div class="rule-title">Daily Speedrun</div><div class="rule-desc">Score 3 goals as fast as possible to claim today's #1 spot!</div></div></div>
   </div>
-  <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;">
-    <button class="gobtn" id="bstart">
-      <i class="fa-solid fa-gamepad" style="font-size:1.15rem;"></i> VS CPU
-    </button>
-    <button class="gobtn gobtn-secondary" id="bstart-online">
-      <i class="fa-solid fa-user-group" style="font-size:1rem;color:var(--sub-gold);"></i> VS FRIEND (ONLINE)
-    </button>
-  </div>
+  <button class="gobtn" id="bstart" style="max-width:320px;">Kick Off</button>
 </div>
 
 <div class="screen" id="draw">
@@ -195,45 +188,6 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   </div>
   <div class="draw-result" id="draw-result"></div>
   <div class="draw-sub" id="draw-sub">kicks off</div>
-</div>
-
-<!-- MP Lobby -->
-<div class="screen" id="mp-lobby" style="display:none;gap:14px;">
-  <h1 style="font-size:36px;">ONLINE</h1>
-  <div class="sub">Play with a Friend</div>
-  <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px;">
-    <button class="gobtn" id="mp-create-btn">+ Create Match</button>
-    <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:2px;">── OR ──</div>
-    <div style="display:flex;gap:8px;">
-      <input id="mp-join-input" type="text" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters"
-        style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:14px 12px;font-family:'Resolve',monospace;font-size:22px;font-weight:700;letter-spacing:6px;text-align:center;text-transform:uppercase;outline:none;">
-      <button class="gobtn" id="mp-join-btn" style="padding:14px 18px;font-size:0.85rem;width:auto;">Join</button>
-    </div>
-  </div>
-  <button id="mp-lobby-back" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">← BACK</button>
-</div>
-
-<!-- MP Waiting -->
-<div class="screen" id="mp-waiting" style="display:none;gap:16px;">
-  <div style="font-size:48px;">⏳</div>
-  <h1 style="font-size:36px;">WAITING...</h1>
-  <div style="font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-align:center;max-width:280px;line-height:1.4;">Send the link to your friend and the game starts automatically when they join.</div>
-  <button id="mp-share-btn" class="gobtn" style="width:100%;max-width:320px;padding:16px 20px;font-size:1.05rem;">
-    <i class="fa-solid fa-share-nodes" style="font-size:1.1rem;"></i> Share Game Link
-  </button>
-  <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);font-size:12px;">
-    <div style="width:8px;height:8px;border-radius:50%;background:var(--sub-gold);animation:pulse-dot 1.2s ease-in-out infinite;"></div>
-    Waiting for opponent...
-  </div>
-  <button id="mp-cancel-btn" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">Cancel</button>
-</div>
-
-<!-- MP Disconnected -->
-<div class="screen" id="mp-disconnected" style="display:none;gap:14px;">
-  <div style="font-size:48px;">📵</div>
-  <h1 style="font-size:28px;">CONNECTION LOST</h1>
-  <div style="font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-align:center;">Opponent left the match</div>
-  <button id="mp-dc-back" class="gobtn" style="max-width:320px;"><i class="fa-solid fa-arrow-left"></i> Back to Menu</button>
 </div>
 
 <div id="over" style="display:none;position:fixed;inset:0;z-index:30;
@@ -1797,62 +1751,6 @@ if(exitBtn){
   exitBtn.addEventListener('click', goHome);
   exitBtn.addEventListener('touchend', goHome);
 }
-
-// Online mode buttons
-document.getElementById('bstart-online').addEventListener('click', () => {
-  createRoom(); // Luo huone suoraan ja näytä jakolinkki
-});
-
-document.getElementById('mp-lobby-back').addEventListener('click', () => {
-  showScreen('start');
-  document.getElementById('start').style.display = 'flex';
-});
-
-document.getElementById('mp-create-btn').addEventListener('click', createRoom);
-
-document.getElementById('mp-join-btn').addEventListener('click', () => {
-  const code = document.getElementById('mp-join-input').value;
-  joinRoom(code);
-});
-
-document.getElementById('mp-join-input').addEventListener('keydown', (e) => {
-  if(e.key === 'Enter') joinRoom(document.getElementById('mp-join-input').value);
-});
-
-document.getElementById('mp-cancel-btn').addEventListener('click', () => {
-  leaveRoom();
-  showScreen('start');
-  document.getElementById('start').style.display = 'flex';
-});
-
-document.getElementById('mp-dc-back').addEventListener('click', () => {
-  leaveRoom();
-  showScreen('start');
-  document.getElementById('start').style.display = 'flex';
-});
-
-document.getElementById('mp-share-btn').addEventListener('click', () => {
-  const url = `${window.location.origin}/play?room=${mpRoomCode}`;
-  if(navigator.share){
-    navigator.share({ title:'Subsoccer Go', text:`Join my game! Code: ${mpRoomCode}`, url });
-  } else {
-    navigator.clipboard.writeText(url);
-    document.getElementById('mp-share-btn').textContent = '✓ Link Copied!';
-    setTimeout(() => { document.getElementById('mp-share-btn').textContent = '📤 Share Link'; }, 2000);
-  }
-});
-
-// mp-copy-btn removed from UI
-
-// Check URL for direct room join on load — liity suoraan ilman klikkausta
-(function(){
-  const urlParams = new URLSearchParams(window.location.search);
-  const roomParam = urlParams.get('room');
-  if(roomParam && roomParam.length >= 4){
-    // Show waiting screen immediately and join automatically
-    setTimeout(() => joinRoom(roomParam), 100);
-  }
-})();
 
 resize();
 loop();
