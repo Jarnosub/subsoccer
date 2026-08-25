@@ -2,6 +2,7 @@
 
 const TRANSLATIONS = {
     en: {
+        create_profile: "CREATE PROFILE / LOG IN",
         my_profile: "MY PROFILE",
         highlight_creator: "HIGHLIGHT CREATOR",
         community_feed: "COMMUNITY HIGHLIGHTS",
@@ -748,6 +749,7 @@ const TRANSLATIONS = {
         host_step4_desc: "Organize vários grupos de qualificação separados (máx. 8 jogadores por grupo). Escolha os melhores 1–4 jogadores de cada grupo e crie um novo torneio final no aplicativo para coroar o campeão geral."
     },
     fi: {
+        create_profile: "LUO PROFIILI / KIRJAUDU",
         rules_and_guide: "SÄÄNNÖT & OHJEET",
         my_profile: "OMA PROFIILI",
         highlight_creator: "HIGHLIGHT CREATOR",

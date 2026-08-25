@@ -166,6 +166,15 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   <h1>SUBSOCCER GO</h1>
   <div class="sub">Digital Bench Soccer</div>
   <div id="user-profile-badge" style="display:none;width:100%;max-width:360px;"></div>
+  <div id="guest-start-banner" style="display:none;width:100%;max-width:360px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);padding:8px 12px;border-radius:4px;box-sizing:border-box;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,0.7);font-family:'Resolve',sans-serif;letter-spacing:1px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.4);display:inline-block;"></span>
+        GUEST PLAYER
+      </div>
+      <a href="/login.html#signup" style="font-family:'Resolve',sans-serif;font-size:10px;color:var(--sub-gold);font-weight:700;letter-spacing:1px;text-decoration:none;border:1px solid rgba(255,215,0,0.3);padding:4px 8px;border-radius:3px;background:rgba(255,215,0,0.08);text-transform:uppercase;">CREATE PROFILE →</a>
+    </div>
+  </div>
   <div class="card">
     <div class="rule"><span class="rule-num">1</span><div><div class="rule-title">Kick-Off</div><div class="rule-desc">Kick-off is taken inside your own goal area.</div></div></div>
     <div class="rule"><span class="rule-num">2</span><div><div class="rule-title">Controls</div><div class="rule-desc">Left half = left foot · Right half = right foot · Swipe up to kick.</div></div></div>
@@ -260,6 +269,19 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time saved to your profile!
   </div>
 
+  <!-- Guest Conversion / Profile Creation Prompt -->
+  <div id="guest-conversion-card" style="display:none;width:100%;max-width:320px;background:linear-gradient(135deg, rgba(227,6,19,0.18) 0%, rgba(15,17,21,0.95) 100%);border:1px solid rgba(227,6,19,0.45);border-radius:6px;padding:12px 14px;box-sizing:border-box;flex-direction:column;gap:8px;text-align:center;">
+    <div style="font-family:'Resolve',sans-serif;font-weight:700;font-size:12px;color:var(--sub-gold);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <i class="fa-solid fa-bolt"></i> SAVE SCORES & GET PLAYER CARD
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.75);line-height:1.35;">
+      Create your free profile to track your official ELO rating, tournament history, and speedrun ranks!
+    </div>
+    <a href="/login.html#signup" id="guest-signup-btn" style="background:var(--sub-red);color:#fff;font-family:'Resolve',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-decoration:none;padding:9px 12px;border-radius:3px;text-transform:uppercase;display:block;margin-top:2px;">
+      CREATE FREE PROFILE →
+    </a>
+  </div>
+
   <!-- Nickname Entry Box (shown on win for guests) -->
   <div id="name-entry-box" style="display:none;width:100%;max-width:320px;flex-direction:column;gap:6px;">
     <div style="font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;font-weight:700;text-align:center;">
@@ -269,7 +291,6 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
       <input type="text" id="player-nickname" maxlength="14" placeholder="Your nickname" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:9px 12px;font-family:'Resolve',sans-serif;font-size:13px;outline:none;">
       <button id="save-score-btn" style="background:var(--sub-red);color:#fff;border:none;border-radius:2px;padding:9px 14px;font-family:'Resolve',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;">SUBMIT</button>
     </div>
-    <a href="/login.html" style="font-size:10px;color:rgba(255,255,255,0.4);text-align:center;text-decoration:none;letter-spacing:0.5px;">Want verified ranking? <span style="color:var(--accent-blue);text-decoration:underline;">Log in</span></a>
   </div>
 
   <!-- Daily Leaderboard Card -->
@@ -572,6 +593,8 @@ async function initUserProfile(){
         }
         // Update Start Screen Badge
         const startBadge = document.getElementById('user-profile-badge');
+        const guestBanner = document.getElementById('guest-start-banner');
+        if(guestBanner) guestBanner.style.display = 'none';
         if(startBadge){
           startBadge.innerHTML = `
             <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);padding:8px 12px;border-radius:4px;margin-bottom:12px;width:100%;max-width:360px;box-sizing:border-box;">
@@ -587,10 +610,16 @@ async function initUserProfile(){
           `;
           startBadge.style.display = 'block';
         }
+        return;
       }
     }
+    // Guest fallback
+    const guestBanner = document.getElementById('guest-start-banner');
+    if(guestBanner) guestBanner.style.display = 'block';
   } catch(e){
     console.warn('Profile init warning:', e);
+    const guestBanner = document.getElementById('guest-start-banner');
+    if(guestBanner) guestBanner.style.display = 'block';
   }
 }
 
@@ -1748,6 +1777,7 @@ function endGame(){
     r.textContent = gameMode === 'online' ? 'You Win!' : 'You Win!';
     winner = 'player';
     if(gameMode === 'cpu'){
+      const guestCard = document.getElementById('guest-conversion-card');
       if(currentUserProfile && currentUserProfile.username){
         // Automaattinen tallennus kirjautuneelle pelaajalle
         submitScoreWithName(currentUserProfile.username);
@@ -1757,11 +1787,15 @@ function endGame(){
           savedBadge.style.display = 'block';
         }
         if(nameBoxEl) nameBoxEl.style.display = 'none';
-      } else if(nameBoxEl){
-        nameBoxEl.style.display = 'flex';
-        const savedNick = localStorage.getItem('subsoccer_nickname') || '';
-        if(nickEl) nickEl.value = savedNick;
-        if(saveBtn) { saveBtn.textContent = 'SUBMIT'; saveBtn.disabled = false; }
+        if(guestCard) guestCard.style.display = 'none';
+      } else {
+        if(nameBoxEl){
+          nameBoxEl.style.display = 'flex';
+          const savedNick = localStorage.getItem('subsoccer_nickname') || '';
+          if(nickEl) nickEl.value = savedNick;
+          if(saveBtn) { saveBtn.textContent = 'SUBMIT'; saveBtn.disabled = false; }
+        }
+        if(guestCard) guestCard.style.display = 'flex';
         const savedBadge = document.getElementById('profile-saved-badge');
         if(savedBadge) savedBadge.style.display = 'none';
       }
@@ -1772,10 +1806,14 @@ function endGame(){
     r.textContent = gameMode === 'online' ? 'OPP Wins!' : 'CPU Wins!';
     winner = 'cpu';
     if(nameBoxEl) nameBoxEl.style.display = 'none';
+    const guestCard = document.getElementById('guest-conversion-card');
+    if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
   } else {
     r.textContent = 'Draw!';
     winner = 'draw';
     if(nameBoxEl) nameBoxEl.style.display = 'none';
+    const guestCard = document.getElementById('guest-conversion-card');
+    if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
   }
 
   s.textContent = sY + ' – ' + sC;
@@ -2149,6 +2187,19 @@ document.getElementById('mp-share-btn').addEventListener('click', () => {
     setTimeout(tryJoin, 150);
   }
 })();
+
+document.getElementById('guest-signup-btn')?.addEventListener('click', () => {
+  if(_matchDuration){
+    try {
+      localStorage.setItem('subsoccer_pending_score', JSON.stringify({
+        duration: Number(_matchDuration),
+        score_player: sY,
+        score_cpu: sC,
+        timestamp: Date.now()
+      }));
+    } catch(e){}
+  }
+});
 
 initUserProfile();
 resize();

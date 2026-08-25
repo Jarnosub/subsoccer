@@ -443,7 +443,18 @@ export function toggleTheme() {
 export function toggleSettingsMenu(event) {
     if (event) event.stopPropagation();
     const menu = document.getElementById('settings-menu');
-    if (menu) menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+    if (!menu) return;
+
+    const isLoggedIn = state.user && state.user.id && !state.user.is_spectator && !state.user.is_guest;
+    const createBtn = document.getElementById('menu-item-create-profile');
+    const editBtn = document.getElementById('menu-item-edit-profile');
+    const logoutBtn = document.getElementById('btn-logout');
+
+    if (createBtn) createBtn.style.display = isLoggedIn ? 'none' : 'flex';
+    if (editBtn) editBtn.style.display = isLoggedIn ? 'flex' : 'none';
+    if (logoutBtn) logoutBtn.style.display = isLoggedIn ? 'flex' : 'none';
+
+    menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
 }
 
 export function toggleSensorTools() {
