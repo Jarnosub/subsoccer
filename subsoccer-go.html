@@ -168,23 +168,46 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   border-color: var(--sub-gold);
   color: #ffffff !important;
 }
-/* Matchup Screen & Official Subsoccer Pro Card Styles */
+/* Matchup Screen & Official Subsoccer Pro Card Styles (Split Screen Side-by-Side) */
+.matchup-arena-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+  gap: 10px;
+  z-index: 10;
+  flex: 1;
+}
+.matchup-vs-badge {
+  font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
+  font-size: 36px;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(0,0,0,0.95), 0 0 25px rgba(255,255,255,0.7);
+  letter-spacing: 2px;
+  z-index: 15;
+  animation: pulse-vs 1.2s ease-in-out infinite alternate;
+  flex-shrink: 0;
+}
 .official-pro-card {
-  width: 250px;
-  max-width: 82vw;
-  height: 250px;
-  border-radius: 4px;
+  width: clamp(140px, 43vw, 195px);
+  height: clamp(230px, 52vh, 295px);
+  border-radius: 3px;
   border: 1px solid rgba(212, 175, 55, 0.6);
   background-color: #0a0a0a;
-  background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+  background-image: linear-gradient(45deg, #181818 25%, transparent 25%), linear-gradient(-45deg, #181818 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #181818 75%), linear-gradient(-45deg, transparent 75%, #181818 75%);
   background-size: 4px 4px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), inset 0 0 12px rgba(212, 175, 55, 0.15);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.9), inset 0 0 10px rgba(212, 175, 55, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
   box-sizing: border-box;
   position: relative;
+  flex-shrink: 0;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .official-pro-card-topbar {
@@ -192,27 +215,27 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 10px 4px;
+  padding: 5px 8px 3px;
   box-sizing: border-box;
   z-index: 2;
 }
 .official-pro-card-label {
-  font-size: 0.6rem;
+  font-size: 0.52rem;
   color: #c41e2a;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   font-family: 'Resolve', sans-serif;
 }
 .official-pro-card-crown {
   color: #c41e2a;
-  font-size: 0.95rem;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8));
+  font-size: 0.8rem;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
 }
 .official-pro-card-photo-area {
   width: 100%;
-  height: 125px;
-  flex-shrink: 0;
+  flex: 1;
+  min-height: 100px;
   background: #151515;
   position: relative;
   display: flex;
@@ -232,18 +255,20 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   object-position: top center;
 }
 .official-pro-card-placeholder {
-  font-size: 2.4rem;
+  font-size: 2rem;
   color: #383838;
 }
 .official-pro-card-bottom {
   width: 100%;
-  padding: 8px 12px 10px;
+  padding: 6px 8px 8px;
   display: flex;
   flex-direction: column;
-  flex: 1;
   align-items: flex-start;
   box-sizing: border-box;
   justify-content: space-between;
+  background-color: #0a0a0a;
+  background-image: linear-gradient(45deg, #181818 25%, transparent 25%), linear-gradient(-45deg, #181818 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #181818 75%), linear-gradient(-45deg, transparent 75%, #181818 75%);
+  background-size: 4px 4px;
 }
 .official-pro-card-meta-row {
   display: flex;
@@ -254,33 +279,37 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 .official-pro-card-location {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   color: #c41e2a;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
   font-family: 'Resolve', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
 }
 .official-pro-card-subsoccer-badge {
   background: #c41e2a;
   color: #fff;
   font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
-  font-size: 0.7rem;
-  padding: 1px 5px;
-  letter-spacing: 1px;
+  font-size: 0.58rem;
+  padding: 1px 4px;
+  letter-spacing: 0.8px;
   line-height: 1.1;
   border-radius: 1px;
 }
 .official-pro-card-name {
   font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
-  font-size: 1.9rem;
+  font-size: clamp(1.1rem, 3.5vw, 1.45rem);
   text-transform: uppercase;
   color: #fff;
-  margin: 1px 0 3px;
+  margin: 2px 0 3px;
   line-height: 1;
   text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -291,78 +320,65 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  gap: 2px;
 }
 .official-pro-card-elo-badge {
   background: #c41e2a;
   color: #fff;
-  padding: 3px 8px;
+  padding: 2px 5px;
   font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
   font-weight: normal;
-  font-size: 1.2rem;
-  border-radius: 4px;
+  font-size: 0.95rem;
+  border-radius: 3px;
   line-height: 1;
+}
+.official-pro-card-flip-hint {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.46rem;
+  color: rgba(255,255,255,0.4);
+  font-family: 'Resolve', sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin-bottom: 2px;
 }
 .official-pro-card-winratio-box {
   text-align: right;
 }
 .official-pro-card-winratio-label {
-  font-size: 0.55rem;
+  font-size: 0.48rem;
   color: #888;
   font-weight: bold;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   font-family: 'Resolve', sans-serif;
   text-transform: uppercase;
 }
 .official-pro-card-winratio-val {
   font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
-  font-size: 1.2rem;
+  font-size: 0.95rem;
   color: #fff;
   line-height: 1;
 }
 
-.matchup-vs-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin: 4px 0;
-  z-index: 10;
-}
-.matchup-vs-text {
-  font-family: 'Subsoccer', sans-serif;
-  font-size: 48px;
-  line-height: 1;
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(227, 6, 19, 0.4);
-  letter-spacing: 2px;
-  animation: pulse-vs 1.2s ease-in-out infinite alternate;
-}
-.matchup-vs-sub {
-  font-family: 'Resolve', sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
 @keyframes pulse-vs {
   0% { transform: scale(1); text-shadow: 0 0 15px rgba(255, 255, 255, 0.6); }
   100% { transform: scale(1.08); text-shadow: 0 0 25px rgba(255, 255, 255, 0.9), 0 0 35px rgba(227, 6, 19, 0.6); }
 }
-.matchup-slide-top {
-  animation: slide-from-top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+.matchup-slide-left {
+  animation: slide-from-left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-.matchup-slide-bottom {
-  animation: slide-from-bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+.matchup-slide-right {
+  animation: slide-from-right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-@keyframes slide-from-top {
-  0% { opacity: 0; transform: translateY(-40px); }
-  100% { opacity: 1; transform: translateY(0); }
+@keyframes slide-from-left {
+  0% { opacity: 0; transform: translateX(-35px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
-@keyframes slide-from-bottom {
-  0% { opacity: 0; transform: translateY(40px); }
-  100% { opacity: 1; transform: translateY(0); }
+@keyframes slide-from-right {
+  0% { opacity: 0; transform: translateX(35px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -486,83 +502,94 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   <button id="mp-cancel-btn" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;padding:8px;text-transform:uppercase;">Cancel</button>
 </div>
 
-<!-- MP Matchup / Player Cards Screen -->
-<div class="screen" id="mp-matchup" style="display:none;padding:8px 12px 14px;z-index:35;background:linear-gradient(to bottom, #0c1c2b 0%, #152f47 40%, #06090d 48%, #06090d 52%, #5c070d 60%, #290205 100%);flex-direction:column;justify-content:space-between;align-items:center;box-sizing:border-box;">
-  <!-- Header title -->
-  <div style="font-family:'Resolve',sans-serif;font-size:9px;color:rgba(255,255,255,0.55);letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-top:2px;">
-    ONLINE 1 VS 1 MATCHUP
-  </div>
-
-  <!-- Opponent Card (Top - Blue Side) -->
-  <div id="matchup-opp-card" class="official-pro-card matchup-slide-top">
-    <!-- Topbar -->
-    <div class="official-pro-card-topbar">
-      <div class="official-pro-card-label" id="matchup-opp-card-type">PRO CARD // 2026</div>
-      <i class="fa-solid fa-crown official-pro-card-crown"></i>
-    </div>
-    <!-- Photo area -->
-    <div class="official-pro-card-photo-area">
-      <i class="fa-solid fa-user-astronaut official-pro-card-placeholder" id="matchup-opp-placeholder"></i>
-      <img src="" id="matchup-opp-photo" class="official-pro-card-photo" alt="Opponent" style="display:none;" crossorigin="anonymous">
-    </div>
-    <!-- Bottom data -->
-    <div class="official-pro-card-bottom">
-      <div class="official-pro-card-meta-row">
-        <div class="official-pro-card-location">
-          <i class="fa-solid fa-location-dot"></i> <span id="matchup-opp-location">FI</span>
-        </div>
-        <div class="official-pro-card-subsoccer-badge">SUBSOCCER</div>
-      </div>
-      <div class="official-pro-card-name" id="matchup-opp-name">OPPONENT</div>
-      <div class="official-pro-card-footer-row">
-        <div class="official-pro-card-elo-badge" id="matchup-opp-elo">1000</div>
-        <div class="official-pro-card-winratio-box">
-          <div class="official-pro-card-winratio-label">WIN RATIO</div>
-          <div class="official-pro-card-winratio-val" id="matchup-opp-winratio">50%</div>
-        </div>
-      </div>
+<!-- MP Matchup / Player Cards Screen (Split Screen Side-by-Side) -->
+<div class="screen" id="mp-matchup" style="display:none;position:fixed;inset:0;z-index:35;background:linear-gradient(to right, #09131a 0%, #0d1b24 50%, #54080e 50%, #690910 100%);flex-direction:column;justify-content:space-between;align-items:center;padding:max(env(safe-area-inset-top,20px),20px) 8px max(env(safe-area-inset-bottom,16px),16px);box-sizing:border-box;overflow:hidden;">
+  
+  <!-- Header Title Badge -->
+  <div style="background:rgba(8,12,18,0.75);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);padding:6px 16px;border-radius:4px;z-index:20;margin-top:2vh;">
+    <div style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:800;color:#fff;letter-spacing:4px;text-transform:uppercase;text-shadow:0 1px 4px rgba(0,0,0,0.8);">
+      ONLINE 1 VS 1 MATCHUP
     </div>
   </div>
 
-  <!-- Center VS Element -->
-  <div class="matchup-vs-container">
-    <div class="matchup-vs-text">VS</div>
-    <div class="matchup-vs-sub">FIRST TO 3 GOALS</div>
-  </div>
-
-  <!-- You Card (Bottom - Red Side) -->
-  <div id="matchup-you-card" class="official-pro-card matchup-slide-bottom">
-    <!-- Topbar -->
-    <div class="official-pro-card-topbar">
-      <div class="official-pro-card-label" id="matchup-you-card-type">PRO CARD // 2026</div>
-      <i class="fa-solid fa-crown official-pro-card-crown"></i>
-    </div>
-    <!-- Photo area -->
-    <div class="official-pro-card-photo-area">
-      <i class="fa-solid fa-user-astronaut official-pro-card-placeholder" id="matchup-you-placeholder"></i>
-      <img src="" id="matchup-you-photo" class="official-pro-card-photo" alt="You" style="display:none;" crossorigin="anonymous">
-    </div>
-    <!-- Bottom data -->
-    <div class="official-pro-card-bottom">
-      <div class="official-pro-card-meta-row">
-        <div class="official-pro-card-location">
-          <i class="fa-solid fa-location-dot"></i> <span id="matchup-you-location">FI</span>
-        </div>
-        <div class="official-pro-card-subsoccer-badge">SUBSOCCER</div>
+  <!-- Arena: Side-by-Side Player Cards with Center VS -->
+  <div class="matchup-arena-row">
+    <!-- Left Card (You - Blue Side) -->
+    <div id="matchup-you-card" class="official-pro-card matchup-slide-left">
+      <!-- Topbar -->
+      <div class="official-pro-card-topbar">
+        <div class="official-pro-card-label" id="matchup-you-card-type">PRO CARD // 2026</div>
+        <i class="fa-solid fa-crown official-pro-card-crown"></i>
       </div>
-      <div class="official-pro-card-name" id="matchup-you-name">YOU</div>
-      <div class="official-pro-card-footer-row">
-        <div class="official-pro-card-elo-badge" id="matchup-you-elo">1000</div>
-        <div class="official-pro-card-winratio-box">
-          <div class="official-pro-card-winratio-label">WIN RATIO</div>
-          <div class="official-pro-card-winratio-val" id="matchup-you-winratio">50%</div>
+      <!-- Photo area -->
+      <div class="official-pro-card-photo-area">
+        <i class="fa-solid fa-user-astronaut official-pro-card-placeholder" id="matchup-you-placeholder"></i>
+        <img src="" id="matchup-you-photo" class="official-pro-card-photo" alt="You" style="display:none;" crossorigin="anonymous">
+      </div>
+      <!-- Bottom data -->
+      <div class="official-pro-card-bottom">
+        <div class="official-pro-card-meta-row">
+          <div class="official-pro-card-location">
+            <i class="fa-solid fa-location-dot"></i> <span id="matchup-you-location">FI</span>
+          </div>
+          <div class="official-pro-card-subsoccer-badge">SUBSOCCER</div>
+        </div>
+        <div class="official-pro-card-name" id="matchup-you-name">YOU</div>
+        <div class="official-pro-card-footer-row">
+          <div class="official-pro-card-elo-badge" id="matchup-you-elo">1000</div>
+          <div class="official-pro-card-flip-hint">
+            <i class="fa-solid fa-rotate"></i> FLIP CARD
+          </div>
+          <div class="official-pro-card-winratio-box">
+            <div class="official-pro-card-winratio-label">WIN RATIO</div>
+            <div class="official-pro-card-winratio-val" id="matchup-you-winratio">50%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center VS Element -->
+    <div class="matchup-vs-badge">
+      VS
+    </div>
+
+    <!-- Right Card (Opponent - Red Side) -->
+    <div id="matchup-opp-card" class="official-pro-card matchup-slide-right">
+      <!-- Topbar -->
+      <div class="official-pro-card-topbar">
+        <div class="official-pro-card-label" id="matchup-opp-card-type">PRO CARD // 2026</div>
+        <i class="fa-solid fa-crown official-pro-card-crown"></i>
+      </div>
+      <!-- Photo area -->
+      <div class="official-pro-card-photo-area">
+        <i class="fa-solid fa-user-astronaut official-pro-card-placeholder" id="matchup-opp-placeholder"></i>
+        <img src="" id="matchup-opp-photo" class="official-pro-card-photo" alt="Opponent" style="display:none;" crossorigin="anonymous">
+      </div>
+      <!-- Bottom data -->
+      <div class="official-pro-card-bottom">
+        <div class="official-pro-card-meta-row">
+          <div class="official-pro-card-location">
+            <i class="fa-solid fa-location-dot"></i> <span id="matchup-opp-location">LOCAL ARENA</span>
+          </div>
+          <div class="official-pro-card-subsoccer-badge">SUBSOCCER</div>
+        </div>
+        <div class="official-pro-card-name" id="matchup-opp-name">OPPONENT</div>
+        <div class="official-pro-card-footer-row">
+          <div class="official-pro-card-elo-badge" id="matchup-opp-elo">1000</div>
+          <div class="official-pro-card-flip-hint">
+            <i class="fa-solid fa-rotate"></i> FLIP CARD
+          </div>
+          <div class="official-pro-card-winratio-box">
+            <div class="official-pro-card-winratio-label">WIN RATIO</div>
+            <div class="official-pro-card-winratio-val" id="matchup-opp-winratio">50%</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Footer status -->
-  <div style="display:flex;align-items:center;gap:6px;font-family:'Resolve',sans-serif;font-size:9px;color:var(--sub-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;">
+  <div style="display:flex;align-items:center;gap:6px;font-family:'Resolve',sans-serif;font-size:9px;color:var(--sub-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:2vh;z-index:20;">
     <div style="width:5px;height:5px;border-radius:50%;background:var(--sub-gold);animation:pulse-dot 0.8s infinite;"></div>
     GET READY FOR KICKOFF...
   </div>
@@ -1396,10 +1423,10 @@ function showMatchupScreen(oppData, onComplete){
   showScreen('mp-matchup');
 
   // Trigger CSS animations on cards
-  const oppCard = document.getElementById('matchup-opp-card');
   const youCard = document.getElementById('matchup-you-card');
-  if(oppCard){ oppCard.classList.remove('matchup-slide-top'); void oppCard.offsetWidth; oppCard.classList.add('matchup-slide-top'); }
-  if(youCard){ youCard.classList.remove('matchup-slide-bottom'); void youCard.offsetWidth; youCard.classList.add('matchup-slide-bottom'); }
+  const oppCard = document.getElementById('matchup-opp-card');
+  if(youCard){ youCard.classList.remove('matchup-slide-left'); void youCard.offsetWidth; youCard.classList.add('matchup-slide-left'); }
+  if(oppCard){ oppCard.classList.remove('matchup-slide-right'); void oppCard.offsetWidth; oppCard.classList.add('matchup-slide-right'); }
 
   setTimeout(() => {
     showScreen(null);
