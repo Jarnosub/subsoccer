@@ -1841,7 +1841,14 @@ function draw(){
   ctx.lineTo(F.gx+F.gw, F.y+F.h-boxH); ctx.lineTo(F.gx+F.gw, F.y+F.h);
   ctx.stroke();
 
-  // ── Feet (rendered under goal crossbars & walls) ──
+  // ── Feet (clipped at outer frame so shoes never stick out behind the goal crossbars) ──
+  ctx.save();
+  const wt = 8;
+  const gd = 14;
+  ctx.beginPath();
+  ctx.rect(F.x - wt, F.y - gd, F.w + wt*2, F.h + gd*2);
+  ctx.clip();
+
   const cpuFY = CPU_Y();
   const KICK_DIST = 38;
   ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8;
@@ -1857,7 +1864,7 @@ function draw(){
   }
   drawShoe(pLX, pLY - pLKick * KICK_DIST, myShoe, -1, true);
   drawShoe(pRX, pRY - pRKick * KICK_DIST, myShoe, -1, false);
-  ctx.shadowBlur = 0;
+  ctx.restore();
 
   // ── Ball ──
   const spd = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
