@@ -1829,26 +1829,6 @@ function draw(){
     ctx.drawImage(logoImg, F.cx - lw/2, F.cy - lh/2, lw, lh);
   }
 
-  // ── Side walls ──
-  const wt = 8;
-  const gd = 14;
-  ctx.fillStyle = '#999999';
-  ctx.fillRect(F.x-wt, F.y-gd, wt, F.h+gd*2);
-  ctx.fillRect(F.x+F.w, F.y-gd, wt, F.h+gd*2);
-  ctx.fillRect(F.x-wt, F.y-gd, F.gx-F.x+wt, gd);
-  ctx.fillRect(F.gx+F.gw, F.y-gd, F.x+F.w-(F.gx+F.gw)+wt, gd);
-  ctx.fillRect(F.x-wt, F.y+F.h, F.gx-F.x+wt, gd);
-  ctx.fillRect(F.gx+F.gw, F.y+F.h, F.x+F.w-(F.gx+F.gw)+wt, gd);
-
-  // ── Goal bars with highlight edge ──
-  ctx.fillStyle = '#7a7a7a';
-  ctx.fillRect(F.gx, F.y-gd, F.gw, gd);
-  ctx.fillRect(F.gx, F.y+F.h, F.gw, gd);
-  // Inner highlight edge on goal bars
-  ctx.fillStyle = 'rgba(255,255,255,0.12)';
-  ctx.fillRect(F.gx, F.y-1, F.gw, 2);
-  ctx.fillRect(F.gx, F.y+F.h-1, F.gw, 2);
-
   // ── Goal area boxes ──
   const boxH = F.h * 0.18;
   ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2.5;
@@ -1861,7 +1841,7 @@ function draw(){
   ctx.lineTo(F.gx+F.gw, F.y+F.h-boxH); ctx.lineTo(F.gx+F.gw, F.y+F.h);
   ctx.stroke();
 
-  // ── Feet ──
+  // ── Feet (rendered under goal crossbars & walls) ──
   const cpuFY = CPU_Y();
   const KICK_DIST = 38;
   ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8;
@@ -1906,6 +1886,39 @@ function draw(){
     ctx.fillStyle = bg;
     ctx.beginPath(); ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2); ctx.fill();
   }
+
+  // ── Side walls (over feet) ──
+  const wt = 8;
+  const gd = 14;
+  ctx.fillStyle = '#999999';
+  ctx.fillRect(F.x-wt, F.y-gd, wt, F.h+gd*2);
+  ctx.fillRect(F.x+F.w, F.y-gd, wt, F.h+gd*2);
+  ctx.fillRect(F.x-wt, F.y-gd, F.gx-F.x+wt, gd);
+  ctx.fillRect(F.gx+F.gw, F.y-gd, F.x+F.w-(F.gx+F.gw)+wt, gd);
+  ctx.fillRect(F.x-wt, F.y+F.h, F.gx-F.x+wt, gd);
+  ctx.fillRect(F.gx+F.gw, F.y+F.h, F.x+F.w-(F.gx+F.gw)+wt, gd);
+
+  // ── Goal crossbars (rendered OVER shoes so shoes slide underneath) ──
+  ctx.fillStyle = '#7a7a7a';
+  ctx.fillRect(F.gx, F.y-gd, F.gw, gd);
+  ctx.fillRect(F.gx, F.y+F.h, F.gw, gd);
+  // Inner highlight edge on goal bars
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.fillRect(F.gx, F.y-1, F.gw, 2);
+  ctx.fillRect(F.gx, F.y+F.h-1, F.gw, 2);
+
+  // Depth shadow cast by crossbars onto the pitch/shoes
+  const topBarShadow = ctx.createLinearGradient(0, F.y, 0, F.y + 7);
+  topBarShadow.addColorStop(0, 'rgba(0,0,0,0.35)');
+  topBarShadow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = topBarShadow;
+  ctx.fillRect(F.gx, F.y, F.gw, 7);
+
+  const botBarShadow = ctx.createLinearGradient(0, F.y + F.h, 0, F.y + F.h - 7);
+  botBarShadow.addColorStop(0, 'rgba(0,0,0,0.35)');
+  botBarShadow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = botBarShadow;
+  ctx.fillRect(F.gx, F.y + F.h - 7, F.gw, 7);
 
   // ── Vignette overlay (darkens canvas corners for depth) ──
   const vgW = W, vgH = H;
