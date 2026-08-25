@@ -3691,6 +3691,37 @@ for (const lang in feedbackTranslations) {
     }
 }
 
+const profileTranslations = {
+    en: { create_profile: "CREATE PROFILE" },
+    fi: { create_profile: "LUO PROFIILI" },
+    sv: { create_profile: "SKAPA PROFIL" },
+    nb: { create_profile: "OPPRETT PROFIL" },
+    da: { create_profile: "OPRET PROFIL" },
+    de: { create_profile: "PROFIL ERSTELLEN" },
+    fr: { create_profile: "CRÉER UN PROFIL" },
+    es: { create_profile: "CREAR PERFIL" },
+    it: { create_profile: "CREA PROFILO" },
+    pt: { create_profile: "CRIAR PERFIL" },
+    nl: { create_profile: "PROFIEL AANMAKEN" },
+    pl: { create_profile: "UTWÓRZ PROFIL" },
+    cs: { create_profile: "VYTVOŘIT PROFIL" },
+    hu: { create_profile: "PROFIL LÉTREHOZÁSA" },
+    tr: { create_profile: "PROFİL OLUŞTUR" },
+    id: { create_profile: "BUAT PROFIL" },
+    vi: { create_profile: "TẠO HỒ SƠ" },
+    ja: { create_profile: "プロフィール作成" },
+    zh: { create_profile: "创建个人资料" },
+    ko: { create_profile: "프로필 생성" },
+    ar: { create_profile: "إنشاء ملف شخصي" },
+    az: { create_profile: "PROFİL YARAT" }
+};
+
+for (const lang in profileTranslations) {
+    if (TRANSLATIONS[lang]) {
+        Object.assign(TRANSLATIONS[lang], profileTranslations[lang]);
+    }
+}
+
 function translateDOM(root = document) {
     root.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
