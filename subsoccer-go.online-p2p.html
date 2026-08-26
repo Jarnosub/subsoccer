@@ -1244,37 +1244,43 @@ function handleGameMessage(event, payload, fromRtc){
       applyOpponentFeet(payload, true);
       break;
 
-    case 'ball_state':
+    case 'ball_kick':
       if(!mpConnected || state !== 'playing') return;
-      // Invert 180 deg (opponent is at top half, toes pointing down)
-      const oppBx = 1 - payload.bx;
-      const oppBy = 1 - payload.by;
-      const oppVx = -payload.vx * F.w;
-      const oppVy = -payload.vy * F.h;
-      const worldX = F.x + oppBx * F.w;
-      const worldY = F.y + oppBy * F.h;
+      // Remote player kicked the ball towards us!
+      const kBx = 1 - payload.bx;
+      const kBy = 1 - payload.by;
+      const kVx = -payload.vx * F.w;
+      const kVy = -payload.vy * F.h;
+      ball.x = F.x + kBx * F.w;
+      ball.y = F.y + kBy * F.h;
+      ball.vx = kVx;
+      ball.vy = kVy;
+      ballAuthority = false;
+      beep('kick');
+      break;
 
-      // If ball is in opponent's half (top half for us, worldY < F.cy):
-      if(worldY < F.cy){
-        ballAuthority = false;
-        // Smoothly correct local simulated ball towards remote state
-        const lerp = rtcReady ? 0.65 : 0.45;
-        ball.x += (worldX - ball.x) * lerp;
-        ball.y += (worldY - ball.y) * lerp;
-        ball.vx = oppVx;
-        ball.vy = oppVy;
-        ball.rot = -(payload.rot || 0);
+    case 'ball_sync':
+      if(!mpConnected || state !== 'playing') return;
+      // Only apply remote sync if ball is on opponent's half
+      if(ballAuthority) return;
+      const sBx = 1 - payload.bx;
+      const sBy = 1 - payload.by;
+      const sVx = -payload.vx * F.w;
+      const sVy = -payload.vy * F.h;
+      const tx = F.x + sBx * F.w;
+      const ty = F.y + sBy * F.h;
+      const dX = tx - ball.x;
+      const dY = ty - ball.y;
+      const distSq = dX * dX + dY * dY;
+      if(distSq > 16000){
+        ball.x = tx; ball.y = ty;
       } else {
-        // Ball has crossed center line into our territory!
-        // We take local authority with the incoming momentum
-        if(!ballAuthority){
-          ballAuthority = true;
-          ball.x = worldX;
-          ball.y = worldY;
-          ball.vx = oppVx;
-          ball.vy = oppVy;
-        }
+        // Ultra-gentle drift correction — no snapping, perfectly smooth 60fps
+        ball.x += dX * 0.12;
+        ball.y += dY * 0.12;
       }
+      ball.vx = sVx;
+      ball.vy = sVy;
       break;
 
     case 'goal':
@@ -1320,27 +1326,37 @@ function handleGameMessage(event, payload, fromRtc){
 function broadcastFeet(){
   if(!mpConnected) return;
   const now = Date.now();
-  const throttleTime = rtcReady ? 16 : 45; // 60fps on P2P, 22fps on Supabase
+  const throttleTime = rtcReady ? 25 : 50; // 40fps on P2P, 20fps on Supabase
   if(now - _mpFeetThrottle < throttleTime) return;
   _mpFeetThrottle = now;
   sendNetMessage('feet', normFeet());
 }
 
-function broadcastBallState(forceImmediate = false){
+function broadcastBallKick(){
   if(!mpConnected || !F.w) return;
-  const now = Date.now();
-  const throttleTime = rtcReady ? 16 : 33; // 60fps on P2P, 30fps on Supabase
-  if(!forceImmediate && now - _mpStateThrottle < throttleTime) return;
-  _mpStateThrottle = now;
   _mpSeq++;
-  sendNetMessage('ball_state', {
+  sendNetMessage('ball_kick', {
     seq: _mpSeq,
     bx: (ball.x - F.x) / F.w,
     by: (ball.y - F.y) / F.h,
     vx: ball.vx / F.w,
-    vy: ball.vy / F.h,
-    rot: ball.rot || 0,
-    authority: ballAuthority
+    vy: ball.vy / F.h
+  });
+}
+
+function broadcastBallSync(){
+  if(!mpConnected || !F.w || !ballAuthority) return;
+  const now = Date.now();
+  const throttleTime = rtcReady ? 45 : 75; // 22fps on P2P, 13fps on Supabase
+  if(now - _mpStateThrottle < throttleTime) return;
+  _mpStateThrottle = now;
+  _mpSeq++;
+  sendNetMessage('ball_sync', {
+    seq: _mpSeq,
+    bx: (ball.x - F.x) / F.w,
+    by: (ball.y - F.y) / F.h,
+    vx: ball.vx / F.w,
+    vy: ball.vy / F.h
   });
 }
 
@@ -1950,9 +1966,9 @@ function doKick(upDist, sideSwipe, footX, footY){
   bump(4 + power*5);
   beep('kick');
 
-  // Broadcast immediate state on kick in multiplayer for 0ms lag
+  // Broadcast immediate kick event in multiplayer for 0ms lag
   if(gameMode === 'online'){
-    broadcastBallState(true);
+    broadcastBallKick();
   }
 }
 
@@ -2084,7 +2100,7 @@ function updateBall(){
   if(ball.y-BALL_R < F.y){
     if(ball.x > F.gx && ball.x < F.gx+F.gw){
       if(gameMode==='cpu'){ score('you'); return; }
-      // Online: In half-field mode, opponent's device detects their own conceded goal
+      // Online: opponent's client detects goal
     } else {
       ball.y=F.y+BALL_R; ball.vy=Math.abs(ball.vy)*0.82; beep('wall');
     }
@@ -2110,16 +2126,13 @@ function updateBall(){
   } else {
     // Online Multiplayer:
     if(ballAuthority){
-      // We are the authority (ball is on our side or traveling to opponent)
-      broadcastBallState();
-      // If ball crosses center line towards opponent, send snapshot and hand off authority
+      broadcastBallSync();
+      // When ball travels past center into opponent half, yield authority
       if(ball.y < F.cy){
-        broadcastBallState(true);
         ballAuthority = false;
       }
     } else {
-      // Ball is in opponent's half
-      // Check if ball has returned across center line to our half
+      // If ball crosses back into our territory, regain authority
       if(ball.y >= F.cy){
         ballAuthority = true;
       }
@@ -2150,7 +2163,7 @@ function hitFoot(fx, fy, dir){
     beep('hit');
     if(gameMode === 'online' && dir === -1){
       ballAuthority = true;
-      broadcastBallState(true);
+      broadcastBallKick();
     }
   }
 }
