@@ -2532,15 +2532,15 @@ function draw(){
     ctx.lineTo(ball.x-ball.vx*2.6, ball.y-ball.vy*2.6); ctx.stroke();
   }
 
-  // ── Top-Down Circular Soft Shadow for the Ball ──
+  // ── Subtle Soft Ground Shadow for the Ball (one-sided & lighter) ──
   const vr = BALL_R * 1.6;
   ctx.save();
-  ctx.translate(ball.x, ball.y);
-  const shadowR = vr * 1.52;
-  const shadowGrad = ctx.createRadialGradient(0, 0, vr * 0.4, 0, 0, shadowR);
-  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.65)');
-  shadowGrad.addColorStop(0.55, 'rgba(0,0,0,0.40)');
-  shadowGrad.addColorStop(0.85, 'rgba(0,0,0,0.15)');
+  ctx.translate(ball.x + 2.5, ball.y + 3.2); // subtle offset to one side
+  const shadowR = vr * 1.08; // compact and subtle
+  const shadowGrad = ctx.createRadialGradient(0, 0, vr * 0.2, 0, 0, shadowR);
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.32)');
+  shadowGrad.addColorStop(0.45, 'rgba(0,0,0,0.18)');
+  shadowGrad.addColorStop(0.82, 'rgba(0,0,0,0.06)');
   shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = shadowGrad;
   ctx.beginPath();
