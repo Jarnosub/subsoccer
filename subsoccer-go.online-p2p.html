@@ -2532,20 +2532,19 @@ function draw(){
     ctx.lineTo(ball.x-ball.vx*2.6, ball.y-ball.vy*2.6); ctx.stroke();
   }
 
-  // ── Natural Ground Contact Shadow for the Ball ──
+  // ── Top-Down Circular Soft Shadow for the Ball ──
   const vr = BALL_R * 1.6;
   ctx.save();
-  // Realistic ground shadow: offset down & right, flattened ellipse, extends beyond ball sprite
-  ctx.translate(ball.x + 4, ball.y + 6);
-  ctx.scale(1, 0.62);
-  const castGrad = ctx.createRadialGradient(0, 0, vr * 0.25, 0, 0, vr * 1.32);
-  castGrad.addColorStop(0, 'rgba(0,0,0,0.70)');
-  castGrad.addColorStop(0.45, 'rgba(0,0,0,0.38)');
-  castGrad.addColorStop(0.85, 'rgba(0,0,0,0.12)');
-  castGrad.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = castGrad;
+  ctx.translate(ball.x, ball.y);
+  const shadowR = vr * 1.52;
+  const shadowGrad = ctx.createRadialGradient(0, 0, vr * 0.4, 0, 0, shadowR);
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.65)');
+  shadowGrad.addColorStop(0.55, 'rgba(0,0,0,0.40)');
+  shadowGrad.addColorStop(0.85, 'rgba(0,0,0,0.15)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = shadowGrad;
   ctx.beginPath();
-  ctx.arc(0, 0, vr * 1.32, 0, Math.PI * 2);
+  ctx.arc(0, 0, shadowR, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
