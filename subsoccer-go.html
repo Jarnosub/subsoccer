@@ -2526,17 +2526,37 @@ function draw(){
   // ── Ball ──
   const spd = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
   if(spd > 3){
-    ctx.strokeStyle = `rgba(255,255,255,${Math.min(.45,spd/22)})`;
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = `rgba(255,255,255,${Math.min(.4,spd/22)})`;
+    ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.moveTo(ball.x,ball.y);
-    ctx.lineTo(ball.x-ball.vx*2.8, ball.y-ball.vy*2.8); ctx.stroke();
+    ctx.lineTo(ball.x-ball.vx*2.6, ball.y-ball.vy*2.6); ctx.stroke();
   }
-  const vrs = BALL_R * 1.6;
-  const shadowGrad = ctx.createRadialGradient(ball.x+2, ball.y+3, vrs*0.3, ball.x+2, ball.y+3, vrs*1.15);
-  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.45)');
-  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = shadowGrad;
-  ctx.beginPath(); ctx.arc(ball.x+2, ball.y+3, vrs*1.15, 0, Math.PI*2); ctx.fill();
+
+  // ── Natural Ground Contact Shadow for the Ball ──
+  ctx.save();
+  // 1. Soft directional cast shadow (offset slightly down-right)
+  ctx.translate(ball.x + 1.5, ball.y + 3.5);
+  ctx.scale(1, 0.62); // Flattened perspective ellipse on table turf
+  const castGrad = ctx.createRadialGradient(0, 0, BALL_R * 0.2, 0, 0, BALL_R * 1.35);
+  castGrad.addColorStop(0, 'rgba(0,0,0,0.48)');
+  castGrad.addColorStop(0.5, 'rgba(0,0,0,0.22)');
+  castGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = castGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, BALL_R * 1.35, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Tight Ambient Occlusion contact shadow directly under the ball center
+  const aoGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, BALL_R * 0.75);
+  aoGrad.addColorStop(0, 'rgba(0,0,0,0.55)');
+  aoGrad.addColorStop(0.7, 'rgba(0,0,0,0.18)');
+  aoGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = aoGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, BALL_R * 0.75, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
   if(ballImg.complete && ballImg.naturalWidth){
     ctx.save();
     ctx.translate(ball.x, ball.y);
@@ -2551,27 +2571,39 @@ function draw(){
     ctx.beginPath(); ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2); ctx.fill();
   }
 
-  // ── Goal crossbars (rendered OVER shoes and texture frame for depth) ──
+  // ── Goal crossbars (rounded corners, rendered OVER shoes and texture frame for depth) ──
+  const barR = 5; // rounded corner radius
   ctx.fillStyle = '#22252a';
-  ctx.fillRect(F.gx, F.y-gd, F.gw, gd);
-  ctx.fillRect(F.gx, F.y+F.h, F.gw, gd);
-  // Highlight edge on goal bars
-  ctx.fillStyle = 'rgba(255,255,255,0.22)';
-  ctx.fillRect(F.gx, F.y-1, F.gw, 2);
-  ctx.fillRect(F.gx, F.y+F.h-1, F.gw, 2);
+
+  // Top crossbar
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(F.gx, F.y - gd, F.gw, gd, [barR, barR, 2, 2]);
+  else ctx.rect(F.gx, F.y - gd, F.gw, gd);
+  ctx.fill();
+
+  // Bottom crossbar
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(F.gx, F.y + F.h, F.gw, gd, [2, 2, barR, barR]);
+  else ctx.rect(F.gx, F.y + F.h, F.gw, gd);
+  ctx.fill();
+
+  // Highlight edge on goal bars (inner bevel)
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.fillRect(F.gx + 2, F.y - 1, F.gw - 4, 1.5);
+  ctx.fillRect(F.gx + 2, F.y + F.h, F.gw - 4, 1.5);
 
   // Depth shadow cast by crossbars onto the pitch/shoes
-  const topBarShadow = ctx.createLinearGradient(0, F.y, 0, F.y + 7);
-  topBarShadow.addColorStop(0, 'rgba(0,0,0,0.4)');
+  const topBarShadow = ctx.createLinearGradient(0, F.y, 0, F.y + 8);
+  topBarShadow.addColorStop(0, 'rgba(0,0,0,0.42)');
   topBarShadow.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = topBarShadow;
-  ctx.fillRect(F.gx, F.y, F.gw, 7);
+  ctx.fillRect(F.gx, F.y, F.gw, 8);
 
-  const botBarShadow = ctx.createLinearGradient(0, F.y + F.h, 0, F.y + F.h - 7);
-  botBarShadow.addColorStop(0, 'rgba(0,0,0,0.4)');
+  const botBarShadow = ctx.createLinearGradient(0, F.y + F.h, 0, F.y + F.h - 8);
+  botBarShadow.addColorStop(0, 'rgba(0,0,0,0.42)');
   botBarShadow.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = botBarShadow;
-  ctx.fillRect(F.gx, F.y + F.h - 7, F.gw, 7);
+  ctx.fillRect(F.gx, F.y + F.h - 8, F.gw, 8);
 
   // ── Vignette overlay (darkens canvas corners for depth) ──
   const vgW = W, vgH = H;
