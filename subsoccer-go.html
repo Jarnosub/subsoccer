@@ -2533,27 +2533,19 @@ function draw(){
   }
 
   // ── Natural Ground Contact Shadow for the Ball ──
+  const vr = BALL_R * 1.6;
   ctx.save();
-  // 1. Soft directional cast shadow (offset slightly down-right)
-  ctx.translate(ball.x + 1.5, ball.y + 3.5);
-  ctx.scale(1, 0.62); // Flattened perspective ellipse on table turf
-  const castGrad = ctx.createRadialGradient(0, 0, BALL_R * 0.2, 0, 0, BALL_R * 1.35);
-  castGrad.addColorStop(0, 'rgba(0,0,0,0.48)');
-  castGrad.addColorStop(0.5, 'rgba(0,0,0,0.22)');
+  // Realistic ground shadow: offset down & right, flattened ellipse, extends beyond ball sprite
+  ctx.translate(ball.x + 4, ball.y + 6);
+  ctx.scale(1, 0.62);
+  const castGrad = ctx.createRadialGradient(0, 0, vr * 0.25, 0, 0, vr * 1.32);
+  castGrad.addColorStop(0, 'rgba(0,0,0,0.70)');
+  castGrad.addColorStop(0.45, 'rgba(0,0,0,0.38)');
+  castGrad.addColorStop(0.85, 'rgba(0,0,0,0.12)');
   castGrad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = castGrad;
   ctx.beginPath();
-  ctx.arc(0, 0, BALL_R * 1.35, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 2. Tight Ambient Occlusion contact shadow directly under the ball center
-  const aoGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, BALL_R * 0.75);
-  aoGrad.addColorStop(0, 'rgba(0,0,0,0.55)');
-  aoGrad.addColorStop(0.7, 'rgba(0,0,0,0.18)');
-  aoGrad.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = aoGrad;
-  ctx.beginPath();
-  ctx.arc(0, 0, BALL_R * 0.75, 0, Math.PI * 2);
+  ctx.arc(0, 0, vr * 1.32, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
