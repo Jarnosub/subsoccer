@@ -1234,7 +1234,7 @@ function updatePingDisplay(){
 
 function handleGameMessage(event, payload, fromRtc){
   // If WebRTC is active, ignore duplicate high-rate state events coming from Supabase
-  if(!fromRtc && rtcReady && (event === 'feet' || event === 'ball_state' || event === 'ping' || event === 'pong')){
+  if(!fromRtc && rtcReady && (event === 'feet' || event === 'game_state' || event === 'ping' || event === 'pong')){
     return;
   }
 
@@ -1244,49 +1244,38 @@ function handleGameMessage(event, payload, fromRtc){
       applyOpponentFeet(payload, true);
       break;
 
-    case 'ball_kick':
+    case 'game_state':
       if(!mpConnected || state !== 'playing') return;
-      // Remote player kicked the ball towards us!
-      const kBx = 1 - payload.bx;
-      const kBy = 1 - payload.by;
-      const kVx = -payload.vx * F.w;
-      const kVy = -payload.vy * F.h;
-      ball.x = F.x + kBx * F.w;
-      ball.y = F.y + kBy * F.h;
-      ball.vx = kVx;
-      ball.vy = kVy;
-      ballAuthority = false;
-      beep('kick');
+      if(mpRole !== 'guest') return;
+      // Host sends authoritative ball state — guest stores for smooth interpolation
+      ballRemote = {
+        x: F.x + (1 - payload.bx) * F.w,
+        y: F.y + (1 - payload.by) * F.h,
+        vx: -payload.vx * F.w,
+        vy: -payload.vy * F.h,
+        rot: -(payload.rot || 0),
+        t: Date.now()
+      };
       break;
 
-    case 'ball_sync':
-      if(!mpConnected || state !== 'playing') return;
-      // Only apply remote sync if ball is on opponent's half
-      if(ballAuthority) return;
-      const sBx = 1 - payload.bx;
-      const sBy = 1 - payload.by;
-      const sVx = -payload.vx * F.w;
-      const sVy = -payload.vy * F.h;
-      const tx = F.x + sBx * F.w;
-      const ty = F.y + sBy * F.h;
-      const dX = tx - ball.x;
-      const dY = ty - ball.y;
-      const distSq = dX * dX + dY * dY;
-      if(distSq > 16000){
-        ball.x = tx; ball.y = ty;
-      } else {
-        // Ultra-gentle drift correction — no snapping, perfectly smooth 60fps
-        ball.x += dX * 0.12;
-        ball.y += dY * 0.12;
-      }
-      ball.vx = sVx;
-      ball.vy = sVy;
+    case 'kick':
+      // Guest sent a kick to host — host executes it
+      if(mpRole !== 'host' || state !== 'playing') return;
+      const kickFootX = payload.foot === 'left' ? opFeet.lx : opFeet.rx;
+      const kickFootY = payload.foot === 'left' ? opFeet.ly : opFeet.ry;
+      // Opponent feet are at top (CPU position) — use their reported positions
+      doRemoteKick(payload.dy, payload.sideSwipe, kickFootX, kickFootY);
       break;
 
     case 'goal':
       if(!mpConnected) return;
-      // Remote player tells us they conceded a goal (or scored)
-      scoreOnline(payload.scorer === 'you' ? 'you' : 'opp', false);
+      if(mpRole === 'host'){
+        // Host already detects goals — ignore
+        return;
+      }
+      // Guest receives goal notification from host
+      const whoScored = payload.scorer === 'host' ? 'opp' : 'you';
+      scoreOnline(whoScored, false);
       break;
 
     case 'kps_result':
@@ -1294,7 +1283,6 @@ function handleGameMessage(event, payload, fromRtc){
       document.getElementById('draw').style.display = 'none';
       const guestDir = payload.hostDir === 1 ? -1 : 1;
       resetBall(guestDir);
-      ballAuthority = (guestDir === 1);
       gameStartTime = Date.now();
       state = 'playing';
       break;
@@ -1326,38 +1314,41 @@ function handleGameMessage(event, payload, fromRtc){
 function broadcastFeet(){
   if(!mpConnected) return;
   const now = Date.now();
-  const throttleTime = rtcReady ? 25 : 50; // 40fps on P2P, 20fps on Supabase
+  const throttleTime = rtcReady ? 16 : 45; // 60fps on P2P, 22fps on Supabase
   if(now - _mpFeetThrottle < throttleTime) return;
   _mpFeetThrottle = now;
   sendNetMessage('feet', normFeet());
 }
 
-function broadcastBallKick(){
+function broadcastGameState(){
   if(!mpConnected || !F.w) return;
-  _mpSeq++;
-  sendNetMessage('ball_kick', {
-    seq: _mpSeq,
-    bx: (ball.x - F.x) / F.w,
-    by: (ball.y - F.y) / F.h,
-    vx: ball.vx / F.w,
-    vy: ball.vy / F.h
-  });
-}
-
-function broadcastBallSync(){
-  if(!mpConnected || !F.w || !ballAuthority) return;
   const now = Date.now();
-  const throttleTime = rtcReady ? 45 : 75; // 22fps on P2P, 13fps on Supabase
+  const throttleTime = rtcReady ? 16 : 33; // 60fps on P2P, 30fps on Supabase
   if(now - _mpStateThrottle < throttleTime) return;
   _mpStateThrottle = now;
   _mpSeq++;
-  sendNetMessage('ball_sync', {
+  sendNetMessage('game_state', {
     seq: _mpSeq,
     bx: (ball.x - F.x) / F.w,
     by: (ball.y - F.y) / F.h,
     vx: ball.vx / F.w,
-    vy: ball.vy / F.h
+    vy: ball.vy / F.h,
+    rot: ball.rot || 0
   });
+}
+
+function interpolateBall(){
+  if(!ballRemote) return;
+  // Smooth lerp towards host's authoritative position
+  const lerp = rtcReady ? 0.35 : 0.25;
+  ball.x += (ballRemote.x - ball.x) * lerp;
+  ball.y += (ballRemote.y - ball.y) * lerp;
+  ball.vx = ballRemote.vx;
+  ball.vy = ballRemote.vy;
+  ball.rot = ballRemote.rot;
+  // Also advance ball by velocity for dead reckoning between updates
+  ball.x += ball.vx * 0.5;
+  ball.y += ball.vy * 0.5;
 }
 
 let opponentProfile = null;
@@ -1671,14 +1662,13 @@ function startOnlineGame(){
     setTimeout(() => {
       showDrawOnline((dir) => {
         resetBall(dir);
-        ballAuthority = (dir === 1);
         gameStartTime = Date.now();
         state = 'playing';
         sendNetMessage('kps_result', { hostDir: dir });
       });
-    }, 600); // 600ms lets guest render the waiting draw screen first
+    }, 600);
   } else {
-    // Guest: näytä myös KPS-animaatio — tulos tulee hostilta kps_result:lla
+    // Guest: show KPS animation — result comes from host via kps_result
     showScreen(null);
     showDrawOnline(() => {});
   }
@@ -1734,9 +1724,9 @@ function scoreOnline(who, shouldBroadcast = true){
   bump(12);
   beep(who === 'you' ? 'goal' : 'oops');
 
-  // If we conceded the goal (who === 'opp'), tell opponent they scored!
-  if(shouldBroadcast && who === 'opp'){
-    sendNetMessage('goal', { scorer: 'you' });
+  // Host broadcasts goal to guest
+  if(shouldBroadcast && mpRole === 'host'){
+    sendNetMessage('goal', { scorer: who === 'you' ? 'host' : 'guest' });
   }
 
   const done = sY >= WIN || sC >= WIN;
@@ -1758,10 +1748,8 @@ function scoreOnline(who, shouldBroadcast = true){
     pLY = PLAYER_Y();     pRY = PLAYER_Y();
     targetPLY = PLAYER_Y(); targetPRY = PLAYER_Y();
 
-    // The player who conceded kickoff restarts from their own goal area
-    const dir = who === 'opp' ? 1 : -1;
+    const dir = who === 'you' ? 1 : -1;
     resetBall(dir);
-    ballAuthority = (dir === 1);
     state = 'playing';
   }, 1500);
 }
@@ -1940,19 +1928,28 @@ function doKick(upDist, sideSwipe, footX, footY){
   // Trigger kick animation on the swiped foot for visual feedback
   if(footX < F.cx) pLKick = 1.0; else pRKick = 1.0;
 
-  // Ball must be in player's half (with slight margin over center line)
-  if(ball.y < F.cy - 16) return;
+  // Guest in online mode: send kick to host for authoritative processing
+  if(gameMode === 'online' && mpRole === 'guest' && mpConnected){
+    sendNetMessage('kick', { dy: upDist, sideSwipe, foot: footX < F.cx ? 'left' : 'right' });
+    // Also apply locally for instant visual feedback (host will correct)
+    applyKickPhysics(upDist, sideSwipe, footX, footY);
+    return;
+  }
+
+  applyKickPhysics(upDist, sideSwipe, footX, footY);
+}
+
+function applyKickPhysics(upDist, sideSwipe, footX, footY){
+  // Ball must be in player's half
+  if(ball.y < F.cy) return;
 
   const fY = footY !== undefined ? footY : PLAYER_Y();
   const distX = Math.abs(ball.x - footX);
-  const distY = fY - ball.y; // Distance in front of foot (toes point UP)
+  const distY = fY - ball.y;
 
-  // Must be horizontally aligned with the shoe (shoe width ~42px + ball radius ~13px)
-  const maxReachX = FW/2 + BALL_R + 10; // ~45px
+  const maxReachX = FW/2 + BALL_R + 8;
   if(distX > maxReachX) return;
-
-  // Must be in front of the shoe and within reach (not behind shoe, not too far up)
-  if(distY < -12 || distY > 58) return;
+  if(distY < -8 || distY > 50) return;
 
   const ballOff  = ball.x - footX;
   const swipeDir = sideSwipe / (W * 0.5);
@@ -1961,15 +1958,32 @@ function doKick(upDist, sideSwipe, footX, footY){
 
   ball.vx = Math.max(-9, Math.min(9, aimX * 0.06));
   ball.vy = -(10 + power * 8);
-  ballAuthority = true;
 
   bump(4 + power*5);
   beep('kick');
+}
 
-  // Broadcast immediate kick event in multiplayer for 0ms lag
-  if(gameMode === 'online'){
-    broadcastBallKick();
-  }
+// Host processes guest's remote kick on opponent's feet (top half)
+function doRemoteKick(upDist, sideSwipe, footX, footY){
+  // Ball must be in CPU/opponent's half (top)
+  if(ball.y > F.cy) return;
+
+  const distX = Math.abs(ball.x - footX);
+  const distY = ball.y - footY; // toes point DOWN for opponent
+
+  const maxReachX = FW/2 + BALL_R + 8;
+  if(distX > maxReachX) return;
+  if(distY < -8 || distY > 50) return;
+
+  const ballOff  = ball.x - footX;
+  const swipeDir = sideSwipe / (W * 0.5);
+  const aimX     = ballOff * 0.5 + swipeDir * F.w * 0.25;
+  const power    = Math.min(1, upDist / 140);
+
+  ball.vx = Math.max(-9, Math.min(9, aimX * 0.06));
+  ball.vy = (10 + power * 8); // positive = downward toward host's goal
+
+  beep('kick');
 }
 
 // ─── AI (two feet) ───────────────────────────────────────
@@ -2098,48 +2112,30 @@ function updateBall(){
 
   // CPU / Opponent goal (top)
   if(ball.y-BALL_R < F.y){
-    if(ball.x > F.gx && ball.x < F.gx+F.gw){
-      if(gameMode==='cpu'){ score('you'); return; }
-      // Online: opponent's client detects goal
-    } else {
-      ball.y=F.y+BALL_R; ball.vy=Math.abs(ball.vy)*0.82; beep('wall');
-    }
+    if(ball.x > F.gx && ball.x < F.gx+F.gw){ if(gameMode==='cpu') score('you'); else scoreOnline('you'); return; }
+    ball.y=F.y+BALL_R; ball.vy=Math.abs(ball.vy)*0.82; beep('wall');
   }
 
   // Player goal (bottom)
   if(ball.y+BALL_R > F.y+F.h){
-    if(ball.x > F.gx && ball.x < F.gx+F.gw){
-      if(gameMode==='cpu') score('cpu');
-      else scoreOnline('opp');
-      return;
-    }
+    if(ball.x > F.gx && ball.x < F.gx+F.gw){ if(gameMode==='cpu') score('cpu'); else scoreOnline('opp'); return; }
     ball.y=F.y+F.h-BALL_R; ball.vy=-Math.abs(ball.vy)*0.82; beep('wall');
   }
 
-  // Local player foot collisions (instant 0ms response on own half)
+  // Foot collisions — all 4 feet
   hitFoot(pLX, pLY, -1);
   hitFoot(pRX, pRY, -1);
-
   if(gameMode === 'cpu'){
     hitFoot(cLX, CPU_Y(), +1);
     hitFoot(cRX, CPU_Y(), +1);
   } else {
-    // Online Multiplayer:
-    if(ballAuthority){
-      broadcastBallSync();
-      // When ball travels past center into opponent half, yield authority
-      if(ball.y < F.cy){
-        ballAuthority = false;
-      }
-    } else {
-      // If ball crosses back into our territory, regain authority
-      if(ball.y >= F.cy){
-        ballAuthority = true;
-      }
-    }
+    // Online: use received opponent foot positions
+    hitFoot(opFeet.lx, opFeet.ly, +1);
+    hitFoot(opFeet.rx, opFeet.ry, +1);
   }
 
-  // Stuck-ball rescue: if ball is nearly stationary in CPU half
+  // Stuck-ball rescue: if ball is nearly stationary in CPU half,
+  // nudge it toward CPU_Y so CPU can reach and kick it
   const speed = Math.abs(ball.vx) + Math.abs(ball.vy);
   if(ball.y < F.cy && speed < 0.8 && gameMode === 'cpu'){
     _stuckFrames = (_stuckFrames || 0) + 1;
@@ -2161,10 +2157,6 @@ function hitFoot(fx, fy, dir){
     ball.vy = dir * (Math.abs(ball.vy)*0.85 + 1.5);
     ball.vx += dx/(FW/2) * 2.5;
     beep('hit');
-    if(gameMode === 'online' && dir === -1){
-      ballAuthority = true;
-      broadcastBallKick();
-    }
   }
 }
 
@@ -2639,8 +2631,13 @@ function loop(){
       updateAI();
       updateBall();
     } else {
-      // Online mode: Half-Field Authority for 0ms lag
-      updateBall();
+      // Online mode: Host-authoritative
+      if(mpRole === 'host'){
+        updateBall();
+        broadcastGameState();
+      } else {
+        interpolateBall();
+      }
       broadcastFeet();
     }
     updateTimer();
