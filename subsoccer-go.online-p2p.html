@@ -490,51 +490,38 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 <!-- MP Waiting -->
 <div class="screen" id="mp-waiting" style="display:none;position:fixed;inset:0;z-index:35;background:#09131a url('/subsoccer-split-bg.png') center center / cover no-repeat;flex-direction:column;justify-content:center;align-items:center;padding:20px;box-sizing:border-box;">
   
-  <div style="width:100%;max-width:340px;background:rgba(8,12,18,0.88);backdrop-filter:blur(16px);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:24px 20px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:16px;box-shadow:0 16px 40px rgba(0,0,0,0.85);">
+  <div style="width:100%;max-width:320px;background:rgba(8,12,18,0.9);backdrop-filter:blur(16px);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:28px 22px 24px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:18px;box-shadow:0 16px 40px rgba(0,0,0,0.85);text-align:center;">
     
-    <!-- Top icon & Tag -->
-    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-      <div style="font-size:32px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6));">⏳</div>
-      <div style="font-family:'Resolve',sans-serif;font-size:10px;font-weight:800;color:var(--sub-gold);letter-spacing:2px;text-transform:uppercase;">
-        ONLINE 1 VS 1 MATCH
-      </div>
-      <h2 style="font-family:'Subsoccer',sans-serif;font-size:24px;color:#fff;margin:0;letter-spacing:1px;text-transform:uppercase;">
+    <!-- Top icon & Title -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <div style="font-size:36px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6));">⏳</div>
+      <h2 style="font-family:'Subsoccer',sans-serif;font-size:26px;color:#fff;margin:0;letter-spacing:1px;text-transform:uppercase;line-height:1;">
         WAITING FOR FRIEND
       </h2>
-    </div>
-
-    <!-- Match Code Box -->
-    <div style="width:100%;background:rgba(255,255,255,0.05);border:1px dashed rgba(255,215,0,0.4);border-radius:6px;padding:10px 14px;box-sizing:border-box;text-align:center;">
-      <div style="font-family:'Resolve',sans-serif;font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;font-weight:700;">
-        MATCH CODE
-      </div>
-      <div id="mp-room-code" style="font-family:'Subsoccer',monospace;font-size:36px;color:var(--sub-gold);letter-spacing:8px;line-height:1.1;margin:4px 0 2px;">
-        ----
-      </div>
-      <div style="font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:0.5px;">
-        Share link or tell this code to your opponent
+      <div style="font-size:12px;color:rgba(255,255,255,0.75);line-height:1.4;margin-top:4px;">
+        Share the game link with your friend. The match starts automatically when they open it.
       </div>
     </div>
 
     <!-- Primary Action: Share Game Link -->
-    <button id="mp-share-btn" class="gobtn" style="width:100%;padding:14px 16px;font-size:0.95rem;background:var(--sub-red);box-shadow:0 4px 16px rgba(227,6,19,0.4);display:flex;align-items:center;justify-content:center;gap:8px;">
-      <i class="fa-solid fa-share-nodes"></i> SHARE GAME LINK
-    </button>
-
-    <!-- Secondary Action: Copy Match Code -->
-    <button id="mp-copy-code-btn" style="width:100%;padding:10px;font-family:'Resolve',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;text-transform:uppercase;">
-      <i class="fa-regular fa-copy"></i> COPY MATCH CODE
-    </button>
+    <div style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center;">
+      <button id="mp-share-btn" class="gobtn" style="width:100%;padding:15px;font-size:1rem;background:var(--sub-red);box-shadow:0 4px 16px rgba(227,6,19,0.4);display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="fa-solid fa-share-nodes"></i> SHARE GAME LINK
+      </button>
+      <button id="mp-copy-link-text-btn" style="background:transparent;border:none;color:var(--sub-gold);font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;padding:6px;text-transform:uppercase;display:flex;align-items:center;gap:6px;">
+        <i class="fa-regular fa-copy"></i> Copy Link
+      </button>
+    </div>
 
     <!-- Status Pulse -->
-    <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.65);font-size:11px;font-family:'Resolve',sans-serif;letter-spacing:0.5px;">
+    <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.6);font-size:11px;font-family:'Resolve',sans-serif;letter-spacing:0.5px;background:rgba(255,255,255,0.05);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);">
       <div style="width:7px;height:7px;border-radius:50%;background:var(--sub-gold);animation:pulse-dot 1.2s ease-in-out infinite;"></div>
-      Starts automatically on join...
+      Waiting for friend to join...
     </div>
 
     <!-- Cancel Button -->
-    <button id="mp-cancel-btn" style="background:transparent;border:none;color:rgba(255,255,255,0.45);font-family:'Resolve',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;cursor:pointer;padding:4px;text-transform:uppercase;">
-      ← CANCEL MATCH
+    <button id="mp-cancel-btn" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-family:'Resolve',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;cursor:pointer;padding:4px;text-transform:uppercase;">
+      ← CANCEL
     </button>
 
   </div>
@@ -2733,14 +2720,13 @@ document.getElementById('mp-share-btn').addEventListener('click', () => {
   }
 });
 
-document.getElementById('mp-copy-code-btn')?.addEventListener('click', () => {
-  if(mpRoomCode){
-    navigator.clipboard.writeText(mpRoomCode);
-    const btn = document.getElementById('mp-copy-code-btn');
-    if(btn){
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> CODE COPIED!';
-      setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i> COPY MATCH CODE'; }, 2000);
-    }
+document.getElementById('mp-copy-link-text-btn')?.addEventListener('click', () => {
+  const url = `${window.location.origin}/play?room=${mpRoomCode}`;
+  navigator.clipboard.writeText(url);
+  const btn = document.getElementById('mp-copy-link-text-btn');
+  if(btn){
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Link Copied!';
+    setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy Link'; }, 2000);
   }
 });
 
