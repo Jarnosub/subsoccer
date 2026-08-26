@@ -2462,12 +2462,15 @@ function draw(){
   // ── Pitch — Use realistic Subsoccer table texture ──
   const isGuestView = gameMode === 'online' && mpRole === 'guest';
   const pitchImg = isGuestView ? pitchRedBlueImg : pitchBlueRedImg;
+  const wt = 8;
+  const gd = 14;
 
   if(pitchImg.complete && pitchImg.naturalWidth){
     ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.55)';
-    ctx.shadowBlur = 20;
-    ctx.drawImage(pitchImg, F.x, F.y, F.w, F.h);
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 24;
+    // Expanded over the gray frame so the texture's own frame becomes the table boundary
+    ctx.drawImage(pitchImg, F.x - wt, F.y - gd, F.w + wt*2, F.h + gd*2);
     ctx.restore();
   } else {
     // Fallback while loading
@@ -2499,8 +2502,6 @@ function draw(){
 
   // ── Feet (clipped at outer frame so shoes never stick out behind the goal crossbars) ──
   ctx.save();
-  const wt = 8;
-  const gd = 14;
   ctx.beginPath();
   ctx.rect(F.x - wt, F.y - gd, F.w + wt*2, F.h + gd*2);
   ctx.clip();
@@ -2550,33 +2551,24 @@ function draw(){
     ctx.beginPath(); ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2); ctx.fill();
   }
 
-  // ── Side walls (over feet, 40% darker frame) ──
-  ctx.fillStyle = '#5c5c5c';
-  ctx.fillRect(F.x-wt, F.y-gd, wt, F.h+gd*2);
-  ctx.fillRect(F.x+F.w, F.y-gd, wt, F.h+gd*2);
-  ctx.fillRect(F.x-wt, F.y-gd, F.gx-F.x+wt, gd);
-  ctx.fillRect(F.gx+F.gw, F.y-gd, F.x+F.w-(F.gx+F.gw)+wt, gd);
-  ctx.fillRect(F.x-wt, F.y+F.h, F.gx-F.x+wt, gd);
-  ctx.fillRect(F.gx+F.gw, F.y+F.h, F.x+F.w-(F.gx+F.gw)+wt, gd);
-
-  // ── Goal crossbars (40% darker, rendered OVER shoes) ──
-  ctx.fillStyle = '#484848';
+  // ── Goal crossbars (rendered OVER shoes and texture frame for depth) ──
+  ctx.fillStyle = '#22252a';
   ctx.fillRect(F.gx, F.y-gd, F.gw, gd);
   ctx.fillRect(F.gx, F.y+F.h, F.gw, gd);
-  // Inner highlight edge on goal bars
-  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  // Highlight edge on goal bars
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
   ctx.fillRect(F.gx, F.y-1, F.gw, 2);
   ctx.fillRect(F.gx, F.y+F.h-1, F.gw, 2);
 
   // Depth shadow cast by crossbars onto the pitch/shoes
   const topBarShadow = ctx.createLinearGradient(0, F.y, 0, F.y + 7);
-  topBarShadow.addColorStop(0, 'rgba(0,0,0,0.35)');
+  topBarShadow.addColorStop(0, 'rgba(0,0,0,0.4)');
   topBarShadow.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = topBarShadow;
   ctx.fillRect(F.gx, F.y, F.gw, 7);
 
   const botBarShadow = ctx.createLinearGradient(0, F.y + F.h, 0, F.y + F.h - 7);
-  botBarShadow.addColorStop(0, 'rgba(0,0,0,0.35)');
+  botBarShadow.addColorStop(0, 'rgba(0,0,0,0.4)');
   botBarShadow.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = botBarShadow;
   ctx.fillRect(F.gx, F.y + F.h - 7, F.gw, 7);
