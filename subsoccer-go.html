@@ -2532,15 +2532,16 @@ function draw(){
     ctx.lineTo(ball.x-ball.vx*2.6, ball.y-ball.vy*2.6); ctx.stroke();
   }
 
-  // ── Subtle Soft Ground Shadow for the Ball (one-sided & lighter) ──
+  // ── Subtle Soft Ground Shadow for the Ball (visible on bottom-right) ──
   const vr = BALL_R * 1.6;
   ctx.save();
-  ctx.translate(ball.x + 2.5, ball.y + 3.2); // subtle offset to one side
-  const shadowR = vr * 1.08; // compact and subtle
+  ctx.translate(ball.x + 4.5, ball.y + 6.5); // offset down & right so shadow peaks out on one side
+  ctx.scale(1, 0.68); // slight perspective flattening
+  const shadowR = vr * 1.18;
   const shadowGrad = ctx.createRadialGradient(0, 0, vr * 0.2, 0, 0, shadowR);
-  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.32)');
-  shadowGrad.addColorStop(0.45, 'rgba(0,0,0,0.18)');
-  shadowGrad.addColorStop(0.82, 'rgba(0,0,0,0.06)');
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.58)');
+  shadowGrad.addColorStop(0.5, 'rgba(0,0,0,0.32)');
+  shadowGrad.addColorStop(0.85, 'rgba(0,0,0,0.10)');
   shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = shadowGrad;
   ctx.beginPath();
