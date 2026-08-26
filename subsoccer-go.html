@@ -36,17 +36,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--sub-black);col
   font-family:'Resolve',-apple-system,sans-serif;}
 canvas{display:block;width:100%;height:100%;}
 #hud{position:fixed;top:0;left:0;right:0;
-  padding:calc(env(safe-area-inset-top,10px)+8px) 16px 8px;
+  padding:calc(env(safe-area-inset-top,10px)+10px) 14px 8px;
   display:flex;justify-content:space-between;align-items:center;
-  pointer-events:none;z-index:10;}
-.hpanel{background:rgba(12,12,14,0.88);border:1px solid rgba(255,255,255,0.12);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border-radius:4px;padding:6px 14px;display:flex;align-items:center;gap:12px;}
-.av{width:26px;height:26px;border-radius:50%;
+  pointer-events:none;z-index:10;max-width:520px;margin:0 auto;}
+.hpanel{background:rgba(12,14,20,0.82);border:1px solid rgba(255,255,255,0.15);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:10px;padding:6px 12px;display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.12);}
+.av{width:28px;height:28px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;
-  font-family:'Resolve',sans-serif;letter-spacing:0.5px;}
-.lbl{font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:1px;font-family:'Resolve',sans-serif;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
-.pts{font-size:32px;color:#fff;font-weight:normal;line-height:1;font-family:'Subsoccer',sans-serif;letter-spacing:1px;}
+  font-family:'Resolve',sans-serif;letter-spacing:0.5px;box-shadow:0 2px 8px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.25);}
+.lbl{font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:1.2px;font-family:'Resolve',sans-serif;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+.pts{font-size:30px;color:#fff;font-weight:normal;line-height:1;font-family:'Subsoccer',sans-serif;letter-spacing:1px;text-shadow:0 0 14px rgba(255,255,255,0.3);}
 .screen{position:fixed;inset:0;background:var(--sub-black);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   z-index:30;gap:18px;padding:24px;text-align:center;}
@@ -84,8 +85,9 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 .sbtxt{font-size:72px;font-weight:normal;color:var(--sub-gold);font-family:'Subsoccer',sans-serif;}
 #goal{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;
   z-index:20;pointer-events:none;}
-.gtxt{font-size:28px;font-weight:normal;font-family:'Subsoccer',sans-serif;letter-spacing:4px;
+.gtxt{font-size:32px;font-weight:normal;font-family:'Subsoccer',sans-serif;letter-spacing:5px;
   text-transform:uppercase;color:#fff !important;
+  text-shadow:0 0 20px rgba(227,6,19,0.8), 0 4px 12px rgba(0,0,0,0.9);
   animation:pop .35s cubic-bezier(.175,.885,.32,1.275);}
 @keyframes pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
 #hint{position:fixed;bottom:calc(env(safe-area-inset-bottom,10px)+8px);
@@ -1729,6 +1731,7 @@ function scoreOnline(who, shouldBroadcast = true){
   showGoalOnline(who);
   bump(12);
   beep(who === 'you' ? 'goal' : 'oops');
+  spawnGoalConfetti();
 
   // Host broadcasts goal to guest
   if(shouldBroadcast && mpRole === 'host'){
@@ -1967,6 +1970,7 @@ function applyKickPhysics(upDist, sideSwipe, footX, footY){
 
   bump(4 + power*5);
   beep('kick');
+  spawnKickFX(footX, fY, -1);
 }
 
 // Host processes guest's remote kick on opponent's feet (top half)
@@ -1990,6 +1994,7 @@ function doRemoteKick(upDist, sideSwipe, footX, footY){
   ball.vy = (10 + power * 8); // positive = downward toward host's goal
 
   beep('kick');
+  spawnKickFX(footX, footY, 1);
 }
 
 // ─── AI (two feet) ───────────────────────────────────────
@@ -2041,6 +2046,7 @@ function updateAI(){
       cpuCD   = 22 + Math.random()*18|0;
       if(isLeft) cLKick = 1.0; else cRKick = 1.0;
       beep('kick');
+      spawnKickFX(fx, cpuFY, 1);
     }
   };
   checkKick(cLX, true);
@@ -2051,7 +2057,89 @@ function updateAI(){
   cLKick *= 0.72; cRKick *= 0.72;
 }
 
-// ─── Shoe drawing (real photo, rotated per foot) ──────────
+// ─── Dynamic Visual FX ────────────────────────────────────
+let fxParticles = [];
+
+function spawnKickFX(x, y, dir){
+  for(let i=0; i<6; i++){
+    fxParticles.push({
+      type: 'spark',
+      x: x + (Math.random()-0.5)*18,
+      y: y + dir * 6,
+      vx: (Math.random()-0.5)*3.5,
+      vy: dir * (2 + Math.random()*4),
+      size: 2.5 + Math.random()*2,
+      color: '#ffd700',
+      alpha: 0.9,
+      decay: 0.05
+    });
+  }
+}
+
+function spawnWallFX(x, y){
+  for(let i=0; i<4; i++){
+    fxParticles.push({
+      type: 'spark',
+      x, y,
+      vx: (Math.random()-0.5)*3,
+      vy: (Math.random()-0.5)*3,
+      size: 2,
+      color: 'rgba(255,255,255,0.85)',
+      alpha: 0.85,
+      decay: 0.08
+    });
+  }
+}
+
+function spawnGoalConfetti(){
+  const colors = ['#ffd700', '#e30613', '#ffffff', '#0077cc', '#ffaa00'];
+  for(let i=0; i<45; i++){
+    fxParticles.push({
+      type: 'confetti',
+      x: F.gx + Math.random() * F.gw,
+      y: F.cy + (Math.random()-0.5)*F.h*0.35,
+      vx: (Math.random()-0.5)*8,
+      vy: (Math.random()-0.5)*8 - 3,
+      rot: Math.random()*Math.PI*2,
+      vrot: (Math.random()-0.5)*0.2,
+      size: 4 + Math.random()*5,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      alpha: 1.0,
+      decay: 0.015
+    });
+  }
+}
+
+function updateAndDrawFX(){
+  for(let i = fxParticles.length - 1; i >= 0; i--){
+    const p = fxParticles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.alpha -= p.decay;
+    if(p.type === 'confetti'){
+      p.vy += 0.15; // gravity
+      p.rot += p.vrot;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.fillRect(-p.size/2, -p.size/3, p.size, p.size*0.7);
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+    if(p.alpha <= 0) fxParticles.splice(i, 1);
+  }
+}
+
+// ─── Shoe drawing (real photo + sport socks, rotated per foot) ───
 function drawShoe(cx, cy, img, facing, isLeftOnScreen){
   // facing: -1 = toes point UP (player), +1 = toes point DOWN (CPU)
   // isLeftOnScreen: mirrors the right-shoe image to make a left shoe
@@ -2084,6 +2172,29 @@ function drawShoe(cx, cy, img, facing, isLeftOnScreen){
   // Mirror horizontally to turn right shoe → left shoe
   if(isLeftOnScreen) ctx.scale(-1, 1);
 
+  // ── Sport sock extending seamlessly from shoe collar ──
+  const sockW = sw * 0.52;
+  const sockH = 26;
+  const sockX = -sockW / 2;
+  const sockY = sh/2 - 14;
+
+  const sockGrad = ctx.createLinearGradient(0, sockY, 0, sockY + sockH);
+  sockGrad.addColorStop(0, '#ffffff');
+  sockGrad.addColorStop(0.65, '#e4e4e6');
+  sockGrad.addColorStop(1, 'rgba(180,180,185,0)');
+
+  ctx.fillStyle = sockGrad;
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(sockX, sockY, sockW, sockH, [0, 0, 4, 4]);
+  else ctx.rect(sockX, sockY, sockW, sockH);
+  ctx.fill();
+
+  // Sport stripes on sock
+  ctx.fillStyle = 'rgba(24,24,28,0.75)';
+  ctx.fillRect(sockX + 2, sockY + 11, sockW - 4, 2.5);
+  ctx.fillStyle = 'rgba(227,6,19,0.75)';
+  ctx.fillRect(sockX + 2, sockY + 15, sockW - 4, 2.5);
+
   if(img.complete && img.naturalWidth){
     ctx.drawImage(img, -sw/2, -sh/2, sw, sh);
   } else {
@@ -2110,22 +2221,22 @@ function updateBall(){
 
   // Sides
   if(ball.x-BALL_R < F.x){
-    ball.x=F.x+BALL_R; ball.vx=Math.abs(ball.vx)*0.82; beep('wall');
+    ball.x=F.x+BALL_R; ball.vx=Math.abs(ball.vx)*0.82; beep('wall'); spawnWallFX(ball.x, ball.y);
   }
   if(ball.x+BALL_R > F.x+F.w){
-    ball.x=F.x+F.w-BALL_R; ball.vx=-Math.abs(ball.vx)*0.82; beep('wall');
+    ball.x=F.x+F.w-BALL_R; ball.vx=-Math.abs(ball.vx)*0.82; beep('wall'); spawnWallFX(ball.x, ball.y);
   }
 
   // CPU / Opponent goal (top)
   if(ball.y-BALL_R < F.y){
     if(ball.x > F.gx && ball.x < F.gx+F.gw){ if(gameMode==='cpu') score('you'); else scoreOnline('you'); return; }
-    ball.y=F.y+BALL_R; ball.vy=Math.abs(ball.vy)*0.82; beep('wall');
+    ball.y=F.y+BALL_R; ball.vy=Math.abs(ball.vy)*0.82; beep('wall'); spawnWallFX(ball.x, ball.y);
   }
 
   // Player goal (bottom)
   if(ball.y+BALL_R > F.y+F.h){
     if(ball.x > F.gx && ball.x < F.gx+F.gw){ if(gameMode==='cpu') score('cpu'); else scoreOnline('opp'); return; }
-    ball.y=F.y+F.h-BALL_R; ball.vy=-Math.abs(ball.vy)*0.82; beep('wall');
+    ball.y=F.y+F.h-BALL_R; ball.vy=-Math.abs(ball.vy)*0.82; beep('wall'); spawnWallFX(ball.x, ball.y);
   }
 
   // Foot collisions — all 4 feet
@@ -2163,6 +2274,7 @@ function hitFoot(fx, fy, dir){
     ball.vy = dir * (Math.abs(ball.vy)*0.85 + 1.5);
     ball.vx += dx/(FW/2) * 2.5;
     beep('hit');
+    spawnKickFX(fx, fy, dir);
   }
 }
 
@@ -2176,6 +2288,7 @@ function score(who){
   showGoal(who);
   bump(12);
   beep(who==='you'?'goal':'oops');
+  spawnGoalConfetti();
   const done = sY>=WIN || sC>=WIN;
   if(done && gameStartTime && !_matchDuration){
     _matchDuration = ((Date.now() - gameStartTime) / 1000).toFixed(1);
@@ -2454,8 +2567,13 @@ function draw(){
   shX*=.78; shY*=.78;
   ctx.clearRect(-10,-10,W+20,H+20);
 
-  // ── Background ──
-  ctx.fillStyle='#060810'; ctx.fillRect(0,0,W,H);
+  // ── Background: Ambient Lounge Spotlight ──
+  const spot = ctx.createRadialGradient(W/2, H/2, (F.w||120)*0.25, W/2, H/2, Math.max(W,H)*0.85);
+  spot.addColorStop(0, '#121622');
+  spot.addColorStop(0.65, '#07080e');
+  spot.addColorStop(1, '#020305');
+  ctx.fillStyle = spot;
+  ctx.fillRect(0, 0, W, H);
 
   if(!F.w){ctx.restore();return;}
 
@@ -2467,8 +2585,8 @@ function draw(){
 
   if(pitchImg.complete && pitchImg.naturalWidth){
     ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-    ctx.shadowBlur = 24;
+    ctx.shadowColor = 'rgba(0,0,0,0.75)';
+    ctx.shadowBlur = 28;
     // Expanded over the gray frame so the texture's own frame becomes the table boundary
     ctx.drawImage(pitchImg, F.x - wt, F.y - gd, F.w + wt*2, F.h + gd*2);
     ctx.restore();
@@ -2499,6 +2617,23 @@ function draw(){
       ctx.drawImage(logoImg, F.cx - lw/2, F.cy - lh/2, lw, lh);
     }
   }
+
+  // ── Polycarbonate Table Glass Sheen & Glare ──
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(F.x, F.y, F.w, F.h);
+  ctx.clip();
+  const glassSheen = ctx.createLinearGradient(F.x - F.w*0.3, F.y, F.x + F.w*1.3, F.y + F.h);
+  glassSheen.addColorStop(0, 'rgba(255,255,255,0)');
+  glassSheen.addColorStop(0.32, 'rgba(255,255,255,0)');
+  glassSheen.addColorStop(0.38, 'rgba(255,255,255,0.065)'); // soft diagonal glare
+  glassSheen.addColorStop(0.44, 'rgba(255,255,255,0.02)');
+  glassSheen.addColorStop(0.60, 'rgba(255,255,255,0)');
+  glassSheen.addColorStop(0.76, 'rgba(255,255,255,0.045)');
+  glassSheen.addColorStop(0.82, 'rgba(255,255,255,0)');
+  ctx.fillStyle = glassSheen;
+  ctx.fillRect(F.x, F.y, F.w, F.h);
+  ctx.restore();
 
   // ── Feet (clipped at outer frame so shoes never stick out behind the goal crossbars) ──
   ctx.save();
@@ -2596,6 +2731,9 @@ function draw(){
   botBarShadow.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = botBarShadow;
   ctx.fillRect(F.gx, F.y + F.h - 8, F.gw, 8);
+
+  // ── Dynamic FX: sparks, impact rings & goal confetti ──
+  updateAndDrawFX();
 
   // ── Vignette overlay (darkens canvas corners for depth) ──
   const vgW = W, vgH = H;
