@@ -746,6 +746,12 @@ const RTC_CONFIG = {
   ]
 };
 
+// Preload Subsoccer pitch textures
+const pitchBlueRedImg = new Image();
+pitchBlueRedImg.src = '/subsoccer-pitch-blue-red.jpg';
+const pitchRedBlueImg = new Image();
+pitchRedBlueImg.src = '/subsoccer-pitch-red-blue.jpg';
+
 // Preload Subsoccer logo for field center
 const logoImg = new Image();
 logoImg.src = '/subsoccer-go-logo-v3.png';
@@ -2453,75 +2459,43 @@ function draw(){
 
   if(!F.w){ctx.restore();return;}
 
-  // ── Pitch halves — Guest näkee oman värinsä (sininen) alhaalla ──
+  // ── Pitch — Use realistic Subsoccer table texture ──
   const isGuestView = gameMode === 'online' && mpRole === 'guest';
-  const topColor1 = isGuestView ? '#a8101a' : '#1c2b36';
-  const topColor2 = isGuestView ? '#6b050b' : '#121e2b';
-  const botColor1 = isGuestView ? '#1c2b36' : '#a8101a';
-  const botColor2 = isGuestView ? '#121e2b' : '#6b050b';
-  ctx.save();
-  ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=18;
-  const gradTop = ctx.createLinearGradient(F.x, F.y, F.x, F.cy);
-  gradTop.addColorStop(0, topColor1);
-  gradTop.addColorStop(1, topColor2);
-  ctx.fillStyle = gradTop;
-  ctx.fillRect(F.x, F.y, F.w, F.h/2);
-  const gradBot = ctx.createLinearGradient(F.x, F.cy, F.x, F.y+F.h);
-  gradBot.addColorStop(0, botColor1);
-  gradBot.addColorStop(1, botColor2);
-  ctx.fillStyle = gradBot;
-  ctx.fillRect(F.x, F.cy, F.w, F.h/2);
-  ctx.shadowBlur=0;
-  ctx.restore();
+  const pitchImg = isGuestView ? pitchRedBlueImg : pitchBlueRedImg;
 
+  if(pitchImg.complete && pitchImg.naturalWidth){
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur = 20;
+    ctx.drawImage(pitchImg, F.x, F.y, F.w, F.h);
+    ctx.restore();
+  } else {
+    // Fallback while loading
+    const topColor1 = isGuestView ? '#a8101a' : '#1c2b36';
+    const topColor2 = isGuestView ? '#6b050b' : '#121e2b';
+    const botColor1 = isGuestView ? '#1c2b36' : '#a8101a';
+    const botColor2 = isGuestView ? '#121e2b' : '#6b050b';
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=18;
+    const gradTop = ctx.createLinearGradient(F.x, F.y, F.x, F.cy);
+    gradTop.addColorStop(0, topColor1); gradTop.addColorStop(1, topColor2);
+    ctx.fillStyle = gradTop; ctx.fillRect(F.x, F.y, F.w, F.h/2);
+    const gradBot = ctx.createLinearGradient(F.x, F.cy, F.x, F.y+F.h);
+    gradBot.addColorStop(0, botColor1); gradBot.addColorStop(1, botColor2);
+    ctx.fillStyle = gradBot; ctx.fillRect(F.x, F.cy, F.w, F.h/2);
+    ctx.restore();
 
-  // ── Goal depth shading — subtle ──
-  const goalDepthH = F.h * 0.025;
-  const gdTop = ctx.createLinearGradient(0, F.y, 0, F.y + goalDepthH);
-  gdTop.addColorStop(0, 'rgba(0,0,0,0.25)');
-  gdTop.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = gdTop;
-  ctx.fillRect(F.gx, F.y, F.gw, goalDepthH);
-  const gdBot = ctx.createLinearGradient(0, F.y + F.h, 0, F.y + F.h - goalDepthH);
-  gdBot.addColorStop(0, 'rgba(0,0,0,0.25)');
-  gdBot.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = gdBot;
-  ctx.fillRect(F.gx, F.y + F.h - goalDepthH, F.gw, goalDepthH);
+    // Center line
+    ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(F.x, F.cy); ctx.lineTo(F.x+F.w, F.cy); ctx.stroke();
 
-  // ── Center line (dashed) ──
-  ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=3;
-  ctx.setLineDash([10,7]);
-  ctx.beginPath(); ctx.moveTo(F.x, F.cy); ctx.lineTo(F.x+F.w, F.cy); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // ── Center circle (15% smaller) ──
-  const circR = F.w * 0.153;
-  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-  ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.arc(F.cx, F.cy, circR, 0, Math.PI*2); ctx.stroke();
-
-  // ── Center spot ──
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.beginPath(); ctx.arc(F.cx, F.cy, 3, 0, Math.PI*2); ctx.fill();
-
-  // ── Subsoccer logo (solid, 100% opacity) ──
-  if(logoImg.complete && logoImg.naturalWidth){
-    const lw = F.w * 0.224;
-    const lh = lw * (logoImg.naturalHeight / logoImg.naturalWidth);
-    ctx.drawImage(logoImg, F.cx - lw/2, F.cy - lh/2, lw, lh);
+    // Subsoccer logo
+    if(logoImg.complete && logoImg.naturalWidth){
+      const lw = F.w * 0.224;
+      const lh = lw * (logoImg.naturalHeight / logoImg.naturalWidth);
+      ctx.drawImage(logoImg, F.cx - lw/2, F.cy - lh/2, lw, lh);
+    }
   }
-
-  // ── Goal area boxes ──
-  const boxH = F.h * 0.18;
-  ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.moveTo(F.gx, F.y); ctx.lineTo(F.gx, F.y+boxH);
-  ctx.lineTo(F.gx+F.gw, F.y+boxH); ctx.lineTo(F.gx+F.gw, F.y);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(F.gx, F.y+F.h); ctx.lineTo(F.gx, F.y+F.h-boxH);
-  ctx.lineTo(F.gx+F.gw, F.y+F.h-boxH); ctx.lineTo(F.gx+F.gw, F.y+F.h);
-  ctx.stroke();
 
   // ── Feet (clipped at outer frame so shoes never stick out behind the goal crossbars) ──
   ctx.save();
