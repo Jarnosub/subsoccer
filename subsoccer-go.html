@@ -2093,12 +2093,13 @@ canvas.addEventListener('touchend', (e) => {
     else                   targetPRY = PLAYER_Y();
 
     const dy = td.y0 - t.clientY;
-    const dx = Math.abs(t.clientX - td.x0);
+    const dx = t.clientX - td.x0;
     const dt = Date.now() - td.t0;
-    if(dy > 25 && dy > dx && dt < 500){
+    // Allow diagonal swipes (dy > 18 upwards)
+    if(dy > 18 && dt < 600){
       const footX = td.side === 'left' ? pLX : pRX;
       const footY = td.side === 'left' ? pLY : pRY;
-      doKick(dy, t.clientX - td.x0, footX, footY);
+      doKick(dy, dx, footX, footY);
     }
     delete touches[t.identifier];
   }
@@ -2140,12 +2141,12 @@ document.addEventListener('mouseup', (e) => {
   else                         targetPRY = PLAYER_Y();
 
   const dy = mouseInp.y0 - e.clientY;
-  const dx = Math.abs(e.clientX - mouseInp.x0);
+  const dx = e.clientX - mouseInp.x0;
   const dt = Date.now() - mouseInp.t0;
-  if(dy > 25 && dy > dx && dt < 500){
+  if(dy > 18 && dt < 600){
     const footX = mouseInp.side === 'left' ? pLX : pRX;
     const footY = mouseInp.side === 'left' ? pLY : pRY;
-    doKick(dy, e.clientX - mouseInp.x0, footX, footY);
+    doKick(dy, dx, footX, footY);
   }
 });
 
@@ -2186,21 +2187,21 @@ function applyKickPhysics(upDist, sideSwipe, footX, footY){
 
   const cfg = gameMode === 'cpu' ? (CUP_ROUNDS[currentCupRound - 1] || CUP_ROUNDS[0]) : CUP_ROUNDS[0];
   const ballOff  = ball.x - footX;
-  const swipeDir = sideSwipe / (W * 0.5);
-  const aimX     = ballOff * 0.5 + swipeDir * F.w * 0.25;
-  const power    = Math.min(1, upDist / 140);
+  const swipeNorm = Math.max(-1, Math.min(1, sideSwipe / 70));
+  const aimX     = ballOff * 0.4 + swipeNorm * F.w * 0.35;
+  const power    = Math.min(1, upDist / 120);
   const speedScale = cfg.speedMult;
 
-  ball.vx = Math.max(-10 * speedScale, Math.min(10 * speedScale, aimX * 0.06 * speedScale));
-  ball.vy = -(10 + power * 8) * speedScale;
+  ball.vx = Math.max(-12 * speedScale, Math.min(12 * speedScale, aimX * 0.08 * speedScale));
+  ball.vy = -(11 + power * 9) * speedScale;
 
   // ─── Curve ball / Magnus spin ───
-  // Swipe to side imparts spin on the ball (curves in flight)
-  ball.spin = Math.max(-2.6, Math.min(2.6, swipeDir * 2.8));
+  // Strong responsive spin when swiped diagonally
+  ball.spin = swipeNorm * 3.8;
 
-  bump(4 + power*5);
+  bump(5 + power*6);
   beep('kick');
-  vibrate(Math.round(15 + power * 15));
+  vibrate(Math.round(20 + power * 20));
 }
 
 // Host processes guest's remote kick on opponent's feet (top half)
@@ -2216,11 +2217,6 @@ function doRemoteKick(upDist, sideSwipe, footX, footY){
   if(distY < -8 || distY > 50) return;
 
   const ballOff  = ball.x - footX;
-  const swipeDir = sideSwipe / (W * 0.5);
-  const aimX     = ballOff * 0.5 + swipeDir * F.w * 0.25;
-  const power    = Math.min(1, upDist / 140);
-
-  ball.vx = Math.max(-9, Math.min(9, aimX * 0.06));
   ball.vy = (10 + power * 8); // positive = downward toward host's goal
 
   beep('kick');
@@ -2342,13 +2338,13 @@ const PLAYER_Y = () => F.y + F.h - 44;
 function updateBall(){
   // Apply curve ball aerodynamic deflection (Magnus effect)
   if(ball.spin){
-    ball.vx += ball.spin * 0.14;
+    ball.vx += ball.spin * 0.38 * (Math.abs(ball.vy) / 10);
     ball.spin *= 0.982; // spin decays with air resistance
   }
 
   ball.x += ball.vx;
   ball.y += ball.vy;
-  ball.rot = (ball.rot || 0) + (ball.vx * 0.04 + ball.vy * 0.02 + (ball.spin || 0) * 0.08);
+  ball.rot = (ball.rot || 0) + (ball.vx * 0.05 + ball.vy * 0.03 + (ball.spin || 0) * 0.16);
   ball.vx *= 0.990;
   ball.vy *= 0.990;
 
