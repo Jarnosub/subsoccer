@@ -444,7 +444,7 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   </div>
   <div class="hpanel">
     <div class="av" style="background:#0077cc" id="opp-av">C</div>
-    <div><div class="lbl" id="opp-lbl">CPU</div><div class="pts" id="sc">0</div></div>
+    <div><div class="lbl" id="opp-lbl">NOVICE</div><div class="pts" id="sc">0</div></div>
   </div>
 </div>
 
@@ -1121,7 +1121,7 @@ const CUP_ROUNDS = [
     wobble: 0.14,
     lerpSpeed: 0.12,
     cornerChance: 0.40,
-    oppName: 'NOVICE CPU',
+    oppName: 'NOVICE',
     desc: 'Round of 32 · Standard Pace'
   },
   {
@@ -1136,7 +1136,7 @@ const CUP_ROUNDS = [
     wobble: 0.10,
     lerpSpeed: 0.16,
     cornerChance: 0.60,
-    oppName: 'PRO CPU',
+    oppName: 'AMATEUR',
     desc: 'Round of 16 · Faster Pace (+18%)'
   },
   {
@@ -1151,7 +1151,7 @@ const CUP_ROUNDS = [
     wobble: 0.05,
     lerpSpeed: 0.20,
     cornerChance: 0.80,
-    oppName: 'ELITE CPU',
+    oppName: 'SEMI PRO',
     desc: 'Quarter-Final · High Precision (+38%)'
   },
   {
@@ -1166,7 +1166,7 @@ const CUP_ROUNDS = [
     wobble: 0.02,
     lerpSpeed: 0.26,
     cornerChance: 0.95,
-    oppName: 'CHAMPION CPU',
+    oppName: 'PRO',
     desc: 'Semi-Final · Lightning Reflexes (+62%)'
   },
   {
@@ -1181,7 +1181,7 @@ const CUP_ROUNDS = [
     wobble: 0.005,
     lerpSpeed: 0.35,
     cornerChance: 1.0,
-    oppName: 'TITAN BOSS CPU',
+    oppName: 'FINAL BOSS',
     desc: 'GRAND FINAL · ALMOST IMPOSSIBLE (+95%) 🔥'
   }
 ];
@@ -2447,14 +2447,19 @@ function score(who){
 function showGoal(who){
   const el  = document.getElementById('goal');
   const txt = document.getElementById('gtxt');
-  txt.textContent = who==='you' ? 'GOAL!' : 'CPU SCORES';
+
+  if(who === 'you'){
+    txt.textContent = 'GOAL!';
+    // Place in the middle of the player's lower half (below center line, above bottom goal)
+    el.style.paddingTop = (F.y + F.h * 0.65) + 'px';
+  } else {
+    // Show opponent name instead of "CPU SCORES"
+    const cfg = CUP_ROUNDS[currentCupRound - 1] || CUP_ROUNDS[0];
+    txt.textContent = cfg.oppName + ' SCORES';
+    // Place just below CPU shoes (middle of top half → below CPU position)
+    el.style.paddingTop = (CPU_Y() + 60) + 'px';
+  }
   txt.style.color = '';
-  // CPU scores (top) -> place goal text safely above CPU shoes or below center
-  // Player scores (bottom) -> place goal text in player's half
-  const topPx = who==='you'
-    ? F.y + F.h * 0.72
-    : F.y + F.h * 0.08;
-  el.style.paddingTop = topPx + 'px';
   el.style.display = 'flex';
 }
 function hideGoal(){ document.getElementById('goal').style.display='none'; }
