@@ -2187,21 +2187,21 @@ function applyKickPhysics(upDist, sideSwipe, footX, footY){
 
   const cfg = gameMode === 'cpu' ? (CUP_ROUNDS[currentCupRound - 1] || CUP_ROUNDS[0]) : CUP_ROUNDS[0];
   const ballOff  = ball.x - footX;
-  const swipeNorm = Math.max(-1, Math.min(1, sideSwipe / 70));
-  const aimX     = ballOff * 0.4 + swipeNorm * F.w * 0.35;
+  const swipeNorm = Math.max(-1, Math.min(1, sideSwipe / 60));
   const power    = Math.min(1, upDist / 120);
   const speedScale = cfg.speedMult;
 
-  ball.vx = Math.max(-12 * speedScale, Math.min(12 * speedScale, aimX * 0.08 * speedScale));
-  ball.vy = -(11 + power * 9) * speedScale;
+  // Natural forward kick angle based on foot strike position (clean controlled forward angle)
+  ball.vx = Math.max(-4.5 * speedScale, Math.min(4.5 * speedScale, ballOff * 0.22 * speedScale));
+  ball.vy = -(11 + power * 8) * speedScale;
 
   // ─── Curve ball / Magnus spin ───
-  // Strong responsive spin when swiped diagonally
-  ball.spin = swipeNorm * 3.8;
+  // Imparts progressive aerodynamic curve that arches smoothly during flight
+  ball.spin = swipeNorm * 1.8;
 
-  bump(5 + power*6);
+  bump(4 + power*5);
   beep('kick');
-  vibrate(Math.round(20 + power * 20));
+  vibrate(Math.round(15 + power * 15));
 }
 
 // Host processes guest's remote kick on opponent's feet (top half)
@@ -2336,15 +2336,15 @@ function drawShoe(cx, cy, img, facing, isLeftOnScreen){
 const PLAYER_Y = () => F.y + F.h - 44;
 
 function updateBall(){
-  // Apply curve ball aerodynamic deflection (Magnus effect)
+  // Smooth aerodynamic curve deflection
   if(ball.spin){
-    ball.vx += ball.spin * 0.38 * (Math.abs(ball.vy) / 10);
-    ball.spin *= 0.982; // spin decays with air resistance
+    ball.vx += ball.spin * 0.18;
+    ball.spin *= 0.985; // spin decays smoothly
   }
 
   ball.x += ball.vx;
   ball.y += ball.vy;
-  ball.rot = (ball.rot || 0) + (ball.vx * 0.05 + ball.vy * 0.03 + (ball.spin || 0) * 0.16);
+  ball.rot = (ball.rot || 0) + (ball.vx * 0.04 + ball.vy * 0.02 + (ball.spin || 0) * 0.12);
   ball.vx *= 0.990;
   ball.vy *= 0.990;
 
