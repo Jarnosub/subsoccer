@@ -2632,30 +2632,53 @@ function draw(){
   ctx.restore();
 }
 
-// ─── Loop ─────────────────────────────────────────────────
+// ─── Loop (Fixed 60Hz Physics Timestep for uniform speed on all refresh rates) ───
+let lastLoopTime = 0;
+let physicsAccumulator = 0;
+const PHYSICS_STEP = 1000 / 60; // 16.6667ms per physics step
+
 function updatePlayer(){
   pLY += (targetPLY - pLY) * 0.45;
   pRY += (targetPRY - pRY) * 0.45;
 }
 
-function loop(){
-  if(state==='playing'){
-    updatePlayer();
-    if(gameMode === 'cpu'){
-      updateAI();
+function updatePhysicsStep(){
+  updatePlayer();
+  if(gameMode === 'cpu'){
+    updateAI();
+    updateBall();
+  } else {
+    // Online mode: Host-authoritative
+    if(mpRole === 'host'){
       updateBall();
+      broadcastGameState();
     } else {
-      // Online mode: Host-authoritative
-      if(mpRole === 'host'){
-        updateBall();
-        broadcastGameState();
-      } else {
-        interpolateBall();
-      }
-      broadcastFeet();
+      interpolateBall();
     }
-    updateTimer();
+    broadcastFeet();
   }
+  updateTimer();
+}
+
+function loop(timestamp){
+  if(!lastLoopTime) lastLoopTime = timestamp || performance.now();
+  const now = timestamp || performance.now();
+  let frameTime = now - lastLoopTime;
+  lastLoopTime = now;
+
+  // Clamp max frameTime to 200ms to avoid spiral if tab is backgrounded
+  if(frameTime > 200) frameTime = 200;
+
+  if(state === 'playing'){
+    physicsAccumulator += frameTime;
+    while(physicsAccumulator >= PHYSICS_STEP){
+      updatePhysicsStep();
+      physicsAccumulator -= PHYSICS_STEP;
+    }
+  } else {
+    physicsAccumulator = 0;
+  }
+
   draw();
   requestAnimationFrame(loop);
 }
