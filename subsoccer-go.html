@@ -487,6 +487,20 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
       <i class="fa-solid fa-arrow-left" style="font-size:10px;"></i> BACK TO HOME
     </a>
   </div>
+<!-- Big Round Splash / Intro Screen before match begins -->
+<div class="screen" id="round-intro" style="display:none;position:fixed;inset:0;z-index:40;background:radial-gradient(circle at 50% 30%, #1c2638 0%, #06080d 100%);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;box-sizing:border-box;">
+  <div style="font-size:58px;line-height:1;filter:drop-shadow(0 4px 16px rgba(255,215,0,0.4));animation:pop .4s cubic-bezier(.175,.885,.32,1.275);" id="intro-round-badge">🥉</div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+    <div id="intro-round-title" style="font-family:'Subsoccer',sans-serif;font-size:56px;color:#fff;letter-spacing:4px;text-transform:uppercase;line-height:1;text-shadow:0 0 20px rgba(255,255,255,0.4);animation:pop .35s ease-out;">
+      ROUND 1
+    </div>
+    <div id="intro-round-stage" style="font-family:'Resolve',sans-serif;font-size:15px;font-weight:800;color:var(--sub-gold);letter-spacing:5px;text-transform:uppercase;">
+      ROUND OF 32
+    </div>
+  </div>
+  <div id="intro-round-desc" style="font-size:12px;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;font-weight:600;background:rgba(255,255,255,0.06);padding:6px 16px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);margin-top:6px;">
+    Standard Pace · 3 Goals to Win
+  </div>
 </div>
 
 <div class="screen" id="draw">
@@ -762,16 +776,24 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   </div>
 
   <!-- Daily / All-Time Leaderboard Card -->
-  <div id="leaderboard-section" style="width:100%;max-width:320px;background:rgba(10,12,16,0.75);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:10px 14px;box-sizing:border-box;">
+  <div id="leaderboard-section" style="width:100%;max-width:340px;background:rgba(10,12,16,0.85);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:12px 14px;box-sizing:border-box;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);">
       <span id="lb-title" style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--sub-gold);text-transform:uppercase;display:flex;align-items:center;gap:4px;">
-        🏆 CUP HIGH RANKING
+        🏆 CUP SPEED RANKING
       </span>
-      <div style="display:flex;gap:4px;">
-        <button id="lb-tab-alltime" style="background:rgba(255,215,0,0.18);border:1px solid var(--sub-gold);color:#fff;font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;cursor:pointer;">CUP RANK</button>
-        <button id="lb-tab-today" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;cursor:pointer;">TODAY</button>
-      </div>
+      <button id="lb-tab-today" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:2px 8px;border-radius:2px;cursor:pointer;">TODAY</button>
     </div>
+    
+    <!-- Round Filters -->
+    <div id="lb-round-filters" style="display:flex;gap:3px;margin-bottom:8px;overflow-x:auto;padding-bottom:2px;">
+      <button class="lb-filter-btn active" data-round="all" style="flex:1;background:rgba(255,215,0,0.2);border:1px solid var(--sub-gold);color:#fff;font-family:'Resolve',sans-serif;font-size:9px;font-weight:800;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">ALL</button>
+      <button class="lb-filter-btn" data-round="5" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">👑 R5</button>
+      <button class="lb-filter-btn" data-round="4" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🏅 R4</button>
+      <button class="lb-filter-btn" data-round="3" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥇 R3</button>
+      <button class="lb-filter-btn" data-round="2" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥈 R2</button>
+      <button class="lb-filter-btn" data-round="1" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥉 R1</button>
+    </div>
+
     <div id="leaderboard-rows" style="display:flex;flex-direction:column;gap:5px;font-family:'Resolve',sans-serif;font-size:12px;min-height:40px;">
       <div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">Loading fastest times...</div>
     </div>
@@ -901,37 +923,57 @@ function escapeHtml(str){
 }
 
 let currentLbMode = 'cup';
+let currentLbRound = 'all';
 
-async function fetchLeaderboard(mode = currentLbMode){
+async function fetchLeaderboard(mode = currentLbMode, roundFilter = currentLbRound){
   currentLbMode = mode;
+  currentLbRound = roundFilter;
   const rowsEl = document.getElementById('leaderboard-rows');
-  const allTimeTab = document.getElementById('lb-tab-alltime');
   const todayTab = document.getElementById('lb-tab-today');
   const titleEl = document.getElementById('lb-title');
 
-  if(allTimeTab && todayTab){
-    if(mode === 'cup' || mode === 'all_time'){
-      allTimeTab.style.background = 'rgba(255,215,0,0.18)';
-      allTimeTab.style.borderColor = 'var(--sub-gold)';
-      allTimeTab.style.color = '#fff';
-      todayTab.style.background = 'transparent';
-      todayTab.style.borderColor = 'rgba(255,255,255,0.2)';
-      todayTab.style.color = 'rgba(255,255,255,0.5)';
-      if(titleEl) titleEl.innerHTML = '🏆 CUP SPEED RANKING';
-    } else {
+  if(todayTab){
+    if(mode === 'today'){
       todayTab.style.background = 'rgba(255,215,0,0.18)';
       todayTab.style.borderColor = 'var(--sub-gold)';
       todayTab.style.color = '#fff';
-      allTimeTab.style.background = 'transparent';
-      allTimeTab.style.borderColor = 'rgba(255,255,255,0.2)';
-      allTimeTab.style.color = 'rgba(255,255,255,0.5)';
-      if(titleEl) titleEl.innerHTML = '🏆 TODAY\'S FASTEST WINS';
+      if(titleEl) titleEl.innerHTML = '⚡ TODAY\'S FASTEST WINS';
+    } else {
+      todayTab.style.background = 'transparent';
+      todayTab.style.borderColor = 'rgba(255,255,255,0.2)';
+      todayTab.style.color = 'rgba(255,255,255,0.5)';
+      if(titleEl) {
+        titleEl.innerHTML = roundFilter && roundFilter !== 'all'
+          ? `🏆 ROUND ${roundFilter} RANKING`
+          : '🏆 CUP SPEED RANKING';
+      }
     }
   }
 
+  // Update filter buttons appearance
+  const filterBtns = document.querySelectorAll('.lb-filter-btn');
+  filterBtns.forEach(btn => {
+    const btnRound = btn.getAttribute('data-round');
+    if(mode === 'cup' && btnRound === String(roundFilter)){
+      btn.style.background = 'rgba(255,215,0,0.2)';
+      btn.style.borderColor = 'var(--sub-gold)';
+      btn.style.color = '#fff';
+      btn.style.fontWeight = '800';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.borderColor = 'rgba(255,255,255,0.15)';
+      btn.style.color = 'rgba(255,255,255,0.6)';
+      btn.style.fontWeight = '700';
+    }
+  });
+
   if(!rowsEl) return;
   try {
-    const res = await fetch(`/.netlify/functions/digital-leaderboard?mode=${mode}`);
+    let url = `/.netlify/functions/digital-leaderboard?mode=${mode}`;
+    if(mode === 'cup' && roundFilter && roundFilter !== 'all'){
+      url += `&round=${roundFilter}`;
+    }
+    const res = await fetch(url);
     if(!res.ok) throw new Error('Failed to fetch');
     const data = await res.json();
     renderLeaderboard(data.leaderboard || []);
@@ -2171,7 +2213,8 @@ function doRemoteKick(upDist, sideSwipe, footX, footY){
 }
 
 // ─── AI (two feet) ───────────────────────────────────────
-const CPU_Y = () => F.y + 44;
+// Positioned in the middle of the top half (sinisen kenttäpuoliskon keskellä)
+const CPU_Y = () => F.y + F.h * 0.25;
 
 // Track whether ball was in CPU half last frame (to detect entry)
 let _ballWasInCpuHalf = false;
@@ -2404,9 +2447,11 @@ function showGoal(who){
   const txt = document.getElementById('gtxt');
   txt.textContent = who==='you' ? 'GOAL!' : 'CPU SCORES';
   txt.style.color = '';
+  // CPU scores (top) -> place goal text safely above CPU shoes or below center
+  // Player scores (bottom) -> place goal text in player's half
   const topPx = who==='you'
-    ? F.y + F.h * 0.68
-    : F.y + F.h * 0.12;
+    ? F.y + F.h * 0.72
+    : F.y + F.h * 0.08;
   el.style.paddingTop = topPx + 'px';
   el.style.display = 'flex';
 }
@@ -2414,7 +2459,7 @@ function hideGoal(){ document.getElementById('goal').style.display='none'; }
 
 function resetBall(dir){
   ball.x = F.cx + (Math.random()-.5) * F.gw * 0.4;
-  ball.y = dir===1 ? F.y + F.h - F.h*0.12 : F.y + F.h*0.12;
+  ball.y = dir===1 ? F.y + F.h - F.h*0.12 : CPU_Y() + 20;
   ball.vx = (Math.random()-.5)*1.5;
   ball.vy = -dir * 2.5;
 }
@@ -2512,7 +2557,7 @@ function startCupRound(roundNum){
   document.getElementById('sc').textContent='0';
 
   // Hide screens
-  ['start','over','round-cleared','draw','mp-lobby','mp-waiting'].forEach(s => {
+  ['start','over','round-cleared','draw','mp-lobby','mp-waiting','round-intro'].forEach(s => {
     const el = document.getElementById(s);
     if(el) el.style.display = 'none';
   });
@@ -2520,21 +2565,35 @@ function startCupRound(roundNum){
   hideGoal();
   initField();
 
-  showDraw((dir) => {
-    resetBall(dir);
-    gameStartTime = Date.now();
-    state='playing';
-    // CPU won the draw → fire opening kick scaled by round
-    if(dir === -1){
-      const cornerX = F.gx + (Math.random() > 0.5 ? F.gw*0.15 : F.gw*0.85);
-      const aimX = (cornerX - ball.x) * 0.045 * cfg.speedMult;
-      ball.vx = Math.max(-10 * cfg.speedMult, Math.min(10 * cfg.speedMult, aimX + (Math.random()-.5)*1.2));
-      ball.vy = (cfg.kickPowerMin + Math.random() * (cfg.kickPowerMax - cfg.kickPowerMin));
-      cpuCD = Math.max(10, Math.round(25 / cfg.speedMult));
-      cLKick = 1.0;
-      beep('kick');
-    }
-  });
+  // Show Big Round Intro Screen before match begins!
+  const introEl = document.getElementById('round-intro');
+  if(introEl){
+    document.getElementById('intro-round-badge').textContent = cfg.badge;
+    document.getElementById('intro-round-title').textContent = `ROUND ${currentCupRound}`;
+    document.getElementById('intro-round-stage').textContent = cfg.name.toUpperCase();
+    document.getElementById('intro-round-desc').textContent = cfg.desc;
+    introEl.style.display = 'flex';
+  }
+
+  setTimeout(() => {
+    if(introEl) introEl.style.display = 'none';
+
+    showDraw((dir) => {
+      resetBall(dir);
+      gameStartTime = Date.now();
+      state='playing';
+      // CPU won the draw → fire opening kick scaled by round
+      if(dir === -1){
+        const cornerX = F.gx + (Math.random() > 0.5 ? F.gw*0.15 : F.gw*0.85);
+        const aimX = (cornerX - ball.x) * 0.045 * cfg.speedMult;
+        ball.vx = Math.max(-10 * cfg.speedMult, Math.min(10 * cfg.speedMult, aimX + (Math.random()-.5)*1.2));
+        ball.vy = (cfg.kickPowerMin + Math.random() * (cfg.kickPowerMax - cfg.kickPowerMin));
+        cpuCD = Math.max(10, Math.round(25 / cfg.speedMult));
+        cLKick = 1.0;
+        beep('kick');
+      }
+    });
+  }, 1300);
 }
 
 function showRoundCleared(roundNum, duration){
@@ -3088,8 +3147,14 @@ document.getElementById('player-nickname')?.addEventListener('keydown', (e) => {
   }
 });
 
-document.getElementById('lb-tab-alltime')?.addEventListener('click', () => fetchLeaderboard('cup'));
-document.getElementById('lb-tab-today')?.addEventListener('click', () => fetchLeaderboard('today'));
+// Round filter buttons (ALL, R5, R4, R3, R2, R1)
+document.querySelectorAll('.lb-filter-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const round = e.currentTarget.getAttribute('data-round');
+    fetchLeaderboard('cup', round);
+  });
+});
+document.getElementById('lb-tab-today')?.addEventListener('click', () => fetchLeaderboard('today', 'all'));
 
 initUserProfile();
 resize();
