@@ -85,10 +85,21 @@ exports.handler = async function (event) {
         return (Number(a.duration_s) || 999) - (Number(b.duration_s) || 999);
       });
 
+      // Deduplicate: Keep only each player's single best record in the ranking
+      const seenPlayers = new Set();
+      const uniqueLeaderboard = [];
+      for (const item of processed) {
+        const key = (item.player_name || 'Anonymous').trim().toUpperCase();
+        if (!seenPlayers.has(key)) {
+          seenPlayers.add(key);
+          uniqueLeaderboard.push(item);
+        }
+      }
+
       return {
         statusCode: 200,
         headers: CORS_HEADERS,
-        body: JSON.stringify({ leaderboard: processed.slice(0, 15) })
+        body: JSON.stringify({ leaderboard: uniqueLeaderboard.slice(0, 15) })
       };
     }
 
