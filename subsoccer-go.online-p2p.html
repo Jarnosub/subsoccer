@@ -2149,6 +2149,13 @@ document.addEventListener('mouseup', (e) => {
   }
 });
 
+// ─── Haptic Feedback (Vibration API) ──────────────────────
+function vibrate(pattern){
+  if(typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'){
+    try { navigator.vibrate(pattern); } catch(e){}
+  }
+}
+
 // ─── Kick logic ───────────────────────────────────────────
 function doKick(upDist, sideSwipe, footX, footY){
   // Trigger kick animation on the swiped foot for visual feedback
@@ -2187,8 +2194,13 @@ function applyKickPhysics(upDist, sideSwipe, footX, footY){
   ball.vx = Math.max(-10 * speedScale, Math.min(10 * speedScale, aimX * 0.06 * speedScale));
   ball.vy = -(10 + power * 8) * speedScale;
 
+  // ─── Curve ball / Magnus spin ───
+  // Swipe to side imparts spin on the ball (curves in flight)
+  ball.spin = Math.max(-2.6, Math.min(2.6, swipeDir * 2.8));
+
   bump(4 + power*5);
   beep('kick');
+  vibrate(Math.round(15 + power * 15));
 }
 
 // Host processes guest's remote kick on opponent's feet (top half)
@@ -2328,30 +2340,42 @@ function drawShoe(cx, cy, img, facing, isLeftOnScreen){
 const PLAYER_Y = () => F.y + F.h - 44;
 
 function updateBall(){
+  // Apply curve ball aerodynamic deflection (Magnus effect)
+  if(ball.spin){
+    ball.vx += ball.spin * 0.14;
+    ball.spin *= 0.982; // spin decays with air resistance
+  }
+
   ball.x += ball.vx;
   ball.y += ball.vy;
-  ball.rot = (ball.rot || 0) + (ball.vx * 0.04 + ball.vy * 0.02);
+  ball.rot = (ball.rot || 0) + (ball.vx * 0.04 + ball.vy * 0.02 + (ball.spin || 0) * 0.08);
   ball.vx *= 0.990;
   ball.vy *= 0.990;
 
   // Sides
   if(ball.x-BALL_R < F.x){
-    ball.x=F.x+BALL_R; ball.vx=Math.abs(ball.vx)*0.82; beep('wall');
+    ball.x=F.x+BALL_R; ball.vx=Math.abs(ball.vx)*0.82;
+    if(ball.spin) ball.spin = -ball.spin * 0.5; // spin reverses slightly off wall
+    beep('wall');
+    vibrate(10);
   }
   if(ball.x+BALL_R > F.x+F.w){
-    ball.x=F.x+F.w-BALL_R; ball.vx=-Math.abs(ball.vx)*0.82; beep('wall');
+    ball.x=F.x+F.w-BALL_R; ball.vx=-Math.abs(ball.vx)*0.82;
+    if(ball.spin) ball.spin = -ball.spin * 0.5;
+    beep('wall');
+    vibrate(10);
   }
 
   // CPU / Opponent goal (top)
   if(ball.y-BALL_R < F.y){
     if(ball.x > F.gx && ball.x < F.gx+F.gw){ if(gameMode==='cpu') score('you'); else scoreOnline('you'); return; }
-    ball.y=F.y+BALL_R; ball.vy=Math.abs(ball.vy)*0.82; beep('wall');
+    ball.y=F.y+BALL_R; ball.vy=Math.abs(ball.vy)*0.82; beep('wall'); vibrate(12);
   }
 
   // Player goal (bottom)
   if(ball.y+BALL_R > F.y+F.h){
     if(ball.x > F.gx && ball.x < F.gx+F.gw){ if(gameMode==='cpu') score('cpu'); else scoreOnline('opp'); return; }
-    ball.y=F.y+F.h-BALL_R; ball.vy=-Math.abs(ball.vy)*0.82; beep('wall');
+    ball.y=F.y+F.h-BALL_R; ball.vy=-Math.abs(ball.vy)*0.82; beep('wall'); vibrate(12);
   }
 
   // Foot collisions — all 4 feet
@@ -2388,6 +2412,7 @@ function hitFoot(fx, fy, dir){
     ball.y  = dir===-1 ? fy-FH/2-BALL_R : fy+FH/2+BALL_R;
     ball.vy = dir * (Math.abs(ball.vy)*0.85 + 1.5);
     ball.vx += dx/(FW/2) * 2.5;
+    if(dir === -1) vibrate(12);
     beep('hit');
   }
 }
@@ -2397,8 +2422,15 @@ function hitFoot(fx, fy, dir){
 function score(who){
   if(state!=='playing') return;
   state='goal';
-  if(who==='you'){ sY++; document.getElementById('sy').textContent=sY; }
-  else           { sC++; document.getElementById('sc').textContent=sC; }
+  if(who==='you'){
+    sY++;
+    document.getElementById('sy').textContent=sY;
+    vibrate([40, 60, 40, 80, 100]); // Victory rumble
+  } else {
+    sC++;
+    document.getElementById('sc').textContent=sC;
+    vibrate([70, 50, 70]); // Heavy rumble
+  }
   showGoal(who);
   bump(12);
   beep(who==='you'?'goal':'oops');
@@ -2469,6 +2501,7 @@ function resetBall(dir){
   ball.y = dir===1 ? F.y + F.h - F.h*0.12 : CPU_Y() + 20;
   ball.vx = (Math.random()-.5)*1.5;
   ball.vy = -dir * 2.5;
+  ball.spin = 0;
 }
 
 function showDraw(callback){
