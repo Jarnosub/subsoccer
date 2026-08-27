@@ -514,7 +514,7 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     <div class="draw-vs">VS</div>
     <div class="draw-player">
       <span class="draw-icon" id="draw-cpu">✊</span>
-      <span class="draw-name">CPU</span>
+      <span class="draw-name" id="draw-cpu-name">NOVICE</span>
     </div>
   </div>
   <div class="draw-result" id="draw-result"></div>
@@ -2476,11 +2476,17 @@ function showDraw(callback){
   const NAMES = ['Rock','Paper','Scissors'];
   const beats = [2, 0, 1];
 
+  const cfg = (gameMode === 'cpu') ? (CUP_ROUNDS[currentCupRound - 1] || CUP_ROUNDS[0]) : CUP_ROUNDS[0];
+  const oppName = (cfg && cfg.oppName) ? cfg.oppName : 'OPPONENT';
+
   const drawEl   = document.getElementById('draw');
   const youEl    = document.getElementById('draw-you');
   const cpuEl    = document.getElementById('draw-cpu');
+  const cpuNameEl = document.getElementById('draw-cpu-name');
   const resultEl = document.getElementById('draw-result');
   const subEl    = document.getElementById('draw-sub');
+
+  if(cpuNameEl) cpuNameEl.textContent = oppName;
 
   resultEl.className    = 'draw-result';
   subEl.className       = 'draw-sub';
@@ -2513,7 +2519,7 @@ function showDraw(callback){
     cpuEl.className = 'draw-icon locked';
 
     setTimeout(() => {
-      resultEl.textContent = youWins ? 'You Win!' : 'CPU Wins!';
+      resultEl.textContent = youWins ? 'You Win!' : `${oppName} Wins!`;
       resultEl.className   = 'draw-result show ' + (youWins ? 'you' : 'cpu');
       subEl.textContent    = (youWins ? NAMES[yMove] : NAMES[cMove]) + ' beats ' + (youWins ? NAMES[cMove] : NAMES[yMove]);
       subEl.className      = 'draw-sub show';
