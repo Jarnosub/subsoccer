@@ -490,17 +490,16 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 </div>
 
 <!-- Big Round Splash / Intro Screen before match begins -->
-<div class="screen" id="round-intro" style="display:none;position:fixed;inset:0;z-index:40;background:radial-gradient(circle at 50% 30%, #1c2638 0%, #06080d 100%);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;box-sizing:border-box;">
-  <div style="font-size:58px;line-height:1;filter:drop-shadow(0 4px 16px rgba(255,215,0,0.4));animation:pop .4s cubic-bezier(.175,.885,.32,1.275);" id="intro-round-badge">🥉</div>
-  <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-    <div id="intro-round-title" style="font-family:'Subsoccer',sans-serif;font-size:56px;color:#fff;letter-spacing:4px;text-transform:uppercase;line-height:1;text-shadow:0 0 20px rgba(255,255,255,0.4);animation:pop .35s ease-out;">
+<div class="screen" id="round-intro" style="display:none;position:fixed;inset:0;z-index:40;background:radial-gradient(circle at 50% 30%, #1c2638 0%, #06080d 100%);flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;box-sizing:border-box;">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+    <div id="intro-round-title" style="font-family:'Subsoccer',sans-serif;font-size:62px;color:#fff;letter-spacing:5px;text-transform:uppercase;line-height:1;text-shadow:0 0 24px rgba(255,255,255,0.4);animation:pop .35s ease-out;">
       ROUND 1
     </div>
-    <div id="intro-round-stage" style="font-family:'Resolve',sans-serif;font-size:15px;font-weight:800;color:var(--sub-gold);letter-spacing:5px;text-transform:uppercase;">
+    <div id="intro-round-stage" style="font-family:'Resolve',sans-serif;font-size:16px;font-weight:800;color:var(--sub-gold);letter-spacing:6px;text-transform:uppercase;">
       ROUND OF 32
     </div>
   </div>
-  <div id="intro-round-desc" style="font-size:12px;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;font-weight:600;background:rgba(255,255,255,0.06);padding:6px 16px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);margin-top:6px;">
+  <div id="intro-round-desc" style="font-size:12px;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;font-weight:600;background:rgba(255,255,255,0.06);padding:8px 18px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);margin-top:6px;">
     Standard Pace · 3 Goals to Win
   </div>
 </div>
@@ -788,12 +787,12 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     
     <!-- Round Filters (R1, R2, R3, R4, R5, ALL) -->
     <div id="lb-round-filters" style="display:flex;gap:3px;margin-bottom:8px;overflow-x:auto;padding-bottom:2px;">
-      <button class="lb-filter-btn active" data-round="1" style="flex:1;background:rgba(255,215,0,0.2);border:1px solid var(--sub-gold);color:#fff;font-family:'Resolve',sans-serif;font-size:9px;font-weight:800;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥉 R1</button>
-      <button class="lb-filter-btn" data-round="2" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥈 R2</button>
-      <button class="lb-filter-btn" data-round="3" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥇 R3</button>
-      <button class="lb-filter-btn" data-round="4" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🏅 R4</button>
-      <button class="lb-filter-btn" data-round="5" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">👑 R5</button>
-      <button class="lb-filter-btn" data-round="all" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🏆 ALL</button>
+      <button class="lb-filter-btn active" data-round="1" style="flex:1;background:rgba(255,215,0,0.2);border:1px solid var(--sub-gold);color:#fff;font-family:'Resolve',sans-serif;font-size:9px;font-weight:800;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">R1</button>
+      <button class="lb-filter-btn" data-round="2" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">R2</button>
+      <button class="lb-filter-btn" data-round="3" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">R3</button>
+      <button class="lb-filter-btn" data-round="4" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">R4</button>
+      <button class="lb-filter-btn" data-round="5" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">R5</button>
+      <button class="lb-filter-btn" data-round="all" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">ALL</button>
     </div>
 
     <div id="leaderboard-rows" style="display:flex;flex-direction:column;gap:5px;font-family:'Resolve',sans-serif;font-size:12px;min-height:40px;">
