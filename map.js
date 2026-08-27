@@ -20,7 +20,7 @@ export function initGameMap() {
     if (!document.getElementById('map-picker')) return;
     state.gameMap = L.map('map-picker').setView([60.1699, 24.9384], 10);
     state.gameMap.attributionControl.setPrefix(false); // Remove Leaflet prefix
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(state.gameMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', subdomains: 'abc', maxZoom: 19 }).addTo(state.gameMap);
     state.gameMap.on('click', async function (e) {
         setMapLocation(e.latlng.lat, e.latlng.lng);
         try {
@@ -51,7 +51,7 @@ export async function fetchPublicGamesMap() {
         state.publicMap = L.map('public-game-map', { zoomControl: false }).setView([60.1699, 24.9384], 11);
         L.control.zoom({ position: 'bottomright' }).addTo(state.publicMap);
         state.publicMap.attributionControl.setPrefix(false); // Remove Leaflet prefix
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(state.publicMap);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', subdomains: 'abc', maxZoom: 19 }).addTo(state.publicMap);
 
         // Initialize Cluster Group
         state.clusterGroup = L.markerClusterGroup({

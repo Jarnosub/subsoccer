@@ -3866,9 +3866,9 @@
             _mapAllData = data; // cache for "All data" mode restore
             if(!mymap) {
                 mymap = L.map('map').setView([25, 0], 2);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                    attribution: '© OpenStreetMap © CartoDB',
-                    subdomains: 'abcd',
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    subdomains: 'abc',
                     maxZoom: 19
                 }).addTo(mymap);
             }
@@ -4174,9 +4174,9 @@
         function renderLiveMap(locData, now, hours = 1) {
             if (!mymap) {
                 mymap = L.map('map').setView([25, 0], 2);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                    attribution: '© OpenStreetMap © CartoDB',
-                    subdomains: 'abcd',
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    subdomains: 'abc',
                     maxZoom: 19
                 }).addTo(mymap);
             }

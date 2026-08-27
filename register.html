@@ -556,7 +556,7 @@
                             const mapEl = document.getElementById('preview-map');
                             if (mapEl._leaflet_id) { mapEl._leaflet_id = null; mapEl.innerHTML = ''; }
                             const previewMap = L.map('preview-map', { zoomControl: false, attributionControl: false }).setView([existingTable.latitude, existingTable.longitude], 14);
-                            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(previewMap);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { subdomains: 'abc', maxZoom: 19 }).addTo(previewMap);
                             L.marker([existingTable.latitude, existingTable.longitude]).addTo(previewMap);
                         }, 100);
                         return;
@@ -612,7 +612,7 @@
                     const mapEl = document.getElementById('preview-map');
                     if (mapEl._leaflet_id) { mapEl._leaflet_id = null; mapEl.innerHTML = ''; }
                     const previewMap = L.map('preview-map', { zoomControl: false, attributionControl: false }).setView([lat, lng], 13);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(previewMap);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { subdomains: 'abc', maxZoom: 19 }).addTo(previewMap);
                     L.marker([lat, lng]).addTo(previewMap);
                 }, 100);
 

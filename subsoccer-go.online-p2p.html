@@ -2086,29 +2086,6 @@ function drawShoe(cx, cy, img, facing, isLeftOnScreen){
   // Mirror horizontally to turn right shoe → left shoe
   if(isLeftOnScreen) ctx.scale(-1, 1);
 
-  // ── Sport sock extending seamlessly from shoe collar ──
-  const sockW = sw * 0.52;
-  const sockH = 26;
-  const sockX = -sockW / 2;
-  const sockY = sh/2 - 14;
-
-  const sockGrad = ctx.createLinearGradient(0, sockY, 0, sockY + sockH);
-  sockGrad.addColorStop(0, '#ffffff');
-  sockGrad.addColorStop(0.65, '#e4e4e6');
-  sockGrad.addColorStop(1, 'rgba(180,180,185,0)');
-
-  ctx.fillStyle = sockGrad;
-  ctx.beginPath();
-  if(ctx.roundRect) ctx.roundRect(sockX, sockY, sockW, sockH, [0, 0, 4, 4]);
-  else ctx.rect(sockX, sockY, sockW, sockH);
-  ctx.fill();
-
-  // Sport stripes on sock
-  ctx.fillStyle = 'rgba(24,24,28,0.75)';
-  ctx.fillRect(sockX + 2, sockY + 11, sockW - 4, 2.5);
-  ctx.fillStyle = 'rgba(227,6,19,0.75)';
-  ctx.fillRect(sockX + 2, sockY + 15, sockW - 4, 2.5);
-
   if(img.complete && img.naturalWidth){
     ctx.drawImage(img, -sw/2, -sh/2, sw, sh);
   } else {

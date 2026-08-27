@@ -1623,11 +1623,11 @@
                 hubMap = L.map('public-game-map').setView([60.1699, 24.9384], 5);
                 hubMap.attributionControl.setPrefix(false);
                 
-                const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+                const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
                 hubTileLayer = L.tileLayer(tileUrl, {
-                    attribution: '&copy; CARTO',
-                    subdomains: 'abcd',
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                    subdomains: 'abc',
                     maxZoom: 19
                 });
                 hubTileLayer.addTo(hubMap);
@@ -1895,7 +1895,7 @@
 
             // Update map tiles dynamically if map is open
             if (typeof hubTileLayer !== 'undefined' && hubTileLayer) {
-                hubTileLayer.setUrl('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png');
+                hubTileLayer.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
             }
         }
 
