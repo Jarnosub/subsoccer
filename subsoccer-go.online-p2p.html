@@ -786,14 +786,14 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
       <button id="lb-tab-today" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:2px 8px;border-radius:2px;cursor:pointer;">TODAY</button>
     </div>
     
-    <!-- Round Filters -->
+    <!-- Round Filters (R1, R2, R3, R4, R5, ALL) -->
     <div id="lb-round-filters" style="display:flex;gap:3px;margin-bottom:8px;overflow-x:auto;padding-bottom:2px;">
-      <button class="lb-filter-btn active" data-round="all" style="flex:1;background:rgba(255,215,0,0.2);border:1px solid var(--sub-gold);color:#fff;font-family:'Resolve',sans-serif;font-size:9px;font-weight:800;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">ALL</button>
-      <button class="lb-filter-btn" data-round="5" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">👑 R5</button>
-      <button class="lb-filter-btn" data-round="4" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🏅 R4</button>
-      <button class="lb-filter-btn" data-round="3" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥇 R3</button>
+      <button class="lb-filter-btn active" data-round="1" style="flex:1;background:rgba(255,215,0,0.2);border:1px solid var(--sub-gold);color:#fff;font-family:'Resolve',sans-serif;font-size:9px;font-weight:800;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥉 R1</button>
       <button class="lb-filter-btn" data-round="2" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥈 R2</button>
-      <button class="lb-filter-btn" data-round="1" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥉 R1</button>
+      <button class="lb-filter-btn" data-round="3" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🥇 R3</button>
+      <button class="lb-filter-btn" data-round="4" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🏅 R4</button>
+      <button class="lb-filter-btn" data-round="5" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">👑 R5</button>
+      <button class="lb-filter-btn" data-round="all" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:4px 2px;border-radius:2px;cursor:pointer;white-space:nowrap;">🏆 ALL</button>
     </div>
 
     <div id="leaderboard-rows" style="display:flex;flex-direction:column;gap:5px;font-family:'Resolve',sans-serif;font-size:12px;min-height:40px;">
@@ -925,7 +925,7 @@ function escapeHtml(str){
 }
 
 let currentLbMode = 'cup';
-let currentLbRound = 'all';
+let currentLbRound = '1';
 
 async function fetchLeaderboard(mode = currentLbMode, roundFilter = currentLbRound){
   currentLbMode = mode;
@@ -945,9 +945,10 @@ async function fetchLeaderboard(mode = currentLbMode, roundFilter = currentLbRou
       todayTab.style.borderColor = 'rgba(255,255,255,0.2)';
       todayTab.style.color = 'rgba(255,255,255,0.5)';
       if(titleEl) {
+        const roundNames = { '1': 'ROUND 1 (NOVICE)', '2': 'ROUND 2 (AMATEUR)', '3': 'ROUND 3 (SEMI PRO)', '4': 'ROUND 4 (PRO)', '5': 'ROUND 5 (FINAL BOSS)' };
         titleEl.innerHTML = roundFilter && roundFilter !== 'all'
-          ? `🏆 ROUND ${roundFilter} RANKING`
-          : '🏆 CUP SPEED RANKING';
+          ? `🏆 ${roundNames[roundFilter] || 'ROUND ' + roundFilter} RANKING`
+          : '🏆 OVERALL CUP RANKING';
       }
     }
   }
@@ -2215,8 +2216,8 @@ function doRemoteKick(upDist, sideSwipe, footX, footY){
 }
 
 // ─── AI (two feet) ───────────────────────────────────────
-// Positioned in the middle of the top half (sinisen kenttäpuoliskon keskellä)
-const CPU_Y = () => F.y + F.h * 0.25;
+// Symmetrically placed inside top goal area (F.y + 44)
+const CPU_Y = () => F.y + 44;
 
 // Track whether ball was in CPU half last frame (to detect entry)
 let _ballWasInCpuHalf = false;
