@@ -22,15 +22,15 @@ exports.handler = async function (event) {
     // ─── GET: Fetch Leaderboard ───────────────────────────
     if (event.httpMethod === 'GET') {
       const mode = (event.queryStringParameters && event.queryStringParameters.mode) || 'cup';
-      const filterRound = event.queryStringParameters && event.queryStringParameters.round ? Number(event.queryStringParameters.round) : null;
+      const filterRound = event.queryStringParameters && event.queryStringParameters.round && event.queryStringParameters.round !== 'all'
+        ? Number(event.queryStringParameters.round)
+        : null;
       
       let query = supabase
         .from('digital_game_plays')
         .select('id, winner, score_player, score_cpu, duration_s, player_name, country, user_agent, created_at')
         .eq('winner', 'player')
-        .gt('duration_s', 0)
-        .order('duration_s', { ascending: true })
-        .limit(50);
+        .gt('duration_s', 0);
 
       if (mode === 'today') {
         const startOfDay = new Date();
@@ -38,30 +38,28 @@ exports.handler = async function (event) {
         query = query.gte('created_at', startOfDay.toISOString());
       }
 
+      if (filterRound) {
+        if (filterRound >= 2) {
+          // Explicit round: must match CUP:R{filterRound}
+          query = query.ilike('user_agent', `CUP:R${filterRound}%`);
+        } else if (filterRound === 1) {
+          // Round 1 includes all legacy plays plus CUP:R1 plays (exclude higher rounds R2-R5)
+          query = query
+            .not('user_agent', 'ilike', 'CUP:R2%')
+            .not('user_agent', 'ilike', 'CUP:R3%')
+            .not('user_agent', 'ilike', 'CUP:R4%')
+            .not('user_agent', 'ilike', 'CUP:R5%');
+        }
+        query = query.order('duration_s', { ascending: true }).limit(30);
+      } else {
+        // Overall: get recent & top plays and sort by highest round then fastest time
+        query = query.order('duration_s', { ascending: true }).limit(200);
+      }
+
       const { data, error } = await query;
       let rawList = data || [];
 
-      if (error) {
-        // Fallback standard query
-        let fallbackQuery = supabase
-          .from('digital_game_plays')
-          .select('id, winner, score_player, score_cpu, duration_s, created_at')
-          .eq('winner', 'player')
-          .gt('duration_s', 0)
-          .order('duration_s', { ascending: true })
-          .limit(30);
-          
-        if (mode === 'today') {
-          const startOfDay = new Date();
-          startOfDay.setUTCHours(0, 0, 0, 0);
-          fallbackQuery = fallbackQuery.gte('created_at', startOfDay.toISOString());
-        }
-        
-        const fb = await fallbackQuery;
-        rawList = fb.data || [];
-      }
-
-      // Parse round number from user_agent or round_reached
+      // Parse round number from user_agent
       let processed = rawList.map(item => {
         let round = 1;
         if (item.user_agent && item.user_agent.startsWith('CUP:R')) {
@@ -76,14 +74,14 @@ exports.handler = async function (event) {
         };
       });
 
-      // Filter by specific round if requested
+      // Filter by specific round in case fallback legacy rows were included
       if (filterRound) {
         processed = processed.filter(item => item.round === filterRound);
       }
 
-      // Sort by: Highest Round DESC, then Duration ASC
+      // Sort by: Highest Round DESC, then Duration ASC (or if single round, purely Duration ASC)
       processed.sort((a, b) => {
-        if (b.round !== a.round) return b.round - a.round;
+        if (!filterRound && b.round !== a.round) return b.round - a.round;
         return (Number(a.duration_s) || 999) - (Number(b.duration_s) || 999);
       });
 

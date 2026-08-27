@@ -1045,7 +1045,7 @@ async function submitScoreWithName(nickname){
       })
     });
     // Refresh leaderboard with new entry
-    setTimeout(() => fetchLeaderboard(currentLbMode), 400);
+    setTimeout(() => fetchLeaderboard(currentLbMode, String(roundToSubmit)), 400);
   } catch(e){}
 }
 
@@ -2722,7 +2722,7 @@ function endGame(){
       }
       const guestCard = document.getElementById('guest-conversion-card');
       if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
-      fetchLeaderboard('cup');
+      fetchLeaderboard('cup', String(lastClearedRound || 1));
     }
   } else {
     r.textContent = 'Draw!';
@@ -2730,7 +2730,7 @@ function endGame(){
     if(nameBoxEl) nameBoxEl.style.display = 'none';
     const guestCard = document.getElementById('guest-conversion-card');
     if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
-    fetchLeaderboard('cup');
+    fetchLeaderboard('cup', String(lastClearedRound || 1));
   }
 
   s.textContent = sY + ' – ' + sC;
