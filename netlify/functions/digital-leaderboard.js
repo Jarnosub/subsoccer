@@ -19,17 +19,18 @@ exports.handler = async function (event) {
   }
 
   try {
-    // ─── GET: Fetch Today's Leaderboard ───────────────────
+    // ─── GET: Fetch Leaderboard ───────────────────────────
     if (event.httpMethod === 'GET') {
-      const mode = (event.queryStringParameters && event.queryStringParameters.mode) || 'today';
+      const mode = (event.queryStringParameters && event.queryStringParameters.mode) || 'cup';
+      const filterRound = event.queryStringParameters && event.queryStringParameters.round ? Number(event.queryStringParameters.round) : null;
       
       let query = supabase
         .from('digital_game_plays')
-        .select('id, winner, score_player, score_cpu, duration_s, player_name, country, created_at')
+        .select('id, winner, score_player, score_cpu, duration_s, player_name, country, user_agent, created_at')
         .eq('winner', 'player')
         .gt('duration_s', 0)
         .order('duration_s', { ascending: true })
-        .limit(10);
+        .limit(50);
 
       if (mode === 'today') {
         const startOfDay = new Date();
@@ -38,16 +39,17 @@ exports.handler = async function (event) {
       }
 
       const { data, error } = await query;
+      let rawList = data || [];
 
       if (error) {
-        // If player_name or country column is missing, query standard columns
+        // Fallback standard query
         let fallbackQuery = supabase
           .from('digital_game_plays')
           .select('id, winner, score_player, score_cpu, duration_s, created_at')
           .eq('winner', 'player')
           .gt('duration_s', 0)
           .order('duration_s', { ascending: true })
-          .limit(10);
+          .limit(30);
           
         if (mode === 'today') {
           const startOfDay = new Date();
@@ -56,17 +58,39 @@ exports.handler = async function (event) {
         }
         
         const fb = await fallbackQuery;
-        return {
-          statusCode: 200,
-          headers: CORS_HEADERS,
-          body: JSON.stringify({ leaderboard: fb.data || [] })
-        };
+        rawList = fb.data || [];
       }
+
+      // Parse round number from user_agent or round_reached
+      let processed = rawList.map(item => {
+        let round = 1;
+        if (item.user_agent && item.user_agent.startsWith('CUP:R')) {
+          const match = item.user_agent.match(/^CUP:R(\d+)/);
+          if (match) round = parseInt(match[1], 10);
+        } else if (item.round_reached) {
+          round = Number(item.round_reached);
+        }
+        return {
+          ...item,
+          round: round || 1
+        };
+      });
+
+      // Filter by specific round if requested
+      if (filterRound) {
+        processed = processed.filter(item => item.round === filterRound);
+      }
+
+      // Sort by: Highest Round DESC, then Duration ASC
+      processed.sort((a, b) => {
+        if (b.round !== a.round) return b.round - a.round;
+        return (Number(a.duration_s) || 999) - (Number(b.duration_s) || 999);
+      });
 
       return {
         statusCode: 200,
         headers: CORS_HEADERS,
-        body: JSON.stringify({ leaderboard: data || [] })
+        body: JSON.stringify({ leaderboard: processed.slice(0, 15) })
       };
     }
 
@@ -85,12 +109,15 @@ exports.handler = async function (event) {
         score_cpu,
         duration_s,
         player_name,
-        country
+        country,
+        round_reached
       } = body;
 
-      const user_agent = (event.headers['user-agent'] || '').slice(0, 120);
+      const baseUA = (event.headers['user-agent'] || '').slice(0, 80);
+      const cupRound = Number(round_reached) || 1;
+      const user_agent = `CUP:R${cupRound}|${baseUA}`.slice(0, 120);
+
       const rawDuration = Number(duration_s);
-      // DB column is now numeric(6,1) — store with one decimal precision (e.g. 15.8s stays 15.8)
       const durVal = !isNaN(rawDuration) && rawDuration > 0 ? Math.round(rawDuration * 10) / 10 : null;
 
       const payload = {
@@ -132,7 +159,7 @@ exports.handler = async function (event) {
       return {
         statusCode: 200,
         headers: CORS_HEADERS,
-        body: JSON.stringify({ ok: res.ok })
+        body: JSON.stringify({ ok: res.ok, round: cupRound })
       };
     }
 

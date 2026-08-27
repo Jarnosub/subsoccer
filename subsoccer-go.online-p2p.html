@@ -122,6 +122,35 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   0%,100%{opacity:1;transform:scale(1);}
   50%{opacity:0.4;transform:scale(0.7);}
 }
+@keyframes fire-glow {
+  0%, 100% { text-shadow: 0 0 12px rgba(255, 69, 0, 0.8), 0 0 24px rgba(255, 215, 0, 0.6); }
+  50% { text-shadow: 0 0 20px rgba(255, 69, 0, 1), 0 0 35px rgba(255, 215, 0, 0.9); }
+}
+.hud-round-pill {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--sub-gold);
+  font-family: 'Resolve', sans-serif;
+  margin-bottom: 1px;
+}
+.cup-round-card {
+  width: 100%;
+  max-width: 340px;
+  background: rgba(14, 18, 26, 0.92);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 8px;
+  padding: 16px 18px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
 /* Auth Profile & Guest Pill Banner */
 .auth-pill-bar {
   display: flex;
@@ -408,8 +437,9 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     <div class="av" style="background:#e30613" id="my-av">Y</div>
     <div><div class="lbl" id="my-lbl">YOU</div><div class="pts" id="sy">0</div></div>
   </div>
-  <div class="hpanel" style="padding:6px 14px;min-width:100px;justify-content:center;">
-    <div id="hud-timer" style="font-size:14px;color:rgba(255,255,255,0.85);letter-spacing:1px;font-weight:700;font-family:'Resolve',monospace;">0.0s</div>
+  <div class="hpanel" style="padding:6px 14px;min-width:110px;flex-direction:column;justify-content:center;gap:1px;">
+    <div id="hud-round" class="hud-round-pill">ROUND 1 · RO32</div>
+    <div id="hud-timer" style="font-size:14px;color:rgba(255,255,255,0.9);letter-spacing:1px;font-weight:700;font-family:'Resolve',monospace;line-height:1;">0.0s</div>
     <div id="mp-ping" style="display:none;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:0.5px;"></div>
   </div>
   <div class="hpanel">
@@ -426,7 +456,7 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 
 <div class="screen" id="start">
   <h1>SUBSOCCER GO</h1>
-  <div class="sub">Digital Bench Soccer</div>
+  <div class="sub">5-Round Championship Cup</div>
   <div id="user-profile-badge" style="display:none;width:100%;max-width:360px;"></div>
   <div id="guest-start-banner" style="display:none;width:100%;max-width:360px;">
     <div class="auth-pill-bar">
@@ -442,13 +472,13 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     </div>
   </div>
   <div class="card">
-    <div class="rule"><span class="rule-num">1</span><div><div class="rule-title">Kick-Off</div><div class="rule-desc">Kick-off is taken inside your own goal area.</div></div></div>
+    <div class="rule"><span class="rule-num">1</span><div><div class="rule-title">5 Escalating Rounds</div><div class="rule-desc">Each round gets faster. Conquer all 5 rounds to become Grand Champion!</div></div></div>
     <div class="rule"><span class="rule-num">2</span><div><div class="rule-title">Controls</div><div class="rule-desc">Left half = left foot · Right half = right foot · Swipe up to kick.</div></div></div>
-    <div class="rule"><span class="rule-num">3</span><div><div class="rule-title">Daily Speedrun</div><div class="rule-desc">Score 3 goals as fast as possible to claim today's #1 spot!</div></div></div>
+    <div class="rule"><span class="rule-num">3</span><div><div class="rule-title">Speed Ranking #1</div><div class="rule-desc">Leaderboard ranks highest round cleared & fastest round times!</div></div></div>
   </div>
   <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;align-items:center;">
     <button class="gobtn" id="bstart">
-      <i class="fa-solid fa-gamepad" style="font-size:1.15rem;"></i> VS CPU
+      <i class="fa-solid fa-trophy" style="font-size:1.15rem;color:var(--sub-gold);"></i> PLAY SUBSOCCER CUP (5 ROUNDS)
     </button>
     <button class="gobtn gobtn-secondary" id="bstart-online">
       <i class="fa-solid fa-user-group" style="font-size:1rem;color:var(--sub-gold);"></i> VS FRIEND (ONLINE)
@@ -474,6 +504,50 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   </div>
   <div class="draw-result" id="draw-result"></div>
   <div class="draw-sub" id="draw-sub">kicks off</div>
+</div>
+
+<!-- Round Cleared / Victory Intermission Screen -->
+<div class="screen" id="round-cleared" style="display:none;position:fixed;inset:0;z-index:35;background:radial-gradient(circle at 50% 20%, #1a2233 0%, #080a0f 100%);flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+  <div class="cup-round-card">
+    <div style="font-size:38px;line-height:1;" id="rc-badge">🏆</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <div id="rc-title" style="font-family:'Subsoccer',sans-serif;font-size:30px;color:#fff;letter-spacing:2px;text-transform:uppercase;line-height:1;">
+        ROUND 1 CLEARED!
+      </div>
+      <div id="rc-subtitle" style="font-size:11px;color:var(--sub-gold);font-weight:700;letter-spacing:3px;text-transform:uppercase;font-family:'Resolve',sans-serif;">
+        VICTORY
+      </div>
+    </div>
+
+    <!-- Match Stats Box -->
+    <div style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:10px 14px;display:flex;justify-content:space-around;align-items:center;box-sizing:border-box;">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <span style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">ROUND TIME</span>
+        <span id="rc-time" style="font-family:'Resolve',sans-serif;font-size:20px;color:var(--sub-gold);font-weight:700;">0.0s</span>
+      </div>
+      <div style="width:1px;height:24px;background:rgba(255,255,255,0.15);"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <span style="font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">SCORE</span>
+        <span id="rc-score" style="font-family:'Subsoccer',sans-serif;font-size:22px;color:#fff;">3 - 0</span>
+      </div>
+    </div>
+
+    <!-- Next Round Preview Banner -->
+    <div id="rc-next-box" style="width:100%;background:rgba(227,6,19,0.12);border:1px solid rgba(227,6,19,0.35);border-radius:4px;padding:8px 12px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;">
+      <span style="font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">UP NEXT</span>
+      <span id="rc-next-title" style="font-family:'Resolve',sans-serif;font-size:13px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase;">
+        ROUND 2 · ROUND OF 16
+      </span>
+      <span id="rc-next-desc" style="font-size:10px;color:var(--sub-gold);letter-spacing:0.5px;">
+        Speed +18% · Pro CPU opponent
+      </span>
+    </div>
+
+    <!-- Primary Action: Next Round -->
+    <button class="gobtn" id="rc-next-btn" style="width:100%;padding:14px;font-size:1.05rem;">
+      <span>NEXT ROUND</span> <i class="fa-solid fa-arrow-right" style="font-size:13px;"></i>
+    </button>
+  </div>
 </div>
 
 <!-- MP Lobby -->
@@ -644,22 +718,29 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     <div id="stxt" style="font-family:'Subsoccer',sans-serif;font-size:3.8rem;color:#fff;
       letter-spacing:4px;line-height:1;text-align:center;"></div>
     
-    <!-- Match Time Badge -->
-    <div id="match-time-card" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:6px 16px;display:flex;align-items:center;gap:8px;margin-top:2px;">
-      <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;font-weight:700;">MATCH TIME</span>
-      <span id="final-time-val" style="font-family:'Resolve',sans-serif;font-weight:700;font-size:20px;color:var(--sub-gold);letter-spacing:0.5px;">--.-s</span>
+    <!-- Match Time & Round Badge -->
+    <div id="match-time-card" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:6px 16px;display:flex;align-items:center;gap:12px;margin-top:2px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">ROUND</span>
+        <span id="final-round-val" style="font-family:'Resolve',sans-serif;font-weight:800;font-size:14px;color:var(--sub-gold);letter-spacing:0.5px;">ROUND 1</span>
+      </div>
+      <div style="width:1px;height:16px;background:rgba(255,255,255,0.15);"></div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">TIME</span>
+        <span id="final-time-val" style="font-family:'Resolve',sans-serif;font-weight:700;font-size:18px;color:#fff;letter-spacing:0.5px;">--.-s</span>
+      </div>
     </div>
   </div>
 
   <!-- Auto-saved Badge for Logged In User -->
   <div id="profile-saved-badge" style="display:none;width:100%;max-width:320px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:10px 14px;border-radius:4px;font-family:'Resolve',sans-serif;font-size:12px;font-weight:700;box-sizing:border-box;text-align:center;">
-    <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time saved to your profile & All-Time Ranking!
+    <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Result saved to your profile & Cup Leaderboard!
   </div>
 
   <!-- Nickname Entry Box for Guests (saves to Daily Leaderboard) -->
   <div id="name-entry-box" style="display:none;width:100%;max-width:320px;flex-direction:column;gap:6px;background:rgba(10,12,16,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:10px 12px;box-sizing:border-box;">
     <div style="font-size:10px;color:rgba(255,255,255,0.7);letter-spacing:1px;text-transform:uppercase;font-weight:700;text-align:center;">
-      Save to Today's Leaderboard:
+      Save to Subsoccer Cup Leaderboard:
     </div>
     <div style="display:flex;gap:6px;width:100%;">
       <input type="text" id="player-nickname" maxlength="20" placeholder="Your nickname" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:2px;color:#fff;padding:8px 10px;font-family:'Resolve',sans-serif;font-size:13px;outline:none;">
@@ -684,10 +765,10 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   <div id="leaderboard-section" style="width:100%;max-width:320px;background:rgba(10,12,16,0.75);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:10px 14px;box-sizing:border-box;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);">
       <span id="lb-title" style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--sub-gold);text-transform:uppercase;display:flex;align-items:center;gap:4px;">
-        🏆 ALL-TIME HIGH RANKING
+        🏆 CUP HIGH RANKING
       </span>
       <div style="display:flex;gap:4px;">
-        <button id="lb-tab-alltime" style="background:rgba(255,215,0,0.18);border:1px solid var(--sub-gold);color:#fff;font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;cursor:pointer;">ALL-TIME</button>
+        <button id="lb-tab-alltime" style="background:rgba(255,215,0,0.18);border:1px solid var(--sub-gold);color:#fff;font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;cursor:pointer;">CUP RANK</button>
         <button id="lb-tab-today" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:'Resolve',sans-serif;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;cursor:pointer;">TODAY</button>
       </div>
     </div>
@@ -819,7 +900,7 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-let currentLbMode = 'all_time';
+let currentLbMode = 'cup';
 
 async function fetchLeaderboard(mode = currentLbMode){
   currentLbMode = mode;
@@ -829,14 +910,14 @@ async function fetchLeaderboard(mode = currentLbMode){
   const titleEl = document.getElementById('lb-title');
 
   if(allTimeTab && todayTab){
-    if(mode === 'all_time'){
+    if(mode === 'cup' || mode === 'all_time'){
       allTimeTab.style.background = 'rgba(255,215,0,0.18)';
       allTimeTab.style.borderColor = 'var(--sub-gold)';
       allTimeTab.style.color = '#fff';
       todayTab.style.background = 'transparent';
       todayTab.style.borderColor = 'rgba(255,255,255,0.2)';
       todayTab.style.color = 'rgba(255,255,255,0.5)';
-      if(titleEl) titleEl.innerHTML = '🏆 ALL-TIME HIGH RANKING';
+      if(titleEl) titleEl.innerHTML = '🏆 CUP SPEED RANKING';
     } else {
       todayTab.style.background = 'rgba(255,215,0,0.18)';
       todayTab.style.borderColor = 'var(--sub-gold)';
@@ -863,7 +944,7 @@ function renderLeaderboard(list){
   const rowsEl = document.getElementById('leaderboard-rows');
   if(!rowsEl) return;
   if(!list || list.length === 0){
-    rowsEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">No wins recorded yet. Be the first!</div>';
+    rowsEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:8px 0;font-size:11px;">No records yet. Be the first to play!</div>';
     return;
   }
 
@@ -874,13 +955,17 @@ function renderLeaderboard(list){
     const name = item.player_name ? escapeHtml(item.player_name) : 'Anonymous';
     const flag = getFlagEmoji(item.country);
     const timeStr = formatDuration(item.duration_s);
+    const roundNum = item.round || 1;
+    const roundBadge = roundNum >= 5 ? '👑 R5' : roundNum === 4 ? '🏅 R4' : roundNum === 3 ? '🥇 R3' : roundNum === 2 ? '🥈 R2' : '🥉 R1';
+    const roundColor = roundNum >= 5 ? '#ffd700' : roundNum === 4 ? '#ff6b6b' : roundNum === 3 ? '#4ecdc4' : 'rgba(255,255,255,0.6)';
     
     html += `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
         <div style="display:flex;align-items:center;gap:6px;overflow:hidden;">
           <span style="font-weight:700;color:${rank<=3?'var(--sub-gold)':'rgba(255,255,255,0.5)'};min-width:20px;">${rankBadge}</span>
           <span>${flag}</span>
-          <span style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:175px;font-weight:${rank<=3?'700':'400'};">${name}</span>
+          <span style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;font-weight:${rank<=3?'700':'400'};">${name}</span>
+          <span style="font-size:9px;font-weight:800;background:rgba(255,255,255,0.08);color:${roundColor};padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.1);letter-spacing:0.5px;">${roundBadge}</span>
         </div>
         <div style="color:var(--sub-gold);font-weight:700;font-family:'Resolve',monospace;">${timeStr}</div>
       </div>
@@ -898,6 +983,9 @@ async function submitScoreWithName(nickname){
   const saveBtn = document.getElementById('save-score-btn');
   if(saveBtn) { saveBtn.textContent = 'SAVED ✓'; saveBtn.disabled = true; }
 
+  const roundToSubmit = lastClearedRound || currentCupRound || 1;
+  const timeToSubmit = lastClearedDuration || _matchDuration || 0;
+
   try {
     await fetch('/.netlify/functions/digital-leaderboard', {
       method: 'POST',
@@ -906,9 +994,10 @@ async function submitScoreWithName(nickname){
         winner: 'player',
         score_player: sY,
         score_cpu: sC,
-        duration_s: Number(_matchDuration),
+        duration_s: Number(timeToSubmit),
         player_name: name,
-        country: _playerCountry
+        country: _playerCountry,
+        round_reached: roundToSubmit
       })
     });
     // Refresh leaderboard with new entry
@@ -973,6 +1062,91 @@ window.addEventListener('resize', checkOrientation);
 try {
   screen.orientation.lock('portrait').catch(()=>{});
 } catch(e){}
+
+// ─── Subsoccer Cup (5-Round Escalating Tournament) ────────
+const CUP_ROUNDS = [
+  {
+    round: 1,
+    name: 'Round of 32',
+    stage: 'ROUND 1 · RO32',
+    badge: '🥉',
+    speedMult: 1.0,
+    reactFrames: 14,
+    kickPowerMin: 11,
+    kickPowerMax: 14,
+    wobble: 0.14,
+    lerpSpeed: 0.12,
+    cornerChance: 0.40,
+    oppName: 'NOVICE CPU',
+    desc: 'Round of 32 · Standard Pace'
+  },
+  {
+    round: 2,
+    name: 'Round of 16',
+    stage: 'ROUND 2 · RO16',
+    badge: '🥈',
+    speedMult: 1.18,
+    reactFrames: 10,
+    kickPowerMin: 12.5,
+    kickPowerMax: 15.5,
+    wobble: 0.10,
+    lerpSpeed: 0.16,
+    cornerChance: 0.60,
+    oppName: 'PRO CPU',
+    desc: 'Round of 16 · Faster Pace (+18%)'
+  },
+  {
+    round: 3,
+    name: 'Quarter-Final',
+    stage: 'ROUND 3 · QF',
+    badge: '🥇',
+    speedMult: 1.38,
+    reactFrames: 6,
+    kickPowerMin: 14.5,
+    kickPowerMax: 17.5,
+    wobble: 0.05,
+    lerpSpeed: 0.20,
+    cornerChance: 0.80,
+    oppName: 'ELITE CPU',
+    desc: 'Quarter-Final · High Precision (+38%)'
+  },
+  {
+    round: 4,
+    name: 'Semi-Final',
+    stage: 'ROUND 4 · SF',
+    badge: '🏅',
+    speedMult: 1.62,
+    reactFrames: 3,
+    kickPowerMin: 16.5,
+    kickPowerMax: 19.5,
+    wobble: 0.02,
+    lerpSpeed: 0.26,
+    cornerChance: 0.95,
+    oppName: 'CHAMPION CPU',
+    desc: 'Semi-Final · Lightning Reflexes (+62%)'
+  },
+  {
+    round: 5,
+    name: 'Grand Final',
+    stage: 'FINAL (R5) 🔥',
+    badge: '👑',
+    speedMult: 1.95,
+    reactFrames: 1,
+    kickPowerMin: 19.0,
+    kickPowerMax: 22.5,
+    wobble: 0.005,
+    lerpSpeed: 0.35,
+    cornerChance: 1.0,
+    oppName: 'TITAN BOSS CPU',
+    desc: 'GRAND FINAL · ALMOST IMPOSSIBLE (+95%) 🔥'
+  }
+];
+
+let currentCupRound = 1;      // 1..5
+let lastClearedRound = 0;
+let lastClearedDuration = 0;
+let totalCupDuration = 0;
+let roundTimes = {};
 
 // ─── State (declared early so initField can set foot positions) ──
 const WIN=3;
@@ -1959,13 +2133,15 @@ function applyKickPhysics(upDist, sideSwipe, footX, footY){
   if(distX > maxReachX) return;
   if(distY < -8 || distY > 50) return;
 
+  const cfg = gameMode === 'cpu' ? (CUP_ROUNDS[currentCupRound - 1] || CUP_ROUNDS[0]) : CUP_ROUNDS[0];
   const ballOff  = ball.x - footX;
   const swipeDir = sideSwipe / (W * 0.5);
   const aimX     = ballOff * 0.5 + swipeDir * F.w * 0.25;
   const power    = Math.min(1, upDist / 140);
+  const speedScale = cfg.speedMult;
 
-  ball.vx = Math.max(-9, Math.min(9, aimX * 0.06));
-  ball.vy = -(10 + power * 8);
+  ball.vx = Math.max(-10 * speedScale, Math.min(10 * speedScale, aimX * 0.06 * speedScale));
+  ball.vy = -(10 + power * 8) * speedScale;
 
   bump(4 + power*5);
   beep('kick');
@@ -2001,31 +2177,31 @@ const CPU_Y = () => F.y + 44;
 let _ballWasInCpuHalf = false;
 
 function updateAI(){
-  cpuCD = Math.max(0, cpuCD-1);
+  const cfg = (gameMode === 'cpu') ? (CUP_ROUNDS[currentCupRound - 1] || CUP_ROUNDS[0]) : CUP_ROUNDS[0];
+  cpuCD = Math.max(0, cpuCD - 1);
   const mid = F.cx;
   const inCpuHalf = ball.y < F.cy;
 
-  // Reaction delay: when ball first enters CPU half, start a countdown
-  // CPU doesn't react until it expires (~12 frames = ~200ms at 60fps)
+  // Reaction delay scaled by round configuration
   if(inCpuHalf && !_ballWasInCpuHalf){
-    cpuReact = 12 + Math.random()*8|0;
+    cpuReact = Math.max(0, Math.round(cfg.reactFrames + (Math.random() - 0.5) * 4));
   }
   _ballWasInCpuHalf = inCpuHalf;
   if(cpuReact > 0) cpuReact--;
 
   // Only track actively once reaction delay is done
   const reacting = inCpuHalf && cpuReact === 0;
-  const lerpSpeed = reacting ? 0.12 : 0.05;
+  const lerpSpeed = reacting ? cfg.lerpSpeed : 0.06;
 
   // Left CPU foot — wobble keeps it from being pixel-perfect
   const leftTarget = ball.x < mid
-    ? ball.x + Math.sin(Date.now()*0.005) * F.w*0.12
+    ? ball.x + Math.sin(Date.now() * 0.005) * F.w * cfg.wobble
     : F.x + F.w * 0.25;
   cLX += (Math.max(F.x + FW/2, Math.min(mid - FW/2, leftTarget)) - cLX) * lerpSpeed;
 
   // Right CPU foot
   const rightTarget = ball.x >= mid
-    ? ball.x + Math.sin(Date.now()*0.004) * F.w*0.12
+    ? ball.x + Math.sin(Date.now() * 0.004) * F.w * cfg.wobble
     : F.x + F.w * 0.75;
   cRX += (Math.max(mid + FW/2, Math.min(F.x + F.w - FW/2, rightTarget)) - cRX) * lerpSpeed;
 
@@ -2035,12 +2211,15 @@ function updateAI(){
     const distX = Math.abs(ball.x - fx);
     const distY = ball.y - cpuFY; // Toes point DOWN (+y)
     const maxReachX = FW/2 + BALL_R + 8;
-    if(distX < maxReachX && distY >= -8 && distY <= 50 && cpuCD === 0 && ball.vy < 6 && cpuReact === 0){
-      const cornerX = F.gx + (Math.random() > 0.5 ? F.gw*0.2 : F.gw*0.8);
-      const aimX    = (cornerX - fx) * 0.05;
-      ball.vx = Math.max(-9, Math.min(9, aimX + (Math.random()-.5)*1.6));
-      ball.vy = 11 + Math.random() * 4;
-      cpuCD   = 22 + Math.random()*18|0;
+    if(distX < maxReachX && distY >= -8 && distY <= 50 && cpuCD === 0 && ball.vy < (7 * cfg.speedMult) && cpuReact === 0){
+      const aimCorner = Math.random() < cfg.cornerChance;
+      const cornerX = aimCorner
+        ? F.gx + (Math.random() > 0.5 ? F.gw * 0.12 : F.gw * 0.88)
+        : F.cx + (Math.random() - 0.5) * F.gw * 0.3;
+      const aimX = (cornerX - fx) * (0.05 * cfg.speedMult);
+      ball.vx = Math.max(-10 * cfg.speedMult, Math.min(10 * cfg.speedMult, aimX + (Math.random() - 0.5) * (1.6 / cfg.speedMult)));
+      ball.vy = (cfg.kickPowerMin + Math.random() * (cfg.kickPowerMax - cfg.kickPowerMin));
+      cpuCD   = Math.max(10, Math.round(22 / cfg.speedMult) + (Math.random() * 8 | 0));
       if(isLeft) cLKick = 1.0; else cRKick = 1.0;
       beep('kick');
     }
@@ -2186,7 +2365,19 @@ function score(who){
   }
   setTimeout(()=>{
     hideGoal();
-    if(done){ endGame(); return; }
+    if(done){
+      if(gameMode === 'cpu'){
+        if(sY >= WIN && currentCupRound < 5){
+          lastClearedRound = currentCupRound;
+          lastClearedDuration = _matchDuration;
+          roundTimes[currentCupRound] = Number(_matchDuration);
+          showRoundCleared(currentCupRound, _matchDuration);
+          return;
+        }
+      }
+      endGame();
+      return;
+    }
     pLX=F.x+F.w*0.25; pRX=F.x+F.w*0.75;
     pLY=PLAYER_Y();   pRY=PLAYER_Y();
     targetPLY=PLAYER_Y(); targetPRY=PLAYER_Y();
@@ -2194,13 +2385,14 @@ function score(who){
     const dir = who==='you' ? 1 : -1;
     resetBall(dir);
     state='playing';
-    // CPU kickoff: fire immediate hard kick (same as opening kick)
+    // CPU kickoff: fire immediate hard kick scaled by round
     if(dir === -1){
+      const cfg = gameMode === 'cpu' ? (CUP_ROUNDS[currentCupRound - 1] || CUP_ROUNDS[0]) : CUP_ROUNDS[0];
       const cornerX = F.gx + (Math.random() > 0.5 ? F.gw*0.15 : F.gw*0.85);
-      const aimX = (cornerX - ball.x) * 0.045;
-      ball.vx = Math.max(-9, Math.min(9, aimX + (Math.random()-.5)*1.2));
-      ball.vy = 13 + Math.random() * 3;
-      cpuCD = 25 + Math.random()*10|0;
+      const aimX = (cornerX - ball.x) * 0.045 * cfg.speedMult;
+      ball.vx = Math.max(-10 * cfg.speedMult, Math.min(10 * cfg.speedMult, aimX + (Math.random()-.5)*1.2));
+      ball.vy = (cfg.kickPowerMin + Math.random() * (cfg.kickPowerMax - cfg.kickPowerMin));
+      cpuCD = Math.max(10, Math.round(25 / cfg.speedMult));
       cLKick = 1.0;
       beep('kick');
     }
@@ -2212,30 +2404,25 @@ function showGoal(who){
   const txt = document.getElementById('gtxt');
   txt.textContent = who==='you' ? 'GOAL!' : 'CPU SCORES';
   txt.style.color = '';
-  // Position in the scorer's own half, away from the center logo
-  // CPU scores → top quarter of field; you score → bottom quarter
   const topPx = who==='you'
-    ? F.y + F.h * 0.68   // player's half, lower portion
-    : F.y + F.h * 0.12;  // CPU's half, upper portion
+    ? F.y + F.h * 0.68
+    : F.y + F.h * 0.12;
   el.style.paddingTop = topPx + 'px';
   el.style.display = 'flex';
 }
 function hideGoal(){ document.getElementById('goal').style.display='none'; }
 
 function resetBall(dir){
-  // Kickoff from own goal area (official Subsoccer rules)
-  // dir=1: player kicks off (their goal = bottom), dir=-1: CPU kicks off (top)
   ball.x = F.cx + (Math.random()-.5) * F.gw * 0.4;
   ball.y = dir===1 ? F.y + F.h - F.h*0.12 : F.y + F.h*0.12;
   ball.vx = (Math.random()-.5)*1.5;
-  ball.vy = -dir * 2.5; // dir=1 → player kicks off → ball goes UP toward CPU goal (negative y)
+  ball.vy = -dir * 2.5;
 }
 
 function showDraw(callback){
-  const RPS   = ['✊','🖐️','✌️']; // rock, paper, scissors
+  const RPS   = ['✊','🖐️','✌️'];
   const NAMES = ['Rock','Paper','Scissors'];
-  // beats[i] beats beats[i%3+1]: rock(0) beats scissors(2), scissors(2) beats paper(1), paper(1) beats rock(0)
-  const beats = [2, 0, 1]; // beats[i] = what move i beats
+  const beats = [2, 0, 1];
 
   const drawEl   = document.getElementById('draw');
   const youEl    = document.getElementById('draw-you');
@@ -2243,13 +2430,11 @@ function showDraw(callback){
   const resultEl = document.getElementById('draw-result');
   const subEl    = document.getElementById('draw-sub');
 
-  // Reset
   resultEl.className    = 'draw-result';
   subEl.className       = 'draw-sub';
   resultEl.textContent = '';
   drawEl.style.display  = 'flex';
 
-  // Animate shaking hands through all 3 moves rapidly
   youEl.className = 'draw-icon shaking';
   cpuEl.className = 'draw-icon shaking';
 
@@ -2260,24 +2445,21 @@ function showDraw(callback){
     cpuEl.textContent = RPS[(frame + 1) % 3];
   }, 100);
 
-  // After 1.4s: stop cycling, determine result (re-roll on tie)
   setTimeout(() => {
     clearInterval(cycleInterval);
     let yMove, cMove;
     do {
       yMove = Math.floor(Math.random() * 3);
       cMove = Math.floor(Math.random() * 3);
-    } while (yMove === cMove); // no ties
+    } while (yMove === cMove);
 
     const youWins = beats[yMove] === cMove;
 
-    // Lock in icons with pop animation
     youEl.textContent = RPS[yMove];
     cpuEl.textContent = RPS[cMove];
     youEl.className = 'draw-icon locked';
     cpuEl.className = 'draw-icon locked';
 
-    // Show result text after icons settle
     setTimeout(() => {
       resultEl.textContent = youWins ? 'You Win!' : 'CPU Wins!';
       resultEl.className   = 'draw-result show ' + (youWins ? 'you' : 'cpu');
@@ -2285,7 +2467,6 @@ function showDraw(callback){
       subEl.className      = 'draw-sub show';
     }, 350);
 
-    // Start game
     setTimeout(() => {
       drawEl.style.display = 'none';
       callback(youWins ? 1 : -1);
@@ -2294,45 +2475,110 @@ function showDraw(callback){
 }
 
 function startGame(){
+  lastClearedRound = 0;
+  lastClearedDuration = 0;
+  totalCupDuration = 0;
+  roundTimes = {};
+  startCupRound(1);
+}
+
+function startCupRound(roundNum){
+  currentCupRound = Math.max(1, Math.min(5, roundNum || 1));
+  const cfg = CUP_ROUNDS[currentCupRound - 1];
+
   sY=0; sC=0; cpuCD=0; cpuReact=0; _ballWasInCpuHalf=false; _stuckFrames=0;
   gameStartTime = null;
   _matchDuration = 0;
   _scoreSubmitted = false;
+
+  // Update HUD
+  const roundPill = document.getElementById('hud-round');
+  if(roundPill){
+    roundPill.textContent = cfg.stage;
+    if(currentCupRound === 5){
+      roundPill.style.animation = 'fire-glow 1s infinite alternate';
+      roundPill.style.color = '#ff4500';
+    } else {
+      roundPill.style.animation = '';
+      roundPill.style.color = 'var(--sub-gold)';
+    }
+  }
+  const oppLbl = document.getElementById('opp-lbl');
+  if(oppLbl) oppLbl.textContent = cfg.oppName;
+
   const timerEl = document.getElementById('hud-timer');
   if(timerEl) timerEl.textContent = '0.0s';
   document.getElementById('sy').textContent='0';
   document.getElementById('sc').textContent='0';
-  document.getElementById('start').style.display='none';
-  document.getElementById('over').style.display='none';
+
+  // Hide screens
+  ['start','over','round-cleared','draw','mp-lobby','mp-waiting'].forEach(s => {
+    const el = document.getElementById(s);
+    if(el) el.style.display = 'none';
+  });
+
   hideGoal();
   initField();
+
   showDraw((dir) => {
     resetBall(dir);
     gameStartTime = Date.now();
     state='playing';
-    // CPU won the draw → fire an immediate hard opening kick
+    // CPU won the draw → fire opening kick scaled by round
     if(dir === -1){
-      const cpuFY = CPU_Y();
-      // Aim at a random corner of the player's goal
       const cornerX = F.gx + (Math.random() > 0.5 ? F.gw*0.15 : F.gw*0.85);
-      const aimX = (cornerX - ball.x) * 0.045;
-      ball.vx = Math.max(-9, Math.min(9, aimX + (Math.random()-.5)*1.2));
-      ball.vy = 13 + Math.random() * 3; // strong downward kick
-      cpuCD = 25 + Math.random()*10|0;  // cooldown so CPU doesn't instantly kick again
-      cLKick = 1.0; // animate left CPU foot
+      const aimX = (cornerX - ball.x) * 0.045 * cfg.speedMult;
+      ball.vx = Math.max(-10 * cfg.speedMult, Math.min(10 * cfg.speedMult, aimX + (Math.random()-.5)*1.2));
+      ball.vy = (cfg.kickPowerMin + Math.random() * (cfg.kickPowerMax - cfg.kickPowerMin));
+      cpuCD = Math.max(10, Math.round(25 / cfg.speedMult));
+      cLKick = 1.0;
       beep('kick');
     }
   });
 }
 
+function showRoundCleared(roundNum, duration){
+  state = 'intermission';
+  const cfg = CUP_ROUNDS[roundNum - 1];
+  const nextCfg = CUP_ROUNDS[roundNum] || null;
+
+  document.getElementById('rc-badge').textContent = cfg.badge;
+  document.getElementById('rc-title').textContent = `${cfg.name.toUpperCase()} CLEARED!`;
+  document.getElementById('rc-subtitle').textContent = `ROUND ${roundNum} OF 5 CONQUERED`;
+  document.getElementById('rc-time').textContent = `${duration}s`;
+  document.getElementById('rc-score').textContent = `${sY} - ${sC}`;
+
+  const nextBox = document.getElementById('rc-next-box');
+  const nextBtn = document.getElementById('rc-next-btn');
+
+  if(nextCfg){
+    nextBox.style.display = 'flex';
+    document.getElementById('rc-next-title').textContent = `${nextCfg.stage} · ${nextCfg.name.toUpperCase()}`;
+    document.getElementById('rc-next-desc').textContent = nextCfg.desc;
+    nextBtn.innerHTML = `<span>START ${nextCfg.stage}</span> <i class="fa-solid fa-arrow-right" style="font-size:13px;"></i>`;
+    nextBtn.onclick = () => {
+      startCupRound(roundNum + 1);
+    };
+  } else {
+    nextBox.style.display = 'none';
+  }
+
+  document.getElementById('round-cleared').style.display = 'flex';
+
+  // Auto-save round time to leaderboard
+  if(currentUserProfile && currentUserProfile.username){
+    submitScoreWithName(currentUserProfile.username);
+  }
+}
+
 function endGame(){
   state='over';
-  // Piilota leaderboard-submit online-pelissä (vain CPU-speedrun on kelpoinen)
   const nameBoxEl2 = document.getElementById('name-entry-box');
   if(nameBoxEl2 && gameMode === 'online') nameBoxEl2.style.display = 'none';
   const r = document.getElementById('rtxt');
   const s = document.getElementById('stxt');
   const finalTimeEl = document.getElementById('final-time-val');
+  const finalRoundEl = document.getElementById('final-round-val');
   const nameBoxEl = document.getElementById('name-entry-box');
   const nickEl = document.getElementById('player-nickname');
   const saveBtn = document.getElementById('save-score-btn');
@@ -2346,71 +2592,81 @@ function endGame(){
 
   let winner;
   if(sY > sC){
-    r.textContent = gameMode === 'online' ? 'You Win!' : 'You Win!';
     winner = 'player';
-    if(gameMode === 'cpu'){
+    if(gameMode === 'online'){
+      r.textContent = 'YOU WIN!';
+      if(finalRoundEl) finalRoundEl.textContent = 'ONLINE MATCH';
+    } else {
+      // Subsoccer Cup Grand Champion (Round 5 win)
+      lastClearedRound = 5;
+      lastClearedDuration = _matchDuration;
+      r.textContent = '👑 GRAND CHAMPION! 👑';
+      if(finalRoundEl) finalRoundEl.textContent = 'ALL 5 ROUNDS WON';
       const guestCard = document.getElementById('guest-conversion-card');
       const savedBadge = document.getElementById('profile-saved-badge');
       if(currentUserProfile && currentUserProfile.username){
-        // Automaattinen tallennus kirjautuneelle pelaajalle All-Time Rankingiin
         submitScoreWithName(currentUserProfile.username);
         if(savedBadge){
-          savedBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Time <strong>${_matchDuration}s</strong> saved to <strong>${escapeHtml(currentUserProfile.username)}</strong>'s profile & All-Time High Ranking!`;
+          savedBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> 🏆 <strong>CHAMPION</strong> time <strong>${_matchDuration}s</strong> saved to <strong>${escapeHtml(currentUserProfile.username)}</strong>'s profile!`;
           savedBadge.style.display = 'block';
         }
         if(nameBoxEl) nameBoxEl.style.display = 'none';
         if(guestCard) guestCard.style.display = 'none';
-        fetchLeaderboard('all_time');
+        fetchLeaderboard('cup');
       } else {
-        // GUEST: voi tallentaa tuloksen päivälistalle nimellä, ja rekisteröityä All-Time rankingiin
         if(nameBoxEl){
           nameBoxEl.style.display = 'flex';
           const savedNick = localStorage.getItem('subsoccer_nickname') || '';
           if(nickEl) nickEl.value = savedNick;
           if(saveBtn){ saveBtn.textContent = 'SAVE'; saveBtn.disabled = false; }
         }
-        try {
-          localStorage.setItem('subsoccer_pending_score', JSON.stringify({
-            duration: Number(_matchDuration),
-            score_player: sY,
-            score_cpu: sC,
-            timestamp: Date.now()
-          }));
-        } catch(e){}
         if(guestCard) guestCard.style.display = 'flex';
         if(savedBadge) savedBadge.style.display = 'none';
-        fetchLeaderboard('today');
+        fetchLeaderboard('cup');
       }
     }
   } else if(sC > sY){
-    const oppName = (opponentProfile && opponentProfile.username) ? opponentProfile.username.toUpperCase() : 'OPPONENT';
-    r.textContent = gameMode === 'online' ? `${oppName} WINS!` : 'CPU WINS!';
     winner = 'cpu';
-    if(nameBoxEl) nameBoxEl.style.display = 'none';
-    const guestCard = document.getElementById('guest-conversion-card');
-    if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
-    fetchLeaderboard(currentUserProfile ? 'all_time' : 'today');
+    if(gameMode === 'online'){
+      const oppName = (opponentProfile && opponentProfile.username) ? opponentProfile.username.toUpperCase() : 'OPPONENT';
+      r.textContent = `${oppName} WINS!`;
+      if(finalRoundEl) finalRoundEl.textContent = 'ONLINE MATCH';
+    } else {
+      const cfg = CUP_ROUNDS[currentCupRound - 1] || CUP_ROUNDS[0];
+      r.textContent = `ELIMINATED IN ${cfg.stage}! ❌`;
+      if(finalRoundEl){
+        finalRoundEl.textContent = lastClearedRound ? `ROUND ${lastClearedRound} CLEARED` : `ROUND ${currentCupRound} EXIT`;
+      }
+      if(lastClearedRound > 0){
+        if(nameBoxEl){
+          nameBoxEl.style.display = 'flex';
+          const savedNick = localStorage.getItem('subsoccer_nickname') || '';
+          if(nickEl) nickEl.value = savedNick;
+          if(saveBtn){ saveBtn.textContent = 'SAVE'; saveBtn.disabled = false; }
+        }
+      } else {
+        if(nameBoxEl) nameBoxEl.style.display = 'none';
+      }
+      const guestCard = document.getElementById('guest-conversion-card');
+      if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
+      fetchLeaderboard('cup');
+    }
   } else {
     r.textContent = 'Draw!';
     winner = 'draw';
     if(nameBoxEl) nameBoxEl.style.display = 'none';
     const guestCard = document.getElementById('guest-conversion-card');
     if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
-    fetchLeaderboard(currentUserProfile ? 'all_time' : 'today');
+    fetchLeaderboard('cup');
   }
 
   s.textContent = sY + ' – ' + sC;
 
-  // Online-pelissä piilotetaan koko yksinpelin leaderboard
   const lbSection = document.getElementById('leaderboard-section');
   if(lbSection) lbSection.style.display = gameMode === 'online' ? 'none' : 'block';
 
   document.getElementById('over').style.display = 'flex';
 
-  // Load all-time fastest leaderboard (CPU mode only)
-  if(gameMode === 'cpu') fetchLeaderboard('all_time');
-
-  // Track result for digital_game_plays (fire-and-forget)
   trackGameResult(winner, sY, sC);
 
   // Track for public_tracking retention engine
@@ -2832,7 +3088,7 @@ document.getElementById('player-nickname')?.addEventListener('keydown', (e) => {
   }
 });
 
-document.getElementById('lb-tab-alltime')?.addEventListener('click', () => fetchLeaderboard('all_time'));
+document.getElementById('lb-tab-alltime')?.addEventListener('click', () => fetchLeaderboard('cup'));
 document.getElementById('lb-tab-today')?.addEventListener('click', () => fetchLeaderboard('today'));
 
 initUserProfile();
