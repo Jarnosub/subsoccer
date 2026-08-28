@@ -670,6 +670,79 @@
 
         <!-- KPI Sections -->
         <div>
+            <!-- Section: Subsoccer Go Usage & Growth Trend (Hero Banner) -->
+            <div class="kpi-section" id="subsoccer-go-hero-section" style="margin-bottom: 24px; background: #2B2D31; border: 1px solid #3F4147; border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem; background: rgba(227,6,19,0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(227,6,19,0.3);">🎮</span>
+                        <div>
+                            <div style="font-size: 1.15rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                                Subsoccer Go — Usage & Growth Trend
+                                <span style="font-size: 0.7rem; font-weight: 700; background: #c41e2a; color: #fff; padding: 2px 8px; border-radius: 12px; letter-spacing: 0.5px;">LIVE</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                                Daily engagement, player traffic & growth metrics for subsoccer.pro/play
+                            </div>
+                        </div>
+                    </div>
+                    <div id="dg-hero-week-growth" style="display: none; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 700; background: rgba(129,201,149,0.15); border: 1px solid rgba(129,201,149,0.3); padding: 6px 12px; border-radius: 20px;">
+                        <!-- Updated by JS -->
+                    </div>
+                </div>
+
+                <!-- 4 Top KPIs -->
+                <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                    <div class="kpi-card" style="border-left: 3px solid #ff4d5a; background: #202225; margin-bottom: 0;">
+                        <div class="kpi-header">
+                            <span>PLAYS TODAY</span>
+                            <i class="fas fa-calendar-day" style="color: #ff4d5a;"></i>
+                        </div>
+                        <div class="kpi-value" id="dg-hero-today" style="font-size: 1.7rem; color: #fff;">—</div>
+                        <div class="kpi-trend" style="color: #aaa;"><i class="fas fa-play" style="font-size:0.6rem;"></i> games started today</div>
+                    </div>
+
+                    <div class="kpi-card" style="border-left: 3px solid #81c995; background: #202225; margin-bottom: 0;">
+                        <div class="kpi-header">
+                            <span>LAST 7 DAYS</span>
+                            <i class="fas fa-chart-line" style="color: #81c995;"></i>
+                        </div>
+                        <div class="kpi-value" id="dg-hero-week" style="font-size: 1.7rem; color: #81c995;">—</div>
+                        <div class="kpi-trend" style="color: #aaa;"><i class="fas fa-fire" style="color:#fde293; font-size:0.65rem;"></i> active 7-day volume</div>
+                    </div>
+
+                    <div class="kpi-card" style="border-left: 3px solid #8ab4f8; background: #202225; margin-bottom: 0;">
+                        <div class="kpi-header">
+                            <span>LAST 30 DAYS</span>
+                            <i class="fas fa-calendar-alt" style="color: #8ab4f8;"></i>
+                        </div>
+                        <div class="kpi-value" id="dg-hero-month" style="font-size: 1.7rem; color: #8ab4f8;">—</div>
+                        <div class="kpi-trend" style="color: #aaa;">monthly active matches</div>
+                    </div>
+
+                    <div class="kpi-card" style="border-left: 3px solid #fde293; background: #202225; margin-bottom: 0;">
+                        <div class="kpi-header">
+                            <span>TOTAL ALL-TIME</span>
+                            <i class="fas fa-trophy" style="color: #fde293;"></i>
+                        </div>
+                        <div class="kpi-value" id="dg-hero-total" style="font-size: 1.7rem; color: #fff;">—</div>
+                        <div class="kpi-trend" id="dg-hero-players" style="color: var(--accent-yellow);"><i class="fas fa-users" style="font-size:0.65rem;"></i> unique players</div>
+                    </div>
+                </div>
+
+                <!-- 14-Day Daily Play Trend Chart -->
+                <div style="background: #202225; border: 1px solid #3F4147; border-radius: 8px; padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: #E8EAED; letter-spacing: 0.5px; text-transform: uppercase;">
+                            <i class="fas fa-chart-bar" style="color: #c41e2a; margin-right: 6px;"></i> 14-Day Daily Game Traffic Trend
+                        </span>
+                        <span style="font-size: 0.75rem; color: #888;">Daily Plays vs Player Wins</span>
+                    </div>
+                    <div style="height: 180px; position: relative; width: 100%;">
+                        <canvas id="dgTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
             <!-- Section: Overview -->
             <div class="kpi-section">
                 <div class="kpi-section-header" onclick="toggleSection(this)">
@@ -2579,6 +2652,9 @@
                 // Renderöi
                 renderData();
 
+                // Automaattinen Subsoccer Go Trend & Stats lataus
+                fetchDigitalGameStats(true);
+
             } catch (err) {
                 console.error("Error fetching analytics:", err);
                 if (err.message === 'AUTH_TIMEOUT') {
@@ -2604,41 +2680,154 @@
             }
         }
 
-        // ─── Digital Game Stats ───────────────────────────────
+        // ─── Digital Game Stats & Trend ───────────────────────
         let _dgLoaded = false;
-        async function fetchDigitalGameStats() {
-            if (_dgLoaded) return;
+        let _dgChartInstance = null;
+
+        async function fetchDigitalGameStats(force = false) {
+            if (_dgLoaded && !force) return;
             try {
                 const now = new Date();
                 const todayStr = now.toISOString().slice(0, 10);
-                const weekAgo  = new Date(now - 7 * 86400000).toISOString();
+                const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
+                const fourteenDaysAgo = new Date(now.getTime() - 14 * 86400000);
+                const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000);
 
                 const { data, error } = await client
                     .from('digital_game_plays')
-                    .select('winner, duration_s, created_at, country');
+                    .select('winner, duration_s, created_at, country, player_name, user_agent')
+                    .order('created_at', { ascending: true });
 
                 if (error || !data) {
-                    document.getElementById('dg-error').style.display = 'block';
+                    if (document.getElementById('dg-error')) document.getElementById('dg-error').style.display = 'block';
                     return;
                 }
 
-                const total   = data.length;
+                const total = data.length;
+                const todayCount = data.filter(r => r.created_at && r.created_at.slice(0,10) === todayStr).length;
+
+                // 7 Days & WoW Trend
+                const thisWeek = data.filter(r => new Date(r.created_at) >= sevenDaysAgo).length;
+                const prevWeek = data.filter(r => {
+                    const d = new Date(r.created_at);
+                    return d >= fourteenDaysAgo && d < sevenDaysAgo;
+                }).length;
+
+                const this30d = data.filter(r => new Date(r.created_at) >= thirtyDaysAgo).length;
+
+                let wowPct = prevWeek > 0 ? Math.round(((thisWeek - prevWeek) / prevWeek) * 100) : (thisWeek > 0 ? 100 : 0);
+
+                // Unique players
+                const uniquePlayers = new Set(data.map(r => (r.player_name || '').trim().toUpperCase()).filter(Boolean)).size;
+
+                // Update Hero Indicators
+                const heroToday = document.getElementById('dg-hero-today');
+                if (heroToday) heroToday.textContent = todayCount;
+
+                const heroWeek = document.getElementById('dg-hero-week');
+                if (heroWeek) heroWeek.textContent = thisWeek;
+
+                const heroWeekGrowth = document.getElementById('dg-hero-week-growth');
+                if (heroWeekGrowth) {
+                    const isPos = wowPct >= 0;
+                    heroWeekGrowth.innerHTML = `<i class="fas fa-arrow-${isPos ? 'up' : 'down'}"></i> ${isPos ? '+' : ''}${wowPct}% vs prev 7d`;
+                    heroWeekGrowth.style.color = isPos ? 'var(--accent-green)' : 'var(--accent-red)';
+                    heroWeekGrowth.style.display = 'inline-flex';
+                }
+
+                const heroMonth = document.getElementById('dg-hero-month');
+                if (heroMonth) heroMonth.textContent = this30d;
+
+                const heroTotal = document.getElementById('dg-hero-total');
+                if (heroTotal) heroTotal.textContent = total;
+
+                const heroPlayers = document.getElementById('dg-hero-players');
+                if (heroPlayers) heroPlayers.innerHTML = `<i class="fas fa-users" style="font-size:0.65rem;"></i> ${uniquePlayers} unique players`;
+
+                // ─── Render 14-Day Traffic Trend Chart ───
+                const last14Days = [];
+                for (let i = 13; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 86400000);
+                    last14Days.push(d.toISOString().slice(0, 10));
+                }
+
+                const dailyPlays = last14Days.map(dayStr => data.filter(r => r.created_at && r.created_at.slice(0, 10) === dayStr).length);
+                const dailyWins = last14Days.map(dayStr => data.filter(r => r.created_at && r.created_at.slice(0, 10) === dayStr && r.winner === 'player').length);
+
+                const chartCanvas = document.getElementById('dgTrendChart');
+                if (chartCanvas && typeof Chart !== 'undefined') {
+                    if (_dgChartInstance) _dgChartInstance.destroy();
+                    _dgChartInstance = new Chart(chartCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: last14Days.map(d => {
+                                const p = d.split('-');
+                                return `${p[2]}.${p[1]}`;
+                            }),
+                            datasets: [
+                                {
+                                    label: 'Total Plays',
+                                    data: dailyPlays,
+                                    backgroundColor: 'rgba(227, 6, 19, 0.85)',
+                                    borderColor: '#e30613',
+                                    borderWidth: 1,
+                                    borderRadius: 4
+                                },
+                                {
+                                    label: 'Player Wins',
+                                    data: dailyWins,
+                                    backgroundColor: 'rgba(129, 201, 149, 0.75)',
+                                    borderColor: '#81c995',
+                                    borderWidth: 1,
+                                    borderRadius: 4
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: { color: '#E8EAED', font: { size: 11, family: 'Roboto' } }
+                                },
+                                tooltip: {
+                                    backgroundColor: '#1e2024',
+                                    titleColor: '#fff',
+                                    bodyColor: '#ccc',
+                                    borderColor: '#444',
+                                    borderWidth: 1
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: 'rgba(255,255,255,0.05)' },
+                                    ticks: { color: '#A0A5AA', font: { size: 10 } }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(255,255,255,0.06)' },
+                                    ticks: { color: '#A0A5AA', font: { size: 10 }, precision: 0 }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Standard section metrics
                 const cpuW    = data.filter(r => r.winner === 'cpu').length;
                 const playerW = data.filter(r => r.winner === 'player').length;
-                const today   = data.filter(r => r.created_at.slice(0,10) === todayStr).length;
-                const week    = data.filter(r => r.created_at >= weekAgo).length;
                 const durs    = data.map(r => r.duration_s).filter(Boolean);
                 const avgDur  = durs.length ? Math.round(durs.reduce((a,b) => a+b, 0) / durs.length) : null;
                 const pct     = n => total > 0 ? Math.round(n / total * 100) : 0;
 
-                document.getElementById('dg-total').textContent      = total;
-                document.getElementById('dg-cpu').textContent        = cpuW;
-                document.getElementById('dg-cpu-pct').textContent    = `${pct(cpuW)}% win rate`;
-                document.getElementById('dg-player').textContent     = playerW;
-                document.getElementById('dg-player-pct').textContent = `${pct(playerW)}% win rate`;
-                document.getElementById('dg-duration').textContent   = avgDur !== null ? avgDur : '—';
-                document.getElementById('dg-today').textContent      = today;
-                document.getElementById('dg-week').textContent       = week;
+                if (document.getElementById('dg-total')) document.getElementById('dg-total').textContent = total;
+                if (document.getElementById('dg-cpu')) document.getElementById('dg-cpu').textContent = cpuW;
+                if (document.getElementById('dg-cpu-pct')) document.getElementById('dg-cpu-pct').textContent = `${pct(cpuW)}% win rate`;
+                if (document.getElementById('dg-player')) document.getElementById('dg-player').textContent = playerW;
+                if (document.getElementById('dg-player-pct')) document.getElementById('dg-player-pct').textContent = `${pct(playerW)}% win rate`;
+                if (document.getElementById('dg-duration')) document.getElementById('dg-duration').textContent = avgDur !== null ? avgDur : '—';
+                if (document.getElementById('dg-today')) document.getElementById('dg-today').textContent = todayCount;
+                if (document.getElementById('dg-week')) document.getElementById('dg-week').textContent = thisWeek;
 
                 // Countries breakdown
                 const countryCounts = {};
@@ -2648,26 +2837,29 @@
                 });
                 const sorted = Object.entries(countryCounts).sort((a,b) => b[1]-a[1]);
                 const countryEl = document.getElementById('dg-countries');
-                if (sorted.length === 0) {
-                    countryEl.innerHTML = '<span style="color:#555;font-size:0.8rem;">No country data yet</span>';
-                } else {
-                    const flagFor = cc => {
-                        if (!cc || cc === 'Unknown') return '🌍';
-                        try { return cc.toUpperCase().replace(/./g, c => String.fromCodePoint(c.charCodeAt(0) + 127397)); }
-                        catch(e){ return '🌍'; }
-                    };
-                    countryEl.innerHTML = sorted.map(([cc, n]) =>
-                        `<span style="display:inline-flex;align-items:center;gap:5px;background:#1e2024;border:1px solid #333;border-radius:6px;padding:4px 10px;font-size:0.8rem;">
-                            <span style="font-size:1rem;">${flagFor(cc)}</span>
-                            <span style="color:#ddd;">${cc}</span>
-                            <span style="color:#888;font-size:0.75rem;">${n}</span>
-                        </span>`
-                    ).join('');
+                if (countryEl) {
+                    if (sorted.length === 0) {
+                        countryEl.innerHTML = '<span style="color:#555;font-size:0.8rem;">No country data yet</span>';
+                    } else {
+                        const flagFor = cc => {
+                            if (!cc || cc === 'Unknown') return '🌍';
+                            try { return cc.toUpperCase().replace(/./g, c => String.fromCodePoint(c.charCodeAt(0) + 127397)); }
+                            catch(e){ return '🌍'; }
+                        };
+                        countryEl.innerHTML = sorted.map(([cc, n]) =>
+                            `<span style="display:inline-flex;align-items:center;gap:5px;background:#1e2024;border:1px solid #333;border-radius:6px;padding:4px 10px;font-size:0.8rem;">
+                                <span style="font-size:1rem;">${flagFor(cc)}</span>
+                                <span style="color:#ddd;">${cc}</span>
+                                <span style="color:#888;font-size:0.75rem;">${n}</span>
+                            </span>`
+                        ).join('');
+                    }
                 }
 
                 _dgLoaded = true;
             } catch(e) {
-                document.getElementById('dg-error').style.display = 'block';
+                console.error('Error fetching digital game stats:', e);
+                if (document.getElementById('dg-error')) document.getElementById('dg-error').style.display = 'block';
             }
         }
 
