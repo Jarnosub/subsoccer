@@ -4656,7 +4656,9 @@
                 'Designer Outlet': [53.1076, -1.3106],
                 'Mansfield': [53.1432, -1.1966],
                 'Derbyshire': [53.1076, -1.3106],
-                'South Normanton': [53.1076, -1.3106]
+                'South Normanton': [53.1076, -1.3106],
+                'Fashion District Philadelphia': [39.9526, -75.1592],
+                'Fashion District': [39.9526, -75.1592]
             };
             window._tzCoords = tzCoords; // expose for live map mode
 
@@ -4930,6 +4932,23 @@
                 events_count: 290,
                 status: 'verified',
                 notes: 'McArthurGlen East Midlands Designer Outlet table (290 telemetry events in Nottingham/Derby region).'
+            },
+            {
+                id: 'ugc-philly-01',
+                url: 'https://www.instagram.com/p/DbBgh3fmWS-/?utm_source=ig_web_copy_link&igsi=MzRlODBiNWFlZA==',
+                platform: 'instagram',
+                author: '@originalsubsoccer repost',
+                title: 'Fashion District Philadelphia',
+                location: 'Fashion District Philadelphia, US',
+                lat: 39.9526,
+                lng: -75.1592,
+                table_code: 'PUBLIC-APP',
+                post_date: '2026-08-10',
+                matches_count: 19,
+                tournaments_count: 2,
+                events_count: 30,
+                status: 'verified',
+                notes: 'Fashion District Philadelphia venue (14 tournament matches & 5 instant matches in database).'
             }
         ];
 
@@ -4941,7 +4960,24 @@
                 const stored = localStorage.getItem('subsoccer_ugc_posts');
                 if (stored) {
                     const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        // Ensure all default seeds exist in the list
+                        let updated = false;
+                        DEFAULT_UGC_POSTS.forEach(def => {
+                            const existingIndex = parsed.findIndex(p => p.url === def.url || p.id === def.id);
+                            if (existingIndex === -1) {
+                                parsed.push(def);
+                                updated = true;
+                            } else if (parsed[existingIndex].location === 'Global' && def.location !== 'Global') {
+                                parsed[existingIndex] = { ...parsed[existingIndex], ...def };
+                                updated = true;
+                            }
+                        });
+                        if (updated) {
+                            localStorage.setItem('subsoccer_ugc_posts', JSON.stringify(parsed));
+                        }
+                        return parsed;
+                    }
                 }
             } catch (e) {
                 console.warn('Error reading UGC posts from localStorage:', e);
@@ -5170,6 +5206,9 @@
                     if (rLoc.includes(locQuery)) matchesLoc = true;
                     else if (locQuery.includes('outlet') || locQuery.includes('midlands')) {
                         if (rLoc.includes('derby') || rLoc.includes('nottingham') || rLoc.includes('mansfield')) matchesLoc = true;
+                    }
+                    else if (locQuery.includes('fashion') || locQuery.includes('philadelphia')) {
+                        if (rLoc.includes('philadelphia')) matchesLoc = true;
                     }
                     else if (post.lat && rLoc.includes(`${post.lat.toFixed(2)}`)) matchesLoc = true;
                 }
