@@ -577,6 +577,128 @@
             .grid-tables th, .grid-tables td {
                 padding: 14px 20px;
             }
+        /* ─── Google Analytics (GA4) Presentation Theme ─── */
+        body.theme-ga4 {
+            --bg-base: #F8F9FA;
+            --bg-card: #FFFFFF;
+            --text-primary: #202124;
+            --text-secondary: #5F6368;
+            --accent-blue: #1A73E8;
+            --accent-red: #D93025;
+            --accent-green: #1E8E3E;
+            --accent-yellow: #F9AB00;
+            --border-color: #DADCE0;
+            background-color: #F8F9FA !important;
+            color: #202124 !important;
+        }
+
+        body.theme-ga4 .header {
+            background-color: #FFFFFF !important;
+            border-bottom: 1px solid #DADCE0 !important;
+            box-shadow: 0 1px 3px rgba(60,64,67,0.08) !important;
+        }
+
+        body.theme-ga4 .header h1 {
+            color: #202124 !important;
+        }
+
+        body.theme-ga4 .filters,
+        body.theme-ga4 .kpi-card,
+        body.theme-ga4 .chart-card,
+        body.theme-ga4 .kpi-section {
+            background-color: #FFFFFF !important;
+            border: 1px solid #DADCE0 !important;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1), 0 1px 3px 1px rgba(60,64,67,0.05) !important;
+        }
+
+        body.theme-ga4 div[style*="background: #202225"],
+        body.theme-ga4 div[style*="background:#202225"],
+        body.theme-ga4 div[style*="background: #1e2024"],
+        body.theme-ga4 div[style*="background:#1e2024"],
+        body.theme-ga4 div[style*="background: #2B2D31"],
+        body.theme-ga4 div[style*="background:#2B2D31"] {
+            background: #FFFFFF !important;
+            border-color: #DADCE0 !important;
+        }
+
+        body.theme-ga4 .kpi-value,
+        body.theme-ga4 .chart-title,
+        body.theme-ga4 .section-title,
+        body.theme-ga4 span[style*="color: #ffffff"],
+        body.theme-ga4 span[style*="color: #fff"],
+        body.theme-ga4 span[style*="color:#fff"],
+        body.theme-ga4 div[style*="color: #ffffff"],
+        body.theme-ga4 div[style*="color: #fff"],
+        body.theme-ga4 div[style*="color:#fff"] {
+            color: #202124 !important;
+        }
+
+        body.theme-ga4 .kpi-header,
+        body.theme-ga4 .chart-subtitle,
+        body.theme-ga4 .filters span {
+            color: #5F6368 !important;
+        }
+
+        body.theme-ga4 .filters select,
+        body.theme-ga4 .filters input[type="date"],
+        body.theme-ga4 .filters .checkbox-label,
+        body.theme-ga4 .filters .date-range-container {
+            background-color: #FFFFFF !important;
+            color: #202124 !important;
+            border: 1px solid #DADCE0 !important;
+        }
+
+        body.theme-ga4 .kpi-section-header {
+            background-color: #FFFFFF !important;
+            border-bottom: 1px solid #DADCE0 !important;
+            color: #202124 !important;
+        }
+
+        body.theme-ga4 .kpi-section-header:hover {
+            background-color: #F1F3F4 !important;
+        }
+
+        body.theme-ga4 .btn-refresh {
+            background: #1A73E8 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #1A73E8 !important;
+        }
+
+        body.theme-ga4 .btn-export {
+            background: #FFFFFF !important;
+            color: #1A73E8 !important;
+            border: 1px solid #DADCE0 !important;
+        }
+
+        body.theme-ga4 .btn-export:hover {
+            background: #F1F3F4 !important;
+        }
+
+        .btn-theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #1A73E8;
+            color: #FFFFFF;
+            border: 1px solid #185ABC;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+
+        body.theme-ga4 .btn-theme-toggle {
+            background: #202225 !important;
+            color: #E8EAED !important;
+            border: 1px solid #3F4147 !important;
+        }
+
+        .btn-theme-toggle:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
         }
     </style>
 </head>
@@ -596,7 +718,10 @@
 
     <div class="header">
         <h1><i class="fas fa-chart-line" style="color: var(--accent-blue);"></i> Subsoccer Analytics Engine</h1>
-        <div style="display:flex; align-items:center; gap:16px;">
+        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+            <button id="btn-theme-toggle" class="btn-theme-toggle" onclick="toggleTheme()" title="Switch to Google Analytics Presentation Theme">
+                <i class="fab fa-google" style="color:#F9AB00;"></i> <span id="theme-btn-text">GA4 Presentation Mode</span>
+            </button>
             <a href="venue-analytics.html" style="color:var(--text-secondary); text-decoration:none; font-size:0.85rem; transition:color 0.2s;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='var(--text-secondary)'"><i class="fas fa-store"></i> Venue Analytics</a>
             <a href="https://subsoccer-pro.goatcounter.com" target="_blank" style="color:var(--text-secondary); text-decoration:none; font-size:0.85rem; transition:color 0.2s;" onmouseover="this.style.color='var(--accent-green)'" onmouseout="this.style.color='var(--text-secondary)'"><i class="fas fa-eye"></i> GoatCounter</a>
             <button onclick="window.location.href='moderator/index.html';" style="background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer;"><i class="fas fa-times"></i></button>
@@ -1382,6 +1507,52 @@
     </div>
 
     <script>
+        // ─── Theme Management (GA4 Presentation vs Dark Mode) ───
+        function isGa4Theme() {
+            return document.body.classList.contains('theme-ga4');
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            body.classList.toggle('theme-ga4');
+            const isGa4 = body.classList.contains('theme-ga4');
+            try {
+                localStorage.setItem('subsoccer_analytics_theme', isGa4 ? 'ga4' : 'dark');
+            } catch(e){}
+            updateThemeButtonText();
+            // Re-render charts with new theme styling
+            if (typeof globalTrackingData !== 'undefined' && globalTrackingData && globalTrackingData.length > 0) {
+                initCharts(globalTrackingData);
+            }
+        }
+
+        function updateThemeButtonText() {
+            const isGa4 = isGa4Theme();
+            const btn = document.getElementById('btn-theme-toggle');
+            if (btn) {
+                if (isGa4) {
+                    btn.innerHTML = '<i class="fas fa-moon" style="color:#8ab4f8;"></i> <span id="theme-btn-text">Subsoccer Dark Mode</span>';
+                } else {
+                    btn.innerHTML = '<i class="fab fa-google" style="color:#F9AB00;"></i> <span id="theme-btn-text">GA4 Presentation Mode</span>';
+                }
+            }
+        }
+
+        // Apply saved theme immediately on script execution
+        (function initSavedTheme() {
+            try {
+                const savedTheme = localStorage.getItem('subsoccer_analytics_theme');
+                if (savedTheme === 'ga4') {
+                    document.body.classList.add('theme-ga4');
+                }
+            } catch(e){}
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', updateThemeButtonText);
+            } else {
+                updateThemeButtonText();
+            }
+        })();
+
         // Use Global Keys from staging configuration
         const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
         const SUPA_KEY = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
@@ -3712,6 +3883,15 @@
                 statsEl.textContent = `${totalMatchesInChart.toLocaleString()} Matches · ${totalOpensInChart.toLocaleString()} App Opens ${suffix}`;
             }
 
+            const isGa4 = isGa4Theme();
+            const textColor = isGa4 ? '#202124' : '#E8EAED';
+            const mutedTextColor = isGa4 ? '#5F6368' : '#A0A5AA';
+            const gridColor = isGa4 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+            const tooltipBg = isGa4 ? '#FFFFFF' : '#1e2024';
+            const tooltipBorder = isGa4 ? '#DADCE0' : '#3F4147';
+            const tooltipTitle = isGa4 ? '#202124' : '#FFFFFF';
+            const tooltipBody = isGa4 ? '#3C4043' : '#CCCCCC';
+
             const ctx = canvas.getContext('2d');
             platformEcosystemChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -3722,7 +3902,7 @@
                             label: 'Instant 1v1 Matches (Table Games)',
                             data: instantData,
                             borderColor: '#ff4d5a',
-                            backgroundColor: 'rgba(255, 77, 90, 0.12)',
+                            backgroundColor: isGa4 ? 'rgba(255, 77, 90, 0.08)' : 'rgba(255, 77, 90, 0.12)',
                             borderWidth: 2,
                             fill: true,
                             tension: 0.3,
@@ -3732,8 +3912,8 @@
                         {
                             label: 'Tournament Matches (Tournaments)',
                             data: tourneyData,
-                            borderColor: '#fde293',
-                            backgroundColor: 'rgba(253, 226, 147, 0.1)',
+                            borderColor: isGa4 ? '#F9AB00' : '#fde293',
+                            backgroundColor: isGa4 ? 'rgba(249, 171, 0, 0.08)' : 'rgba(253, 226, 147, 0.1)',
                             borderWidth: 2,
                             fill: true,
                             tension: 0.3,
@@ -3743,8 +3923,8 @@
                         {
                             label: 'App QR Opens (Mobile App)',
                             data: opensData,
-                            borderColor: '#8ab4f8',
-                            backgroundColor: 'rgba(138, 180, 248, 0.05)',
+                            borderColor: isGa4 ? '#1A73E8' : '#8ab4f8',
+                            backgroundColor: isGa4 ? 'rgba(26, 115, 232, 0.05)' : 'rgba(138, 180, 248, 0.05)',
                             borderWidth: 1.5,
                             borderDash: [4, 4],
                             fill: false,
@@ -3765,30 +3945,30 @@
                         legend: {
                             display: true,
                             labels: {
-                                color: '#E8EAED',
+                                color: textColor,
                                 font: { size: 11, family: 'Roboto, sans-serif' },
                                 boxWidth: 12,
                                 usePointStyle: true
                             }
                         },
                         tooltip: {
-                            backgroundColor: '#1e2024',
-                            titleColor: '#fff',
-                            bodyColor: '#ccc',
-                            borderColor: '#3F4147',
+                            backgroundColor: tooltipBg,
+                            titleColor: tooltipTitle,
+                            bodyColor: tooltipBody,
+                            borderColor: tooltipBorder,
                             borderWidth: 1,
                             padding: 10
                         }
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: '#A0A5AA', font: { size: 10 }, maxTicksLimit: 12 }
+                            grid: { color: gridColor },
+                            ticks: { color: mutedTextColor, font: { size: 10 }, maxTicksLimit: 12 }
                         },
                         y: {
                             beginAtZero: true,
-                            grid: { color: 'rgba(255,255,255,0.06)' },
-                            ticks: { color: '#A0A5AA', font: { size: 10 }, precision: 0 }
+                            grid: { color: gridColor },
+                            ticks: { color: mutedTextColor, font: { size: 10 }, precision: 0 }
                         }
                     }
                 }
@@ -3856,6 +4036,13 @@
             }
 
             // Trend Line Chart
+            const isGa4 = isGa4Theme();
+            const mainLineColor = isGa4 ? '#1A73E8' : '#8AB4F8';
+            const mainBgColor = isGa4 ? 'rgba(26, 115, 232, 0.08)' : 'rgba(138, 180, 248, 0.1)';
+            const avgLineColor = isGa4 ? 'rgba(249, 171, 0, 0.85)' : 'rgba(255, 183, 77, 0.7)';
+            const chartGridColor = isGa4 ? '#DADCE0' : '#3C4043';
+            const chartTextColor = isGa4 ? '#5F6368' : '#9AA0A6';
+
             const ctx1 = document.getElementById('mainChart').getContext('2d');
             chartInstance = new Chart(ctx1, {
                 type: 'line',
@@ -3865,8 +4052,8 @@
                         {
                             label: 'Events',
                             data: counts.length ? counts : [0],
-                            borderColor: '#8AB4F8',
-                            backgroundColor: 'rgba(138, 180, 248, 0.1)',
+                            borderColor: mainLineColor,
+                            backgroundColor: mainBgColor,
                             borderWidth: 2,
                             fill: true,
                             tension: 0.4
@@ -3874,7 +4061,7 @@
                         {
                             label: `Daily avg (${dailyAvg})`,
                             data: avgLine.length ? avgLine : [0],
-                            borderColor: 'rgba(255, 183, 77, 0.7)',
+                            borderColor: avgLineColor,
                             backgroundColor: 'transparent',
                             borderWidth: 1.5,
                             borderDash: [6, 4],
@@ -3890,7 +4077,7 @@
                     maintainAspectRatio: false,
                     layout: { padding: { bottom: 5 } },
                     plugins: {
-                        legend: { display: true, labels: { boxWidth: 12, font: { size: 11 }, color: '#9AA0A6', usePointStyle: true } },
+                        legend: { display: true, labels: { boxWidth: 12, font: { size: 11 }, color: chartTextColor, usePointStyle: true } },
                         tooltip: {
                             callbacks: {
                                 afterBody: function(context) {
@@ -3904,8 +4091,8 @@
                         }
                     },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#3C4043' }, ticks: { precision: 0 } },
-                        x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0 } }
+                        y: { beginAtZero: true, grid: { color: chartGridColor }, ticks: { precision: 0, color: chartTextColor } },
+                        x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0, color: chartTextColor } }
                     }
                 }
             });
