@@ -720,7 +720,27 @@
                                 <div class="kpi-value" id="kpi-sessions">0</div>
                                 <span id="kpi-wow" style="font-size:0.8rem;font-weight:500;padding:2px 8px;border-radius:12px;display:none;"></span>
                             </div>
-                            <div class="kpi-trend"><i class="fas fa-arrow-up"></i> Total scanned QR codes</div>
+                            <div class="kpi-trend" id="kpi-sessions-trend"><i class="fas fa-arrow-up"></i> Total scanned QR codes</div>
+                        </div>
+                    </div>
+
+                    <!-- Platform Ecosystem Growth Trend Chart -->
+                    <div style="background: #202225; border: 1px solid #3F4147; border-radius: 8px; padding: 18px; margin-top: -8px; margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <span style="font-size: 0.85rem; font-weight: 700; color: #E8EAED; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-chart-line" style="color: #c41e2a;"></i> Subsoccer Platform Ecosystem Growth Trend
+                                </span>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">
+                                    Real Table 1v1 Matches · Live Tournaments · App QR Scans · Digital Minigame
+                                </div>
+                            </div>
+                            <div id="platform-trend-stats" style="font-size: 0.75rem; color: var(--sub-gold, #fde293); font-weight: 600;">
+                                10,355+ Platform Matches
+                            </div>
+                        </div>
+                        <div style="height: 220px; position: relative; width: 100%;">
+                            <canvas id="platformEcosystemTrendChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -2126,6 +2146,14 @@
                     .filter(c => c !== 'Unknown' && !prevCountriesSet.has(c))
                     .map(c => ({ name: c, flag: globalCountryGroups[c].flag }));
 
+                // Calculate period deltas
+                const wowInstantGrowth = (!isAllTimeFilter && prevInstantMatches > 0)
+                    ? Math.round((instantMatches - prevInstantMatches) / prevInstantMatches * 100)
+                    : null;
+                const wowTourneyGrowth = (!isAllTimeFilter && prevTournamentMatches > 0)
+                    ? Math.round((tournamentMatches - prevTournamentMatches) / prevTournamentMatches * 100)
+                    : null;
+
                 // --- KPI Display ---
                 const allMatchesEl = document.getElementById('kpi-all-matches');
                 if (allMatchesEl) allMatchesEl.textContent = totalAllMatches.toLocaleString();
@@ -2146,10 +2174,19 @@
                     }
                 }
 
-                document.getElementById('kpi-sessions').textContent = sessionCount;
-                document.getElementById('kpi-tournaments').textContent = totalTournaments;
-                document.getElementById('kpi-users').textContent = totalUsers;
-                document.getElementById('kpi-matches').textContent = instantMatches;
+                // Instant & Tourney trends with delta badges
+                let instantDeltaHtml = wowInstantGrowth !== null ? ` <span style="color:${wowInstantGrowth >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;">(${wowInstantGrowth >= 0 ? '▲ +' : '▼ '}${wowInstantGrowth}%)</span>` : '';
+                const matchTrendEl = document.querySelector('#kpi-matches')?.parentElement?.querySelector('.kpi-trend');
+                if (matchTrendEl) matchTrendEl.innerHTML = `<i class="fas fa-bolt"></i> Fast 1v1 play events${instantDeltaHtml}`;
+
+                let tourneyDeltaHtml = wowTourneyGrowth !== null ? ` <span style="color:${wowTourneyGrowth >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;">(${wowTourneyGrowth >= 0 ? '▲ +' : '▼ '}${wowTourneyGrowth}%)</span>` : '';
+                const tourneyTrendEl = document.querySelector('#kpi-tournaments')?.parentElement?.querySelector('.kpi-trend');
+                if (tourneyTrendEl) tourneyTrendEl.innerHTML = `<i class="fas fa-trophy"></i> Live Tracking Active${tourneyDeltaHtml}`;
+
+                document.getElementById('kpi-sessions').textContent = sessionCount.toLocaleString();
+                document.getElementById('kpi-tournaments').textContent = totalTournaments.toLocaleString();
+                document.getElementById('kpi-users').textContent = totalUsers.toLocaleString();
+                document.getElementById('kpi-matches').textContent = instantMatches.toLocaleString();
                 document.getElementById('kpi-language').innerHTML = langText;
                 document.getElementById('kpi-duration').textContent = durationTxt;
                 document.getElementById('kpi-duration-subtitle').innerHTML = `<i class="fas fa-info-circle"></i> ${durationSubtxt}`;
@@ -3583,11 +3620,177 @@
             URL.revokeObjectURL(url);
         }
 
+        let platformEcosystemChartInstance = null;
+
+        function renderPlatformEcosystemTrend(data) {
+            const canvas = document.getElementById('platformEcosystemTrendChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            if (platformEcosystemChartInstance) {
+                platformEcosystemChartInstance.destroy();
+                platformEcosystemChartInstance = null;
+            }
+
+            const timelineMap = {};
+
+            data.forEach(d => {
+                const ts = d.client_time || d.created_at;
+                if (!ts) return;
+                const dateObj = new Date(ts);
+                const isoKey = dateObj.toISOString().slice(0, 10);
+                if (!timelineMap[isoKey]) {
+                    timelineMap[isoKey] = { instant: 0, tourney: 0, opens: 0 };
+                }
+
+                if (d.event_type === 'game_finished') {
+                    timelineMap[isoKey].instant++;
+                } else if (d.event_type === 'tournament_match_finished') {
+                    timelineMap[isoKey].tourney++;
+                } else if (d.event_type === 'app_opened') {
+                    timelineMap[isoKey].opens++;
+                }
+            });
+
+            const sortedKeys = Object.keys(timelineMap).sort();
+            if (sortedKeys.length === 0) return;
+
+            let labels = [];
+            let instantData = [];
+            let tourneyData = [];
+            let opensData = [];
+
+            if (sortedKeys.length > 35) {
+                const weekMap = {};
+                sortedKeys.forEach(k => {
+                    const d = new Date(k + 'T00:00:00');
+                    const day = d.getDay();
+                    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                    const monday = new Date(d.setDate(diff));
+                    const weekKey = monday.toISOString().slice(0, 10);
+                    if (!weekMap[weekKey]) {
+                        weekMap[weekKey] = { instant: 0, tourney: 0, opens: 0 };
+                    }
+                    weekMap[weekKey].instant += timelineMap[k].instant;
+                    weekMap[weekKey].tourney += timelineMap[k].tourney;
+                    weekMap[weekKey].opens += timelineMap[k].opens;
+                });
+
+                const sortedWeeks = Object.keys(weekMap).sort();
+                labels = sortedWeeks.map(k => {
+                    const p = k.split('-');
+                    return `${p[2]}.${p[1]}`;
+                });
+                instantData = sortedWeeks.map(k => weekMap[k].instant);
+                tourneyData = sortedWeeks.map(k => weekMap[k].tourney);
+                opensData = sortedWeeks.map(k => weekMap[k].opens);
+            } else {
+                labels = sortedKeys.map(k => {
+                    const p = k.split('-');
+                    return `${p[2]}.${p[1]}`;
+                });
+                instantData = sortedKeys.map(k => timelineMap[k].instant);
+                tourneyData = sortedKeys.map(k => timelineMap[k].tourney);
+                opensData = sortedKeys.map(k => timelineMap[k].opens);
+            }
+
+            const totalMatchesInChart = instantData.reduce((a,b)=>a+b,0) + tourneyData.reduce((a,b)=>a+b,0);
+            const totalOpensInChart = opensData.reduce((a,b)=>a+b,0);
+            const statsEl = document.getElementById('platform-trend-stats');
+            if (statsEl) {
+                statsEl.textContent = `${totalMatchesInChart.toLocaleString()} Matches · ${totalOpensInChart.toLocaleString()} App Opens in period`;
+            }
+
+            const ctx = canvas.getContext('2d');
+            platformEcosystemChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Instant 1v1 Matches (Pöytäpelit)',
+                            data: instantData,
+                            borderColor: '#ff4d5a',
+                            backgroundColor: 'rgba(255, 77, 90, 0.12)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: labels.length > 25 ? 0 : 3,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: 'Tournament Matches (Turnauspelit)',
+                            data: tourneyData,
+                            borderColor: '#fde293',
+                            backgroundColor: 'rgba(253, 226, 147, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: labels.length > 25 ? 0 : 3,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: 'App QR Opens (Sovellusavaukset)',
+                            data: opensData,
+                            borderColor: '#8ab4f8',
+                            backgroundColor: 'rgba(138, 180, 248, 0.05)',
+                            borderWidth: 1.5,
+                            borderDash: [4, 4],
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: labels.length > 25 ? 0 : 2,
+                            pointHoverRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#E8EAED',
+                                font: { size: 11, family: 'Roboto, sans-serif' },
+                                boxWidth: 12,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e2024',
+                            titleColor: '#fff',
+                            bodyColor: '#ccc',
+                            borderColor: '#3F4147',
+                            borderWidth: 1,
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#A0A5AA', font: { size: 10 }, maxTicksLimit: 12 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            ticks: { color: '#A0A5AA', font: { size: 10 }, precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
         function initCharts(data) {
             if (chartInstance) chartInstance.destroy();
             if (doughnutInstance) doughnutInstance.destroy();
             if (citiesInstance) citiesInstance.destroy();
             if (cityGrowthInstance) cityGrowthInstance.destroy();
+
+            // Render Platform Ecosystem Growth Trend
+            renderPlatformEcosystemTrend(data);
 
             // Aggregation by day for trend line using YYYY-MM-DD keys to ensure correct sorting across months/years
             const daysMap = {};
