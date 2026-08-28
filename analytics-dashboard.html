@@ -664,6 +664,66 @@
             border: 1px solid #1A73E8 !important;
         }
 
+        body.theme-ga4 .btn-feedbacks {
+            background: #FCE8E6 !important;
+            color: #C5221F !important;
+            border: 1px solid #FAD2CF !important;
+            font-weight: 500 !important;
+        }
+
+        body.theme-ga4 .btn-feedbacks i {
+            color: #D93025 !important;
+        }
+
+        body.theme-ga4 #btn-feedback-badge {
+            background: #D93025 !important;
+            color: #FFFFFF !important;
+        }
+
+        body.theme-ga4 #feedback-modal {
+            background: rgba(32, 33, 36, 0.6) !important;
+        }
+
+        body.theme-ga4 #feedback-modal > div {
+            background: #FFFFFF !important;
+            border: 1px solid #DADCE0 !important;
+            box-shadow: 0 8px 24px rgba(60,64,67,0.2) !important;
+            color: #202124 !important;
+        }
+
+        body.theme-ga4 #feedback-modal .fb-tab-btn,
+        body.theme-ga4 #feedback-modal .fb-filter-btn {
+            background: #F1F3F4 !important;
+            color: #3C4043 !important;
+            border: 1px solid #DADCE0 !important;
+        }
+
+        body.theme-ga4 #feedback-modal .fb-tab-btn.active,
+        body.theme-ga4 #feedback-modal .fb-filter-btn.active {
+            background: #1A73E8 !important;
+            color: #FFFFFF !important;
+            border-color: #185ABC !important;
+        }
+
+        body.theme-ga4 #feedback-modal .feedback-card {
+            background: #FFFFFF !important;
+            border-color: #DADCE0 !important;
+            color: #202124 !important;
+        }
+
+        body.theme-ga4 #feedback-modal div[style*="background:#18191d"],
+        body.theme-ga4 #feedback-modal div[style*="background:#141518"],
+        body.theme-ga4 #feedback-modal div[style*="background:#121316"] {
+            background: #FFFFFF !important;
+            border-color: #DADCE0 !important;
+            color: #202124 !important;
+        }
+
+        body.theme-ga4 #feedback-modal h2,
+        body.theme-ga4 #feedback-modal h3 {
+            color: #202124 !important;
+        }
+
         body.theme-ga4 .btn-export {
             background: #FFFFFF !important;
             color: #1A73E8 !important;
@@ -776,8 +836,8 @@
                     <button class="btn-refresh" onclick="fetchData()">
                         <i class="fas fa-sync-alt"></i> Refresh Data
                     </button>
-                    <button class="btn-feedbacks" onclick="openFeedbackModal()" style="position: relative; display: inline-flex; align-items: center; gap: 8px; background: rgba(227,6,19,0.15); border: 1px solid rgba(227,6,19,0.4); color: #fff;">
-                        <i class="fas fa-tasks" style="color:var(--sub-red, #E30613);"></i> Backlog & Feedbacks
+                    <button class="btn-feedbacks" onclick="openFeedbackModal()" style="position: relative; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-tasks"></i> Backlog & Feedbacks
                         <span id="btn-feedback-badge" style="display: none; align-items: center; gap: 4px; background: #c41e2a; color: #ffffff; font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; font-weight: bold; letter-spacing: 0.5px; animation: pulse-badge 2s infinite;">
                             <span id="btn-feedback-count">0</span> NEW
                         </span>
