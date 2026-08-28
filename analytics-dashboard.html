@@ -3631,6 +3631,7 @@
                 platformEcosystemChartInstance = null;
             }
 
+            const todayIso = new Date().toISOString().slice(0, 10);
             const timelineMap = {};
 
             data.forEach(d => {
@@ -3638,6 +3639,7 @@
                 if (!ts) return;
                 const dateObj = new Date(ts);
                 const isoKey = dateObj.toISOString().slice(0, 10);
+                if (isoKey >= todayIso) return; // Exclude incomplete current day
                 if (!timelineMap[isoKey]) {
                     timelineMap[isoKey] = { instant: 0, tourney: 0, opens: 0 };
                 }
@@ -3697,7 +3699,7 @@
             const totalOpensInChart = opensData.reduce((a,b)=>a+b,0);
             const statsEl = document.getElementById('platform-trend-stats');
             if (statsEl) {
-                statsEl.textContent = `${totalMatchesInChart.toLocaleString()} Matches · ${totalOpensInChart.toLocaleString()} App Opens in period`;
+                statsEl.textContent = `${totalMatchesInChart.toLocaleString()} Matches · ${totalOpensInChart.toLocaleString()} App Opens (Completed Days)`;
             }
 
             const ctx = canvas.getContext('2d');
@@ -3793,13 +3795,17 @@
             renderPlatformEcosystemTrend(data);
 
             // Aggregation by day for trend line using YYYY-MM-DD keys to ensure correct sorting across months/years
+            const todayIso = new Date().toISOString().slice(0, 10);
             const daysMap = {};
             data.forEach(d => {
-                const dateObj = new Date(d.client_time || new Date());
+                const ts = d.client_time || d.created_at;
+                if (!ts) return;
+                const dateObj = new Date(ts);
                 const year = dateObj.getFullYear();
                 const month = ('0' + (dateObj.getMonth() + 1)).slice(-2);
                 const day = ('0' + dateObj.getDate()).slice(-2);
                 const isoKey = `${year}-${month}-${day}`;
+                if (isoKey >= todayIso) return; // Exclude incomplete current day
                 daysMap[isoKey] = (daysMap[isoKey] || 0) + 1;
             });
             const sortedIsoKeys = Object.keys(daysMap).sort();
