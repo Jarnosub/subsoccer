@@ -760,6 +760,92 @@
             opacity: 0.92;
             transform: translateY(-1px);
         }
+
+        /* ─── UGC & Social Video Intelligence Styles ─── */
+        .ugc-badge-instagram {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ugc-badge-tiktok {
+            background: #000000;
+            color: #00f2fe;
+            border: 1px solid #fe2c55;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ugc-badge-youtube {
+            background: #FF0000;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ugc-badge-generic {
+            background: #4A5568;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ugc-map-pin {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E1306C, #FD1D1D, #F56040);
+            border: 2px solid #FFFFFF;
+            color: white;
+            font-size: 16px;
+            box-shadow: 0 0 14px rgba(225, 48, 108, 0.8), 0 3px 6px rgba(0,0,0,0.4);
+            cursor: pointer;
+            animation: ugcPinPulse 2s infinite ease-in-out;
+            transition: transform 0.2s ease;
+        }
+        .ugc-map-pin:hover {
+            transform: scale(1.25);
+            z-index: 1000 !important;
+        }
+        @keyframes ugcPinPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(225, 48, 108, 0.7); }
+            50% { transform: scale(1.12); box-shadow: 0 0 20px rgba(253, 29, 29, 0.95); }
+        }
+        body.theme-ga4 #ugc-add-modal > div,
+        body.theme-ga4 #ugc-bulk-modal > div {
+            background: #FFFFFF !important;
+            border-color: #DADCE0 !important;
+            color: #202124 !important;
+            box-shadow: 0 8px 24px rgba(60,64,67,0.2) !important;
+        }
+        body.theme-ga4 #ugc-add-modal input,
+        body.theme-ga4 #ugc-add-modal select,
+        body.theme-ga4 #ugc-add-modal textarea,
+        body.theme-ga4 #ugc-bulk-modal textarea {
+            background: #F8F9FA !important;
+            border-color: #DADCE0 !important;
+            color: #202124 !important;
+        }
     </style>
 </head>
 <body>
@@ -1413,6 +1499,86 @@
             <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:16px;">Cities with the most games played. Potential hubs for tournaments and content partnerships.</p>
             <div id="top-cities-table" style="overflow-x:auto;">
                 <p style="color:var(--text-secondary); text-align:center;"><i class="fas fa-spinner fa-spin"></i> Loading...</p>
+            </div>
+        </div>
+
+        <!-- UGC & Social Video Intelligence Section -->
+        <div class="kpi-section" style="margin-bottom: 24px;" id="ugc-section">
+            <div class="kpi-section-header" onclick="toggleSection(this)" style="background: linear-gradient(90deg, rgba(225,48,108,0.12) 0%, rgba(253,29,29,0.06) 100%);">
+                <span class="section-icon"><i class="fas fa-video" style="color: #E1306C;"></i></span>
+                <span class="section-title">🎬 UGC & Social Intelligence <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:400; margin-left:6px;">— Organic Video Map & Field Telemetry Matcher</span></span>
+                <span id="ugc-count-badge" style="font-size:0.7rem; background:rgba(225,48,108,0.2); color:#ff4d80; border:1px solid rgba(225,48,108,0.4); padding:2px 8px; border-radius:10px; font-weight:600; margin-left:8px;">1 Post</span>
+                <i class="fas fa-chevron-down section-chevron"></i>
+            </div>
+            <div class="kpi-section-body" style="padding: 16px;">
+                <!-- UGC Summary KPIs -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 18px;">
+                    <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">UGC Posts Tracked</div>
+                        <div id="ugc-kpi-total" style="font-size:1.6rem; font-weight:700; color:#E1306C; margin-top:4px;">1</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;"><i class="fab fa-instagram"></i> Organic Reels & Reposts</div>
+                    </div>
+                    <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Matched to Field Data</div>
+                        <div id="ugc-kpi-matched" style="font-size:1.6rem; font-weight:700; color:var(--accent-green); margin-top:4px;">100%</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;"><i class="fas fa-check-circle" style="color:var(--accent-green);"></i> Linked to telemetry</div>
+                    </div>
+                    <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Linked Tournaments / Matches</div>
+                        <div id="ugc-kpi-matches" style="font-size:1.6rem; font-weight:700; color:var(--accent-yellow); margin-top:4px;">107 / 111</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;"><i class="fas fa-trophy"></i> Confirmed in database</div>
+                    </div>
+                    <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px;">
+                        <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Active Cities / Hubs</div>
+                        <div id="ugc-kpi-cities" style="font-size:1.6rem; font-weight:700; color:var(--accent-blue); margin-top:4px;">1</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;"><i class="fas fa-map-marker-alt"></i> Trnava (Slovakia)</div>
+                    </div>
+                </div>
+
+                <!-- UGC Action Bar -->
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                        <button onclick="openUgcAddModal()" style="background:#E1306C; color:#fff; border:none; padding:8px 14px; border-radius:6px; font-size:0.85rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="fas fa-plus"></i> Add Video Link
+                        </button>
+                        <button onclick="openUgcBulkModal()" style="background:var(--card-bg); color:var(--text-primary); border:1px solid var(--border-color); padding:8px 14px; border-radius:6px; font-size:0.85rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="fas fa-paste"></i> Bulk Paste (Multi-line)
+                        </button>
+                        <button onclick="exportUgcCsv()" style="background:var(--card-bg); color:var(--text-secondary); border:1px solid var(--border-color); padding:8px 12px; border-radius:6px; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="fas fa-download"></i> Export CSV
+                        </button>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" id="ugc-search-input" placeholder="Search city, author, code..." oninput="renderUgcTable()"
+                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 12px; border-radius:4px; font-size:0.8rem; width:210px;">
+                        <select id="ugc-platform-filter" onchange="renderUgcTable()"
+                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 10px; border-radius:4px; font-size:0.8rem; cursor:pointer;">
+                            <option value="ALL">All Platforms</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- UGC Table -->
+                <div style="overflow-x:auto; background:var(--card-bg); border:1px solid var(--border-color); border-radius:6px;">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+                        <thead>
+                            <tr style="background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border-color); color:var(--text-secondary);">
+                                <th style="padding:10px 14px;">Platform & Video</th>
+                                <th style="padding:10px 14px;">Location / City</th>
+                                <th style="padding:10px 14px;">Field Data Match</th>
+                                <th style="padding:10px 14px;">Telemetry Proof</th>
+                                <th style="padding:10px 14px; text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ugc-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -3259,6 +3425,9 @@
             const chartData = filteredData.filter(r => r.event_type !== 'game_details' && r.event_type !== 'match_details');
             initCharts(chartData);
             initMap(chartData);
+            if (typeof initUgcIntelligence === 'function') {
+                initUgcIntelligence();
+            }
 
             // Render dedicated matches table
             renderMatchesTable(resetLimit);
@@ -4481,7 +4650,8 @@
                 'Copenhagen': [55.6761, 12.5683], 'Oslo': [59.9139, 10.7522],
                 'Perth': [-31.9505, 115.8605], 'Brisbane': [-27.4698, 153.0251],
                 'Melbourne': [-37.8136, 144.9631], 'Sydney': [-33.8688, 151.2093],
-                'Kuala Lumpur': [3.1390, 101.6869], 'Mariehamn': [60.0970, 19.9348]
+                'Kuala Lumpur': [3.1390, 101.6869], 'Mariehamn': [60.0970, 19.9348],
+                'Trnava': [48.3762, 17.5829], 'Slovakia': [48.6690, 19.6990]
             };
             window._tzCoords = tzCoords; // expose for live map mode
 
@@ -4563,6 +4733,11 @@
                         .bindPopup(`<div style="color:black"><b>${getDisplayLocation(loc)}</b><br>${count} Events tracked</div>`)
                         .addTo(mymap);
                 }
+            }
+
+            // Render interactive UGC video markers on the map
+            if (typeof renderUgcMapMarkers === 'function') {
+                renderUgcMapMarkers(mymap);
             }
         }
 
@@ -4708,6 +4883,433 @@
                     .bindPopup(`<div style="color:#111"><b>${getDisplayLocation(loc)}</b><br>${count} event${count !== 1 ? 's' : ''}<br><span style="color:#888;font-size:0.85em">Latest: ${agoStr}</span></div>`)
                     .addTo(mymap);
             }
+
+            // Render interactive UGC video markers on live map
+            if (typeof renderUgcMapMarkers === 'function') {
+                renderUgcMapMarkers(mymap);
+            }
+        }
+
+        // ─── UGC & Social Video Intelligence Module ────────────────
+        const DEFAULT_UGC_POSTS = [
+            {
+                id: 'ugc-trnava-01',
+                url: 'https://www.instagram.com/reel/Dca5KvYsl2g/?utm_source=ig_web_copy_link&igsi=MzRlODBiNWFlZA==',
+                platform: 'instagram',
+                author: '@originalsubsoccer repost',
+                title: 'Subsoccer Tournament in Trnava',
+                location: 'Trnava, Slovakia',
+                lat: 48.3762,
+                lng: 17.5829,
+                table_code: 'DOCK-1-SERIE001',
+                post_date: '2026-08-15',
+                matches_count: 111,
+                tournaments_count: 107,
+                events_count: 401,
+                status: 'verified',
+                notes: 'Massive 5-day tournament surge in Trnava, SK with 107 tourneys & 111 matches on table DOCK-1-SERIE001.'
+            }
+        ];
+
+        let _ugcMarkers = [];
+
+        function getUgcPosts() {
+            try {
+                const stored = localStorage.getItem('subsoccer_ugc_posts');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                }
+            } catch (e) {
+                console.warn('Error reading UGC posts from localStorage:', e);
+            }
+            // Default seed
+            localStorage.setItem('subsoccer_ugc_posts', JSON.stringify(DEFAULT_UGC_POSTS));
+            return DEFAULT_UGC_POSTS;
+        }
+
+        function saveUgcPosts(posts) {
+            try {
+                localStorage.setItem('subsoccer_ugc_posts', JSON.stringify(posts));
+            } catch (e) {
+                console.error('Error saving UGC posts to localStorage:', e);
+            }
+            renderUgcTable();
+            if (mymap) renderUgcMapMarkers(mymap);
+        }
+
+        function autoDetectUgcPlatform(url) {
+            if (!url) return 'other';
+            const u = url.toLowerCase();
+            const selectEl = document.getElementById('ugc-input-platform');
+            let detected = 'other';
+            if (u.includes('instagram.com')) detected = 'instagram';
+            else if (u.includes('tiktok.com')) detected = 'tiktok';
+            else if (u.includes('youtube.com') || u.includes('youtu.be')) detected = 'youtube';
+            else if (u.includes('facebook.com') || u.includes('fb.watch')) detected = 'facebook';
+            else if (u.includes('twitter.com') || u.includes('x.com')) detected = 'x';
+            
+            if (selectEl) selectEl.value = detected;
+            return detected;
+        }
+
+        function openUgcAddModal() {
+            document.getElementById('ugc-input-url').value = '';
+            document.getElementById('ugc-input-location').value = '';
+            document.getElementById('ugc-input-code').value = '';
+            document.getElementById('ugc-input-author').value = '';
+            document.getElementById('ugc-input-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('ugc-add-modal').style.display = 'flex';
+        }
+
+        function closeUgcAddModal() {
+            document.getElementById('ugc-add-modal').style.display = 'none';
+        }
+
+        function openUgcBulkModal() {
+            document.getElementById('ugc-bulk-textarea').value = '';
+            document.getElementById('ugc-bulk-status').textContent = '';
+            document.getElementById('ugc-bulk-modal').style.display = 'flex';
+        }
+
+        function closeUgcBulkModal() {
+            document.getElementById('ugc-bulk-modal').style.display = 'none';
+        }
+
+        async function saveSingleUgcPost() {
+            const url = (document.getElementById('ugc-input-url').value || '').trim();
+            if (!url) {
+                alert('Please enter a video URL');
+                return;
+            }
+
+            const platform = document.getElementById('ugc-input-platform').value || autoDetectUgcPlatform(url);
+            const location = (document.getElementById('ugc-input-location').value || '').trim();
+            const table_code = (document.getElementById('ugc-input-code').value || '').trim().toUpperCase();
+            const author = (document.getElementById('ugc-input-author').value || '').trim();
+            const post_date = document.getElementById('ugc-input-date').value || new Date().toISOString().split('T')[0];
+
+            let lat = null, lng = null;
+            if (location) {
+                const tzCoords = window._tzCoords || {};
+                const parsed = typeof parseLocation === 'function' ? parseLocation(location) : { city: location, timezone: '' };
+                const coords = tzCoords[location] || tzCoords[parsed.city] || tzCoords[parsed.timezone];
+                if (coords) {
+                    lat = coords[0];
+                    lng = coords[1];
+                }
+            }
+
+            const newPost = {
+                id: 'ugc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+                url,
+                platform,
+                location: location || 'Global',
+                lat,
+                lng,
+                table_code: table_code || null,
+                author: author || 'Community',
+                post_date,
+                matches_count: 0,
+                tournaments_count: 0,
+                events_count: 0,
+                status: 'pending',
+                notes: ''
+            };
+
+            matchUgcWithTelemetry(newPost);
+
+            const posts = getUgcPosts();
+            posts.unshift(newPost);
+            saveUgcPosts(posts);
+            closeUgcAddModal();
+        }
+
+        function saveBulkUgcPosts() {
+            const text = (document.getElementById('ugc-bulk-textarea').value || '').trim();
+            if (!text) {
+                alert('Please paste at least one URL');
+                return;
+            }
+
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            const existingPosts = getUgcPosts();
+            const tzCoords = window._tzCoords || {};
+            let addedCount = 0;
+
+            lines.forEach(line => {
+                const parts = line.split(',').map(p => p.trim());
+                const url = parts[0];
+                if (!url || !url.startsWith('http')) return;
+
+                const location = parts[1] || '';
+                const table_code = (parts[2] || '').toUpperCase();
+                const platform = autoDetectUgcPlatform(url);
+
+                let lat = null, lng = null;
+                if (location) {
+                    const parsed = typeof parseLocation === 'function' ? parseLocation(location) : { city: location, timezone: '' };
+                    const coords = tzCoords[location] || tzCoords[parsed.city] || tzCoords[parsed.timezone];
+                    if (coords) {
+                        lat = coords[0];
+                        lng = coords[1];
+                    }
+                }
+
+                const newPost = {
+                    id: 'ugc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+                    url,
+                    platform,
+                    location: location || 'Global',
+                    lat,
+                    lng,
+                    table_code: table_code || null,
+                    author: 'Community Repost',
+                    post_date: new Date().toISOString().split('T')[0],
+                    matches_count: 0,
+                    tournaments_count: 0,
+                    events_count: 0,
+                    status: 'pending',
+                    notes: ''
+                };
+
+                matchUgcWithTelemetry(newPost);
+                existingPosts.unshift(newPost);
+                addedCount++;
+            });
+
+            saveUgcPosts(existingPosts);
+            closeUgcBulkModal();
+            alert(`Successfully imported ${addedCount} video posts and linked them to the map!`);
+        }
+
+        function matchUgcWithTelemetry(post) {
+            // Check telemetry data in cached _mapAllData
+            if (!Array.isArray(_mapAllData) || _mapAllData.length === 0) return;
+
+            let evCount = 0;
+            let matchCount = 0;
+            let tourneyCount = 0;
+
+            const locQuery = (post.location || '').toLowerCase();
+            const codeQuery = (post.table_code || '').toLowerCase();
+
+            _mapAllData.forEach(r => {
+                const rLoc = (r.location || '').toLowerCase();
+                const rCode = (r.game_code || '').toLowerCase();
+                const matchesLoc = locQuery && (rLoc.includes(locQuery) || (post.lat && rLoc.includes(`${post.lat.toFixed(2)}`)));
+                const matchesCode = codeQuery && rCode === codeQuery;
+
+                if (matchesLoc || matchesCode) {
+                    evCount++;
+                    if (r.event_type === 'game_finished') matchCount++;
+                    if (r.event_type === 'tournament_finished' || r.event_type === 'tournament_match_finished') tourneyCount++;
+                }
+            });
+
+            if (evCount > 0) {
+                post.events_count = evCount;
+                post.matches_count = matchCount;
+                post.tournaments_count = tourneyCount;
+                post.status = 'verified';
+            }
+        }
+
+        function deleteUgcPost(id) {
+            if (!confirm('Are you sure you want to remove this video post?')) return;
+            let posts = getUgcPosts();
+            posts = posts.filter(p => p.id !== id);
+            saveUgcPosts(posts);
+        }
+
+        function renderUgcTable() {
+            const posts = getUgcPosts();
+            const tbody = document.getElementById('ugc-table-body');
+            const search = (document.getElementById('ugc-search-input')?.value || '').toLowerCase();
+            const platformFilter = document.getElementById('ugc-platform-filter')?.value || 'ALL';
+
+            // Update KPIs
+            const total = posts.length;
+            const matched = posts.filter(p => p.events_count > 0 || p.status === 'verified').length;
+            const totalMatches = posts.reduce((sum, p) => sum + (p.matches_count || 0), 0);
+            const totalTourneys = posts.reduce((sum, p) => sum + (p.tournaments_count || 0), 0);
+            const uniqueCities = new Set(posts.map(p => p.location).filter(Boolean)).size;
+
+            if (document.getElementById('ugc-count-badge')) document.getElementById('ugc-count-badge').textContent = `${total} Post${total !== 1 ? 's' : ''}`;
+            if (document.getElementById('ugc-kpi-total')) document.getElementById('ugc-kpi-total').textContent = total.toLocaleString();
+            if (document.getElementById('ugc-kpi-matched')) document.getElementById('ugc-kpi-matched').textContent = total > 0 ? `${Math.round((matched/total)*100)}%` : '0%';
+            if (document.getElementById('ugc-kpi-matches')) document.getElementById('ugc-kpi-matches').textContent = `${totalTourneys} / ${totalMatches}`;
+            if (document.getElementById('ugc-kpi-cities')) document.getElementById('ugc-kpi-cities').textContent = uniqueCities.toLocaleString();
+
+            if (!tbody) return;
+
+            const filtered = posts.filter(p => {
+                if (platformFilter !== 'ALL' && p.platform !== platformFilter) return false;
+                if (search) {
+                    const str = `${p.url} ${p.location} ${p.table_code} ${p.author} ${p.notes}`.toLowerCase();
+                    if (!str.includes(search)) return false;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-secondary);">No social video posts found. Click "+ Add Video Link" or "Bulk Paste" above.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(p => {
+                let badgeClass = 'ugc-badge-generic';
+                let iconClass = 'fas fa-link';
+                if (p.platform === 'instagram') { badgeClass = 'ugc-badge-instagram'; iconClass = 'fab fa-instagram'; }
+                else if (p.platform === 'tiktok') { badgeClass = 'ugc-badge-tiktok'; iconClass = 'fab fa-tiktok'; }
+                else if (p.platform === 'youtube') { badgeClass = 'ugc-badge-youtube'; iconClass = 'fab fa-youtube'; }
+
+                const hasData = (p.events_count > 0 || p.tournaments_count > 0 || p.matches_count > 0);
+                const dataProof = hasData
+                    ? `<span style="display:inline-flex; align-items:center; gap:4px; color:var(--accent-green); font-weight:600;"><i class="fas fa-check-circle"></i> <b>${p.tournaments_count || 0}</b> tourneys · <b>${p.matches_count || 0}</b> matches (${p.events_count || 0} events)</span>`
+                    : `<span style="color:var(--text-secondary);"><i class="fas fa-search"></i> Telemetry scan pending</span>`;
+
+                const tableSnippet = p.table_code
+                    ? `<code style="background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px; color:var(--accent-yellow); font-size:0.75rem;">${escapeHtml(p.table_code)}</code>`
+                    : `<span style="color:var(--text-secondary); font-size:0.75rem;">Public / Unknown</span>`;
+
+                const mapBtn = (p.lat && p.lng)
+                    ? `<button onclick="focusUgcOnMap(${p.lat}, ${p.lng}, '${p.id}')" title="Pan and highlight on Map" style="background:rgba(26,115,232,0.15); border:1px solid rgba(26,115,232,0.4); color:#4da3ff; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-map-pin"></i> Pin</button>`
+                    : ``;
+
+                return `
+                    <tr style="border-bottom:1px solid var(--border-color);">
+                        <td style="padding:12px 14px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="${badgeClass}"><i class="${iconClass}"></i> ${escapeHtml(p.platform)}</span>
+                                <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="color:var(--accent-blue); text-decoration:none; font-weight:600; font-size:0.85rem;" title="Open original video">
+                                    <i class="fas fa-external-link-alt" style="font-size:0.75rem;"></i> Watch Post
+                                </a>
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;">${escapeHtml(p.author || 'Community')} · ${escapeHtml(p.post_date || '')}</div>
+                        </td>
+                        <td style="padding:12px 14px;">
+                            <div style="font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+                                <i class="fas fa-map-marker-alt" style="color:#E1306C; font-size:0.8rem;"></i> ${escapeHtml(p.location || 'Global')}
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">Table: ${tableSnippet}</div>
+                        </td>
+                        <td style="padding:12px 14px;">
+                            ${dataProof}
+                        </td>
+                        <td style="padding:12px 14px; font-size:0.75rem; color:var(--text-secondary); max-width:220px;">
+                            ${escapeHtml(p.notes || (hasData ? 'Verified active game table.' : 'Organic social video.'))}
+                        </td>
+                        <td style="padding:12px 14px; text-align:right; white-space:nowrap;">
+                            ${mapBtn}
+                            <button onclick="deleteUgcPost('${p.id}')" title="Delete post" style="background:none; border:none; color:var(--accent-red); cursor:pointer; font-size:0.85rem; padding:4px 6px; margin-left:4px;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderUgcMapMarkers(mapInstance) {
+            if (!mapInstance) return;
+
+            // Remove existing UGC markers
+            _ugcMarkers.forEach(m => {
+                try { m.remove(); } catch(e) {}
+            });
+            _ugcMarkers = [];
+
+            const posts = getUgcPosts();
+            posts.forEach(p => {
+                if (!p.lat || !p.lng) return;
+
+                const customPin = L.divIcon({
+                    html: `<div class="ugc-map-pin" title="🎬 Video Post: ${escapeHtml(p.location)}">🎬</div>`,
+                    className: 'custom-ugc-icon',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                });
+
+                const popupHtml = `
+                    <div style="font-family:'Roboto',sans-serif; min-width:220px; color:#202124; padding:4px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                            <span class="ugc-badge-${p.platform || 'instagram'}"><i class="fab fa-${p.platform || 'instagram'}"></i> ${p.platform || 'Instagram'}</span>
+                            <span style="font-size:11px; color:#666;">${escapeHtml(p.post_date || '')}</span>
+                        </div>
+                        <div style="font-weight:700; font-size:14px; margin-bottom:4px; color:#111;">
+                            📍 ${escapeHtml(p.location)}
+                        </div>
+                        ${p.table_code ? `<div style="font-size:12px; color:#555; margin-bottom:6px;">Table Code: <b>${escapeHtml(p.table_code)}</b></div>` : ''}
+                        <div style="background:#e8f0fe; border-left:3px solid #1a73e8; padding:6px 8px; font-size:11px; border-radius:4px; margin-bottom:10px;">
+                            🏆 <b>${p.tournaments_count || 0}</b> Tournaments · ⚽ <b>${p.matches_count || 0}</b> Matches<br>
+                            📊 <b>${p.events_count || 0}</b> Telemetry events tracked!
+                        </div>
+                        <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="display:block; text-align:center; background:#E1306C; color:#fff; padding:7px 12px; border-radius:4px; font-size:12px; font-weight:600; text-decoration:none;">
+                            <i class="fas fa-play" style="margin-right:4px;"></i> Watch Video Post
+                        </a>
+                    </div>
+                `;
+
+                const marker = L.marker([p.lat, p.lng], { icon: customPin, zIndexOffset: 500 })
+                    .bindPopup(popupHtml)
+                    .addTo(mapInstance);
+
+                marker._ugcId = p.id;
+                _ugcMarkers.push(marker);
+            });
+        }
+
+        function focusUgcOnMap(lat, lng, id) {
+            if (!mymap) return;
+            const mapEl = document.getElementById('map');
+            if (mapEl) {
+                mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            mymap.setView([lat, lng], 13);
+            const targetMarker = _ugcMarkers.find(m => m._ugcId === id);
+            if (targetMarker) {
+                setTimeout(() => targetMarker.openPopup(), 400);
+            }
+        }
+
+        function exportUgcCsv() {
+            const posts = getUgcPosts();
+            if (posts.length === 0) {
+                alert('No UGC data to export');
+                return;
+            }
+            const headers = ['id', 'url', 'platform', 'location', 'latitude', 'longitude', 'table_code', 'author', 'post_date', 'tournaments_count', 'matches_count', 'events_count', 'status', 'notes'];
+            const rows = posts.map(p => [
+                p.id,
+                `"${(p.url || '').replace(/"/g, '""')}"`,
+                p.platform,
+                `"${(p.location || '').replace(/"/g, '""')}"`,
+                p.lat || '',
+                p.lng || '',
+                p.table_code || '',
+                `"${(p.author || '').replace(/"/g, '""')}"`,
+                p.post_date || '',
+                p.tournaments_count || 0,
+                p.matches_count || 0,
+                p.events_count || 0,
+                p.status || '',
+                `"${(p.notes || '').replace(/"/g, '""')}"`
+            ]);
+
+            const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `subsoccer_ugc_social_posts_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function initUgcIntelligence() {
+            renderUgcTable();
+            if (mymap) renderUgcMapMarkers(mymap);
         }
 
         // ── Registered Players ──
@@ -5405,10 +6007,87 @@
                 </table>
             </div>
 
-            <!-- Footer info -->
-            <div style="padding: 10px 20px; border-top: 1px solid rgba(255,255,255,0.08); background:#141518; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:rgba(255,255,255,0.4); border-radius: 0 0 8px 8px;">
-                <div>💡 Tip: Click the star <strong>☆</strong> to select items for development, then click <strong>"Copy Selected for AI"</strong>!</div>
-                <button onclick="openFeedbackModal(true)" style="background:none; border:none; color:rgba(255,255,255,0.6); cursor:pointer; font-size:11px;"><i class="fas fa-sync-alt"></i> Refresh Feedbacks</button>
+        </div>
+    </div>
+
+    <!-- UGC Quick Add Modal -->
+    <div id="ugc-add-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(5px);">
+        <div style="background:#1e2024; border:1px solid #33383f; border-radius:10px; width:100%; max-width:520px; overflow:hidden; box-shadow:0 12px 36px rgba(0,0,0,0.6);">
+            <div style="padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-size:1.1rem; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-video" style="color:#E1306C;"></i> Add Organic Video / Post
+                </h3>
+                <button onclick="closeUgcAddModal()" style="background:none; border:none; color:var(--text-secondary); font-size:1.2rem; cursor:pointer;">&times;</button>
+            </div>
+            <div style="padding:20px; display:flex; flex-direction:column; gap:14px;">
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--text-secondary); font-weight:600; margin-bottom:5px; text-transform:uppercase;">Video / Post URL *</label>
+                    <input type="url" id="ugc-input-url" placeholder="https://www.instagram.com/reel/..." 
+                        style="width:100%; box-sizing:border-box; background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 12px; border-radius:6px; font-size:0.9rem;"
+                        oninput="autoDetectUgcPlatform(this.value)">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div>
+                        <label style="display:block; font-size:0.75rem; color:var(--text-secondary); font-weight:600; margin-bottom:5px; text-transform:uppercase;">Platform</label>
+                        <select id="ugc-input-platform" style="width:100%; box-sizing:border-box; background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 12px; border-radius:6px; font-size:0.85rem;">
+                            <option value="instagram">Instagram</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="x">X / Twitter</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; color:var(--text-secondary); font-weight:600; margin-bottom:5px; text-transform:uppercase;">Post Date</label>
+                        <input type="date" id="ugc-input-date" style="width:100%; box-sizing:border-box; background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:9px 12px; border-radius:6px; font-size:0.85rem;">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:12px;">
+                    <div>
+                        <label style="display:block; font-size:0.75rem; color:var(--text-secondary); font-weight:600; margin-bottom:5px; text-transform:uppercase;">Location / City (e.g. Trnava, SK)</label>
+                        <input type="text" id="ugc-input-location" placeholder="Trnava, Slovakia" style="width:100%; box-sizing:border-box; background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 12px; border-radius:6px; font-size:0.85rem;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; color:var(--text-secondary); font-weight:600; margin-bottom:5px; text-transform:uppercase;">Table Code / Serial</label>
+                        <input type="text" id="ugc-input-code" placeholder="DOCK-1-SERIE001" style="width:100%; box-sizing:border-box; background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 12px; border-radius:6px; font-size:0.85rem;">
+                    </div>
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:var(--text-secondary); font-weight:600; margin-bottom:5px; text-transform:uppercase;">Author / Account / Notes</label>
+                    <input type="text" id="ugc-input-author" placeholder="@account or event description..." style="width:100%; box-sizing:border-box; background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:10px 12px; border-radius:6px; font-size:0.85rem;">
+                </div>
+            </div>
+            <div style="padding:14px 20px; border-top:1px solid var(--border-color); display:flex; justify-content:flex-end; gap:10px; background:rgba(0,0,0,0.15);">
+                <button onclick="closeUgcAddModal()" style="background:transparent; border:1px solid var(--border-color); color:var(--text-secondary); padding:8px 14px; border-radius:6px; font-size:0.85rem; cursor:pointer;">Cancel</button>
+                <button onclick="saveSingleUgcPost()" style="background:#E1306C; color:#fff; border:none; padding:8px 18px; border-radius:6px; font-size:0.85rem; font-weight:600; cursor:pointer;">Save & Match Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UGC Bulk Paste Modal -->
+    <div id="ugc-bulk-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(5px);">
+        <div style="background:#1e2024; border:1px solid #33383f; border-radius:10px; width:100%; max-width:640px; overflow:hidden; box-shadow:0 12px 36px rgba(0,0,0,0.6);">
+            <div style="padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-size:1.1rem; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-paste" style="color:var(--accent-blue);"></i> Bulk Paste URLs & Reposts
+                </h3>
+                <button onclick="closeUgcBulkModal()" style="background:none; border:none; color:var(--text-secondary); font-size:1.2rem; cursor:pointer;">&times;</button>
+            </div>
+            <div style="padding:20px; display:flex; flex-direction:column; gap:10px;">
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin:0;">
+                    Paste one or multiple video URLs (one per line). You can also add comma-separated location and table code: <br>
+                    <code style="color:var(--accent-yellow);">https://www.instagram.com/reel/Dca5KvYsl2g/, Trnava, SK, DOCK-1-SERIE001</code>
+                </p>
+                <textarea id="ugc-bulk-textarea" rows="10" placeholder="https://www.instagram.com/reel/Dca5KvYsl2g/, Trnava, Slovakia&#10;https://www.instagram.com/reel/...&#10;https://www.tiktok.com/@.../video/..."
+                    style="width:100%; box-sizing:border-box; background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:12px; border-radius:6px; font-size:0.85rem; font-family:monospace; resize:vertical;"></textarea>
+            </div>
+            <div style="padding:14px 20px; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.15);">
+                <span id="ugc-bulk-status" style="font-size:0.8rem; color:var(--text-secondary);"></span>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="closeUgcBulkModal()" style="background:transparent; border:1px solid var(--border-color); color:var(--text-secondary); padding:8px 14px; border-radius:6px; font-size:0.85rem; cursor:pointer;">Cancel</button>
+                    <button onclick="saveBulkUgcPosts()" style="background:var(--accent-blue); color:#fff; border:none; padding:8px 18px; border-radius:6px; font-size:0.85rem; font-weight:600; cursor:pointer;">Import & Match All</button>
+                </div>
             </div>
         </div>
     </div>
