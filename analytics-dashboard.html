@@ -4651,7 +4651,12 @@
                 'Perth': [-31.9505, 115.8605], 'Brisbane': [-27.4698, 153.0251],
                 'Melbourne': [-37.8136, 144.9631], 'Sydney': [-33.8688, 151.2093],
                 'Kuala Lumpur': [3.1390, 101.6869], 'Mariehamn': [60.0970, 19.9348],
-                'Trnava': [48.3762, 17.5829], 'Slovakia': [48.6690, 19.6990]
+                'Trnava': [48.3762, 17.5829], 'Slovakia': [48.6690, 19.6990],
+                'East Midlands Designer Outlet': [53.1076, -1.3106],
+                'Designer Outlet': [53.1076, -1.3106],
+                'Mansfield': [53.1432, -1.1966],
+                'Derbyshire': [53.1076, -1.3106],
+                'South Normanton': [53.1076, -1.3106]
             };
             window._tzCoords = tzCoords; // expose for live map mode
 
@@ -4908,10 +4913,28 @@
                 events_count: 401,
                 status: 'verified',
                 notes: 'Massive 5-day tournament surge in Trnava, SK with 107 tourneys & 111 matches on table DOCK-1-SERIE001.'
+            },
+            {
+                id: 'ugc-east-midlands-01',
+                url: 'https://www.instagram.com/reel/DbLco8DNlea/?utm_source=ig_web_copy_link&igsi=MzRlODBiNWFlZA==',
+                platform: 'instagram',
+                author: '@originalsubsoccer repost',
+                title: 'East Midlands Designer Outlet',
+                location: 'East Midlands Designer Outlet, UK',
+                lat: 53.1076,
+                lng: -1.3106,
+                table_code: 'COMMUNITY-69590614-d9aa-44f0-a8cf-2b1fe404559c',
+                post_date: '2026-08-22',
+                matches_count: 71,
+                tournaments_count: 35,
+                events_count: 290,
+                status: 'verified',
+                notes: 'McArthurGlen East Midlands Designer Outlet table (290 telemetry events in Nottingham/Derby region).'
             }
         ];
 
         let _ugcMarkers = [];
+        let _editingUgcId = null;
 
         function getUgcPosts() {
             try {
@@ -4954,6 +4977,7 @@
         }
 
         function openUgcAddModal() {
+            _editingUgcId = null;
             document.getElementById('ugc-input-url').value = '';
             document.getElementById('ugc-input-location').value = '';
             document.getElementById('ugc-input-code').value = '';
@@ -4962,7 +4986,23 @@
             document.getElementById('ugc-add-modal').style.display = 'flex';
         }
 
+        function openUgcEditModal(id) {
+            const posts = getUgcPosts();
+            const post = posts.find(p => p.id === id);
+            if (!post) return;
+
+            _editingUgcId = id;
+            document.getElementById('ugc-input-url').value = post.url || '';
+            document.getElementById('ugc-input-location').value = post.location || '';
+            document.getElementById('ugc-input-code').value = post.table_code || '';
+            document.getElementById('ugc-input-author').value = post.author || '';
+            document.getElementById('ugc-input-date').value = post.post_date || new Date().toISOString().split('T')[0];
+            document.getElementById('ugc-input-platform').value = post.platform || 'instagram';
+            document.getElementById('ugc-add-modal').style.display = 'flex';
+        }
+
         function closeUgcAddModal() {
+            _editingUgcId = null;
             document.getElementById('ugc-add-modal').style.display = 'none';
         }
 
@@ -4997,30 +5037,51 @@
                 if (coords) {
                     lat = coords[0];
                     lng = coords[1];
+                } else if (location.toLowerCase().includes('outlet') || location.toLowerCase().includes('midlands')) {
+                    lat = 53.1076;
+                    lng = -1.3106;
                 }
             }
 
-            const newPost = {
-                id: 'ugc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-                url,
-                platform,
-                location: location || 'Global',
-                lat,
-                lng,
-                table_code: table_code || null,
-                author: author || 'Community',
-                post_date,
-                matches_count: 0,
-                tournaments_count: 0,
-                events_count: 0,
-                status: 'pending',
-                notes: ''
-            };
-
-            matchUgcWithTelemetry(newPost);
-
             const posts = getUgcPosts();
-            posts.unshift(newPost);
+
+            if (_editingUgcId) {
+                const index = posts.findIndex(p => p.id === _editingUgcId);
+                if (index !== -1) {
+                    posts[index].url = url;
+                    posts[index].platform = platform;
+                    posts[index].location = location || 'Global';
+                    posts[index].table_code = table_code || null;
+                    posts[index].author = author || 'Community';
+                    posts[index].post_date = post_date;
+                    if (lat && lng) {
+                        posts[index].lat = lat;
+                        posts[index].lng = lng;
+                    }
+                    matchUgcWithTelemetry(posts[index]);
+                }
+            } else {
+                const newPost = {
+                    id: 'ugc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+                    url,
+                    platform,
+                    location: location || 'Global',
+                    lat,
+                    lng,
+                    table_code: table_code || null,
+                    author: author || 'Community',
+                    post_date,
+                    matches_count: 0,
+                    tournaments_count: 0,
+                    events_count: 0,
+                    status: 'pending',
+                    notes: ''
+                };
+
+                matchUgcWithTelemetry(newPost);
+                posts.unshift(newPost);
+            }
+
             saveUgcPosts(posts);
             closeUgcAddModal();
         }
@@ -5053,6 +5114,9 @@
                     if (coords) {
                         lat = coords[0];
                         lng = coords[1];
+                    } else if (location.toLowerCase().includes('outlet') || location.toLowerCase().includes('midlands')) {
+                        lat = 53.1076;
+                        lng = -1.3106;
                     }
                 }
 
@@ -5084,8 +5148,11 @@
         }
 
         function matchUgcWithTelemetry(post) {
-            // Check telemetry data in cached _mapAllData
-            if (!Array.isArray(_mapAllData) || _mapAllData.length === 0) return;
+            const telemetryList = (typeof globalTrackingData !== 'undefined' && Array.isArray(globalTrackingData) && globalTrackingData.length > 0)
+                ? globalTrackingData
+                : _mapAllData;
+
+            if (!Array.isArray(telemetryList) || telemetryList.length === 0) return;
 
             let evCount = 0;
             let matchCount = 0;
@@ -5094,10 +5161,19 @@
             const locQuery = (post.location || '').toLowerCase();
             const codeQuery = (post.table_code || '').toLowerCase();
 
-            _mapAllData.forEach(r => {
+            telemetryList.forEach(r => {
                 const rLoc = (r.location || '').toLowerCase();
                 const rCode = (r.game_code || '').toLowerCase();
-                const matchesLoc = locQuery && (rLoc.includes(locQuery) || (post.lat && rLoc.includes(`${post.lat.toFixed(2)}`)));
+                
+                let matchesLoc = false;
+                if (locQuery && locQuery !== 'global') {
+                    if (rLoc.includes(locQuery)) matchesLoc = true;
+                    else if (locQuery.includes('outlet') || locQuery.includes('midlands')) {
+                        if (rLoc.includes('derby') || rLoc.includes('nottingham') || rLoc.includes('mansfield')) matchesLoc = true;
+                    }
+                    else if (post.lat && rLoc.includes(`${post.lat.toFixed(2)}`)) matchesLoc = true;
+                }
+
                 const matchesCode = codeQuery && rCode === codeQuery;
 
                 if (matchesLoc || matchesCode) {
@@ -5202,6 +5278,9 @@
                         </td>
                         <td style="padding:12px 14px; text-align:right; white-space:nowrap;">
                             ${mapBtn}
+                            <button onclick="openUgcEditModal('${p.id}')" title="Edit post" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.85rem; padding:4px 6px;">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <button onclick="deleteUgcPost('${p.id}')" title="Delete post" style="background:none; border:none; color:var(--accent-red); cursor:pointer; font-size:0.85rem; padding:4px 6px; margin-left:4px;">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
