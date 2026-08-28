@@ -1,0 +1,57 @@
+name: Security & Performance Health Check
+
+on:
+  schedule:
+    # Aja joka maanantai klo 06:00 UTC (klo 09:00 Suomen aikaa)
+    - cron: '0 6 * * 1'
+  workflow_dispatch: # Mahdollistaa manuaalisen ajon suoraan GitHub Actions -valikosta
+  push:
+    branches:
+      - main
+      - staging
+
+jobs:
+  health-check:
+    name: Security Audit, Unit Tests & Live Performance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🛡️ Run Security Vulnerability Audit
+        run: |
+          echo "Checking for npm package security vulnerabilities..."
+          npm audit --audit-level=high
+
+      - name: 🧪 Run Unit Tests
+        run: |
+          echo "Executing test suite..."
+          npm run test:unit
+
+      - name: ⚡ Live Endpoint & Performance Health Check
+        run: |
+          echo "Testing live production endpoint: https://subsoccer.pro/..."
+          
+          # Measure response time and HTTP status code
+          RESPONSE=$(curl -s -w "HTTP_STATUS:%{http_code}\nTTFB:%{time_starttransfer}\nTOTAL_TIME:%{time_total}\n" -o /dev/null https://subsoccer.pro/)
+          echo "$RESPONSE"
+          
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d':' -f2)
+          TOTAL_TIME=$(echo "$RESPONSE" | grep "TOTAL_TIME" | cut -d':' -f2)
+          
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "❌ ERROR: Live website returned HTTP status $HTTP_STATUS instead of 200!"
+            exit 1
+          fi
+          
+          echo "✅ Production site https://subsoccer.pro is LIVE (HTTP 200, Total latency: ${TOTAL_TIME}s)"
