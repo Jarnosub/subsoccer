@@ -6,33 +6,32 @@ on:
   workflow_dispatch: # Mahdollistaa manuaalisen käynnistyksen GitHubin kautta
 
 permissions:
-  contents: read # Security: read-only, backups are NOT committed to the repo
+  contents: read
 
 jobs:
   backup:
+    name: Backup Supabase Database to Secure Artifact
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
-        with:
-          ref: staging
 
-      - name: Setup Node.js
+      - name: ⚙️ Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+          cache: 'npm'
 
-      - name: Install Supabase Client
-        run: npm install @supabase/supabase-js
+      - name: 📦 Install Dependencies
+        run: npm ci
 
-      - name: Run backup script
+      - name: 💾 Run Supabase Backup Script
         run: node scripts/backup-supabase.js
 
-      # Security fix #17: Backups are generated but NOT pushed to the repo.
-      # Database dumps should not be stored in version control.
-      # Consider uploading to a secure storage (e.g. S3, Google Cloud Storage) instead.
-      - name: Summary
-        run: |
-          echo "✅ Backup script completed successfully."
-          echo "⚠️  Backups are NOT committed to the repo for security reasons."
-          echo "💡 To persist backups, configure an external storage destination."
+      - name: 📤 Upload Backup Archive as Secure Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: subsoccer-database-backup-${{ github.run_id }}
+          path: backups/
+          retention-days: 60
+          if-no-files-found: error
