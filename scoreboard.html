@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Subsoccer - Table Scoreboard</title>
+    <link rel="stylesheet" href="subsoccer-theme.css">
     <link rel="stylesheet" href="style.css?v=2">
     <link rel="stylesheet" href="the-forge.css?v=2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -25,7 +26,7 @@
         .header {
             text-align: center;
             padding: 15px;
-            background: #000;
+            background: var(--sub-header);
             border-bottom: 2px solid var(--sub-gold);
             letter-spacing: 4px;
             text-transform: uppercase;
@@ -57,15 +58,17 @@
             justify-content: space-between;
             padding: 20px;
             text-align: center;
-            border-right: 1px solid #333;
+            border-right: 1px solid var(--sub-border);
             transition: background 0.2s;
         }
         .player-side:last-child { border: none; }
-        .player-side:active { background: rgba(255,255,255,0.05); }
+        .player-side.p1 { background: rgba(196, 30, 42, 0.08); }
+        .player-side.p2 { background: rgba(10, 61, 98, 0.12); }
+        .player-side:active { background: rgba(255,255,255,0.06); }
 
         .player-name {
             font-size: 2.5rem;
-            color: #aaa;
+            color: rgba(255,255,255,0.7);
             letter-spacing: 2px;
             font-family: 'Resolve', sans-serif;
             text-transform: uppercase;
@@ -76,9 +79,10 @@
             line-height: 1;
             margin: auto 0;
             cursor: pointer;
-            text-shadow: 0 0 20px rgba(0,0,0,0.5);
             color: #fff;
         }
+        .score-number.p1 { color: var(--sub-red); }
+        .score-number.p2 { color: #4a9eff; }
 
         .score-number.gold {
             color: var(--sub-gold);
@@ -88,13 +92,13 @@
             display: flex;
             justify-content: space-around;
             padding: 20px;
-            background: #0a0a0a;
-            border-top: 1px solid #222;
+            background: var(--sub-header);
+            border-top: 1px solid var(--sub-border);
         }
 
         .btn-control {
-            background: #111;
-            border: 1px solid #333;
+            background: var(--sub-surface);
+            border: 1px solid var(--sub-border);
             color: #fff;
             padding: 15px 30px;
             border-radius: 8px;

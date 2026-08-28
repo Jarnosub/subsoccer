@@ -30,12 +30,12 @@
     color-scheme: light dark;
     --global-bg: #f0f0f0;
     --sub-red: #c41e2a;
-    --sub-black: #000000;
-    --sub-charcoal: #111111;
+    --sub-black: #141d26;
+    --sub-charcoal: #1b2632;
     --sub-white: #FFFFFF;
     --sub-gold: #FFD700;
     --sub-border: rgba(255, 255, 255, 0.08);
-    --sub-surface: rgba(16, 16, 16, 0.95);
+    --sub-surface: rgba(27, 38, 50, 0.95);
     --sub-logo-font: 'SubsoccerLogo', sans-serif;
     --sub-name-font: 'Resolve', sans-serif;
     --sub-body-font: 'ResolveRegular', sans-serif;

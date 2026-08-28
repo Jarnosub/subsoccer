@@ -1,0 +1,35 @@
+/* ═══════════════════════════════════════════════════════════════
+   subsoccer-theme.css  — Global Design Token System
+   Deep Navy Red Edition
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Core Backgrounds ── */
+  --sub-black:       #141d26;   /* Main page background */
+  --sub-surface:     #1b2632;   /* Cards, panels, modals */
+  --sub-surface-2:   #19232e;   /* Deeper card variant */
+  --sub-header:      #10171f;   /* Top bars, navigation */
+  --sub-banner:      #0c1219;   /* Banners, footers */
+
+  /* ── Borders ── */
+  --sub-border:      #233140;   /* All borders */
+  --sub-border-soft: rgba(255,255,255,0.08); /* Subtle borders */
+
+  /* ── Brand Colors ── */
+  --sub-red:         #c41e2a;   /* Primary actions, buttons */
+  --sub-red-bright:  #E30613;   /* Scorecounter strong red */
+  --sub-blue:        #0a3d62;   /* P2 side (scorecounter) */
+  --sub-blue-bright: #1a6fa0;   /* Blue border highlight */
+  --sub-gold:        #FFD700;   /* Trophies, achievements */
+
+  /* ── Text ── */
+  --sub-text:        rgba(255,255,255,0.95);  /* Headings */
+  --sub-text-sub:    rgba(255,255,255,0.70);  /* Body text */
+  --sub-text-muted:  rgba(255,255,255,0.45);  /* Labels, hints */
+
+  /* ── Typography ── */
+  --sub-font-brand:  'Subsoccer', sans-serif;
+  --sub-font-ui:     'Resolve', sans-serif;
+  --sub-radius:      2px;   /* Buttons */
+  --sub-radius-card: 8px;   /* Cards */
+}
