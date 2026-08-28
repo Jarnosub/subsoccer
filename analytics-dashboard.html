@@ -3662,6 +3662,12 @@
             let opensData = [];
 
             if (sortedKeys.length > 35) {
+                // Determine current week's Monday to exclude the incomplete ongoing week
+                const nowD = new Date();
+                const nowDay = nowD.getDay();
+                const nowDiff = nowD.getDate() - nowDay + (nowDay === 0 ? -6 : 1);
+                const curWeekMonday = new Date(nowD.setDate(nowDiff)).toISOString().slice(0, 10);
+
                 const weekMap = {};
                 sortedKeys.forEach(k => {
                     const d = new Date(k + 'T00:00:00');
@@ -3669,6 +3675,7 @@
                     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
                     const monday = new Date(d.setDate(diff));
                     const weekKey = monday.toISOString().slice(0, 10);
+                    if (weekKey >= curWeekMonday) return; // Exclude incomplete current week
                     if (!weekMap[weekKey]) {
                         weekMap[weekKey] = { instant: 0, tourney: 0, opens: 0 };
                     }
@@ -3699,7 +3706,8 @@
             const totalOpensInChart = opensData.reduce((a,b)=>a+b,0);
             const statsEl = document.getElementById('platform-trend-stats');
             if (statsEl) {
-                statsEl.textContent = `${totalMatchesInChart.toLocaleString()} Matches · ${totalOpensInChart.toLocaleString()} App Opens (Completed Days)`;
+                const suffix = sortedKeys.length > 35 ? '(Completed Full Weeks)' : '(Completed Days)';
+                statsEl.textContent = `${totalMatchesInChart.toLocaleString()} Matches · ${totalOpensInChart.toLocaleString()} App Opens ${suffix}`;
             }
 
             const ctx = canvas.getContext('2d');
