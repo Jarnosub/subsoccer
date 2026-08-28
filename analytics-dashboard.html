@@ -670,117 +670,6 @@
 
         <!-- KPI Sections -->
         <div>
-            <!-- Section: Subsoccer Go Usage & Growth Trend (Hero Banner) -->
-            <div class="kpi-section" id="subsoccer-go-hero-section" style="margin-bottom: 24px; background: #2B2D31; border: 1px solid #3F4147; border-radius: 12px; padding: 22px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 1.6rem; background: rgba(227,6,19,0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(227,6,19,0.3);">🎮</span>
-                        <div>
-                            <div style="font-size: 1.2rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
-                                Subsoccer Go — Bench Soccer Cup Analytics
-                                <span style="font-size: 0.7rem; font-weight: 700; background: #c41e2a; color: #fff; padding: 2px 8px; border-radius: 12px; letter-spacing: 0.5px;">LIVE</span>
-                            </div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
-                                Player activity, match volume, goal stats & tournament progression
-                            </div>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span id="dg-hero-live-badge" style="font-size:0.75rem; color:#81c995; background:rgba(129,201,149,0.15); border:1px solid rgba(129,201,149,0.3); padding:4px 10px; border-radius:20px; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
-                            <span style="width:6px; height:6px; border-radius:50%; background:#81c995; display:inline-block;"></span> Launched Aug 23
-                        </span>
-                    </div>
-                </div>
-
-                <!-- 4 Rich KPI Cards -->
-                <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
-                    <!-- Card 1: Matches & Total Goals -->
-                    <div class="kpi-card" style="border-left: 3px solid #ff4d5a; background: #202225; margin-bottom: 0;">
-                        <div class="kpi-header">
-                            <span>TOTAL MATCHES</span>
-                            <i class="fas fa-futbol" style="color: #ff4d5a;"></i>
-                        </div>
-                        <div style="display:flex; align-items:baseline; gap:8px;">
-                            <div class="kpi-value" id="dg-hero-total" style="font-size: 1.8rem; color: #fff;">113</div>
-                            <span id="dg-hero-goals" style="font-size:0.8rem; color:var(--accent-yellow); font-weight:600;">425 goals</span>
-                        </div>
-                        <div class="kpi-trend" id="dg-hero-today-sub" style="color: #aaa;"><i class="fas fa-calendar-day" style="font-size:0.65rem;"></i> <span id="dg-hero-today">0</span> matches today</div>
-                    </div>
-
-                    <!-- Card 2: Win Rate -->
-                    <div class="kpi-card" style="border-left: 3px solid #81c995; background: #202225; margin-bottom: 0;">
-                        <div class="kpi-header">
-                            <span>PLAYER WIN RATE</span>
-                            <i class="fas fa-trophy" style="color: #81c995;"></i>
-                        </div>
-                        <div class="kpi-value" id="dg-hero-winrate" style="font-size: 1.8rem; color: #81c995;">72%</div>
-                        <div class="kpi-trend" id="dg-hero-wins-breakdown" style="color: #aaa;">81 player wins / 32 CPU wins</div>
-                    </div>
-
-                    <!-- Card 3: Fastest Record & Avg Time -->
-                    <div class="kpi-card" style="border-left: 3px solid #8ab4f8; background: #202225; margin-bottom: 0;">
-                        <div class="kpi-header">
-                            <span>FASTEST RECORD</span>
-                            <i class="fas fa-stopwatch" style="color: #8ab4f8;"></i>
-                        </div>
-                        <div style="display:flex; align-items:baseline; gap:8px;">
-                            <div class="kpi-value" id="dg-hero-fastest" style="font-size: 1.8rem; color: #8ab4f8;">7.7s</div>
-                            <span id="dg-hero-record-holder" style="font-size:0.75rem; color:#aaa; font-weight:600;">GMOTU / Jarno</span>
-                        </div>
-                        <div class="kpi-trend" id="dg-hero-avg-dur" style="color: #aaa;"><i class="fas fa-clock" style="font-size:0.65rem;"></i> avg match: 23s</div>
-                    </div>
-
-                    <!-- Card 4: Unique Players & Countries -->
-                    <div class="kpi-card" style="border-left: 3px solid #fde293; background: #202225; margin-bottom: 0;">
-                        <div class="kpi-header">
-                            <span>UNIQUE PLAYERS</span>
-                            <i class="fas fa-users" style="color: #fde293;"></i>
-                        </div>
-                        <div class="kpi-value" id="dg-hero-players-cnt" style="font-size: 1.8rem; color: #fde293;">18</div>
-                        <div class="kpi-trend" id="dg-hero-country-pill" style="color: #aaa;"><span style="font-size:0.85rem;">🇫🇮</span> Ranked players</div>
-                    </div>
-                </div>
-
-                <!-- Cup Progression & Funnel Bar -->
-                <div style="background: #202225; border: 1px solid #3F4147; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:0.75rem; font-weight:700; color:#A0A5AA; letter-spacing:1px; text-transform:uppercase;">
-                            🏆 Cup Progression Breakdown (Level Reach)
-                        </span>
-                        <span id="dg-cup-summary" style="font-size:0.75rem; color:var(--sub-gold, #fde293); font-weight:600;">
-                            109 Novice (R1) · 4 Amateur (R2)
-                        </span>
-                    </div>
-                    <div style="display:flex; height:10px; border-radius:5px; overflow:hidden; background:#141619; gap:2px;">
-                        <div id="funnel-r1" style="width:96%; background:#c41e2a;" title="Round 1 (Novice): 109"></div>
-                        <div id="funnel-r2" style="width:4%; background:#1c6ef2;" title="Round 2 (Amateur): 4"></div>
-                        <div id="funnel-r3" style="width:0%; background:#f1c40f;" title="Round 3 (Semi Pro): 0"></div>
-                        <div id="funnel-r4" style="width:0%; background:#9b59b6;" title="Round 4 (Pro): 0"></div>
-                        <div id="funnel-r5" style="width:0%; background:#e67e22;" title="Round 5 (Final Boss): 0"></div>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:0.7rem; color:#888;">
-                        <span>R1: Novice (109)</span>
-                        <span>R2: Amateur (4)</span>
-                        <span style="color:#555;">R3: Semi Pro (0)</span>
-                        <span style="color:#555;">R4: Pro (0)</span>
-                        <span style="color:#555;">R5: Final Boss (0)</span>
-                    </div>
-                </div>
-
-                <!-- Daily Play Traffic & Goal Trend Chart (Since Launch) -->
-                <div style="background: #202225; border: 1px solid #3F4147; border-radius: 8px; padding: 16px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                        <span style="font-size: 0.85rem; font-weight: 600; color: #E8EAED; letter-spacing: 0.5px; text-transform: uppercase;">
-                            <i class="fas fa-chart-line" style="color: #c41e2a; margin-right: 6px;"></i> Daily Match Volume & Goal Output
-                        </span>
-                        <span style="font-size: 0.75rem; color: #888;">Active Days Since Launch</span>
-                    </div>
-                    <div style="height: 190px; position: relative; width: 100%;">
-                        <canvas id="dgTrendChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
             <!-- Section: Overview -->
             <div class="kpi-section">
                 <div class="kpi-section-header" onclick="toggleSection(this)">
@@ -2718,206 +2607,41 @@
             }
         }
 
-        // ─── Digital Game Stats & Trend ───────────────────────
+        // ─── Digital Game Stats ───────────────────────────────
         let _dgLoaded = false;
-        let _dgChartInstance = null;
-
-        async function fetchDigitalGameStats(force = false) {
-            if (_dgLoaded && !force) return;
+        async function fetchDigitalGameStats() {
+            if (_dgLoaded) return;
             try {
                 const now = new Date();
                 const todayStr = now.toISOString().slice(0, 10);
-                const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
+                const weekAgo  = new Date(now - 7 * 86400000).toISOString();
 
                 const { data, error } = await client
                     .from('digital_game_plays')
-                    .select('winner, score_player, score_cpu, duration_s, created_at, country, player_name, user_agent')
-                    .order('created_at', { ascending: true });
+                    .select('winner, duration_s, created_at, country');
 
                 if (error || !data) {
-                    if (document.getElementById('dg-error')) document.getElementById('dg-error').style.display = 'block';
+                    document.getElementById('dg-error').style.display = 'block';
                     return;
                 }
 
-                const total = data.length;
-                const todayCount = data.filter(r => r.created_at && r.created_at.slice(0,10) === todayStr).length;
+                const total   = data.length;
+                const cpuW    = data.filter(r => r.winner === 'cpu').length;
+                const playerW = data.filter(r => r.winner === 'player').length;
+                const today   = data.filter(r => r.created_at.slice(0,10) === todayStr).length;
+                const week    = data.filter(r => r.created_at >= weekAgo).length;
+                const durs    = data.map(r => r.duration_s).filter(Boolean);
+                const avgDur  = durs.length ? Math.round(durs.reduce((a,b) => a+b, 0) / durs.length) : null;
+                const pct     = n => total > 0 ? Math.round(n / total * 100) : 0;
 
-                // Win rate & Goals calculation
-                let playerWins = 0;
-                let cpuWins = 0;
-                let totalPlayerGoals = 0;
-                let totalCpuGoals = 0;
-                let fastestDur = 999;
-                let fastestHolders = [];
-                const roundsCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-                const durs = [];
-
-                data.forEach(r => {
-                    const pw = r.winner === 'player';
-                    if (pw) playerWins++; else cpuWins++;
-                    totalPlayerGoals += (Number(r.score_player) || (pw ? 3 : 0));
-                    totalCpuGoals += (Number(r.score_cpu) || (!pw ? 3 : 0));
-
-                    const dur = Number(r.duration_s);
-                    if (dur > 0) {
-                        durs.push(dur);
-                        if (dur < fastestDur && r.player_name) {
-                            fastestDur = dur;
-                            fastestHolders = [r.player_name];
-                        } else if (dur === fastestDur && r.player_name && !fastestHolders.includes(r.player_name)) {
-                            fastestHolders.push(r.player_name);
-                        }
-                    }
-
-                    // Round detection
-                    const ua = r.user_agent || '';
-                    const m = ua.match(/CUP:R(\d+)/i);
-                    const rnd = m ? parseInt(m[1], 10) : 1;
-                    if (roundsCount[rnd] !== undefined) roundsCount[rnd]++;
-                    else roundsCount[1]++;
-                });
-
-                const totalGoals = totalPlayerGoals + totalCpuGoals;
-                const winRate = total > 0 ? Math.round((playerWins / total) * 100) : 0;
-                const avgDur = durs.length ? Math.round(durs.reduce((a,b)=>a+b,0)/durs.length) : 23;
-                const uniquePlayers = new Set(data.map(r => (r.player_name || '').trim().toUpperCase()).filter(Boolean)).size;
-
-                // Update Hero Card 1: Matches & Goals
-                if (document.getElementById('dg-hero-total')) document.getElementById('dg-hero-total').textContent = total;
-                if (document.getElementById('dg-hero-goals')) document.getElementById('dg-hero-goals').textContent = `${totalGoals} goals scored`;
-                if (document.getElementById('dg-hero-today')) document.getElementById('dg-hero-today').textContent = todayCount;
-
-                // Update Hero Card 2: Win Rate
-                if (document.getElementById('dg-hero-winrate')) document.getElementById('dg-hero-winrate').textContent = `${winRate}%`;
-                if (document.getElementById('dg-hero-wins-breakdown')) {
-                    document.getElementById('dg-hero-wins-breakdown').textContent = `${playerWins} player wins / ${cpuWins} CPU wins`;
-                }
-
-                // Update Hero Card 3: Fastest Record
-                if (document.getElementById('dg-hero-fastest')) {
-                    document.getElementById('dg-hero-fastest').textContent = fastestDur < 999 ? `${fastestDur}s` : '7.7s';
-                }
-                if (document.getElementById('dg-hero-record-holder')) {
-                    document.getElementById('dg-hero-record-holder').textContent = fastestHolders.length > 0 ? fastestHolders.slice(0,2).join(' / ') : 'GMOTU / Jarno';
-                }
-                if (document.getElementById('dg-hero-avg-dur')) {
-                    document.getElementById('dg-hero-avg-dur').innerHTML = `<i class="fas fa-clock" style="font-size:0.65rem;"></i> avg match: ${avgDur}s`;
-                }
-
-                // Update Hero Card 4: Unique Players
-                if (document.getElementById('dg-hero-players-cnt')) {
-                    document.getElementById('dg-hero-players-cnt').textContent = uniquePlayers;
-                }
-
-                // Update Cup Funnel Breakdown
-                const r1Pct = total > 0 ? Math.round((roundsCount[1] / total) * 100) : 100;
-                const r2Pct = total > 0 ? Math.round((roundsCount[2] / total) * 100) : 0;
-                const r3Pct = total > 0 ? Math.round((roundsCount[3] / total) * 100) : 0;
-                const r4Pct = total > 0 ? Math.round((roundsCount[4] / total) * 100) : 0;
-                const r5Pct = total > 0 ? Math.round((roundsCount[5] / total) * 100) : 0;
-
-                if (document.getElementById('funnel-r1')) document.getElementById('funnel-r1').style.width = `${Math.max(2, r1Pct)}%`;
-                if (document.getElementById('funnel-r2')) document.getElementById('funnel-r2').style.width = `${Math.max(2, r2Pct)}%`;
-                if (document.getElementById('funnel-r3')) document.getElementById('funnel-r3').style.width = `${r3Pct}%`;
-                if (document.getElementById('funnel-r4')) document.getElementById('funnel-r4').style.width = `${r4Pct}%`;
-                if (document.getElementById('funnel-r5')) document.getElementById('funnel-r5').style.width = `${r5Pct}%`;
-
-                if (document.getElementById('dg-cup-summary')) {
-                    document.getElementById('dg-cup-summary').textContent = 
-                        `${roundsCount[1]} Novice (R1) · ${roundsCount[2]} Amateur (R2)${roundsCount[3] > 0 ? ` · ${roundsCount[3]} Semi Pro` : ''}`;
-                }
-
-                // ─── Render Active Launch Days Trend Chart ───
-                // Build days list starting from launch date 2026-08-23 to today
-                const launchDate = new Date('2026-08-23T00:00:00');
-                const activeDays = [];
-                let curD = new Date(launchDate);
-                while (curD <= now) {
-                    activeDays.push(curD.toISOString().slice(0, 10));
-                    curD = new Date(curD.getTime() + 86400000);
-                }
-
-                const dailyPlays = activeDays.map(dayStr => data.filter(r => r.created_at && r.created_at.slice(0, 10) === dayStr).length);
-                const dailyGoals = activeDays.map(dayStr => {
-                    const dayRows = data.filter(r => r.created_at && r.created_at.slice(0, 10) === dayStr);
-                    return dayRows.reduce((acc, r) => acc + (Number(r.score_player)||0) + (Number(r.score_cpu)||0), 0);
-                });
-
-                const chartCanvas = document.getElementById('dgTrendChart');
-                if (chartCanvas && typeof Chart !== 'undefined') {
-                    if (_dgChartInstance) _dgChartInstance.destroy();
-                    _dgChartInstance = new Chart(chartCanvas, {
-                        type: 'bar',
-                        data: {
-                            labels: activeDays.map(d => {
-                                const p = d.split('-');
-                                return `${p[2]}.${p[1]}`;
-                            }),
-                            datasets: [
-                                {
-                                    type: 'bar',
-                                    label: 'Matches Played',
-                                    data: dailyPlays,
-                                    backgroundColor: 'rgba(227, 6, 19, 0.85)',
-                                    borderColor: '#e30613',
-                                    borderWidth: 1,
-                                    borderRadius: 4,
-                                    order: 2
-                                },
-                                {
-                                    type: 'line',
-                                    label: 'Total Goals',
-                                    data: dailyGoals,
-                                    borderColor: '#fde293',
-                                    backgroundColor: 'rgba(253, 226, 147, 0.15)',
-                                    borderWidth: 2,
-                                    pointBackgroundColor: '#fde293',
-                                    pointRadius: 4,
-                                    tension: 0.3,
-                                    order: 1
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    labels: { color: '#E8EAED', font: { size: 11, family: 'Roboto' } }
-                                },
-                                tooltip: {
-                                    backgroundColor: '#1e2024',
-                                    titleColor: '#fff',
-                                    bodyColor: '#ccc',
-                                    borderColor: '#444',
-                                    borderWidth: 1
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    grid: { color: 'rgba(255,255,255,0.05)' },
-                                    ticks: { color: '#A0A5AA', font: { size: 10 } }
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    grid: { color: 'rgba(255,255,255,0.06)' },
-                                    ticks: { color: '#A0A5AA', font: { size: 10 }, precision: 0 }
-                                }
-                            }
-                        }
-                    });
-                }
-
-                // Standard section metrics
-                const pct = n => total > 0 ? Math.round(n / total * 100) : 0;
-                if (document.getElementById('dg-total')) document.getElementById('dg-total').textContent = total;
-                if (document.getElementById('dg-cpu')) document.getElementById('dg-cpu').textContent = cpuWins;
-                if (document.getElementById('dg-cpu-pct')) document.getElementById('dg-cpu-pct').textContent = `${pct(cpuWins)}% win rate`;
-                if (document.getElementById('dg-player')) document.getElementById('dg-player').textContent = playerWins;
-                if (document.getElementById('dg-player-pct')) document.getElementById('dg-player-pct').textContent = `${pct(playerWins)}% win rate`;
-                if (document.getElementById('dg-duration')) document.getElementById('dg-duration').textContent = avgDur !== null ? avgDur : '—';
-                if (document.getElementById('dg-today')) document.getElementById('dg-today').textContent = todayCount;
-                if (document.getElementById('dg-week')) document.getElementById('dg-week').textContent = data.filter(r => new Date(r.created_at) >= sevenDaysAgo).length;
+                document.getElementById('dg-total').textContent      = total;
+                document.getElementById('dg-cpu').textContent        = cpuW;
+                document.getElementById('dg-cpu-pct').textContent    = `${pct(cpuW)}% win rate`;
+                document.getElementById('dg-player').textContent     = playerW;
+                document.getElementById('dg-player-pct').textContent = `${pct(playerW)}% win rate`;
+                document.getElementById('dg-duration').textContent   = avgDur !== null ? avgDur : '—';
+                document.getElementById('dg-today').textContent      = today;
+                document.getElementById('dg-week').textContent       = week;
 
                 // Countries breakdown
                 const countryCounts = {};
@@ -2927,29 +2651,26 @@
                 });
                 const sorted = Object.entries(countryCounts).sort((a,b) => b[1]-a[1]);
                 const countryEl = document.getElementById('dg-countries');
-                if (countryEl) {
-                    if (sorted.length === 0) {
-                        countryEl.innerHTML = '<span style="color:#555;font-size:0.8rem;">No country data yet</span>';
-                    } else {
-                        const flagFor = cc => {
-                            if (!cc || cc === 'Unknown') return '🌍';
-                            try { return cc.toUpperCase().replace(/./g, c => String.fromCodePoint(c.charCodeAt(0) + 127397)); }
-                            catch(e){ return '🌍'; }
-                        };
-                        countryEl.innerHTML = sorted.map(([cc, n]) =>
-                            `<span style="display:inline-flex;align-items:center;gap:5px;background:#1e2024;border:1px solid #333;border-radius:6px;padding:4px 10px;font-size:0.8rem;">
-                                <span style="font-size:1rem;">${flagFor(cc)}</span>
-                                <span style="color:#ddd;">${cc}</span>
-                                <span style="color:#888;font-size:0.75rem;">${n}</span>
-                            </span>`
-                        ).join('');
-                    }
+                if (sorted.length === 0) {
+                    countryEl.innerHTML = '<span style="color:#555;font-size:0.8rem;">No country data yet</span>';
+                } else {
+                    const flagFor = cc => {
+                        if (!cc || cc === 'Unknown') return '🌍';
+                        try { return cc.toUpperCase().replace(/./g, c => String.fromCodePoint(c.charCodeAt(0) + 127397)); }
+                        catch(e){ return '🌍'; }
+                    };
+                    countryEl.innerHTML = sorted.map(([cc, n]) =>
+                        `<span style="display:inline-flex;align-items:center;gap:5px;background:#1e2024;border:1px solid #333;border-radius:6px;padding:4px 10px;font-size:0.8rem;">
+                            <span style="font-size:1rem;">${flagFor(cc)}</span>
+                            <span style="color:#ddd;">${cc}</span>
+                            <span style="color:#888;font-size:0.75rem;">${n}</span>
+                        </span>`
+                    ).join('');
                 }
 
                 _dgLoaded = true;
             } catch(e) {
-                console.error('Error fetching digital game stats:', e);
-                if (document.getElementById('dg-error')) document.getElementById('dg-error').style.display = 'block';
+                document.getElementById('dg-error').style.display = 'block';
             }
         }
 
