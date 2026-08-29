@@ -4876,6 +4876,9 @@ const growthLabels = sortedGrowthKeys.map(k => {
                         <button onclick="openVenueUgcDrawer('${escapeHtml(group.displayName)}')" style="width:100%; margin-top:3px; background:#1A73E8; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
                             <i class="fas fa-video"></i> Open Venue UGC Feed (${venueUgc.length})
                         </button>
+                        <button onclick="openB2bLeadModal('${escapeHtml(group.displayName)}')" style="width:100%; margin-top:3px; background:#0A66C2; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                            <i class="fab fa-linkedin-in"></i> Find B2B Leads & Pitch
+                        </button>
                     </div>
                 `;
             }
@@ -8868,6 +8871,197 @@ const growthLabels = sortedGrowthKeys.map(k => {
             saveUgcPosts(posts);
             if (mymap && typeof renderUgcMapMarkers === 'function') {
                 renderUgcMapMarkers(mymap);
+        // ─── B2B Lead Intelligence & LinkedIn Outreach Generator ───
+        let _b2bCurrentVenue = null;
+        let _b2bCurrentPost = null;
+        let _b2bCurrentLang = 'en';
+
+        function analyzeB2bOrganization(venueName, post) {
+            const v = (venueName || '').toLowerCase();
+            let org = venueName ? venueName.split(',')[0].split('(')[0].trim() : 'Commercial Hub';
+            let category = 'Commercial Hub & Venue';
+            let roles = [];
+
+            if (v.includes('tripla') || v.includes('mall') || v.includes('outlet') || v.includes('shopping') || v.includes('fashion district')) {
+                category = '🛍️ Shopping Mall / Commercial Center';
+                roles = [
+                    { title: 'Marketing Director', query: `Marketing Director "${org}"` },
+                    { title: 'Center Manager / GM', query: `Center Manager "${org}"` },
+                    { title: 'Head of Leasing / Commercial', query: `Commercial Director "${org}"` }
+                ];
+            } else if (v.includes('superpark') || v.includes('trampoline') || v.includes('activity') || v.includes('arcade') || v.includes('park')) {
+                category = '🧗 Activity Park & Entertainment Center';
+                roles = [
+                    { title: 'General Manager', query: `General Manager "${org}"` },
+                    { title: 'Marketing Director', query: `Marketing Director "${org}"` },
+                    { title: 'Head of Partnerships / Sales', query: `Partnerships Manager "${org}"` }
+                ];
+            } else if (v.includes('hq') || v.includes('melkonkatu') || v.includes('office') || v.includes('campus')) {
+                category = '🏢 Corporate Headquarters & Workplace';
+                roles = [
+                    { title: 'Head of People & Culture / HR', query: `Head of People "${org}"` },
+                    { title: 'Workplace Experience Lead', query: `Workplace Experience "${org}"` },
+                    { title: 'CEO / Managing Director', query: `CEO "${org}"` }
+                ];
+            } else if (v.includes('fanzone') || v.includes('stadium') || v.includes('arena') || v.includes('sports') || v.includes('padel')) {
+                category = '⚽ Sports Arena & FanZone';
+                roles = [
+                    { title: 'Commercial Director', query: `Commercial Director "${org}"` },
+                    { title: 'Event Manager', query: `Event Manager "${org}"` },
+                    { title: 'Sponsorship Manager', query: `Sponsorship Manager "${org}"` }
+                ];
+            } else {
+                category = '📍 Commercial Venue';
+                roles = [
+                    { title: 'Managing Director / Owner', query: `Managing Director "${org}"` },
+                    { title: 'Marketing Manager', query: `Marketing Manager "${org}"` },
+                    { title: 'Operations Manager', query: `Operations Manager "${org}"` }
+                ];
+            }
+
+            return { org, category, roles };
+        }
+
+        function openB2bLeadModal(venueName, postId) {
+            const posts = getUgcPosts();
+            const post = (postId && posts.find(p => p.id === postId)) || posts.find(p => (p.location || '').toLowerCase().includes((venueName || '').toLowerCase())) || { location: venueName, matches_count: 50 };
+            
+            _b2bCurrentVenue = venueName || post.location || 'Global Hub';
+            _b2bCurrentPost = post;
+
+            const analysis = analyzeB2bOrganization(_b2bCurrentVenue, post);
+
+            if (document.getElementById('b2b-venue-type')) document.getElementById('b2b-venue-type').textContent = analysis.category;
+            if (document.getElementById('b2b-venue-title')) document.getElementById('b2b-venue-title').textContent = analysis.org;
+            if (document.getElementById('b2b-venue-subtitle')) document.getElementById('b2b-venue-subtitle').textContent = _b2bCurrentVenue;
+            if (document.getElementById('b2b-proof-videos')) document.getElementById('b2b-proof-videos').textContent = (post.tournaments_count ? post.tournaments_count : (post.events_count ? post.events_count : 1));
+            if (document.getElementById('b2b-proof-matches')) document.getElementById('b2b-proof-matches').textContent = post.matches_count || 120;
+
+            const rolesGrid = document.getElementById('b2b-lead-roles-grid');
+            if (rolesGrid) {
+                rolesGrid.innerHTML = analysis.roles.map(r => `
+                    <a href="https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(r.query)}" target="_blank" rel="noopener"
+                        style="background:#141d26; border:1px solid #2a3b4c; border-radius:6px; padding:10px 12px; text-decoration:none; display:flex; justify-content:space-between; align-items:center; transition:border-color 0.2s;"
+                        onmouseover="this.style.borderColor='#0A66C2'" onmouseout="this.style.borderColor='#2a3b4c'">
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:700; color:#fff;">${escapeHtml(r.title)}</div>
+                            <div style="font-size:0.7rem; color:#8ba2b5; margin-top:2px;">${escapeHtml(analysis.org)}</div>
+                        </div>
+                        <span style="background:#0A66C2; color:#fff; font-size:0.7rem; font-weight:600; padding:3px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;">
+                            Search <i class="fas fa-external-link-alt" style="font-size:0.6rem;"></i>
+                        </span>
+                    </a>
+                `).join('');
+            }
+
+            renderB2bPitchText();
+
+            const modal = document.getElementById('b2b-lead-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeB2bLeadModal() {
+            const modal = document.getElementById('b2b-lead-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function setB2bLeadLang(lang) {
+            _b2bCurrentLang = lang;
+            ['en', 'fi', 'es'].forEach(l => {
+                const btn = document.getElementById('b2b-lang-' + l);
+                if (btn) {
+                    if (l === lang) {
+                        btn.style.background = '#0a3d62';
+                        btn.style.color = '#fff';
+                    } else {
+                        btn.style.background = 'transparent';
+                        btn.style.color = '#8ba2b5';
+                    }
+                }
+            });
+            renderB2bPitchText();
+        }
+
+        function renderB2bPitchText() {
+            const textarea = document.getElementById('b2b-pitch-textarea');
+            if (!textarea || !_b2bCurrentVenue) return;
+
+            const analysis = analyzeB2bOrganization(_b2bCurrentVenue, _b2bCurrentPost);
+            const venue = analysis.org;
+            const matches = _b2bCurrentPost?.matches_count || 'hundreds of';
+            const liveUrl = `https://subsoccer.pro/analytics-dashboard.html`;
+
+            if (_b2bCurrentLang === 'fi') {
+                textarea.value = `Otsikko: Subsoccer-aktivointi kohteessanne ${venue} – Virallinen brändipartneruus
+
+Hei [Etunimi],
+
+Huomasimme, että Subsoccer-piste kohteessanne (${venue}) on kerännyt huikean määrän orgaanista huomiota somessa ja yli ${matches} pelattua ottelua kävijöiltänne.
+
+Autamme johtavia kauppakeskuksia, yrityksiä ja elämyskohteita muuttamaan tämän kävijävirran pysyväksi brändätyksi viihdealueeksi ja sponsoroiduksi turnausareenaksi.
+
+Voitte tutustua kohteenne reaaliaikaiseen dataan ja videoihin tästä:
+${liveUrl}
+
+Olisiko teillä ensi viikolla 10 minuuttia aikaa lyhyelle esittelypuhelulle?
+
+Ystävällisin terveisin,
+Jarno Saarinen | Subsoccer
+jarno@subsoccer.com | +358 40 541 3333`;
+            } else if (_b2bCurrentLang === 'es') {
+                textarea.value = `Asunto: Activación de Subsoccer en ${venue} – Colaboración oficial de marca
+
+Hola [Nombre],
+
+Hemos visto que la activación de Subsoccer en vuestro espacio (${venue}) ha generado una enorme tracción con más de ${matches} partidos jugados y gran impacto en redes sociales.
+
+Ayudamos a centros comerciales y espacios de ocio a transformar este flujo en zonas de entretenimiento de marca y torneos corporativos de alto impacto.
+
+Puedes consultar los datos en directo y clips de vuestro espacio aquí:
+${liveUrl}
+
+¿Tendrías 10 minutos la próxima semana para una breve llamada?
+
+Un cordial saludo,
+Jarno Saarinen | Fundador, Subsoccer
+jarno@subsoccer.com | https://subsoccer.pro`;
+            } else {
+                // Default English
+                textarea.value = `Subject: Viral Subsoccer activation at ${venue} – Official Brand Partnership
+
+Hi [First Name],
+
+I noticed that the Subsoccer activation at your venue (${venue}) has been generating fantastic organic engagement with over ${matches} matches tracked and strong social traction.
+
+We help premier commercial venues, corporate campuses, and activity centers transform that visitor excitement into permanent branded entertainment zones and high-visibility tournament activations.
+
+You can explore the live telemetry data and video highlights for your location here:
+${liveUrl}
+
+Would you be open to a quick 10-minute introductory call next week to explore an official Subsoccer partnership for your locations?
+
+Best regards,
+Jarno Saarinen | Founder & CEO, Subsoccer
+jarno@subsoccer.com | https://subsoccer.pro`;
+            }
+        }
+
+        function copyB2bPitchText() {
+            const textarea = document.getElementById('b2b-pitch-textarea');
+            if (textarea) {
+                navigator.clipboard.writeText(textarea.value);
+                const btn = document.getElementById('b2b-copy-pitch-btn');
+                if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> ✓ Copied to Clipboard!';
+                    btn.style.background = '#2ecc71';
+                    btn.style.color = '#0b2e13';
+                    setTimeout(() => {
+                        btn.innerHTML = orig;
+                        btn.style.background = '#0A66C2';
+                        btn.style.color = '#fff';
+                    }, 2000);
+                }
             }
         }
 
@@ -9066,6 +9260,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                                             🏆 <b>${hub.tournaments_count}</b> tourneys · ⚽ <b>${hub.matches_count}</b> matches (${hub.events_count} events)
                                         </div>
                                     </div>
+                                    <button onclick="event.stopPropagation(); openB2bLeadModal('${escapeHtml(loc)}', '${hub.posts[0]?.id || ''}')" title="Generate LinkedIn Leads & B2B Pitch" style="background:#0A66C2; border:1px solid #1374d9; color:#ffffff; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600; display:inline-flex; align-items:center; gap:5px;"><i class="fab fa-linkedin-in"></i> B2B Pitch</button>
                                     ${mapBtn}
                                     <div style="font-size:0.85rem; color:var(--text-secondary); width:20px; text-align:center;">
                                         <i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}"></i>
@@ -9113,10 +9308,11 @@ const growthLabels = sortedGrowthKeys.map(k => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                                        <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="flex:1; text-align:center; background:#E1306C; color:#fff; font-size:0.8rem; font-weight:600; padding:6px 10px; border-radius:4px; text-decoration:none;">
-                                            <i class="fas fa-play" style="font-size:0.7rem; margin-right:4px;"></i> Watch Video
+                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                                        <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="flex:1; text-align:center; background:#E1306C; color:#fff; font-size:0.78rem; font-weight:600; padding:6px 8px; border-radius:4px; text-decoration:none;">
+                                            <i class="fas fa-play" style="font-size:0.65rem; margin-right:3px;"></i> Watch
                                         </a>
+                                        <button onclick="openB2bLeadModal('${escapeHtml(p.location || '')}', '${p.id}')" title="B2B Pitch & Leads" style="background:#0A66C2; color:#fff; border:none; padding:6px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:3px;"><i class="fab fa-linkedin-in"></i> Pitch</button>
                                         ${p.lat && p.lng ? `<button onclick="focusUgcOnMap(${p.lat}, ${p.lng}, '${p.id}')" title="Pin on Map" style="background:rgba(26,115,232,0.15); border:1px solid rgba(26,115,232,0.4); color:#4da3ff; padding:6px 8px; border-radius:4px; cursor:pointer;"><i class="fas fa-map-pin"></i></button>` : ''}
                                         <button onclick="deleteUgcPost('${p.id}')" title="Delete" style="background:none; border:none; color:var(--accent-red); cursor:pointer; padding:6px 4px;"><i class="fas fa-trash-alt"></i></button>
                                     </div>
@@ -9188,6 +9384,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                                             ${escapeHtml(p.notes || 'Verified active table.')}
                                         </td>
                                         <td style="padding:10px 14px; text-align:right; white-space:nowrap;">
+                                            <button onclick="openB2bLeadModal('${escapeHtml(p.location || '')}', '${p.id}')" title="B2B LinkedIn Pitch & Leads" style="background:#0A66C2; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin-right:4px;"><i class="fab fa-linkedin-in"></i> Pitch</button>
                                             ${p.lat && p.lng ? `<button onclick="focusUgcOnMap(${p.lat}, ${p.lng}, '${p.id}')" title="Pin on Map" style="background:rgba(26,115,232,0.15); border:1px solid rgba(26,115,232,0.4); color:#4da3ff; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;"><i class="fas fa-map-pin"></i></button>` : ''}
                                             <button onclick="openUgcEditModal('${p.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; padding:4px;"><i class="fas fa-edit"></i></button>
                                             <button onclick="deleteUgcPost('${p.id}')" style="background:none; border:none; color:var(--accent-red); cursor:pointer; padding:4px;"><i class="fas fa-trash-alt"></i></button>
@@ -9296,6 +9493,9 @@ const growthLabels = sortedGrowthKeys.map(k => {
 
                         <button onclick="openVenueUgcDrawer('${escapeHtml(cluster.location)}')" style="width:100%; margin-top:4px; background:#1A73E8; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
                             <i class="fas fa-layer-group"></i> Open Venue Gallery (${count})
+                        </button>
+                        <button onclick="openB2bLeadModal('${escapeHtml(cluster.location)}', '${activePost.id}')" style="width:100%; margin-top:3px; background:#0A66C2; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                            <i class="fab fa-linkedin-in"></i> Find B2B Leads & Pitch
                         </button>
                     </div>
                 `;
@@ -10308,6 +10508,93 @@ const growthLabels = sortedGrowthKeys.map(k => {
                     </button>
                     <button id="ugc-ingest-commit-btn" onclick="commitInboxCandidates()" style="background:#2ecc71; color:#0b2e13; border:none; padding:8px 22px; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(46,204,113,0.3);">
                         <i class="fas fa-bolt"></i> Ingest Approved Videos
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- B2B Lead Intelligence & LinkedIn Outreach Modal -->
+    <div id="b2b-lead-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(6px);">
+        <div style="background:#1b2632; border:1px solid #2a3b4c; border-radius:12px; width:100%; max-width:760px; max-height:92vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 48px rgba(0,0,0,0.7);">
+            
+            <!-- Header -->
+            <div style="padding:14px 22px; border-bottom:1px solid #233140; display:flex; justify-content:space-between; align-items:center; background:#10171f;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="background:#0A66C2; color:#fff; width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold;">
+                        <i class="fab fa-linkedin-in"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin:0; font-size:1.05rem; color:#fff; display:flex; align-items:center; gap:8px;">
+                            B2B Lead Intelligence & Outreach Pitch
+                        </h3>
+                        <div style="font-size:0.75rem; color:#8ba2b5;">Turn organic video views & active telemetry into commercial table deals</div>
+                    </div>
+                </div>
+                <button onclick="closeB2bLeadModal()" style="background:none; border:none; color:#8ba2b5; font-size:1.4rem; cursor:pointer; line-height:1; padding:4px 8px;">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:20px; display:flex; flex-direction:column; gap:16px; overflow-y:auto;">
+                
+                <!-- Venue & Social Proof Card -->
+                <div style="background:#141d26; border:1px solid #233140; border-radius:8px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <div style="font-size:0.7rem; color:#8ba2b5; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;" id="b2b-venue-type">COMMERCIAL HUB</div>
+                        <div id="b2b-venue-title" style="font-size:1.1rem; font-weight:700; color:#fff; margin-top:2px;">Venue Name</div>
+                        <div id="b2b-venue-subtitle" style="font-size:0.78rem; color:#8ba2b5; margin-top:2px;">Location details</div>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <div style="background:rgba(225,48,108,0.15); border:1px solid rgba(225,48,108,0.4); color:#ff4d80; padding:6px 12px; border-radius:6px; text-align:center;">
+                            <div style="font-size:0.65rem; text-transform:uppercase;">Videos</div>
+                            <div id="b2b-proof-videos" style="font-weight:700; font-size:1rem;">1</div>
+                        </div>
+                        <div style="background:rgba(46,204,113,0.15); border:1px solid rgba(46,204,113,0.4); color:#2ecc71; padding:6px 12px; border-radius:6px; text-align:center;">
+                            <div style="font-size:0.65rem; text-transform:uppercase;">Matches</div>
+                            <div id="b2b-proof-matches" style="font-weight:700; font-size:1rem;">529</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 1: Decision Makers on LinkedIn -->
+                <div>
+                    <div style="font-size:0.8rem; font-weight:700; color:#c5d4e0; text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-user-tie" style="color:#60a5fa;"></i> Target Decision Makers on LinkedIn:
+                    </div>
+                    <div id="b2b-lead-roles-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Step 2: Personalized Pitch Copy -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="font-size:0.8rem; font-weight:700; color:#c5d4e0; text-transform:uppercase; display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-comment-dots" style="color:#2ecc71;"></i> Personalized Pitch Copy:
+                        </div>
+                        <!-- Language Switcher -->
+                        <div style="display:flex; gap:4px; background:#141d26; padding:2px; border-radius:6px; border:1px solid #233140;">
+                            <button onclick="setB2bLeadLang('en')" id="b2b-lang-en" style="background:#0a3d62; color:#fff; border:none; padding:3px 8px; border-radius:4px; font-size:0.75rem; cursor:pointer; font-weight:600;">🇬🇧 EN</button>
+                            <button onclick="setB2bLeadLang('fi')" id="b2b-lang-fi" style="background:transparent; color:#8ba2b5; border:none; padding:3px 8px; border-radius:4px; font-size:0.75rem; cursor:pointer; font-weight:600;">🇫🇮 FI</button>
+                            <button onclick="setB2bLeadLang('es')" id="b2b-lang-es" style="background:transparent; color:#8ba2b5; border:none; padding:3px 8px; border-radius:4px; font-size:0.75rem; cursor:pointer; font-weight:600;">🇪🇸 ES</button>
+                        </div>
+                    </div>
+                    <textarea id="b2b-pitch-textarea" rows="8" 
+                        style="width:100%; box-sizing:border-box; background:#141d26; border:1px solid #233140; color:#f0f4f8; padding:12px; border-radius:8px; font-size:0.85rem; line-height:1.45; font-family:sans-serif; resize:vertical;"></textarea>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div style="padding:14px 22px; border-top:1px solid #233140; display:flex; justify-content:space-between; align-items:center; background:#10171f;">
+                <div style="font-size:0.75rem; color:#8ba2b5;">
+                    💡 Tip: Paste into LinkedIn InMail or Email outreach.
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="closeB2bLeadModal()" style="background:transparent; border:1px solid #233140; color:#8ba2b5; padding:8px 16px; border-radius:6px; font-size:0.85rem; cursor:pointer;">Close</button>
+                    <button onclick="copyB2bPitchText()" id="b2b-copy-pitch-btn" style="background:#0A66C2; color:#fff; border:none; padding:8px 20px; border-radius:6px; font-size:0.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fas fa-copy"></i> Copy Pitch Message
                     </button>
                 </div>
             </div>
