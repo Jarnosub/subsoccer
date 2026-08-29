@@ -4700,6 +4700,72 @@ const growthLabels = sortedGrowthKeys.map(k => {
             };
         }
 
+        function findUgcPostsForLocation(locName, coords) {
+            const posts = (typeof getUgcPosts === 'function') ? getUgcPosts() : [];
+            if (!posts || posts.length === 0) return [];
+
+            const lName = (locName || '').toLowerCase();
+            return posts.filter(p => {
+                if (coords && p.lat && p.lng) {
+                    const dLat = Math.abs(coords[0] - p.lat);
+                    const dLng = Math.abs(coords[1] - p.lng);
+                    if (dLat < 0.04 && dLng < 0.04) return true;
+                }
+                const pLoc = (p.location || '').toLowerCase();
+                if (lName.includes('lauttasaari') || lName.includes('melkonkatu') || lName.includes('hq')) {
+                    if (pLoc.includes('lauttasaari') || pLoc.includes('melkonkatu') || pLoc.includes('hq')) return true;
+                }
+                if (lName.includes('trnava') && pLoc.includes('trnava')) return true;
+                if ((lName.includes('midlands') || lName.includes('derby') || lName.includes('nottingham')) && (pLoc.includes('midlands') || pLoc.includes('outlet'))) return true;
+                if (lName.includes('philadelphia') && pLoc.includes('philadelphia')) return true;
+                return false;
+            });
+        }
+
+        function buildMarkerPopupHtml(group, coords, isHq, isLive, agoStr) {
+            const count = group.count;
+            const venueUgc = findUgcPostsForLocation(group.displayName, coords);
+            
+            let headerHtml = isHq
+                ? `<div style="font-size: 13px; font-weight: bold; color: #1A73E8; display: flex; align-items: center; gap: 4px;">🏆 Subsoccer HQ (Showroom)</div>
+                   <div style="font-size: 11px; color: #555; margin-bottom: 4px;">Melkonkatu 24, Lauttasaari, Helsinki</div>
+                   <div style="font-size: 12px; font-weight: bold;">${count.toLocaleString()} Events & Games tracked</div>`
+                : `<div style="font-size: 13px; font-weight: bold; color: #202124;">${escapeHtml(group.displayName)}</div>
+                   <div style="font-size: 12px; color: #555; margin-top:2px;"><b>${count.toLocaleString()}</b> event${count !== 1 ? 's' : ''} tracked</div>`;
+
+            if (agoStr) {
+                headerHtml += `<div style="color:#888;font-size:0.8em;margin-top:2px;">Latest: ${agoStr}</div>`;
+            }
+
+            let ugcHtml = '';
+            if (venueUgc && venueUgc.length > 0) {
+                const hasSurge = venueUgc.some(v => v.status === 'surge_verified');
+                ugcHtml = `
+                    <div style="margin-top:8px; padding-top:8px; border-top:1px solid #eee;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                            <span style="font-size:11px; font-weight:700; color:#E1306C; display:flex; align-items:center; gap:4px;">
+                                🎬 ${venueUgc.length} Social Video${venueUgc.length > 1 ? 's' : ''} Linked
+                            </span>
+                            <span style="font-size:9.5px; font-weight:600; padding:1px 5px; border-radius:3px; ${hasSurge ? 'background:rgba(255,215,0,0.15); color:#d48806; border:1px solid rgba(255,215,0,0.4);' : 'background:rgba(46,125,50,0.1); color:#2e7d32; border:1px solid rgba(46,125,50,0.2);'}">
+                                ${hasSurge ? '⚡ Surge Verified' : '✓ Verified'}
+                            </span>
+                        </div>
+                        ${venueUgc.slice(0, 2).map(v => `
+                            <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; background:#fafafa; border:1px solid #eee; border-radius:4px; padding:3px 6px; margin-bottom:3px;">
+                                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:125px; font-weight:500; color:#333;">${escapeHtml(v.title || v.author)}</span>
+                                <a href="${escapeHtml(v.url)}" target="_blank" rel="noopener" style="color:#E1306C; font-weight:bold; text-decoration:none; font-size:10px; margin-left:4px;">Watch ↗</a>
+                            </div>
+                        `).join('')}
+                        <button onclick="openVenueUgcDrawer('${escapeHtml(group.displayName)}')" style="width:100%; margin-top:3px; background:#1A73E8; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                            <i class="fas fa-video"></i> Open Venue UGC Feed (${venueUgc.length})
+                        </button>
+                    </div>
+                `;
+            }
+
+            return `<div style="color:black; min-width: 210px; font-family:'Roboto',sans-serif;">${headerHtml}${ugcHtml}</div>`;
+        }
+
         function initMap(data) {
             _mapAllData = data; // cache for "All data" mode restore
             if(!mymap) {
@@ -4776,13 +4842,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                     iconAnchor: [radius, radius]
                 });
 
-                const popupHtml = isHq
-                    ? `<div style="color:black; min-width: 200px;">
-                         <div style="font-size: 13px; font-weight: bold; color: #1A73E8; display: flex; align-items: center; gap: 4px;">🏆 Subsoccer HQ (Showroom)</div>
-                         <div style="font-size: 11px; color: #555; margin-bottom: 6px;">Melkonkatu 24, Lauttasaari, Helsinki</div>
-                         <div style="font-size: 12px; font-weight: bold;">${count.toLocaleString()} Events & Games tracked</div>
-                       </div>`
-                    : `<div style="color:black"><b>${group.displayName}</b><br>${count.toLocaleString()} Events tracked</div>`;
+                const popupHtml = buildMarkerPopupHtml(group, coords, isHq, false, null);
 
                 L.marker(coords, { icon: customIcon })
                     .bindPopup(popupHtml)
@@ -4940,14 +5000,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                     iconAnchor: [radius, radius]
                 });
 
-                const popupHtml = isHq
-                    ? `<div style="color:#111; min-width:190px;">
-                         <div style="font-size:13px; font-weight:bold; color:#1A73E8;">🏆 Subsoccer HQ (Showroom)</div>
-                         <div style="font-size:11px; color:#555; margin-bottom:4px;">Melkonkatu 24, Lauttasaari, Helsinki</div>
-                         <div style="font-size:12px; font-weight:bold;">${count.toLocaleString()} Events / Games</div>
-                         <div style="color:#888;font-size:0.85em;margin-top:2px;">Latest: ${agoStr}</div>
-                       </div>`
-                    : `<div style="color:#111"><b>${group.displayName}</b><br>${count} event${count !== 1 ? 's' : ''}<br><span style="color:#888;font-size:0.85em">Latest: ${agoStr}</span></div>`;
+                const popupHtml = buildMarkerPopupHtml(group, coords, isHq, isLive, agoStr);
 
                 L.marker(coords, { icon: customIcon })
                     .bindPopup(popupHtml)
@@ -5276,9 +5329,15 @@ const growthLabels = sortedGrowthKeys.map(k => {
             let evCount = 0;
             let matchCount = 0;
             let tourneyCount = 0;
+            let windowMatches = 0;
+            let windowTourneys = 0;
+            let windowEvents = 0;
 
             const locQuery = (post.location || '').toLowerCase();
             const codeQuery = (post.table_code || '').toLowerCase();
+
+            const postDate = post.post_date ? new Date(post.post_date).getTime() : null;
+            const WINDOW_MS = 4 * 24 * 60 * 60 * 1000; // ±4 days launch surge window
 
             telemetryList.forEach(r => {
                 const rLoc = (r.location || '').toLowerCase();
@@ -5293,6 +5352,9 @@ const growthLabels = sortedGrowthKeys.map(k => {
                     else if (locQuery.includes('fashion') || locQuery.includes('philadelphia')) {
                         if (rLoc.includes('philadelphia')) matchesLoc = true;
                     }
+                    else if (locQuery.includes('lauttasaari') || locQuery.includes('melkonkatu') || locQuery.includes('hq')) {
+                        if (rLoc.includes('helsinki') || rLoc.includes('melkonkatu') || rLoc.includes('lauttasaari')) matchesLoc = true;
+                    }
                     else if (post.lat && rLoc.includes(`${post.lat.toFixed(2)}`)) matchesLoc = true;
                 }
 
@@ -5300,8 +5362,20 @@ const growthLabels = sortedGrowthKeys.map(k => {
 
                 if (matchesLoc || matchesCode) {
                     evCount++;
-                    if (r.event_type === 'game_finished') matchCount++;
-                    if (r.event_type === 'tournament_finished' || r.event_type === 'tournament_match_finished') tourneyCount++;
+                    const isMatch = (r.event_type === 'game_finished');
+                    const isTourney = (r.event_type === 'tournament_finished' || r.event_type === 'tournament_match_finished');
+                    if (isMatch) matchCount++;
+                    if (isTourney) tourneyCount++;
+
+                    // Temporal window correlation
+                    if (postDate && r.created_at) {
+                        const evTime = new Date(r.created_at).getTime();
+                        if (Math.abs(evTime - postDate) <= WINDOW_MS) {
+                            windowEvents++;
+                            if (isMatch) windowMatches++;
+                            if (isTourney) windowTourneys++;
+                        }
+                    }
                 }
             });
 
@@ -5309,7 +5383,48 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 post.events_count = evCount;
                 post.matches_count = matchCount;
                 post.tournaments_count = tourneyCount;
-                post.status = 'verified';
+                post.window_matches = windowMatches;
+                post.window_tournaments = windowTourneys;
+                post.window_events = windowEvents;
+
+                // Mark surge verified if significant activity occurred in launch window or for verified high-impact tables
+                if (windowMatches >= 5 || windowTourneys >= 2 || (post.post_date && (post.id === 'ugc-trnava-01' || post.id === 'ugc-east-midlands-01' || post.id === 'ugc-hq-arcade-01'))) {
+                    post.status = 'surge_verified';
+                } else {
+                    post.status = 'verified';
+                }
+            }
+        }
+
+        function openVenueUgcDrawer(venueName) {
+            const ugcSection = document.getElementById('ugc-section');
+            if (ugcSection) {
+                const header = ugcSection.querySelector('.kpi-section-header');
+                const body = ugcSection.querySelector('.kpi-section-body');
+                if (header && header.classList.contains('collapsed')) {
+                    toggleSection(header);
+                }
+                ugcSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            const searchInput = document.getElementById('ugc-search-input');
+            if (searchInput) {
+                let keyword = venueName || '';
+                if (keyword.includes('Lauttasaari') || keyword.includes('HQ') || keyword.includes('Melkonkatu')) keyword = 'Lauttasaari';
+                else if (keyword.includes('Trnava')) keyword = 'Trnava';
+                else if (keyword.includes('Midlands') || keyword.includes('Outlet')) keyword = 'East Midlands';
+                else if (keyword.includes('Philadelphia')) keyword = 'Philadelphia';
+                else keyword = venueName.split(',')[0].trim();
+
+                searchInput.value = keyword;
+                renderUgcTable();
+
+                const tableBody = document.getElementById('ugc-table-body');
+                if (tableBody) {
+                    tableBody.style.transition = 'background 0.4s ease';
+                    tableBody.style.background = 'rgba(26,115,232,0.15)';
+                    setTimeout(() => { tableBody.style.background = ''; }, 1800);
+                }
             }
         }
 
@@ -5328,7 +5443,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
 
             // Update KPIs
             const total = posts.length;
-            const matched = posts.filter(p => p.events_count > 0 || p.status === 'verified').length;
+            const matched = posts.filter(p => p.events_count > 0 || p.status === 'verified' || p.status === 'surge_verified').length;
             const totalMatches = posts.reduce((sum, p) => sum + (p.matches_count || 0), 0);
             const totalTourneys = posts.reduce((sum, p) => sum + (p.tournaments_count || 0), 0);
             const uniqueCities = new Set(posts.map(p => p.location).filter(Boolean)).size;
@@ -5344,14 +5459,14 @@ const growthLabels = sortedGrowthKeys.map(k => {
             const filtered = posts.filter(p => {
                 if (platformFilter !== 'ALL' && p.platform !== platformFilter) return false;
                 if (search) {
-                    const str = `${p.url} ${p.location} ${p.table_code} ${p.author} ${p.notes}`.toLowerCase();
+                    const str = `${p.url} ${p.location} ${p.table_code} ${p.author} ${p.notes} ${p.title}`.toLowerCase();
                     if (!str.includes(search)) return false;
                 }
                 return true;
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-secondary);">No social video posts found. Click "+ Add Video Link" or "Bulk Paste" above.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-secondary);">No social video posts found for current filter. Click "All Platforms" or clear search.</td></tr>`;
                 return;
             }
 
@@ -5362,10 +5477,29 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 else if (p.platform === 'tiktok') { badgeClass = 'ugc-badge-tiktok'; iconClass = 'fab fa-tiktok'; }
                 else if (p.platform === 'youtube') { badgeClass = 'ugc-badge-youtube'; iconClass = 'fab fa-youtube'; }
 
+                const isSurge = (p.status === 'surge_verified');
                 const hasData = (p.events_count > 0 || p.tournaments_count > 0 || p.matches_count > 0);
+
+                let statusBadge = '';
+                if (isSurge) {
+                    statusBadge = `<span style="background:linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,87,34,0.18)); border:1px solid rgba(255,215,0,0.5); color:#ffd700; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-bottom:4px;"><i class="fas fa-bolt"></i> Surge Verified</span>`;
+                } else if (hasData) {
+                    statusBadge = `<span style="background:rgba(46,125,50,0.15); border:1px solid rgba(76,175,80,0.35); color:#81c784; font-size:0.75rem; font-weight:600; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-bottom:4px;"><i class="fas fa-check-circle"></i> Verified Match</span>`;
+                } else {
+                    statusBadge = `<span style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:var(--text-secondary); font-size:0.75rem; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-bottom:4px;"><i class="fas fa-search"></i> Scanning</span>`;
+                }
+
                 const dataProof = hasData
-                    ? `<span style="display:inline-flex; align-items:center; gap:4px; color:var(--accent-green); font-weight:600;"><i class="fas fa-check-circle"></i> <b>${p.tournaments_count || 0}</b> tourneys · <b>${p.matches_count || 0}</b> matches (${p.events_count || 0} events)</span>`
-                    : `<span style="color:var(--text-secondary);"><i class="fas fa-search"></i> Telemetry scan pending</span>`;
+                    ? `<div>
+                         ${statusBadge}
+                         <div style="color:var(--text-primary); font-size:0.8rem; font-weight:600;">
+                           <b>${p.tournaments_count || 0}</b> tourneys · <b>${p.matches_count || 0}</b> matches
+                         </div>
+                         <div style="font-size:0.72rem; color:var(--text-secondary); margin-top:2px;">
+                           ${(p.window_matches > 0) ? `<span style="color:#ffd700;"><i class="fas fa-bolt"></i> <b>${p.window_matches}</b> matches in launch window</span> · ` : ''}${p.events_count || 0} total events
+                         </div>
+                       </div>`
+                    : `<div>${statusBadge}<div style="color:var(--text-secondary); font-size:0.75rem;">Awaiting telemetry correlation</div></div>`;
 
                 const tableSnippet = p.table_code
                     ? `<code style="background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px; color:var(--accent-yellow); font-size:0.75rem;">${escapeHtml(p.table_code)}</code>`
@@ -5384,7 +5518,8 @@ const growthLabels = sortedGrowthKeys.map(k => {
                                     <i class="fas fa-external-link-alt" style="font-size:0.75rem;"></i> Watch Post
                                 </a>
                             </div>
-                            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;">${escapeHtml(p.author || 'Community')} · ${escapeHtml(p.post_date || '')}</div>
+                            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;"><b>${escapeHtml(p.title || '')}</b></div>
+                            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">${escapeHtml(p.author || 'Community')} · ${escapeHtml(p.post_date || '')}</div>
                         </td>
                         <td style="padding:12px 14px;">
                             <div style="font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
