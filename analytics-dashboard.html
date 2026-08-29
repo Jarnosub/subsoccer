@@ -2043,6 +2043,9 @@
             const city = parsed.city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
 
             if (countryName) {
+                if (city === 'Helsinki' || loc === 'Europe/Helsinki' || (parsed.timezone && parsed.timezone.includes('Helsinki'))) {
+                    return `${countryFlag} Subsoccer HQ (Melkonkatu 24, Lauttasaari)`;
+                }
                 return `${countryFlag} ${countryName} / ${city}`;
             }
             
@@ -4519,7 +4522,7 @@
             // Rough mapping of timezones and cities to coordinates for visual heatmap
             const tzCoords = {
                 // Timezones
-                'Europe/Helsinki': [60.1695, 24.9354], 'Europe/Stockholm': [59.3293, 18.0686],
+                'Europe/Helsinki': [60.1548, 24.8870], 'Europe/Stockholm': [59.3293, 18.0686],
                 'Europe/Oslo': [59.9139, 10.7522], 'Europe/Copenhagen': [55.6761, 12.5683],
                 'Europe/London': [51.5074, -0.1278], 'Europe/Paris': [48.8566, 2.3522],
                 'Europe/Berlin': [52.52, 13.405], 'Europe/Madrid': [40.4168, -3.7038],
@@ -4575,7 +4578,7 @@
                 'Europe/Bracknell': [51.4160, -0.7490], 'Asia/San_Juan': [14.6019, 121.0358],
 
                 // Cities for exact local mapping
-                'Helsinki': [60.1695, 24.9354], 'Espoo': [60.2055, 24.6559], 'Tampere': [61.4978, 23.7610],
+                'Helsinki': [60.1548, 24.8870], 'Lauttasaari': [60.1548, 24.8870], 'Melkonkatu': [60.1548, 24.8870], 'Melkonkatu 24': [60.1548, 24.8870], 'Subsoccer HQ': [60.1548, 24.8870], 'Espoo': [60.2055, 24.6559], 'Tampere': [61.4978, 23.7610],
                 'Vantaa': [60.2934, 25.0408], 'Oulu': [65.0124, 25.4682], 'Turku': [60.4518, 22.2666],
                 'Lahti': [60.9827, 25.6615], 'Kuopio': [62.8924, 27.6770],
                 'London': [51.5074, -0.1278], 'Islington': [51.5465, -0.1058], 'Lambeth': [51.4935, -0.1177],
