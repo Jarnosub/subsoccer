@@ -4654,20 +4654,26 @@ const growthLabels = sortedGrowthKeys.map(k => {
             if (!loc || loc === 'Unknown') return null;
             const parsed = parseLocation(loc);
 
-            // If explicitly other city in Finland (not Helsinki), preserve it
-            if (parsed.city && parsed.city !== 'Helsinki' && parsed.city !== 'Lauttasaari' && parsed.city !== 'Unknown' && tzCoords[parsed.city]) {
-                const coordMatch = loc.match(/\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]/);
-                const coords = coordMatch ? [parseFloat(coordMatch[1]), parseFloat(coordMatch[2])] : tzCoords[parsed.city];
-                return { coords, isHq: false, displayName: getDisplayLocation(loc) };
+            // Priority 1: If location has explicit embedded [lat,lng] coordinates, respect them exactly!
+            const coordMatch = loc.match(/\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]/);
+            if (coordMatch) {
+                const lat = parseFloat(coordMatch[1]);
+                const lng = parseFloat(coordMatch[2]);
+                const isExactHq = (Math.abs(lat - 60.1548) < 0.005 && Math.abs(lng - 24.8870) < 0.005) ||
+                                  loc.includes('Melkonkatu') || loc.includes('Lauttasaari') || loc.includes('Subsoccer HQ');
+                return {
+                    coords: [lat, lng],
+                    isHq: isExactHq,
+                    displayName: isExactHq ? '🏆 Subsoccer HQ (Melkonkatu 24, Lauttasaari)' : getDisplayLocation(loc)
+                };
             }
 
-            // Check if this location is Subsoccer HQ / Helsinki / Finland generic
+            // Priority 2: Check if explicitly Subsoccer HQ / Helsinki generic main hub (the big games pool)
             const isHq = (
                 loc === 'Europe/Helsinki' ||
                 loc === 'FI (Europe/Helsinki)' ||
                 loc === 'Helsinki' ||
-                loc.startsWith('Helsinki') ||
-                loc.startsWith('FI (Europe/Helsinki)') ||
+                loc.startsWith('Helsinki, FI (Europe/Helsinki)') ||
                 parsed.city === 'Helsinki' ||
                 parsed.city === 'Lauttasaari' ||
                 loc.includes('Lauttasaari') ||
@@ -4683,28 +4689,8 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 };
             }
 
-            // Priority 1: embedded [lat,lng]
-            let coords = null;
-            const coordMatch = loc.match(/\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]/);
-            if (coordMatch) {
-                const lat = parseFloat(coordMatch[1]);
-                const lng = parseFloat(coordMatch[2]);
-                // If coordinates land in central Helsinki area and country is Finland, snap to Subsoccer HQ
-                if (lat >= 60.13 && lat <= 60.25 && lng >= 24.84 && lng <= 25.05 && (parsed.countryCode === 'FI' || parsed.timezone === 'Europe/Helsinki')) {
-                    return {
-                        coords: [60.1548, 24.8870],
-                        isHq: true,
-                        displayName: '🏆 Subsoccer HQ (Melkonkatu 24, Lauttasaari)'
-                    };
-                }
-                coords = [lat, lng];
-            }
-
-            // Priority 2: tzCoords lookup
-            if (!coords) {
-                coords = tzCoords[loc] || tzCoords[parsed.city] || tzCoords[parsed.timezone] || null;
-            }
-
+            // Priority 3: City / Timezone lookup from tzCoords
+            const coords = tzCoords[loc] || tzCoords[parsed.city] || tzCoords[parsed.timezone] || null;
             if (!coords) return null;
 
             return {
