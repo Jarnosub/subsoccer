@@ -1,6 +1,12 @@
 const https = require('https');
+const { createClient } = require('@supabase/supabase-js');
 
 const UGC_WEBHOOK_SECRET = process.env.UGC_WEBHOOK_SECRET || 'subsoccer-pro-ugc-2026';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
+
+const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -8,6 +14,9 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, x-subsoccer-key, x-api-key, Authorization',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 };
+
+// In-memory ring buffer for recent incoming webhook posts across serverless invocations
+let _RECENT_WEBHOOK_POSTS = [];
 
 const UGC_KNOWN_VENUES = [
   { match: /lauttasaari|melkonkatu|@originalsubsoccer/i, name: 'Subsoccer HQ (Melkonkatu 24, Lauttasaari)', lat: 60.1555, lng: 24.8870, code: 'PUBLIC-APP', isHq: true },
@@ -82,8 +91,48 @@ exports.handler = async function (event) {
     return { statusCode: 204, headers: CORS_HEADERS, body: '' };
   }
 
-  // ─── GET: Health & Status Check ────────────────────────
+  // ─── GET: Health, Status & List Webhook Posts ────────────────────────
   if (event.httpMethod === 'GET') {
+    const action = event.queryStringParameters && event.queryStringParameters.action;
+
+    // Try fetching from Supabase if table exists, otherwise return memory cache
+    let dbPosts = [];
+    try {
+      const { data, error } = await supabase
+        .from('ugc_posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (!error && data) {
+        dbPosts = data;
+      }
+    } catch (e) {
+      // Table may not exist yet in Supabase, will use memory cache
+    }
+
+    const combined = [..._RECENT_WEBHOOK_POSTS, ...dbPosts];
+    // Deduplicate by URL
+    const seen = new Set();
+    const uniquePosts = [];
+    for (const p of combined) {
+      if (p && p.url && !seen.has(p.url)) {
+        seen.add(p.url);
+        uniquePosts.push(p);
+      }
+    }
+
+    if (action === 'list') {
+      return {
+        statusCode: 200,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({
+          ok: true,
+          count: uniquePosts.length,
+          posts: uniquePosts
+        })
+      };
+    }
+
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
@@ -93,6 +142,7 @@ exports.handler = async function (event) {
         endpoint: '/.netlify/functions/ugc-webhook',
         supported_platforms: ['instagram', 'tiktok', 'youtube', 'facebook', 'x'],
         known_venues_count: UGC_KNOWN_VENUES.length,
+        stored_posts_count: uniquePosts.length,
         time: new Date().toISOString()
       })
     };
@@ -148,8 +198,8 @@ exports.handler = async function (event) {
         }
       }
 
-      if (!author) author = '@community';
-      if (!title) title = 'Subsoccer Social Match Highlight';
+      if (!author) author = (platform === 'youtube') ? '@youtube' : (platform === 'tiktok' ? '@tiktok' : '@community');
+      if (!title) title = `${platform.toUpperCase()} Subsoccer Match Clip`;
 
       const combinedText = `${url} ${caption} ${title} ${author}`;
       const matched = matchVenue(combinedText);
@@ -159,7 +209,7 @@ exports.handler = async function (event) {
         url,
         platform,
         author,
-        title: title.split('\n')[0].substring(0, 120),
+        title: title.split('\n')[0].substring(0, 140),
         location: matched ? matched.name : 'Community / Creator Post',
         lat: matched ? matched.lat : null,
         lng: matched ? matched.lng : null,
@@ -172,6 +222,29 @@ exports.handler = async function (event) {
       };
 
       results.push(processedPost);
+      _RECENT_WEBHOOK_POSTS.unshift(processedPost);
+      if (_RECENT_WEBHOOK_POSTS.length > 500) _RECENT_WEBHOOK_POSTS.pop();
+
+      // Try inserting into Supabase ugc_posts table
+      try {
+        await supabase.from('ugc_posts').insert([{
+          post_id: processedPost.id,
+          url: processedPost.url,
+          platform: processedPost.platform,
+          author: processedPost.author,
+          title: processedPost.title,
+          location: processedPost.location,
+          latitude: processedPost.lat,
+          longitude: processedPost.lng,
+          table_code: processedPost.table_code,
+          post_date: processedPost.post_date,
+          status: processedPost.status,
+          source: processedPost.source,
+          notes: processedPost.notes
+        }]);
+      } catch (dbErr) {
+        // Safe failover if table doesn't exist
+      }
     }
 
     return {

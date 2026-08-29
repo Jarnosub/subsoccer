@@ -8110,6 +8110,48 @@ const growthLabels = sortedGrowthKeys.map(k => {
         "post_date": "2026-08-25",
         "status": "pending",
         "notes": "Organic community highlight."
+    },
+    {
+        "id": "ugc-yt-0cknavphttk",
+        "url": "https://www.youtube.com/watch?v=0CknAVPhTtk",
+        "platform": "youtube",
+        "author": "@SubSpain",
+        "title": "SubSpain Games presents SUBSOCCER 7 Championship",
+        "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+        "lat": 60.1555,
+        "lng": 24.8870,
+        "table_code": "PUBLIC-APP",
+        "post_date": "2026-08-29",
+        "status": "surge_verified",
+        "notes": "Official SubSpain championship highlight via YouTube."
+    },
+    {
+        "id": "ugc-yt-official-tourney-1",
+        "url": "https://www.youtube.com/watch?v=9_qfV3_eZ1w",
+        "platform": "youtube",
+        "author": "@SubsoccerOfficial",
+        "title": "Subsoccer World Cup & Pro Tour Highlights",
+        "location": "Mall of Tripla (Pasila, Helsinki)",
+        "lat": 60.1989,
+        "lng": 24.9317,
+        "table_code": "PUBLIC-APP",
+        "post_date": "2026-08-28",
+        "status": "surge_verified",
+        "notes": "Pro Tour match highlight on YouTube."
+    },
+    {
+        "id": "ugc-yt-scotland-1",
+        "url": "https://www.youtube.com/watch?v=kYJqT7L_vM8",
+        "platform": "youtube",
+        "author": "@SuperParkUK",
+        "title": "Subsoccer Arena Action at SuperPark Glasgow",
+        "location": "SuperPark Glasgow, Scotland, UK",
+        "lat": 55.8642,
+        "lng": -4.2518,
+        "table_code": "PUBLIC-APP",
+        "post_date": "2026-08-27",
+        "status": "verified",
+        "notes": "SuperPark Glasgow tournament clip on YouTube."
     }
 ];
 
@@ -9272,9 +9314,36 @@ const growthLabels = sortedGrowthKeys.map(k => {
             document.body.removeChild(link);
         }
 
-        function initUgcIntelligence() {
+        async function initUgcIntelligence() {
             renderUgcTable();
             if (mymap) renderUgcMapMarkers(mymap);
+
+            // Fetch live incoming webhook posts from serverless backend & Supabase
+            try {
+                const res = await fetch('/.netlify/functions/ugc-webhook?action=list');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && Array.isArray(data.posts) && data.posts.length > 0) {
+                        let existing = getUgcPosts();
+                        const existingUrls = new Set(existing.map(p => p.url));
+                        let added = 0;
+                        data.posts.forEach(np => {
+                            if (np && np.url && !existingUrls.has(np.url)) {
+                                existing.unshift(np);
+                                existingUrls.add(np.url);
+                                added++;
+                            }
+                        });
+                        if (added > 0) {
+                            saveUgcPosts(existing);
+                            renderUgcTable();
+                            if (mymap) renderUgcMapMarkers(mymap);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('UGC webhook live sync:', e);
+            }
         }
 
         // ── Registered Players ──
