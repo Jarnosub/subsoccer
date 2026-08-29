@@ -831,6 +831,89 @@
             0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(225, 48, 108, 0.7); }
             50% { transform: scale(1.12); box-shadow: 0 0 20px rgba(253, 29, 29, 0.95); }
         }
+        /* UGC Multi-View & Hub Styles */
+        .ugc-view-tab {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .ugc-view-tab.active {
+            background: linear-gradient(135deg, #E1306C, #FD1D1D);
+            border-color: #E1306C;
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(225,48,108,0.35);
+        }
+        .ugc-hub-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+        .ugc-hub-card:hover {
+            border-color: rgba(225,48,108,0.5);
+        }
+        .ugc-hub-header {
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.02);
+            user-select: none;
+        }
+        .ugc-hub-header:hover {
+            background: rgba(255,255,255,0.04);
+        }
+        .ugc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .ugc-grid-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .ugc-grid-card:hover {
+            transform: translateY(-2px);
+            border-color: #E1306C;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+        }
+        .ugc-cluster-pin {
+            position: relative;
+        }
+        .ugc-cluster-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: #1A73E8;
+            color: #FFFFFF;
+            font-size: 10px;
+            font-weight: 800;
+            border-radius: 10px;
+            padding: 1px 5px;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
         body.theme-ga4 #ugc-add-modal > div,
         body.theme-ga4 #ugc-bulk-modal > div {
             background: #FFFFFF !important;
@@ -1535,22 +1618,23 @@
                     </div>
                 </div>
 
-                <!-- UGC Action Bar -->
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
-                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                        <button onclick="openUgcAddModal()" style="background:#E1306C; color:#fff; border:none; padding:8px 14px; border-radius:6px; font-size:0.85rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                            <i class="fas fa-plus"></i> Add Video Link
+                <!-- UGC Action & View Modes Bar -->
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <button class="ugc-view-tab active" id="ugc-tab-hubs" onclick="setUgcViewMode('hubs')" title="Group videos by Venue / Location Hub">
+                            <i class="fas fa-layer-group"></i> Venue Hubs (<span id="ugc-hubs-count">4</span>)
                         </button>
-                        <button onclick="openUgcBulkModal()" style="background:var(--card-bg); color:var(--text-primary); border:1px solid var(--border-color); padding:8px 14px; border-radius:6px; font-size:0.85rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                            <i class="fas fa-paste"></i> Bulk Paste (Multi-line)
+                        <button class="ugc-view-tab" id="ugc-tab-grid" onclick="setUgcViewMode('grid')" title="Visual Reel Cards Grid">
+                            <i class="fas fa-th-large"></i> Reels Cards
                         </button>
-                        <button onclick="exportUgcCsv()" style="background:var(--card-bg); color:var(--text-secondary); border:1px solid var(--border-color); padding:8px 12px; border-radius:6px; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                            <i class="fas fa-download"></i> Export CSV
+                        <button class="ugc-view-tab" id="ugc-tab-timeline" onclick="setUgcViewMode('timeline')" title="Detailed Raw Video Timeline">
+                            <i class="fas fa-list"></i> All Videos
                         </button>
                     </div>
-                    <div style="display:flex; gap:8px; align-items:center;">
+
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                         <input type="text" id="ugc-search-input" placeholder="Search city, author, code..." oninput="renderUgcTable()"
-                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 12px; border-radius:4px; font-size:0.8rem; width:210px;">
+                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 12px; border-radius:4px; font-size:0.8rem; width:200px;">
                         <select id="ugc-platform-filter" onchange="renderUgcTable()"
                             style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 10px; border-radius:4px; font-size:0.8rem; cursor:pointer;">
                             <option value="ALL">All Platforms</option>
@@ -1559,25 +1643,21 @@
                             <option value="youtube">YouTube</option>
                             <option value="other">Other</option>
                         </select>
+                        <button onclick="openUgcAddModal()" style="background:#E1306C; color:#fff; border:none; padding:7px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                        <button onclick="openUgcBulkModal()" style="background:var(--card-bg); color:var(--text-primary); border:1px solid var(--border-color); padding:7px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fas fa-paste"></i> Bulk
+                        </button>
+                        <button onclick="exportUgcCsv()" style="background:var(--card-bg); color:var(--text-secondary); border:1px solid var(--border-color); padding:7px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fas fa-download"></i>
+                        </button>
                     </div>
                 </div>
 
-                <!-- UGC Table -->
-                <div style="overflow-x:auto; background:var(--card-bg); border:1px solid var(--border-color); border-radius:6px;">
-                    <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
-                        <thead>
-                            <tr style="background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border-color); color:var(--text-secondary);">
-                                <th style="padding:10px 14px;">Platform & Video</th>
-                                <th style="padding:10px 14px;">Location / City</th>
-                                <th style="padding:10px 14px;">Field Data Match</th>
-                                <th style="padding:10px 14px;">Telemetry Proof</th>
-                                <th style="padding:10px 14px; text-align:right;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ugc-table-body">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                <!-- Dynamic UGC Multi-View Container -->
+                <div id="ugc-view-content">
+                    <!-- Populated dynamically by renderUgcTable() -->
                 </div>
             </div>
         </div>
@@ -5651,35 +5731,72 @@ const growthLabels = sortedGrowthKeys.map(k => {
             }
         }
 
+        let _ugcViewMode = 'hubs'; // 'hubs' | 'grid' | 'timeline'
+        let _ugcExpandedHubs = {};
+        let _ugcCarouselState = {};
+
+        function setUgcViewMode(mode) {
+            _ugcViewMode = mode;
+            ['hubs', 'grid', 'timeline'].forEach(m => {
+                const btn = document.getElementById('ugc-tab-' + m);
+                if (btn) {
+                    if (m === mode) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+            renderUgcTable();
+        }
+
+        function toggleUgcHub(hubKey) {
+            _ugcExpandedHubs[hubKey] = !_ugcExpandedHubs[hubKey];
+            renderUgcTable();
+        }
+
+        function getUgcClusterKey(post) {
+            if (post.lat && post.lng) {
+                return `${post.lat.toFixed(2)},${post.lng.toFixed(2)}`;
+            }
+            return (post.location || 'Global').toLowerCase().trim();
+        }
+
         function openVenueUgcDrawer(venueName) {
             const ugcSection = document.getElementById('ugc-section');
             if (ugcSection) {
                 const header = ugcSection.querySelector('.kpi-section-header');
-                const body = ugcSection.querySelector('.kpi-section-body');
                 if (header && header.classList.contains('collapsed')) {
                     toggleSection(header);
                 }
                 ugcSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
 
+            let keyword = venueName || '';
+            if (keyword.includes('Lauttasaari') || keyword.includes('HQ') || keyword.includes('Melkonkatu')) keyword = 'Lauttasaari';
+            else if (keyword.includes('Trnava')) keyword = 'Trnava';
+            else if (keyword.includes('Midlands') || keyword.includes('Outlet')) keyword = 'East Midlands';
+            else if (keyword.includes('Philadelphia')) keyword = 'Philadelphia';
+            else keyword = venueName.split(',')[0].trim();
+
             const searchInput = document.getElementById('ugc-search-input');
             if (searchInput) {
-                let keyword = venueName || '';
-                if (keyword.includes('Lauttasaari') || keyword.includes('HQ') || keyword.includes('Melkonkatu')) keyword = 'Lauttasaari';
-                else if (keyword.includes('Trnava')) keyword = 'Trnava';
-                else if (keyword.includes('Midlands') || keyword.includes('Outlet')) keyword = 'East Midlands';
-                else if (keyword.includes('Philadelphia')) keyword = 'Philadelphia';
-                else keyword = venueName.split(',')[0].trim();
-
                 searchInput.value = keyword;
-                renderUgcTable();
+            }
 
-                const tableBody = document.getElementById('ugc-table-body');
-                if (tableBody) {
-                    tableBody.style.transition = 'background 0.4s ease';
-                    tableBody.style.background = 'rgba(26,115,232,0.15)';
-                    setTimeout(() => { tableBody.style.background = ''; }, 1800);
+            // Expand hub for this venue
+            const posts = getUgcPosts();
+            posts.forEach(p => {
+                if ((p.location || '').toLowerCase().includes(keyword.toLowerCase())) {
+                    _ugcExpandedHubs[p.location] = true;
                 }
+            });
+
+            // Set to hubs mode so user sees the grouped venue immediately
+            setUgcViewMode('hubs');
+
+            const contentEl = document.getElementById('ugc-view-content');
+            if (contentEl) {
+                contentEl.style.transition = 'background 0.4s ease';
+                contentEl.style.background = 'rgba(225,48,108,0.1)';
+                setTimeout(() => { contentEl.style.background = ''; }, 1800);
             }
         }
 
@@ -5688,30 +5805,101 @@ const growthLabels = sortedGrowthKeys.map(k => {
             let posts = getUgcPosts();
             posts = posts.filter(p => p.id !== id);
             saveUgcPosts(posts);
+            if (mymap && typeof renderUgcMapMarkers === 'function') {
+                renderUgcMapMarkers(mymap);
+            }
         }
+
+        function buildUgcSlideHtml(p, index, total) {
+            const isSurge = (p.status === 'surge_verified');
+            const hasData = (p.events_count > 0 || p.tournaments_count > 0 || p.matches_count > 0);
+            
+            let statusBadge = '';
+            if (isSurge) {
+                statusBadge = `<span style="background:linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,87,34,0.2)); border:1px solid rgba(255,215,0,0.6); color:#b8860b; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-bolt"></i> Surge Verified</span>`;
+            } else if (hasData) {
+                statusBadge = `<span style="background:rgba(46,125,50,0.15); border:1px solid rgba(76,175,80,0.4); color:#2e7d32; font-size:10px; font-weight:600; padding:1px 6px; border-radius:10px; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-check-circle"></i> Verified</span>`;
+            }
+
+            return `
+                <div style="background:#f8f9fa; border:1px solid #e0e0e0; border-radius:6px; padding:8px 10px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="ugc-badge-${p.platform || 'instagram'}"><i class="fab fa-${p.platform || 'instagram'}"></i> ${p.platform || 'Instagram'}</span>
+                        <span style="font-size:11px; color:#666;">${escapeHtml(p.post_date || '')}</span>
+                    </div>
+                    <div style="font-weight:700; font-size:13px; color:#111; line-height:1.3; margin-bottom:4px;">
+                        ${escapeHtml(p.title || 'Subsoccer Video Post')}
+                    </div>
+                    <div style="font-size:11px; color:#555; display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                        <span>${escapeHtml(p.author || 'Community')}</span>
+                        ${statusBadge}
+                    </div>
+                    <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="display:block; text-align:center; background:#E1306C; color:#fff; padding:6px 10px; border-radius:4px; font-size:11px; font-weight:700; text-decoration:none; box-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                        <i class="fas fa-play" style="margin-right:4px;"></i> Watch Reel ↗
+                    </a>
+                </div>
+            `;
+        }
+
+        window.stepUgcCarousel = function(clusterKey, delta) {
+            const posts = getUgcPosts();
+            const clusterPosts = posts.filter(p => getUgcClusterKey(p) === clusterKey);
+            if (!clusterPosts || clusterPosts.length === 0) return;
+
+            let cur = _ugcCarouselState[clusterKey] || 0;
+            cur = (cur + delta + clusterPosts.length) % clusterPosts.length;
+            _ugcCarouselState[clusterKey] = cur;
+
+            const cardEl = document.getElementById('ugc-popup-card-' + clusterKey.replace(/[^a-zA-Z0-9]/g, '_'));
+            const counterEl = document.getElementById('ugc-popup-counter-' + clusterKey.replace(/[^a-zA-Z0-9]/g, '_'));
+            if (cardEl && counterEl) {
+                counterEl.textContent = `${cur + 1} / ${clusterPosts.length}`;
+                cardEl.innerHTML = buildUgcSlideHtml(clusterPosts[cur], cur, clusterPosts.length);
+            }
+        };
 
         function renderUgcTable() {
             const posts = getUgcPosts();
-            const tbody = document.getElementById('ugc-table-body');
+            const container = document.getElementById('ugc-view-content');
             const search = (document.getElementById('ugc-search-input')?.value || '').toLowerCase();
             const platformFilter = document.getElementById('ugc-platform-filter')?.value || 'ALL';
 
-            // Update KPIs
+            // Group posts by venue
+            const venueGroups = {};
+            posts.forEach(p => {
+                const loc = p.location || 'Global';
+                if (!venueGroups[loc]) {
+                    venueGroups[loc] = {
+                        location: loc,
+                        lat: p.lat,
+                        lng: p.lng,
+                        table_code: p.table_code,
+                        posts: [],
+                        matches_count: p.matches_count || 0,
+                        tournaments_count: p.tournaments_count || 0,
+                        events_count: p.events_count || 0,
+                        status: p.status || 'verified'
+                    };
+                }
+                venueGroups[loc].posts.push(p);
+            });
+
             const total = posts.length;
             const matched = posts.filter(p => p.events_count > 0 || p.status === 'verified' || p.status === 'surge_verified').length;
-            const totalMatches = posts.reduce((sum, p) => sum + (p.matches_count || 0), 0);
-            const totalTourneys = posts.reduce((sum, p) => sum + (p.tournaments_count || 0), 0);
-            const uniqueCities = new Set(posts.map(p => p.location).filter(Boolean)).size;
+            const totalMatches = Object.values(venueGroups).reduce((sum, g) => sum + (g.matches_count || 0), 0);
+            const totalTourneys = Object.values(venueGroups).reduce((sum, g) => sum + (g.tournaments_count || 0), 0);
+            const uniqueCities = Object.keys(venueGroups).length;
 
-            if (document.getElementById('ugc-count-badge')) document.getElementById('ugc-count-badge').textContent = `${total} Post${total !== 1 ? 's' : ''}`;
+            if (document.getElementById('ugc-count-badge')) document.getElementById('ugc-count-badge').textContent = `${total} Videos (${uniqueCities} Hubs)`;
             if (document.getElementById('ugc-kpi-total')) document.getElementById('ugc-kpi-total').textContent = total.toLocaleString();
             if (document.getElementById('ugc-kpi-matched')) document.getElementById('ugc-kpi-matched').textContent = total > 0 ? `${Math.round((matched/total)*100)}%` : '0%';
             if (document.getElementById('ugc-kpi-matches')) document.getElementById('ugc-kpi-matches').textContent = `${totalTourneys} / ${totalMatches}`;
             if (document.getElementById('ugc-kpi-cities')) document.getElementById('ugc-kpi-cities').textContent = uniqueCities.toLocaleString();
+            if (document.getElementById('ugc-hubs-count')) document.getElementById('ugc-hubs-count').textContent = uniqueCities;
 
-            if (!tbody) return;
+            if (!container) return;
 
-            const filtered = posts.filter(p => {
+            const filteredPosts = posts.filter(p => {
                 if (platformFilter !== 'ALL' && p.platform !== platformFilter) return false;
                 if (search) {
                     const str = `${p.url} ${p.location} ${p.table_code} ${p.author} ${p.notes} ${p.title}`.toLowerCase();
@@ -5720,86 +5908,215 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 return true;
             });
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-secondary);">No social video posts found for current filter. Click "All Platforms" or clear search.</td></tr>`;
+            if (filteredPosts.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:32px; color:var(--text-secondary); background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px;">No video posts found matching current filters.</div>`;
                 return;
             }
 
-            tbody.innerHTML = filtered.map(p => {
-                let badgeClass = 'ugc-badge-generic';
-                let iconClass = 'fas fa-link';
-                if (p.platform === 'instagram') { badgeClass = 'ugc-badge-instagram'; iconClass = 'fab fa-instagram'; }
-                else if (p.platform === 'tiktok') { badgeClass = 'ugc-badge-tiktok'; iconClass = 'fab fa-tiktok'; }
-                else if (p.platform === 'youtube') { badgeClass = 'ugc-badge-youtube'; iconClass = 'fab fa-youtube'; }
+            // ─── 1. VENUE HUBS VIEW (Default Grouped Accordion) ───
+            if (_ugcViewMode === 'hubs') {
+                const filteredHubs = {};
+                filteredPosts.forEach(p => {
+                    const loc = p.location || 'Global';
+                    if (!filteredHubs[loc]) {
+                        filteredHubs[loc] = {
+                            location: loc,
+                            lat: p.lat,
+                            lng: p.lng,
+                            table_code: p.table_code,
+                            posts: [],
+                            matches_count: p.matches_count || 0,
+                            tournaments_count: p.tournaments_count || 0,
+                            events_count: p.events_count || 0,
+                            status: p.status || 'verified'
+                        };
+                    }
+                    filteredHubs[loc].posts.push(p);
+                });
 
-                const isSurge = (p.status === 'surge_verified');
-                const hasData = (p.events_count > 0 || p.tournaments_count > 0 || p.matches_count > 0);
+                const hubKeys = Object.keys(filteredHubs);
+                container.innerHTML = hubKeys.map(loc => {
+                    const hub = filteredHubs[loc];
+                    const count = hub.posts.length;
+                    const isExpanded = !!_ugcExpandedHubs[loc];
+                    const isSurge = (hub.status === 'surge_verified' || hub.posts.some(p => p.status === 'surge_verified'));
 
-                let statusBadge = '';
-                if (isSurge) {
-                    statusBadge = `<span style="background:linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,87,34,0.18)); border:1px solid rgba(255,215,0,0.5); color:#ffd700; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-bottom:4px;"><i class="fas fa-bolt"></i> Surge Verified</span>`;
-                } else if (hasData) {
-                    statusBadge = `<span style="background:rgba(46,125,50,0.15); border:1px solid rgba(76,175,80,0.35); color:#81c784; font-size:0.75rem; font-weight:600; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-bottom:4px;"><i class="fas fa-check-circle"></i> Verified Match</span>`;
-                } else {
-                    statusBadge = `<span style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:var(--text-secondary); font-size:0.75rem; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-bottom:4px;"><i class="fas fa-search"></i> Scanning</span>`;
-                }
+                    const surgePill = isSurge
+                        ? `<span style="background:linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,87,34,0.18)); border:1px solid rgba(255,215,0,0.5); color:#ffd700; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-bolt"></i> Surge Verified</span>`
+                        : `<span style="background:rgba(46,125,50,0.15); border:1px solid rgba(76,175,80,0.35); color:#81c784; font-size:0.75rem; font-weight:600; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-check-circle"></i> Verified Hub</span>`;
 
-                const dataProof = hasData
-                    ? `<div>
-                         ${statusBadge}
-                         <div style="color:var(--text-primary); font-size:0.8rem; font-weight:600;">
-                           <b>${p.tournaments_count || 0}</b> tourneys · <b>${p.matches_count || 0}</b> matches
-                         </div>
-                         <div style="font-size:0.72rem; color:var(--text-secondary); margin-top:2px;">
-                           ${(p.window_matches > 0) ? `<span style="color:#ffd700;"><i class="fas fa-bolt"></i> <b>${p.window_matches}</b> matches in launch window</span> · ` : ''}${p.events_count || 0} total events
-                         </div>
-                       </div>`
-                    : `<div>${statusBadge}<div style="color:var(--text-secondary); font-size:0.75rem;">Awaiting telemetry correlation</div></div>`;
+                    const mapBtn = (hub.lat && hub.lng)
+                        ? `<button onclick="event.stopPropagation(); focusUgcOnMap(${hub.lat}, ${hub.lng}, '${hub.posts[0].id}')" title="Pan and view on Map" style="background:rgba(26,115,232,0.15); border:1px solid rgba(26,115,232,0.4); color:#4da3ff; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem; display:inline-flex; align-items:center; gap:5px;"><i class="fas fa-map-pin"></i> View on Map</button>`
+                        : ``;
 
-                const tableSnippet = p.table_code
-                    ? `<code style="background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px; color:var(--accent-yellow); font-size:0.75rem;">${escapeHtml(p.table_code)}</code>`
-                    : `<span style="color:var(--text-secondary); font-size:0.75rem;">Public / Unknown</span>`;
+                    const nestedListHtml = isExpanded
+                        ? `<div style="border-top:1px solid var(--border-color); background:rgba(0,0,0,0.15); padding:10px 16px;">
+                             <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Linked Videos at this Venue (${count}):</div>
+                             <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:10px;">
+                               ${hub.posts.map(p => `
+                                 <div style="background:var(--bg-base); border:1px solid var(--border-color); border-radius:6px; padding:10px; display:flex; flex-direction:column; justify-content:space-between; gap:6px;">
+                                    <div>
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                            <span class="ugc-badge-${p.platform || 'instagram'}"><i class="fab fa-${p.platform || 'instagram'}"></i> ${p.platform}</span>
+                                            <span style="font-size:0.7rem; color:var(--text-secondary);">${escapeHtml(p.post_date || '')}</span>
+                                        </div>
+                                        <div style="font-size:0.8rem; font-weight:700; color:var(--text-primary); margin-bottom:2px; line-height:1.3;">
+                                            ${escapeHtml(p.title || 'Match Video')}
+                                        </div>
+                                        <div style="font-size:0.72rem; color:var(--text-secondary);">${escapeHtml(p.author || 'Community')}</div>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-top:6px; border-top:1px dashed var(--border-color);">
+                                        <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="background:#E1306C; color:#fff; font-size:0.75rem; font-weight:600; padding:4px 8px; border-radius:4px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                            <i class="fas fa-play" style="font-size:0.65rem;"></i> Watch Post ↗
+                                        </a>
+                                        <div style="display:flex; gap:4px;">
+                                            <button onclick="openUgcEditModal('${p.id}')" title="Edit post" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.8rem; padding:2px 4px;"><i class="fas fa-edit"></i></button>
+                                            <button onclick="deleteUgcPost('${p.id}')" title="Delete post" style="background:none; border:none; color:var(--accent-red); cursor:pointer; font-size:0.8rem; padding:2px 4px;"><i class="fas fa-trash-alt"></i></button>
+                                        </div>
+                                    </div>
+                                 </div>
+                               `).join('')}
+                             </div>
+                           </div>`
+                        : ``;
 
-                const mapBtn = (p.lat && p.lng)
-                    ? `<button onclick="focusUgcOnMap(${p.lat}, ${p.lng}, '${p.id}')" title="Pan and highlight on Map" style="background:rgba(26,115,232,0.15); border:1px solid rgba(26,115,232,0.4); color:#4da3ff; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-map-pin"></i> Pin</button>`
-                    : ``;
-
-                return `
-                    <tr style="border-bottom:1px solid var(--border-color);">
-                        <td style="padding:12px 14px;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <span class="${badgeClass}"><i class="${iconClass}"></i> ${escapeHtml(p.platform)}</span>
-                                <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="color:var(--accent-blue); text-decoration:none; font-weight:600; font-size:0.85rem;" title="Open original video">
-                                    <i class="fas fa-external-link-alt" style="font-size:0.75rem;"></i> Watch Post
-                                </a>
+                    return `
+                        <div class="ugc-hub-card">
+                            <div class="ugc-hub-header" onclick="toggleUgcHub('${escapeHtml(loc)}')">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="font-size:1.1rem; color:#E1306C;"><i class="fas fa-map-marker-alt"></i></div>
+                                    <div>
+                                        <div style="font-weight:700; font-size:0.95rem; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                                            ${escapeHtml(loc)}
+                                            <span style="background:rgba(225,48,108,0.2); color:#ff4d80; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:10px; border:1px solid rgba(225,48,108,0.4);">
+                                                🎬 ${count} Video${count !== 1 ? 's' : ''}
+                                            </span>
+                                        </div>
+                                        <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">
+                                            Table: <code style="color:var(--accent-yellow);">${escapeHtml(hub.table_code || 'PUBLIC-APP')}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <div style="text-align:right;">
+                                        ${surgePill}
+                                        <div style="font-size:0.75rem; color:var(--text-primary); font-weight:600; margin-top:2px;">
+                                            🏆 <b>${hub.tournaments_count}</b> tourneys · ⚽ <b>${hub.matches_count}</b> matches (${hub.events_count} events)
+                                        </div>
+                                    </div>
+                                    ${mapBtn}
+                                    <div style="font-size:0.85rem; color:var(--text-secondary); width:20px; text-align:center;">
+                                        <i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}"></i>
+                                    </div>
+                                </div>
                             </div>
-                            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;"><b>${escapeHtml(p.title || '')}</b></div>
-                            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">${escapeHtml(p.author || 'Community')} · ${escapeHtml(p.post_date || '')}</div>
-                        </td>
-                        <td style="padding:12px 14px;">
-                            <div style="font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
-                                <i class="fas fa-map-marker-alt" style="color:#E1306C; font-size:0.8rem;"></i> ${escapeHtml(p.location || 'Global')}
-                            </div>
-                            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">Table: ${tableSnippet}</div>
-                        </td>
-                        <td style="padding:12px 14px;">
-                            ${dataProof}
-                        </td>
-                        <td style="padding:12px 14px; font-size:0.75rem; color:var(--text-secondary); max-width:220px;">
-                            ${escapeHtml(p.notes || (hasData ? 'Verified active game table.' : 'Organic social video.'))}
-                        </td>
-                        <td style="padding:12px 14px; text-align:right; white-space:nowrap;">
-                            ${mapBtn}
-                            <button onclick="openUgcEditModal('${p.id}')" title="Edit post" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.85rem; padding:4px 6px;">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="deleteUgcPost('${p.id}')" title="Delete post" style="background:none; border:none; color:var(--accent-red); cursor:pointer; font-size:0.85rem; padding:4px 6px; margin-left:4px;">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </td>
-                    </tr>
+                            ${nestedListHtml}
+                        </div>
+                    `;
+                }).join('');
+                return;
+            }
+
+            // ─── 2. REELS CARDS / GRID VIEW ───
+            if (_ugcViewMode === 'grid') {
+                container.innerHTML = `
+                    <div class="ugc-grid">
+                        ${filteredPosts.map(p => {
+                            const isSurge = (p.status === 'surge_verified');
+                            const hasData = (p.events_count > 0);
+                            const badge = isSurge
+                                ? `<span style="background:linear-gradient(135deg, rgba(255,215,0,0.25), rgba(255,87,34,0.25)); border:1px solid rgba(255,215,0,0.6); color:#ffd700; font-size:0.7rem; font-weight:700; padding:2px 6px; border-radius:10px;"><i class="fas fa-bolt"></i> Surge Verified</span>`
+                                : (hasData ? `<span style="background:rgba(46,125,50,0.2); border:1px solid rgba(76,175,80,0.4); color:#81c784; font-size:0.7rem; font-weight:600; padding:2px 6px; border-radius:10px;"><i class="fas fa-check-circle"></i> Verified</span>` : '');
+
+                            return `
+                                <div class="ugc-grid-card">
+                                    <div>
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                            <span class="ugc-badge-${p.platform || 'instagram'}"><i class="fab fa-${p.platform || 'instagram'}"></i> ${p.platform}</span>
+                                            <span style="font-size:0.75rem; color:var(--text-secondary);">${escapeHtml(p.post_date || '')}</span>
+                                        </div>
+                                        <div style="font-size:0.9rem; font-weight:700; color:var(--text-primary); line-height:1.3; margin-bottom:6px;">
+                                            ${escapeHtml(p.title || 'Subsoccer Post')}
+                                        </div>
+                                        <div style="font-size:0.75rem; color:#E1306C; margin-bottom:6px; display:flex; align-items:center; gap:4px;">
+                                            <i class="fas fa-map-marker-alt"></i> ${escapeHtml(p.location || 'Global')}
+                                        </div>
+                                        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:6px; padding:6px 8px; font-size:0.75rem; color:var(--text-secondary); margin-bottom:6px;">
+                                            ${badge}
+                                            <div style="margin-top:4px; font-weight:600; color:var(--text-primary);">
+                                                🏆 ${p.tournaments_count || 0} tourneys · ⚽ ${p.matches_count || 0} matches
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                                        <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="flex:1; text-align:center; background:#E1306C; color:#fff; font-size:0.8rem; font-weight:600; padding:6px 10px; border-radius:4px; text-decoration:none;">
+                                            <i class="fas fa-play" style="font-size:0.7rem; margin-right:4px;"></i> Watch Reel
+                                        </a>
+                                        ${p.lat && p.lng ? `<button onclick="focusUgcOnMap(${p.lat}, ${p.lng}, '${p.id}')" title="Pin on Map" style="background:rgba(26,115,232,0.15); border:1px solid rgba(26,115,232,0.4); color:#4da3ff; padding:6px 8px; border-radius:4px; cursor:pointer;"><i class="fas fa-map-pin"></i></button>` : ''}
+                                        <button onclick="deleteUgcPost('${p.id}')" title="Delete" style="background:none; border:none; color:var(--accent-red); cursor:pointer; padding:6px 4px;"><i class="fas fa-trash-alt"></i></button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 `;
-            }).join('');
+                return;
+            }
+
+            // ─── 3. RAW TIMELINE / TABLE VIEW ───
+            container.innerHTML = `
+                <div style="overflow-x:auto; background:var(--card-bg); border:1px solid var(--border-color); border-radius:6px;">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+                        <thead>
+                            <tr style="background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border-color); color:var(--text-secondary);">
+                                <th style="padding:10px 14px;">Platform & Video</th>
+                                <th style="padding:10px 14px;">Location / City</th>
+                                <th style="padding:10px 14px;">Field Data Match</th>
+                                <th style="padding:10px 14px;">Telemetry Proof</th>
+                                <th style="padding:10px 14px; text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredPosts.map(p => {
+                                const isSurge = (p.status === 'surge_verified');
+                                const hasData = (p.events_count > 0);
+                                const statusBadge = isSurge
+                                    ? `<span style="background:linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,87,34,0.18)); border:1px solid rgba(255,215,0,0.5); color:#ffd700; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-bolt"></i> Surge Verified</span>`
+                                    : (hasData ? `<span style="background:rgba(46,125,50,0.15); border:1px solid rgba(76,175,80,0.35); color:#81c784; font-size:0.75rem; font-weight:600; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-check-circle"></i> Verified Match</span>` : '');
+
+                                return `
+                                    <tr style="border-bottom:1px solid var(--border-color);">
+                                        <td style="padding:10px 14px;">
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <span class="ugc-badge-${p.platform || 'instagram'}"><i class="fab fa-${p.platform || 'instagram'}"></i> ${escapeHtml(p.platform)}</span>
+                                                <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="color:var(--accent-blue); text-decoration:none; font-weight:600; font-size:0.85rem;">Watch Post ↗</a>
+                                            </div>
+                                            <div style="font-size:0.75rem; font-weight:600; color:var(--text-primary); margin-top:3px;">${escapeHtml(p.title || '')}</div>
+                                            <div style="font-size:0.7rem; color:var(--text-secondary);">${escapeHtml(p.author || 'Community')} · ${escapeHtml(p.post_date || '')}</div>
+                                        </td>
+                                        <td style="padding:10px 14px;">
+                                            <div style="font-weight:600; color:var(--text-primary);"><i class="fas fa-map-marker-alt" style="color:#E1306C; font-size:0.8rem;"></i> ${escapeHtml(p.location || 'Global')}</div>
+                                            <div style="font-size:0.72rem; color:var(--text-secondary);">Table: <code style="color:var(--accent-yellow);">${escapeHtml(p.table_code || 'PUBLIC-APP')}</code></div>
+                                        </td>
+                                        <td style="padding:10px 14px;">
+                                            ${statusBadge}
+                                            <div style="font-size:0.75rem; color:var(--text-primary); font-weight:600; margin-top:2px;"><b>${p.tournaments_count || 0}</b> tourneys · <b>${p.matches_count || 0}</b> matches</div>
+                                        </td>
+                                        <td style="padding:10px 14px; font-size:0.75rem; color:var(--text-secondary); max-width:200px;">
+                                            ${escapeHtml(p.notes || 'Verified active table.')}
+                                        </td>
+                                        <td style="padding:10px 14px; text-align:right; white-space:nowrap;">
+                                            ${p.lat && p.lng ? `<button onclick="focusUgcOnMap(${p.lat}, ${p.lng}, '${p.id}')" title="Pin on Map" style="background:rgba(26,115,232,0.15); border:1px solid rgba(26,115,232,0.4); color:#4da3ff; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;"><i class="fas fa-map-pin"></i></button>` : ''}
+                                            <button onclick="openUgcEditModal('${p.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; padding:4px;"><i class="fas fa-edit"></i></button>
+                                            <button onclick="deleteUgcPost('${p.id}')" style="background:none; border:none; color:var(--accent-red); cursor:pointer; padding:4px;"><i class="fas fa-trash-alt"></i></button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
         }
 
         function renderUgcMapMarkers(mapInstance) {
@@ -5812,41 +6129,84 @@ const growthLabels = sortedGrowthKeys.map(k => {
             _ugcMarkers = [];
 
             const posts = getUgcPosts();
+            
+            // Cluster posts by location coordinates
+            const clusters = {};
             posts.forEach(p => {
                 if (!p.lat || !p.lng) return;
+                const cKey = getUgcClusterKey(p);
+                if (!clusters[cKey]) {
+                    clusters[cKey] = {
+                        key: cKey,
+                        location: p.location,
+                        lat: p.lat,
+                        lng: p.lng,
+                        posts: [],
+                        table_code: p.table_code,
+                        tournaments_count: p.tournaments_count || 0,
+                        matches_count: p.matches_count || 0,
+                        events_count: p.events_count || 0
+                    };
+                }
+                clusters[cKey].posts.push(p);
+            });
+
+            Object.values(clusters).forEach(cluster => {
+                const count = cluster.posts.length;
+                const cKeySafe = cluster.key.replace(/[^a-zA-Z0-9]/g, '_');
+                const initialIndex = _ugcCarouselState[cluster.key] || 0;
+                const activePost = cluster.posts[initialIndex] || cluster.posts[0];
+
+                const iconHtml = count > 1
+                    ? `<div class="ugc-map-pin ugc-cluster-pin" title="🎬 ${count} Videos at ${escapeHtml(cluster.location)}">
+                         🎬 <span class="ugc-cluster-badge">${count}</span>
+                       </div>`
+                    : `<div class="ugc-map-pin" title="🎬 Video at ${escapeHtml(cluster.location)}">🎬</div>`;
 
                 const customPin = L.divIcon({
-                    html: `<div class="ugc-map-pin" title="🎬 Video Post: ${escapeHtml(p.location)}">🎬</div>`,
+                    html: iconHtml,
                     className: 'custom-ugc-icon',
-                    iconSize: [32, 32],
-                    iconAnchor: [16, 16]
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 17]
                 });
 
+                const carouselNav = count > 1
+                    ? `<div style="display:flex; justify-content:space-between; align-items:center; background:#e8eaed; padding:4px 8px; border-radius:4px; margin-bottom:8px; font-size:11px;">
+                         <button onclick="stepUgcCarousel('${cluster.key}', -1)" style="background:#fff; border:1px solid #ccc; border-radius:3px; cursor:pointer; padding:2px 6px; font-weight:bold;">‹</button>
+                         <span id="ugc-popup-counter-${cKeySafe}" style="font-weight:700; color:#333;">${initialIndex + 1} / ${count}</span>
+                         <button onclick="stepUgcCarousel('${cluster.key}', 1)" style="background:#fff; border:1px solid #ccc; border-radius:3px; cursor:pointer; padding:2px 6px; font-weight:bold;">›</button>
+                       </div>`
+                    : ``;
+
                 const popupHtml = `
-                    <div style="font-family:'Roboto',sans-serif; min-width:220px; color:#202124; padding:4px;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-                            <span class="ugc-badge-${p.platform || 'instagram'}"><i class="fab fa-${p.platform || 'instagram'}"></i> ${p.platform || 'Instagram'}</span>
-                            <span style="font-size:11px; color:#666;">${escapeHtml(p.post_date || '')}</span>
+                    <div style="font-family:'Roboto',sans-serif; min-width:240px; max-width:270px; color:#202124; padding:2px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                            <div style="font-weight:800; font-size:13px; color:#111; display:flex; align-items:center; gap:4px;">
+                                📍 ${escapeHtml(cluster.location)}
+                            </div>
                         </div>
-                        <div style="font-weight:700; font-size:14px; margin-bottom:4px; color:#111;">
-                            📍 ${escapeHtml(p.location)}
+                        <div style="font-size:11px; color:#555; margin-bottom:6px;">
+                            Table: <b>${escapeHtml(cluster.table_code || 'PUBLIC-APP')}</b> · <b>${count}</b> video${count !== 1 ? 's' : ''}
                         </div>
-                        ${p.table_code ? `<div style="font-size:12px; color:#555; margin-bottom:6px;">Table Code: <b>${escapeHtml(p.table_code)}</b></div>` : ''}
-                        <div style="background:#e8f0fe; border-left:3px solid #1a73e8; padding:6px 8px; font-size:11px; border-radius:4px; margin-bottom:10px;">
-                            🏆 <b>${p.tournaments_count || 0}</b> Tournaments · ⚽ <b>${p.matches_count || 0}</b> Matches<br>
-                            📊 <b>${p.events_count || 0}</b> Telemetry events tracked!
+
+                        ${carouselNav}
+
+                        <div id="ugc-popup-card-${cKeySafe}">
+                            ${buildUgcSlideHtml(activePost, initialIndex, count)}
                         </div>
-                        <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="display:block; text-align:center; background:#E1306C; color:#fff; padding:7px 12px; border-radius:4px; font-size:12px; font-weight:600; text-decoration:none;">
-                            <i class="fas fa-play" style="margin-right:4px;"></i> Watch Video Post
-                        </a>
+
+                        <button onclick="openVenueUgcDrawer('${escapeHtml(cluster.location)}')" style="width:100%; margin-top:4px; background:#1A73E8; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                            <i class="fas fa-layer-group"></i> Open Venue Gallery (${count})
+                        </button>
                     </div>
                 `;
 
-                const marker = L.marker([p.lat, p.lng], { icon: customPin, zIndexOffset: 3000 })
+                const marker = L.marker([cluster.lat, cluster.lng], { icon: customPin, zIndexOffset: 3000 })
                     .bindPopup(popupHtml)
                     .addTo(mapInstance);
 
-                marker._ugcId = p.id;
+                marker._ugcId = activePost.id;
+                marker._ugcClusterKey = cluster.key;
                 _ugcMarkers.push(marker);
             });
         }
@@ -5858,7 +6218,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             mymap.setView([lat, lng], 13);
-            const targetMarker = _ugcMarkers.find(m => m._ugcId === id);
+            const targetMarker = _ugcMarkers.find(m => m._ugcId === id || (m.getLatLng && Math.abs(m.getLatLng().lat - lat) < 0.01 && Math.abs(m.getLatLng().lng - lng) < 0.01));
             if (targetMarker) {
                 setTimeout(() => targetMarker.openPopup(), 400);
             }
