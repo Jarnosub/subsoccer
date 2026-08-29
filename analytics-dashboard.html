@@ -5020,8 +5020,8 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 author: '@originalsubsoccer',
                 title: 'Subsoccer Arcade — 1M Likes Viral Reel',
                 location: 'Subsoccer HQ (Melkonkatu 24, Lauttasaari)',
-                lat: 60.1548,
-                lng: 24.8870,
+                lat: 60.1562,
+                lng: 24.8890,
                 table_code: 'PUBLIC-APP',
                 post_date: '2026-01-07',
                 matches_count: 529,
@@ -5041,16 +5041,19 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 if (stored) {
                     const parsed = JSON.parse(stored);
                     if (Array.isArray(parsed) && parsed.length > 0) {
-                        // Ensure all default seeds exist in the list
                         let updated = false;
                         DEFAULT_UGC_POSTS.forEach(def => {
                             const existingIndex = parsed.findIndex(p => p.url === def.url || p.id === def.id);
                             if (existingIndex === -1) {
                                 parsed.push(def);
                                 updated = true;
-                            } else if (parsed[existingIndex].location === 'Global' && def.location !== 'Global') {
-                                parsed[existingIndex] = { ...parsed[existingIndex], ...def };
-                                updated = true;
+                            } else {
+                                if (def.lat && (parsed[existingIndex].lat !== def.lat || parsed[existingIndex].lng !== def.lng)) {
+                                    parsed[existingIndex].lat = def.lat;
+                                    parsed[existingIndex].lng = def.lng;
+                                    parsed[existingIndex].location = def.location;
+                                    updated = true;
+                                }
                             }
                         });
                         if (updated) {
@@ -5449,7 +5452,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                     </div>
                 `;
 
-                const marker = L.marker([p.lat, p.lng], { icon: customPin, zIndexOffset: 500 })
+                const marker = L.marker([p.lat, p.lng], { icon: customPin, zIndexOffset: 3000 })
                     .bindPopup(popupHtml)
                     .addTo(mapInstance);
 
