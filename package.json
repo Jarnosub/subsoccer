@@ -8,7 +8,7 @@
         "test:unit": "vitest run"
     },
     "devDependencies": {
-        "@playwright/test": "^1.40.0",
+        "@playwright/test": "^1.62.1",
         "jsdom": "^28.1.0",
         "sharp": "^0.35.4",
         "vitest": "^4.0.18"
