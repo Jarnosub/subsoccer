@@ -4740,12 +4740,12 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 const coords = group.coords;
                 const isHq = group.isHq;
 
-                const radius = isHq ? Math.min(Math.max(count * 1.5, 14), 32) : Math.min(Math.max(count * 1.5, 6), 25);
+                const radius = Math.min(Math.max(count * 1.5, 6), 25);
                 const diameter = radius * 2;
 
-                const bg = isHq ? '#c41e2a' : '#1A73E8';
-                const border = isHq ? '2.5px solid #FFD700' : '1.5px solid #fff';
-                const shadow = isHq ? '0 0 16px rgba(227,6,19,0.8), 0 4px 10px rgba(0,0,0,0.6)' : '0 2px 5px rgba(0,0,0,0.3)';
+                const bg = '#1A73E8';
+                const border = '1.5px solid #fff';
+                const shadow = '0 2px 5px rgba(0,0,0,0.3)';
 
                 const markerHtml = `
                     <div style="
@@ -4778,7 +4778,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
 
                 const popupHtml = isHq
                     ? `<div style="color:black; min-width: 200px;">
-                         <div style="font-size: 13px; font-weight: bold; color: #c41e2a; display: flex; align-items: center; gap: 4px;">🏆 Subsoccer HQ (Showroom)</div>
+                         <div style="font-size: 13px; font-weight: bold; color: #1A73E8; display: flex; align-items: center; gap: 4px;">🏆 Subsoccer HQ (Showroom)</div>
                          <div style="font-size: 11px; color: #555; margin-bottom: 6px;">Melkonkatu 24, Lauttasaari, Helsinki</div>
                          <div style="font-size: 12px; font-weight: bold;">${count.toLocaleString()} Events & Games tracked</div>
                        </div>`
@@ -4918,7 +4918,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 const shadow = isHq ? '0 0 16px rgba(227,6,19,0.8)' : (isLive ? '0 0 12px rgba(255,60,60,0.7)' : '0 2px 5px rgba(0,0,0,0.3)');
                 const anim   = isLive ? 'animation: mapPulse 1.5s infinite;' : '';
 
-                const radius = isHq ? Math.min(Math.max(count * 2, 14), 32) : Math.min(Math.max(count * 2, 8), 28);
+                const radius = Math.min(Math.max(count * 2, 8), 28);
                 const diameter = radius * 2;
                 const markerHtml = `
                     <div style="
@@ -4942,7 +4942,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
 
                 const popupHtml = isHq
                     ? `<div style="color:#111; min-width:190px;">
-                         <div style="font-size:13px; font-weight:bold; color:#c41e2a;">🏆 Subsoccer HQ (Showroom)</div>
+                         <div style="font-size:13px; font-weight:bold; color:#1A73E8;">🏆 Subsoccer HQ (Showroom)</div>
                          <div style="font-size:11px; color:#555; margin-bottom:4px;">Melkonkatu 24, Lauttasaari, Helsinki</div>
                          <div style="font-size:12px; font-weight:bold;">${count.toLocaleString()} Events / Games</div>
                          <div style="color:#888;font-size:0.85em;margin-top:2px;">Latest: ${agoStr}</div>
