@@ -9247,16 +9247,19 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 const activePost = cluster.posts[initialIndex] || cluster.posts[0];
 
                 const iconHtml = count > 1
-                    ? `<div class="ugc-map-pin ugc-cluster-pin" title="🎬 ${count} Videos at ${escapeHtml(cluster.location)}">
-                         🎬 <span class="ugc-cluster-badge">${count}</span>
+                    ? `<div style="width:26px; height:26px; background:#c41e2a; border:2px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:12px; position:relative; cursor:pointer; user-select:none; box-sizing:border-box;" title="🎬 ${count} Videos at ${escapeHtml(cluster.location)}">
+                         <span>🎬</span>
+                         <span style="position:absolute; top:-6px; right:-8px; background:#111827; color:#ffffff; font-size:9px; font-weight:700; border-radius:8px; padding:1px 4px; border:1px solid #ffffff; line-height:1;">${count}</span>
                        </div>`
-                    : `<div class="ugc-map-pin" title="🎬 Video at ${escapeHtml(cluster.location)}">🎬</div>`;
+                    : `<div style="width:26px; height:26px; background:#c41e2a; border:2px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:12px; cursor:pointer; user-select:none; box-sizing:border-box;" title="🎬 Video at ${escapeHtml(cluster.location)}">
+                         <span>🎬</span>
+                       </div>`;
 
                 const customPin = L.divIcon({
                     html: iconHtml,
-                    className: 'custom-ugc-icon',
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 14]
+                    className: '',
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13]
                 });
 
                 const carouselNav = count > 1
