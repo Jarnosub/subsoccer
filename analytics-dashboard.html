@@ -2150,15 +2150,20 @@
                 else { countryName = code; countryFlag = '🌐'; }
             }
 
-            const city = parsed.city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
+            const city = (parsed.city || '').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
+
+            if (loc.includes('Melkonkatu') || loc.includes('Lauttasaari') || loc.includes('Subsoccer HQ')) {
+                return `🇫🇮 Subsoccer HQ (Melkonkatu 24, Lauttasaari)`;
+            }
+
+            if (city && city !== 'Europe' && city !== 'Unknown' && city !== 'Fi') {
+                return `${countryFlag ? countryFlag + ' ' : ''}${city}${countryName && countryName !== city ? ' (' + countryName + ')' : ''}`;
+            }
 
             if (countryName) {
-                if (city === 'Helsinki' || loc === 'Europe/Helsinki' || (parsed.timezone && parsed.timezone.includes('Helsinki'))) {
-                    return `${countryFlag} Subsoccer HQ (Melkonkatu 24, Lauttasaari)`;
-                }
-                return `${countryFlag} ${countryName} / ${city}`;
+                return `${countryFlag} ${countryName}`;
             }
-            
+            return loc;
         }
 
         function getCountryFromBrowserLang(browserLang) {
@@ -4819,15 +4824,17 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 if (coords && p.lat && p.lng) {
                     const dLat = Math.abs(coords[0] - p.lat);
                     const dLng = Math.abs(coords[1] - p.lng);
-                    if (dLat < 0.04 && dLng < 0.04) return true;
+                    if (dLat < 0.05 && dLng < 0.05) return true;
                 }
                 const pLoc = (p.location || '').toLowerCase();
-                if (lName.includes('lauttasaari') || lName.includes('melkonkatu') || lName.includes('hq')) {
-                    if (pLoc.includes('lauttasaari') || pLoc.includes('melkonkatu') || pLoc.includes('hq')) return true;
+                if (lName.includes('lauttasaari') || lName.includes('melkonkatu')) {
+                    if (pLoc.includes('lauttasaari') || pLoc.includes('melkonkatu')) return true;
                 }
                 if (lName.includes('trnava') && pLoc.includes('trnava')) return true;
                 if ((lName.includes('midlands') || lName.includes('derby') || lName.includes('nottingham')) && (pLoc.includes('midlands') || pLoc.includes('outlet'))) return true;
                 if (lName.includes('philadelphia') && pLoc.includes('philadelphia')) return true;
+                if (lName.includes('glasgow') && pLoc.includes('glasgow')) return true;
+                if (lName.includes('tripla') && pLoc.includes('tripla')) return true;
                 return false;
             });
         }
