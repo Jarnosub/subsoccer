@@ -8701,9 +8701,11 @@ const growthLabels = sortedGrowthKeys.map(k => {
         let _ugcViewMode = 'hubs'; // 'hubs' | 'grid' | 'timeline'
         let _ugcExpandedHubs = {};
         let _ugcCarouselState = {};
+        let _ugcGridLimit = 24;
 
         function setUgcViewMode(mode) {
             _ugcViewMode = mode;
+            _ugcGridLimit = 24;
             ['hubs', 'grid', 'timeline'].forEach(m => {
                 const btn = document.getElementById('ugc-tab-' + m);
                 if (btn) {
@@ -8711,6 +8713,16 @@ const growthLabels = sortedGrowthKeys.map(k => {
                     else btn.classList.remove('active');
                 }
             });
+            renderUgcTable();
+        }
+
+        function loadMoreUgcGrid() {
+            _ugcGridLimit += 24;
+            renderUgcTable();
+        }
+
+        function showAllUgcGrid() {
+            _ugcGridLimit = 9999;
             renderUgcTable();
         }
 
@@ -8987,9 +8999,12 @@ const growthLabels = sortedGrowthKeys.map(k => {
 
             // ─── 2. REELS CARDS / GRID VIEW ───
             if (_ugcViewMode === 'grid') {
+                const displayedPosts = filteredPosts.slice(0, _ugcGridLimit);
+                const hasMore = displayedPosts.length < filteredPosts.length;
+
                 container.innerHTML = `
-                    <div class="ugc-grid">
-                        ${filteredPosts.map(p => {
+                    <div class="ugc-grid" style="padding-bottom:12px;">
+                        ${displayedPosts.map(p => {
                             const isSurge = (p.status === 'surge_verified');
                             const hasData = (p.events_count > 0);
                             const badge = isSurge
@@ -9018,7 +9033,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                                     </div>
                                     <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
                                         <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="flex:1; text-align:center; background:#E1306C; color:#fff; font-size:0.8rem; font-weight:600; padding:6px 10px; border-radius:4px; text-decoration:none;">
-                                            <i class="fas fa-play" style="font-size:0.7rem; margin-right:4px;"></i> Watch Reel
+                                            <i class="fas fa-play" style="font-size:0.7rem; margin-right:4px;"></i> Watch Video
                                         </a>
                                         ${p.lat && p.lng ? `<button onclick="focusUgcOnMap(${p.lat}, ${p.lng}, '${p.id}')" title="Pin on Map" style="background:rgba(26,115,232,0.15); border:1px solid rgba(26,115,232,0.4); color:#4da3ff; padding:6px 8px; border-radius:4px; cursor:pointer;"><i class="fas fa-map-pin"></i></button>` : ''}
                                         <button onclick="deleteUgcPost('${p.id}')" title="Delete" style="background:none; border:none; color:var(--accent-red); cursor:pointer; padding:6px 4px;"><i class="fas fa-trash-alt"></i></button>
@@ -9027,13 +9042,30 @@ const growthLabels = sortedGrowthKeys.map(k => {
                             `;
                         }).join('')}
                     </div>
+                    ${hasMore ? `
+                        <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:20px; padding-bottom:16px;">
+                            <button onclick="loadMoreUgcGrid()" style="background:#0a3d62; border:1px solid #1a6fa0; color:#fff; padding:10px 24px; border-radius:6px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(10,61,98,0.4);">
+                                <i class="fas fa-arrow-down"></i> Load More Videos (Showing ${displayedPosts.length} of ${filteredPosts.length})
+                            </button>
+                            <button onclick="showAllUgcGrid()" style="background:var(--card-bg); border:1px solid var(--border-color); color:var(--text-secondary); padding:10px 16px; border-radius:6px; font-size:0.85rem; cursor:pointer;">
+                                Show All (${filteredPosts.length})
+                            </button>
+                        </div>
+                    ` : `
+                        <div style="text-align:center; padding:18px 0 12px 0; font-size:0.8rem; color:var(--text-secondary);">
+                            ✓ Showing all ${filteredPosts.length} videos
+                        </div>
+                    `}
                 `;
                 return;
             }
 
             // ─── 3. RAW TIMELINE / TABLE VIEW ───
+            const displayedTimeline = filteredPosts.slice(0, _ugcGridLimit);
+            const hasMoreTimeline = displayedTimeline.length < filteredPosts.length;
+
             container.innerHTML = `
-                <div style="overflow-x:auto; background:var(--card-bg); border:1px solid var(--border-color); border-radius:6px;">
+                <div style="overflow-x:auto; background:var(--card-bg); border:1px solid var(--border-color); border-radius:6px; margin-bottom:14px;">
                     <table style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
                         <thead>
                             <tr style="background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border-color); color:var(--text-secondary);">
@@ -9045,7 +9077,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                             </tr>
                         </thead>
                         <tbody>
-                            ${filteredPosts.map(p => {
+                            ${displayedTimeline.map(p => {
                                 const isSurge = (p.status === 'surge_verified');
                                 const hasData = (p.events_count > 0);
                                 const statusBadge = isSurge
@@ -9057,7 +9089,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
                                         <td style="padding:10px 14px;">
                                             <div style="display:flex; align-items:center; gap:8px;">
                                                 <span class="ugc-badge-${p.platform || 'instagram'}"><i class="fab fa-${p.platform || 'instagram'}"></i> ${escapeHtml(p.platform)}</span>
-                                                <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="color:var(--accent-blue); text-decoration:none; font-weight:600; font-size:0.85rem;">Watch Post ↗</a>
+                                                <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="color:var(--accent-blue); text-decoration:none; font-weight:600; font-size:0.85rem;">Watch Video ↗</a>
                                             </div>
                                             <div style="font-size:0.75rem; font-weight:600; color:var(--text-primary); margin-top:3px;">${escapeHtml(p.title || '')}</div>
                                             <div style="font-size:0.7rem; color:var(--text-secondary);">${escapeHtml(p.author || 'Community')} · ${escapeHtml(p.post_date || '')}</div>
@@ -9084,6 +9116,20 @@ const growthLabels = sortedGrowthKeys.map(k => {
                         </tbody>
                     </table>
                 </div>
+                ${hasMoreTimeline ? `
+                    <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:14px; padding-bottom:16px;">
+                        <button onclick="loadMoreUgcGrid()" style="background:#0a3d62; border:1px solid #1a6fa0; color:#fff; padding:10px 24px; border-radius:6px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(10,61,98,0.4);">
+                            <i class="fas fa-arrow-down"></i> Load More (${displayedTimeline.length} of ${filteredPosts.length})
+                        </button>
+                        <button onclick="showAllUgcGrid()" style="background:var(--card-bg); border:1px solid var(--border-color); color:var(--text-secondary); padding:10px 16px; border-radius:6px; font-size:0.85rem; cursor:pointer;">
+                            Show All (${filteredPosts.length})
+                        </button>
+                    </div>
+                ` : `
+                    <div style="text-align:center; padding:14px 0 10px 0; font-size:0.8rem; color:var(--text-secondary);">
+                        ✓ Showing all ${filteredPosts.length} videos
+                    </div>
+                `}
             `;
         }
 
