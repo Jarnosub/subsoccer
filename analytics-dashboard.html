@@ -8233,8 +8233,117 @@ const growthLabels = sortedGrowthKeys.map(k => {
             document.getElementById('ugc-bulk-textarea').value = sampleText;
         }
 
+        function switchUgcIngestTab(tab) {
+            const pasteTab = document.getElementById('ugc-tab-btn-paste');
+            const webhookTab = document.getElementById('ugc-tab-btn-webhook');
+            const pasteView = document.getElementById('ugc-ingest-step-input');
+            const webhookView = document.getElementById('ugc-ingest-step-webhook');
+            const reviewView = document.getElementById('ugc-ingest-step-review');
+            const step1Actions = document.getElementById('ugc-ingest-actions-step1');
+            const step2Actions = document.getElementById('ugc-ingest-actions-step2');
+
+            if (reviewView) reviewView.style.display = 'none';
+            if (step2Actions) step2Actions.style.display = 'none';
+
+            if (tab === 'webhook') {
+                if (pasteTab) { pasteTab.style.background = 'transparent'; pasteTab.style.color = '#8ba2b5'; }
+                if (webhookTab) { webhookTab.style.background = '#0a3d62'; webhookTab.style.color = '#fff'; }
+                if (pasteView) pasteView.style.display = 'none';
+                if (webhookView) webhookView.style.display = 'flex';
+                if (step1Actions) step1Actions.style.display = 'none';
+            } else {
+                if (webhookTab) { webhookTab.style.background = 'transparent'; webhookTab.style.color = '#8ba2b5'; }
+                if (pasteTab) { pasteTab.style.background = '#0a3d62'; pasteTab.style.color = '#fff'; }
+                if (webhookView) webhookView.style.display = 'none';
+                if (pasteView) pasteView.style.display = 'flex';
+                if (step1Actions) step1Actions.style.display = 'flex';
+            }
+        }
+
+        async function triggerLiveWebhookTest() {
+            const testBtn = document.getElementById('ugc-test-webhook-btn');
+            if (testBtn) {
+                testBtn.disabled = true;
+                testBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending Webhook...';
+            }
+
+            try {
+                const samplePayload = {
+                    secret: 'subsoccer-pro-ugc-2026',
+                    items: [
+                        { url: 'https://www.instagram.com/reel/DbsyjtKAoLS/', caption: 'Subsoccer HQ Melkonkatu test match', source: 'make.com' },
+                        { url: 'https://www.instagram.com/reel/DaRAY_ogIi-/', caption: 'Mall of Tripla Pasila high heat game', source: 'zapier' }
+                    ]
+                };
+
+                const res = await fetch('/.netlify/functions/ugc-webhook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-subsoccer-key': 'subsoccer-pro-ugc-2026'
+                    },
+                    body: JSON.stringify(samplePayload)
+                });
+
+                const data = await res.json();
+                if (data.ok && Array.isArray(data.posts)) {
+                    const existingPosts = getUgcPosts();
+                    const existingCodes = new Set(existingPosts.map(p => extractUgcUrlCode(p.url)));
+                    
+                    _ingestCandidates = data.posts.map((p, idx) => {
+                        const code = extractUgcUrlCode(p.url);
+                        const isDup = existingCodes.has(code);
+                        return {
+                            tempId: 'webhook-' + idx + '-' + Date.now(),
+                            url: p.url,
+                            code,
+                            platform: p.platform || 'instagram',
+                            isDuplicate: isDup,
+                            selected: !isDup,
+                            author: p.author || '@community',
+                            title: p.title || 'Webhook Highlight',
+                            location: p.location || 'Community / Creator Post',
+                            lat: p.lat,
+                            lng: p.lng,
+                            table_code: p.table_code,
+                            isHq: p.location && p.location.includes('HQ')
+                        };
+                    });
+
+                    renderIngestInboxTable();
+
+                    // Switch to Review table
+                    const webhookView = document.getElementById('ugc-ingest-step-webhook');
+                    const pasteView = document.getElementById('ugc-ingest-step-input');
+                    const reviewView = document.getElementById('ugc-ingest-step-review');
+                    const step1Actions = document.getElementById('ugc-ingest-actions-step1');
+                    const step2Actions = document.getElementById('ugc-ingest-actions-step2');
+
+                    if (webhookView) webhookView.style.display = 'none';
+                    if (pasteView) pasteView.style.display = 'none';
+                    if (reviewView) reviewView.style.display = 'flex';
+                    if (step1Actions) step1Actions.style.display = 'none';
+                    if (step2Actions) step2Actions.style.display = 'flex';
+
+                    const statusEl = document.getElementById('ugc-bulk-status');
+                    if (statusEl) statusEl.textContent = `📡 Received ${data.posts.length} videos from webhook!`;
+                } else {
+                    alert('Webhook response: ' + (data.error || 'Unknown response'));
+                }
+            } catch(e) {
+                console.error('Webhook test error:', e);
+                alert('Webhook test completed. Status: ' + e.message);
+            } finally {
+                if (testBtn) {
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<i class="fas fa-play"></i> Send Test Webhook Ingest';
+                }
+            }
+        }
+
         function openUgcBulkModal() {
             _ingestCandidates = [];
+            switchUgcIngestTab('paste');
             returnToUgcInputStep();
             document.getElementById('ugc-bulk-status').textContent = '';
             document.getElementById('ugc-bulk-modal').style.display = 'flex';
@@ -8245,6 +8354,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
         }
 
         function returnToUgcInputStep() {
+            switchUgcIngestTab('paste');
             document.getElementById('ugc-ingest-step-input').style.display = 'flex';
             document.getElementById('ugc-ingest-step-review').style.display = 'none';
             document.getElementById('ugc-ingest-actions-step1').style.display = 'flex';
@@ -9862,24 +9972,29 @@ const growthLabels = sortedGrowthKeys.map(k => {
         </div>
     </div>
 
-    <!-- Smart UGC Ingest Inbox Modal (Level 1) -->
+    <!-- Smart UGC Ingest Inbox & Automation Modal (Level 1 + Level 2) -->
     <div id="ugc-bulk-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(6px);">
         <div style="background:#1b2632; border:1px solid #2a3b4c; border-radius:12px; width:100%; max-width:880px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 48px rgba(0,0,0,0.7);">
             
-            <!-- Modal Header -->
-            <div style="padding:16px 22px; border-bottom:1px solid #233140; display:flex; justify-content:space-between; align-items:center; background:#10171f;">
-                <div>
-                    <h3 style="margin:0; font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
-                        <i class="fas fa-inbox" style="color:#4a9eff;"></i> Smart Video Ingest Inbox & AI Matcher
+            <!-- Modal Header with Tabs -->
+            <div style="padding:14px 22px; border-bottom:1px solid #233140; display:flex; justify-content:space-between; align-items:center; background:#10171f;">
+                <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                    <h3 style="margin:0; font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-inbox" style="color:#4a9eff;"></i> Video Ingestion Engine
                     </h3>
-                    <div style="font-size:0.75rem; color:#8ba2b5; margin-top:2px;">
-                        Batch ingest Instagram Reels, TikToks, and YouTube Shorts with automatic venue, author & GPS matching.
+                    <div style="display:flex; gap:6px; background:#141d26; padding:3px; border-radius:6px; border:1px solid #233140;">
+                        <button id="ugc-tab-btn-paste" onclick="switchUgcIngestTab('paste')" style="background:#0a3d62; color:#fff; border:none; padding:5px 12px; border-radius:4px; font-size:0.75rem; font-weight:600; cursor:pointer;">
+                            <i class="fas fa-paste"></i> Manual Ingest
+                        </button>
+                        <button id="ugc-tab-btn-webhook" onclick="switchUgcIngestTab('webhook')" style="background:transparent; color:#8ba2b5; border:none; padding:5px 12px; border-radius:4px; font-size:0.75rem; font-weight:600; cursor:pointer;">
+                            <i class="fas fa-broadcast-tower" style="color:#2ecc71;"></i> Webhook & Social Listening
+                        </button>
                     </div>
                 </div>
                 <button onclick="closeUgcBulkModal()" style="background:none; border:none; color:#8ba2b5; font-size:1.4rem; cursor:pointer; line-height:1; padding:4px 8px;">&times;</button>
             </div>
 
-            <!-- Step 1: Input / Paste Box -->
+            <!-- Tab 1: Input / Paste Box -->
             <div id="ugc-ingest-step-input" style="padding:20px; display:flex; flex-direction:column; gap:12px; overflow-y:auto;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <label style="font-size:0.8rem; font-weight:600; color:#c5d4e0; text-transform:uppercase; letter-spacing:0.5px;">
@@ -9896,6 +10011,60 @@ const growthLabels = sortedGrowthKeys.map(k => {
                 <div style="background:rgba(10,61,98,0.25); border:1px solid rgba(26,111,160,0.4); border-radius:8px; padding:10px 14px; font-size:0.78rem; color:#93c5fd; display:flex; align-items:center; gap:10px;">
                     <i class="fas fa-shield-alt" style="font-size:1rem; flex-shrink:0;"></i>
                     <span><strong>Location Policy:</strong> Known verified hubs (HQ, Tripla, Glasgow, Katowice, Kingston, etc.) are matched with exact GPS pins. Organic creator clips are tagged as <em>Community Posts</em> without fake map pins.</span>
+                </div>
+            </div>
+
+            <!-- Tab 2: Webhook & Social Listening Hub (Level 2) -->
+            <div id="ugc-ingest-step-webhook" style="display:none; padding:20px; flex-direction:column; gap:16px; overflow-y:auto;">
+                <div style="background:#141d26; border:1px solid #233140; border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.78rem; color:#8ba2b5; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">
+                            <i class="fas fa-link" style="color:#4a9eff;"></i> Incoming Webhook Endpoint (Production & Staging)
+                        </span>
+                        <span style="background:rgba(46,204,113,0.15); color:#2ecc71; border:1px solid rgba(46,204,113,0.3); font-size:0.7rem; padding:2px 8px; border-radius:10px; font-weight:600;">
+                            ● Active & Ready
+                        </span>
+                    </div>
+
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" readonly value="https://subsoccer.pro/.netlify/functions/ugc-webhook" id="ugc-webhook-url-input"
+                            style="flex:1; background:#10171f; border:1px solid #233140; color:#60a5fa; padding:9px 12px; border-radius:6px; font-size:0.8rem; font-family:monospace;">
+                        <button onclick="navigator.clipboard.writeText(document.getElementById('ugc-webhook-url-input').value); alert('Copied Webhook URL!');"
+                            style="background:#0a3d62; color:#fff; border:1px solid #1a6fa0; padding:8px 14px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+
+                    <div style="font-size:0.78rem; color:#8ba2b5;">
+                        <strong>Secret Header:</strong> <code style="color:#f1c40f;">x-subsoccer-key: subsoccer-pro-ugc-2026</code> (or in JSON body: <code style="color:#f1c40f;">"secret": "subsoccer-pro-ugc-2026"</code>)
+                    </div>
+                </div>
+
+                <!-- Integration Guides Grid -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+                    <div style="background:#141d26; border:1px solid #233140; border-radius:8px; padding:14px;">
+                        <div style="font-weight:700; color:#fff; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                            <i class="fas fa-bolt" style="color:#a855f7;"></i> Make.com / Zapier Setup
+                        </div>
+                        <p style="font-size:0.75rem; color:#8ba2b5; margin:0 0 8px 0; line-height:1.4;">
+                            1. Add <strong>Instagram / TikTok / YouTube</strong> trigger (e.g. new post with #subsoccer).<br>
+                            2. Add <strong>HTTP POST</strong> module pointing to the webhook endpoint above.<br>
+                            3. Send JSON body with <code style="color:#93c5fd;">url</code> and <code style="color:#93c5fd;">secret</code>.
+                        </p>
+                    </div>
+
+                    <div style="background:#141d26; border:1px solid #233140; border-radius:8px; padding:14px;">
+                        <div style="font-weight:700; color:#fff; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                            <i class="fas fa-flask" style="color:#2ecc71;"></i> Live Webhook Tester
+                        </div>
+                        <p style="font-size:0.75rem; color:#8ba2b5; margin:0 0 8px 0;">
+                            Test the serverless webhook pipeline right now by sending a live test payload:
+                        </p>
+                        <button onclick="triggerLiveWebhookTest()" id="ugc-test-webhook-btn"
+                            style="background:#2ecc71; color:#0b2e13; border:none; padding:7px 14px; border-radius:6px; font-size:0.8rem; font-weight:700; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:6px;">
+                            <i class="fas fa-play"></i> Send Test Webhook Ingest
+                        </button>
+                    </div>
                 </div>
             </div>
 
