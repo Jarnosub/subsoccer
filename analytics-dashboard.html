@@ -238,6 +238,11 @@
             border-color: var(--accent-yellow);
         }
 
+        .filters button.btn-ugc-inbox-header:hover {
+            background-color: #0d4d7a !important;
+            border-color: #4a9eff !important;
+        }
+
         @keyframes pulse-badge {
             0%, 100% { transform: scale(1); box-shadow: 0 0 6px rgba(196,30,42,0.6); }
             50% { transform: scale(1.06); box-shadow: 0 0 14px rgba(196,30,42,0.9); }
@@ -1010,6 +1015,12 @@
                         <i class="fas fa-tasks"></i> Backlog & Feedbacks
                         <span id="btn-feedback-badge" style="display: none; align-items: center; gap: 4px; background: #c41e2a; color: #ffffff; font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; font-weight: bold; letter-spacing: 0.5px; animation: pulse-badge 2s infinite;">
                             <span id="btn-feedback-count">0</span> NEW
+                        </span>
+                    </button>
+                    <button class="btn-ugc-inbox-header" onclick="openUgcBulkModal()" style="position: relative; display: inline-flex; align-items: center; gap: 8px; background: #0a3d62; border: 1px solid #1a6fa0; color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 10px rgba(10,61,98,0.4); transition: all 0.2s;" title="Open Social Video Ingest Inbox & Webhooks">
+                        <i class="fas fa-video" style="color: #E1306C;"></i> Video Ingest Inbox
+                        <span id="btn-header-ugc-badge" style="display: inline-flex; align-items: center; gap: 4px; background: #E1306C; color: #ffffff; font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; font-weight: bold; letter-spacing: 0.5px; animation: pulse-badge 2s infinite;">
+                            <span id="btn-header-ugc-count">209</span> VIDEOS
                         </span>
                     </button>
 
@@ -8847,6 +8858,7 @@ const growthLabels = sortedGrowthKeys.map(k => {
             const uniqueCities = Object.keys(venueGroups).length;
 
             if (document.getElementById('ugc-count-badge')) document.getElementById('ugc-count-badge').textContent = `${total} Videos (${uniqueCities} Hubs)`;
+            if (document.getElementById('btn-header-ugc-count')) document.getElementById('btn-header-ugc-count').textContent = total;
             if (document.getElementById('ugc-kpi-total')) document.getElementById('ugc-kpi-total').textContent = total.toLocaleString();
             if (document.getElementById('ugc-kpi-matched')) document.getElementById('ugc-kpi-matched').textContent = total > 0 ? `${Math.round((matched/total)*100)}%` : '0%';
             if (document.getElementById('ugc-kpi-matches')) document.getElementById('ugc-kpi-matches').textContent = `${totalTourneys} / ${totalMatches}`;
