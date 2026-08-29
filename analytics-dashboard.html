@@ -4442,7 +4442,7 @@
                 cityGrowthMap[key].cumulative = cumTotal;
             });
 
-            const growthLabels = sortedGrowthKeys.map(k => {
+const growthLabels = sortedGrowthKeys.map(k => {
                 const parts = k.split('-');
                 return `${parts[2]}/${parts[1]}`;
             });
@@ -4503,6 +4503,217 @@
         }
 
         let mymap = null;
+
+        // Rough mapping of timezones and cities to coordinates for visual heatmap
+        const tzCoords = {
+            // Timezones
+            'Europe/Helsinki': [60.1548, 24.8870], 'Europe/Stockholm': [59.3293, 18.0686],
+            'Europe/Oslo': [59.9139, 10.7522], 'Europe/Copenhagen': [55.6761, 12.5683],
+            'Europe/London': [51.5074, -0.1278], 'Europe/Paris': [48.8566, 2.3522],
+            'Europe/Berlin': [52.52, 13.405], 'Europe/Madrid': [40.4168, -3.7038],
+            'Europe/Rome': [41.9028, 12.4964], 'Europe/Amsterdam': [52.3676, 4.9041],
+            'Europe/Istanbul': [41.0082, 28.9784], 'Europe/Brussels': [50.8503, 4.3517],
+            'Europe/Dublin': [53.3498, -6.2603], 'Europe/Prague': [50.0755, 14.4378],
+            'Europe/Malta': [35.9375, 14.3754], 'Europe/Warsaw': [52.2297, 21.0122],
+            'Europe/Lisbon': [38.7223, -9.1393], 'Europe/Zurich': [47.3769, 8.5417],
+            'Europe/Sofia': [42.6977, 23.3219], 'Europe/Riga': [56.9496, 24.1052],
+            'Europe/Kiev': [50.4501, 30.5234], 'Europe/Budapest': [47.4979, 19.0402],
+            'Europe/Vienna': [48.2082, 16.3738], 'Europe/Bucharest': [44.4268, 26.1025],
+            'Europe/Tallinn': [59.4370, 24.7536], 'Europe/Vilnius': [54.6872, 25.2797],
+            'America/New_York': [40.7128, -74.006], 'America/Los_Angeles': [34.0522, -118.2437],
+            'America/Chicago': [41.8781, -87.6298], 'America/Toronto': [43.6532, -79.3832],
+            'America/Phoenix': [33.4484, -112.0740], 'America/Denver': [39.7392, -104.9903],
+            'America/Sao_Paulo': [-23.5505, -46.6333], 'America/Bogota': [4.7110, -74.0721],
+            'America/Hermosillo': [29.0730, -110.9559], 'America/Detroit': [42.3314, -83.0458],
+            'America/Vancouver': [49.2827, -123.1207], 'America/Costa_Rica': [9.9281, -84.0907],
+            'America/Mexico_City': [19.4326, -99.1332], 'America/Indianapolis': [39.7684, -86.1581],
+            'America/Montevideo': [-34.9011, -56.1645],
+            'Asia/Tokyo': [35.6762, 139.6503], 'Asia/Dubai': [25.2048, 55.2708],
+            'Asia/Singapore': [1.3521, 103.8198], 'Asia/Shanghai': [31.2304, 121.4737],
+            'Asia/Seoul': [37.5665, 126.9780], 'Asia/Bangkok': [13.7563, 100.5018],
+            'Asia/Manila': [14.5995, 120.9842], 'Asia/Jakarta': [-6.2088, 106.8456],
+            'Asia/Baku': [40.4093, 49.8671], 'Asia/Calcutta': [22.5726, 88.3639],
+            'Asia/Hong_Kong': [22.3193, 114.1694], 'Asia/Jerusalem': [32.0853, 34.7818],
+            'Asia/Almaty': [43.2220, 76.8512], 'Asia/Beirut': [33.8938, 35.5018],
+            'Asia/Amman': [31.9454, 35.9284], 'Asia/Taipei': [25.0330, 121.5654],
+            'Asia/Saigon': [10.8231, 106.6297], 'Asia/Tbilisi': [41.7151, 44.8271],
+            'Australia/Sydney': [-33.8688, 151.2093], 'Australia/Melbourne': [-37.8136, 144.9631],
+            'Africa/Johannesburg': [-26.2041, 28.0473], 'Africa/Cairo': [30.0444, 31.2357],
+            'Africa/Nairobi': [-1.2921, 36.8219], 'Africa/Accra': [5.6037, -0.1870],
+            'Africa/Luanda': [-8.8390, 13.2894], 'Africa/Lagos': [6.5244, 3.3792],
+            'Atlantic/Canary': [28.2916, -16.6291], 'Atlantic/Reykjavik': [64.1466, -21.9426],
+            'Indian/Reunion': [-21.1151, 55.5364],
+            'Pacific/Auckland': [-36.8485, 174.7633],
+            'UTC': [51.4769, 0.0005],
+            'America/Mazatlan': [23.2494, -106.4111], 'Europe/Vigo': [42.2406, -8.7207],
+            'Europe/Athens': [37.9838, 23.7275], 'Asia/Qatar': [25.2854, 51.5310],
+            'America/Minneapolis': [44.9778, -93.2650], 'Asia/East_Jakarta': [-6.2250, 106.9004],
+            'Asia/Mumbai': [19.0760, 72.8777], 'Europe/Liverpool': [53.4084, -2.9916],
+            'Europe/Glasgow': [55.8642, -4.2518], 'Asia/Petaling_Jaya': [3.1073, 101.6067],
+            'Asia/Central_Jakarta': [-6.1865, 106.8341], 'Europe/Leeds': [53.8008, -1.5491],
+            'Europe/Birmingham': [52.4862, -1.8904], 'America/Henderson': [36.0395, -114.9817],
+            'Asia/Caloocan': [14.6500, 120.9667], 'America/Renton': [47.4797, -122.2079],
+            'Europe/Chorley': [53.6530, -2.6300], 'Europe/Croydon': [51.3762, -0.0982],
+            'Europe/Nottingham': [52.9548, -1.1581], 'America/San_Bernardino': [34.1083, -117.2898],
+            'America/Seattle': [47.6062, -122.3321], 'Asia/West_Jakarta': [-6.1683, 106.7583],
+            'Asia/Pangil': [14.4014, 121.4633], 'Asia/Gangnam-gu': [37.4980, 127.0280],
+            'Europe/Naaldwijk': [51.9894, 4.2072], 'Europe/Leipzig': [51.3397, 12.3731],
+            'Europe/Podgorica': [42.4304, 19.2594], 'Europe/Swanley': [51.3960, 0.1750],
+            'Europe/Basingstoke': [51.2625, -1.0870], 'America/El_Segundo': [33.9192, -118.4165],
+            'Europe/Bracknell': [51.4160, -0.7490], 'Asia/San_Juan': [14.6019, 121.0358],
+
+            // Cities for exact local mapping
+            'Helsinki': [60.1548, 24.8870], 'Lauttasaari': [60.1548, 24.8870], 'Melkonkatu': [60.1548, 24.8870], 'Melkonkatu 24': [60.1548, 24.8870], 'Subsoccer HQ': [60.1548, 24.8870], 'Espoo': [60.2055, 24.6559], 'Tampere': [61.4978, 23.7610],
+            'Vantaa': [60.2934, 25.0408], 'Oulu': [65.0124, 25.4682], 'Turku': [60.4518, 22.2666],
+            'Lahti': [60.9827, 25.6615], 'Kuopio': [62.8924, 27.6770],
+            'London': [51.5074, -0.1278], 'Islington': [51.5465, -0.1058], 'Lambeth': [51.4935, -0.1177],
+            'Southwark': [51.5035, -0.0804], 'Portsmouth': [50.8037, -1.0913],
+            'New York': [40.7128, -74.006], 'Brooklyn': [40.6782, -73.9442], 'Queens': [40.7282, -73.7949],
+            'San Diego': [32.7157, -117.1611], 'Chicago': [41.8781, -87.6298], 'Los Angeles': [34.0522, -118.2437],
+            'Singapore': [1.3521, 103.8198], 'Manila': [14.5995, 120.9842], 'Pasig': [14.5764, 121.0851],
+            'Quezon City': [14.6760, 121.0437], 'Makati': [14.5547, 121.0244], 'Jakarta': [-6.2088, 106.8456],
+            'Bekasi': [-6.2383, 106.9756], 'Tangerang': [-6.1781, 106.6300], 'Berlin': [52.5200, 13.4050],
+            'Prague': [50.0755, 14.4378], 'Tel Aviv': [32.0853, 34.7818], 'Jerusalem': [31.7683, 35.2137],
+            'Haifa': [32.7940, 34.9896],
+            'Mazatlan': [23.2494, -106.4111], 'Vigo': [42.2406, -8.7207],
+            'Athens': [37.9838, 23.7275], 'Qatar': [25.2854, 51.5310],
+            'Minneapolis': [44.9778, -93.2650], 'East Jakarta': [-6.2250, 106.9004],
+            'Mumbai': [19.0760, 72.8777], 'Liverpool': [53.4084, -2.9916],
+            'Glasgow': [55.8642, -4.2518], 'Petaling Jaya': [3.1073, 101.6067],
+            'Central Jakarta': [-6.1865, 106.8341], 'Leeds': [53.8008, -1.5491],
+            'Birmingham': [52.4862, -1.8904], 'Henderson': [36.0395, -114.9817],
+            'Caloocan': [14.6500, 120.9667], 'Renton': [47.4797, -122.2079],
+            'Chorley': [53.6530, -2.6300], 'Croydon': [51.3762, -0.0982],
+            'Nottingham': [52.9548, -1.1581], 'San Bernardino': [34.1083, -117.2898],
+            'Seattle': [47.6062, -122.3321], 'West Jakarta': [-6.1683, 106.7583],
+            'Pangil': [14.4014, 121.4633], 'Gangnam-gu': [37.4980, 127.0280],
+            'Naaldwijk': [51.9894, 4.2072], 'Leipzig': [51.3397, 12.3731],
+            'Podgorica': [42.4304, 19.2594], 'Swanley': [51.3960, 0.1750],
+            'Basingstoke': [51.2625, -1.0870], 'El Segundo': [33.9192, -118.4165],
+            'Bracknell': [51.4160, -0.7490], 'San Juan': [14.6019, 121.0358],
+            'Auckland': [-36.8485, 174.7633],
+            'Africa/Algiers': [36.7538, 3.0588],
+            'Kadiria': [36.5333, 3.5667], 'Algiers': [36.7538, 3.0588], 'Medea': [36.2675, 2.7504],
+            // Added timezones
+            'Asia/Ho_Chi_Minh': [10.8231, 106.6297], 'Australia/Perth': [-31.9505, 115.8605],
+            'Australia/Brisbane': [-27.4698, 153.0251], 'America/Edmonton': [53.5461, -113.4938],
+            'Asia/Kuala_Lumpur': [3.1390, 101.6869], 'Europe/Mariehamn': [60.0970, 19.9348],
+            'America/Lima': [-12.0464, -77.0428], 'Europe/Luxembourg': [49.6117, 6.1300],
+            'America/Indiana/Indianapolis': [39.7684, -86.1581], 'Europe/Belgrade': [44.7866, 20.4489],
+            'Asia/Riyadh': [24.7136, 46.6753], 'America/Moncton': [46.0878, -64.7782],
+            'America/Argentina/Buenos_Aires': [-34.6037, -58.3816], 'Europe/Tirane': [41.3275, 19.8187],
+            'America/Curacao': [12.1696, -68.9900], 'America/Halifax': [44.6488, -63.5752],
+            'Australia/Adelaide': [-34.9285, 138.6007], 'America/Winnipeg': [49.8951, -97.1384],
+            'America/Cancun': [21.1619, -86.8515], 'Africa/Casablanca': [33.5731, -7.5898],
+            'America/Guatemala': [14.6349, -90.5069], 'Atlantic/Bermuda': [32.3078, -64.7505],
+            // Added cities
+            'Montreal': [45.5017, -73.5673], 'Miami': [25.7617, -80.1918],
+            'Fort St. James': [54.4418, -124.2514], 'Höhenkirchen-Siegertsbrunn': [48.0167, 11.7167],
+            'Manila Metro': [14.5995, 120.9842], 'Düsseldorf': [51.2277, 6.7735],
+            'Manchester': [53.4808, -2.2426], 'Doral': [25.8195, -80.3553],
+            'Regina': [50.4452, -104.6189], 'Valencia': [39.4699, -0.3763],
+            'Reutlingen': [48.4919, 9.2108], 'Edinburgh': [55.9533, -3.1883],
+            'Atlanta': [38.0, -84.39], 'Springfield': [39.7817, -89.6501],
+            'Las Vegas': [36.1699, -115.1398], 'Frankfurt am Main': [50.1109, 8.6821],
+            'Stockholm': [59.3293, 18.0686], 'Salt Lake City': [40.7608, -111.8910],
+            'High Wycombe': [51.6293, -0.7482], 'Derby': [52.9225, -1.4746],
+            'Hialeah': [25.8576, -80.2781], 'Jacksonville': [30.3322, -81.6557],
+            'Maramag': [7.7633, 125.0053], 'Philadelphia': [39.9526, -75.1652],
+            'Gdansk': [54.3520, 18.6466], 'Gdynia': [54.5189, 18.5305],
+            'Skellefteå': [64.7507, 20.9528], 'Fort Lauderdale': [26.1224, -80.1373],
+            'Cologne': [50.9375, 6.9603], 'Walthamstow': [51.5886, -0.0198],
+            'Laghouat': [33.8001, 2.8828], 'Aarhus': [56.1629, 10.2039],
+            'Třebíč': [49.2149, 15.8816], 'Luton': [51.8787, -0.4200],
+            'Ho Chi Minh City': [10.8231, 106.6297], 'Frederikshavn': [57.4378, 10.5364],
+            'Hamburg': [53.5511, 9.9937], 'Taguig': [14.5176, 121.0509],
+            'Dallas': [32.7767, -96.7970], 'Toronto': [43.6532, -79.3832],
+            'Tallinn': [59.4370, 24.7536], 'Wembley': [51.5560, -0.2795],
+            'Dortmund': [51.5136, 7.4653], 'Pune': [18.5204, 73.8567],
+            'Orlando': [28.5383, -81.3792], 'Belgrade': [44.7866, 20.4489],
+            'Oldham': [53.5409, -2.1114], 'Djelfa': [34.6704, 3.2504],
+            'Tlemcen': [34.8828, -1.3167], 'Hassi Bahbah': [35.0733, 3.0172],
+            'Lakhdaria': [36.5617, 3.5933], 'Berrouaghia': [36.2675, 2.7504],
+            'Sofia': [42.6977, 23.3219], 'Riga': [56.9496, 24.1052],
+            'Budapest': [47.4979, 19.0402], 'Gothenburg': [57.7089, 11.9746],
+            'Copenhagen': [55.6761, 12.5683], 'Oslo': [59.9139, 10.7522],
+            'Perth': [-31.9505, 115.8605], 'Brisbane': [-27.4698, 153.0251],
+            'Melbourne': [-37.8136, 144.9631], 'Sydney': [-33.8688, 151.2093],
+            'Kuala Lumpur': [3.1390, 101.6869], 'Mariehamn': [60.0970, 19.9348],
+            'Trnava': [48.3762, 17.5829], 'Slovakia': [48.6690, 19.6990],
+            'East Midlands Designer Outlet': [53.1076, -1.3106],
+            'Designer Outlet': [53.1076, -1.3106],
+            'Mansfield': [53.1432, -1.1966],
+            'Derbyshire': [53.1076, -1.3106],
+            'South Normanton': [53.1076, -1.3106],
+            'Fashion District Philadelphia': [39.9526, -75.1592],
+            'Fashion District': [39.9526, -75.1592]
+        };
+        window._tzCoords = tzCoords; // expose for live map mode
+
+        function resolveEventCoordsAndMeta(loc) {
+            if (!loc || loc === 'Unknown') return null;
+            const parsed = parseLocation(loc);
+
+            // If explicitly other city in Finland (not Helsinki), preserve it
+            if (parsed.city && parsed.city !== 'Helsinki' && parsed.city !== 'Lauttasaari' && parsed.city !== 'Unknown' && tzCoords[parsed.city]) {
+                const coordMatch = loc.match(/\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]/);
+                const coords = coordMatch ? [parseFloat(coordMatch[1]), parseFloat(coordMatch[2])] : tzCoords[parsed.city];
+                return { coords, isHq: false, displayName: getDisplayLocation(loc) };
+            }
+
+            // Check if this location is Subsoccer HQ / Helsinki / Finland generic
+            const isHq = (
+                loc === 'Europe/Helsinki' ||
+                loc === 'FI (Europe/Helsinki)' ||
+                loc === 'Helsinki' ||
+                loc.startsWith('Helsinki') ||
+                loc.startsWith('FI (Europe/Helsinki)') ||
+                parsed.city === 'Helsinki' ||
+                parsed.city === 'Lauttasaari' ||
+                loc.includes('Lauttasaari') ||
+                loc.includes('Melkonkatu') ||
+                loc.includes('Subsoccer HQ')
+            );
+
+            if (isHq) {
+                return {
+                    coords: [60.1548, 24.8870],
+                    isHq: true,
+                    displayName: '🏆 Subsoccer HQ (Melkonkatu 24, Lauttasaari)'
+                };
+            }
+
+            // Priority 1: embedded [lat,lng]
+            let coords = null;
+            const coordMatch = loc.match(/\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]/);
+            if (coordMatch) {
+                const lat = parseFloat(coordMatch[1]);
+                const lng = parseFloat(coordMatch[2]);
+                // If coordinates land in central Helsinki area and country is Finland, snap to Subsoccer HQ
+                if (lat >= 60.13 && lat <= 60.25 && lng >= 24.84 && lng <= 25.05 && (parsed.countryCode === 'FI' || parsed.timezone === 'Europe/Helsinki')) {
+                    return {
+                        coords: [60.1548, 24.8870],
+                        isHq: true,
+                        displayName: '🏆 Subsoccer HQ (Melkonkatu 24, Lauttasaari)'
+                    };
+                }
+                coords = [lat, lng];
+            }
+
+            // Priority 2: tzCoords lookup
+            if (!coords) {
+                coords = tzCoords[loc] || tzCoords[parsed.city] || tzCoords[parsed.timezone] || null;
+            }
+
+            if (!coords) return null;
+
+            return {
+                coords: coords,
+                isHq: false,
+                displayName: getDisplayLocation(loc)
+            };
+        }
+
         function initMap(data) {
             _mapAllData = data; // cache for "All data" mode restore
             if(!mymap) {
@@ -4519,230 +4730,77 @@
                 if(layer instanceof L.Marker) layer.remove();
             });
 
-            // Rough mapping of timezones and cities to coordinates for visual heatmap
-            const tzCoords = {
-                // Timezones
-                'Europe/Helsinki': [60.1548, 24.8870], 'Europe/Stockholm': [59.3293, 18.0686],
-                'Europe/Oslo': [59.9139, 10.7522], 'Europe/Copenhagen': [55.6761, 12.5683],
-                'Europe/London': [51.5074, -0.1278], 'Europe/Paris': [48.8566, 2.3522],
-                'Europe/Berlin': [52.52, 13.405], 'Europe/Madrid': [40.4168, -3.7038],
-                'Europe/Rome': [41.9028, 12.4964], 'Europe/Amsterdam': [52.3676, 4.9041],
-                'Europe/Istanbul': [41.0082, 28.9784], 'Europe/Brussels': [50.8503, 4.3517],
-                'Europe/Dublin': [53.3498, -6.2603], 'Europe/Prague': [50.0755, 14.4378],
-                'Europe/Malta': [35.9375, 14.3754], 'Europe/Warsaw': [52.2297, 21.0122],
-                'Europe/Lisbon': [38.7223, -9.1393], 'Europe/Zurich': [47.3769, 8.5417],
-                'Europe/Sofia': [42.6977, 23.3219], 'Europe/Riga': [56.9496, 24.1052],
-                'Europe/Kiev': [50.4501, 30.5234], 'Europe/Budapest': [47.4979, 19.0402],
-                'Europe/Vienna': [48.2082, 16.3738], 'Europe/Bucharest': [44.4268, 26.1025],
-                'Europe/Tallinn': [59.4370, 24.7536], 'Europe/Vilnius': [54.6872, 25.2797],
-                'America/New_York': [40.7128, -74.006], 'America/Los_Angeles': [34.0522, -118.2437],
-                'America/Chicago': [41.8781, -87.6298], 'America/Toronto': [43.6532, -79.3832],
-                'America/Phoenix': [33.4484, -112.0740], 'America/Denver': [39.7392, -104.9903],
-                'America/Sao_Paulo': [-23.5505, -46.6333], 'America/Bogota': [4.7110, -74.0721],
-                'America/Hermosillo': [29.0730, -110.9559], 'America/Detroit': [42.3314, -83.0458],
-                'America/Vancouver': [49.2827, -123.1207], 'America/Costa_Rica': [9.9281, -84.0907],
-                'America/Mexico_City': [19.4326, -99.1332], 'America/Indianapolis': [39.7684, -86.1581],
-                'America/Montevideo': [-34.9011, -56.1645],
-                'Asia/Tokyo': [35.6762, 139.6503], 'Asia/Dubai': [25.2048, 55.2708],
-                'Asia/Singapore': [1.3521, 103.8198], 'Asia/Shanghai': [31.2304, 121.4737],
-                'Asia/Seoul': [37.5665, 126.9780], 'Asia/Bangkok': [13.7563, 100.5018],
-                'Asia/Manila': [14.5995, 120.9842], 'Asia/Jakarta': [-6.2088, 106.8456],
-                'Asia/Baku': [40.4093, 49.8671], 'Asia/Calcutta': [22.5726, 88.3639],
-                'Asia/Hong_Kong': [22.3193, 114.1694], 'Asia/Jerusalem': [32.0853, 34.7818],
-                'Asia/Almaty': [43.2220, 76.8512], 'Asia/Beirut': [33.8938, 35.5018],
-                'Asia/Amman': [31.9454, 35.9284], 'Asia/Taipei': [25.0330, 121.5654],
-                'Asia/Saigon': [10.8231, 106.6297], 'Asia/Tbilisi': [41.7151, 44.8271],
-                'Australia/Sydney': [-33.8688, 151.2093], 'Australia/Melbourne': [-37.8136, 144.9631],
-                'Africa/Johannesburg': [-26.2041, 28.0473], 'Africa/Cairo': [30.0444, 31.2357],
-                'Africa/Nairobi': [-1.2921, 36.8219], 'Africa/Accra': [5.6037, -0.1870],
-                'Africa/Luanda': [-8.8390, 13.2894], 'Africa/Lagos': [6.5244, 3.3792],
-                'Atlantic/Canary': [28.2916, -16.6291], 'Atlantic/Reykjavik': [64.1466, -21.9426],
-                'Indian/Reunion': [-21.1151, 55.5364],
-                'Pacific/Auckland': [-36.8485, 174.7633],
-                'UTC': [51.4769, 0.0005],
-                'America/Mazatlan': [23.2494, -106.4111], 'Europe/Vigo': [42.2406, -8.7207],
-                'Europe/Athens': [37.9838, 23.7275], 'Asia/Qatar': [25.2854, 51.5310],
-                'America/Minneapolis': [44.9778, -93.2650], 'Asia/East_Jakarta': [-6.2250, 106.9004],
-                'Asia/Mumbai': [19.0760, 72.8777], 'Europe/Liverpool': [53.4084, -2.9916],
-                'Europe/Glasgow': [55.8642, -4.2518], 'Asia/Petaling_Jaya': [3.1073, 101.6067],
-                'Asia/Central_Jakarta': [-6.1865, 106.8341], 'Europe/Leeds': [53.8008, -1.5491],
-                'Europe/Birmingham': [52.4862, -1.8904], 'America/Henderson': [36.0395, -114.9817],
-                'Asia/Caloocan': [14.6500, 120.9667], 'America/Renton': [47.4797, -122.2079],
-                'Europe/Chorley': [53.6530, -2.6300], 'Europe/Croydon': [51.3762, -0.0982],
-                'Europe/Nottingham': [52.9548, -1.1581], 'America/San_Bernardino': [34.1083, -117.2898],
-                'America/Seattle': [47.6062, -122.3321], 'Asia/West_Jakarta': [-6.1683, 106.7583],
-                'Asia/Pangil': [14.4014, 121.4633], 'Asia/Gangnam-gu': [37.4980, 127.0280],
-                'Europe/Naaldwijk': [51.9894, 4.2072], 'Europe/Leipzig': [51.3397, 12.3731],
-                'Europe/Podgorica': [42.4304, 19.2594], 'Europe/Swanley': [51.3960, 0.1750],
-                'Europe/Basingstoke': [51.2625, -1.0870], 'America/El_Segundo': [33.9192, -118.4165],
-                'Europe/Bracknell': [51.4160, -0.7490], 'Asia/San_Juan': [14.6019, 121.0358],
-
-                // Cities for exact local mapping
-                'Helsinki': [60.1548, 24.8870], 'Lauttasaari': [60.1548, 24.8870], 'Melkonkatu': [60.1548, 24.8870], 'Melkonkatu 24': [60.1548, 24.8870], 'Subsoccer HQ': [60.1548, 24.8870], 'Espoo': [60.2055, 24.6559], 'Tampere': [61.4978, 23.7610],
-                'Vantaa': [60.2934, 25.0408], 'Oulu': [65.0124, 25.4682], 'Turku': [60.4518, 22.2666],
-                'Lahti': [60.9827, 25.6615], 'Kuopio': [62.8924, 27.6770],
-                'London': [51.5074, -0.1278], 'Islington': [51.5465, -0.1058], 'Lambeth': [51.4935, -0.1177],
-                'Southwark': [51.5035, -0.0804], 'Portsmouth': [50.8037, -1.0913],
-                'New York': [40.7128, -74.006], 'Brooklyn': [40.6782, -73.9442], 'Queens': [40.7282, -73.7949],
-                'San Diego': [32.7157, -117.1611], 'Chicago': [41.8781, -87.6298], 'Los Angeles': [34.0522, -118.2437],
-                'Singapore': [1.3521, 103.8198], 'Manila': [14.5995, 120.9842], 'Pasig': [14.5764, 121.0851],
-                'Quezon City': [14.6760, 121.0437], 'Makati': [14.5547, 121.0244], 'Jakarta': [-6.2088, 106.8456],
-                'Bekasi': [-6.2383, 106.9756], 'Tangerang': [-6.1781, 106.6300], 'Berlin': [52.5200, 13.4050],
-                'Prague': [50.0755, 14.4378], 'Tel Aviv': [32.0853, 34.7818], 'Jerusalem': [31.7683, 35.2137],
-                'Haifa': [32.7940, 34.9896],
-                'Mazatlan': [23.2494, -106.4111], 'Vigo': [42.2406, -8.7207],
-                'Athens': [37.9838, 23.7275], 'Qatar': [25.2854, 51.5310],
-                'Minneapolis': [44.9778, -93.2650], 'East Jakarta': [-6.2250, 106.9004],
-                'Mumbai': [19.0760, 72.8777], 'Liverpool': [53.4084, -2.9916],
-                'Glasgow': [55.8642, -4.2518], 'Petaling Jaya': [3.1073, 101.6067],
-                'Central Jakarta': [-6.1865, 106.8341], 'Leeds': [53.8008, -1.5491],
-                'Birmingham': [52.4862, -1.8904], 'Henderson': [36.0395, -114.9817],
-                'Caloocan': [14.6500, 120.9667], 'Renton': [47.4797, -122.2079],
-                'Chorley': [53.6530, -2.6300], 'Croydon': [51.3762, -0.0982],
-                'Nottingham': [52.9548, -1.1581], 'San Bernardino': [34.1083, -117.2898],
-                'Seattle': [47.6062, -122.3321], 'West Jakarta': [-6.1683, 106.7583],
-                'Pangil': [14.4014, 121.4633], 'Gangnam-gu': [37.4980, 127.0280],
-                'Naaldwijk': [51.9894, 4.2072], 'Leipzig': [51.3397, 12.3731],
-                'Podgorica': [42.4304, 19.2594], 'Swanley': [51.3960, 0.1750],
-                'Basingstoke': [51.2625, -1.0870], 'El Segundo': [33.9192, -118.4165],
-                'Bracknell': [51.4160, -0.7490], 'San Juan': [14.6019, 121.0358],
-                'Auckland': [-36.8485, 174.7633],
-                'Africa/Algiers': [36.7538, 3.0588],
-                'Kadiria': [36.5333, 3.5667], 'Algiers': [36.7538, 3.0588], 'Medea': [36.2675, 2.7504],
-                // Added timezones
-                'Asia/Ho_Chi_Minh': [10.8231, 106.6297], 'Australia/Perth': [-31.9505, 115.8605],
-                'Australia/Brisbane': [-27.4698, 153.0251], 'America/Edmonton': [53.5461, -113.4938],
-                'Asia/Kuala_Lumpur': [3.1390, 101.6869], 'Europe/Mariehamn': [60.0970, 19.9348],
-                'America/Lima': [-12.0464, -77.0428], 'Europe/Luxembourg': [49.6117, 6.1300],
-                'America/Indiana/Indianapolis': [39.7684, -86.1581], 'Europe/Belgrade': [44.7866, 20.4489],
-                'Asia/Riyadh': [24.7136, 46.6753], 'America/Moncton': [46.0878, -64.7782],
-                'America/Argentina/Buenos_Aires': [-34.6037, -58.3816], 'Europe/Tirane': [41.3275, 19.8187],
-                'America/Curacao': [12.1696, -68.9900], 'America/Halifax': [44.6488, -63.5752],
-                'Australia/Adelaide': [-34.9285, 138.6007], 'America/Winnipeg': [49.8951, -97.1384],
-                'America/Cancun': [21.1619, -86.8515], 'Africa/Casablanca': [33.5731, -7.5898],
-                'America/Guatemala': [14.6349, -90.5069], 'Atlantic/Bermuda': [32.3078, -64.7505],
-                // Added cities
-                'Montreal': [45.5017, -73.5673], 'Miami': [25.7617, -80.1918],
-                'Fort St. James': [54.4418, -124.2514], 'Höhenkirchen-Siegertsbrunn': [48.0167, 11.7167],
-                'Manila Metro': [14.5995, 120.9842], 'Düsseldorf': [51.2277, 6.7735],
-                'Manchester': [53.4808, -2.2426], 'Doral': [25.8195, -80.3553],
-                'Regina': [50.4452, -104.6189], 'Valencia': [39.4699, -0.3763],
-                'Reutlingen': [48.4919, 9.2108], 'Edinburgh': [55.9533, -3.1883],
-                'Atlanta': [38.0, -84.39], 'Springfield': [39.7817, -89.6501],
-                'Las Vegas': [36.1699, -115.1398], 'Frankfurt am Main': [50.1109, 8.6821],
-                'Stockholm': [59.3293, 18.0686], 'Salt Lake City': [40.7608, -111.8910],
-                'High Wycombe': [51.6293, -0.7482], 'Derby': [52.9225, -1.4746],
-                'Hialeah': [25.8576, -80.2781], 'Jacksonville': [30.3322, -81.6557],
-                'Maramag': [7.7633, 125.0053], 'Philadelphia': [39.9526, -75.1652],
-                'Gdansk': [54.3520, 18.6466], 'Gdynia': [54.5189, 18.5305],
-                'Skellefteå': [64.7507, 20.9528], 'Fort Lauderdale': [26.1224, -80.1373],
-                'Cologne': [50.9375, 6.9603], 'Walthamstow': [51.5886, -0.0198],
-                'Laghouat': [33.8001, 2.8828], 'Aarhus': [56.1629, 10.2039],
-                'Třebíč': [49.2149, 15.8816], 'Luton': [51.8787, -0.4200],
-                'Ho Chi Minh City': [10.8231, 106.6297], 'Frederikshavn': [57.4378, 10.5364],
-                'Hamburg': [53.5511, 9.9937], 'Taguig': [14.5176, 121.0509],
-                'Dallas': [32.7767, -96.7970], 'Toronto': [43.6532, -79.3832],
-                'Tallinn': [59.4370, 24.7536], 'Wembley': [51.5560, -0.2795],
-                'Dortmund': [51.5136, 7.4653], 'Pune': [18.5204, 73.8567],
-                'Orlando': [28.5383, -81.3792], 'Belgrade': [44.7866, 20.4489],
-                'Oldham': [53.5409, -2.1114], 'Djelfa': [34.6704, 3.2504],
-                'Tlemcen': [34.8828, -1.3167], 'Hassi Bahbah': [35.0733, 3.0172],
-                'Lakhdaria': [36.5617, 3.5933], 'Berrouaghia': [36.2675, 2.7504],
-                'Sofia': [42.6977, 23.3219], 'Riga': [56.9496, 24.1052],
-                'Budapest': [47.4979, 19.0402], 'Gothenburg': [57.7089, 11.9746],
-                'Copenhagen': [55.6761, 12.5683], 'Oslo': [59.9139, 10.7522],
-                'Perth': [-31.9505, 115.8605], 'Brisbane': [-27.4698, 153.0251],
-                'Melbourne': [-37.8136, 144.9631], 'Sydney': [-33.8688, 151.2093],
-                'Kuala Lumpur': [3.1390, 101.6869], 'Mariehamn': [60.0970, 19.9348],
-                'Trnava': [48.3762, 17.5829], 'Slovakia': [48.6690, 19.6990],
-                'East Midlands Designer Outlet': [53.1076, -1.3106],
-                'Designer Outlet': [53.1076, -1.3106],
-                'Mansfield': [53.1432, -1.1966],
-                'Derbyshire': [53.1076, -1.3106],
-                'South Normanton': [53.1076, -1.3106],
-                'Fashion District Philadelphia': [39.9526, -75.1592],
-                'Fashion District': [39.9526, -75.1592]
-            };
-            window._tzCoords = tzCoords; // expose for live map mode
-
-            const tzContinents = {
-                'Europe': [48.0, 15.0],
-                'America': [38.0, -97.0],
-                'Asia': [34.0, 100.0],
-                'Australia': [-25.0, 135.0],
-                'Africa': [0.0, 20.0],
-                'Pacific': [-10.0, 160.0]
-            };
-
-            const locCounts = {};
+            // Group events by coordinate key so clustered/HQ locations show combined totals
+            const markerGroups = {};
             data.forEach(d => {
                 if (!d.location) return;
-                locCounts[d.location] = (locCounts[d.location] || 0) + 1;
+                const meta = resolveEventCoordsAndMeta(d.location);
+                if (!meta) return;
+                const key = `${meta.coords[0].toFixed(4)},${meta.coords[1].toFixed(4)}`;
+                if (!markerGroups[key]) {
+                    markerGroups[key] = {
+                        coords: meta.coords,
+                        count: 0,
+                        isHq: meta.isHq,
+                        displayName: meta.displayName
+                    };
+                }
+                markerGroups[key].count++;
             });
 
-            for (const loc in locCounts) {
-                const count = locCounts[loc];
-                const parsed = parseLocation(loc);
+            for (const key in markerGroups) {
+                const group = markerGroups[key];
+                const count = group.count;
+                const coords = group.coords;
+                const isHq = group.isHq;
 
-                // Priority 1: Extract embedded [lat,lng] from location string (new events)
-                let coords = null;
-                const coordMatch = loc.match(/\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]/);
-                if (coordMatch) {
-                    coords = [parseFloat(coordMatch[1]), parseFloat(coordMatch[2])];
-                }
+                const radius = isHq ? Math.min(Math.max(count * 1.5, 14), 32) : Math.min(Math.max(count * 1.5, 6), 25);
+                const diameter = radius * 2;
 
-                // Priority 2: Hardcoded lookup (old events without embedded coords)
-                if (!coords) {
-                    coords = tzCoords[loc] || tzCoords[parsed.city] || tzCoords[parsed.timezone];
-                }
-                let isFallback = false;
+                const bg = isHq ? '#c41e2a' : '#1A73E8';
+                const border = isHq ? '2.5px solid #FFD700' : '1.5px solid #fff';
+                const shadow = isHq ? '0 0 16px rgba(227,6,19,0.8), 0 4px 10px rgba(0,0,0,0.6)' : '0 2px 5px rgba(0,0,0,0.3)';
 
-                if (!coords && loc !== 'Unknown') {
-                    // Skip unknown locations instead of placing them randomly
-                    continue;
-                }
+                const markerHtml = `
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: ${diameter}px;
+                        height: ${diameter}px;
+                        border-radius: 50%;
+                        background-color: ${bg};
+                        border: ${border};
+                        color: white;
+                        font-family: 'Roboto', sans-serif;
+                        font-size: ${Math.max(8, Math.min(13, radius * 0.7))}px;
+                        font-weight: bold;
+                        box-shadow: ${shadow};
+                        opacity: 0.95;
+                        transition: transform 0.2s ease;
+                    " class="map-interactive-marker">
+                        ${count}
+                    </div>
+                `;
 
-                if (coords) {
-                    const radius = Math.min(Math.max(count * 1.5, 6), 25);
-                    // Vibrant colors for high contrast on the light map tiles
-                    const mapBlue = '#1A73E8';
-                    const mapRed = '#D93025';
-                    
-                    // Create a custom HTML/CSS divIcon to show the circle marker with a number inside
-                    const diameter = radius * 2;
-                    const markerHtml = `
-                        <div style="
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            width: ${diameter}px;
-                            height: ${diameter}px;
-                            border-radius: 50%;
-                            background-color: ${isFallback ? mapRed : mapBlue};
-                            border: 1.5px solid ${isFallback ? mapRed : '#fff'};
-                            color: white;
-                            font-family: 'Roboto', sans-serif;
-                            font-size: ${Math.max(8, Math.min(13, radius * 0.7))}px;
-                            font-weight: bold;
-                            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-                            opacity: 0.85;
-                            transition: transform 0.2s ease, opacity 0.2s ease;
-                        " class="map-interactive-marker">
-                            ${count}
-                        </div>
-                    `;
+                const customIcon = L.divIcon({
+                    html: markerHtml,
+                    className: 'custom-map-marker',
+                    iconSize: [diameter, diameter],
+                    iconAnchor: [radius, radius]
+                });
 
-                    const customIcon = L.divIcon({
-                        html: markerHtml,
-                        className: 'custom-map-marker',
-                        iconSize: [diameter, diameter],
-                        iconAnchor: [radius, radius]
-                    });
+                const popupHtml = isHq
+                    ? `<div style="color:black; min-width: 200px;">
+                         <div style="font-size: 13px; font-weight: bold; color: #c41e2a; display: flex; align-items: center; gap: 4px;">🏆 Subsoccer HQ (Showroom)</div>
+                         <div style="font-size: 11px; color: #555; margin-bottom: 6px;">Melkonkatu 24, Lauttasaari, Helsinki</div>
+                         <div style="font-size: 12px; font-weight: bold;">${count.toLocaleString()} Events & Games tracked</div>
+                       </div>`
+                    : `<div style="color:black"><b>${group.displayName}</b><br>${count.toLocaleString()} Events tracked</div>`;
 
-                    L.marker(coords, { icon: customIcon })
-                        .bindPopup(`<div style="color:black"><b>${getDisplayLocation(loc)}</b><br>${count} Events tracked</div>`)
-                        .addTo(mymap);
-                }
+                L.marker(coords, { icon: customIcon })
+                    .bindPopup(popupHtml)
+                    .addTo(mymap);
             }
 
             // Render interactive UGC video markers on the map
@@ -4838,36 +4896,43 @@
             // Clear old markers
             mymap.eachLayer(layer => { if (layer instanceof L.Marker) layer.remove(); });
 
-            // Re-use tzCoords lookup from initMap (same variable in outer scope) — call initMap's
-            // coordinate resolution by temporarily building a mini dataset and calling shared resolver
-            const tzCoords = window._tzCoords || {};
-
+            const markerGroups = {};
             for (const loc in locData) {
                 const { count, latest } = locData[loc];
-                let coords = null;
-
-                // Priority 1: embedded [lat,lng]
-                const coordMatch = loc.match(/\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]/);
-                if (coordMatch) coords = [parseFloat(coordMatch[1]), parseFloat(coordMatch[2])];
-
-                // Priority 2: shared tz/city lookup
-                if (!coords) {
-                    const parsed = parseLocation(loc);
-                    coords = tzCoords[loc] || tzCoords[parsed.city] || tzCoords[parsed.timezone];
+                const meta = resolveEventCoordsAndMeta(loc);
+                if (!meta) continue;
+                const key = `${meta.coords[0].toFixed(4)},${meta.coords[1].toFixed(4)}`;
+                if (!markerGroups[key]) {
+                    markerGroups[key] = {
+                        coords: meta.coords,
+                        count: 0,
+                        isHq: meta.isHq,
+                        displayName: meta.displayName,
+                        latest: latest
+                    };
                 }
-                if (!coords) continue;
+                markerGroups[key].count += count;
+                if (new Date(latest) > new Date(markerGroups[key].latest)) {
+                    markerGroups[key].latest = latest;
+                }
+            }
 
-                // Time ago label
-                const minsAgo = Math.round((now - new Date(latest).getTime()) / 60000);
+            for (const key in markerGroups) {
+                const group = markerGroups[key];
+                const count = group.count;
+                const coords = group.coords;
+                const isHq = group.isHq;
+
+                const minsAgo = Math.round((now - new Date(group.latest).getTime()) / 60000);
                 const agoStr  = minsAgo <= 1 ? 'just now' : minsAgo < 60 ? `${minsAgo} min ago` : `${Math.round(minsAgo/60)}h ago`;
 
                 const isLive = hours === 1;
-                const bg     = isLive ? 'rgba(220,30,30,0.85)' : 'rgba(26,115,232,0.85)';
-                const border = isLive ? '#ff6666' : '#fff';
-                const shadow = isLive ? '0 0 12px rgba(255,60,60,0.7)' : '0 2px 5px rgba(0,0,0,0.3)';
+                const bg     = isHq ? '#c41e2a' : (isLive ? 'rgba(220,30,30,0.85)' : 'rgba(26,115,232,0.85)');
+                const border = isHq ? '#FFD700' : (isLive ? '#ff6666' : '#fff');
+                const shadow = isHq ? '0 0 16px rgba(227,6,19,0.8)' : (isLive ? '0 0 12px rgba(255,60,60,0.7)' : '0 2px 5px rgba(0,0,0,0.3)');
                 const anim   = isLive ? 'animation: mapPulse 1.5s infinite;' : '';
 
-                const radius = Math.min(Math.max(count * 2, 8), 28);
+                const radius = isHq ? Math.min(Math.max(count * 2, 14), 32) : Math.min(Math.max(count * 2, 8), 28);
                 const diameter = radius * 2;
                 const markerHtml = `
                     <div style="
@@ -4889,8 +4954,17 @@
                     iconAnchor: [radius, radius]
                 });
 
+                const popupHtml = isHq
+                    ? `<div style="color:#111; min-width:190px;">
+                         <div style="font-size:13px; font-weight:bold; color:#c41e2a;">🏆 Subsoccer HQ (Showroom)</div>
+                         <div style="font-size:11px; color:#555; margin-bottom:4px;">Melkonkatu 24, Lauttasaari, Helsinki</div>
+                         <div style="font-size:12px; font-weight:bold;">${count.toLocaleString()} Events / Games</div>
+                         <div style="color:#888;font-size:0.85em;margin-top:2px;">Latest: ${agoStr}</div>
+                       </div>`
+                    : `<div style="color:#111"><b>${group.displayName}</b><br>${count} event${count !== 1 ? 's' : ''}<br><span style="color:#888;font-size:0.85em">Latest: ${agoStr}</span></div>`;
+
                 L.marker(coords, { icon: customIcon })
-                    .bindPopup(`<div style="color:#111"><b>${getDisplayLocation(loc)}</b><br>${count} event${count !== 1 ? 's' : ''}<br><span style="color:#888;font-size:0.85em">Latest: ${agoStr}</span></div>`)
+                    .bindPopup(popupHtml)
                     .addTo(mymap);
             }
 
