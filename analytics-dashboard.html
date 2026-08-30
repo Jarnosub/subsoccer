@@ -1863,8 +1863,12 @@
                         <input type="text" id="b2b-prospect-search" placeholder="Search venue, chain, city..." oninput="renderB2bProspectorTable()"
                             style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 12px; border-radius:6px; font-size:0.8rem; width:210px;">
                     </div>
-                    <div style="font-size:0.75rem; color:#8ba2b5;">
-                        <span id="b2b-showing-count">Showing 24 targets</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span id="b2b-showing-count" style="font-size:0.75rem; color:#8ba2b5;"></span>
+                        <button onclick="exportB2bProspectsCSV()"
+                            style="background:rgba(46,204,113,0.12); border:1px solid rgba(46,204,113,0.35); color:#2ecc71; padding:6px 12px; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </button>
                     </div>
                 </div>
 
@@ -3562,6 +3566,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof renderB2bProspectorTable === 'function') {
                 renderB2bProspectorTable();
+            }
+            // Sync CRM statuses from Supabase (cross-browser persistence)
+            if (typeof syncB2bCrmFromSupabase === 'function') {
+                syncB2bCrmFromSupabase();
             }
         });
 
@@ -9227,7 +9235,7 @@ jarno@subsoccer.com | https://subsoccer.pro`;
             }
         }
 
-        // ─── B2B Pipeline CRM Status (localStorage) ────────────────────
+        // ─── B2B Pipeline CRM Status (localStorage + Supabase sync) ────
         const B2B_CRM_KEY = 'subsoccer_b2b_pipeline_v1';
         const B2B_STATUS_CONFIG = {
             new:       { label: 'New',            icon: '🟢', color: '#2ecc71', bg: 'rgba(46,204,113,0.12)',  border: 'rgba(46,204,113,0.35)' },
@@ -9248,11 +9256,71 @@ jarno@subsoccer.com | https://subsoccer.pro`;
             return b2bCrmLoad()[id] || 'new';
         }
         function setProspectStatus(id, status) {
+            // 1. Save to localStorage immediately (fast)
             const data = b2bCrmLoad();
             data[id] = status;
             b2bCrmSave(data);
+            // 2. Upsert to Supabase async (cross-browser sync)
+            client.from('b2b_crm')
+                .upsert({ prospect_id: id, status, updated_at: new Date().toISOString() }, { onConflict: 'prospect_id' })
+                .then(({ error }) => { if (error) console.warn('B2B CRM sync error:', error.message); });
             renderB2bProspectorTable();
         }
+
+        // Load CRM statuses from Supabase on init — merge with localStorage (Supabase wins)
+        async function syncB2bCrmFromSupabase() {
+            try {
+                const { data, error } = await client.from('b2b_crm').select('prospect_id, status');
+                if (error || !data?.length) return;
+                const local = b2bCrmLoad();
+                data.forEach(row => { local[row.prospect_id] = row.status; });
+                b2bCrmSave(local);
+                renderB2bProspectorTable();
+                console.log(`B2B CRM: synced ${data.length} statuses from Supabase`);
+            } catch(e) { console.warn('B2B CRM Supabase sync failed:', e); }
+        }
+
+        // ─── B2B CSV Export ──────────────────────────────────────────────
+        function exportB2bProspectsCSV() {
+            const crm = b2bCrmLoad();
+            const rows = _b2bProspectorTargets.map(t => {
+                const status = crm[t.id] || 'new';
+                const statusLabel = B2B_STATUS_CONFIG[status]?.label || status;
+                return [
+                    t.name        || '',
+                    t.chain       || '',
+                    t.city        || '',
+                    t.country     || '',
+                    t.region      || '',
+                    t.category    || '',
+                    statusLabel,
+                    t.matchScore  || '',
+                    t.rating      || '',
+                    t.reviewCount || '',
+                    t.website     || '',
+                    t.phone       || '',
+                    (t.address || t.description || '').replace(/,/g, ' '),
+                ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+            });
+
+            const header = [
+                'Name','Chain','City','Country','Region','Category',
+                'Pipeline Status','Match Score','Rating','Reviews',
+                'Website','Phone','Address'
+            ].map(h => `"${h}"`).join(',');
+
+            const csv = [header, ...rows].join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
+            a.download = `subsoccer-b2b-pipeline-${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
 
         // ─── B2B AI Prospector & Lookalike Discovery Database ───
         let _b2bProspectorTargets = [
