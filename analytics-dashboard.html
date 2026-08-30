@@ -3437,6 +3437,13 @@
             }
         });
 
+        // Fix 2: Initialize B2B Prospector once at page load, not on every UGC render
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof renderB2bProspectorTable === 'function') {
+                renderB2bProspectorTable();
+            }
+        });
+
         function getFlag(langStr) {
             if (!langStr) return '🇬🇧';
             const clean = langStr.trim().toLowerCase();
@@ -9389,33 +9396,45 @@ jarno@subsoccer.com | https://subsoccer.pro`;
         function computeLearnedIcpBreakdown() {
             const posts = getUgcPosts();
             let act = 0, mall = 0, bar = 0, sport = 0, other = 0;
+
+            // Precise patterns – word-boundary or multi-word phrases to avoid false positives
+            const rxAct  = /superpark|trampoline\s*park|activity\s*park|jumpyard|flip\s*out|gravity\s*active|rush\s*(uk|park)|indoor\s*(play|adventure)|arcade\s*park/i;
+            const rxMall = /tripla|designer\s*outlet|shopping\s*(mall|centre|center)|westfield|citycon|mcarthurglen|midlands\s*outlet|outlet\s*village/i;
+            const rxBar  = /sports?\s*bar|pub\s*(lounge|quiz)|cocktail\s*lounge|flight\s*club|lane\s*7|craft\s*beer|rooftop\s*bar/i;
+            const rxSport= /padel|5[-\s]?a[-\s]?side|indoor\s*(football|soccer|futsal)|football\s*(arena|center|centre)|fanzone|goals\s*(fc|football)/i;
+
             posts.forEach(p => {
-                const str = `${p.location || ''} ${p.notes || ''} ${p.title || ''}`.toLowerCase();
-                if (str.includes('superpark') || str.includes('trampoline') || str.includes('jump') || str.includes('park') || str.includes('arcade')) act++;
-                else if (str.includes('tripla') || str.includes('outlet') || str.includes('mall') || str.includes('shopping') || str.includes('midlands')) mall++;
-                else if (str.includes('bar') || str.includes('pub') || str.includes('lounge') || str.includes('beer')) bar++;
-                else if (str.includes('padel') || str.includes('stadium') || str.includes('arena') || str.includes('fanzone') || str.includes('soccer')) sport++;
-                else other++;
+                const str = `${p.location || ''} ${p.notes || ''} ${p.title || ''}`;
+                if      (rxAct.test(str))   act++;
+                else if (rxMall.test(str))  mall++;
+                else if (rxBar.test(str))   bar++;
+                else if (rxSport.test(str)) sport++;
+                else                        other++;
             });
+
             const total = Math.max(1, posts.length);
-            const pAct = Math.round((act / total) * 100);
-            const pMall = Math.round((mall / total) * 100);
-            const pBar = Math.round((bar / total) * 100);
+            const pAct   = Math.round((act   / total) * 100);
+            const pMall  = Math.round((mall  / total) * 100);
+            const pBar   = Math.round((bar   / total) * 100);
             const pSport = Math.round((sport / total) * 100);
 
             const container = document.getElementById('b2b-icp-breakdown-pills');
             if (container) {
                 container.innerHTML = `
                     <span style="background:rgba(255,152,0,0.15); border:1px solid rgba(255,152,0,0.4); color:#ffa726; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:12px;">🧗 Activity Parks: <b>${pAct}%</b></span>
-                    <span style="background:rgba(74,158,255,0.15); border:1px solid rgba(74,158,255,0.4); color:#60a5fa; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:12px;">🛍️ Malls & Outlets: <b>${pMall}%</b></span>
+                    <span style="background:rgba(74,158,255,0.15); border:1px solid rgba(74,158,255,0.4); color:#60a5fa; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:12px;">🛍️ Malls &amp; Outlets: <b>${pMall}%</b></span>
                     <span style="background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.4); color:#c084fc; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:12px;">🎳 Social Bars: <b>${pBar}%</b></span>
                     <span style="background:rgba(46,204,113,0.15); border:1px solid rgba(46,204,113,0.4); color:#2ecc71; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:12px;">⚽ Sports Centers: <b>${pSport}%</b></span>
                 `;
             }
+
+            // Return weights so renderB2bProspectorTable can sort by them
+            return { activity_parks: pAct, malls_outlets: pMall, social_bars: pBar, sports_clubs: pSport };
         }
 
         function renderB2bProspectorTable() {
-            computeLearnedIcpBreakdown();
+            // Fix 2 & 3: Compute ICP weights and use them to sort the target list dynamically
+            const weights = computeLearnedIcpBreakdown();
 
             const catFilter = document.getElementById('b2b-prospect-category')?.value || 'ALL';
             const regFilter = document.getElementById('b2b-prospect-region')?.value || 'ALL';
@@ -9424,7 +9443,13 @@ jarno@subsoccer.com | https://subsoccer.pro`;
 
             if (!grid) return;
 
-            const filtered = _b2bProspectorTargets.filter(t => {
+            // Sort by ICP weight of each target's category BEFORE filtering
+            const sorted = [..._b2bProspectorTargets].sort((a, b) =>
+                ((weights[b.category] || 0) - (weights[a.category] || 0)) ||
+                (b.matchScore - a.matchScore)
+            );
+
+            const filtered = sorted.filter(t => {
                 if (catFilter !== 'ALL' && t.category !== catFilter) return false;
                 if (regFilter !== 'ALL' && t.region !== regFilter) return false;
                 if (search) {
@@ -9634,9 +9659,6 @@ jarno@subsoccer.com | https://subsoccer.pro`;
         };
 
         function renderUgcTable() {
-            if (typeof renderB2bProspectorTable === 'function') {
-                renderB2bProspectorTable();
-            }
             const posts = getUgcPosts();
             const container = document.getElementById('ugc-view-content');
             const search = (document.getElementById('ugc-search-input')?.value || '').toLowerCase();
