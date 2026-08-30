@@ -1794,9 +1794,15 @@
                             Analyzes your proven hubs (SuperPark, Tripla, East Midlands Outlet, Padel Clubs) and discovers high-probability sister chains & lookalike venues worldwide.
                         </div>
                     </div>
-                    <!-- Live ICP Learned Badges -->
-                    <div id="b2b-icp-breakdown-pills" style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <!-- Fetch Live Data button + ICP Learned Badges -->
+                    <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+                        <button id="b2b-fetch-live-btn" onclick="fetchB2bProspectsFromApi(200)"
+                            style="background:rgba(10,102,194,0.15); border:1px solid rgba(10,102,194,0.4); color:#60a5fa; padding:7px 14px; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; white-space:nowrap;">
+                            <i class="fas fa-satellite-dish"></i> Fetch Live Data from Google
+                        </button>
+                        <div id="b2b-icp-breakdown-pills" style="display:flex; gap:6px; flex-wrap:wrap;">
                         <!-- Injected dynamically -->
+                    </div>
                     </div>
                 </div>
 
@@ -9246,7 +9252,7 @@ jarno@subsoccer.com | https://subsoccer.pro`;
         }
 
         // ─── B2B AI Prospector & Lookalike Discovery Database ───
-        const _b2bProspectorTargets = [
+        let _b2bProspectorTargets = [
             // Activity & Trampoline Parks
             {
                 id: 'jumpyard-stockholm',
@@ -9531,6 +9537,66 @@ jarno@subsoccer.com | https://subsoccer.pro`;
                 description: 'Major UK football center chain with licensed clubhouse lounges.'
             }
         ];
+
+        // ─── B2B Prospects Cache & Live Data Fetch ───────────────────────
+        const B2B_PROSPECTS_CACHE_KEY = 'subsoccer_b2b_prospects_live_v1';
+        const B2B_PROSPECTS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+        function b2bProspectsLoadCache() {
+            try {
+                const raw = localStorage.getItem(B2B_PROSPECTS_CACHE_KEY);
+                if (!raw) return null;
+                const cached = JSON.parse(raw);
+                if (!cached.ts || Date.now() - cached.ts > B2B_PROSPECTS_CACHE_TTL) return null;
+                return cached.data;
+            } catch(e) { return null; }
+        }
+
+        function b2bProspectsSaveCache(data) {
+            try {
+                localStorage.setItem(B2B_PROSPECTS_CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+            } catch(e) {}
+        }
+
+        async function fetchB2bProspectsFromApi(limit = 200) {
+            const grid = document.getElementById('b2b-prospector-grid');
+            const btn  = document.getElementById('b2b-fetch-live-btn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching from Google...'; }
+            if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#60a5fa;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;"></i><div style="font-size:0.85rem;font-weight:600;">Fetching live data from Google Places API...</div><div style="font-size:0.75rem;color:#8ba2b5;margin-top:6px;">This may take 30–90 seconds for ' + limit + ' venues</div></div>';
+
+            try {
+                const res = await fetch(`/.netlify/functions/fetch-b2b-prospects?limit=${limit}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const json = await res.json();
+                if (!json.success || !json.prospects?.length) throw new Error('No prospects returned');
+
+                _b2bProspectorTargets = json.prospects;
+                b2bProspectsSaveCache(json.prospects);
+
+                const badge = document.getElementById('b2b-targets-badge');
+                if (badge) badge.textContent = `${json.prospects.length} Targets (Live)`;
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data'; btn.style.background = 'rgba(46,204,113,0.15)'; btn.style.borderColor = 'rgba(46,204,113,0.4)'; btn.style.color = '#2ecc71'; }
+
+                renderB2bProspectorTable();
+            } catch(err) {
+                console.error('B2B fetch error:', err);
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Retry'; btn.style.borderColor = 'rgba(255,80,80,0.5)'; btn.style.color = '#ff5050'; }
+                if (grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:#ff5050;background:var(--card-bg);border:1px solid rgba(255,80,80,0.3);border-radius:8px;"><i class="fas fa-exclamation-triangle"></i> Failed to fetch: ${err.message}</div>`;
+            }
+        }
+
+        // Auto-load: use cache if fresh, else show hardcoded 24 and prompt live fetch
+        (function initB2bProspects() {
+            const cached = b2bProspectsLoadCache();
+            if (cached && cached.length > 0) {
+                _b2bProspectorTargets = cached;
+                setTimeout(() => {
+                    const badge = document.getElementById('b2b-targets-badge');
+                    if (badge) badge.textContent = `${cached.length} Targets (Cached)`;
+                }, 500);
+            }
+            // else: hardcoded 24 remain as fallback until user clicks "Fetch Live"
+        })();
 
         function computeLearnedIcpBreakdown() {
             const posts = getUgcPosts();
