@@ -8879,50 +8879,19 @@ const growthLabels = sortedGrowthKeys.map(k => {
         let _b2bCurrentPost = null;
         let _b2bCurrentLang = 'en';
 
-        function analyzeB2bOrganization(venueName, post) {
-            const v = (venueName || '').toLowerCase();
-            let org = venueName ? venueName.split(',')[0].split('(')[0].trim() : 'Commercial Hub';
-            let category = 'Commercial Hub & Venue';
-            let roles = [];
-
-            if (v.includes('tripla') || v.includes('mall') || v.includes('outlet') || v.includes('shopping') || v.includes('fashion district')) {
-                category = '🛍️ Shopping Mall / Commercial Center';
-                roles = [
-                    { title: 'Marketing Director', query: `Marketing Director "${org}"` },
-                    { title: 'Center Manager / GM', query: `Center Manager "${org}"` },
-                    { title: 'Head of Leasing / Commercial', query: `Commercial Director "${org}"` }
-                ];
-            } else if (v.includes('superpark') || v.includes('trampoline') || v.includes('activity') || v.includes('arcade') || v.includes('park')) {
-                category = '🧗 Activity Park & Entertainment Center';
-                roles = [
-                    { title: 'General Manager', query: `General Manager "${org}"` },
-                    { title: 'Marketing Director', query: `Marketing Director "${org}"` },
-                    { title: 'Head of Partnerships / Sales', query: `Partnerships Manager "${org}"` }
-                ];
-            } else if (v.includes('hq') || v.includes('melkonkatu') || v.includes('office') || v.includes('campus')) {
-                category = '🏢 Corporate Headquarters & Workplace';
-                roles = [
-                    { title: 'Head of People & Culture / HR', query: `Head of People "${org}"` },
-                    { title: 'Workplace Experience Lead', query: `Workplace Experience "${org}"` },
-                    { title: 'CEO / Managing Director', query: `CEO "${org}"` }
-                ];
-            } else if (v.includes('fanzone') || v.includes('stadium') || v.includes('arena') || v.includes('sports') || v.includes('padel')) {
-                category = '⚽ Sports Arena & FanZone';
-                roles = [
-                    { title: 'Commercial Director', query: `Commercial Director "${org}"` },
-                    { title: 'Event Manager', query: `Event Manager "${org}"` },
-                    { title: 'Sponsorship Manager', query: `Sponsorship Manager "${org}"` }
-                ];
-            } else {
-                category = '📍 Commercial Venue';
-                roles = [
-                    { title: 'Managing Director / Owner', query: `Managing Director "${org}"` },
-                    { title: 'Marketing Manager', query: `Marketing Manager "${org}"` },
-                    { title: 'Operations Manager', query: `Operations Manager "${org}"` }
-                ];
+        function extractCleanOrgName(venueName) {
+            if (!venueName) return 'Organization';
+            let name = venueName.split('(')[0].split('[')[0].trim();
+            // Clean up common prefixes / noise
+            if (name.toLowerCase().includes('tripla')) return 'Mall of Tripla';
+            if (name.toLowerCase().includes('superpark')) return 'SuperPark';
+            if (name.toLowerCase().includes('midlands') || name.toLowerCase().includes('outlet')) return 'East Midlands Designer Outlet';
+            if (name.toLowerCase().includes('lauttasaari') || name.toLowerCase().includes('melkonkatu') || name.toLowerCase().includes('hq')) return 'Subsoccer';
+            if (name.includes(',')) {
+                const parts = name.split(',');
+                return parts[0].trim() || name;
             }
-
-            return { org, category, roles };
+            return name;
         }
 
         function openB2bLeadModal(venueName, postId) {
@@ -8932,35 +8901,53 @@ const growthLabels = sortedGrowthKeys.map(k => {
             _b2bCurrentVenue = venueName || post.location || 'Global Hub';
             _b2bCurrentPost = post;
 
-            const analysis = analyzeB2bOrganization(_b2bCurrentVenue, post);
+            const initialOrg = extractCleanOrgName(_b2bCurrentVenue);
 
-            if (document.getElementById('b2b-venue-type')) document.getElementById('b2b-venue-type').textContent = analysis.category;
-            if (document.getElementById('b2b-venue-title')) document.getElementById('b2b-venue-title').textContent = analysis.org;
+            const inputEl = document.getElementById('b2b-company-search-input');
+            if (inputEl) inputEl.value = initialOrg;
+
             if (document.getElementById('b2b-venue-subtitle')) document.getElementById('b2b-venue-subtitle').textContent = _b2bCurrentVenue;
             if (document.getElementById('b2b-proof-videos')) document.getElementById('b2b-proof-videos').textContent = (post.tournaments_count ? post.tournaments_count : (post.events_count ? post.events_count : 1));
             if (document.getElementById('b2b-proof-matches')) document.getElementById('b2b-proof-matches').textContent = post.matches_count || 120;
 
-            const rolesGrid = document.getElementById('b2b-lead-roles-grid');
-            if (rolesGrid) {
-                rolesGrid.innerHTML = analysis.roles.map(r => `
-                    <a href="https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(r.query)}" target="_blank" rel="noopener"
-                        style="background:#141d26; border:1px solid #2a3b4c; border-radius:6px; padding:10px 12px; text-decoration:none; display:flex; justify-content:space-between; align-items:center; transition:border-color 0.2s;"
-                        onmouseover="this.style.borderColor='#0A66C2'" onmouseout="this.style.borderColor='#2a3b4c'">
-                        <div>
-                            <div style="font-size:0.8rem; font-weight:700; color:#fff;">${escapeHtml(r.title)}</div>
-                            <div style="font-size:0.7rem; color:#8ba2b5; margin-top:2px;">${escapeHtml(analysis.org)}</div>
-                        </div>
-                        <span style="background:#0A66C2; color:#fff; font-size:0.7rem; font-weight:600; padding:3px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;">
-                            Search <i class="fas fa-external-link-alt" style="font-size:0.6rem;"></i>
-                        </span>
-                    </a>
-                `).join('');
-            }
-
+            updateB2bLinkedInLinks();
             renderB2bPitchText();
 
             const modal = document.getElementById('b2b-lead-modal');
             if (modal) modal.style.display = 'flex';
+        }
+
+        function updateB2bLinkedInLinks() {
+            const inputEl = document.getElementById('b2b-company-search-input');
+            const org = (inputEl ? inputEl.value.trim() : '') || extractCleanOrgName(_b2bCurrentVenue);
+
+            const allPeopleBtn = document.getElementById('b2b-link-all-people');
+            if (allPeopleBtn) {
+                allPeopleBtn.href = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(org)}`;
+                allPeopleBtn.innerHTML = `<i class="fab fa-linkedin-in" style="font-size:1.1rem;"></i> View All People at <strong>${escapeHtml(org)}</strong> on LinkedIn ↗`;
+            }
+
+            const companyBtn = document.getElementById('b2b-link-company-page');
+            if (companyBtn) {
+                companyBtn.href = `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(org)}`;
+            }
+
+            const roleMarketing = document.getElementById('b2b-link-marketing');
+            if (roleMarketing) {
+                roleMarketing.href = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(org + ' marketing OR events')}`;
+            }
+
+            const roleManagement = document.getElementById('b2b-link-management');
+            if (roleManagement) {
+                roleManagement.href = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(org + ' director OR manager OR commercial')}`;
+            }
+
+            const rolePartnerships = document.getElementById('b2b-link-partnerships');
+            if (rolePartnerships) {
+                rolePartnerships.href = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(org + ' partnerships OR sales OR leasing')}`;
+            }
+
+            renderB2bPitchText();
         }
 
         function closeB2bLeadModal() {
@@ -8989,8 +8976,8 @@ const growthLabels = sortedGrowthKeys.map(k => {
             const textarea = document.getElementById('b2b-pitch-textarea');
             if (!textarea || !_b2bCurrentVenue) return;
 
-            const analysis = analyzeB2bOrganization(_b2bCurrentVenue, _b2bCurrentPost);
-            const venue = analysis.org;
+            const inputEl = document.getElementById('b2b-company-search-input');
+            const venue = (inputEl ? inputEl.value.trim() : '') || extractCleanOrgName(_b2bCurrentVenue);
             const matches = _b2bCurrentPost?.matches_count || 'hundreds of';
             const liveUrl = `https://subsoccer.pro/analytics-dashboard.html`;
 
@@ -10541,32 +10528,51 @@ jarno@subsoccer.com | https://subsoccer.pro`;
             <!-- Body -->
             <div style="padding:20px; display:flex; flex-direction:column; gap:16px; overflow-y:auto;">
                 
-                <!-- Venue & Social Proof Card -->
-                <div style="background:#141d26; border:1px solid #233140; border-radius:8px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-                    <div>
-                        <div style="font-size:0.7rem; color:#8ba2b5; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;" id="b2b-venue-type">COMMERCIAL HUB</div>
-                        <div id="b2b-venue-title" style="font-size:1.1rem; font-weight:700; color:#fff; margin-top:2px;">Venue Name</div>
-                        <div id="b2b-venue-subtitle" style="font-size:0.78rem; color:#8ba2b5; margin-top:2px;">Location details</div>
+                <!-- Search & Edit Company Name -->
+                <div>
+                    <label style="display:block; font-size:0.75rem; color:#8ba2b5; font-weight:700; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px;">
+                        🏢 Target Company / Organization on LinkedIn:
+                    </label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="b2b-company-search-input" oninput="updateB2bLinkedInLinks()" placeholder="e.g. SuperPark, Tripla, Subsoccer..."
+                            style="flex:1; background:#141d26; border:1px solid #2a3b4c; color:#fff; padding:10px 14px; border-radius:6px; font-size:0.95rem; font-weight:600; outline:none;">
+                        <a id="b2b-link-company-page" href="#" target="_blank" rel="noopener"
+                            style="background:#141d26; border:1px solid #2a3b4c; color:#60a5fa; padding:10px 14px; border-radius:6px; font-size:0.8rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;">
+                            <i class="fas fa-building"></i> Company Page ↗
+                        </a>
                     </div>
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <div style="background:rgba(225,48,108,0.15); border:1px solid rgba(225,48,108,0.4); color:#ff4d80; padding:6px 12px; border-radius:6px; text-align:center;">
-                            <div style="font-size:0.65rem; text-transform:uppercase;">Videos</div>
-                            <div id="b2b-proof-videos" style="font-weight:700; font-size:1rem;">1</div>
-                        </div>
-                        <div style="background:rgba(46,204,113,0.15); border:1px solid rgba(46,204,113,0.4); color:#2ecc71; padding:6px 12px; border-radius:6px; text-align:center;">
-                            <div style="font-size:0.65rem; text-transform:uppercase;">Matches</div>
-                            <div id="b2b-proof-matches" style="font-weight:700; font-size:1rem;">529</div>
-                        </div>
-                    </div>
+                    <div id="b2b-venue-subtitle" style="font-size:0.75rem; color:#8ba2b5; margin-top:4px;">Location details</div>
                 </div>
 
-                <!-- Step 1: Decision Makers on LinkedIn -->
+                <!-- Primary Action: View All People on LinkedIn -->
                 <div>
-                    <div style="font-size:0.8rem; font-weight:700; color:#c5d4e0; text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-user-tie" style="color:#60a5fa;"></i> Target Decision Makers on LinkedIn:
+                    <a id="b2b-link-all-people" href="#" target="_blank" rel="noopener"
+                        style="background:#0A66C2; border:1px solid #1374d9; color:#fff; padding:12px 18px; border-radius:8px; font-size:0.95rem; font-weight:700; text-decoration:none; display:flex; justify-content:center; align-items:center; gap:8px;">
+                        <i class="fab fa-linkedin-in" style="font-size:1.1rem;"></i> View All People on LinkedIn ↗
+                    </a>
+                </div>
+
+                <!-- Quick Filter Shortcuts -->
+                <div>
+                    <div style="font-size:0.75rem; font-weight:700; color:#8ba2b5; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px;">
+                        ⚡ Quick Department Search Filters:
                     </div>
-                    <div id="b2b-lead-roles-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">
-                        <!-- Injected dynamically -->
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px;">
+                        <a id="b2b-link-marketing" href="#" target="_blank" rel="noopener"
+                            style="background:#141d26; border:1px solid #233140; border-radius:6px; padding:9px 12px; text-decoration:none; display:flex; justify-content:space-between; align-items:center; color:#c5d4e0; font-size:0.8rem; font-weight:600;">
+                            <span>🎯 Marketing & Events</span>
+                            <i class="fas fa-external-link-alt" style="font-size:0.65rem; color:#60a5fa;"></i>
+                        </a>
+                        <a id="b2b-link-management" href="#" target="_blank" rel="noopener"
+                            style="background:#141d26; border:1px solid #233140; border-radius:6px; padding:9px 12px; text-decoration:none; display:flex; justify-content:space-between; align-items:center; color:#c5d4e0; font-size:0.8rem; font-weight:600;">
+                            <span>👔 Leadership & Management</span>
+                            <i class="fas fa-external-link-alt" style="font-size:0.65rem; color:#60a5fa;"></i>
+                        </a>
+                        <a id="b2b-link-partnerships" href="#" target="_blank" rel="noopener"
+                            style="background:#141d26; border:1px solid #233140; border-radius:6px; padding:9px 12px; text-decoration:none; display:flex; justify-content:space-between; align-items:center; color:#c5d4e0; font-size:0.8rem; font-weight:600;">
+                            <span>🤝 Partnerships & Leasing</span>
+                            <i class="fas fa-external-link-alt" style="font-size:0.65rem; color:#60a5fa;"></i>
+                        </a>
                     </div>
                 </div>
 
