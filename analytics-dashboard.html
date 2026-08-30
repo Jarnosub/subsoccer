@@ -3564,7 +3564,7 @@
             }
         });
 
-        // Fix 2: Initialize B2B Prospector once at page load, not on every UGC render
+        // Fix 2: Initialize B2B Prospector and UGC intelligence on page load
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof renderB2bProspectorTable === 'function') {
                 renderB2bProspectorTable();
@@ -3572,6 +3572,10 @@
             // Sync CRM statuses from Supabase (cross-browser persistence)
             if (typeof syncB2bCrmFromSupabase === 'function') {
                 syncB2bCrmFromSupabase();
+            }
+            // Sync UGC videos from Supabase immediately on page load
+            if (typeof initUgcIntelligence === 'function') {
+                initUgcIntelligence();
             }
         });
 
