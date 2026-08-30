@@ -1720,6 +1720,11 @@
                     </div>
                 </div>
 
+                <!-- Pipeline Status Summary Bar -->
+                <div id="b2b-pipeline-summary" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                    <!-- Injected dynamically -->
+                </div>
+
                 <!-- Pipeline Filters Bar -->
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -1738,6 +1743,15 @@
                             <option value="NORDICS">🇫🇮 🇸🇪 Nordics</option>
                             <option value="EUROPE">🇪🇺 Central & Western Europe</option>
                             <option value="USA">🇺🇸 North America</option>
+                        </select>
+                        <select id="b2b-prospect-status-filter" onchange="renderB2bProspectorTable()"
+                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer;">
+                            <option value="ALL" selected>All Pipeline Stages</option>
+                            <option value="new">&#x1F7E2; New (Not contacted)</option>
+                            <option value="contacted">&#x1F4E8; Contacted</option>
+                            <option value="in_talks">&#x1F91D; In Talks</option>
+                            <option value="won">&#x2705; Won</option>
+                            <option value="lost">&#x274C; Not Interested</option>
                         </select>
                         <input type="text" id="b2b-prospect-search" placeholder="Search venue, chain, city..." oninput="renderB2bProspectorTable()"
                             style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 12px; border-radius:6px; font-size:0.8rem; width:210px;">
@@ -9106,6 +9120,33 @@ jarno@subsoccer.com | https://subsoccer.pro`;
             }
         }
 
+        // ─── B2B Pipeline CRM Status (localStorage) ────────────────────
+        const B2B_CRM_KEY = 'subsoccer_b2b_pipeline_v1';
+        const B2B_STATUS_CONFIG = {
+            new:       { label: 'New',            icon: '🟢', color: '#2ecc71', bg: 'rgba(46,204,113,0.12)',  border: 'rgba(46,204,113,0.35)' },
+            contacted: { label: 'Contacted',      icon: '📨', color: '#60a5fa', bg: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.35)' },
+            in_talks:  { label: 'In Talks',       icon: '🤝', color: '#ffa726', bg: 'rgba(255,167,38,0.12)', border: 'rgba(255,167,38,0.45)' },
+            won:       { label: 'Won',             icon: '✅',     color: '#a8e6cf', bg: 'rgba(46,204,100,0.18)', border: 'rgba(46,204,100,0.5)'  },
+            lost:      { label: 'Not Interested',  icon: '❌',     color: '#8ba2b5', bg: 'rgba(139,162,181,0.1)', border: 'rgba(139,162,181,0.25)' }
+        };
+
+        function b2bCrmLoad() {
+            try { return JSON.parse(localStorage.getItem(B2B_CRM_KEY) || '{}'); }
+            catch(e) { return {}; }
+        }
+        function b2bCrmSave(data) {
+            try { localStorage.setItem(B2B_CRM_KEY, JSON.stringify(data)); } catch(e) {}
+        }
+        function getProspectStatus(id) {
+            return b2bCrmLoad()[id] || 'new';
+        }
+        function setProspectStatus(id, status) {
+            const data = b2bCrmLoad();
+            data[id] = status;
+            b2bCrmSave(data);
+            renderB2bProspectorTable();
+        }
+
         // ─── B2B AI Prospector & Lookalike Discovery Database ───
         const _b2bProspectorTargets = [
             // Activity & Trampoline Parks
@@ -9449,15 +9490,36 @@ jarno@subsoccer.com | https://subsoccer.pro`;
                 (b.matchScore - a.matchScore)
             );
 
+            const statusFilter = document.getElementById('b2b-prospect-status-filter')?.value || 'ALL';
+
             const filtered = sorted.filter(t => {
                 if (catFilter !== 'ALL' && t.category !== catFilter) return false;
                 if (regFilter !== 'ALL' && t.region !== regFilter) return false;
+                if (statusFilter !== 'ALL' && getProspectStatus(t.id) !== statusFilter) return false;
                 if (search) {
                     const str = `${t.name} ${t.chain} ${t.city} ${t.country} ${t.benchmark} ${t.description}`.toLowerCase();
                     if (!str.includes(search)) return false;
                 }
                 return true;
             });
+
+            // Pipeline summary counts (across all targets, ignoring current filter)
+            const allStatuses = _b2bProspectorTargets.map(t => getProspectStatus(t.id));
+            const pipelineCounts = { new: 0, contacted: 0, in_talks: 0, won: 0, lost: 0 };
+            allStatuses.forEach(s => { if (pipelineCounts[s] !== undefined) pipelineCounts[s]++; });
+            const summaryEl = document.getElementById('b2b-pipeline-summary');
+            if (summaryEl) {
+                summaryEl.innerHTML = Object.entries(B2B_STATUS_CONFIG).map(([key, cfg]) =>
+                    `<button onclick="document.getElementById('b2b-prospect-status-filter').value='${key}'; renderB2bProspectorTable();"
+                        style="background:${cfg.bg}; border:1px solid ${cfg.border}; color:${cfg.color}; padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                        ${cfg.icon} ${cfg.label} <span style="background:rgba(255,255,255,0.1); border-radius:10px; padding:0 5px; font-size:0.7rem;">${pipelineCounts[key]}</span>
+                    </button>`
+                ).join('') +
+                `<button onclick="document.getElementById('b2b-prospect-status-filter').value='ALL'; renderB2bProspectorTable();"
+                    style="background:transparent; border:1px solid #2a3b4c; color:#8ba2b5; padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; cursor:pointer;">
+                    All ${_b2bProspectorTargets.length}
+                </button>`;
+            }
 
             const badge = document.getElementById('b2b-targets-badge');
             if (badge) badge.textContent = `${filtered.length} Targets Discovered`;
@@ -9472,21 +9534,28 @@ jarno@subsoccer.com | https://subsoccer.pro`;
             grid.innerHTML = filtered.map(t => {
                 const categoryIcon = t.category === 'activity_parks' ? '🧗' : (t.category === 'malls_outlets' ? '🛍️' : (t.category === 'social_bars' ? '🎳' : '⚽'));
                 const searchOrg = t.chain || t.name;
+                const status = getProspectStatus(t.id);
+                const sc = B2B_STATUS_CONFIG[status] || B2B_STATUS_CONFIG.new;
 
                 return `
-                    <div style="background:#141d26; border:1px solid #233140; border-radius:8px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; gap:10px; transition:transform 0.2s, border-color 0.2s;"
-                        onmouseover="this.style.borderColor='#3a5068'; this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.borderColor='#233140'; this.style.transform='none'">
+                    <div style="background:${sc.bg}; border:1px solid ${sc.border}; border-radius:8px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; gap:10px; transition:transform 0.2s, border-color 0.2s;"
+                        onmouseover="this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.transform='none'">
                         
                         <div>
-                            <!-- Header / Category & Match Score -->
+                            <!-- Status badge + Category & Match Score -->
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                                 <span style="font-size:0.75rem; color:#8ba2b5; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">
                                     ${categoryIcon} ${escapeHtml(t.chain)}
                                 </span>
-                                <span style="background:linear-gradient(135deg, rgba(46,204,113,0.2), rgba(39,174,96,0.2)); border:1px solid rgba(46,204,113,0.5); color:#2ecc71; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px;">
-                                    🔥 ${t.matchScore}% Match
-                                </span>
+                                <div style="display:flex; gap:4px; align-items:center;">
+                                    <span style="background:${sc.bg}; border:1px solid ${sc.border}; color:${sc.color}; font-size:0.68rem; font-weight:700; padding:1px 7px; border-radius:10px;">
+                                        ${sc.icon} ${sc.label}
+                                    </span>
+                                    <span style="background:linear-gradient(135deg, rgba(46,204,113,0.2), rgba(39,174,96,0.2)); border:1px solid rgba(46,204,113,0.5); color:#2ecc71; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px;">
+                                        🔥 ${t.matchScore}% Match
+                                    </span>
+                                </div>
                             </div>
 
                             <!-- Venue Title & Location -->
@@ -9507,8 +9576,18 @@ jarno@subsoccer.com | https://subsoccer.pro`;
                             </div>
                         </div>
 
+                        <!-- Status Update Row -->
+                        <div style="display:flex; gap:4px; flex-wrap:wrap; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.07);">
+                            ${Object.entries(B2B_STATUS_CONFIG).map(([key, cfg]) =>
+                                `<button onclick="setProspectStatus('${t.id}','${key}')"
+                                    style="flex:1; min-width:0; background:${status===key ? cfg.bg : 'transparent'}; border:1px solid ${status===key ? cfg.border : '#233140'}; color:${status===key ? cfg.color : '#6b7f8f'}; padding:3px 4px; border-radius:6px; font-size:0.65rem; font-weight:700; cursor:pointer; text-align:center; transition:all 0.15s;" title="${cfg.label}">
+                                    ${cfg.icon}
+                                </button>`
+                            ).join('')}
+                        </div>
+
                         <!-- Actions Row -->
-                        <div style="display:flex; gap:6px; margin-top:8px; padding-top:8px; border-top:1px dashed #233140;">
+                        <div style="display:flex; gap:6px; margin-top:2px;">
                             <a href="https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(searchOrg)}" target="_blank" rel="noopener"
                                 style="flex:1; background:#0A66C2; color:#fff; text-decoration:none; padding:7px 8px; border-radius:6px; font-size:0.78rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px;">
                                 <i class="fab fa-linkedin-in"></i> People on LinkedIn ↗
