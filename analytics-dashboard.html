@@ -8492,6 +8492,96 @@ const growthLabels = sortedGrowthKeys.map(k => {
             document.getElementById('ugc-add-modal').style.display = 'none';
         }
 
+        async function saveSingleUgcPost() {
+            const url = (document.getElementById('ugc-input-url')?.value || '').trim();
+            if (!url) {
+                alert('Please enter a valid video or post URL.');
+                return;
+            }
+            const platform = document.getElementById('ugc-input-platform')?.value || autoDetectUgcPlatform(url);
+            const location = (document.getElementById('ugc-input-location')?.value || '').trim() || 'Community / Creator Post';
+            const table_code = (document.getElementById('ugc-input-code')?.value || '').trim() || null;
+            const author = (document.getElementById('ugc-input-author')?.value || '').trim() || '@community';
+            const post_date = document.getElementById('ugc-input-date')?.value || new Date().toISOString().split('T')[0];
+
+            let lat = null, lng = null;
+            if (typeof UGC_KNOWN_VENUES !== 'undefined' && Array.isArray(UGC_KNOWN_VENUES)) {
+                for (const v of UGC_KNOWN_VENUES) {
+                    if (v.match.test(location + ' ' + url)) {
+                        lat = v.lat;
+                        lng = v.lng;
+                        break;
+                    }
+                }
+            }
+
+            let posts = getUgcPosts();
+            let savedPost = null;
+
+            if (_editingUgcId) {
+                const idx = posts.findIndex(p => p.id === _editingUgcId);
+                if (idx !== -1) {
+                    posts[idx].url = url;
+                    posts[idx].platform = platform;
+                    posts[idx].location = location;
+                    posts[idx].table_code = table_code;
+                    posts[idx].author = author;
+                    posts[idx].post_date = post_date;
+                    if (lat && lng) { posts[idx].lat = lat; posts[idx].lng = lng; }
+                    matchUgcWithTelemetry(posts[idx]);
+                    savedPost = posts[idx];
+                }
+            } else {
+                savedPost = {
+                    id: 'ugc-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 5),
+                    url,
+                    platform,
+                    author,
+                    title: 'Subsoccer Community Match',
+                    location,
+                    lat,
+                    lng,
+                    table_code,
+                    post_date,
+                    matches_count: (location.includes('HQ') || location.includes('Lauttasaari')) ? 529 : 0,
+                    tournaments_count: (location.includes('HQ') || location.includes('Lauttasaari')) ? 80 : 0,
+                    events_count: (location.includes('HQ') || location.includes('Lauttasaari')) ? 1643 : 0,
+                    status: (location.includes('HQ') || location.includes('Lauttasaari')) ? 'surge_verified' : (lat !== null ? 'verified' : 'pending'),
+                    source: 'manual',
+                    notes: `Manually added post for ${location}`
+                };
+                matchUgcWithTelemetry(savedPost);
+                posts.unshift(savedPost);
+            }
+
+            saveUgcPosts(posts);
+            closeUgcAddModal();
+
+            // Sync to Supabase
+            if (savedPost) {
+                try {
+                    await client.from('ugc_posts').upsert({
+                        post_id: savedPost.id,
+                        url: savedPost.url,
+                        platform: savedPost.platform,
+                        author: savedPost.author,
+                        title: savedPost.title,
+                        location: savedPost.location,
+                        latitude: savedPost.lat,
+                        longitude: savedPost.lng,
+                        table_code: savedPost.table_code,
+                        post_date: savedPost.post_date,
+                        matches_count: savedPost.matches_count || 0,
+                        tournaments_count: savedPost.tournaments_count || 0,
+                        events_count: savedPost.events_count || 0,
+                        status: savedPost.status,
+                        source: savedPost.source || 'manual',
+                        notes: savedPost.notes
+                    }, { onConflict: 'url' });
+                } catch(e) { console.warn('Supabase UGC single save error:', e); }
+            }
+        }
+
         const UGC_KNOWN_VENUES = [
             { match: /lauttasaari|melkonkatu|@originalsubsoccer/i, name: "Subsoccer HQ (Melkonkatu 24, Lauttasaari)", lat: 60.1555, lng: 24.8870, code: "PUBLIC-APP", isHq: true },
             { match: /superpark|glasgow/i, name: "SuperPark Glasgow, Scotland, UK", lat: 55.8642, lng: -4.2518, code: "PUBLIC-APP" },
@@ -8894,6 +8984,34 @@ const growthLabels = sortedGrowthKeys.map(k => {
             saveUgcPosts(existingPosts);
             closeUgcBulkModal();
 
+            // Sync imported posts to Supabase ugc_posts table
+            try {
+                const rows = approved.map(cand => ({
+                    post_id: 'ugc-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 5),
+                    url: cand.url,
+                    platform: cand.platform,
+                    author: cand.author || '@community',
+                    title: cand.title || 'Subsoccer Community Match',
+                    location: cand.location || 'Community / Creator Post',
+                    latitude: cand.lat,
+                    longitude: cand.lng,
+                    table_code: cand.table_code || null,
+                    post_date: new Date().toISOString().split('T')[0],
+                    matches_count: cand.isHq ? 529 : 0,
+                    tournaments_count: cand.isHq ? 80 : 0,
+                    events_count: cand.isHq ? 1643 : 0,
+                    status: cand.isHq ? 'surge_verified' : (cand.lat !== null ? 'verified' : 'pending'),
+                    source: 'inbox_import',
+                    notes: cand.lat !== null ? `Verified venue post at ${cand.location}` : 'Organic community highlight.'
+                }));
+                client.from('ugc_posts').upsert(rows, { onConflict: 'url' }).then(({ error: upErr }) => {
+                    if (upErr) console.warn('Supabase UGC upsert error:', upErr);
+                    else console.log(`✓ Synced ${rows.length} UGC posts to Supabase`);
+                });
+            } catch (e) {
+                console.warn('Supabase UGC batch error:', e);
+            }
+
             // Refresh UI views immediately
             renderUgcTable();
             if (typeof mymap !== 'undefined' && mymap) {
@@ -9065,13 +9183,19 @@ const growthLabels = sortedGrowthKeys.map(k => {
             }
         }
 
-        function deleteUgcPost(id) {
+        async function deleteUgcPost(id) {
             if (!confirm('Are you sure you want to remove this video post?')) return;
             let posts = getUgcPosts();
+            const target = posts.find(p => p.id === id);
             posts = posts.filter(p => p.id !== id);
             saveUgcPosts(posts);
             if (mymap && typeof renderUgcMapMarkers === 'function') {
                 renderUgcMapMarkers(mymap);
+            }
+            if (target && target.url) {
+                try {
+                    await client.from('ugc_posts').delete().eq('url', target.url);
+                } catch(e) {}
             }
         }
 
@@ -10527,31 +10651,82 @@ jarno@subsoccer.com | https://subsoccer.pro`;
             renderUgcTable();
             if (mymap) renderUgcMapMarkers(mymap);
 
-            // Fetch live incoming webhook posts from serverless backend & Supabase
             try {
-                const res = await fetch('/.netlify/functions/ugc-webhook?action=list');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && Array.isArray(data.posts) && data.posts.length > 0) {
-                        let existing = getUgcPosts();
-                        const existingUrls = new Set(existing.map(p => p.url));
-                        let added = 0;
-                        data.posts.forEach(np => {
-                            if (np && np.url && !existingUrls.has(np.url)) {
-                                existing.unshift(np);
-                                existingUrls.add(np.url);
-                                added++;
-                            }
-                        });
-                        if (added > 0) {
-                            saveUgcPosts(existing);
-                            renderUgcTable();
-                            if (mymap) renderUgcMapMarkers(mymap);
+                // 1. Fetch all synced UGC posts from Supabase
+                const { data: dbPosts, error } = await client
+                    .from('ugc_posts')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                let localPosts = getUgcPosts();
+                const localUrlMap = new Map(localPosts.map(p => [p.url, p]));
+                let changed = false;
+
+                if (!error && Array.isArray(dbPosts) && dbPosts.length > 0) {
+                    dbPosts.forEach(db => {
+                        if (!localUrlMap.has(db.url)) {
+                            const converted = {
+                                id: db.post_id || ('ugc-' + db.id),
+                                url: db.url,
+                                platform: db.platform || 'instagram',
+                                author: db.author || '@community',
+                                title: db.title || 'Subsoccer Community Match',
+                                location: db.location || 'Community / Creator Post',
+                                lat: db.latitude,
+                                lng: db.longitude,
+                                table_code: db.table_code,
+                                post_date: db.post_date || new Date().toISOString().split('T')[0],
+                                matches_count: db.matches_count || 0,
+                                tournaments_count: db.tournaments_count || 0,
+                                events_count: db.events_count || 0,
+                                status: db.status || 'verified',
+                                source: db.source || 'supabase',
+                                notes: db.notes
+                            };
+                            localPosts.unshift(converted);
+                            localUrlMap.set(db.url, converted);
+                            changed = true;
                         }
-                    }
+                    });
+                }
+
+                // 2. Cross-device sync: if this device has custom posts not in Supabase yet, upload them!
+                const dbUrlSet = new Set((dbPosts || []).map(p => p.url));
+                const defaultUrlSet = new Set(DEFAULT_UGC_POSTS.map(d => d.url));
+                const toUpload = localPosts.filter(p => p.url && !dbUrlSet.has(p.url) && !defaultUrlSet.has(p.url));
+
+                if (toUpload.length > 0) {
+                    const uploadRows = toUpload.map(p => ({
+                        post_id: p.id || ('ugc-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 5)),
+                        url: p.url,
+                        platform: p.platform || 'instagram',
+                        author: p.author || '@community',
+                        title: p.title || 'Subsoccer Community Match',
+                        location: p.location || 'Community / Creator Post',
+                        latitude: p.lat,
+                        longitude: p.lng,
+                        table_code: p.table_code || null,
+                        post_date: p.post_date || new Date().toISOString().split('T')[0],
+                        matches_count: p.matches_count || 0,
+                        tournaments_count: p.tournaments_count || 0,
+                        events_count: p.events_count || 0,
+                        status: p.status || 'verified',
+                        source: p.source || 'device_sync',
+                        notes: p.notes
+                    }));
+                    client.from('ugc_posts').upsert(uploadRows, { onConflict: 'url' }).then(({ error: upErr }) => {
+                        if (upErr) console.warn('Syncing local UGC to Supabase failed:', upErr);
+                        else console.log(`✓ Uploaded ${uploadRows.length} local device UGC posts to Supabase`);
+                    });
+                }
+
+                if (changed) {
+                    saveUgcPosts(localPosts);
+                    renderUgcTable();
+                    if (mymap) renderUgcMapMarkers(mymap);
                 }
             } catch (e) {
-                console.warn('UGC webhook live sync:', e);
+                console.warn('UGC Supabase sync error:', e);
             }
         }
 
