@@ -1725,6 +1725,24 @@
                     <!-- Injected dynamically -->
                 </div>
 
+                <!-- Conversion Analysis Panel -->
+                <div id="b2b-conversion-panel" style="display:none; background:#0d1620; border:1px solid #1e3a52; border-radius:8px; padding:14px 16px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                        <div style="font-size:0.82rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-chart-bar" style="color:#0A66C2;"></i> Pipeline Conversion Analysis
+                        </div>
+                        <div id="b2b-top-segment-badge" style="font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:12px; background:rgba(46,204,113,0.15); border:1px solid rgba(46,204,113,0.4); color:#2ecc71;">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                    <div id="b2b-conversion-rows" style="display:flex; flex-direction:column; gap:8px;">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <div id="b2b-conversion-insight" style="margin-top:12px; font-size:0.75rem; color:#8ba2b5; border-top:1px dashed #1e3a52; padding-top:10px; line-height:1.5;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
                 <!-- Pipeline Filters Bar -->
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -9473,9 +9491,114 @@ jarno@subsoccer.com | https://subsoccer.pro`;
             return { activity_parks: pAct, malls_outlets: pMall, social_bars: pBar, sports_clubs: pSport };
         }
 
+        function computeConversionAnalysis() {
+            const CATEGORIES = {
+                activity_parks: { label: '🧗 Activity Parks',    color: '#ffa726' },
+                malls_outlets:  { label: '🛍️ Malls & Outlets',   color: '#60a5fa' },
+                social_bars:    { label: '🎳 Social Bars',        color: '#c084fc' },
+                sports_clubs:   { label: '⚽ Sports Centers',     color: '#2ecc71' }
+            };
+
+            // Build per-category stats from localStorage statuses
+            const stats = {};
+            Object.keys(CATEGORIES).forEach(cat => {
+                stats[cat] = { total: 0, new: 0, contacted: 0, in_talks: 0, won: 0, lost: 0 };
+            });
+            _b2bProspectorTargets.forEach(t => {
+                if (!stats[t.category]) return;
+                const s = getProspectStatus(t.id);
+                stats[t.category].total++;
+                stats[t.category][s] = (stats[t.category][s] || 0) + 1;
+            });
+
+            // Count how many have any non-new status
+            const totalActive = _b2bProspectorTargets.filter(t => getProspectStatus(t.id) !== 'new').length;
+
+            const panel = document.getElementById('b2b-conversion-panel');
+            if (!panel) return;
+
+            // Hide panel if nothing has been acted on yet
+            if (totalActive === 0) {
+                panel.style.display = 'none';
+                return;
+            }
+            panel.style.display = 'block';
+
+            // Build per-category rows with mini progress bar
+            const rowsEl = document.getElementById('b2b-conversion-rows');
+            if (rowsEl) {
+                rowsEl.innerHTML = Object.entries(CATEGORIES).map(([cat, cfg]) => {
+                    const s = stats[cat];
+                    const actionable = s.contacted + s.in_talks + s.won + s.lost;
+                    const convRate = actionable > 0 ? Math.round((s.won / actionable) * 100) : 0;
+                    const wonPct   = s.total > 0 ? (s.won       / s.total * 100) : 0;
+                    const inPct    = s.total > 0 ? (s.in_talks  / s.total * 100) : 0;
+                    const ctPct    = s.total > 0 ? (s.contacted / s.total * 100) : 0;
+                    const lostPct  = s.total > 0 ? (s.lost      / s.total * 100) : 0;
+
+                    return `
+                        <div style="background:#141d26; border:1px solid #1e3a52; border-radius:6px; padding:8px 10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <span style="font-size:0.78rem; font-weight:700; color:${cfg.color};">${cfg.label}</span>
+                                <div style="display:flex; gap:10px; align-items:center; font-size:0.72rem; color:#8ba2b5;">
+                                    <span>✅ Won: <b style="color:#2ecc71;">${s.won}</b></span>
+                                    <span>🤝 Talks: <b style="color:#ffa726;">${s.in_talks}</b></span>
+                                    <span>📨 Contacted: <b style="color:#60a5fa;">${s.contacted}</b></span>
+                                    <span>❌ Lost: <b style="color:#8ba2b5;">${s.lost}</b></span>
+                                    ${actionable > 0 ? `<span style="background:rgba(46,204,113,0.15); border:1px solid rgba(46,204,113,0.35); color:#2ecc71; padding:1px 7px; border-radius:8px; font-weight:800;">${convRate}% conv.</span>` : '<span style="color:#4a5568;">No data yet</span>'}
+                                </div>
+                            </div>
+                            <!-- Mini stacked progress bar -->
+                            <div style="height:5px; border-radius:3px; background:#0d1620; overflow:hidden; display:flex;">
+                                <div style="width:${wonPct}%; background:#2ecc71;"></div>
+                                <div style="width:${inPct}%; background:#ffa726;"></div>
+                                <div style="width:${ctPct}%; background:#60a5fa;"></div>
+                                <div style="width:${lostPct}%; background:#3a3a4a;"></div>
+                            </div>
+                        </div>`;
+                }).join('');
+            }
+
+            // Top converting segment badge + insight
+            const ranked = Object.entries(stats)
+                .map(([cat, s]) => {
+                    const actionable = s.contacted + s.in_talks + s.won + s.lost;
+                    return { cat, won: s.won, conv: actionable > 0 ? s.won / actionable : 0, actionable };
+                })
+                .filter(x => x.actionable > 0)
+                .sort((a, b) => b.conv - a.conv);
+
+            const badgeEl = document.getElementById('b2b-top-segment-badge');
+            const insightEl = document.getElementById('b2b-conversion-insight');
+
+            if (ranked.length > 0 && badgeEl) {
+                const top = ranked[0];
+                const topLabel = CATEGORIES[top.cat]?.label || top.cat;
+                const topConv = Math.round(top.conv * 100);
+                badgeEl.textContent = `🏆 Best: ${topLabel} (${topConv}% conversion)`;
+
+                if (insightEl) {
+                    const totalWon = Object.values(stats).reduce((a, s) => a + s.won, 0);
+                    const totalContacted = Object.values(stats).reduce((a, s) => a + s.contacted + s.in_talks + s.won + s.lost, 0);
+                    const overallConv = totalContacted > 0 ? Math.round((totalWon / totalContacted) * 100) : 0;
+
+                    const worstRanked = ranked[ranked.length - 1];
+                    const worstLabel = CATEGORIES[worstRanked?.cat]?.label || '';
+
+                    insightEl.innerHTML = `
+                        <b style="color:#fff;">Overall pipeline:</b> ${totalContacted} prospects contacted, ${totalWon} won — <b style="color:#2ecc71;">${overallConv}% overall conversion</b>.<br>
+                        ${topConv > 0 ? `<b style="color:${CATEGORIES[top.cat]?.color || '#fff'};">${topLabel}</b> is your best-converting segment. Consider allocating more outreach here.` : ''}
+                        ${ranked.length > 1 && worstRanked.conv < top.conv ? `<br><b style="color:#8ba2b5;">${worstLabel}</b> is underperforming — review pitch approach or deprioritize.` : ''}
+                        ${totalWon === 0 ? '<br><i style="color:#8ba2b5;">No wins yet — keep going! Win data will unlock deeper recommendations.</i>' : ''}
+                    `;
+                }
+            }
+        }
+
         function renderB2bProspectorTable() {
             // Fix 2 & 3: Compute ICP weights and use them to sort the target list dynamically
             const weights = computeLearnedIcpBreakdown();
+            computeConversionAnalysis();
 
             const catFilter = document.getElementById('b2b-prospect-category')?.value || 'ALL';
             const regFilter = document.getElementById('b2b-prospect-region')?.value || 'ALL';
