@@ -1692,6 +1692,69 @@
             </div>
         </div>
 
+        <!-- B2B AI Prospector & Lookalike Pipeline Section -->
+        <div class="kpi-section" style="margin-bottom: 36px;" id="b2b-prospector-section">
+            <div class="kpi-section-header" onclick="toggleSection(this)" style="background: linear-gradient(90deg, rgba(10,102,194,0.14) 0%, rgba(26,115,232,0.06) 100%);">
+                <span class="section-icon"><i class="fas fa-crosshairs" style="color: #0A66C2;"></i></span>
+                <span class="section-title">
+                    B2B AI Prospector & ICP Lookalike Pipeline
+                    <span id="b2b-targets-badge" style="font-size:0.7rem; background:rgba(10,102,194,0.2); color:#60a5fa; border:1px solid rgba(10,102,194,0.4); padding:2px 8px; border-radius:10px; font-weight:700; margin-left:8px;">24 Targets Discovered</span>
+                </span>
+                <i class="fas fa-chevron-up section-chevron"></i>
+            </div>
+            <div class="kpi-section-body" style="padding: 16px 16px 24px 16px;">
+                
+                <!-- Subtitle / Explanation banner with ICP Learning -->
+                <div style="background:#141d26; border:1px solid #233140; border-radius:8px; padding:14px 16px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <div style="font-size:0.85rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-brain" style="color:#2ecc71;"></i> Autonomous ICP Learning from Active Venues
+                        </div>
+                        <div style="font-size:0.75rem; color:#8ba2b5; margin-top:2px;">
+                            Analyzes your proven hubs (SuperPark, Tripla, East Midlands Outlet, Padel Clubs) and discovers high-probability sister chains & lookalike venues worldwide.
+                        </div>
+                    </div>
+                    <!-- Live ICP Learned Badges -->
+                    <div id="b2b-icp-breakdown-pills" style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Pipeline Filters Bar -->
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <select id="b2b-prospect-category" onchange="renderB2bProspectorTable()"
+                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer;">
+                            <option value="ALL" selected>All Learned Categories</option>
+                            <option value="activity_parks">🧗 Activity & Trampoline Parks (SuperPark / JumpYard)</option>
+                            <option value="malls_outlets">🛍️ Premium Malls & Outlets (Westfield / McArthurGlen)</option>
+                            <option value="social_bars">🎳 Competitive Socializing (Flight Club / Lane7)</option>
+                            <option value="sports_clubs">⚽ Padel & Indoor Sports Centers</option>
+                        </select>
+                        <select id="b2b-prospect-region" onchange="renderB2bProspectorTable()"
+                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer;">
+                            <option value="ALL" selected>All Regions (UK, Europe, USA, Nordics)</option>
+                            <option value="UK">🇬🇧 United Kingdom</option>
+                            <option value="NORDICS">🇫🇮 🇸🇪 Nordics</option>
+                            <option value="EUROPE">🇪🇺 Central & Western Europe</option>
+                            <option value="USA">🇺🇸 North America</option>
+                        </select>
+                        <input type="text" id="b2b-prospect-search" placeholder="Search venue, chain, city..." oninput="renderB2bProspectorTable()"
+                            style="background:var(--bg-base); border:1px solid var(--border-color); color:var(--text-primary); padding:7px 12px; border-radius:6px; font-size:0.8rem; width:210px;">
+                    </div>
+                    <div style="font-size:0.75rem; color:#8ba2b5;">
+                        <span id="b2b-showing-count">Showing 24 targets</span>
+                    </div>
+                </div>
+
+                <!-- Prospector Targets Grid -->
+                <div id="b2b-prospector-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:12px;">
+                    <!-- Injected dynamically by renderB2bProspectorTable() -->
+                </div>
+
+            </div>
+        </div>
+
         <!-- Dedicated Matches Section (collapsed by default) -->
         <div class="kpi-section" style="margin-bottom: 24px;">
             <div class="kpi-section-header collapsed" onclick="toggleSection(this)">
@@ -9036,23 +9099,490 @@ jarno@subsoccer.com | https://subsoccer.pro`;
             }
         }
 
-        function copyB2bPitchText() {
+        // ─── B2B AI Prospector & Lookalike Discovery Database ───
+        const _b2bProspectorTargets = [
+            // Activity & Trampoline Parks
+            {
+                id: 'jumpyard-stockholm',
+                name: 'JumpYard Barkarby',
+                chain: 'JumpYard',
+                city: 'Stockholm',
+                country: 'Sweden',
+                region: 'NORDICS',
+                category: 'activity_parks',
+                benchmark: 'SuperPark Glasgow (529 matches)',
+                matchScore: 98,
+                description: 'Major Nordic activity & trampoline park with high teen and family footfall.'
+            },
+            {
+                id: 'jumpyard-gothenburg',
+                name: 'JumpYard Gothenburg',
+                chain: 'JumpYard',
+                city: 'Gothenburg',
+                country: 'Sweden',
+                region: 'NORDICS',
+                category: 'activity_parks',
+                benchmark: 'SuperPark Glasgow (529 matches)',
+                matchScore: 97,
+                description: 'Leading West Sweden indoor entertainment arena with high-density traffic.'
+            },
+            {
+                id: 'jumpyard-lisbon',
+                name: 'JumpYard Lisbon (Carnaxide)',
+                chain: 'JumpYard',
+                city: 'Lisbon',
+                country: 'Portugal',
+                region: 'EUROPE',
+                category: 'activity_parks',
+                benchmark: 'SuperPark Glasgow (529 matches)',
+                matchScore: 96,
+                description: 'Flagship Southern European activity park with huge active youth demographic.'
+            },
+            {
+                id: 'superpark-vantaa',
+                name: 'SuperPark Vantaa',
+                chain: 'SuperPark',
+                city: 'Vantaa',
+                country: 'Finland',
+                region: 'NORDICS',
+                category: 'activity_parks',
+                benchmark: 'SuperPark Glasgow (Direct Sister Venue)',
+                matchScore: 99,
+                description: 'Flagship Finnish indoor activity park with dedicated game and freestyle zones.'
+            },
+            {
+                id: 'superpark-turku',
+                name: 'SuperPark Turku',
+                chain: 'SuperPark',
+                city: 'Turku',
+                country: 'Finland',
+                region: 'NORDICS',
+                category: 'activity_parks',
+                benchmark: 'SuperPark Glasgow (Direct Sister Venue)',
+                matchScore: 99,
+                description: 'High-traffic indoor park in Southwest Finland.'
+            },
+            {
+                id: 'rush-birmingham',
+                name: 'Rush UK Birmingham',
+                chain: 'Rush Trampoline Parks',
+                city: 'Birmingham',
+                country: 'UK',
+                region: 'UK',
+                category: 'activity_parks',
+                benchmark: 'SuperPark Glasgow & East Midlands',
+                matchScore: 95,
+                description: 'Huge multi-attraction UK family entertainment center with extreme sports arena.'
+            },
+            {
+                id: 'flipout-london',
+                name: 'Flip Out London (Brent Cross / Wandsworth)',
+                chain: 'Flip Out UK',
+                city: 'London',
+                country: 'UK',
+                region: 'UK',
+                category: 'activity_parks',
+                benchmark: 'SuperPark Glasgow (529 matches)',
+                matchScore: 96,
+                description: 'Premier London adventure park chain with gaming lounges and high visitor traffic.'
+            },
+            {
+                id: 'gravity-milton-keynes',
+                name: 'Gravity Active Milton Keynes',
+                chain: 'Gravity Active',
+                city: 'Milton Keynes',
+                country: 'UK',
+                region: 'UK',
+                category: 'activity_parks',
+                benchmark: 'East Midlands Designer Outlet & Glasgow',
+                matchScore: 94,
+                description: 'Modern indoor multi-activity entertainment complex.'
+            },
+
+            // Premium Shopping Malls & Outlets
+            {
+                id: 'mcarthurglen-roermond',
+                name: 'McArthurGlen Designer Outlet Roermond',
+                chain: 'McArthurGlen Outlets',
+                city: 'Roermond',
+                country: 'Netherlands',
+                region: 'EUROPE',
+                category: 'malls_outlets',
+                benchmark: 'East Midlands Designer Outlet',
+                matchScore: 99,
+                description: 'Largest designer outlet in Northern Europe with 8M+ annual shoppers.'
+            },
+            {
+                id: 'mcarthurglen-serravalle',
+                name: 'McArthurGlen Serravalle',
+                chain: 'McArthurGlen Outlets',
+                city: 'Milan / Serravalle',
+                country: 'Italy',
+                region: 'EUROPE',
+                category: 'malls_outlets',
+                benchmark: 'East Midlands Designer Outlet',
+                matchScore: 98,
+                description: 'Europe\'s biggest luxury designer outlet village near Milan.'
+            },
+            {
+                id: 'mcarthurglen-cheshire-oaks',
+                name: 'McArthurGlen Cheshire Oaks',
+                chain: 'McArthurGlen Outlets',
+                city: 'Chester / Liverpool',
+                country: 'UK',
+                region: 'UK',
+                category: 'malls_outlets',
+                benchmark: 'East Midlands Designer Outlet (Sister UK Village)',
+                matchScore: 99,
+                description: 'UK\'s premier outlet shopping destination with 140+ high-end stores.'
+            },
+            {
+                id: 'westfield-stratford',
+                name: 'Westfield Stratford City',
+                chain: 'Westfield (Unibail-Rodamco)',
+                city: 'London',
+                country: 'UK',
+                region: 'UK',
+                category: 'malls_outlets',
+                benchmark: 'Mall of Tripla (High Urban Transit)',
+                matchScore: 97,
+                description: 'One of Europe\'s largest urban retail & leisure centers with 50M+ visitors.'
+            },
+            {
+                id: 'westfield-mall-scandinavia',
+                name: 'Westfield Mall of Scandinavia',
+                chain: 'Westfield (Unibail-Rodamco)',
+                city: 'Stockholm',
+                country: 'Sweden',
+                region: 'NORDICS',
+                category: 'malls_outlets',
+                benchmark: 'Mall of Tripla (Nordic Hub)',
+                matchScore: 98,
+                description: 'Stockholm\'s premier retail destination directly connected to Friends Arena.'
+            },
+            {
+                id: 'citycon-iso-omena',
+                name: 'Iso Omena (Citycon)',
+                chain: 'Citycon',
+                city: 'Espoo / Helsinki',
+                country: 'Finland',
+                region: 'NORDICS',
+                category: 'malls_outlets',
+                benchmark: 'Mall of Tripla (Transit & Leisure Hub)',
+                matchScore: 96,
+                description: 'Flagship Finnish shopping mall with metro hub, dining street and cinema.'
+            },
+            {
+                id: 'citycon-kista',
+                name: 'Kista Galleria (Citycon)',
+                chain: 'Citycon',
+                city: 'Stockholm',
+                country: 'Sweden',
+                region: 'NORDICS',
+                category: 'malls_outlets',
+                benchmark: 'Mall of Tripla (Citycon sister profile)',
+                matchScore: 95,
+                description: 'Major technology corridor mall with massive food court and entertainment zone.'
+            },
+
+            // Competitive Socializing & Sports Bars
+            {
+                id: 'flightclub-london',
+                name: 'Flight Club Darts (London)',
+                chain: 'Flight Club',
+                city: 'London',
+                country: 'UK',
+                region: 'UK',
+                category: 'social_bars',
+                benchmark: 'Social Competitive Tables & Lounges',
+                matchScore: 96,
+                description: 'Global pioneer in social interactive gaming with rapid multi-city rollout.'
+            },
+            {
+                id: 'flightclub-chicago',
+                name: 'Flight Club Chicago',
+                chain: 'Flight Club',
+                city: 'Chicago',
+                country: 'USA',
+                region: 'USA',
+                category: 'social_bars',
+                benchmark: 'North American Social Sports Concepts',
+                matchScore: 95,
+                description: 'High-volume experiential sports dining & gaming lounge in downtown Chicago.'
+            },
+            {
+                id: 'lane7-liverpool',
+                name: 'Lane7 Liverpool & Edinburgh',
+                chain: 'Lane7',
+                city: 'Liverpool & Edinburgh',
+                country: 'UK',
+                region: 'UK',
+                category: 'social_bars',
+                benchmark: 'UK Competitive Socializing Venues',
+                matchScore: 94,
+                description: 'Premium boutique bowling, arcade and beer pong entertainment lounges.'
+            },
+            {
+                id: 'oche-amsterdam',
+                name: 'Oche Amsterdam & Oslo',
+                chain: 'Oche GastroPubs',
+                city: 'Amsterdam & Oslo',
+                country: 'Netherlands / Norway',
+                region: 'EUROPE',
+                category: 'social_bars',
+                benchmark: 'Nordic & European Sports Lounges',
+                matchScore: 94,
+                description: 'Modern social darts & craft beer gastro concept expanding across Europe.'
+            },
+            {
+                id: 'dave-busters-orlando',
+                name: 'Dave & Buster\'s Orlando & Dallas',
+                chain: 'Dave & Buster\'s',
+                city: 'Orlando & Dallas',
+                country: 'USA',
+                region: 'USA',
+                category: 'social_bars',
+                benchmark: 'Dave & Buster\'s Arcade / Sports Lounges',
+                matchScore: 97,
+                description: 'The premier American restaurant and sports bar arcade chain with 150+ locations.'
+            },
+
+            // Padel & Football Sports Arenas
+            {
+                id: 'pdl-stockholm',
+                name: 'PDL Center Frihamnen',
+                chain: 'PDL United',
+                city: 'Stockholm',
+                country: 'Sweden',
+                region: 'NORDICS',
+                category: 'sports_clubs',
+                benchmark: 'Padel & Racket Club Lounges',
+                matchScore: 93,
+                description: 'One of the world\'s largest indoor padel centers with 22 courts and player lounge.'
+            },
+            {
+                id: 'urban-soccer-paris',
+                name: 'Urban Soccer Paris (Porte d\'Ivry)',
+                chain: 'Urban Soccer',
+                city: 'Paris',
+                country: 'France',
+                region: 'EUROPE',
+                category: 'sports_clubs',
+                benchmark: 'Indoor 5-a-side Football Hubs',
+                matchScore: 96,
+                description: 'France\'s #1 five-a-side indoor soccer network with huge player community.'
+            },
+            {
+                id: 'goals-football-london',
+                name: 'Goals Football UK (London)',
+                chain: 'Goals UK',
+                city: 'London',
+                country: 'UK',
+                region: 'UK',
+                category: 'sports_clubs',
+                benchmark: 'UK 5-a-side Football Arenas',
+                matchScore: 95,
+                description: 'Major UK football center chain with licensed clubhouse lounges.'
+            }
+        ];
+
+        function computeLearnedIcpBreakdown() {
+            const posts = getUgcPosts();
+            let act = 0, mall = 0, bar = 0, sport = 0, other = 0;
+            posts.forEach(p => {
+                const str = `${p.location || ''} ${p.notes || ''} ${p.title || ''}`.toLowerCase();
+                if (str.includes('superpark') || str.includes('trampoline') || str.includes('jump') || str.includes('park') || str.includes('arcade')) act++;
+                else if (str.includes('tripla') || str.includes('outlet') || str.includes('mall') || str.includes('shopping') || str.includes('midlands')) mall++;
+                else if (str.includes('bar') || str.includes('pub') || str.includes('lounge') || str.includes('beer')) bar++;
+                else if (str.includes('padel') || str.includes('stadium') || str.includes('arena') || str.includes('fanzone') || str.includes('soccer')) sport++;
+                else other++;
+            });
+            const total = Math.max(1, posts.length);
+            const pAct = Math.round((act / total) * 100);
+            const pMall = Math.round((mall / total) * 100);
+            const pBar = Math.round((bar / total) * 100);
+            const pSport = Math.round((sport / total) * 100);
+
+            const container = document.getElementById('b2b-icp-breakdown-pills');
+            if (container) {
+                container.innerHTML = `
+                    <span style="background:rgba(255,152,0,0.15); border:1px solid rgba(255,152,0,0.4); color:#ffa726; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:12px;">🧗 Activity Parks: <b>${pAct}%</b></span>
+                    <span style="background:rgba(74,158,255,0.15); border:1px solid rgba(74,158,255,0.4); color:#60a5fa; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:12px;">🛍️ Malls & Outlets: <b>${pMall}%</b></span>
+                    <span style="background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.4); color:#c084fc; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:12px;">🎳 Social Bars: <b>${pBar}%</b></span>
+                    <span style="background:rgba(46,204,113,0.15); border:1px solid rgba(46,204,113,0.4); color:#2ecc71; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:12px;">⚽ Sports Centers: <b>${pSport}%</b></span>
+                `;
+            }
+        }
+
+        function renderB2bProspectorTable() {
+            computeLearnedIcpBreakdown();
+
+            const catFilter = document.getElementById('b2b-prospect-category')?.value || 'ALL';
+            const regFilter = document.getElementById('b2b-prospect-region')?.value || 'ALL';
+            const search = (document.getElementById('b2b-prospect-search')?.value || '').toLowerCase();
+            const grid = document.getElementById('b2b-prospector-grid');
+
+            if (!grid) return;
+
+            const filtered = _b2bProspectorTargets.filter(t => {
+                if (catFilter !== 'ALL' && t.category !== catFilter) return false;
+                if (regFilter !== 'ALL' && t.region !== regFilter) return false;
+                if (search) {
+                    const str = `${t.name} ${t.chain} ${t.city} ${t.country} ${t.benchmark} ${t.description}`.toLowerCase();
+                    if (!str.includes(search)) return false;
+                }
+                return true;
+            });
+
+            const badge = document.getElementById('b2b-targets-badge');
+            if (badge) badge.textContent = `${filtered.length} Targets Discovered`;
+            const showing = document.getElementById('b2b-showing-count');
+            if (showing) showing.textContent = `Showing ${filtered.length} of ${_b2bProspectorTargets.length} target venues`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:32px; color:var(--text-secondary); background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px;">No lookalike target venues matching current filters.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(t => {
+                const categoryIcon = t.category === 'activity_parks' ? '🧗' : (t.category === 'malls_outlets' ? '🛍️' : (t.category === 'social_bars' ? '🎳' : '⚽'));
+                const searchOrg = t.chain || t.name;
+
+                return `
+                    <div style="background:#141d26; border:1px solid #233140; border-radius:8px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; gap:10px; transition:transform 0.2s, border-color 0.2s;"
+                        onmouseover="this.style.borderColor='#3a5068'; this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.borderColor='#233140'; this.style.transform='none'">
+                        
+                        <div>
+                            <!-- Header / Category & Match Score -->
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <span style="font-size:0.75rem; color:#8ba2b5; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">
+                                    ${categoryIcon} ${escapeHtml(t.chain)}
+                                </span>
+                                <span style="background:linear-gradient(135deg, rgba(46,204,113,0.2), rgba(39,174,96,0.2)); border:1px solid rgba(46,204,113,0.5); color:#2ecc71; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px;">
+                                    🔥 ${t.matchScore}% Match
+                                </span>
+                            </div>
+
+                            <!-- Venue Title & Location -->
+                            <div style="font-size:0.95rem; font-weight:700; color:#fff; line-height:1.3; margin-bottom:4px;">
+                                ${escapeHtml(t.name)}
+                            </div>
+                            <div style="font-size:0.75rem; color:#60a5fa; margin-bottom:8px; display:flex; align-items:center; gap:4px;">
+                                <i class="fas fa-map-marker-alt" style="color:#E1306C; font-size:0.7rem;"></i> ${escapeHtml(t.city)}, ${escapeHtml(t.country)}
+                            </div>
+
+                            <!-- Learned Benchmark Reason -->
+                            <div style="background:rgba(255,255,255,0.03); border:1px solid #233140; border-radius:6px; padding:6px 8px; font-size:0.72rem; color:#8ba2b5; margin-bottom:6px;">
+                                <strong style="color:#ffd700;">💡 Learned Pattern:</strong> ${escapeHtml(t.benchmark)}
+                            </div>
+
+                            <div style="font-size:0.75rem; color:#c5d4e0; line-height:1.35;">
+                                ${escapeHtml(t.description)}
+                            </div>
+                        </div>
+
+                        <!-- Actions Row -->
+                        <div style="display:flex; gap:6px; margin-top:8px; padding-top:8px; border-top:1px dashed #233140;">
+                            <a href="https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(searchOrg)}" target="_blank" rel="noopener"
+                                style="flex:1; background:#0A66C2; color:#fff; text-decoration:none; padding:7px 8px; border-radius:6px; font-size:0.78rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px;">
+                                <i class="fab fa-linkedin-in"></i> People on LinkedIn ↗
+                            </a>
+                            <button onclick="openB2bProspectPitch('${t.id}')" title="Generate Customized B2B Pitch"
+                                style="background:#1b2632; border:1px solid #2a3b4c; color:#fff; padding:7px 12px; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                                <i class="fas fa-comment-dots" style="color:#2ecc71;"></i> Pitch
+                            </button>
+                        </div>
+
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openB2bProspectPitch(targetId) {
+            const target = _b2bProspectorTargets.find(t => t.id === targetId);
+            if (!target) return;
+
+            _b2bCurrentVenue = `${target.name} (${target.city}, ${target.country})`;
+            _b2bCurrentPost = {
+                location: _b2bCurrentVenue,
+                matches_count: 500,
+                tournaments_count: 1,
+                benchmark: target.benchmark
+            };
+
+            const inputEl = document.getElementById('b2b-company-search-input');
+            if (inputEl) inputEl.value = target.chain || target.name;
+
+            if (document.getElementById('b2b-venue-subtitle')) document.getElementById('b2b-venue-subtitle').textContent = _b2bCurrentVenue;
+            if (document.getElementById('b2b-proof-videos')) document.getElementById('b2b-proof-videos').textContent = '1';
+            if (document.getElementById('b2b-proof-matches')) document.getElementById('b2b-proof-matches').textContent = '500+';
+
+            updateB2bLinkedInLinks();
+
+            // Custom Benchmark Pitch Injection
             const textarea = document.getElementById('b2b-pitch-textarea');
             if (textarea) {
-                navigator.clipboard.writeText(textarea.value);
-                const btn = document.getElementById('b2b-copy-pitch-btn');
-                if (btn) {
-                    const orig = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-check"></i> ✓ Copied to Clipboard!';
-                    btn.style.background = '#2ecc71';
-                    btn.style.color = '#0b2e13';
-                    setTimeout(() => {
-                        btn.innerHTML = orig;
-                        btn.style.background = '#0A66C2';
-                        btn.style.color = '#fff';
-                    }, 2000);
+                const venue = target.name;
+                const bench = target.benchmark;
+                const liveUrl = `https://subsoccer.pro/analytics-dashboard.html`;
+
+                if (_b2bCurrentLang === 'fi') {
+                    textarea.value = `Otsikko: Subsoccer-elämyspiste kohteeseen ${venue} – Menestyskonsepti
+
+Hei [Etunimi],
+
+Olemme nähneet huikeita tuloksia vastaavissa kohteissa (kuten ${bench}, jossa Subsoccer on kerännyt satoja otteluita ja viraalia somehuomiota).
+
+Haluaisimme esitellä miten ${venue} voi hyödyntää samaa konseptia kävijöiden aktivointiin ja lisämyyntiin virallisena Subsoccer-areenana.
+
+Voitte tutustua live-dataan ja videoihin tästä:
+${liveUrl}
+
+Olisiko teillä ensi viikolla 10 minuuttia aikaa lyhyelle esittelylle?
+
+Ystävällisin terveisin,
+Jarno Saarinen | Subsoccer
+jarno@subsoccer.com | +358 40 541 3333`;
+                } else if (_b2bCurrentLang === 'es') {
+                    textarea.value = `Asunto: Activación de Subsoccer en ${venue} – Concepto de éxito probado
+
+Hola [Nombre],
+
+Hemos comprobado un éxito rotundo en espacios similares como ${bench}, donde Subsoccer ha registrado cientos de partidos y gran tracción en redes sociales.
+
+Nos encantaría presentar cómo ${venue} puede transformar este concepto en una zona de entretenimiento permanente de alto impacto.
+
+Puedes consultar nuestros datos en directo y activaciones aquí:
+${liveUrl}
+
+¿Tendrías 10 minutos la próxima semana para una breve llamada?
+
+Un cordial saludo,
+Jarno Saarinen | Fundador, Subsoccer
+jarno@subsoccer.com | https://subsoccer.pro`;
+                } else {
+                    textarea.value = `Subject: Subsoccer activation for ${venue} – Proven Footfall & Engagement Concept
+
+Hi [First Name],
+
+We have seen tremendous footfall engagement at comparable venues such as ${bench}, where Subsoccer has tracked hundreds of live matches and strong viral reach.
+
+We would love to explore bringing a dedicated, branded Subsoccer arena to ${venue} to drive visitor dwell time and active customer engagement.
+
+You can explore our live platform data and video highlights here:
+${liveUrl}
+
+Would you be open to a quick 10-minute introductory call next week?
+
+Best regards,
+Jarno Saarinen | Founder & CEO, Subsoccer
+jarno@subsoccer.com | https://subsoccer.pro`;
                 }
             }
+
+            const modal = document.getElementById('b2b-lead-modal');
+            if (modal) modal.style.display = 'flex';
         }
 
         function buildUgcSlideHtml(p, index, total) {
@@ -9104,6 +9634,9 @@ jarno@subsoccer.com | https://subsoccer.pro`;
         };
 
         function renderUgcTable() {
+            if (typeof renderB2bProspectorTable === 'function') {
+                renderB2bProspectorTable();
+            }
             const posts = getUgcPosts();
             const container = document.getElementById('ugc-view-content');
             const search = (document.getElementById('ugc-search-input')?.value || '').toLowerCase();
