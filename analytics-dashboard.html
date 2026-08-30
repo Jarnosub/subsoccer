@@ -1796,10 +1796,13 @@
                     </div>
                     <!-- Fetch Live Data button + ICP Learned Badges -->
                     <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-                        <button id="b2b-fetch-live-btn" onclick="fetchB2bProspectsFromApi(200)"
-                            style="background:rgba(10,102,194,0.15); border:1px solid rgba(10,102,194,0.4); color:#60a5fa; padding:7px 14px; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; white-space:nowrap;">
-                            <i class="fas fa-satellite-dish"></i> Fetch Live Data from Google
-                        </button>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button id="b2b-fetch-live-btn" onclick="fetchB2bProspectsFromApi(200)"
+                                style="background:rgba(10,102,194,0.15); border:1px solid rgba(10,102,194,0.4); color:#60a5fa; padding:7px 14px; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; white-space:nowrap;">
+                                <i class="fas fa-satellite-dish"></i> Fetch Live Data from Google
+                            </button>
+                            <span style="font-size:0.7rem; color:#4a5568; white-space:nowrap;">~$1.70 / fetch · 24h cache</span>
+                        </div>
                         <div id="b2b-icp-breakdown-pills" style="display:flex; gap:6px; flex-wrap:wrap;">
                         <!-- Injected dynamically -->
                     </div>
