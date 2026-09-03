@@ -1,0 +1,3948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex, nofollow">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Subsoccer® Global Growth & Live Match Map</title>
+
+  <!-- OpenGraph / Social Meta -->
+  <meta property="og:title" content="Subsoccer® Global Growth & Live Match Map">
+  <meta property="og:description" content="Explore verified Subsoccer matches, iconic stadiums, F1 fan zones, and live games across the globe.">
+  <meta property="og:image" content="https://subsoccer.pro/icons/icon-512.png">
+
+  <!-- Favicon & Stylesheets -->
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <!-- Google Fonts: Inter & Oswald -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet & Chart.js -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+
+  <style>
+    @font-face {
+      font-family: 'Resolve';
+      src: url('fonts/Resolve-BoldNrw.otf') format('opentype'),
+           url('fonts/Resolve-BoldCn.otf') format('opentype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Resolve';
+      src: url('fonts/Resolve-RegularNrw.otf') format('opentype'),
+           url('fonts/Resolve-RegularCn.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    :root {
+      --bg-page: #ffffff;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --sub-red: #c41e2a;
+      --sub-red-hover: #a51823;
+      --sub-blue: #0077cc;
+      --sub-blue-hover: #005fa3;
+      --sub-gray: #475569;
+      --sub-gray-hover: #334155;
+      --sub-gold: #d97706;
+      --accent-green: #16a34a;
+      --font-resolve: 'Resolve', 'Oswald', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: #ffffff;
+      color: var(--text);
+      overflow-x: hidden;
+      overflow-y: auto;
+      width: 100vw;
+    }
+
+    /* ─── Pure White Topbar ─── */
+    .topbar {
+      height: 52px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      width: 100%;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #475569;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    @media (max-width: 640px) {
+      .topbar-center {
+        display: none;
+      }
+    }
+
+    .topbar-badge {
+      font-family: var(--font-resolve);
+      font-size: 0.82rem;
+      font-weight: 400;
+      background: #f1f5f9;
+      color: #334155;
+      padding: 5px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .topbar-badge:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* ─── Hero Header Section ─── */
+    .hero-header {
+      position: relative;
+      width: 100%;
+      min-height: 340px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-header-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+    }
+
+    .hero-header-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(10,10,15,0.82) 0%, rgba(10,10,15,0.55) 60%, rgba(10,10,15,0.15) 100%);
+    }
+
+    .hero-header-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 48px 32px;
+    }
+
+    .hero-text {
+      max-width: 600px;
+    }
+
+    .hero-title {
+      font-family: var(--font-resolve);
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .hero-subtitle {
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.80);
+      line-height: 1.6;
+      max-width: 520px;
+    }
+
+    /* ─── Map Section ─── */
+    .map-section {
+      position: relative;
+      width: 100%;
+      height: 62vh;
+      min-height: 440px;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .hero-header {
+        min-height: 260px;
+        align-items: flex-end;
+      }
+      .hero-header-inner {
+        padding: 28px 18px;
+      }
+      .hero-header-bg {
+        object-position: 70% center;
+      }
+      .hero-header-overlay {
+        background: linear-gradient(to top, rgba(10,10,15,0.85) 0%, rgba(10,10,15,0.4) 100%);
+      }
+      .hero-title {
+        font-size: 1.7rem;
+        margin-bottom: 8px;
+      }
+      .hero-subtitle {
+        font-size: 0.82rem;
+        line-height: 1.4;
+      }
+      .map-section {
+        height: 50vh;
+        min-height: 350px;
+      }
+      .topbar {
+        padding: 0 12px;
+      }
+      .filter-container {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+      }
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #eef2f6;
+    }
+
+    /* ─── Map Master Toggle Bar (Top Over Map) ─── */
+    .filter-container {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      z-index: 900;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      align-items: center;
+    }
+
+    .filter-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-count {
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.08);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    /* ─── Social Media Master Toggle (Red) ─── */
+    .btn-toggle-sm {
+      background: var(--sub-red);
+      color: #ffffff;
+      border: 1.5px solid var(--sub-red);
+      padding: 7px 15px;
+      border-radius: 4px;
+      font-family: var(--font-resolve);
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      text-transform: none;
+      white-space: nowrap;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-toggle-sm:not(.active) {
+      background: #ffffff;
+      color: var(--sub-red);
+      border-color: var(--sub-red);
+    }
+
+    .btn-toggle-sm.active .filter-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+
+    /* ─── Played Games Master Toggle (Blue) ─── */
+    .btn-toggle-go {
+      background: #ffffff;
+      color: var(--sub-blue);
+      border: 1.5px solid var(--sub-blue);
+      padding: 7px 15px;
+      border-radius: 4px;
+      font-family: var(--font-resolve);
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      text-transform: none;
+      white-space: nowrap;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-toggle-go.active {
+      background: var(--sub-blue);
+      color: #ffffff;
+      border-color: var(--sub-blue);
+    }
+
+    .btn-toggle-go.active .filter-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+
+    /* ─── Tables Sold Master Toggle (Gray) ─── */
+    .btn-toggle-sold {
+      background: #ffffff;
+      color: var(--sub-gray);
+      border: 1.5px solid var(--sub-gray);
+      padding: 7px 15px;
+      border-radius: 4px;
+      font-family: var(--font-resolve);
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      text-transform: none;
+      white-space: nowrap;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-toggle-sold.active {
+      background: var(--sub-gray);
+      color: #ffffff;
+      border-color: var(--sub-gray);
+    }
+
+    .btn-toggle-sold.active .filter-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+
+    /* ─── Cards Slider on Solid White Background ─── */
+    .slider-wrapper {
+      width: 100%;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 18px 20px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      max-width: 1440px;
+      margin-left: auto;
+      margin-right: auto;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* ─── 5 Curated B2B Sales Category Tabs ─── */
+    .category-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 2px;
+      align-items: center;
+    }
+
+    .category-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-tab {
+      background: #ffffff;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 6px 13px;
+      border-radius: 4px;
+      font-family: var(--font-resolve);
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0.2px;
+      text-transform: none;
+      white-space: nowrap;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .cat-tab:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      color: #0f172a;
+    }
+
+    .cat-tab.active {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+
+    .cat-tab-count {
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.07);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .cat-tab.active .cat-tab-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    .slider-controls {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .slider-arrow {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: #111111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .slider-arrow:hover {
+      background: #f1f5f9;
+      border-color: #111111;
+    }
+
+    .cards-track {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      padding: 4px 2px 8px 2px;
+      max-width: 1440px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cards-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ─── Authentic Social Media Post Cards (Instagram / YouTube Embed Style) ─── */
+    .venue-card {
+      flex: 0 0 250px;
+      scroll-snap-align: start;
+      background: #ffffff;
+      border: 1px solid #dbdbdb;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: none !important;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+
+    .venue-card:hover {
+      border-color: #111111;
+      transform: translateY(-3px);
+    }
+
+    .venue-card.active {
+      border-color: var(--sub-red);
+      outline: 2px solid var(--sub-red);
+      box-shadow: none !important;
+    }
+
+    /* Card Social Header */
+    .card-insta-header {
+      padding: 9px 12px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .card-insta-user-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .card-insta-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid rgba(0,0,0,0.08);
+      text-transform: uppercase;
+    }
+
+    .card-insta-user-meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .card-insta-author {
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: #111111;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+    }
+
+    .card-insta-sub {
+      font-size: 0.68rem;
+      color: #737373;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+      margin-top: 1px;
+    }
+
+    .card-insta-btn {
+      background: #0095f6;
+      color: #ffffff;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .card-insta-btn:hover {
+      background: #1877f2;
+    }
+
+    /* Video Player Container */
+    .card-img-wrap {
+      width: 100%;
+      height: 290px;
+      background: #000000;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s;
+    }
+
+    .venue-card:hover .card-img {
+      transform: scale(1.04);
+      filter: brightness(0.82);
+    }
+
+    /* Centered Authentic Play Triangle & Watch Text (Clean Default, Pops on Hover) */
+    .card-center-play-wrap {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -45%) scale(0.9);
+      opacity: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .venue-card:hover .card-center-play-wrap {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .card-play-triangle {
+      width: 48px;
+      height: 54px;
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+    }
+
+    .card-watch-cta {
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    .card-bottom-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 10px 8px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      pointer-events: none;
+    }
+
+    .card-bottom-title {
+      font-family: var(--font-resolve);
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .btn-card-link:hover {
+      background: var(--sub-red-hover);
+    }
+
+    /* ─── Solid Red Map Pins (22px) ─── */
+    .red-map-pin {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--sub-red);
+      border: 2px solid #ffffff;
+      outline: 1px solid rgba(0, 0, 0, 0.25);
+      box-shadow: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 9px;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s;
+    }
+
+    .red-map-pin:hover {
+      transform: scale(1.35);
+      background: var(--sub-red-hover);
+      z-index: 1000;
+    }
+
+    /* ─── Blue Map Pins with Dynamic Sizing by Match Volume ─── */
+    .blue-map-pin {
+      border-radius: 50%;
+      background: var(--sub-blue);
+      border: 2px solid #ffffff;
+      outline: 1px solid rgba(0, 0, 0, 0.25);
+      box-shadow: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      cursor: pointer;
+      font-family: var(--font-resolve);
+      font-weight: 700;
+      transition: transform 0.15s ease, background 0.15s;
+    }
+
+    .blue-map-pin.tier-major {
+      width: 28px;
+      height: 28px;
+      background: #005bb5;
+      font-size: 10px;
+      letter-spacing: -0.2px;
+      border: 2.5px solid #ffffff;
+      outline: 1.5px solid rgba(0, 91, 181, 0.5);
+    }
+
+    .blue-map-pin.tier-mid {
+      width: 22px;
+      height: 22px;
+      background: var(--sub-blue);
+      font-size: 9px;
+    }
+
+    .blue-map-pin.tier-small {
+      width: 16px;
+      height: 16px;
+      background: rgba(0, 119, 204, 0.85);
+      font-size: 7px;
+      border-width: 1.5px;
+    }
+
+    .blue-map-pin:hover {
+      transform: scale(1.35);
+      background: var(--sub-blue-hover);
+      z-index: 1000;
+    }
+
+    /* ─── Gray Map Pins for Tables Sold (20px) ─── */
+    .gray-map-pin {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--sub-gray);
+      border: 2px solid #ffffff;
+      outline: 1px solid rgba(0, 0, 0, 0.25);
+      box-shadow: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 8px;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s;
+    }
+
+    .gray-map-pin:hover {
+      transform: scale(1.35);
+      background: var(--sub-gray-hover);
+      z-index: 1000;
+    }
+
+    /* Clean Leaflet Popup */
+    .leaflet-popup-content-wrapper {
+      background: #ffffff !important;
+      color: #111111 !important;
+      border: 1.5px solid #0f172a !important;
+      border-radius: 6px !important;
+      box-shadow: none !important;
+      padding: 2px !important;
+    }
+    .leaflet-popup-tip {
+      background: #ffffff !important;
+    }
+    .leaflet-popup-content {
+      margin: 8px 10px !important;
+      font-family: var(--font-body) !important;
+    }
+
+    /* ─── Light Theme Analytics & Growth Section (Full Year) ─── */
+    .analytics-section {
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+      padding: 40px 24px 60px;
+    }
+
+    .analytics-container {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    .analytics-header {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .analytics-title {
+      font-family: var(--font-resolve);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .analytics-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      box-shadow: none !important;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .kpi-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-resolve);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: none;
+    }
+
+    .kpi-card-value-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .kpi-card-value {
+      font-family: var(--font-resolve);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .kpi-badge-growth {
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-green);
+      background: #dcfce7;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .kpi-card-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Growth Trend Chart Card in Light Theme */
+    .chart-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 22px 24px;
+      box-shadow: none !important;
+      margin-bottom: 20px;
+    }
+
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .chart-title {
+      font-family: var(--font-resolve);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-stats-badge {
+      font-family: var(--font-resolve);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1e293b;
+      background: #f1f5f9;
+      padding: 5px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .chart-canvas-wrap {
+      width: 100%;
+      height: 320px;
+      position: relative;
+    }
+
+    /* ─── Understated & Classy AI Event Planner Floating Button ─── */
+    .ai-fab-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9990;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      padding: 7px 14px;
+      border-radius: 4px;
+      font-family: var(--font-resolve);
+      font-size: 0.82rem;
+      font-weight: 400;
+      letter-spacing: 0.4px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      box-shadow: none !important;
+      transition: all 0.15s ease;
+    }
+
+    .ai-fab-btn:hover {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+
+    .ai-fab-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--sub-red);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* ─── AI Event Planner Slide-Up Chat Drawer ─── */
+    .ai-chat-drawer {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      width: 390px;
+      max-width: calc(100vw - 32px);
+      height: 560px;
+      max-height: calc(100vh - 44px);
+      background: #ffffff;
+      border: 2px solid #0f172a;
+      border-radius: 12px;
+      box-shadow: none !important;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUpAi 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .ai-chat-drawer.open {
+      display: flex;
+    }
+
+    @keyframes slideUpAi {
+      from { opacity: 0; transform: translateY(20px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .ai-chat-header {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .ai-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ai-bot-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--sub-red);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      border: 1.5px solid #ffffff;
+    }
+
+    .ai-bot-title {
+      font-family: var(--font-resolve);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      line-height: 1.2;
+    }
+
+    .ai-bot-status {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .ai-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-btn-reset, .ai-btn-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .ai-btn-reset:hover, .ai-btn-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    /* Messages Thread */
+    .ai-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #f8fafc;
+    }
+
+    .ai-msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 90%;
+    }
+
+    .ai-msg.ai-bot {
+      align-self: flex-start;
+    }
+
+    .ai-msg.ai-user {
+      align-self: flex-end;
+    }
+
+    .ai-msg-bubble {
+      padding: 10px 13px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .ai-bot .ai-msg-bubble {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid var(--border);
+      box-shadow: none !important;
+    }
+
+    .ai-bot .ai-msg-bubble h3 {
+      font-family: var(--font-resolve);
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+      color: var(--sub-red);
+    }
+
+    .ai-bot .ai-msg-bubble ul, .ai-bot .ai-msg-bubble ol {
+      margin-left: 16px;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .ai-bot .ai-msg-bubble li {
+      margin-bottom: 4px;
+    }
+
+    .ai-user .ai-msg-bubble {
+      background: var(--sub-red);
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    /* Prompt Chips */
+    .ai-prompt-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .ai-chip {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 5px 10px;
+      border-radius: 16px;
+      font-size: 0.73rem;
+      font-family: var(--font-body);
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+    }
+
+    .ai-chip:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      color: #0f172a;
+    }
+
+    /* Typing Indicator */
+    .ai-typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 9px 13px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: fit-content;
+    }
+
+    .ai-dot {
+      width: 6px;
+      height: 6px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: aiDotBounce 1.2s infinite ease-in-out;
+    }
+
+    .ai-dot:nth-child(2) { animation-delay: 0.2s; }
+    .ai-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes aiDotBounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* Input Wrap */
+    .ai-chat-input-wrap {
+      padding: 10px 12px;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    #ai-chat-input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-family: var(--font-body);
+      font-size: 0.84rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    #ai-chat-input:focus {
+      border-color: var(--sub-red);
+    }
+
+    #ai-chat-send {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background: var(--sub-red);
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      transition: background 0.15s;
+    }
+
+    #ai-chat-send:hover {
+      background: var(--sub-red-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Password Gate (SUB) ─── -->
+  <div id="password-gate" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0f172a;z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+      <img src="subsoccer_logo.svg" alt="Subsoccer" style="height:32px;margin-bottom:18px;filter:brightness(0) invert(1);">
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(196,30,42,0.15);color:#ff4d5a;padding:4px 12px;border-radius:20px;font-family:Resolve,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:1px;margin-bottom:14px;">
+        <i class="fa-solid fa-lock"></i> CONFIDENTIAL ACCESS
+      </div>
+      <h2 style="color:#ffffff;font-family:Resolve,Oswald,sans-serif;font-size:1.35rem;font-weight:700;margin:0 0 8px 0;letter-spacing:0.5px;">Global Match & Intelligence Map</h2>
+      <p style="color:#94a3b8;font-size:0.82rem;line-height:1.4;margin:0 0 24px 0;">Enter your authorized partner access code to view the live platform ecosystem.</p>
+      
+      <form id="gate-form" onsubmit="checkGatePassword(event)" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="position:relative;">
+          <input type="password" id="gate-pass-input" placeholder="ACCESS CODE" autocomplete="off" autofocus
+            style="width:100%;background:#0f172a;border:1.5px solid #475569;border-radius:8px;color:#ffffff;padding:14px;font-family:Resolve,monospace;font-size:1.1rem;font-weight:700;letter-spacing:3px;text-align:center;text-transform:uppercase;outline:none;box-sizing:border-box;">
+        </div>
+        <div id="gate-error" style="color:#f87171;font-size:0.8rem;display:none;font-weight:600;">Incorrect access code. Try again.</div>
+        <button type="submit" style="background:#c41e2a;color:#ffffff;border:none;border-radius:8px;padding:14px;font-family:Resolve,sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <span>Unlock Platform</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+      <div style="color:#64748b;font-size:0.75rem;margin-top:20px;">Subsoccer Ltd · Official Partner Intelligence</div>
+    </div>
+  </div>
+
+
+  <!-- ─── Pure White Topbar ─── -->
+  <header class="topbar">
+    <a href="index.html" class="topbar-logo" aria-label="Subsoccer Home">
+      <img src="subsoccer_logo.svg" alt="Subsoccer" style="height: 24px; display: block;">
+    </a>
+    <div class="topbar-center">
+      <i class="fa-solid fa-lock" style="font-size: 0.7rem; color: #64748b;"></i> Subsoccer Ltd — Confidential Partner Access
+    </div>
+    <div class="topbar-right">
+      <a href="subsoccer-go.html" class="topbar-badge" style="text-decoration:none; cursor:pointer;">
+        Play Subsoccer GO <i class="fa-solid fa-arrow-right" style="font-size:0.65rem; color:var(--sub-red);"></i>
+      </a>
+    </div>
+  </header>
+
+  <!-- ─── Hero Title Section ─── -->
+  <section class="hero-header">
+    <img class="hero-header-bg" src="growth-hero.jpg" alt="Two players competing on a Subsoccer table with the digital scoreboard in the background">
+    <div class="hero-header-overlay"></div>
+    <div class="hero-header-inner">
+      <div class="hero-text">
+        <h1 class="hero-title">Subsoccer around the world</h1>
+        <p class="hero-subtitle">Real match data gathered with Subsoccer GO — our bench soccer tournament and match platform launched in Spring 2026. Tracking 10,700+ live games across 807 locations in 79 countries, alongside global social media highlights from stadiums, F1 fan zones, malls, and events.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Interactive Map ─── -->
+  <section class="map-section">
+    <!-- Master Toggle Buttons on Map: 3 Layers -->
+    <div class="filter-container">
+      <button class="btn-toggle-sm active" id="btn-toggle-sm" onclick="toggleSocialMedia()">
+        Social Media <span class="filter-count" id="count-sm-master">84</span>
+      </button>
+      <button class="btn-toggle-go active" id="btn-toggle-go" onclick="toggleGoPlays()">
+        Played Games <span class="filter-count" id="count-go">11,186</span>
+      </button>
+      <button class="btn-toggle-sold active" id="btn-toggle-sold" onclick="toggleSoldCountries()">
+        Countries Delivered <span class="filter-count" id="count-sold">75</span>
+      </button>
+    </div>
+
+    <!-- Leaflet Map -->
+    <div id="map"></div>
+  </section>
+
+  <!-- ─── Cards Slider with 5 Curated B2B Sales Category Tabs ─── -->
+  <section class="slider-wrapper">
+    <div class="slider-header">
+      <!-- Curated B2B Sales Category Tabs -->
+      <div class="category-tabs" id="category-tabs">
+        <button class="cat-tab active" data-cat="all" onclick="setCategoryFilter('all')">
+          All <span class="cat-tab-count">99</span>
+        </button>
+        <button class="cat-tab" data-cat="stadium" onclick="setCategoryFilter('stadium')">
+          Stadiums & Pro Clubs <span class="cat-tab-count">16</span>
+        </button>
+        <button class="cat-tab" data-cat="brand" onclick="setCategoryFilter('brand')">
+          Brand & F1 Activations <span class="cat-tab-count">25</span>
+        </button>
+        <button class="cat-tab" data-cat="rental" onclick="setCategoryFilter('rental')">
+          Event Rentals & Fleets <span class="cat-tab-count">12</span>
+        </button>
+        <button class="cat-tab" data-cat="arcade" onclick="setCategoryFilter('arcade')">
+          Arcades & Sports Bars <span class="cat-tab-count">10</span>
+        </button>
+        <button class="cat-tab" data-cat="mall" onclick="setCategoryFilter('mall')">
+          Malls & Family Parks <span class="cat-tab-count">11</span>
+        </button>
+        <button class="cat-tab" data-cat="creator" onclick="setCategoryFilter('creator')">
+          Creators & Viral Media <span class="cat-tab-count">25</span>
+        </button>
+      </div>
+
+      <div class="slider-controls">
+        <button class="slider-arrow" onclick="scrollSlider(-240)" aria-label="Previous">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="slider-arrow" onclick="scrollSlider(240)" aria-label="Next">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="cards-track" id="cards-track">
+      <!-- Cards injected dynamically by JS -->
+    </div>
+  </section>
+
+  <!-- ─── Light Theme Full-Year Analytics & Ecosystem Growth Section ─── -->
+  <section class="analytics-section">
+    <div class="analytics-container">
+      
+      <div class="analytics-header">
+        <div>
+          <h2 class="analytics-title">
+            <i class="fa-solid fa-chart-simple" style="color:var(--sub-red);"></i> Subsoccer Platform Ecosystem Growth
+          </h2>
+          <p class="analytics-subtitle">
+            Real table 1v1 matches, digital Subsoccer GO games, official tournament brackets, and mobile app opens worldwide.
+          </p>
+        </div>
+      </div>
+
+      <!-- KPI Row 1: Match & App Activity (Light Theme - English) -->
+      <div class="kpi-grid">
+        <!-- Card 1: Total Matches -->
+        <div class="kpi-card" style="border-left: 3.5px solid var(--sub-red);">
+          <div class="kpi-card-header">
+            <span>TOTAL MATCHES PLAYED</span>
+            <i class="fa-solid fa-futbol" style="color:var(--sub-red);"></i>
+          </div>
+          <div class="kpi-card-value-wrap">
+            <div class="kpi-card-value" id="kpi-live-total-matches">11,186</div>
+            <span class="kpi-badge-growth">▲ +226% vs prev. month</span>
+          </div>
+          <div class="kpi-card-desc">
+            <i class="fa-solid fa-check-circle" style="color:var(--accent-green);"></i> <span id="kpi-live-total-desc">6,681 Instant · 4,505 Tournament matches</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Instant Matches -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>1V1 INSTANT MATCHES</span>
+            <i class="fa-solid fa-bolt" style="color:#ff4d5a;"></i>
+          </div>
+          <div class="kpi-card-value-wrap">
+            <div class="kpi-card-value" id="kpi-live-instant-matches">6,681</div>
+            <span class="kpi-badge-growth">▲ +141% vs prev. month</span>
+          </div>
+          <div class="kpi-card-desc">
+            <i class="fa-solid fa-gamepad" style="color:var(--sub-blue);"></i> Fast 1v1 table & online play events
+          </div>
+        </div>
+
+        <!-- Card 3: Tournaments Played -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>TOURNAMENTS PLAYED</span>
+            <i class="fa-solid fa-trophy" style="color:var(--sub-gold);"></i>
+          </div>
+          <div class="kpi-card-value-wrap">
+            <div class="kpi-card-value" id="kpi-live-tourney-matches">4,505</div>
+            <span class="kpi-badge-growth">▲ +410% vs prev. month</span>
+          </div>
+          <div class="kpi-card-desc">
+            <i class="fa-solid fa-award" style="color:var(--sub-gold);"></i> Official brackets & playoff matches
+          </div>
+        </div>
+
+        <!-- Card 4: App Opens & QR Scans -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>TOTAL APP OPENS & SCANS</span>
+            <i class="fa-solid fa-qrcode" style="color:var(--sub-blue);"></i>
+          </div>
+          <div class="kpi-card-value-wrap">
+            <div class="kpi-card-value" id="kpi-live-app-opens">9,922</div>
+            <span class="kpi-badge-growth">▲ +70% vs prev. month</span>
+          </div>
+          <div class="kpi-card-desc">
+            <i class="fa-solid fa-mobile-screen" style="color:var(--sub-blue);"></i> Table QR code scans & web app launches
+          </div>
+        </div>
+      </div>
+
+      <!-- Growth Trend Line Chart Card (Light Theme - English) -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-title">
+              <i class="fa-solid fa-chart-line" style="color:var(--sub-red);"></i> Subsoccer Platform Ecosystem Growth Trend
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+              Real table 1v1 matches · Live tournaments · App QR scans & opens (Full Year)
+            </div>
+          </div>
+          <div class="chart-stats-badge">
+            10,777 Matches · 9,743 App Opens (Full Year)
+          </div>
+        </div>
+
+        <div class="chart-canvas-wrap">
+          <canvas id="ecosystemGrowthChart"></canvas>
+        </div>
+      </div>
+
+      <!-- KPI Row 2: Audience, Geography & Retention (Light Theme - English) -->
+      <div class="kpi-grid">
+        <!-- Card 5: Language Breakdown -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>LANGUAGE BREAKDOWN</span>
+            <i class="fa-solid fa-language" style="color:var(--sub-blue);"></i>
+          </div>
+          <div class="kpi-card-value" style="font-size:1.45rem; margin: 4px 0;">
+            EN 🇬🇧 54% | AR 22% | DE 🇩🇪 4% | Oth 18%
+          </div>
+          <div class="kpi-card-desc">
+            <i class="fa-solid fa-globe" style="color:var(--text-muted);"></i> Active global language markets
+          </div>
+        </div>
+
+        <!-- Card 6: Countries & Cities -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>COUNTRIES & CITIES PLAYED</span>
+            <i class="fa-solid fa-earth-americas" style="color:var(--sub-blue);"></i>
+          </div>
+          <div class="kpi-card-value-wrap">
+            <div class="kpi-card-value">79 Countries</div>
+          </div>
+          <div class="kpi-card-desc">
+            <i class="fa-solid fa-location-dot" style="color:var(--sub-red);"></i> 807 unique game hubs & cities
+          </div>
+        </div>
+
+        <!-- Card 7: Conversion Rate -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>CONVERSION RATE</span>
+            <i class="fa-solid fa-filter" style="color:var(--accent-green);"></i>
+          </div>
+          <div class="kpi-card-value-wrap">
+            <div class="kpi-card-value" style="color:var(--accent-green);">67%</div>
+          </div>
+          <div class="kpi-card-desc">
+            <i class="fa-solid fa-arrow-right" style="color:var(--accent-green);"></i> 9,743 scans → 6,549 games played
+          </div>
+        </div>
+
+        <!-- Card 8: Returning Users -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>RETURNING USERS</span>
+            <i class="fa-solid fa-rotate" style="color:var(--sub-gold);"></i>
+          </div>
+          <div class="kpi-card-value-wrap">
+            <div class="kpi-card-value" style="color:var(--sub-gold);">77%</div>
+          </div>
+          <div class="kpi-card-desc">
+            <i class="fa-solid fa-users" style="color:var(--sub-gold);"></i> Players returning to play again
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── Understated AI Event Planner Button ─── -->
+  <button class="ai-fab-btn" id="ai-fab-btn" onclick="toggleAiDrawer()" aria-label="Open AI Event Planner">
+    <span class="ai-fab-dot"></span>
+    <span class="ai-fab-text">AI Event Planner</span>
+  </button>
+
+  <!-- ─── AI Event Planner Chat Drawer ─── -->
+  <div class="ai-chat-drawer" id="ai-chat-drawer">
+    <div class="ai-chat-header">
+      <div class="ai-header-left">
+        <div class="ai-bot-avatar"><i class="fa-solid fa-futbol" style="font-size:0.85rem; color:#fff;"></i></div>
+        <div>
+          <div class="ai-bot-title">Subsoccer AI Event Planner</div>
+          <div class="ai-bot-status"><span class="status-dot"></span> 10,700+ real match benchmarks</div>
+        </div>
+      </div>
+      <div class="ai-header-actions">
+        <button class="ai-btn-reset" onclick="resetAiChat()" title="Clear chat"><i class="fa-solid fa-rotate-right"></i></button>
+        <button class="ai-btn-close" onclick="toggleAiDrawer()" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div class="ai-chat-messages" id="ai-chat-messages">
+      <div class="ai-msg ai-bot">
+        <div class="ai-msg-bubble">
+          <strong>Hi! I'm your Subsoccer Event Advisor.</strong><br><br>
+          Tell me about your upcoming event (guest count, sports club, brand activation, or party) and I will calculate the ideal table count, tournament format, and throughput based on real match data from 79 countries!
+        </div>
+      </div>
+
+      <!-- Suggestion chips -->
+      <div class="ai-prompt-chips" id="ai-prompt-chips">
+        <button class="ai-chip" onclick="sendQuickPrompt('300 person corporate party for 4 hours')">300 person party (4h)</button>
+        <button class="ai-chip" onclick="sendQuickPrompt('Matchday fan zone for football club')">Matchday Fan Zone</button>
+        <button class="ai-chip" onclick="sendQuickPrompt('Brand sponsor activation with custom tables')">Brand & F1 Activation</button>
+        <button class="ai-chip" onclick="sendQuickPrompt('Shopping mall weekend tournament')">Mall Tournament</button>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="ai-chat-input-wrap">
+      <input type="text" id="ai-chat-input" placeholder="Ask e.g. 'How many tables for 500 guests?'..." onkeydown="if(event.key==='Enter') sendAiMessage()">
+      <button id="ai-chat-send" onclick="sendAiMessage()" aria-label="Send">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+
+    // ─── Password Gate Logic (SUB) ───
+    function checkGatePassword(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById("gate-pass-input");
+      const err = document.getElementById("gate-error");
+      const val = (input.value || "").trim().toUpperCase();
+
+      if (val === "SUB") {
+        sessionStorage.setItem("subsoccer_map_auth", "SUB");
+        unlockGate();
+      } else {
+        if (err) err.style.display = "block";
+        if (input) {
+          input.style.borderColor = "#ef4444";
+          input.focus();
+        }
+      }
+    }
+
+    function unlockGate() {
+      const gate = document.getElementById("password-gate");
+      if (gate) {
+        gate.style.transition = "opacity 0.3s ease";
+        gate.style.opacity = "0";
+        gate.style.pointerEvents = "none";
+        setTimeout(() => { gate.style.display = "none"; }, 300);
+      }
+    }
+
+    (function initGateAuth() {
+      const params = new URLSearchParams(window.location.search);
+      const urlPass = (params.get("pass") || params.get("auth") || params.get("code") || "").toUpperCase();
+      const stored = sessionStorage.getItem("subsoccer_map_auth");
+
+      if (urlPass === "SUB" || stored === "SUB") {
+        sessionStorage.setItem("subsoccer_map_auth", "SUB");
+        const gate = document.getElementById("password-gate");
+        if (gate) gate.style.display = "none";
+      }
+    })();
+
+    // ─── Master Curated Venues (76 items categorized into 5 sales themes) ───
+    const CURATED_VENUES = [
+  {
+    "id": "ugc-espn-tiktok-viral",
+    "cat": "creator",
+    "category": "creator",
+    "flag": "🇺🇸",
+    "title": "ESPN Official TikTok — He made this look easy 👀 (45M+ Reach)",
+    "location": "ESPN HQ (Bristol, CT & Worldwide)",
+    "lat": 41.6704,
+    "lng": -72.9493,
+    "author": "@espn",
+    "platform": "tiktok",
+    "url": "https://www.tiktok.com/@espn/video/7593072673333202190",
+    "previewImg": "assets/ugc/thumb-tiktok-espn-7593072673333202190.jpg",
+    "icon": "🇺🇸"
+  },
+  {
+    "id": "ugc-espnfc-youtube-shorts",
+    "cat": "creator",
+    "category": "creator",
+    "flag": "🇺🇸",
+    "title": "ESPN FC YouTube — This is INTENSE (via @subsoccer)",
+    "location": "ESPN FC Global Football (Connecticut & UK)",
+    "lat": 41.6704,
+    "lng": -72.9493,
+    "author": "@ESPNFC",
+    "platform": "youtube",
+    "url": "https://www.youtube.com/shorts/HqAWwwDsZgQ",
+    "previewImg": "assets/ugc/thumb-yt-espnfc-HqAWwwDsZgQ.jpg",
+    "icon": "🇺🇸"
+  },
+  {
+    "id": "ugc-sidemen-cruise-2026",
+    "cat": "creator",
+    "flag": "🇬🇧",
+    "title": "SIDEMEN k vs  Cruise Holiday",
+    "location": "Sidemen Official (21M Subs)",
+    "lat": 51.5074,
+    "lng": -0.1278,
+    "author": "@Sidemen",
+    "platform": "youtube",
+    "url": "https://youtube.com/watch?t=4435&v=BYKfmCz0crA",
+    "previewImg": "assets/ugc/sidemen-cruise.jpg",
+    "icon": "🇬🇧",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-espnw-viral-legend",
+    "cat": "creator",
+    "category": "creator",
+    "flag": "🇺🇸",
+    "title": "ESPNW — Bench Soccer Legend Status (56K Likes)",
+    "location": "ESPN Studios (Bristol, CT & Los Angeles, USA)",
+    "lat": 41.6704,
+    "lng": -72.9493,
+    "author": "@espnw",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/espnw/reel/DSx5LiHEoOK/",
+    "previewImg": "assets/ugc/thumb-DSx5LiHEoOK.jpg",
+    "icon": "🇺🇸"
+  },
+  {
+    "id": "DLrxBfNN_HH",
+    "cat": "stadium",
+    "flag": "🇩🇪",
+    "title": "Champions League Fan Zone Olympiapark",
+    "location": "Olympiapark, München, Saksa",
+    "lat": 48.1755,
+    "lng": 11.5517,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DLrxBfNN_HH/",
+    "previewImg": "assets/ugc/DLrxBfNN_HH.jpg",
+    "icon": "🏆",
+    "category": "stadium"
+  },
+  {
+    "id": "DYzqTynNfXD",
+    "cat": "stadium",
+    "flag": "🇩🇪",
+    "title": "UECL Leipzig Fan Zone Duel",
+    "location": "Red Bull Arena, Leipzig, Saksa",
+    "lat": 51.3458,
+    "lng": 12.3639,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DYzqTynNfXD/",
+    "previewImg": "assets/ugc/DYzqTynNfXD.jpg",
+    "icon": "🇩🇪",
+    "category": "stadium"
+  },
+  {
+    "id": "DZaRWNPtLiv",
+    "cat": "stadium",
+    "flag": "🇬🇧",
+    "title": "Champions League Final Fan Zone",
+    "location": "Wembley Stadium, Lontoo, UK",
+    "lat": 51.556,
+    "lng": -0.2795,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DZaRWNPtLiv/",
+    "previewImg": "assets/ugc/DZaRWNPtLiv.jpg",
+    "icon": "🏆",
+    "category": "stadium"
+  },
+  {
+    "id": "DUew2M3CWr9",
+    "cat": "creator",
+    "flag": "🇯🇵",
+    "title": "Mini soccer showdown at FC Machida Zelvia home opener vs Mito",
+    "location": "FC Machida Zelvia, Kanagawa, Japan",
+    "lat": 35.5487,
+    "lng": 139.4381,
+    "author": "@shunfreestyle",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DUew2M3CWr9/",
+    "previewImg": "assets/ugc/DUew2M3CWr9.jpg",
+    "icon": "🇯🇵",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-benchfooty-vancouver-01",
+    "cat": "creator",
+    "flag": "🇨🇦",
+    "title": "BenchFooty FC 1v1 Match — Vancouver, Canada",
+    "location": "Vancouver, BC, Canada",
+    "lat": 49.2827,
+    "lng": -123.1207,
+    "author": "@benchfootyfc",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DZ07KHvv9SI/",
+    "previewImg": "assets/ugc/ugc-benchfooty-vancouver-01.jpg",
+    "icon": "🇨🇦",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-abudhabi-yasmall-virgin-01",
+    "cat": "mall",
+    "flag": "📍",
+    "title": "Virgin Megastore Subsoccer Challenge — Yas Mall, Abu Dhabi",
+    "location": "Yas Mall, Abu Dhabi, UAE",
+    "lat": 24.4883,
+    "lng": 54.6074,
+    "author": "@admiralworldsports",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DZrow0Pi56V/",
+    "previewImg": "assets/ugc/ugc-abudhabi-yasmall-virgin-01.jpg",
+    "icon": "📍",
+    "category": "mall"
+  },
+  {
+    "id": "ugc-sporting-kc-centralbank-01",
+    "cat": "brand",
+    "flag": "🇺🇸",
+    "title": "Central Bank x Sporting KC (MLS) Fan Activation",
+    "location": "Kansas City, KS, USA",
+    "lat": 39.1218,
+    "lng": -94.8232,
+    "author": "@centralbankmidwest",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DbHSrklAs5g/",
+    "previewImg": "assets/ugc/ugc-sporting-kc-centralbank-01.jpg",
+    "icon": "🇺🇸",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-moeve-laliga-madrid-01",
+    "cat": "rental",
+    "flag": "🇪🇸",
+    "title": "Custom Subsoccer for Moeve & LaLiga — Madrid",
+    "location": "Madrid, Spain",
+    "lat": 40.4168,
+    "lng": -3.7038,
+    "author": "@showflow.es",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DXjXMI4DBVy/",
+    "previewImg": "assets/ugc/ugc-moeve-laliga-madrid-01.jpg",
+    "icon": "🇪🇸",
+    "category": "rental"
+  },
+  {
+    "id": "ugc-barona-helsinki-01",
+    "cat": "brand",
+    "flag": "🇫🇮",
+    "title": "Barona 6-Week Subsoccer Tournament Finals — Helsinki",
+    "location": "Helsinki, Finland",
+    "lat": 60.173,
+    "lng": 24.9388,
+    "author": "@baronasuomi",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DbAXODxiKMR/",
+    "previewImg": "assets/ugc/ugc-barona-helsinki-01.jpg",
+    "icon": "🇫🇮",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-hq-arcade-01",
+    "cat": "arcade",
+    "flag": "🇫🇮",
+    "title": "Subsoccer Arcade — 1M Likes Viral Reel",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1562,
+    "lng": 24.889,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DTNSJIEjbaD/",
+    "previewImg": "assets/ugc/thumb-DTNSJIEjbaD.jpg",
+    "icon": "🇫🇮",
+    "category": "arcade"
+  },
+  {
+    "id": "ugc-forge-fc-canada-01",
+    "cat": "stadium",
+    "flag": "🇨🇦",
+    "title": "Forge FC Subsoccer Match — Hamilton Stadium, Canada",
+    "location": "Hamilton, Ontario, Canada",
+    "lat": 43.2522,
+    "lng": -79.8302,
+    "author": "@forgefc",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/Dcj_ZgGDYq0/",
+    "previewImg": "assets/ugc/ugc-forge-fc-canada-01.jpg",
+    "icon": "🇨🇦",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-mexico-gp-f1-01",
+    "cat": "stadium",
+    "flag": "🇲🇽",
+    "title": "Subsoccer at Formula 1 Mexico City Grand Prix Fan Zone",
+    "location": "Mexico City, Mexico",
+    "lat": 19.4042,
+    "lng": -99.0907,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reels/DBoOKapRFki/",
+    "previewImg": "assets/ugc/ugc-mexico-gp-f1-01.jpg",
+    "icon": "🇲🇽",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-var-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Good thing we have VAR 💀 (Match Highlight)",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1542,
+    "lng": 24.8858,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DcbAdCjNRdO/",
+    "previewImg": "assets/ugc/ugc-var-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-spa-belgium-f1-01",
+    "cat": "stadium",
+    "flag": "🇧🇪",
+    "title": "Subsoccer at F1 Fan Zone — Spa-Francorchamps, Belgium",
+    "location": "Spa-Francorchamps, Belgium",
+    "lat": 50.4452,
+    "lng": 5.9718,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DbxtQuIjFBn/",
+    "previewImg": "assets/ugc/ugc-spa-belgium-f1-01.jpg",
+    "icon": "🇧🇪",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-trnava-01",
+    "cat": "brand",
+    "flag": "🇸🇰",
+    "title": "Subsoccer Tournament in Trnava",
+    "location": "Trnava, Slovakia",
+    "lat": 48.3762,
+    "lng": 17.5829,
+    "author": "@originalsubsoccer repost",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/Dca5KvYsl2g/?utm_source=ig_web_copy_link&igsi=MzRlODBiNWFlZA==",
+    "previewImg": "assets/ugc/lovestream-sk.jpg",
+    "icon": "🇸🇰",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-grunt-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "That grunt though 💀 (Intense 1v1 Match)",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.155,
+    "lng": 24.888,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcQzbj0tbVi/?utm_source=ig_web_copy_link&igsi=MzRlODBiNWFlZA==",
+    "previewImg": "assets/ugc/DYsakvZtqHX.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-east-midlands-01",
+    "cat": "mall",
+    "flag": "🇬🇧",
+    "title": "East Midlands Designer Outlet",
+    "location": "East Midlands Designer Outlet, UK",
+    "lat": 53.1076,
+    "lng": -1.3106,
+    "author": "@originalsubsoccer repost",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DbLco8DNlea/?utm_source=ig_web_copy_link&igsi=MzRlODBiNWFlZA==",
+    "previewImg": "assets/ugc/retroids-bar.jpg",
+    "icon": "🇬🇧",
+    "category": "mall"
+  },
+  {
+    "id": "ugc-philly-01",
+    "cat": "creator",
+    "flag": "📍",
+    "title": "Fashion District Philadelphia",
+    "location": "Fashion District Philadelphia, US",
+    "lat": 39.9526,
+    "lng": -75.1592,
+    "author": "@originalsubsoccer repost",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DbBgh3fmWS-/?utm_source=ig_web_copy_link&igsi=MzRlODBiNWFlZA==",
+    "previewImg": "assets/ugc/fanatics-fest-nyc.jpg",
+    "icon": "📍",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-feeling-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Can't beat this feeling 🙌",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1552,
+    "lng": 24.8865,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DaiF3NNtqNF/",
+    "previewImg": "assets/ugc/ugc-feeling-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-tripla-01",
+    "cat": "mall",
+    "flag": "🇫🇮",
+    "title": "Valioliiga-huuma Triplan tapahtuma-aukiolla 🏆⚽️",
+    "location": "Mall of Tripla (Pasila, Helsinki)",
+    "lat": 60.1989,
+    "lng": 24.9317,
+    "author": "@cityoftripla",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/Dci1Sw1CFLt/",
+    "previewImg": "assets/ugc/ugc-tripla-01.jpg",
+    "icon": "🇫🇮",
+    "category": "mall"
+  },
+  {
+    "id": "ugc-glasgow-01",
+    "cat": "mall",
+    "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "title": "Best time playing Subsoccer at SuperPark Glasgow 💛💜",
+    "location": "SuperPark Glasgow, Scotland, UK",
+    "lat": 55.8642,
+    "lng": -4.2518,
+    "author": "@rougegalsoff",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcV4O_WNm0G/",
+    "previewImg": "assets/ugc/ugc-glasgow-01.jpg",
+    "icon": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "category": "mall"
+  },
+  {
+    "id": "ugc-footwork-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Footwork is the key! ⚽",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1546,
+    "lng": 24.8872,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DYhR6qvNgVM/",
+    "previewImg": "assets/ugc/ugc-footwork-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-kingston-01",
+    "cat": "brand",
+    "flag": "🇨🇦",
+    "title": "Princess St. Promenade Street Festival 🎮⚽",
+    "location": "Princess Street (Downtown Kingston, Ontario, Canada)",
+    "lat": 44.2312,
+    "lng": -76.486,
+    "author": "@downtownkingston",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DbBfNJ4IKCO/",
+    "previewImg": "assets/ugc/ugc-kingston-01.jpg",
+    "icon": "🇨🇦",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-providence-01",
+    "cat": "brand",
+    "flag": "🇺🇸",
+    "title": "World Cup FanZone Live on 12 News 📺⚽",
+    "location": "World Cup FanZone (Providence, Rhode Island, US)",
+    "lat": 41.824,
+    "lng": -71.4128,
+    "author": "@wpri12",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DZf5FQzkvFb/",
+    "previewImg": "assets/ugc/ugc-providence-01.jpg",
+    "icon": "🇺🇸",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-control-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Next-level control 😬",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1556,
+    "lng": 24.886,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DYg-XI2tpcS/",
+    "previewImg": "assets/ugc/ugc-control-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-lima-01",
+    "cat": "creator",
+    "flag": "🇵🇪",
+    "title": "Nadie se va de Limajuega sin jugar en nuestro Subsoccer! 🇵🇪",
+    "location": "Lima Juega Festival (Lima, Peru)",
+    "lat": -12.0464,
+    "lng": -77.0428,
+    "author": "@jugonesperu",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcUM1PdJ8xT/",
+    "previewImg": "assets/ugc/ugc-lima-01.jpg",
+    "icon": "🇵🇪",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-lima-02",
+    "cat": "brand",
+    "flag": "🇵🇪",
+    "title": "Cositas bonitas que DEBES chequear en Lima Juega 2026 🎲⚽",
+    "location": "Lima Juega Festival (Lima, Peru)",
+    "lat": -12.033409618943233,
+    "lng": -77.0353,
+    "author": "@comunidadludicadelperu",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcW8c2FBK8t/",
+    "previewImg": "assets/ugc/ugc-lima-02.jpg",
+    "icon": "🇵🇪",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-curve-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Curve was insane 😬",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1549,
+    "lng": 24.8885,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DYEpDcrNvkg/",
+    "previewImg": "assets/ugc/ugc-curve-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-katowice-01",
+    "cat": "stadium",
+    "flag": "🇵🇱",
+    "title": "Piłkarskie atrakcje w Polsce: GKS Katowice Strefa Kibica 🏟️🇵🇱",
+    "location": "GKS Katowice Fan Zone (Katowice, Poland)",
+    "lat": 50.2649,
+    "lng": 19.0238,
+    "author": "@pilkarskie.atrakcje",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcYtWH9Io8P/",
+    "previewImg": "assets/ugc/ugc-katowice-01.jpg",
+    "icon": "🇵🇱",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-ostrava-01",
+    "cat": "stadium",
+    "flag": "🇨🇿",
+    "title": "FANZONA FC Banik Ostrava 🤩🇨🇿",
+    "location": "FC Banik Ostrava Stadium FanZone (Ostrava, Czech Republic)",
+    "lat": 49.8209,
+    "lng": 18.2625,
+    "author": "@fcbzeny",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/Dcgt_j7ImkM/",
+    "previewImg": "assets/ugc/ugc-ostrava-01.jpg",
+    "icon": "🇨🇿",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-trickshot-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Endgame trick shot unlocked ✅️",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1544,
+    "lng": 24.8878,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DX9RHi8tJJO/",
+    "previewImg": "assets/ugc/ugc-trickshot-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-panama-01",
+    "cat": "stadium",
+    "flag": "🇵🇦",
+    "title": "Panama City FC Jornada 5 Fan Duel 🇵🇦🍗",
+    "location": "Panama City FC Stadium (Panama City, Panama)",
+    "lat": 8.9824,
+    "lng": -79.5199,
+    "author": "@panamacityfc_",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcZ4J40M0fM/",
+    "previewImg": "assets/ugc/ugc-panama-01.jpg",
+    "icon": "🇵🇦",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-malta-01",
+    "cat": "brand",
+    "flag": "🇲🇹",
+    "title": "Your brand. Your colours. Your Subsoccer. 🇲🇹🔥",
+    "location": "Football Store Malta (Malta)",
+    "lat": 35.8989,
+    "lng": 14.5146,
+    "author": "@footballstoremalta",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DcgfC2djdnb/",
+    "previewImg": "assets/ugc/ugc-malta-01.jpg",
+    "icon": "🇲🇹",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-count-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Does that even count? 🧐",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1558,
+    "lng": 24.8875,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DXrChSIDVf-/",
+    "previewImg": "assets/ugc/ugc-count-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-luxembourg-01",
+    "cat": "brand",
+    "flag": "🇱🇺",
+    "title": "Heartbreak for England on the Fan Stage 💔🏎️",
+    "location": "Scuderia Ferrari Club (Luxembourg)",
+    "lat": 49.6116,
+    "lng": 6.1319,
+    "author": "@scuderiaferrariclubluxembourg",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcYm45LN-eY/",
+    "previewImg": "assets/ugc/ugc-luxembourg-01.jpg",
+    "icon": "🇱🇺",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-atrakce-01",
+    "cat": "rental",
+    "flag": "🇨🇿",
+    "title": "Kdo ma rychlejsi nohy? Subsoccer duel v Centru PP ⚡️",
+    "location": "Centrum PP, Prague, Czech Republic",
+    "lat": 50.0755,
+    "lng": 14.4378,
+    "author": "@atrakcepp",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcYAmmxtkd8/",
+    "previewImg": "assets/ugc/ugc-atrakce-01.jpg",
+    "icon": "🇨🇿",
+    "category": "rental"
+  },
+  {
+    "id": "ugc-special-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "She created something special there! ⭐️",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1551,
+    "lng": 24.8868,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DXob4g1DVmF/",
+    "previewImg": "assets/ugc/ugc-special-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-hungary-01",
+    "cat": "creator",
+    "flag": "🇭🇺",
+    "title": "Ki lesz a kovetkezo gyoztes? ⚽🇭🇺",
+    "location": "EventSelfie, Budapest, Hungary",
+    "lat": 47.4979,
+    "lng": 19.0402,
+    "author": "@eventselfie_hu",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DcgcC1LsQaE/",
+    "previewImg": "assets/ugc/ugc-hungary-01.jpg",
+    "icon": "🇭🇺",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-6",
+    "cat": "brand",
+    "flag": "🇪🇸",
+    "title": "مرة أنا و لامين يامال و علي كنا في برشلونة",
+    "location": "Barcelona, Spain",
+    "lat": 41.3851,
+    "lng": 2.1734,
+    "author": "@ali.iannacone",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DUX78xZjBH5/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-6.jpg",
+    "icon": "🇪🇸",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-asmr-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Asmr for eyes 👀",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1547,
+    "lng": 24.8862,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DXWh5-JDVTz/",
+    "previewImg": "assets/ugc/ugc-asmr-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-29",
+    "cat": "mall",
+    "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "title": "It always starts with... \"bet I can beat you.\" ",
+    "location": "SuperPark Glasgow, Scotland, UK",
+    "lat": 55.877190381056764,
+    "lng": -4.2443,
+    "author": "@superparksg",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcDoO2mkprN/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-29.jpg",
+    "icon": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "category": "mall"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-51",
+    "cat": "rental",
+    "flag": "🇬🇧",
+    "title": "Sidemen Charity Match 2025 at Wembley Stadium! ⚽️",
+    "location": "Wembley Stadium, London, UK",
+    "lat": 51.568990381056764,
+    "lng": -0.272,
+    "author": "@jmentertainmentltd",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DHCbYqhN1yg/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-51.jpg",
+    "icon": "🇬🇧",
+    "category": "rental"
+  },
+  {
+    "id": "ugc-asap-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Need to try this ASAP 🔥",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1553,
+    "lng": 24.8882,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DW8sBfVDdGV/",
+    "previewImg": "assets/ugc/ugc-asap-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-52",
+    "cat": "stadium",
+    "flag": "🇵🇦",
+    "title": "𝗗𝗜𝗩𝗘𝗥𝗦𝗜𝗢́𝗡 𝗖𝗢𝗡 @kfcpa 🍗🔴",
+    "location": "Panama City FC Stadium (Panama City, Panama)",
+    "lat": 8.995390381056767,
+    "lng": -79.51240000000001,
+    "author": "@panamacityfc_",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DbzLg1uxc_Z/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-52.jpg",
+    "icon": "🇵🇦",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-54",
+    "cat": "brand",
+    "flag": "🇸🇰",
+    "title": "V @slovaklines zóne na teba čaká koleso šťastia, alebo sa môžeš zahrať s ⚽️! ❤️‍🔥",
+    "location": "Lovestream Festival, Bratislava, Slovakia",
+    "lat": 48.2045,
+    "lng": 17.1945,
+    "author": "@lovestreamfestival",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/Db0JNpljX_x/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-54.jpg",
+    "icon": "🇸🇰",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-button-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "She pressed every button before shooting 😃",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1543,
+    "lng": 24.8869,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DW5tDvfDZDK/",
+    "previewImg": "assets/ugc/ugc-button-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-68",
+    "cat": "creator",
+    "flag": "🇵🇪",
+    "title": "🎲✨ ¡La cuenta regresiva comenzó!",
+    "location": "Lima Juega Festival (Lima, Peru)",
+    "lat": -12.020419237886466,
+    "lng": -77.0578,
+    "author": "@jugonesperu",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DbBk6A1EaH9/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-68.jpg",
+    "icon": "🇵🇪",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-76",
+    "cat": "stadium",
+    "flag": "🇺🇸",
+    "title": "Just because the World Cup is over, doesn't mean the Summer of Soccer has to end just yet! 👀 ",
+    "location": "Dallas Trinity FC Stadium, Dallas, TX, USA",
+    "lat": 32.7801,
+    "lng": -96.7623,
+    "author": "@dallastrinityfc",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DbEZ7IuH2M8/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-76.jpg",
+    "icon": "🇺🇸",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-worstshot-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Worst shot in football = best shot here 😏",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1557,
+    "lng": 24.8879,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DW08EKoCO-S/",
+    "previewImg": "assets/ugc/ugc-worstshot-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-82",
+    "cat": "stadium",
+    "flag": "🇲🇽",
+    "title": "⚽🙌 Más de 100 jóvenes respondieron a la convocatoria de Cancún FC para participar en las actividade",
+    "location": "Cancun FC Sports Complex, Cancun, Mexico",
+    "lat": 21.1619,
+    "lng": -86.8515,
+    "author": "@cancunmio",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DZdqXL4GpZB/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-82.jpg",
+    "icon": "🇲🇽",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-83",
+    "cat": "stadium",
+    "flag": "🇵🇦",
+    "title": "sigo sin superar el feeeeeling y vivirlo con mis boys fue !!!!! 🇵🇦 AHHH PANAMA TE AMO!!!! ",
+    "location": "Panama City FC Stadium (Panama City, Panama)",
+    "lat": 9.008380762113534,
+    "lng": -79.53490000000001,
+    "author": "@emilyorillacg",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DZ7jXl5jhGj/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-83.jpg",
+    "icon": "🇵🇦",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-highlight-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Straight to the highlight reel! 🎥",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1548,
+    "lng": 24.8874,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DWoSF3ujXkN/",
+    "previewImg": "assets/ugc/ugc-highlight-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-90",
+    "cat": "brand",
+    "flag": "🇪🇸",
+    "title": "Visa x GoTyme Bank: The Dream Match-up with Lamine Yamal — Barcelona",
+    "location": "Barcelona, Spain",
+    "lat": 41.39809038105677,
+    "lng": 2.1809,
+    "author": "@gotymebank",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DV48yCPCWq9/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-90.jpg",
+    "icon": "🇪🇸",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-92",
+    "cat": "brand",
+    "flag": "🇺🇸",
+    "title": "On the scene at Fanatics Fest 📍",
+    "location": "Fanatics Fest (Javits Center), New York, USA",
+    "lat": 40.7578,
+    "lng": -74.0026,
+    "author": "@newyorkcityfc",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/Da3bLeMvWK0/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-92.jpg",
+    "icon": "🇺🇸",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-trynext-01",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "Something to try next time 😉",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1554,
+    "lng": 24.8867,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DWgepXqDWuT/",
+    "previewImg": "assets/ugc/ugc-trynext-01.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "DY8SWKooLGY",
+    "cat": "stadium",
+    "flag": "🇬🇧",
+    "title": "UCL Final Tournament Winning Goal",
+    "location": "Wembley Stadium, Lontoo, UK",
+    "lat": 51.58198076211353,
+    "lng": -0.29450000000000004,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DY8SWKooLGY/",
+    "previewImg": "assets/ugc/DY8SWKooLGY.jpg",
+    "icon": "🏆",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-101",
+    "cat": "brand",
+    "flag": "🇯🇲",
+    "title": "Nicarno Williams couldn't be happier with the turnout at Barbican Turf as @wrayrum hosts another wat",
+    "location": "Barbican Turf, Kingston, Jamaica",
+    "lat": 18.0267,
+    "lng": -76.7739,
+    "author": "@jamaicaobserver",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/Da08BAlTxXh/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-101.jpg",
+    "icon": "🇯🇲",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-3",
+    "cat": "creator",
+    "flag": "🇫🇮",
+    "title": "We need them back next year! #Benchsoccer #Subsoccer",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1555,
+    "lng": 24.887,
+    "author": "@originalsubsoccer",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DZCZFgltcPt/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-3.jpg",
+    "icon": "🇫🇮",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-105",
+    "cat": "brand",
+    "flag": "🇺🇸",
+    "title": "Coca-Cola x FIFA Fans Activation — Burbank, Los Angeles",
+    "location": "Burbank, CA, USA",
+    "lat": 34.1808,
+    "lng": -118.309,
+    "author": "@lnl_agency",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/Dbv90MeGNgV/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-105.jpg",
+    "icon": "🇺🇸",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-106",
+    "cat": "stadium",
+    "flag": "🇺🇸",
+    "title": "Uber Rideshare Fan Activation — MetLife Stadium",
+    "location": "MetLife Stadium, East Rutherford, NJ, USA",
+    "lat": 40.8135,
+    "lng": -74.0744,
+    "author": "@moonlabprod",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DbtN2MREZ8P/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-106.jpg",
+    "icon": "🇺🇸",
+    "category": "stadium"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-4",
+    "cat": "brand",
+    "flag": "🇫🇮",
+    "title": "Which News Anchor Will Win? ⚽️ ",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.16849038105677,
+    "lng": 24.8945,
+    "author": "@tailgatingchallenge",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DZIzED8SBPd/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-4.jpg",
+    "icon": "🇫🇮",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-107",
+    "cat": "creator",
+    "flag": "🇵🇪",
+    "title": "🥱¿Cansado de los mismos eventos de siempre? Dale un giro total a tu próxima celebración🥳",
+    "location": "Lima Juega Festival (Lima, Peru)",
+    "lat": -12.0464,
+    "lng": -77.0878,
+    "author": "@jugonesperu",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/Dbtxa7IBzWw/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-107.jpg",
+    "icon": "🇵🇪",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-117",
+    "cat": "mall",
+    "flag": "🇨🇦",
+    "title": "For a limited time! 🚨⚽️ @southcentremall's  soccer activation in Centre Court is your spot to exper",
+    "location": "Southcentre Mall, Calgary, AB, Canada",
+    "lat": 50.9525,
+    "lng": -114.0673,
+    "author": "@datenightyyc",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DaJZyGYOBOi/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-117.jpg",
+    "icon": "🇨🇦",
+    "category": "mall"
+  },
+  {
+    "id": "ugc-batch-mteggz5n-10",
+    "cat": "brand",
+    "flag": "🇫🇮",
+    "title": "Just hosted a @originalsubsoccer tournament for thousands of people ahead of the @championsleague fi",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.18148076211354,
+    "lng": 24.872,
+    "author": "@pegepiirto",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DKUvoDjI-A0/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5n-10.jpg",
+    "icon": "🇫🇮",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-119",
+    "cat": "mall",
+    "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "title": "🏀💜 Nothing beats a Super Dad!",
+    "location": "SuperPark Glasgow, Scotland, UK",
+    "lat": 55.89018076211353,
+    "lng": -4.2668,
+    "author": "@superparkph",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DZ4inYdmA67/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-119.jpg",
+    "icon": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "category": "mall"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-133",
+    "cat": "brand",
+    "flag": "🇨🇦",
+    "title": "Fan Festival at PNE: Family area",
+    "location": "PNE Fan Festival, Vancouver, BC, Canada",
+    "lat": 49.2847,
+    "lng": -123.0422,
+    "author": "@etran222",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DZhHnA6OQkF/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-133.jpg",
+    "icon": "🇨🇦",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-batch-mteggz5o-130",
+    "cat": "brand",
+    "flag": "🇫🇮",
+    "title": "We found the Tortilla Land pop-up and picked up a big pack of ready-to-cook tortillas for around $7,",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1555,
+    "lng": 24.842,
+    "author": "@somebodydopee",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DbQ33kGHibR/",
+    "previewImg": "assets/ugc/ugc-batch-mteggz5o-130.jpg",
+    "icon": "🇫🇮",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-batch-mteh11a6-12",
+    "cat": "brand",
+    "flag": "🇪🇸",
+    "title": "Michel Iannacone & Lamine Yamal — Barcelona",
+    "location": "Barcelona, Spain",
+    "lat": 41.411080762113535,
+    "lng": 2.1584,
+    "author": "@micheliannacone",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DUX8lU2DHsQ/",
+    "previewImg": "assets/ugc/ugc-batch-mteh11a6-12.jpg",
+    "icon": "🇪🇸",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-batch-mteh11a6-19",
+    "cat": "brand",
+    "flag": "🇧🇪",
+    "title": "Checo Perez & Valtteri Bottas — F1 Belgian GP Fan Forum",
+    "location": "Spa-Francorchamps, Belgium",
+    "lat": 50.45819038105677,
+    "lng": 5.9793,
+    "author": "@schecodaily",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DbKSU5Pjbwp/",
+    "previewImg": "assets/ugc/ugc-batch-mteh11a6-19.jpg",
+    "icon": "🇧🇪",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-batch-mteh11a6-9",
+    "cat": "rental",
+    "flag": "🇫🇮",
+    "title": "Who would have thought a Subsoccer tournament could draw a crowd like this? 🥅👣",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.103538475772936,
+    "lng": 24.857,
+    "author": "@sundayevents.ro",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DZnHnZBoZbb/",
+    "previewImg": "assets/ugc/ugc-batch-mteh11a6-9.jpg",
+    "icon": "🇫🇮",
+    "category": "rental"
+  },
+  {
+    "id": "ugc-batch-mteh11a6-22",
+    "cat": "arcade",
+    "flag": "🇬🇧",
+    "title": "Making its arcade debut this evening - Sub Soccer",
+    "location": "Retroids Arcade Bar, Worcester, UK",
+    "lat": 52.1936,
+    "lng": -2.2216,
+    "author": "@retroids_arcade_bar",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DYFP3ZFCvhZ/",
+    "previewImg": "assets/ugc/ugc-batch-mteh11a6-22.jpg",
+    "icon": "🇬🇧",
+    "category": "arcade"
+  },
+  {
+    "id": "ugc-batch-mteh11a6-23",
+    "cat": "rental",
+    "flag": "🇬🇧",
+    "title": "What a day at the London Lionesses Fan Zone yesterday! 🦁🔥",
+    "location": "London Lionesses Fan Zone, London, UK",
+    "lat": 51.520390381056764,
+    "lng": -0.12029999999999999,
+    "author": "@jsfuneventhire",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DT-vcA9DdVa/",
+    "previewImg": "assets/ugc/ugc-batch-mteh11a6-23.jpg",
+    "icon": "🇬🇧",
+    "category": "rental"
+  },
+  {
+    "id": "ugc-batch-mteh11a6-21",
+    "cat": "brand",
+    "flag": "🇫🇮",
+    "title": "In wenigen Tagen startet die Fussball Weltmeisterschaft 2026🎉 Zu diesem Anlass haben wir mal ein we",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.09054809471617,
+    "lng": 24.924500000000002,
+    "author": "@der_spielwaren_investor",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DZVRYaYtb3A/",
+    "previewImg": "assets/ugc/ugc-batch-mteh11a6-21.jpg",
+    "icon": "🇫🇮",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-yt-official-tourney-1",
+    "cat": "mall",
+    "flag": "🇫🇮",
+    "title": "Subsoccer World Cup & Pro Tour Highlights",
+    "location": "Mall of Tripla (Pasila, Helsinki)",
+    "lat": 60.21189038105677,
+    "lng": 24.9392,
+    "author": "@SubsoccerOfficial",
+    "platform": "youtube",
+    "url": "https://www.youtube.com/watch?v=9_qfV3_eZ1w",
+    "previewImg": "assets/ugc/cancun-fc.jpg",
+    "icon": "🇫🇮",
+    "category": "mall"
+  },
+  {
+    "id": "ugc-yt-scotland-1",
+    "cat": "mall",
+    "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "title": "Subsoccer Arena Action at SuperPark Glasgow",
+    "location": "SuperPark Glasgow, Scotland, UK",
+    "lat": 55.8642,
+    "lng": -4.2968,
+    "author": "@SuperParkUK",
+    "platform": "youtube",
+    "url": "https://www.youtube.com/watch?v=kYJqT7L_vM8",
+    "previewImg": "assets/ugc/benchfooty-vancouver.jpg",
+    "icon": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "category": "mall"
+  },
+  {
+    "id": "ugc-yt-0cknavphttk",
+    "cat": "brand",
+    "flag": "🇫🇮",
+    "title": "SubSpain Games presents SUBSOCCER 7 Championship",
+    "location": "Subsoccer HQ (Melkonkatu 24, Lauttasaari)",
+    "lat": 60.1555,
+    "lng": 24.977,
+    "author": "@SubSpain",
+    "platform": "youtube",
+    "url": "https://www.youtube.com/watch?v=0CknAVPhTtk",
+    "previewImg": "assets/ugc/ugc-yt-0cknavphttk.jpg",
+    "icon": "🇫🇮",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-espn-brasil",
+    "cat": "creator",
+    "flag": "🇧🇷",
+    "title": "ESPN Brasil — Viral Speed Showdown (17K Likes)",
+    "location": "ESPN Studios (São Paulo, Brazil)",
+    "lat": -23.5505,
+    "lng": -46.6333,
+    "author": "@espnbrasil",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/espnbrasil/reel/DSzlBgQis6Y/",
+    "previewImg": "assets/ugc/thumb-DSzlBgQis6Y.jpg",
+    "icon": "🇧🇷",
+    "category": "creator"
+  },
+  {
+    "id": "ugc-marquee-singapore",
+    "cat": "arcade",
+    "flag": "🇸🇬",
+    "title": "Marquee World Cup Fan Zone — Marina Bay Sands",
+    "location": "Marina Bay Sands (Singapore)",
+    "lat": 1.2838,
+    "lng": 103.8591,
+    "author": "@marqueesingapore",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/marqueesingapore/p/DZ7H8jjkXvF/",
+    "previewImg": "assets/ugc/marquee-singapore.jpg",
+    "icon": "🇸🇬",
+    "category": "arcade"
+  },
+  {
+    "id": "ugc-toygroup-thailand",
+    "cat": "brand",
+    "flag": "🇹🇭",
+    "title": "Pattaya Beach Football Cup — Toygroup Launch",
+    "location": "Pattaya Beach (Pattaya, Thailand)",
+    "lat": 12.9276,
+    "lng": 100.8771,
+    "author": "@toygroup_thailand",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/toygroup_thailand/reel/DUme5S1kgcO/",
+    "previewImg": "assets/ugc/toygroup-thailand.jpg",
+    "icon": "🇹🇭",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-jugones-teambuilding",
+    "cat": "brand",
+    "flag": "🇵🇪",
+    "title": "Jugones Corporate Team Building & HR Experience",
+    "location": "Lima, Peru",
+    "lat": -12.098361524227066,
+    "lng": -77.0728,
+    "author": "@jugonesperu",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DbCNnuispWd/",
+    "previewImg": "assets/ugc/jugones-teambuilding.jpg",
+    "icon": "🇵🇪",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-dubai-activation",
+    "cat": "arcade",
+    "flag": "🇦🇪",
+    "title": "Dubai Sports Lounge & Match Activation",
+    "location": "Dubai Marina (Dubai, UAE)",
+    "lat": 25.0772,
+    "lng": 55.1396,
+    "author": "@loic.no.metro.boulot.dodo",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/loic.no.metro.boulot.dodo/reel/DUaEBfdDW1Y/",
+    "previewImg": "assets/ugc/dubai-activation.jpg",
+    "icon": "🇦🇪",
+    "category": "arcade"
+  },
+  {
+    "id": "ugc-boteco-brasil",
+    "cat": "arcade",
+    "flag": "🇧🇷",
+    "title": "Boteco do Brasil — Under-Table Soccer Arena",
+    "location": "Boteco do Brasil (Rio de Janeiro, Brazil)",
+    "lat": -22.9068,
+    "lng": -43.1729,
+    "author": "@botecodobrasil",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/botecodobrasil/p/DUBjWT4DKnk/",
+    "previewImg": "assets/ugc/boteco-brasil.jpg",
+    "icon": "🇧🇷",
+    "category": "arcade"
+  },
+  {
+    "id": "ugc-benchfooty-fc",
+    "cat": "brand",
+    "flag": "🇨🇦",
+    "title": "BenchFooty FC — Italian Day Street Soccer",
+    "location": "Grandview Park (Vancouver, Canada)",
+    "lat": 49.2734,
+    "lng": -123.0694,
+    "author": "@benchfootyfc",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/benchfootyfc/reel/DZkypwYvnzh/",
+    "previewImg": "assets/ugc/benchfooty-fc.jpg",
+    "icon": "🇨🇦",
+    "category": "brand"
+  },
+  {
+    "id": "ugc-gameon-rentals-uk",
+    "cat": "rental",
+    "category": "rental",
+    "flag": "🇬🇧",
+    "title": "Game On Event Games Hire — London Corporate Expos",
+    "location": "London & Nationwide, UK",
+    "lat": 51.5074,
+    "lng": -0.1278,
+    "author": "@gameon.rentals",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DRhwCBWEm21/",
+    "previewImg": "assets/ugc/thumb-DRhwCBWEm21.jpg",
+    "icon": "🚚"
+  },
+  {
+    "id": "ugc-ballsportz-hire-uk",
+    "cat": "rental",
+    "category": "rental",
+    "flag": "🇬🇧",
+    "title": "Ball Sportz Premier League Fan Zone Games Hire",
+    "location": "Guildford & London, UK",
+    "lat": 51.2362,
+    "lng": -0.5704,
+    "author": "@ballsportz_hire",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DZ7wD3JoW-4/",
+    "previewImg": "assets/ugc/thumb-DZ7wD3JoW-4.jpg",
+    "icon": "🚚"
+  },
+  {
+    "id": "ugc-jh-entertainment-uk",
+    "cat": "rental",
+    "category": "rental",
+    "flag": "🇬🇧",
+    "title": "Twin & 4-Player Subsoccer Hire for Events",
+    "location": "Birmingham & Midlands, UK",
+    "lat": 52.4862,
+    "lng": -1.8904,
+    "author": "@jh_entertainment_services",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DLzREI2MD5b/",
+    "previewImg": "assets/ugc/thumb-DLzREI2MD5b.jpg",
+    "icon": "🚚"
+  },
+  {
+    "id": "ugc-midlands-premier-uk",
+    "cat": "rental",
+    "category": "rental",
+    "flag": "🇬🇧",
+    "title": "Corporate Games & Interactive Attraction Hire",
+    "location": "Birmingham, UK",
+    "lat": 52.4862,
+    "lng": -1.8904,
+    "author": "@midlandspremierevents",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DcYd_AltE7_/",
+    "previewImg": "assets/ugc/thumb-DcYd_AltE7_.jpg",
+    "icon": "🚚"
+  },
+  {
+    "id": "ugc-minisoccer-puerto-rico",
+    "cat": "rental",
+    "category": "rental",
+    "flag": "🇵🇷",
+    "title": "Mini Soccer Entertainment Fleet Rental",
+    "location": "San Juan, Puerto Rico",
+    "lat": 18.4655,
+    "lng": -66.1057,
+    "author": "@minisoccerpuertorico",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DaLXFuPutkX/",
+    "previewImg": "assets/ugc/thumb-DaLXFuPutkX.jpg",
+    "icon": "🚚"
+  },
+  {
+    "id": "ugc-eastern-city-london",
+    "cat": "arcade",
+    "category": "arcade",
+    "flag": "🇬🇧",
+    "title": "Eastern City Arcade & Social Gaming Lounge Debut",
+    "location": "London, UK",
+    "lat": 51.5155,
+    "lng": -0.0922,
+    "author": "@easterncityldn",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DZvN5HJmpsy/",
+    "previewImg": "assets/ugc/thumb-DZvN5HJmpsy.jpg",
+    "icon": "🕹️"
+  },
+  {
+    "id": "ugc-started-from-the-bench",
+    "cat": "arcade",
+    "category": "arcade",
+    "flag": "🇨🇦",
+    "title": "Bench Soccer Showdown in Social Lounge",
+    "location": "Vancouver, Canada",
+    "lat": 49.2827,
+    "lng": -123.1207,
+    "author": "@startedfromthebench",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DXlFR-LCIya/",
+    "previewImg": "assets/ugc/thumb-DXlFR-LCIya.jpg",
+    "icon": "🕹️"
+  },
+  {
+    "id": "ugc-charlotte-fc-mls",
+    "cat": "stadium",
+    "category": "stadium",
+    "flag": "🇺🇸",
+    "title": "Charlotte FC MLS Stadium Fan Zone Activation",
+    "location": "Bank of America Stadium, Charlotte, USA",
+    "lat": 35.2251,
+    "lng": -80.8528,
+    "author": "@charlottefc",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DQwxMlSkSPc/",
+    "previewImg": "assets/ugc/thumb-DQwxMlSkSPc.jpg",
+    "icon": "🏟️"
+  },
+  {
+    "id": "ugc-superpark-malaysia",
+    "cat": "mall",
+    "category": "mall",
+    "flag": "🇲🇾",
+    "title": "SuperPark Malaysia Activity & Trampoline Arena",
+    "location": "Avenue K, Kuala Lumpur, Malaysia",
+    "lat": 3.1593,
+    "lng": 101.7135,
+    "author": "@superparkmy",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/CsvbHhWJ9iQ/",
+    "previewImg": "assets/ugc/thumb-CsvbHhWJ9iQ.jpg",
+    "icon": "🛍️"
+  },
+  {
+    "id": "ugc-alti-amanda-norway",
+    "cat": "mall",
+    "category": "mall",
+    "flag": "🇳🇴",
+    "title": "Football Zone at Alti Amanda Shopping Centre",
+    "location": "Haugesund, Norway",
+    "lat": 59.4138,
+    "lng": 5.268,
+    "author": "@amandastorsenter",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DaSjSUSs_AG/",
+    "previewImg": "assets/ugc/thumb-DaSjSUSs_AG.jpg",
+    "icon": "🛍️"
+  },
+  {
+    "id": "ugc-haymaker-arcade-usa",
+    "cat": "arcade",
+    "category": "arcade",
+    "flag": "🇺🇸",
+    "title": "Haymaker Arcade & Social Gaming Lounge",
+    "location": "Austin, Texas, USA",
+    "lat": 30.2672,
+    "lng": -97.7431,
+    "author": "@haymaker_arcade",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/haymaker_arcade/reel/DaD3pwksuaC/",
+    "previewImg": "assets/ugc/thumb-DaD3pwksuaC.jpg",
+    "icon": "🕹️"
+  },
+  {
+    "id": "ugc-asliceopi-lounge",
+    "cat": "arcade",
+    "category": "arcade",
+    "flag": "🇺🇸",
+    "title": "Sports Gaming Lounge & Bar Showdown",
+    "location": "Miami, Florida, USA",
+    "lat": 25.7617,
+    "lng": -80.1918,
+    "author": "@asliceopi",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DaOPgZlSyL5/",
+    "previewImg": "assets/ugc/thumb-DaOPgZlSyL5.jpg",
+    "icon": "🕹️"
+  },
+  {
+    "id": "ugc-retroids-bar-uk",
+    "cat": "arcade",
+    "category": "arcade",
+    "flag": "🇬🇧",
+    "title": "Retroids Retro Arcade Bar — Debut Night Showdown",
+    "location": "Worcester, United Kingdom",
+    "lat": 52.1936,
+    "lng": -2.2216,
+    "author": "@retroids_arcade_bar",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DYFP3ZFCvhZ/",
+    "previewImg": "assets/ugc/retroids-bar.jpg",
+    "icon": "🕹️"
+  },
+  {
+    "id": "ugc-perfect-parties-usa",
+    "cat": "rental",
+    "category": "rental",
+    "flag": "🇺🇸",
+    "title": "Perfect Parties USA — Interactive Games Fleet",
+    "location": "Boston & New England, USA",
+    "lat": 42.3601,
+    "lng": -71.0589,
+    "author": "@perfectpartiesusa",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DbmLITvjEdy/",
+    "previewImg": "assets/ugc/thumb-DbmLITvjEdy.jpg",
+    "icon": "🚚"
+  },
+  {
+    "id": "ugc-fanzone-finland",
+    "cat": "rental",
+    "category": "rental",
+    "flag": "🇫🇮",
+    "title": "FanZone.fi — Suomen elämys- ja tapahtumavuokraus",
+    "location": "Helsinki & Espoo, Suomi",
+    "lat": 60.1699,
+    "lng": 24.9384,
+    "author": "@fanzonefi",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/Dau-S7nhtFS/",
+    "previewImg": "assets/ugc/thumb-Dau-S7nhtFS.jpg",
+    "icon": "🚚"
+  },
+  {
+    "id": "ugc-australia-newcastle",
+    "cat": "creator",
+    "category": "creator",
+    "flag": "🇦🇺",
+    "title": "Craig Johnston & Liverpool Legend Subsoccer Duel",
+    "location": "University of Newcastle, NSW, Australia",
+    "lat": -32.9283,
+    "lng": 151.7817,
+    "author": "@uni_newcastle",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/uni_newcastle/reel/DaEhu2EptTv/",
+    "previewImg": "assets/ugc/thumb-DaEhu2EptTv.jpg",
+    "icon": "🇦🇺"
+  },
+  {
+    "id": "ugc-napoli-serie-a",
+    "cat": "stadium",
+    "category": "stadium",
+    "flag": "🇮🇹",
+    "title": "SSC Napoli Serie A Fan Zone & Stadium Challenge",
+    "location": "Stadio Diego Armando Maradona, Napoli, Italy",
+    "lat": 40.8279,
+    "lng": 14.193,
+    "author": "@silvio_guarino",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DbdMhkEM07x/",
+    "previewImg": "assets/ugc/thumb-DbdMhkEM07x.jpg",
+    "icon": "🇮🇹"
+  },
+  {
+    "id": "ugc-qatar-albiddasc",
+    "cat": "stadium",
+    "category": "stadium",
+    "flag": "🇶🇦",
+    "title": "Al Bidda S.C. Qatar Stars League 2 Tournament",
+    "location": "Doha, Qatar",
+    "lat": 25.2854,
+    "lng": 51.531,
+    "author": "@albiddascqatar",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/albiddascqatar/p/DcEN_DQjGLI/",
+    "previewImg": "assets/ugc/thumb-DcEN_DQjGLI.jpg",
+    "icon": "🇶🇦"
+  },
+  {
+    "id": "ugc-sweden-tactive-games",
+    "cat": "rental",
+    "category": "rental",
+    "flag": "🇸🇪",
+    "title": "Tactive Games Event Rental — Örnsköldsvik & SCA Arena",
+    "location": "Örnsköldsvik & Timrå, Sverige",
+    "lat": 63.29,
+    "lng": 18.7153,
+    "author": "@tactivegames",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/tactivegames/p/DXjPC_1DSLr/",
+    "previewImg": "assets/ugc/thumb-DXjPC_1DSLr.jpg",
+    "icon": "🇸🇪"
+  },
+  {
+    "id": "ugc-turkey-m3works",
+    "cat": "rental",
+    "category": "rental",
+    "flag": "🇹🇷",
+    "title": "M3 Works Kurumsal Takım Aktivitesi & Event Rental",
+    "location": "Istanbul, Türkiye",
+    "lat": 41.0082,
+    "lng": 28.9784,
+    "author": "@m3works",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DYos7fADTPm/",
+    "previewImg": "assets/ugc/thumb-DYos7fADTPm.jpg",
+    "icon": "🇹🇷"
+  },
+  {
+    "id": "ugc-netherlands-poelmann",
+    "cat": "brand",
+    "category": "brand",
+    "flag": "🇳🇱",
+    "title": "Poelmann van den Broek Corporate Tournament & Activation",
+    "location": "Nijmegen & Amsterdam, Netherlands",
+    "lat": 51.8426,
+    "lng": 5.8635,
+    "author": "@poelmannvandenbroek",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/p/DMum_88I2cM/",
+    "previewImg": "assets/ugc/thumb-DMum_88I2cM.jpg",
+    "icon": "🇳🇱"
+  },
+  {
+    "id": "ugc-mexico-vcarb-f1",
+    "cat": "brand",
+    "category": "brand",
+    "flag": "🇲🇽",
+    "title": "Visa Cash App RB F1 Team — Mexico GP Showdown",
+    "location": "Autódromo Hermanos Rodríguez, Mexico City, Mexico",
+    "lat": 19.4042,
+    "lng": -99.0907,
+    "author": "@visacashapprb",
+    "platform": "instagram",
+    "url": "https://www.instagram.com/reel/DQNJ2LKkqMB/",
+    "previewImg": "assets/ugc/thumb-DQNJ2LKkqMB.jpg",
+    "icon": "🇲🇽"
+  }
+];
+
+    // ─── Master Chart Timeline Data (49 Weeks) ───
+    
+
+    const YEAR_MATCH_HUBS = [{"location":"Newport, GB","lat":51.5893,"lng":-2.9931,"count":45},{"location":"GB","lat":51.4402,"lng":-0.0259,"count":12},{"location":"GB","lat":51.4964,"lng":-0.1224,"count":229},{"location":"Manchester, GB","lat":53.4702,"lng":-2.2305,"count":13},{"location":"Bottrop, DE","lat":51.5208,"lng":6.9297,"count":1},{"location":"Aarhus, DK","lat":56.1567,"lng":10.2153,"count":6},{"location":"Edinburgh, GB","lat":55.9409,"lng":-3.2939,"count":1},{"location":"Huddersfield, GB","lat":53.6479,"lng":-1.7812,"count":3},{"location":"Helsinki, Suomi","lat":60.1699,"lng":24.9384,"count":944},{"location":"Bacoor, PH","lat":14.456,"lng":120.9401,"count":2},{"location":"Birmingham, GB","lat":52.4867,"lng":-1.8989,"count":90},{"location":"Sutton in Ashfield, GB","lat":53.1187,"lng":-1.2649,"count":7},{"location":"Edinburgh, GB","lat":55.9632,"lng":-3.2546,"count":29},{"location":"Helsinki, FI","lat":60.1617,"lng":24.9181,"count":21},{"location":"Makati City, PH","lat":14.5562,"lng":121.0298,"count":5},{"location":"Singapore, SG","lat":1.3248,"lng":103.8566,"count":24},{"location":"Skarżysko-Kamienna, PL","lat":51.1147,"lng":20.8715,"count":2},{"location":"Singapore, SG","lat":1.2872,"lng":103.8507,"count":57},{"location":"FI","lat":60.1719,"lng":24.9347,"count":305},{"location":"Converse, US","lat":29.5211,"lng":-98.3293,"count":2},{"location":"Horsham, GB","lat":51.0528,"lng":-0.3369,"count":10},{"location":"Atlanta, US","lat":33.8923,"lng":-84.2545,"count":2},{"location":"Atlanta, US","lat":33.7838,"lng":-84.4455,"count":1},{"location":"Medea, DZ","lat":36.0762,"lng":3.0777,"count":431},{"location":"Austin, US","lat":30.2625,"lng":-97.7463,"count":13},{"location":"Brunswick, US","lat":41.2463,"lng":-81.8315,"count":1},{"location":"Vojens, DK","lat":55.2462,"lng":9.3051,"count":1},{"location":"Sheffield, GB","lat":53.3562,"lng":-1.2939,"count":1},{"location":"Brent, GB","lat":51.5591,"lng":-0.2283,"count":8},{"location":"Montreal, CA","lat":45.5212,"lng":-73.5524,"count":2},{"location":"Crestwood, US","lat":38.3334,"lng":-85.4674,"count":1},{"location":"Saint-Cuthbert, CA","lat":46.1515,"lng":-73.2237,"count":40},{"location":"Seattle, US","lat":47.6109,"lng":-122.3303,"count":2},{"location":"Montreal, CA","lat":45.5725,"lng":-73.6195,"count":67},{"location":"Morden, GB","lat":51.3981,"lng":-0.2013,"count":1},{"location":"Nottingham, GB","lat":52.9036,"lng":-1.265,"count":3},{"location":"Los Angeles, US","lat":34.0544,"lng":-118.244,"count":3},{"location":"Zagreb, HR","lat":45.8293,"lng":15.9793,"count":55},{"location":"US","lat":37.751,"lng":-97.822,"count":34},{"location":"Birmingham, GB","lat":52.5062,"lng":-1.9425,"count":86},{"location":"Houston, US","lat":29.6731,"lng":-95.5856,"count":21},{"location":"Houston, US","lat":29.8834,"lng":-95.4553,"count":3},{"location":"Osijek, HR","lat":45.5473,"lng":18.6951,"count":13},{"location":"Atlanta, US","lat":33.8212,"lng":-84.3578,"count":5},{"location":"Nottingham, GB","lat":52.9538,"lng":-1.1571,"count":30},{"location":"Nottingham, GB","lat":52.9648,"lng":-1.2132,"count":9},{"location":"GB","lat":52.4867,"lng":-1.8989,"count":45},{"location":"New York, US","lat":40.7126,"lng":-74.0066,"count":7},{"location":"Leeds, GB","lat":53.7945,"lng":-1.5524,"count":2},{"location":"FR","lat":48.8582,"lng":2.3387,"count":4},{"location":"Helsinki, Suomi","lat":60.1699,"lng":24.9384,"count":16},{"location":"London, GB","lat":51.5081,"lng":-0.1278,"count":36},{"location":"GB","lat":51.4223,"lng":-0.1984,"count":1},{"location":"Central Jakarta, ID","lat":-6.2121,"lng":106.8319,"count":1},{"location":"Mansfield, GB","lat":53.1369,"lng":-1.1995,"count":4},{"location":"Basingstoke, GB","lat":51.2604,"lng":-1.0825,"count":1},{"location":"JP","lat":35.69,"lng":139.69,"count":12},{"location":"West Jakarta, ID","lat":-6.1572,"lng":106.7566,"count":16},{"location":"Singapore, SG","lat":1.3352,"lng":103.8529,"count":26},{"location":"Maramag, PH","lat":7.7619,"lng":125.0092,"count":6},{"location":"US","lat":32.7797,"lng":-96.8022,"count":2},{"location":"Denver, US","lat":39.7065,"lng":-104.9289,"count":1},{"location":"San Juan, PH","lat":14.6077,"lng":121.0463,"count":5},{"location":"Denver, US","lat":39.6814,"lng":-104.8837,"count":1},{"location":"San Antonio, US","lat":29.5418,"lng":-98.4212,"count":32},{"location":"Louisville, US","lat":38.1608,"lng":-85.7807,"count":2},{"location":"US","lat":39.9587,"lng":-82.9987,"count":6},{"location":"Bloomfield, US","lat":40.803,"lng":-74.1909,"count":1},{"location":"Aïn Oussera, DZ","lat":35.454,"lng":2.9094,"count":102},{"location":"Lithonia, US","lat":33.7344,"lng":-84.0986,"count":5},{"location":"US","lat":40.6118,"lng":-111.9008,"count":3},{"location":"Memphis, US","lat":35.1128,"lng":-89.9085,"count":1},{"location":"Mount Holly, US","lat":40.0022,"lng":-74.7885,"count":13},{"location":"Manchester, GB","lat":53.4783,"lng":-2.1394,"count":1},{"location":"Miami, US","lat":25.7701,"lng":-80.1928,"count":13},{"location":"Riverside, US","lat":33.9258,"lng":-117.4899,"count":3},{"location":"Cardiff, GB","lat":51.4984,"lng":-3.2229,"count":1},{"location":"Pasadena, US","lat":34.1648,"lng":-118.1515,"count":6},{"location":"Alfreton, GB","lat":53.0938,"lng":-1.3827,"count":3},{"location":"San Antonio, US","lat":29.521,"lng":-98.362,"count":1},{"location":"Austin, US","lat":30.3643,"lng":-97.6864,"count":4},{"location":"Buckland, US","lat":42.5923,"lng":-72.7918,"count":1},{"location":"City of London, GB","lat":51.5164,"lng":-0.093,"count":20},{"location":"Austin, US","lat":30.1826,"lng":-97.7394,"count":8},{"location":"Round Rock, US","lat":30.5154,"lng":-97.6689,"count":5},{"location":"Croydon, GB","lat":51.3904,"lng":-0.0992,"count":18},{"location":"US","lat":39.7391,"lng":-104.9866,"count":15},{"location":"Poznan, PL","lat":52.3948,"lng":16.9046,"count":1},{"location":"GB","lat":51.4862,"lng":-0.1008,"count":29},{"location":"Derby, GB","lat":52.8794,"lng":-1.4819,"count":3},{"location":"US","lat":33.7485,"lng":-84.3871,"count":11},{"location":"Lahti, FI","lat":60.9801,"lng":25.6124,"count":1},{"location":"Secaucus, US","lat":40.7908,"lng":-74.056,"count":27},{"location":"Miami, US","lat":25.8295,"lng":-80.2927,"count":8},{"location":"Seinäjoki, FI","lat":62.763,"lng":22.8778,"count":3},{"location":"Canary Wharf, GB","lat":51.5064,"lng":-0.02,"count":6},{"location":"Del Valle, US","lat":30.2159,"lng":-97.6459,"count":1},{"location":"Baku, AZ","lat":40.3771,"lng":49.8875,"count":7},{"location":"Singapore, SG","lat":1.3051,"lng":103.8447,"count":8},{"location":"Swadlincote, GB","lat":52.7788,"lng":-1.5491,"count":2},{"location":"Quezon City, PH","lat":14.6477,"lng":121.0494,"count":18},{"location":"West Jakarta, ID","lat":-6.1677,"lng":106.7809,"count":11},{"location":"Liverpool, GB","lat":53.4096,"lng":-2.9792,"count":5},{"location":"Bristol, GB","lat":51.4535,"lng":-2.5917,"count":6},{"location":"FI","lat":60.1717,"lng":24.9349,"count":32},{"location":"Caloocan, PH","lat":14.6438,"lng":120.9632,"count":21},{"location":"Singapore, SG","lat":1.3596,"lng":103.8637,"count":29},{"location":"Singapore, SG","lat":1.3732,"lng":103.8431,"count":10},{"location":"Edmonton, CA","lat":53.5185,"lng":-113.6579,"count":3},{"location":"Singapore, SG","lat":1.327,"lng":103.8972,"count":2},{"location":"Makati City, PH","lat":14.5585,"lng":121.0269,"count":1},{"location":"Austin, US","lat":30.4548,"lng":-97.7664,"count":1},{"location":"San Luis Obispo, US","lat":35.2612,"lng":-120.655,"count":4},{"location":"Calgary, CA","lat":50.8833,"lng":-114.0334,"count":4},{"location":"San Antonio, US","lat":29.4963,"lng":-98.4004,"count":1},{"location":"Washington, US","lat":38.8892,"lng":-76.9417,"count":1},{"location":"Los Angeles, US","lat":34.0337,"lng":-118.3509,"count":3},{"location":"Los Angeles, US","lat":33.9555,"lng":-118.2863,"count":1},{"location":"Djelfa, DZ","lat":34.9801,"lng":3.4811,"count":166},{"location":"Bastrop, US","lat":30.1105,"lng":-97.3153,"count":1},{"location":"Riverside, US","lat":33.9764,"lng":-117.3341,"count":4},{"location":"Kadiria, DZ","lat":36.5306,"lng":3.6825,"count":1069},{"location":"Helsinki, FI","lat":60.1787,"lng":24.9326,"count":10},{"location":"Hastings, US","lat":44.7433,"lng":-92.8524,"count":1},{"location":"Wednesbury, GB","lat":52.5474,"lng":-2.0097,"count":1},{"location":"Hackney, GB","lat":51.5507,"lng":-0.0537,"count":6},{"location":"Burnsville, US","lat":44.7601,"lng":-93.2748,"count":4},{"location":"Ilmajoki, FI","lat":62.7513,"lng":22.7073,"count":1},{"location":"Derby, GB","lat":52.9234,"lng":-1.4725,"count":6},{"location":"Lontoo, UK","lat":51.5074,"lng":-0.1278,"count":1},{"location":"Reading, GB","lat":51.4566,"lng":-0.968,"count":1},{"location":"Singapore, SG","lat":1.3209,"lng":103.8331,"count":2},{"location":"Hamburg, DE","lat":53.5544,"lng":9.9946,"count":1},{"location":"Singapore, SG","lat":1.3552,"lng":103.8859,"count":8},{"location":"Tokyo, JP","lat":35.6837,"lng":139.6805,"count":136},{"location":"Nottingham, GB","lat":52.9922,"lng":-1.233,"count":3},{"location":"Virginia Beach, US","lat":36.7969,"lng":-76.1797,"count":2},{"location":"Albany, US","lat":42.7227,"lng":-73.8178,"count":1},{"location":"Helsinki, FI","lat":60.2037,"lng":25.1319,"count":3},{"location":"Rüsselsheim am Main, DE","lat":49.9874,"lng":8.4232,"count":7},{"location":"Paranaque City, PH","lat":14.5051,"lng":121.0272,"count":2},{"location":"Hyvinkää, FI","lat":60.619,"lng":24.8415,"count":4},{"location":"Pasig, PH","lat":14.5688,"lng":121.0827,"count":4},{"location":"Schenectady, US","lat":42.781,"lng":-73.9115,"count":13},{"location":"Djelfa, DZ","lat":34.6678,"lng":3.2518,"count":670},{"location":"Chicago, US","lat":41.8183,"lng":-87.6095,"count":1},{"location":"Parrita, CR","lat":9.5612,"lng":-84.321,"count":1},{"location":"Montreal, CA","lat":45.4995,"lng":-73.5848,"count":1},{"location":"Val-d'Or, CA","lat":48.1037,"lng":-77.783,"count":17},{"location":"Dronninglund, DK","lat":57.1791,"lng":10.2976,"count":1},{"location":"Nottingham, GB","lat":52.9994,"lng":-1.1318,"count":20},{"location":"Tczew, PL","lat":54.0888,"lng":18.7783,"count":15},{"location":"Port Orchard, US","lat":47.4739,"lng":-122.6431,"count":1},{"location":"Leicester, GB","lat":52.6181,"lng":-1.1804,"count":17},{"location":"Walthamstow, GB","lat":51.5909,"lng":-0.0215,"count":3},{"location":"Dorval, CA","lat":45.4413,"lng":-73.7537,"count":1},{"location":"Birmingham, GB","lat":52.506,"lng":-1.8846,"count":1},{"location":"Pflugerville, US","lat":30.4421,"lng":-97.6339,"count":2},{"location":"Skjern, DK","lat":55.9479,"lng":8.505,"count":1},{"location":"Manchester, GB","lat":53.4809,"lng":-2.2374,"count":48},{"location":"Santo Domingo Este, DO","lat":18.4842,"lng":-69.8466,"count":102},{"location":"Wolverhampton, GB","lat":52.6257,"lng":-2.0545,"count":12},{"location":"Austin, US","lat":30.3414,"lng":-97.7312,"count":1},{"location":"Singapore, SG","lat":1.3427,"lng":103.872,"count":4},{"location":"Helsinki, FI","lat":60.1532,"lng":24.9356,"count":38},{"location":"Shawnee, US","lat":39.0452,"lng":-94.7189,"count":2},{"location":"Hammond, US","lat":41.5883,"lng":-87.4593,"count":1},{"location":"Houston, US","lat":29.8738,"lng":-95.5233,"count":2},{"location":"Houston, US","lat":29.6966,"lng":-95.5441,"count":3},{"location":"San Rafael, US","lat":37.9681,"lng":-122.5119,"count":1},{"location":"Chesterfield, GB","lat":53.234,"lng":-1.4462,"count":1},{"location":"Sheffield, GB","lat":53.386,"lng":-1.4648,"count":3},{"location":"San Antonio, US","lat":29.4698,"lng":-98.5357,"count":7},{"location":"Peterborough, GB","lat":52.5836,"lng":-0.2528,"count":3},{"location":"Sheffield, GB","lat":53.3488,"lng":-1.4091,"count":83},{"location":"Oldham, GB","lat":53.5477,"lng":-2.1259,"count":3},{"location":"Dhaka, BD","lat":23.7729,"lng":90.3657,"count":22},{"location":"Birmingham, GB","lat":52.4759,"lng":-1.8516,"count":25},{"location":"Singapore, SG","lat":1.3652,"lng":103.8367,"count":8},{"location":"Essen, DE","lat":51.4444,"lng":7.0114,"count":15},{"location":"HK","lat":22.2578,"lng":114.1657,"count":41},{"location":"GB","lat":51.477,"lng":-0.1959,"count":1},{"location":"Poznan, PL","lat":52.4031,"lng":16.9262,"count":1},{"location":"Quesada, CR","lat":10.328,"lng":-84.4099,"count":1},{"location":"FR","lat":48.8558,"lng":2.3494,"count":66},{"location":"Mountain View, US","lat":37.3859,"lng":-122.0882,"count":1},{"location":"US","lat":45.5248,"lng":-122.6789,"count":1},{"location":"US","lat":38.6646,"lng":-90.5758,"count":1},{"location":"Tottenham, GB","lat":51.5834,"lng":-0.0755,"count":7},{"location":"Jackson, US","lat":32.3705,"lng":-90.1746,"count":24},{"location":"Manchester, GB","lat":53.5012,"lng":-2.4112,"count":1},{"location":"San Antonio, US","lat":29.4553,"lng":-98.5677,"count":3},{"location":"GB","lat":51.512,"lng":0.0154,"count":8},{"location":"Bergen, NO","lat":60.3951,"lng":5.3237,"count":1},{"location":"Nottingham, GB","lat":53.0172,"lng":-0.9699,"count":1},{"location":"Stuttgart, DE","lat":48.767,"lng":9.1827,"count":4},{"location":"Beausoleil, FR","lat":43.7468,"lng":7.4179,"count":1},{"location":"Lichfield, GB","lat":52.6883,"lng":-1.8231,"count":10},{"location":"Chesterfield, GB","lat":53.2558,"lng":-1.4292,"count":6},{"location":"Birmingham, GB","lat":52.5189,"lng":-1.9189,"count":76},{"location":"Mansfield, GB","lat":53.1706,"lng":-1.249,"count":4},{"location":"Derby, GB","lat":52.9887,"lng":-1.4407,"count":2},{"location":"Manchester, GB","lat":53.4994,"lng":-2.2433,"count":23},{"location":"Cologne, DE","lat":50.939,"lng":6.9644,"count":2},{"location":"Reading, GB","lat":51.4425,"lng":-0.9267,"count":21},{"location":"Pune, IN","lat":18.5211,"lng":73.8502,"count":4},{"location":"Bottrop, DE","lat":51.6063,"lng":6.9172,"count":4},{"location":"East Jakarta, ID","lat":-6.2722,"lng":106.8535,"count":4},{"location":"San Diego, US","lat":32.7104,"lng":-117.0528,"count":1},{"location":"Royal Oak, US","lat":42.4933,"lng":-83.135,"count":145},{"location":"Houston, US","lat":29.69,"lng":-95.2564,"count":1},{"location":"Montreal, CA","lat":45.5075,"lng":-73.5887,"count":2},{"location":"Luton, GB","lat":51.9322,"lng":-0.4568,"count":1},{"location":"San Diego, US","lat":32.5799,"lng":-117.0694,"count":3},{"location":"Cedar Park, US","lat":30.5045,"lng":-97.8209,"count":1},{"location":"Birmingham, GB","lat":52.5451,"lng":-1.881,"count":1},{"location":"Birmingham, GB","lat":52.4993,"lng":-1.9752,"count":27},{"location":"Riverside, US","lat":33.9388,"lng":-117.416,"count":1},{"location":"GB","lat":52.9538,"lng":-1.1571,"count":17},{"location":"Oslo, NO","lat":59.9133,"lng":10.7389,"count":52},{"location":"Atlanta, US","lat":33.7485,"lng":-84.3871,"count":31},{"location":"Bolbec, FR","lat":49.5701,"lng":0.4648,"count":3},{"location":"Paterna, ES","lat":39.5012,"lng":-0.4313,"count":1},{"location":"Eisenstadt, AT","lat":47.8485,"lng":16.5246,"count":1},{"location":"Singapore, SG","lat":1.3296,"lng":103.8799,"count":1},{"location":"Lucena City, PH","lat":13.9301,"lng":121.6202,"count":1},{"location":"East Jakarta, ID","lat":-6.2369,"lng":106.853,"count":5},{"location":"Corona, US","lat":33.8419,"lng":-117.6043,"count":1},{"location":"Atlanta, US","lat":33.7855,"lng":-84.3612,"count":8},{"location":"Atlanta, US","lat":33.7153,"lng":-84.3312,"count":1},{"location":"Taguig, PH","lat":14.5185,"lng":121.0689,"count":12},{"location":"Lumberton, US","lat":30.2766,"lng":-94.2015,"count":25},{"location":"Rennes, FR","lat":48.11,"lng":-1.6744,"count":1},{"location":"San Antonio, US","lat":29.522,"lng":-98.5305,"count":45},{"location":"Manila, PH","lat":14.6019,"lng":120.9896,"count":2},{"location":"US","lat":41.8483,"lng":-87.6517,"count":4},{"location":"Indianapolis, US","lat":39.9012,"lng":-86.1717,"count":9},{"location":"NL","lat":52.3824,"lng":4.8995,"count":33},{"location":"Esbjerg, DK","lat":55.4692,"lng":8.4496,"count":1},{"location":"Warsaw, PL","lat":52.2296,"lng":21.0646,"count":1},{"location":"Värnamo, SE","lat":57.1847,"lng":14.0444,"count":1},{"location":"Leeds, GB","lat":53.8167,"lng":-1.4167,"count":15},{"location":"Chicago, US","lat":41.923,"lng":-87.7531,"count":1},{"location":"Dallas, US","lat":32.9993,"lng":-96.8346,"count":1},{"location":"Hamburg, DE","lat":53.5717,"lng":9.9545,"count":3},{"location":"US","lat":36.1671,"lng":-86.7861,"count":8},{"location":"Atlanta, US","lat":33.7697,"lng":-84.3754,"count":1},{"location":"Houston, US","lat":29.7738,"lng":-95.406,"count":2},{"location":"Richmond, US","lat":37.5115,"lng":-77.5662,"count":3},{"location":"NO","lat":59.9463,"lng":10.7541,"count":19},{"location":"Manchester, GB","lat":53.5197,"lng":-2.2109,"count":42},{"location":"Luton, GB","lat":51.8842,"lng":-0.4208,"count":6},{"location":"Heredia, CR","lat":9.9983,"lng":-84.1171,"count":2},{"location":"Chicago, US","lat":41.8483,"lng":-87.6517,"count":3},{"location":"DE","lat":51.2993,"lng":9.491,"count":1},{"location":"Bergkamen, DE","lat":51.6182,"lng":7.6449,"count":11},{"location":"Dortmund, DE","lat":51.4978,"lng":7.4698,"count":5},{"location":"Central Jakarta, ID","lat":-6.2077,"lng":106.8354,"count":2},{"location":"Stord, NO","lat":59.8232,"lng":5.4578,"count":2},{"location":"Burton-on-Trent, GB","lat":52.8312,"lng":-1.5858,"count":1},{"location":"Helsinki, FI","lat":60.1798,"lng":24.9453,"count":12},{"location":"North Jakarta, ID","lat":-6.1804,"lng":106.9038,"count":6},{"location":"MX","lat":19.4371,"lng":-99.0111,"count":5},{"location":"Austin, US","lat":30.2424,"lng":-97.767,"count":1},{"location":"Salt Lake City, US","lat":40.65,"lng":-112.0061,"count":10},{"location":"Houston, US","lat":29.7646,"lng":-95.3657,"count":1},{"location":"Castleford, GB","lat":53.7259,"lng":-1.3626,"count":1},{"location":"Algiers, DZ","lat":36.7296,"lng":3.0905,"count":468},{"location":"Gdansk, PL","lat":54.3183,"lng":18.5839,"count":1},{"location":"San Antonio, US","lat":29.5531,"lng":-98.3598,"count":1},{"location":"Portsmouth, GB","lat":50.8431,"lng":-1.064,"count":41},{"location":"Riverside, US","lat":33.9249,"lng":-117.4592,"count":3},{"location":"Derby, GB","lat":52.9453,"lng":-1.4953,"count":1},{"location":"Sheffield, GB","lat":53.3368,"lng":-1.3547,"count":1},{"location":"Ilford, GB","lat":51.5564,"lng":0.0715,"count":5},{"location":"San Antonio, US","lat":29.522,"lng":-98.5974,"count":1},{"location":"Leeds, GB","lat":53.9169,"lng":-1.5735,"count":5},{"location":"Leeds, GB","lat":53.7999,"lng":-1.5125,"count":88},{"location":"BE","lat":50.8509,"lng":4.3447,"count":5},{"location":"Malmö, SE","lat":55.6078,"lng":12.9982,"count":5},{"location":"Matlock, GB","lat":53.1384,"lng":-1.5556,"count":1},{"location":"Haugesund, NO","lat":59.4116,"lng":5.2677,"count":1},{"location":"Lambeth, GB","lat":51.4772,"lng":-0.1197,"count":27},{"location":"GB","lat":51.504,"lng":-0.3609,"count":25},{"location":"Leicester, GB","lat":52.5739,"lng":-1.2819,"count":32},{"location":"Rochester, US","lat":44.0484,"lng":-92.4948,"count":7},{"location":"Kensington, GB","lat":51.489,"lng":-0.1696,"count":3},{"location":"Birmingham, GB","lat":52.4636,"lng":-1.7912,"count":5},{"location":"Quezon City, PH","lat":14.6263,"lng":121.0399,"count":3},{"location":"Warsaw, PL","lat":52.2337,"lng":21.0224,"count":3},{"location":"Singapore, SG","lat":1.3193,"lng":103.8674,"count":2},{"location":"Prague, CZ","lat":50.1242,"lng":14.398,"count":1},{"location":"Leipzig, DE","lat":51.342,"lng":12.3819,"count":1},{"location":"DE","lat":51.0545,"lng":13.7413,"count":7},{"location":"Pacoima, US","lat":34.2529,"lng":-118.418,"count":1},{"location":"Lincoln, GB","lat":53.1758,"lng":-0.5515,"count":6},{"location":"Bogotá, CO","lat":4.6115,"lng":-74.0833,"count":1},{"location":"Innsbruck, AT","lat":47.2637,"lng":11.4016,"count":4},{"location":"Chino Hills, US","lat":33.9952,"lng":-117.757,"count":1},{"location":"Liverpool, GB","lat":53.4516,"lng":-2.9147,"count":1},{"location":"Camden, GB","lat":51.5268,"lng":-0.187,"count":7},{"location":"Tampere, FI","lat":61.4966,"lng":23.7831,"count":5},{"location":"Washington, US","lat":38.9328,"lng":-77.0289,"count":7},{"location":"Prague, CZ","lat":50.0883,"lng":14.4124,"count":3},{"location":"Redhill, GB","lat":51.2405,"lng":-0.1704,"count":23},{"location":"DK","lat":55.7123,"lng":12.0564,"count":1},{"location":"Singapore, SG","lat":1.3302,"lng":103.8238,"count":1},{"location":"Manchester, GB","lat":53.4146,"lng":-2.2274,"count":6},{"location":"Manila, PH","lat":14.5933,"lng":120.9781,"count":4},{"location":"Taguig, PH","lat":14.532,"lng":121.0781,"count":9},{"location":"LV","lat":56.9473,"lng":24.0979,"count":3},{"location":"SE","lat":59.3247,"lng":18.056,"count":1},{"location":"Harlesden, GB","lat":51.5426,"lng":-0.2449,"count":3},{"location":"San Pedro, PH","lat":14.3613,"lng":121.0505,"count":1},{"location":"Jesolo, IT","lat":45.5334,"lng":12.6434,"count":6},{"location":"Carmona, PH","lat":14.2922,"lng":120.9998,"count":3},{"location":"Shenzhen, CN","lat":22.5455,"lng":114.0683,"count":3},{"location":"Quezon City, PH","lat":14.6214,"lng":121.0501,"count":3},{"location":"Morton Grove, US","lat":42.0431,"lng":-87.7899,"count":4},{"location":"Salt Lake City, US","lat":40.6596,"lng":-111.9195,"count":1},{"location":"Santo Domingo, DO","lat":18.475,"lng":-69.8993,"count":2},{"location":"ES","lat":40.4172,"lng":-3.684,"count":4},{"location":"Stony Brook, US","lat":40.9076,"lng":-73.122,"count":3},{"location":"Kirkby in Ashfield, GB","lat":53.1113,"lng":-1.2531,"count":18},{"location":"Griffin, US","lat":33.2406,"lng":-84.2713,"count":1},{"location":"US","lat":34.0544,"lng":-118.244,"count":15},{"location":"Slough, GB","lat":51.5563,"lng":-0.5982,"count":11},{"location":"Camberwell, GB","lat":51.4743,"lng":-0.0928,"count":16},{"location":"Birmingham, GB","lat":52.4918,"lng":-1.8598,"count":1},{"location":"Edgware, GB","lat":51.6112,"lng":-0.2937,"count":1},{"location":"Leicester, GB","lat":52.6488,"lng":-1.2478,"count":12},{"location":"Singapore, SG","lat":1.336,"lng":103.7716,"count":1},{"location":"Riga, LV","lat":56.9473,"lng":24.0979,"count":15},{"location":"Brighton, GB","lat":50.8545,"lng":-0.1502,"count":3},{"location":"IE","lat":53.3472,"lng":-6.2439,"count":4},{"location":"Derby, GB","lat":52.8901,"lng":-1.4522,"count":8},{"location":"Madrid, ES","lat":40.3482,"lng":-3.6989,"count":4},{"location":"Stavanger, NO","lat":58.9731,"lng":5.7427,"count":1},{"location":"South Tottenham, GB","lat":51.5834,"lng":-0.0755,"count":1},{"location":"Mirfield, GB","lat":53.6732,"lng":-1.6975,"count":1},{"location":"Norwich, GB","lat":52.6259,"lng":1.3032,"count":9},{"location":"US","lat":44.9834,"lng":-93.2622,"count":8},{"location":"New Braunfels, US","lat":29.7065,"lng":-98.1221,"count":4},{"location":"Park City, US","lat":40.7038,"lng":-111.5437,"count":3},{"location":"Austin, US","lat":30.2971,"lng":-97.8181,"count":8},{"location":"Dereham, GB","lat":52.683,"lng":0.9339,"count":1},{"location":"Minneapolis, US","lat":45.0196,"lng":-93.2402,"count":1},{"location":"US","lat":33.5226,"lng":-86.8033,"count":1},{"location":"Helsinki, FI","lat":60.2473,"lng":25.0207,"count":29},{"location":"Helsinki, FI","lat":60.1719,"lng":24.9347,"count":15},{"location":"London, GB","lat":51.5178,"lng":-0.1609,"count":8},{"location":"Helsinki, FI","lat":60.1999,"lng":24.9246,"count":27},{"location":"SE","lat":59.3287,"lng":18.0717,"count":2},{"location":"Frankfurt am Main, DE","lat":50.1143,"lng":8.6641,"count":4},{"location":"Quezon City, PH","lat":14.6475,"lng":121.0494,"count":4},{"location":"Birmingham, GB","lat":52.5289,"lng":-1.8533,"count":29},{"location":"Stalybridge, GB","lat":53.4834,"lng":-2.0596,"count":1},{"location":"GB","lat":51.5088,"lng":-0.093,"count":1},{"location":"Riyadh, SA","lat":24.6869,"lng":46.7224,"count":3},{"location":"Gogolewo, PL","lat":54.3744,"lng":17.3914,"count":10},{"location":"Riihimäki, FI","lat":60.7291,"lng":24.8029,"count":82},{"location":"Helsinki, FI","lat":60.1968,"lng":24.9608,"count":2},{"location":"Anaheim, US","lat":33.8359,"lng":-117.9063,"count":1},{"location":"Tampa, US","lat":28.0109,"lng":-82.4948,"count":13},{"location":"South Tangerang, ID","lat":-6.264,"lng":106.7324,"count":4},{"location":"Moreno Valley, US","lat":33.9553,"lng":-117.2457,"count":1},{"location":"Djelfa, DZ","lat":34.9489,"lng":3.2483,"count":370},{"location":"Bessemer, US","lat":33.4076,"lng":-86.9473,"count":1},{"location":"Uxbridge, GB","lat":51.5513,"lng":-0.4845,"count":1},{"location":"Birmingham, GB","lat":52.547,"lng":-1.9396,"count":1},{"location":"Tottenham, GB","lat":51.6017,"lng":-0.0732,"count":1},{"location":"Walsall, GB","lat":52.5876,"lng":-1.9828,"count":1},{"location":"Wejherowo, PL","lat":54.6064,"lng":18.2496,"count":1},{"location":"GB","lat":53.484,"lng":-2.0892,"count":3},{"location":"Richmond, US","lat":29.6654,"lng":-95.7245,"count":1},{"location":"Hamm, DE","lat":51.6885,"lng":7.7392,"count":7},{"location":"Sheffield, GB","lat":53.3123,"lng":-1.3394,"count":3},{"location":"Oldham, GB","lat":53.5249,"lng":-2.1189,"count":3},{"location":"Jarvenpaa, FI","lat":60.5146,"lng":25.0911,"count":1},{"location":"AT","lat":48.2048,"lng":16.3801,"count":4},{"location":"Helsinki, FI","lat":60.2421,"lng":24.9301,"count":53},{"location":"Barcelona, ES","lat":41.3773,"lng":2.1816,"count":1},{"location":"Sour el Ghozlane, DZ","lat":36.1532,"lng":3.6926,"count":363},{"location":"Łaziska Górne, PL","lat":50.1441,"lng":18.8675,"count":4},{"location":"Manchester, GB","lat":53.5496,"lng":-2.2959,"count":6},{"location":"Leicester, GB","lat":52.6407,"lng":-1.1354,"count":3},{"location":"Grodków, PL","lat":50.6942,"lng":17.3897,"count":7},{"location":"Barcelona, ES","lat":41.4231,"lng":2.188,"count":3},{"location":"Ilkeston, GB","lat":52.9696,"lng":-1.3159,"count":34},{"location":"Montreal, CA","lat":45.5332,"lng":-73.6091,"count":1},{"location":"Wembley, GB","lat":51.5571,"lng":-0.2972,"count":1},{"location":"Landstuhl, DE","lat":49.4333,"lng":7.6,"count":3},{"location":"Manchester, GB","lat":53.4479,"lng":-2.2277,"count":1},{"location":"East Jakarta, ID","lat":-6.2401,"lng":106.8523,"count":1},{"location":"Tangerang, ID","lat":-6.2833,"lng":106.6464,"count":3},{"location":"Salford, GB","lat":53.4836,"lng":-2.2862,"count":1},{"location":"Torvastad, NO","lat":59.3798,"lng":5.2228,"count":1},{"location":"Glasgow, GB","lat":55.867,"lng":-4.2621,"count":1},{"location":"Bangkok, TH","lat":13.7618,"lng":100.5324,"count":1},{"location":"Montreal, CA","lat":45.518,"lng":-73.6048,"count":4},{"location":"Hendersonville, US","lat":36.3066,"lng":-86.6101,"count":1},{"location":"MO","lat":22.1592,"lng":113.5638,"count":1},{"location":"Medford, US","lat":39.901,"lng":-74.8235,"count":147},{"location":"US","lat":35.0737,"lng":-78.8883,"count":2},{"location":"Brownsville, US","lat":25.9729,"lng":-97.4695,"count":20},{"location":"Atlanta, US","lat":33.8336,"lng":-84.3797,"count":4},{"location":"Salford, GB","lat":53.4916,"lng":-2.3009,"count":1},{"location":"Denver, US","lat":39.8661,"lng":-104.9197,"count":9},{"location":"Denver, US","lat":39.7277,"lng":-104.9815,"count":18},{"location":"Ontario, US","lat":34.0607,"lng":-117.6644,"count":1},{"location":"Islington, GB","lat":51.5269,"lng":-0.0991,"count":1},{"location":"Portsmouth, US","lat":36.8721,"lng":-76.3885,"count":1},{"location":"Denver, US","lat":39.6993,"lng":-104.8814,"count":1},{"location":"Hollywood, US","lat":26.0162,"lng":-80.1955,"count":2},{"location":"Birmingham, GB","lat":52.4979,"lng":-1.7835,"count":13},{"location":"Liverpool, GB","lat":53.4036,"lng":-2.7475,"count":1},{"location":"Chiswick, GB","lat":51.4936,"lng":-0.2583,"count":29},{"location":"Edmond, US","lat":35.6679,"lng":-97.4795,"count":5},{"location":"Edinburgh, GB","lat":55.9495,"lng":-3.1983,"count":1},{"location":"St Helens, GB","lat":53.4325,"lng":-2.7542,"count":3},{"location":"Amsterdam, NL","lat":52.3716,"lng":4.8883,"count":4},{"location":"Catford, GB","lat":51.4402,"lng":-0.0259,"count":9},{"location":"PL","lat":52.4056,"lng":16.9302,"count":1},{"location":"Bolton, GB","lat":53.5501,"lng":-2.4003,"count":5},{"location":"Nottingham, GB","lat":52.8702,"lng":-1.2168,"count":6},{"location":"City of Westminster, GB","lat":51.5212,"lng":-0.1825,"count":11},{"location":"Gdynia, PL","lat":54.5026,"lng":18.4435,"count":1},{"location":"Wals-Siezenheim, AT","lat":47.8179,"lng":12.9933,"count":5},{"location":"South Tangerang, ID","lat":-6.2876,"lng":106.722,"count":1},{"location":"Singapore, SG","lat":1.3057,"lng":103.8586,"count":9},{"location":"Quezon City, PH","lat":14.6143,"lng":121.0419,"count":3},{"location":"Oakland, US","lat":37.7428,"lng":-122.1745,"count":1},{"location":"Denver, US","lat":39.8693,"lng":-105.0036,"count":1},{"location":"Los Angeles, US","lat":33.9576,"lng":-118.267,"count":1},{"location":"Thornton, US","lat":39.8662,"lng":-104.9755,"count":1},{"location":"Toluca, MX","lat":19.2858,"lng":-99.6525,"count":2},{"location":"Zapopan, MX","lat":20.7226,"lng":-103.3836,"count":3},{"location":"Chino, US","lat":34.0121,"lng":-117.6883,"count":2},{"location":"Hayward, US","lat":37.6403,"lng":-122.0667,"count":1},{"location":"Daly City, US","lat":37.6811,"lng":-122.4806,"count":1},{"location":"Pružina, SK","lat":49.0173,"lng":18.4778,"count":9},{"location":"FR","lat":43.2951,"lng":5.3861,"count":1},{"location":"Scunthorpe, GB","lat":53.5762,"lng":-0.7391,"count":1},{"location":"Schaumburg, US","lat":42.0317,"lng":-88.0833,"count":1},{"location":"Trnava, SK","lat":48.3762,"lng":17.5829,"count":125},{"location":"Milwaukee, US","lat":43.0382,"lng":-87.91,"count":1},{"location":"Cradley Heath, GB","lat":52.4844,"lng":-2.0609,"count":5},{"location":"Doncaster, GB","lat":53.5875,"lng":-0.9278,"count":2},{"location":"Hackney, GB","lat":51.5638,"lng":-0.0765,"count":1},{"location":"GB","lat":52.6181,"lng":-1.1804,"count":12},{"location":"Warsaw, PL","lat":52.2299,"lng":21.0093,"count":7},{"location":"Oulu, FI","lat":65.005,"lng":25.617,"count":23},{"location":"Rochdale, GB","lat":53.5823,"lng":-2.1822,"count":9},{"location":"Petaling Jaya, MY","lat":3.11,"lng":101.5688,"count":1},{"location":"Kilchberg, CH","lat":47.3254,"lng":8.5513,"count":40},{"location":"Denver, US","lat":39.7491,"lng":-104.9945,"count":29},{"location":"Oulu, FI","lat":64.9913,"lng":25.4942,"count":25},{"location":"Cabuyao, PH","lat":14.2782,"lng":121.1215,"count":1},{"location":"Jacksonville, US","lat":30.2903,"lng":-81.5092,"count":20},{"location":"Turku, FI","lat":60.4897,"lng":22.3193,"count":1},{"location":"Milan, IT","lat":45.4722,"lng":9.1922,"count":1},{"location":"Detroit, US","lat":42.3318,"lng":-83.0465,"count":12},{"location":"Helsingborg, SE","lat":56.045,"lng":12.6923,"count":1},{"location":"Manchester, GB","lat":53.5051,"lng":-2.1619,"count":3},{"location":"Heanor, GB","lat":53.0115,"lng":-1.3562,"count":1},{"location":"Hyvinkää, FI","lat":60.5644,"lng":24.7665,"count":1},{"location":"Leicester, GB","lat":52.6494,"lng":-1.1203,"count":7},{"location":"GB","lat":51.5975,"lng":-0.1915,"count":4},{"location":"West Bromwich, GB","lat":52.5199,"lng":-1.9985,"count":1},{"location":"IT","lat":46.4887,"lng":11.3394,"count":2},{"location":"Penafiel, PT","lat":41.1762,"lng":-8.3037,"count":1},{"location":"Tralee, IE","lat":52.2716,"lng":-9.7056,"count":1},{"location":"Las Vegas, US","lat":36.102,"lng":-115.1447,"count":1},{"location":"Szczecin, PL","lat":53.4288,"lng":14.5569,"count":1},{"location":"Vilnius, LT","lat":54.6876,"lng":25.2806,"count":6},{"location":"Nottingham, GB","lat":52.9991,"lng":-1.1963,"count":4},{"location":"Central Jakarta, ID","lat":-6.2035,"lng":106.8139,"count":1},{"location":"Munich, DE","lat":48.1078,"lng":11.586,"count":1},{"location":"PL","lat":53.1223,"lng":18.0054,"count":3},{"location":"Oulu, FI","lat":65.0121,"lng":25.4753,"count":1},{"location":"ES","lat":28.1,"lng":-15.4098,"count":3},{"location":"Regensdorf, CH","lat":47.4384,"lng":8.4623,"count":91},{"location":"Milford, US","lat":42.5758,"lng":-83.5924,"count":1},{"location":"Mt. Morris, US","lat":43.116,"lng":-83.6895,"count":15},{"location":"Central Jakarta, ID","lat":-6.1956,"lng":106.8308,"count":1},{"location":"Nottingham, GB","lat":53.0836,"lng":-1.1526,"count":1},{"location":"Slough, GB","lat":51.5177,"lng":-0.6215,"count":1},{"location":"Manchester, GB","lat":53.3896,"lng":-2.2801,"count":1},{"location":"Calgary, CA","lat":51.1613,"lng":-113.9518,"count":6},{"location":"Los Angeles, USA","lat":34.0522,"lng":-118.2437,"count":1},{"location":"Bremerton, US","lat":47.6276,"lng":-122.6431,"count":1},{"location":"Manchester, GB","lat":53.4606,"lng":-2.2572,"count":2},{"location":"Skarpnäck, SE","lat":59.2688,"lng":18.1182,"count":1},{"location":"Mumbai, IN","lat":19.0748,"lng":72.8856,"count":3},{"location":"Sutton, GB","lat":51.3503,"lng":-0.2014,"count":18},{"location":"SE","lat":57.7065,"lng":11.967,"count":7},{"location":"West Jakarta, ID","lat":-6.2065,"lng":106.7926,"count":1},{"location":"Cagayan de Oro, PH","lat":8.4817,"lng":124.6467,"count":3},{"location":"Birmingham, GB","lat":52.519,"lng":-1.9094,"count":4},{"location":"East Jakarta, ID","lat":-6.2298,"lng":106.9134,"count":2},{"location":"Singapore, SG","lat":1.3267,"lng":103.8869,"count":1},{"location":"Singapore, SG","lat":1.3159,"lng":103.8175,"count":1},{"location":"Seattle, US","lat":47.5415,"lng":-122.393,"count":6},{"location":"Seattle, US","lat":47.3957,"lng":-122.3036,"count":5},{"location":"IL","lat":31.5,"lng":34.75,"count":1},{"location":"Orlando, US","lat":28.5177,"lng":-81.4508,"count":5},{"location":"Hagan, NO","lat":59.9774,"lng":10.9425,"count":2},{"location":"NL","lat":51.9235,"lng":4.4813,"count":1},{"location":"Toronto, CA","lat":43.709,"lng":-79.4057,"count":5},{"location":"Markham, CA","lat":43.866,"lng":-79.266,"count":3},{"location":"Tewkesbury, GB","lat":51.996,"lng":-2.1583,"count":1},{"location":"Sumqayit, AZ","lat":40.5841,"lng":49.6651,"count":1},{"location":"Sheffield, GB","lat":53.3511,"lng":-1.3671,"count":9},{"location":"GB","lat":51.4667,"lng":-0.1118,"count":3},{"location":"Dublin, IE","lat":53.3382,"lng":-6.2591,"count":11},{"location":"Vienna, AT","lat":48.2049,"lng":16.3662,"count":2},{"location":"Munich, DE","lat":48.114,"lng":11.5422,"count":2},{"location":"Minneapolis, US","lat":44.9399,"lng":-93.2548,"count":1},{"location":"Caerphilly, GB","lat":51.5844,"lng":-3.2123,"count":5},{"location":"Gothenburg, SE","lat":57.7065,"lng":11.967,"count":3}];
+
+    const SOLD_COUNTRIES = [{"name":"Cayman Islands","year":"2023","flag":"🇰🇾","lat":19.3133,"lng":-81.2546},{"name":"China","year":"2026","flag":"🇨🇳","lat":35.8617,"lng":104.1954},{"name":"Colombia","year":"2023","flag":"🇨🇴","lat":4.5709,"lng":-74.2973},{"name":"Costa Rica","year":"2023","flag":"🇨🇷","lat":9.7489,"lng":-83.7534},{"name":"Croatia","year":"2020","flag":"🇭🇷","lat":45.1,"lng":15.2},{"name":"Czech Republic","year":"2021","flag":"🇨🇿","lat":49.8175,"lng":15.473},{"name":"Denmark","year":"2021","flag":"🇩🇰","lat":56.2639,"lng":9.5018},{"name":"England","year":"2021","flag":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","lat":52.3555,"lng":-1.1743},{"name":"Estonia","year":"2021","flag":"🇪🇪","lat":58.5953,"lng":25.0136},{"name":"Egypt","year":"2022","flag":"🇪🇬","lat":26.8206,"lng":30.8025},{"name":"Faroe Islands","year":"2023","flag":"🇫🇴","lat":61.8926,"lng":-6.9118},{"name":"Finland","year":"2019","flag":"🇫🇮","lat":61.9241,"lng":25.7482},{"name":"France","year":"2021","flag":"🇫🇷","lat":46.2276,"lng":2.2137},{"name":"Georgia","year":"2023","flag":"🇬🇪","lat":42.3154,"lng":43.3569},{"name":"Germany","year":"2020","flag":"🇩🇪","lat":51.1657,"lng":10.4515},{"name":"Greece","year":"2023","flag":"🇬🇷","lat":39.0742,"lng":21.8243},{"name":"Guatemala","year":"2023","flag":"🇬🇹","lat":15.7835,"lng":-90.2308},{"name":"Netherlands","year":"2020","flag":"🇳🇱","lat":52.1326,"lng":5.2913},{"name":"Hong Kong","year":"2021","flag":"🇭🇰","lat":22.3193,"lng":114.1694},{"name":"Hungary","year":"2022","flag":"🇭🇺","lat":47.1625,"lng":19.5033},{"name":"Iceland","year":"2022","flag":"🇮🇸","lat":64.9631,"lng":-19.0208},{"name":"India","year":"2022","flag":"🇮🇳","lat":20.5937,"lng":78.9629},{"name":"Indonesia","year":"2023","flag":"🇮🇩","lat":-0.7893,"lng":113.9213},{"name":"Iraq","year":"2022","flag":"🇮🇶","lat":33.2232,"lng":43.6793},{"name":"Ireland","year":"2022","flag":"🇮🇪","lat":53.1424,"lng":-7.6921},{"name":"Israel","year":"2021","flag":"🇮🇱","lat":31.0461,"lng":34.8516},{"name":"Italy","year":"2021","flag":"🇮🇹","lat":41.8719,"lng":12.5674},{"name":"Jamaica","year":"2026","flag":"🇯🇲","lat":18.1096,"lng":-77.2975},{"name":"Japan","year":"2022","flag":"🇯🇵","lat":36.2048,"lng":138.2529},{"name":"Jordan","year":"2024","flag":"🇯🇴","lat":30.5852,"lng":36.2384},{"name":"Kuwait","year":"2022","flag":"🇰🇼","lat":29.3117,"lng":47.4818},{"name":"Latvia","year":"2022","flag":"🇱🇻","lat":56.8796,"lng":24.6032},{"name":"Lithuania","year":"2021","flag":"🇱🇹","lat":55.1694,"lng":23.8813},{"name":"Luxembourg","year":"2022","flag":"🇱🇺","lat":49.8153,"lng":6.1296},{"name":"Kosovo","year":"2023","flag":"🇽🇰","lat":42.6026,"lng":20.903},{"name":"Malaysia","year":"2022","flag":"🇲🇾","lat":4.2105,"lng":101.9758},{"name":"Malta","year":"2022","flag":"🇲🇹","lat":35.9375,"lng":14.3754},{"name":"Martinique","year":"2023","flag":"🇲🇶","lat":14.6415,"lng":-61.0242},{"name":"Mauritius","year":"2023","flag":"🇲🇺","lat":-20.3484,"lng":57.5522},{"name":"Mexico","year":"2021","flag":"🇲🇽","lat":23.6345,"lng":-102.5528},{"name":"Moldova","year":"2023","flag":"🇲🇩","lat":47.4116,"lng":28.3699},{"name":"Nigeria","year":"2021","flag":"🇳🇬","lat":9.082,"lng":8.6753},{"name":"New Zealand","year":"2026","flag":"🇳🇿","lat":-40.9006,"lng":174.886},{"name":"North Macedonia","year":"2023","flag":"🇲🇰","lat":41.6086,"lng":21.7453},{"name":"Norway","year":"2021","flag":"🇳🇴","lat":60.472,"lng":8.4689},{"name":"Panama","year":"2022","flag":"🇵🇦","lat":8.5379,"lng":-80.7821},{"name":"Paraguay","year":"2022","flag":"🇵🇾","lat":-23.4425,"lng":-58.4438},{"name":"Peru","year":"2022","flag":"🇵🇪","lat":-9.19,"lng":-75.0152},{"name":"Philippines","year":"2023","flag":"🇵🇭","lat":12.8797,"lng":121.774},{"name":"Poland","year":"2021","flag":"🇵🇱","lat":51.9194,"lng":19.1451},{"name":"Portugal","year":"2020","flag":"🇵🇹","lat":39.3999,"lng":-8.2245},{"name":"Puerto Rico","year":"2023","flag":"🇵🇷","lat":18.2208,"lng":-66.5901},{"name":"Qatar","year":"2022","flag":"🇶🇦","lat":25.3548,"lng":51.1839},{"name":"Romania","year":"2022","flag":"🇷🇴","lat":45.9432,"lng":24.9668},{"name":"Rwanda","year":"2021","flag":"🇷🇼","lat":-1.9403,"lng":29.8739},{"name":"Saudi Arabia","year":"2022","flag":"🇸🇦","lat":23.8859,"lng":45.0792},{"name":"Scotland","year":"2021","flag":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","lat":56.4907,"lng":-4.2026},{"name":"Singapore","year":"2022","flag":"🇸🇬","lat":1.3521,"lng":103.8198},{"name":"Slovakia","year":"2021","flag":"🇸🇰","lat":48.669,"lng":19.699},{"name":"Slovenia","year":"2022","flag":"🇸🇮","lat":46.1512,"lng":14.9955},{"name":"South Africa","year":"2022","flag":"🇿🇦","lat":-30.5595,"lng":22.9375},{"name":"South Korea","year":"2021","flag":"🇰🇷","lat":35.9078,"lng":127.7669},{"name":"Spain","year":"2022","flag":"🇪🇸","lat":40.4637,"lng":-3.7492},{"name":"Sweden","year":"2021","flag":"🇸🇪","lat":60.1282,"lng":18.6435},{"name":"Switzerland","year":"2021","flag":"🇨🇭","lat":46.8182,"lng":8.2275},{"name":"Tanzania","year":"2022","flag":"🇹🇿","lat":-6.369,"lng":34.8888},{"name":"Taiwan","year":"2022","flag":"🇹🇼","lat":23.6978,"lng":120.9605},{"name":"Thailand","year":"2023","flag":"🇹🇭","lat":15.87,"lng":100.9925},{"name":"Turkey","year":"2022","flag":"🇹🇷","lat":38.9637,"lng":35.2433},{"name":"Turks and Caicos","year":"2022","flag":"🇹🇨","lat":21.694,"lng":-71.7979},{"name":"UAE","year":"2021","flag":"🇦🇪","lat":23.4241,"lng":53.8478},{"name":"Ukraine","year":"2022","flag":"🇺🇦","lat":48.3794,"lng":31.1656},{"name":"Uruguay","year":"2023","flag":"🇺🇾","lat":-32.5228,"lng":-55.7658},{"name":"USA","year":"2021","flag":"🇺🇸","lat":37.0902,"lng":-95.7129},{"name":"Wales","year":"2020","flag":"🏴󠁧󠁢󠁷󠁬󠁳󠁿","lat":52.1307,"lng":-3.7837}];
+
+    
+
+    const CHART_TIMELINE = {"labels":["16.03","22.03","23.03","29.03","30.03","05.04","06.04","12.04","13.04","19.04","20.04","26.04","27.04","03.05","04.05","10.05","11.05","17.05","18.05","24.05","25.05","31.05","01.06","07.06","08.06","14.06","15.06","21.06","22.06","28.06","29.06","05.07","06.07","12.07","13.07","19.07","20.07","26.07","27.07","02.08","03.08","09.08","10.08","16.08","17.08","23.08","24.08"],"instant":[111,1,176,11,282,27,185,13,228,5,95,7,184,8,149,1,143,3,250,8,279,12,205,15,301,20,287,47,522,10,268,28,211,42,334,22,286,229,480,719,1241,753,2076,694,1696,608,1469],"tourney":[0,0,0,0,0,0,0,0,18,0,71,3,110,9,81,0,34,1,180,3,150,4,136,6,88,14,78,6,173,2,64,7,93,13,96,12,84,140,152,358,269,295,479,290,349,174,147],"opens":[218,5,319,24,518,25,332,20,304,14,175,14,260,10,180,6,157,15,188,15,333,12,196,23,327,29,358,52,570,28,411,40,365,52,384,34,331,40,424,54,530,43,640,43,557,53,946]};
+
+    let mymap = null;
+    let markersLayer = null;
+    let goMarkersLayer = null;
+    let soldMarkersLayer = null;
+    let showGoMarkers = true;
+    let showSocialMedia = true;
+    let showSoldMarkers = true;
+    let currentCategory = 'all';
+    let activeVenueId = null;
+
+    // ─── Initialize Application ───
+    document.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      updateCategoryTabCounts();
+      renderCards();
+      renderBlueMatchMarkers(YEAR_MATCH_HUBS);
+      renderGraySoldMarkers(SOLD_COUNTRIES);
+      initEcosystemChart();
+      fetchLivePlatformMetrics();
+    });
+
+    // ─── Leaflet Map Setup ───
+        // ─── Live Supabase Platform Metrics Sync ───
+    async function fetchLivePlatformMetrics() {
+      try {
+        if (!window.supabase) return;
+        const sb = window.supabase.createClient(
+          "https://ujxmmrsmdwrgcwatdhvx.supabase.co",
+          "sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t"
+        );
+        const [instRes, tourRes, openRes] = await Promise.all([
+          sb.from("public_tracking").select("id", { count: "exact", head: true }).eq("event_type", "game_finished"),
+          sb.from("public_tracking").select("id", { count: "exact", head: true }).eq("event_type", "tournament_match_finished"),
+          sb.from("public_tracking").select("id", { count: "exact", head: true }).eq("event_type", "app_opened")
+        ]);
+
+        const instant = instRes.count || 6681;
+        const tourney = tourRes.count || 4505;
+        const total = instant + tourney;
+        const opens = openRes.count || 9922;
+
+        const btnCount = document.getElementById("count-go");
+        if (btnCount) btnCount.textContent = total.toLocaleString();
+
+        const elTotal = document.getElementById("kpi-live-total-matches");
+        if (elTotal) elTotal.textContent = total.toLocaleString();
+
+        const elInst = document.getElementById("kpi-live-instant-matches");
+        if (elInst) elInst.textContent = instant.toLocaleString();
+
+        const elTour = document.getElementById("kpi-live-tourney-matches");
+        if (elTour) elTour.textContent = tourney.toLocaleString();
+
+        const elOpens = document.getElementById("kpi-live-app-opens");
+        if (elOpens) elOpens.textContent = opens.toLocaleString();
+
+        const elDesc = document.getElementById("kpi-live-total-desc");
+        if (elDesc) elDesc.textContent = instant.toLocaleString() + " Instant · " + tourney.toLocaleString() + " Tournament matches";
+
+        const badgeEl = document.querySelector(".analytics-badge");
+        if (badgeEl) badgeEl.textContent = total.toLocaleString() + " Matches · " + opens.toLocaleString() + " App Opens (Full Year)";
+      } catch (err) {
+        console.warn("Live platform metrics sync fallback:", err);
+      }
+    }
+    function initMap() {
+      const w = window.innerWidth;
+      const initialCenter = (w <= 480) ? [35, -42] : (w <= 768 ? [32, -30] : [32, -15]);
+      const initialZoom = (w <= 480) ? 1.6 : (w <= 768 ? 2.2 : 3);
+
+      mymap = L.map('map', {
+        zoomControl: false,
+        attributionControl: false,
+        zoomSnap: 0.1,
+        zoomDelta: 0.5
+      }).setView(initialCenter, initialZoom);
+
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(mymap);
+
+      L.control.zoom({ position: 'topright' }).addTo(mymap);
+
+      // Custom panes for strict z-index control:
+      // 440: Gray (Tables Sold)
+      // 450: Blue (Played Games)
+      // 460: Red (Social Media) - always topmost
+      mymap.createPane('grayPane');
+      mymap.getPane('grayPane').style.zIndex = 440;
+
+      mymap.createPane('bluePane');
+      mymap.getPane('bluePane').style.zIndex = 450;
+
+      mymap.createPane('redPane');
+      mymap.getPane('redPane').style.zIndex = 460;
+
+      soldMarkersLayer = L.layerGroup().addTo(mymap); // Gray (Tables Sold)
+      goMarkersLayer = L.layerGroup().addTo(mymap);   // Blue (Played Games)
+      markersLayer = L.layerGroup().addTo(mymap);     // Red (Social Media)
+      renderMarkers();
+    }
+
+    // ─── Render Video Map Markers (Solid Red Pins - 22px) ───
+    function renderMarkers() {
+      if (!markersLayer) return;
+      markersLayer.clearLayers();
+
+      const filtered = getFilteredLocations();
+
+      filtered.forEach(v => {
+        if (!v.lat || !v.lng) return;
+
+        const pinHtml = `
+          <div class="red-map-pin" id="pin-${v.id}">
+            <i class="fa-solid fa-play"></i>
+          </div>
+        `;
+
+        const icon = L.divIcon({
+          html: pinHtml,
+          className: 'custom-leaflet-pin',
+          iconSize: [22, 22],
+          iconAnchor: [11, 11]
+        });
+
+        const marker = L.marker([v.lat, v.lng], { icon, pane: 'redPane' }).addTo(markersLayer);
+
+        const popupHtml = `
+          <div style="font-size:0.8rem; line-height:1.3; width:180px;">
+            ${v.previewImg ? `<img src="${v.previewImg}" style="width:100%; height:80px; object-fit:cover; border-radius:3px; margin-bottom:6px;">` : ''}
+            <div style="font-family:var(--font-resolve); font-weight:700; color:#111111; margin-bottom:2px; text-transform:none;">${v.flag || '📍'} ${v.title}</div>
+            <div style="color:var(--text-muted); font-size:0.7rem; margin-bottom:6px;">${v.location}</div>
+            ${v.url ? `<a href="${v.url}" target="_blank" style="display:block; text-align:center; padding:4px 8px; background:var(--sub-red); border-radius:2px; color:#fff; font-family:var(--font-resolve); font-size:0.78rem; font-weight:400; text-decoration:none;">Watch Video</a>` : ''}
+          </div>
+        `;
+
+        marker.bindPopup(popupHtml);
+
+        marker.on('click', () => {
+          selectCard(v.id, false);
+        });
+      });
+    }
+
+    // ─── Render Blue Map Markers (Tiered by Match Volume) ───
+    function renderBlueMatchMarkers(matches) {
+      if (!goMarkersLayer) return;
+      goMarkersLayer.clearLayers();
+
+      // Sort ASCENDING so highest-volume pins are drawn last (on top of lower ones)
+      const sortedMatches = [...matches].sort((a, b) => (a.count || 1) - (b.count || 1));
+
+      sortedMatches.forEach((m, idx) => {
+        if (!m.lat || !m.lng) return;
+
+        const count = m.count || 1;
+        let tierClass = 'tier-small';
+        let size = 16;
+        let pinInner = '<i class="fa-solid fa-gamepad"></i>';
+
+        if (count >= 100) {
+          tierClass = 'tier-major';
+          size = 28;
+          pinInner = count >= 1000 ? (count / 1000).toFixed(1).replace('.0', '') + 'k' : count;
+        } else if (count >= 20) {
+          tierClass = 'tier-mid';
+          size = 22;
+          pinInner = count.toString();
+        }
+
+        const pinHtml = `
+          <div class="blue-map-pin ${tierClass}" id="pin-blue-${idx}">
+            ${pinInner}
+          </div>
+        `;
+
+        const anchor = Math.round(size / 2);
+        const icon = L.divIcon({
+          html: pinHtml,
+          className: 'custom-leaflet-pin-blue',
+          iconSize: [size, size],
+          iconAnchor: [anchor, anchor]
+        });
+
+        const marker = L.marker([m.lat, m.lng], { icon, pane: 'bluePane' }).addTo(goMarkersLayer);
+
+        // Z-Index offset prioritizes higher volume pins on click and render
+        marker.setZIndexOffset(Math.min(count * 10, 5000));
+
+        const isHotspot = count >= 100;
+        const popupHtml = `
+          <div style="font-size:0.8rem; line-height:1.3; width:180px;">
+            <div style="font-family:var(--font-resolve); font-weight:700; color:var(--sub-blue); margin-bottom:2px; display:flex; align-items:center; justify-content:space-between;">
+              <span>Subsoccer Games</span>
+              ${isHotspot ? '<span style="background:#e0f2fe; color:#0284c7; font-size:0.65rem; padding:1px 5px; border-radius:3px; font-weight:700;">Top Hub</span>' : ''}
+            </div>
+            <div style="font-weight:700; font-size:0.85rem; color:#111; margin-bottom:3px;">
+              ${m.location}
+            </div>
+            <div style="font-size:0.75rem; color:#111; margin-bottom:4px;">
+              Matches played: <strong style="color:var(--sub-blue); font-size:0.85rem;">${count.toLocaleString()} matches</strong>
+            </div>
+            <div style="font-size:0.68rem; color:var(--text-muted);">
+              Instant Play, GO & Tournaments
+            </div>
+            <a href="subsoccer-go.html" target="_blank" style="display:block; text-align:center; margin-top:6px; padding:3px 6px; background:var(--sub-blue); border-radius:2px; color:#fff; font-family:var(--font-resolve); font-size:0.75rem; font-weight:400; text-decoration:none;">Play Subsoccer</a>
+          </div>
+        `;
+
+        marker.bindPopup(popupHtml);
+      });
+    }
+
+    // ─── Render Gray Map Markers (Tables Sold - 76 Countries) ───
+    function renderGraySoldMarkers(countries) {
+      if (!soldMarkersLayer) return;
+      soldMarkersLayer.clearLayers();
+
+      countries.forEach((c, idx) => {
+        if (!c.lat || !c.lng) return;
+
+        const pinHtml = `
+          <div class="gray-map-pin" id="pin-gray-${idx}">
+            <i class="fa-solid fa-cube"></i>
+          </div>
+        `;
+
+        const icon = L.divIcon({
+          html: pinHtml,
+          className: 'custom-leaflet-pin-gray',
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+
+        const marker = L.marker([c.lat, c.lng], { icon, pane: 'grayPane' }).addTo(soldMarkersLayer);
+
+        const popupHtml = `
+          <div style="font-size:0.8rem; line-height:1.3; width:170px;">
+            <div style="font-family:var(--font-resolve); font-weight:700; color:#475569; margin-bottom:2px; display:flex; align-items:center; justify-content:space-between;">
+              <span>Tables Delivered</span>
+              <span style="background:#f1f5f9; color:#475569; font-size:0.65rem; padding:1px 5px; border-radius:3px; font-weight:700;">Since ${c.year || '2021'}</span>
+            </div>
+            <div style="font-weight:700; font-size:0.9rem; color:#111; margin-bottom:3px;">
+              ${c.flag || '🌐'} ${c.name}
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">
+              Official Subsoccer tables active in market.
+            </div>
+            <a href="https://subsoccer.com" target="_blank" style="display:block; text-align:center; margin-top:6px; padding:3px 6px; background:#475569; border-radius:2px; color:#fff; font-family:var(--font-resolve); font-size:0.75rem; font-weight:400; text-decoration:none;">Subsoccer Store</a>
+          </div>
+        `;
+
+        marker.bindPopup(popupHtml);
+      });
+    }
+
+    // ─── Master Toggle Social Media (Red Pins & Slider) ───
+    function toggleSocialMedia() {
+      showSocialMedia = !showSocialMedia;
+      const btn = document.getElementById('btn-toggle-sm');
+      const slider = document.querySelector('.slider-wrapper');
+
+      if (showSocialMedia) {
+        btn.classList.add('active');
+        if (mymap && markersLayer) mymap.addLayer(markersLayer);
+        if (slider) slider.style.display = '';
+      } else {
+        btn.classList.remove('active');
+        if (mymap && markersLayer) mymap.removeLayer(markersLayer);
+        if (slider) slider.style.display = 'none';
+      }
+    }
+
+    // ─── Master Toggle Played Games (Blue Pins) ───
+    function toggleGoPlays() {
+      showGoMarkers = !showGoMarkers;
+      const btn = document.getElementById('btn-toggle-go');
+
+      if (showGoMarkers) {
+        btn.classList.add('active');
+        if (mymap && goMarkersLayer) mymap.addLayer(goMarkersLayer);
+      } else {
+        btn.classList.remove('active');
+        if (mymap && goMarkersLayer) mymap.removeLayer(goMarkersLayer);
+      }
+    }
+
+    // ─── Master Toggle Tables Sold (Gray Pins) ───
+    function toggleSoldCountries() {
+      showSoldMarkers = !showSoldMarkers;
+      const btn = document.getElementById('btn-toggle-sold');
+
+      if (showSoldMarkers) {
+        btn.classList.add('active');
+        if (mymap && soldMarkersLayer) mymap.addLayer(soldMarkersLayer);
+      } else {
+        btn.classList.remove('active');
+        if (mymap && soldMarkersLayer) mymap.removeLayer(soldMarkersLayer);
+      }
+    }
+
+    // ─── Filter by 5 Curated B2B Sales Categories ───
+    
+    function updateCategoryTabCounts() {
+      const counts = { all: CURATED_VENUES.length, stadium: 0, brand: 0, rental: 0, arcade: 0, mall: 0, creator: 0 };
+      CURATED_VENUES.forEach(v => {
+        const c = v.category || v.cat;
+        if (counts[c] !== undefined) counts[c]++;
+      });
+      document.querySelectorAll('.cat-tab').forEach(tab => {
+        const cat = tab.dataset.cat;
+        const countSpan = tab.querySelector('.cat-tab-count');
+        if (countSpan && counts[cat] !== undefined) {
+          countSpan.textContent = counts[cat];
+        }
+      });
+      const smCount = document.getElementById('count-sm');
+      if (smCount) smCount.textContent = CURATED_VENUES.length;
+    }
+
+    function setCategoryFilter(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.cat === cat);
+      });
+
+      renderMarkers();
+      renderCards();
+
+      // Scroll slider track to start smoothly
+      const track = document.getElementById('cards-track');
+      if (track) track.scrollTo({ left: 0, behavior: 'smooth' });
+
+      // Fly map to show filtered markers if specific category selected
+      const filtered = getFilteredLocations();
+      if (filtered.length > 0 && mymap && cat !== 'all') {
+        const validCoords = filtered.filter(v => v.lat && v.lng).map(v => [v.lat, v.lng]);
+        if (validCoords.length > 0) {
+          const bounds = L.latLngBounds(validCoords);
+          mymap.fitBounds(bounds, { padding: [50, 50], maxZoom: 5, duration: 1.2 });
+        }
+      }
+    }
+
+    function getFilteredLocations() {
+      if (currentCategory === 'all') return CURATED_VENUES;
+      return CURATED_VENUES.filter(v => (v.category || v.cat) === currentCategory);
+    }
+
+    // ─── Render Authentic Social Media Post Embed Cards ───
+    function renderCards() {
+      const track = document.getElementById('cards-track');
+      const filtered = getFilteredLocations();
+
+      if (filtered.length === 0) {
+        track.innerHTML = `<div style="color:var(--text-muted); font-size:0.85rem; padding:20px;">No videos found in this category.</div>`;
+        return;
+      }
+
+      track.innerHTML = filtered.map(v => {
+        const rawAuthor = (v.author || '@subsoccer').trim();
+        const authorClean = rawAuthor.replace(/^@/, '');
+        const initials = authorClean.slice(0, 2).toUpperCase() || 'SS';
+        const platform = (v.platform || 'instagram').toLowerCase();
+        const isYt = platform === 'youtube' || (v.url && v.url.includes('youtube'));
+        const isTt = platform === 'tiktok' || (v.url && v.url.includes('tiktok'));
+        const platformLabel = isTt ? 'TikTok' : (isYt ? 'YouTube' : 'Instagram');
+        const platformIcon = isTt ? 'fa-brands fa-tiktok' : (isYt ? 'fa-brands fa-youtube' : 'fa-brands fa-instagram');
+        const btnLabel = (isYt || isTt) ? 'Watch video' : 'View profile';
+        const btnBg = isTt ? '#010101' : (isYt ? '#e11d48' : '#0095f6');
+
+        return `
+          <div class="venue-card ${activeVenueId === v.id ? 'active' : ''}" id="card-${v.id}" onclick="selectCard('${v.id}', true)">
+            
+            <!-- Authentic Social Top Bar -->
+            <div class="card-insta-header">
+              <div class="card-insta-user-wrap">
+                <div class="card-insta-avatar" style="${v.cat === 'brand' ? 'background:#c41e2a;' : ''}">${initials}</div>
+                <div class="card-insta-user-meta">
+                  <div class="card-insta-author">${rawAuthor}</div>
+                  <div class="card-insta-sub">${v.location || 'Original audio'}</div>
+                </div>
+              </div>
+              ${v.url ? `
+                <a href="${v.url}" target="_blank" class="card-insta-btn" style="background:${btnBg};" onclick="event.stopPropagation()">
+                  ${btnLabel}
+                </a>
+              ` : ''}
+            </div>
+
+            <!-- Tall Video Frame (Dark Backdrop + Centered Play Triangle) -->
+            <div class="card-img-wrap" onclick="event.stopPropagation(); ${v.url ? `window.open('${v.url}', '_blank')` : `flyToVenue('${v.id}')`}">
+              <img src="${v.previewImg}" alt="${v.title}" class="card-img" loading="lazy">
+              <div class="card-center-play-wrap">
+                <svg class="card-play-triangle" viewBox="0 0 48 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M44.5 24.2C46.5 25.3 46.5 28.7 44.5 29.8L7.5 51.5C5.5 52.7 3 51.2 3 48.7L3 5.3C3 2.8 5.5 1.3 7.5 2.5L44.5 24.2Z" fill="white" fill-opacity="0.88"/>
+                </svg>
+                <div class="card-watch-cta">Watch on ${platformLabel}</div>
+              </div>
+              <div class="card-bottom-overlay">
+                <div class="card-bottom-title">${v.flag || '📍'} ${v.title}</div>
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ─── Card Selection & Map FlyTo ───
+    function selectCard(id, fly = true) {
+      activeVenueId = id;
+      document.querySelectorAll('.venue-card').forEach(c => {
+        c.classList.toggle('active', c.id === `card-${id}`);
+      });
+
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+
+      if (fly) flyToVenue(id);
+    }
+
+    function flyToVenue(id) {
+      const venue = CURATED_VENUES.find(v => v.id === id);
+      if (!venue || !venue.lat || !venue.lng || !mymap) return;
+      mymap.flyTo([venue.lat, venue.lng], 13, { duration: 1.5, easeLinearity: 0.25 });
+    }
+
+    function scrollSlider(offset) {
+      const track = document.getElementById('cards-track');
+      if (track) track.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+
+    // ─── Render Light Theme Ecosystem Growth Chart ───
+    function initEcosystemChart() {
+      const ctx = document.getElementById('ecosystemGrowthChart');
+      if (!ctx || !CHART_TIMELINE) return;
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: CHART_TIMELINE.labels,
+          datasets: [
+            {
+              label: '1v1 Instant Matches (Table Games)',
+              data: CHART_TIMELINE.instant,
+              borderColor: '#c41e2a',
+              backgroundColor: 'rgba(196, 30, 42, 0.08)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.35,
+              pointRadius: 0,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'Tournament Matches (Brackets)',
+              data: CHART_TIMELINE.tourney,
+              borderColor: '#d97706',
+              backgroundColor: 'rgba(217, 119, 6, 0.08)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.35,
+              pointRadius: 0,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'App QR Opens & Scans (Mobile)',
+              data: CHART_TIMELINE.opens,
+              borderColor: '#0077cc',
+              backgroundColor: 'rgba(0, 119, 204, 0.04)',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.35,
+              pointRadius: 0,
+              pointHoverRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: '#334155',
+                font: { size: 12, family: "'Resolve', 'Inter', sans-serif", weight: '700' },
+                boxWidth: 14,
+                usePointStyle: true,
+                padding: 18
+              }
+            },
+            tooltip: {
+              backgroundColor: '#ffffff',
+              titleColor: '#0f172a',
+              bodyColor: '#334155',
+              borderColor: '#e2e8f0',
+              borderWidth: 1,
+              padding: 12,
+              boxPadding: 4,
+              usePointStyle: true,
+              titleFont: { size: 13, weight: 'bold' }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(0, 0, 0, 0.04)' },
+              ticks: { color: '#64748b', font: { size: 11 }, maxTicksLimit: 14 }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(0, 0, 0, 0.04)' },
+              ticks: { color: '#64748b', font: { size: 11 }, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    // ─── AI Event Planner Chat Logic ───
+    let aiChatHistory = [];
+    let isAiResponding = false;
+
+    function toggleAiDrawer() {
+      const drawer = document.getElementById('ai-chat-drawer');
+      if (!drawer) return;
+      drawer.classList.toggle('open');
+      if (drawer.classList.contains('open')) {
+        setTimeout(() => {
+          const inp = document.getElementById('ai-chat-input');
+          if (inp) inp.focus();
+        }, 150);
+      }
+    }
+
+    function sendQuickPrompt(text) {
+      const inp = document.getElementById('ai-chat-input');
+      if (inp) {
+        inp.value = text;
+        sendAiMessage();
+      }
+    }
+
+    function resetAiChat() {
+      aiChatHistory = [];
+      const msgBox = document.getElementById('ai-chat-messages');
+      if (!msgBox) return;
+      msgBox.innerHTML = `
+        <div class="ai-msg ai-bot">
+          <div class="ai-msg-bubble">
+            <strong>Hi! I'm your Subsoccer Event Advisor.</strong><br><br>
+            Tell me about your upcoming event (guest count, sports club, brand activation, or party) and I will calculate the ideal table count, tournament format, and throughput based on real match data from 79 countries!
+          </div>
+        </div>
+        <div class="ai-prompt-chips" id="ai-prompt-chips">
+          <button class="ai-chip" onclick="sendQuickPrompt('300 person corporate party for 4 hours')">300 person party (4h)</button>
+          <button class="ai-chip" onclick="sendQuickPrompt('Matchday fan zone for football club')">Matchday Fan Zone</button>
+          <button class="ai-chip" onclick="sendQuickPrompt('Brand sponsor activation with custom tables')">Brand & F1 Activation</button>
+          <button class="ai-chip" onclick="sendQuickPrompt('Shopping mall weekend tournament')">Mall Tournament</button>
+        </div>
+      `;
+    }
+
+    async function sendAiMessage() {
+      if (isAiResponding) return;
+      const inp = document.getElementById('ai-chat-input');
+      if (!inp) return;
+      const userText = inp.value.trim();
+      if (!userText) return;
+
+      inp.value = '';
+      const msgBox = document.getElementById('ai-chat-messages');
+
+      // Remove prompt chips once user starts chatting
+      const chips = document.getElementById('ai-prompt-chips');
+      if (chips) chips.remove();
+
+      // Append user message
+      const userMsgDiv = document.createElement('div');
+      userMsgDiv.className = 'ai-msg ai-user';
+      userMsgDiv.innerHTML = `<div class="ai-msg-bubble">${escapeHtml(userText)}</div>`;
+      msgBox.appendChild(userMsgDiv);
+
+      // Typing indicator
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'ai-msg ai-bot';
+      typingDiv.id = 'ai-typing-ind';
+      typingDiv.innerHTML = `
+        <div class="ai-typing-indicator">
+          <div class="ai-dot"></div>
+          <div class="ai-dot"></div>
+          <div class="ai-dot"></div>
+        </div>
+      `;
+      msgBox.appendChild(typingDiv);
+      msgBox.scrollTop = msgBox.scrollHeight;
+
+      aiChatHistory.push({ role: 'user', content: userText });
+      isAiResponding = true;
+
+      try {
+        const response = await fetch('/.netlify/functions/ai-event-advisor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: userText, history: aiChatHistory })
+        });
+
+        const data = await response.json();
+        const replyText = data.reply || 'Sorry, I encountered an issue. Please try again!';
+
+        typingDiv.remove();
+
+        // Append AI reply
+        const botMsgDiv = document.createElement('div');
+        botMsgDiv.className = 'ai-msg ai-bot';
+        botMsgDiv.innerHTML = `<div class="ai-msg-bubble">${formatMarkdownToHtml(replyText)}</div>`;
+        msgBox.appendChild(botMsgDiv);
+
+        aiChatHistory.push({ role: 'assistant', content: replyText });
+      } catch (err) {
+        typingDiv.remove();
+        const errDiv = document.createElement('div');
+        errDiv.className = 'ai-msg ai-bot';
+        errDiv.innerHTML = `<div class="ai-msg-bubble" style="color:var(--sub-red);">Network issue. Please try again.</div>`;
+        msgBox.appendChild(errDiv);
+      } finally {
+        isAiResponding = false;
+        msgBox.scrollTop = msgBox.scrollHeight;
+      }
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function formatMarkdownToHtml(md) {
+      let h = escapeHtml(md);
+      h = h.replace(/### (.*?)(?:\n|<br>|$)/g, '<h3>$1</h3>');
+      h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      h = h.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      h = h.replace(/• (.*?)(?=\n|<br>|$)/g, '<li>$1</li>');
+      h = h.replace(/\n\n/g, '<br><br>');
+      h = h.replace(/\n/g, '<br>');
+      return h;
+    }
+  </script>
+  <!-- GoatCounter Analytics -->
+  <script data-goatcounter="https://subsoccer-arcade.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
