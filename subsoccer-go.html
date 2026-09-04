@@ -414,6 +414,27 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<!-- PostHog Product Analytics -->
+<script>
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing startSessionRecording identify alias people.set people.set_once set_config".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  window.POSTHOG_API_KEY = "phc_pT76mmirXkWWd34fKh4oX6wr5LrqAXUtNYNzwfTh8Rzo2";
+  if (window.posthog && window.POSTHOG_API_KEY) {
+    posthog.init(window.POSTHOG_API_KEY, {
+      api_host: "https://eu.i.posthog.com",
+      defaults: "2026-05-30",
+      person_profiles: "identified_only",
+      autocapture: false,
+      capture_pageview: false,
+      capture_pageleave: true,
+      session_recording: {
+        maskAllInputs: true,
+        maskTextSelector: "#player-nickname"
+      }
+    });
+  }
+</script>
+
 </head>
 <body>
 
@@ -483,6 +504,20 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     <button class="gobtn gobtn-secondary" id="bstart-online">
       <i class="fa-solid fa-user-group" style="font-size:1rem;color:var(--sub-gold);"></i> VS FRIEND (ONLINE)
     </button>
+    <a href="#" onclick="
+       event.preventDefault();
+       var ids = ['rtxt','stxt','match-time-card','profile-saved-badge','name-entry-box','guest-conversion-card','bagain'];
+       var over = document.getElementById('over');
+       var lb = document.getElementById('leaderboard-section');
+       if (!over || !lb) return;
+       ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+       lb.style.display = 'block';
+       over.style.display = 'flex';
+       if (typeof fetchLeaderboard === 'function') fetchLeaderboard('cup', '1');
+       setTimeout(function(){ lb.scrollIntoView({behavior:'smooth'}); }, 100);
+     " style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,215,0,0.6);text-decoration:none;text-transform:uppercase;padding:4px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,215,0,1)'" onmouseout="this.style.color='rgba(255,215,0,0.6)'" id="ranking-link">
+      <i class="fa-solid fa-ranking-star" style="font-size:10px;"></i> RANKING
+    </a>
     <a href="/" style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.45);text-decoration:none;text-transform:uppercase;padding:6px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color 0.2s;margin-top:2px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">
       <i class="fa-solid fa-arrow-left" style="font-size:10px;"></i> BACK TO HOME
     </a>
@@ -887,6 +922,45 @@ fetch('/.netlify/functions/geo')
   .catch(() => {})
   .finally(() => { trackGoAppOpened(); });
 
+
+// ─── Product Analytics Abstraction Layer ───
+function trackProduct(eventName, properties = {}) {
+  try {
+    const base = {
+      game_mode: typeof gameMode !== "undefined" ? gameMode : "cpu",
+      country: _playerCountry || null,
+      screen: `${window.innerWidth}x${window.innerHeight}`,
+      is_touch: "ontouchstart" in window,
+      session_state: typeof state !== "undefined" ? state : "start",
+      cup_round: typeof currentCupRound !== "undefined" ? currentCupRound : null,
+      table_qr: localStorage.getItem("subsoccer_scanned_table") || null,
+      client_time: new Date().toISOString()
+    };
+    const payload = { ...base, ...properties };
+
+    if (window.posthog && typeof window.posthog.capture === "function") {
+      window.posthog.capture(eventName, payload);
+    }
+    if (window.location.hostname === "localhost" || window.location.search.includes("debug_telemetry")) {
+      console.log("[Telemetry]", eventName, payload);
+    }
+  } catch(e) {
+    console.warn("[Telemetry Error]", e);
+  }
+}
+
+function identifyProductUser(profile) {
+  try {
+    if (!window.posthog || typeof window.posthog.identify !== "function" || !profile) return;
+    window.posthog.identify(profile.id, {
+      username: profile.username || null,
+      country: profile.country || _playerCountry || null,
+      elo: profile.elo || null,
+      is_guest: !!profile.is_guest_passport
+    });
+  } catch(e) {}
+}
+
 function trackGoAppOpened() {
   try {
     fetch(`${SB_URL}/rest/v1/public_tracking`, {
@@ -901,6 +975,7 @@ function trackGoAppOpened() {
         client_time: new Date().toISOString()
       })
     }).catch(() => {});
+    trackProduct("session_started", { referrer: document.referrer || null, url_room: new URLSearchParams(window.location.search).get("room") || null });
   } catch(e) {}
 }
 
@@ -1020,15 +1095,29 @@ function renderLeaderboard(list){
 
 async function submitScoreWithName(nickname){
   if(_scoreSubmitted) return;
+
+  // STRICT GUARD: Speedrun leaderboard only accepts won matches (sY >= WIN and sY > sC)
+  const isWin = (sY >= WIN && sY > sC);
+  if(!isWin && !lastClearedRound){
+    return;
+  }
+
   _scoreSubmitted = true;
-  const name = (nickname || '').trim() || 'Anonymous';
+  trackProduct('leaderboard_submitted', { nickname_length: (nickname || '').length, round_reached: lastClearedRound, duration_s: totalCupDuration });
+  // If user is authenticated, always use their profile username
+  const name = (currentUserProfile && currentUserProfile.username)
+    ? currentUserProfile.username
+    : ((nickname || '').trim() || localStorage.getItem('subsoccer_nickname') || 'Anonymous');
+
   localStorage.setItem('subsoccer_nickname', name);
 
   const saveBtn = document.getElementById('save-score-btn');
   if(saveBtn) { saveBtn.textContent = 'SAVED ✓'; saveBtn.disabled = true; }
 
-  const roundToSubmit = lastClearedRound || currentCupRound || 1;
-  const timeToSubmit = lastClearedDuration || _matchDuration || 0;
+  const roundToSubmit = (isWin ? currentCupRound : lastClearedRound) || 1;
+  const timeToSubmit = (isWin ? _matchDuration : lastClearedDuration) || 0;
+  const pScore = isWin ? sY : WIN;
+  const cScore = isWin ? sC : Math.min(sC, WIN - 1);
 
   try {
     await fetch('/.netlify/functions/digital-leaderboard', {
@@ -1036,8 +1125,8 @@ async function submitScoreWithName(nickname){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         winner: 'player',
-        score_player: sY,
-        score_cpu: sC,
+        score_player: pScore,
+        score_cpu: cScore,
         duration_s: Number(timeToSubmit),
         player_name: name,
         country: _playerCountry,
@@ -1208,75 +1297,141 @@ let pLKick=0, pRKick=0;  // player foot kick anim (0→1→0)
 let cLKick=0, cRKick=0;  // CPU foot kick anim
 let currentUserProfile = null; // Logged in Subsoccer Pro player profile
 
-// ─── Registered User Profile detection ───────────────────
+// ─── Registered User Profile & Zero-Friction Instant Passport ──
+function promptEditPlayerName(e){
+  if(e) e.stopPropagation();
+  const current = (currentUserProfile && currentUserProfile.username) || localStorage.getItem('subsoccer_nickname') || '';
+  const newName = prompt('Enter your player nickname:', current);
+  if(newName && newName.trim()){
+    const clean = newName.trim().slice(0, 20);
+    localStorage.setItem('subsoccer_nickname', clean);
+    if(currentUserProfile){
+      currentUserProfile.username = clean;
+    }
+    const myLbl = document.getElementById('my-lbl');
+    if(myLbl) myLbl.textContent = clean.toUpperCase();
+    const myAv = document.getElementById('my-av');
+    if(myAv) myAv.textContent = clean.charAt(0).toUpperCase();
+    initUserProfile();
+  }
+}
+
 async function initUserProfile(){
   try {
     const sb = getSbClient();
-    if(!sb) return;
-    const { data: { session } } = await sb.auth.getSession();
-    if(session && session.user){
-      const { data: profile } = await sb.from('players').select('id, username, avatar_url, country, elo, wins, losses, rank').eq('id', session.user.id).maybeSingle();
-      if(profile && profile.username){
-        currentUserProfile = profile;
-        if(profile.country) _playerCountry = profile.country;
-        const playerLevel = Math.max(1, Math.floor(((profile.wins || 0) * 3 + (profile.losses || 0)) / 5) + 1);
-        currentUserProfile.level = playerLevel;
-        // Update HUD
-        const myLbl = document.getElementById('my-lbl');
-        if(myLbl) myLbl.textContent = profile.username.toUpperCase();
-        const myAv = document.getElementById('my-av');
-        if(myAv){
-          if(profile.avatar_url && profile.avatar_url.trim()){
-            myAv.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-          } else {
-            myAv.textContent = profile.username.charAt(0).toUpperCase();
-          }
-        }
-        // Update Start Screen Badge
-        const startBadge = document.getElementById('user-profile-badge');
-        const guestBanner = document.getElementById('guest-start-banner');
-        if(guestBanner) guestBanner.style.display = 'none';
-        if(startBadge){
-          startBadge.innerHTML = `
-            <div class="auth-pill-bar">
-              <div class="auth-pill-user">
-                <div style="width:20px;height:20px;border-radius:50%;background:var(--sub-red);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;">
-                  ${profile.avatar_url ? `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;">` : profile.username.charAt(0).toUpperCase()}
-                </div>
-                <span style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${escapeHtml(profile.username)}</span>
-                <span style="color:rgba(255,255,255,0.4);font-size:9px;">· LVL ${playerLevel}</span>
-              </div>
-              <span style="font-family:'Resolve',sans-serif;font-size:9px;color:var(--sub-gold);font-weight:700;letter-spacing:1px;background:rgba(255,215,0,0.1);padding:3px 8px;border-radius:10px;border:1px solid rgba(255,215,0,0.25);">${profile.rank || 'PRO'}</span>
-            </div>
-          `;
-          startBadge.style.display = 'block';
-        }
-        // Check for pending score from guest game before signup
-        const pendingScoreStr = localStorage.getItem('subsoccer_pending_score');
-        if(pendingScoreStr){
-          try {
-            const pScore = JSON.parse(pendingScoreStr);
-            if(pScore && pScore.duration){
-              _matchDuration = pScore.duration;
-              sY = pScore.score_player || 3;
-              sC = pScore.score_cpu || 0;
-              await submitScoreWithName(profile.username);
-              localStorage.removeItem('subsoccer_pending_score');
+    if(sb){
+      const { data: { session } } = await sb.auth.getSession();
+      if(session && session.user){
+        const { data: profile } = await sb.from('players').select('id, username, avatar_url, country, elo, wins, losses, rank').eq('id', session.user.id).maybeSingle();
+        if(profile && profile.username){
+          currentUserProfile = profile;
+          if(profile.country) _playerCountry = profile.country;
+          identifyProductUser(profile);
+          const playerLevel = Math.max(1, Math.floor(((profile.wins || 0) * 3 + (profile.losses || 0)) / 5) + 1);
+          currentUserProfile.level = playerLevel;
+          // Update HUD
+          const myLbl = document.getElementById('my-lbl');
+          if(myLbl) myLbl.textContent = profile.username.toUpperCase();
+          const myAv = document.getElementById('my-av');
+          if(myAv){
+            if(profile.avatar_url && profile.avatar_url.trim()){
+              myAv.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            } else {
+              myAv.textContent = profile.username.charAt(0).toUpperCase();
             }
-          } catch(e){
-            console.warn('Pending score save error:', e);
           }
+          // Update Start Screen Badge
+          const startBadge = document.getElementById('user-profile-badge');
+          const guestBanner = document.getElementById('guest-start-banner');
+          if(guestBanner) guestBanner.style.display = 'none';
+          if(startBadge){
+            startBadge.innerHTML = `
+              <div class="auth-pill-bar">
+                <div class="auth-pill-user">
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--sub-red);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;">
+                    ${profile.avatar_url ? `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;">` : profile.username.charAt(0).toUpperCase()}
+                  </div>
+                  <span style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${escapeHtml(profile.username)}</span>
+                  <span style="color:rgba(255,255,255,0.4);font-size:9px;">· LVL ${playerLevel}</span>
+                </div>
+                <span style="font-family:'Resolve',sans-serif;font-size:9px;color:var(--sub-gold);font-weight:700;letter-spacing:1px;background:rgba(255,215,0,0.1);padding:3px 8px;border-radius:10px;border:1px solid rgba(255,215,0,0.25);">${profile.rank || 'PRO'}</span>
+              </div>
+            `;
+            startBadge.style.display = 'block';
+          }
+          // Check for pending score from guest game before signup
+          const pendingScoreStr = localStorage.getItem('subsoccer_pending_score');
+          if(pendingScoreStr){
+            try {
+              const pScore = JSON.parse(pendingScoreStr);
+              if(pScore && pScore.duration){
+                _matchDuration = pScore.duration;
+                sY = pScore.score_player || 3;
+                sC = pScore.score_cpu || 0;
+                await submitScoreWithName(profile.username);
+                localStorage.removeItem('subsoccer_pending_score');
+              }
+            } catch(e){
+              console.warn('Pending score save error:', e);
+            }
+          }
+          return;
         }
-        return;
       }
     }
-    // Guest fallback
+
+    // ── Zero-Friction Instant Player Passport (for guests & QR scans) ──
+    const savedNick = localStorage.getItem('subsoccer_nickname');
+    let guestPassport = null;
+    try {
+      guestPassport = JSON.parse(localStorage.getItem('subsoccer_guest_passport') || 'null');
+    } catch(e){}
+
+    if (!guestPassport) {
+      const defaultName = savedNick || ('Striker #' + Math.floor(100 + Math.random() * 900));
+      guestPassport = {
+        id: 'guest_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 4),
+        username: defaultName,
+        country: _playerCountry || 'FI',
+        elo: 1000,
+        wins: 0,
+        losses: 0,
+        level: 1,
+        rank: 'ROOKIE',
+        is_guest_passport: true
+      };
+      localStorage.setItem('subsoccer_guest_passport', JSON.stringify(guestPassport));
+      if (!savedNick) localStorage.setItem('subsoccer_nickname', defaultName);
+    } else if (savedNick && guestPassport.username !== savedNick) {
+      guestPassport.username = savedNick;
+    }
+
+    currentUserProfile = guestPassport;
+    const myLbl = document.getElementById('my-lbl');
+    if(myLbl) myLbl.textContent = guestPassport.username.toUpperCase();
+    const myAv = document.getElementById('my-av');
+    if(myAv) myAv.textContent = (guestPassport.username || 'G').charAt(0).toUpperCase();
+
+    const startBadge = document.getElementById('user-profile-badge');
     const guestBanner = document.getElementById('guest-start-banner');
-    if(guestBanner) guestBanner.style.display = 'block';
+    if(guestBanner) guestBanner.style.display = 'none';
+    if(startBadge){
+      startBadge.innerHTML = `
+        <div class="auth-pill-bar" style="background:rgba(255,255,255,0.06); border-color:rgba(255,215,0,0.3);">
+          <div class="auth-pill-user">
+            <div style="width:20px;height:20px;border-radius:50%;background:#0a3d62;border:1px solid rgba(255,255,255,0.3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;">
+              ${(guestPassport.username || 'G').charAt(0).toUpperCase()}
+            </div>
+            <span style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;font-weight:700;">${escapeHtml(guestPassport.username)}</span>
+            <span style="color:var(--sub-gold);font-size:9px;font-weight:700;">· PASSPORT</span>
+          </div>
+          <button onclick="promptEditPlayerName(event)" style="background:transparent; border:none; color:rgba(255,255,255,0.6); font-size:10px; cursor:pointer; padding:2px 6px; border-radius:4px; font-family:'Resolve',sans-serif; font-weight:700;">✏️ Edit</button>
+        </div>
+      `;
+      startBadge.style.display = 'block';
+    }
   } catch(e){
     console.warn('Profile init warning:', e);
-    const guestBanner = document.getElementById('guest-start-banner');
-    if(guestBanner) guestBanner.style.display = 'block';
   }
 }
 
@@ -1692,6 +1847,7 @@ function setupChannelHandlers(){
         if(!mpConnected){
           mpConnected = true;
           showMatchupScreen(oppData, () => {
+            trackProduct(mp_guest_joined, { room_code: mpRoomCode, role: host, latency_ms: mpLatency });
             startOnlineGame();
             initWebRTCHost(); // Start P2P direct handshake
           });
@@ -1801,6 +1957,7 @@ async function createRoom(){
   setupChannelHandlers();
   const rcEl = document.getElementById('mp-room-code'); if(rcEl) rcEl.textContent = mpRoomCode;
   showScreen('mp-waiting');
+  trackProduct('mp_room_created', { room_code: mpRoomCode });
 }
 
 async function joinRoom(code){
@@ -1840,6 +1997,7 @@ function leaveRoom(){
 }
 
 function showMpDisconnected(){
+  trackProduct('mp_disconnected', { room_code: mpRoomCode, role: mpRole, during_game: state === 'playing' });
   cleanupWebRTC();
   if(_pingInterval){ clearInterval(_pingInterval); _pingInterval = null; }
   ['start','draw','mp-lobby','mp-waiting','mp-matchup'].forEach(s => {
@@ -1944,6 +2102,7 @@ function showDrawOnline(callback){
 function scoreOnline(who, shouldBroadcast = true){
   if(state !== 'playing') return;
   state = 'goal';
+  trackProduct('goal_scored', { scorer: who, player_score: sY + (who==='you'?1:0), opponent_score: sC + (who!=='you'?1:0), is_online: true, match_time_s: gameStartTime ? Number(((Date.now()-gameStartTime)/1000).toFixed(1)) : 0 });
   if(who === 'you'){ sY++; document.getElementById('sy').textContent = sY; }
   else             { sC++; document.getElementById('sc').textContent = sC; }
   showGoalOnline(who);
@@ -2418,6 +2577,7 @@ function hitFoot(fx, fy, dir){
 function score(who){
   if(state!=='playing') return;
   state='goal';
+  trackProduct('goal_scored', { scorer: who, player_score: sY + (who==='you'?1:0), opponent_score: sC + (who==='cpu'?1:0), round: currentCupRound, match_time_s: gameStartTime ? Number(((Date.now()-gameStartTime)/1000).toFixed(1)) : 0 });
   if(who==='you'){
     sY++;
     document.getElementById('sy').textContent=sY;
@@ -2625,6 +2785,7 @@ function startCupRound(roundNum){
       resetBall(dir);
       gameStartTime = Date.now();
       state='playing';
+      trackProduct('cup_round_started', { round: currentCupRound, opponent: cfg.name, difficulty: cfg.aiLevel });
       // CPU won the draw → fire opening kick scaled by round
       if(dir === -1){
         const cornerX = F.gx + (Math.random() > 0.5 ? F.gw*0.15 : F.gw*0.85);
@@ -2666,6 +2827,7 @@ function showRoundCleared(roundNum, duration){
   }
 
   document.getElementById('round-cleared').style.display = 'flex';
+  trackProduct('cup_round_cleared', { round: roundNum, duration_s: Number(duration), total_cup_time: Number(totalCupDuration) });
 
   // Auto-save round time to leaderboard
   if(currentUserProfile && currentUserProfile.username){
@@ -2706,7 +2868,7 @@ function endGame(){
       if(finalRoundEl) finalRoundEl.textContent = 'ALL 5 ROUNDS WON';
       const guestCard = document.getElementById('guest-conversion-card');
       const savedBadge = document.getElementById('profile-saved-badge');
-      if(currentUserProfile && currentUserProfile.username){
+      if(currentUserProfile && !currentUserProfile.is_guest_passport && currentUserProfile.username){
         submitScoreWithName(currentUserProfile.username);
         if(savedBadge){
           savedBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> 🏆 <strong>CHAMPION</strong> time <strong>${_matchDuration}s</strong> saved to <strong>${escapeHtml(currentUserProfile.username)}</strong>'s profile!`;
@@ -2718,7 +2880,7 @@ function endGame(){
       } else {
         if(nameBoxEl){
           nameBoxEl.style.display = 'flex';
-          const savedNick = localStorage.getItem('subsoccer_nickname') || '';
+          const savedNick = (currentUserProfile && currentUserProfile.username) || localStorage.getItem('subsoccer_nickname') || '';
           if(nickEl) nickEl.value = savedNick;
           if(saveBtn){ saveBtn.textContent = 'SAVE'; saveBtn.disabled = false; }
         }
@@ -2739,26 +2901,18 @@ function endGame(){
       if(finalRoundEl){
         finalRoundEl.textContent = lastClearedRound ? `ROUND ${lastClearedRound} CLEARED` : `ROUND ${currentCupRound} EXIT`;
       }
-      if(lastClearedRound > 0){
-        if(nameBoxEl){
-          nameBoxEl.style.display = 'flex';
-          const savedNick = localStorage.getItem('subsoccer_nickname') || '';
-          if(nickEl) nickEl.value = savedNick;
-          if(saveBtn){ saveBtn.textContent = 'SAVE'; saveBtn.disabled = false; }
-        }
-      } else {
-        if(nameBoxEl) nameBoxEl.style.display = 'none';
-      }
+      // Never allow saving defeat time to speedrun leaderboard
+      if(nameBoxEl) nameBoxEl.style.display = 'none';
       const guestCard = document.getElementById('guest-conversion-card');
-      if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
-      fetchLeaderboard('cup', String(lastClearedRound || 1));
+      if(guestCard && (!currentUserProfile || currentUserProfile.is_guest_passport)) guestCard.style.display = 'flex';
+      fetchLeaderboard('cup', String(lastClearedRound || currentCupRound || 1));
     }
   } else {
     r.textContent = 'Draw!';
     winner = 'draw';
     if(nameBoxEl) nameBoxEl.style.display = 'none';
     const guestCard = document.getElementById('guest-conversion-card');
-    if(guestCard && !currentUserProfile) guestCard.style.display = 'flex';
+    if(guestCard && (!currentUserProfile || currentUserProfile.is_guest_passport)) guestCard.style.display = 'flex';
     fetchLeaderboard('cup', String(lastClearedRound || 1));
   }
 
@@ -2770,6 +2924,7 @@ function endGame(){
   document.getElementById('over').style.display = 'flex';
 
   trackGameResult(winner, sY, sC);
+  trackProduct(match_completed, { mode: gameMode, winner, score_player: sY, score_cpu: sC, duration_s: Number(_matchDuration) || null, round_reached: currentCupRound, is_champion: (winner === player && currentCupRound === 5) });
 
   // Track for public_tracking retention engine
   try {
@@ -3020,6 +3175,19 @@ function updatePhysicsStep(){
   updateTimer();
 }
 
+
+window.addEventListener("beforeunload", () => {
+  if (state === "playing" && gameStartTime) {
+    trackProduct("match_abandoned", {
+      mode: gameMode,
+      score_player: sY,
+      score_cpu: sC,
+      elapsed_s: Number(((Date.now() - gameStartTime) / 1000).toFixed(1)),
+      round: currentCupRound
+    });
+  }
+});
+
 function loop(timestamp){
   if(!lastLoopTime) lastLoopTime = timestamp || performance.now();
   const now = timestamp || performance.now();
@@ -3044,8 +3212,9 @@ function loop(timestamp){
 }
 
 // ─── Init ─────────────────────────────────────────────────
-document.getElementById('bstart').addEventListener('click', startGame);
+document.getElementById('bstart').addEventListener('click', () => { trackProduct('mode_selected', { mode: 'cpu' }); startGame(); });
 document.getElementById('bagain').addEventListener('click', () => {
+  trackProduct('rematch_clicked', { mode: gameMode, is_online: gameMode === 'online' });
   if(gameMode === 'online' && mpConnected){
     // Two-phase handshake: both send rematch_ready, host starts when both are ready
     sendNetMessage('rematch_ready', { role: mpRole });
@@ -3095,6 +3264,7 @@ if(exitBtn){
 
 // Online mode buttons
 document.getElementById('bstart-online').addEventListener('click', () => {
+  trackProduct('mode_selected', { mode: 'online' });
   createRoom(); // Luo huone suoraan ja näytä jakolinkki
 });
 
@@ -3127,6 +3297,7 @@ document.getElementById('mp-dc-back').addEventListener('click', () => {
 });
 
 document.getElementById('mp-share-btn').addEventListener('click', () => {
+  trackProduct('mp_share_clicked', { room_code: mpRoomCode, method: navigator.share ? 'native_share' : 'clipboard' });
   const url = `${window.location.origin}/play?room=${mpRoomCode}`;
   if(navigator.share){
     navigator.share({ title:'Subsoccer Go', text:`Join my game! Code: ${mpRoomCode}`, url });
@@ -3168,6 +3339,20 @@ document.getElementById('mp-copy-link-text-btn')?.addEventListener('click', () =
   }
 })();
 
+// Check URL for table QR code parameter: ?table=TRIPLA-01 or ?t=DOCK-1
+(function detectTableQr(){
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableParam = urlParams.get('table') || urlParams.get('t') || urlParams.get('hub') || urlParams.get('venue');
+    if(tableParam){
+      const code = tableParam.trim().toUpperCase();
+      localStorage.setItem('subsoccer_scanned_table', code);
+      const subEl = document.querySelector('#start .sub');
+      if(subEl) subEl.textContent = `📍 TABLE ${code} · CUP`;
+    }
+  } catch(e){}
+})();
+
 document.getElementById('guest-signup-btn')?.addEventListener('click', () => {
   if(_matchDuration){
     try {
@@ -3181,16 +3366,6 @@ document.getElementById('guest-signup-btn')?.addEventListener('click', () => {
   }
 });
 
-document.getElementById('save-score-btn')?.addEventListener('click', () => {
-  const nickInput = document.getElementById('player-nickname');
-  const name = nickInput ? nickInput.value : '';
-  submitScoreWithName(name);
-});
-document.getElementById('player-nickname')?.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter'){
-    submitScoreWithName(e.target.value);
-  }
-});
 
 // Round filter buttons (ALL, R5, R4, R3, R2, R1)
 document.querySelectorAll('.lb-filter-btn').forEach(btn => {
