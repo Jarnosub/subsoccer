@@ -1116,9 +1116,6 @@
                 animation: goalFlash 0.5s ease-in-out;
             }
 
-            #table-id-display {
-                display: none !important; /* Never show gameId in landscape/ranked contexts */
-            }
         }
 
         /* Landscape & Short Screen Optimization (Mobile Landscape / Laptops / Screen Casting) */
@@ -1405,10 +1402,7 @@
 
 
 
-        /* Table ID display - hidden cleanly */
-        #table-id-display {
-            display: none !important;
-        }
+
 
         /* Game Logo Overlay */
         .game-logo {
@@ -1426,13 +1420,6 @@
         html.is-ranked-intro #game-logo,
         body:has(.winner-overlay.show) #game-logo,
         body:has(#winner-overlay.show) #game-logo {
-            display: none !important;
-        }
-
-        /* Never show Game ID badge during ranked matches */
-        html.is-ranked-intro #table-id-display,
-        html.is-ranked-playing #table-id-display,
-        body:has(.winner-overlay.show) #table-id-display {
             display: none !important;
         }
 
@@ -1703,8 +1690,6 @@
 
 
 
-    <!-- Table ID Display -->
-    <div id="table-id-display" class="table-id">GAME: <span id="table-id-value"></span></div>
 
     <!-- Main scoreboard -->
     <div class="scoreboard" id="main-scoreboard">
@@ -3072,12 +3057,6 @@
             }
 
             currentGameId = gameId;
-            document.getElementById('table-id-value').textContent = gameId;
-            
-            // Only show table ID on UI if it's an actual specific table/QR, not generic quick-play
-            if (gameId && gameId !== 'QUICK-PLAY') {
-                document.getElementById('table-id-display').style.display = 'block';
-            }
 
             // Start broadcasting ONLY if we have a specific serial number/game ID
             if (gameId !== 'QUICK-PLAY') {
