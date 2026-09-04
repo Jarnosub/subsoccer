@@ -421,7 +421,8 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
   window.POSTHOG_API_KEY = "phc_pT76mmirXkWWd34fKh4oX6wr5LrqAXUtNYNzwfTh8Rzo2";
   if (window.posthog && window.POSTHOG_API_KEY) {
     posthog.init(window.POSTHOG_API_KEY, {
-      api_host: "https://eu.i.posthog.com",
+      api_host: window.location.origin + "/ingest",
+      ui_host: "https://eu.posthog.com",
       defaults: "2026-05-30",
       person_profiles: "identified_only",
       autocapture: false,

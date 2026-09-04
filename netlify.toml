@@ -67,6 +67,17 @@
   from = "/create-payment-intent"
   to = "/.netlify/functions/create-payment-intent"
   status = 200
+# PostHog 1st-Party Reverse Proxy (bypasses IP tracking blocks & Safari ITP)
+[[redirects]]
+  from = "/ingest/static/*"
+  to = "https://eu-assets.i.posthog.com/static/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/ingest/*"
+  to = "https://eu.i.posthog.com/:splat"
+  status = 200
   force = true
 
 # Security headers applied to all pages
