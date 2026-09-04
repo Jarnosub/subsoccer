@@ -1821,6 +1821,21 @@
     "category": "mall"
   },
   {
+    "id": "ugc-ferrari-f1-leclerc-hamilton",
+    "cat": "brand",
+    "category": "brand",
+    "flag": "🏎️",
+    "title": "Scuderia Ferrari — Charles Leclerc & Lewis Hamilton playing Subsoccer",
+    "location": "Scuderia Ferrari HP Paddock & Hospitality",
+    "lat": 44.5323,
+    "lng": 10.864,
+    "author": "@leclercsletters",
+    "platform": "x",
+    "url": "https://x.com/leclercsletters/status/2078062062136123709",
+    "previewImg": "assets/ugc/thumb-x-ferrari-leclerc-hamilton.jpg",
+    "icon": "🏎️"
+  },
+  {
     "id": "ugc-sporting-kc-centralbank-01",
     "cat": "brand",
     "flag": "🇺🇸",
@@ -3685,10 +3700,11 @@
         const platform = (v.platform || 'instagram').toLowerCase();
         const isYt = platform === 'youtube' || (v.url && v.url.includes('youtube'));
         const isTt = platform === 'tiktok' || (v.url && v.url.includes('tiktok'));
-        const platformLabel = isTt ? 'TikTok' : (isYt ? 'YouTube' : 'Instagram');
-        const platformIcon = isTt ? 'fa-brands fa-tiktok' : (isYt ? 'fa-brands fa-youtube' : 'fa-brands fa-instagram');
-        const btnLabel = (isYt || isTt) ? 'Watch video' : 'View profile';
-        const btnBg = isTt ? '#010101' : (isYt ? '#e11d48' : '#0095f6');
+        const isX = platform === 'x' || platform === 'twitter' || (v.url && (v.url.includes('x.com') || v.url.includes('twitter.com')));
+        const platformLabel = isX ? 'X' : (isTt ? 'TikTok' : (isYt ? 'YouTube' : 'Instagram'));
+        const platformIcon = isX ? 'fa-brands fa-x-twitter' : (isTt ? 'fa-brands fa-tiktok' : (isYt ? 'fa-brands fa-youtube' : 'fa-brands fa-instagram'));
+        const btnLabel = (isYt || isTt || isX) ? 'Watch video' : 'View profile';
+        const btnBg = isX ? '#0f1419' : (isTt ? '#010101' : (isYt ? '#e11d48' : '#0095f6'));
 
         return `
           <div class="venue-card ${activeVenueId === v.id ? 'active' : ''}" id="card-${v.id}" onclick="selectCard('${v.id}', true)">
