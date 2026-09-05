@@ -1,0 +1,534 @@
+[
+  {
+    "name": "Cayman Islands",
+    "year": "2023",
+    "flag": "🇰🇾",
+    "lat": 19.3133,
+    "lng": -81.2546
+  },
+  {
+    "name": "China",
+    "year": "2026",
+    "flag": "🇨🇳",
+    "lat": 35.8617,
+    "lng": 104.1954
+  },
+  {
+    "name": "Colombia",
+    "year": "2023",
+    "flag": "🇨🇴",
+    "lat": 4.5709,
+    "lng": -74.2973
+  },
+  {
+    "name": "Costa Rica",
+    "year": "2023",
+    "flag": "🇨🇷",
+    "lat": 9.7489,
+    "lng": -83.7534
+  },
+  {
+    "name": "Croatia",
+    "year": "2020",
+    "flag": "🇭🇷",
+    "lat": 45.1,
+    "lng": 15.2
+  },
+  {
+    "name": "Czech Republic",
+    "year": "2021",
+    "flag": "🇨🇿",
+    "lat": 49.8175,
+    "lng": 15.473
+  },
+  {
+    "name": "Denmark",
+    "year": "2021",
+    "flag": "🇩🇰",
+    "lat": 56.2639,
+    "lng": 9.5018
+  },
+  {
+    "name": "Egypt",
+    "year": "2022",
+    "flag": "🇪🇬",
+    "lat": 26.8206,
+    "lng": 30.8025
+  },
+  {
+    "name": "England",
+    "year": "2021",
+    "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+    "lat": 52.3555,
+    "lng": -1.1743
+  },
+  {
+    "name": "Estonia",
+    "year": "2021",
+    "flag": "🇪🇪",
+    "lat": 58.5953,
+    "lng": 25.0136
+  },
+  {
+    "name": "Faroe Islands",
+    "year": "2023",
+    "flag": "🇫🇴",
+    "lat": 61.8926,
+    "lng": -6.9118
+  },
+  {
+    "name": "Finland",
+    "year": "2019",
+    "flag": "🇫🇮",
+    "lat": 61.9241,
+    "lng": 25.7482
+  },
+  {
+    "name": "France",
+    "year": "2021",
+    "flag": "🇫🇷",
+    "lat": 46.2276,
+    "lng": 2.2137
+  },
+  {
+    "name": "Georgia",
+    "year": "2023",
+    "flag": "🇬🇪",
+    "lat": 42.3154,
+    "lng": 43.3569
+  },
+  {
+    "name": "Germany",
+    "year": "2020",
+    "flag": "🇩🇪",
+    "lat": 51.1657,
+    "lng": 10.4515
+  },
+  {
+    "name": "Greece",
+    "year": "2023",
+    "flag": "🇬🇷",
+    "lat": 39.0742,
+    "lng": 21.8243
+  },
+  {
+    "name": "Guatemala",
+    "year": "2023",
+    "flag": "🇬🇹",
+    "lat": 15.7835,
+    "lng": -90.2308
+  },
+  {
+    "name": "Hong Kong",
+    "year": "2021",
+    "flag": "🇭🇰",
+    "lat": 22.3193,
+    "lng": 114.1694
+  },
+  {
+    "name": "Hungary",
+    "year": "2022",
+    "flag": "🇭🇺",
+    "lat": 47.1625,
+    "lng": 19.5033
+  },
+  {
+    "name": "Iceland",
+    "year": "2022",
+    "flag": "🇮🇸",
+    "lat": 64.9631,
+    "lng": -19.0208
+  },
+  {
+    "name": "India",
+    "year": "2022",
+    "flag": "🇮🇳",
+    "lat": 20.5937,
+    "lng": 78.9629
+  },
+  {
+    "name": "Indonesia",
+    "year": "2023",
+    "flag": "🇮🇩",
+    "lat": -0.7893,
+    "lng": 113.9213
+  },
+  {
+    "name": "Iraq",
+    "year": "2022",
+    "flag": "🇮🇶",
+    "lat": 33.2232,
+    "lng": 43.6793
+  },
+  {
+    "name": "Ireland",
+    "year": "2022",
+    "flag": "🇮🇪",
+    "lat": 53.1424,
+    "lng": -7.6921
+  },
+  {
+    "name": "Israel",
+    "year": "2021",
+    "flag": "🇮🇱",
+    "lat": 31.0461,
+    "lng": 34.8516
+  },
+  {
+    "name": "Italy",
+    "year": "2021",
+    "flag": "🇮🇹",
+    "lat": 41.8719,
+    "lng": 12.5674
+  },
+  {
+    "name": "Jamaica",
+    "year": "2026",
+    "flag": "🇯🇲",
+    "lat": 18.1096,
+    "lng": -77.2975
+  },
+  {
+    "name": "Japan",
+    "year": "2022",
+    "flag": "🇯🇵",
+    "lat": 36.2048,
+    "lng": 138.2529
+  },
+  {
+    "name": "Jordan",
+    "year": "2024",
+    "flag": "🇯🇴",
+    "lat": 30.5852,
+    "lng": 36.2384
+  },
+  {
+    "name": "Kosovo",
+    "year": "2023",
+    "flag": "🇽🇰",
+    "lat": 42.6026,
+    "lng": 20.903
+  },
+  {
+    "name": "Kuwait",
+    "year": "2022",
+    "flag": "🇰🇼",
+    "lat": 29.3117,
+    "lng": 47.4818
+  },
+  {
+    "name": "La Réunion",
+    "year": "2026",
+    "flag": "🇷🇪",
+    "lat": -20.8821,
+    "lng": 55.4507
+  },
+  {
+    "name": "Latvia",
+    "year": "2022",
+    "flag": "🇱🇻",
+    "lat": 56.8796,
+    "lng": 24.6032
+  },
+  {
+    "name": "Lithuania",
+    "year": "2021",
+    "flag": "🇱🇹",
+    "lat": 55.1694,
+    "lng": 23.8813
+  },
+  {
+    "name": "Luxembourg",
+    "year": "2022",
+    "flag": "🇱🇺",
+    "lat": 49.8153,
+    "lng": 6.1296
+  },
+  {
+    "name": "Malaysia",
+    "year": "2022",
+    "flag": "🇲🇾",
+    "lat": 4.2105,
+    "lng": 101.9758
+  },
+  {
+    "name": "Malta",
+    "year": "2022",
+    "flag": "🇲🇹",
+    "lat": 35.9375,
+    "lng": 14.3754
+  },
+  {
+    "name": "Martinique",
+    "year": "2023",
+    "flag": "🇲🇶",
+    "lat": 14.6415,
+    "lng": -61.0242
+  },
+  {
+    "name": "Mauritius",
+    "year": "2023",
+    "flag": "🇲🇺",
+    "lat": -20.3484,
+    "lng": 57.5522
+  },
+  {
+    "name": "Mexico",
+    "year": "2021",
+    "flag": "🇲🇽",
+    "lat": 23.6345,
+    "lng": -102.5528
+  },
+  {
+    "name": "Moldova",
+    "year": "2023",
+    "flag": "🇲🇩",
+    "lat": 47.4116,
+    "lng": 28.3699
+  },
+  {
+    "name": "Netherlands",
+    "year": "2020",
+    "flag": "🇳🇱",
+    "lat": 52.1326,
+    "lng": 5.2913
+  },
+  {
+    "name": "New Zealand",
+    "year": "2026",
+    "flag": "🇳🇿",
+    "lat": -40.9006,
+    "lng": 174.886
+  },
+  {
+    "name": "Nigeria",
+    "year": "2021",
+    "flag": "🇳🇬",
+    "lat": 9.082,
+    "lng": 8.6753
+  },
+  {
+    "name": "North Macedonia",
+    "year": "2023",
+    "flag": "🇲🇰",
+    "lat": 41.6086,
+    "lng": 21.7453
+  },
+  {
+    "name": "Norway",
+    "year": "2021",
+    "flag": "🇳🇴",
+    "lat": 60.472,
+    "lng": 8.4689
+  },
+  {
+    "name": "Panama",
+    "year": "2022",
+    "flag": "🇵🇦",
+    "lat": 8.5379,
+    "lng": -80.7821
+  },
+  {
+    "name": "Paraguay",
+    "year": "2022",
+    "flag": "🇵🇾",
+    "lat": -23.4425,
+    "lng": -58.4438
+  },
+  {
+    "name": "Peru",
+    "year": "2022",
+    "flag": "🇵🇪",
+    "lat": -9.19,
+    "lng": -75.0152
+  },
+  {
+    "name": "Philippines",
+    "year": "2023",
+    "flag": "🇵🇭",
+    "lat": 12.8797,
+    "lng": 121.774
+  },
+  {
+    "name": "Poland",
+    "year": "2021",
+    "flag": "🇵🇱",
+    "lat": 51.9194,
+    "lng": 19.1451
+  },
+  {
+    "name": "Portugal",
+    "year": "2020",
+    "flag": "🇵🇹",
+    "lat": 39.3999,
+    "lng": -8.2245
+  },
+  {
+    "name": "Puerto Rico",
+    "year": "2023",
+    "flag": "🇵🇷",
+    "lat": 18.2208,
+    "lng": -66.5901
+  },
+  {
+    "name": "Qatar",
+    "year": "2022",
+    "flag": "🇶🇦",
+    "lat": 25.3548,
+    "lng": 51.1839
+  },
+  {
+    "name": "Romania",
+    "year": "2022",
+    "flag": "🇷🇴",
+    "lat": 45.9432,
+    "lng": 24.9668
+  },
+  {
+    "name": "Rwanda",
+    "year": "2021",
+    "flag": "🇷🇼",
+    "lat": -1.9403,
+    "lng": 29.8739
+  },
+  {
+    "name": "Saudi Arabia",
+    "year": "2022",
+    "flag": "🇸🇦",
+    "lat": 23.8859,
+    "lng": 45.0792
+  },
+  {
+    "name": "Scotland",
+    "year": "2021",
+    "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "lat": 56.4907,
+    "lng": -4.2026
+  },
+  {
+    "name": "Singapore",
+    "year": "2022",
+    "flag": "🇸🇬",
+    "lat": 1.3521,
+    "lng": 103.8198
+  },
+  {
+    "name": "Slovakia",
+    "year": "2021",
+    "flag": "🇸🇰",
+    "lat": 48.669,
+    "lng": 19.699
+  },
+  {
+    "name": "Slovenia",
+    "year": "2022",
+    "flag": "🇸🇮",
+    "lat": 46.1512,
+    "lng": 14.9955
+  },
+  {
+    "name": "South Africa",
+    "year": "2022",
+    "flag": "🇿🇦",
+    "lat": -30.5595,
+    "lng": 22.9375
+  },
+  {
+    "name": "South Korea",
+    "year": "2021",
+    "flag": "🇰🇷",
+    "lat": 35.9078,
+    "lng": 127.7669
+  },
+  {
+    "name": "Spain",
+    "year": "2022",
+    "flag": "🇪🇸",
+    "lat": 40.4637,
+    "lng": -3.7492
+  },
+  {
+    "name": "Sweden",
+    "year": "2021",
+    "flag": "🇸🇪",
+    "lat": 60.1282,
+    "lng": 18.6435
+  },
+  {
+    "name": "Switzerland",
+    "year": "2021",
+    "flag": "🇨🇭",
+    "lat": 46.8182,
+    "lng": 8.2275
+  },
+  {
+    "name": "Taiwan",
+    "year": "2022",
+    "flag": "🇹🇼",
+    "lat": 23.6978,
+    "lng": 120.9605
+  },
+  {
+    "name": "Tanzania",
+    "year": "2022",
+    "flag": "🇹🇿",
+    "lat": -6.369,
+    "lng": 34.8888
+  },
+  {
+    "name": "Thailand",
+    "year": "2023",
+    "flag": "🇹🇭",
+    "lat": 15.87,
+    "lng": 100.9925
+  },
+  {
+    "name": "Turkey",
+    "year": "2022",
+    "flag": "🇹🇷",
+    "lat": 38.9637,
+    "lng": 35.2433
+  },
+  {
+    "name": "Turks and Caicos",
+    "year": "2022",
+    "flag": "🇹🇨",
+    "lat": 21.694,
+    "lng": -71.7979
+  },
+  {
+    "name": "UAE",
+    "year": "2021",
+    "flag": "🇦🇪",
+    "lat": 23.4241,
+    "lng": 53.8478
+  },
+  {
+    "name": "Ukraine",
+    "year": "2022",
+    "flag": "🇺🇦",
+    "lat": 48.3794,
+    "lng": 31.1656
+  },
+  {
+    "name": "Uruguay",
+    "year": "2023",
+    "flag": "🇺🇾",
+    "lat": -32.5228,
+    "lng": -55.7658
+  },
+  {
+    "name": "USA",
+    "year": "2021",
+    "flag": "🇺🇸",
+    "lat": 37.0902,
+    "lng": -95.7129
+  },
+  {
+    "name": "Wales",
+    "year": "2020",
+    "flag": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+    "lat": 52.1307,
+    "lng": -3.7837
+  }
+]
