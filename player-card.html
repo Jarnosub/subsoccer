@@ -1906,7 +1906,7 @@
 
         function getCropKey() {
             const url = document.getElementById('selected-avatar-url')?.value || '';
-            const base = url.split('?')[0];
+            const base = url ? url.split('?')[0] : 'custom_upload';
             const userId = _currentPlayer?.id || 'unknown';
             return `subsoccer_crop_${userId}_${btoa(base).slice(0, 20)}`;
         }
@@ -2676,14 +2676,34 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
                         _aiSelfieB64 = dataUrl.split(',')[1];
                         
-                        // Store base64 for save (preview updates after save+moderation)
+                        // Store base64 for save
                         const b64Input = document.getElementById('selected-avatar-b64');
                         if (b64Input) b64Input.value = _aiSelfieB64;
                         const urlInput = document.getElementById('selected-avatar-url');
                         if (urlInput) urlInput.value = '';
+
+                        // 1. Immediately update player card preview with chosen photo
+                        const photo = document.getElementById('pc-card-photo');
+                        const icon = document.getElementById('pc-card-icon');
+                        if (icon) icon.style.display = 'none';
+                        if (photo) {
+                            photo.src = dataUrl;
+                            photo.style.display = 'block';
+                            photo.style.objectPosition = '50% 50%';
+                            photo.style.transform = 'scale(1)';
+                        }
+
+                        // 2. Open Crop Tool for instant adjustment & framing
+                        _cropState = { x: 50, y: 50, zoom: 100 };
+                        if (typeof showCropTool === 'function') {
+                            showCropTool(dataUrl);
+                        }
+
+                        // 3. Deselect preset avatar options in carousel
+                        document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
                     };
                     img.src = e.target.result;
                 };
@@ -2969,7 +2989,7 @@
                     msg.style.color = '#E30613';
                     msg.innerText = 'NOT LOGGED IN — PLEASE LOG IN AGAIN';
                     btn.disabled = false;
-                    btn.innerText = 'SAVE AVATAR';
+                    btn.innerText = 'SAVE CHANGES';
                     return;
                 }
 
@@ -3006,7 +3026,7 @@
                                 msg.style.color = '#E30613';
                                 msg.innerText = modData.message || 'Image violates content policy.';
                                 btn.disabled = false;
-                                btn.innerText = 'SAVE AVATAR';
+                                btn.innerText = 'SAVE CHANGES';
                                 return;
                             }
                         }
@@ -3017,20 +3037,22 @@
                 }
 
                 if (avatarB64) {
-                    // AI-generated avatar: upload via Supabase JS client (handles auth automatically)
-                    const path = `avatars/${userId}_ai_${Date.now()}.png`;
-                    const byteCharacters = atob(avatarB64);
+                    btn.innerText = 'UPLOADING PHOTO...';
+                    const path = `avatars/${userId}_ai_${Date.now()}.jpg`;
+                    const cleanB64 = avatarB64.includes(',') ? avatarB64.split(',')[1] : avatarB64;
+                    const byteCharacters = atob(cleanB64);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
                     const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], {type: 'image/png'});
+                    const blob = new Blob([byteArray], {type: 'image/jpeg'});
 
                     const sb = getSb();
                     const { error: uploadErr } = await sb.storage.from('event-images').upload(path, blob, {
                         cacheControl: '3600',
-                        upsert: true
+                        upsert: true,
+                        contentType: 'image/jpeg'
                     });
                     if (uploadErr) throw new Error('Upload failed: ' + uploadErr.message);
                     
@@ -3091,26 +3113,39 @@
                     msg.style.color = '#888';
                     msg.innerText = 'NO CHANGES DETECTED';
                     btn.disabled = false;
-                    btn.innerText = 'SAVE AVATAR';
+                    btn.innerText = 'SAVE CHANGES';
                     return;
                 }
 
-                console.log('Saving via Supabase client:', JSON.stringify(updates));
+                console.log('Saving profile updates via Netlify function:', JSON.stringify(updates));
+                btn.innerText = 'SAVING TO DATABASE...';
                 
-                // Use Supabase JS client for DB update (handles auth automatically)
-                const sb = getSb();
-                const { data: result, error: dbErr } = await sb.from('players').update(updates).eq('id', userId).select();
-                
-                if (dbErr) throw new Error('Save failed: ' + dbErr.message);
-                if (!result || result.length === 0) {
-                    throw new Error('Update blocked — session may have expired. Please log in again.');
+                // Call secure server-side save function (bypasses RLS with service role)
+                const saveRes = await fetch('/.netlify/functions/save-player-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        updates: updates
+                    })
+                });
+
+                const saveResult = await saveRes.json();
+                if (!saveRes.ok || !saveResult.success) {
+                    throw new Error(saveResult.error || 'Database save failed');
                 }
-                
-                console.log('✅ DB update confirmed:', JSON.stringify(result));
+
+                console.log('✅ DB update confirmed via Netlify function:', saveResult);
 
                 // Update localStorage & _currentPlayer with DB-confirmed data
-                const confirmed = Array.isArray(result) ? result[0] : result;
-                Object.assign(_currentPlayer, confirmed);
+                const confirmed = saveResult.player;
+                if (confirmed) {
+                    Object.assign(_currentPlayer, confirmed);
+                } else {
+                    Object.assign(_currentPlayer, updates);
+                }
                 localStorage.setItem('subsoccer-user', JSON.stringify(_currentPlayer));
 
                 // Add to avatar gallery localStorage
@@ -3121,7 +3156,7 @@
                 msg.style.color = '#4CAF50';
                 msg.innerText = '✓ SAVED SUCCESSFULLY';
                 btn.disabled = false;
-                btn.innerText = 'SAVE AVATAR';
+                btn.innerText = 'SAVE CHANGES';
 
                 setTimeout(() => location.reload(), 800);
             } catch(e) {
@@ -3129,7 +3164,7 @@
                 msg.style.color = '#E30613';
                 msg.innerText = e.message || 'SAVE FAILED';
                 btn.disabled = false;
-                btn.innerText = 'SAVE AVATAR';
+                btn.innerText = 'SAVE CHANGES';
             }
         }
 
