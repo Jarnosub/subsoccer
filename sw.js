@@ -28,6 +28,7 @@ const ASSETS = [
     '/fonts/Resolve-RegularCn.otf',
     '/fonts/Resolve-RegularNrw.otf',
     // Resurssit
+    '/manifest.json',
     '/subsoccer_logo.svg',
     '/subsoccer-go-logo-v3.png',
     '/icon-192.png',
