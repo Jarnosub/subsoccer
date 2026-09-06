@@ -9,6 +9,10 @@
     <meta name="description" content="Play Subsoccer instantly — no download, no registration. Tap to score, track results, and compete with players worldwide. The free digital scoreboard for any Subsoccer table.">
     <link rel="canonical" href="https://subsoccer.pro/instant-play.html">
 
+    <!-- Preload Critical Fonts for Fast Display -->
+    <link rel="preload" href="fonts/Subsoccer-2-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/Resolve-BoldNrw.otf" as="font" type="font/otf" crossorigin>
+
     <!-- Localized Language Alternates for SEO -->
     <link rel="alternate" hreflang="x-default" href="https://subsoccer.pro/instant-play.html">
     <link rel="alternate" hreflang="en" href="https://subsoccer.pro/instant-play.html?lang=en">
@@ -88,7 +92,11 @@
         (function() {
             try {
                 const p = new URLSearchParams(window.location.search);
-                if (p.has('match_vs') || p.has('match_vs_id')) {
+                if (p.has('demo') || p.get('mode') === 'demo') {
+                    // Demo mode starts directly in active playing mode (no intro modal)
+                    document.documentElement.classList.add('is-ranked-playing');
+                    document.documentElement.classList.add('is-demo-marcus-left');
+                } else if (p.has('match_vs') || p.has('match_vs_id')) {
                     document.documentElement.classList.add('is-ranked-intro');
                 }
             } catch(_) {}
@@ -106,139 +114,367 @@
             pointer-events: none;
         }
 
-        /* Heroic Portrait Avatar Box (Subsoccer Pro Card Proportions) */
+        /* Heroic Portrait Avatar Box (Series 1 Subsoccer Pro Card) */
         .vs-intro-avatar-wrap {
-            width: clamp(160px, 40vw, 300px);
-            aspect-ratio: 2.5 / 4;
-            border-radius: 6px;
+            width: clamp(170px, 35vw, 310px);
+            aspect-ratio: 2.5 / 3.9;
+            border-radius: 10px;
             overflow: hidden;
-            background: #111111;
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            background: #080a0f !important;
+            border: 1px solid rgba(0, 0, 0, 0.6) !important;
             display: flex;
             flex-direction: column;
             margin-bottom: 0;
             position: relative;
             pointer-events: auto;
             cursor: default;
+            box-shadow: none !important;
+            filter: none !important;
+            box-sizing: border-box;
         }
 
         .player-left .vs-intro-avatar-wrap {
-            border-color: rgba(138, 180, 248, 0.3);
+            border-color: rgba(138, 180, 248, 0.4) !important;
         }
 
         .player-right .vs-intro-avatar-wrap {
-            border-color: rgba(196, 30, 42, 0.4);
+            border-color: rgba(196, 30, 42, 0.5) !important;
         }
 
-        .vs-card-header {
+        .card-foil-border {
+            position: absolute;
+            inset: 4px;
+            border: 1.5px solid #d4af37;
+            border-radius: 6px;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.85;
+        }
+
+        .card-holo-shine {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(125deg, transparent 35%, rgba(255, 255, 255, 0.08) 45%, rgba(212, 175, 55, 0.16) 50%, rgba(255, 255, 255, 0.08) 55%, transparent 65%);
+            mix-blend-mode: overlay;
+            pointer-events: none;
+            z-index: 11;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .vs-intro-avatar-wrap:hover .card-holo-shine {
+            opacity: 0.9;
+        }
+
+        .card-header-bar {
             width: 100%;
+            height: clamp(22px, 3vh, 28px);
+            padding: 4px 10px 0 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 10px 4px;
+            background: #040508;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            z-index: 5;
             box-sizing: border-box;
+            white-space: nowrap;
             flex-shrink: 0;
-            z-index: 2;
         }
 
-        .vs-card-header-label {
-            font-size: clamp(0.45rem, 1.3vw, 0.65rem);
-            color: #c41e2a;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        .card-brand-tag {
+            font-family: 'Subsoccer', 'Resolve', sans-serif;
+            font-size: clamp(0.48rem, 1.3vw, 0.62rem);
+            letter-spacing: 0.8px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .card-brand-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #c41e2a;
+            display: inline-block;
+            box-shadow: 0 0 6px rgba(196, 30, 42, 0.8);
+            flex-shrink: 0;
+        }
+
+        .card-edition-serial {
+            font-family: 'Space Grotesk', 'Resolve', sans-serif;
+            font-size: clamp(0.42rem, 1vw, 0.52rem);
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .card-pro-chip {
+            background: linear-gradient(135deg, #d4af37 0%, #aa8214 100%);
+            color: #000;
             font-family: 'Resolve', sans-serif;
+            font-size: clamp(0.42rem, 1vw, 0.5rem);
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 2px;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
-        .vs-card-header-icon {
-            color: #c41e2a;
-            font-size: clamp(0.6rem, 1.5vw, 0.8rem);
-        }
-
-        .vs-card-photo {
+        .card-photo-hero {
             width: 100%;
             flex: 1;
-            min-height: 50px;
-            background: #1a1a1a;
+            min-height: 80px;
             position: relative;
+            overflow: hidden;
+            background: #0a0d14;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        .vs-card-photo img {
+        .card-photo-hero img {
             position: absolute;
-            top: 0; left: 0;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        .vs-card-photo i {
-            font-size: clamp(2rem, 6vw, 3rem);
-            color: rgba(255, 255, 255, 0.2);
-        }
-
-        .vs-card-info {
-            width: 100%;
-            padding: 10px 10px 12px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex-shrink: 0;
+            object-position: top center;
+            display: block;
             z-index: 2;
         }
 
-        .vs-card-name {
-            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
-            font-size: clamp(1.1rem, 3.5vw, 1.8rem);
-            text-transform: uppercase;
-            color: #fff;
-            line-height: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        .card-photo-hero i.card-placeholder-icon {
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            color: #334155;
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            display: none;
         }
 
-        .vs-card-stats {
+        .card-flag-badge {
+            position: absolute;
+            top: 8px;
+            left: 9px;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
+            gap: 4px;
+            background: rgba(4, 5, 8, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 3px;
+            padding: 2px 6px;
+            z-index: 4;
         }
 
-        .vs-card-rating {
-            background: #c41e2a;
-            color: #fff;
-            padding: 3px 10px;
-            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
-            font-size: clamp(0.85rem, 2.2vw, 1.15rem);
-            border-radius: 4px;
-            line-height: 1.2;
+        .card-flag-badge img {
+            position: static !important;
+            width: 13px !important;
+            height: 9px !important;
+            object-fit: cover !important;
+            border-radius: 1px;
+            display: inline-block !important;
         }
 
-        .vs-card-winratio {
-            text-align: right;
-        }
-
-        .vs-card-winratio-label {
-            font-size: clamp(0.35rem, 1vw, 0.5rem);
-            color: #888;
-            font-weight: bold;
+        .card-flag-badge span {
+            font-size: clamp(0.45rem, 1vw, 0.56rem);
+            font-weight: 700;
+            color: #ffffff;
             letter-spacing: 0.5px;
             font-family: 'Resolve', sans-serif;
         }
 
-        .vs-card-winratio-value {
-            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif;
-            font-size: clamp(0.85rem, 2.2vw, 1.15rem);
-            color: #fff;
+        .card-verified-badge {
+            position: absolute;
+            top: 8px;
+            right: 9px;
+            background: rgba(4, 5, 8, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(212, 175, 55, 0.45);
+            border-radius: 3px;
+            padding: 2px 6px;
+            color: #d4af37;
+            font-size: clamp(0.42rem, 1vw, 0.52rem);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            z-index: 4;
+            font-family: 'Resolve', sans-serif;
+        }
+
+        .card-photo-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 52%;
+            background: linear-gradient(to top, rgba(5, 7, 11, 1) 0%, rgba(5, 7, 11, 0.88) 35%, rgba(5, 7, 11, 0.45) 60%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 0 10px 8px;
+            z-index: 3;
+            box-sizing: border-box;
+        }
+
+        .card-team-kicker {
+            font-size: clamp(0.44rem, 1.1vw, 0.58rem);
+            font-weight: 700;
+            color: #d4af37;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+            font-family: 'Resolve', sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-player-name {
+            font-family: 'Resolve', 'Subsoccer', sans-serif;
+            font-size: clamp(1.1rem, 3vw, 1.6rem);
+            font-weight: 800;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             line-height: 1;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-stats-block {
+            background: #080a0f;
+            padding: 5px 10px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex-shrink: 0;
+            width: 100%;
+            z-index: 5;
+            box-sizing: border-box;
+        }
+
+        .card-primary-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 1px;
+        }
+
+        .card-elo-tag {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            background: rgba(196, 30, 42, 0.22);
+            border: 1px solid rgba(196, 30, 42, 0.55);
+            border-radius: 4px;
+            padding: 3px 8px;
+        }
+
+        .card-elo-tag .elo-value {
+            font-family: 'Resolve', 'Subsoccer', sans-serif;
+            font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: 0.5px;
+        }
+
+        .card-elo-tag .elo-title {
+            font-size: clamp(0.44rem, 1vw, 0.54rem);
+            font-weight: 700;
+            color: #d4af37;
+            letter-spacing: 0.5px;
+            font-family: 'Resolve', sans-serif;
+        }
+
+        .card-rank-tag {
+            text-align: right;
+            padding-right: 1px;
+        }
+
+        .card-rank-tag .rank-value {
+            font-family: 'Resolve', sans-serif;
+            font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .card-rank-tag .rank-title {
+            font-size: clamp(0.38rem, 0.9vw, 0.48rem);
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-family: 'Resolve', sans-serif;
+        }
+
+        .card-sub-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 3px;
+            padding: 4px 2px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+            gap: 2px;
+        }
+
+        .card-stat-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-stat-col .col-val {
+            font-family: 'Resolve', sans-serif;
+            font-size: clamp(0.65rem, 1.5vw, 0.82rem);
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+
+        .card-stat-col .col-lbl {
+            font-size: clamp(0.34rem, 0.8vw, 0.44rem);
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            font-family: 'Resolve', sans-serif;
+            margin-top: 1px;
+        }
+
+        .card-micro-footer {
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 2px;
+            margin-top: 1px;
+        }
+
+        .card-micro-footer span {
+            font-size: clamp(0.34rem, 0.8vw, 0.44rem);
+            color: #475569;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            font-family: 'Resolve', sans-serif;
+            font-weight: 700;
         }
 
         /* Remove old separate ELO badge — now integrated into card */
@@ -263,67 +499,102 @@
 
         /* Center VS Badge on Divider (No Shadows) */
         .vs-center-badge {
+            display: none;
             position: absolute;
-            top: clamp(-200px, -27vh, -145px);
+            top: 48%;
             left: 50%;
             transform: translate(-50%, -50%);
             background: #000000;
             border: 2px solid #333333;
             padding: 6px 18px;
-            border-radius: 2px;
+            border-radius: 4px;
             box-shadow: none;
             pointer-events: none;
+            z-index: 105;
+        }
+
+        html.is-ranked-intro .vs-center-badge {
+            display: block !important;
         }
 
         .vs-center-badge span {
             display: inline-block;
             font-family: 'Subsoccer', sans-serif;
-            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            font-size: clamp(1.6rem, 4.5vw, 2.2rem);
             color: #ffffff;
             letter-spacing: 2px;
         }
 
         .vs-card-panel {
-            background: #0a0a0a;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 2px;
-            padding: 14px 16px;
+            background: rgba(10, 10, 10, 0.94);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 8px;
+            padding: 11px 15px;
             width: 100%;
             box-sizing: border-box;
-            box-shadow: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
         }
 
         .vs-center-stakes {
             font-family: 'Resolve', sans-serif;
-            font-size: clamp(0.68rem, 1.9vw, 0.78rem);
+            font-size: clamp(0.68rem, 1.8vw, 0.78rem);
             font-weight: 700;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.2px;
             color: #ffffff;
-            margin-bottom: 12px;
-            line-height: 1.4;
+            margin-bottom: 8px;
+            line-height: 1.35;
             text-transform: uppercase;
         }
 
         .vs-center-btn {
             width: 100%;
-            padding: clamp(14px, 2.5vh, 16px);
+            padding: 10px 14px;
             background: #c41e2a;
             color: #ffffff;
             border: none;
-            border-radius: 2px;
+            border-radius: 4px;
             font-family: 'Subsoccer', sans-serif;
-            font-size: clamp(1.1rem, 3.2vw, 1.3rem);
-            letter-spacing: 2px;
+            font-size: clamp(0.95rem, 2.8vw, 1.15rem);
+            letter-spacing: 1.5px;
             cursor: pointer;
             box-shadow: none;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, background 0.2s;
             box-sizing: border-box;
             text-transform: uppercase;
             display: block;
+            text-align: center;
         }
 
         .vs-center-btn:active {
             opacity: 0.85;
+        }
+
+        .vs-center-btn.vs-btn-guest {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #cbd5e1;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 8px 12px;
+            margin-top: 5px;
+            border-radius: 4px;
+        }
+
+        .vs-center-btn.vs-btn-guest:active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Score block container (holds score number and goal dots) */
+        .score-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
         }
 
         /* While Ranked Match Intro is Active */
@@ -331,16 +602,30 @@
             display: none !important; /* Hide duplicate top name in intro as well */
         }
 
+        html.is-ranked-intro .player-left {
+            justify-content: center !important;
+            align-items: flex-start !important;
+            padding-left: clamp(16px, 6vw, 64px) !important;
+            box-sizing: border-box !important;
+        }
+
+        html.is-ranked-intro .player-right {
+            justify-content: center !important;
+            align-items: flex-end !important;
+            padding-right: clamp(16px, 6vw, 64px) !important;
+            box-sizing: border-box !important;
+        }
+
         html.is-ranked-intro .vs-intro-player {
             display: flex !important;
-            margin-top: clamp(10px, 3vh, 30px);
-            margin-bottom: clamp(10px, 3vh, 30px);
+            margin: 0 !important;
         }
 
         html.is-ranked-intro .vs-intro-avatar-wrap {
-            width: clamp(160px, 28vw, 260px);
-            aspect-ratio: 2.5 / 4;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.45);
+            height: clamp(230px, 74vh, 440px) !important;
+            width: auto !important;
+            aspect-ratio: 2.5 / 3.85 !important;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.55) !important;
         }
 
         html.is-ranked-intro .vs-center-overlay {
@@ -357,98 +642,129 @@
             transition: opacity 0.3s ease;
         }
 
+        html.is-ranked-intro .score-block,
         html.is-ranked-intro .score,
         html.is-ranked-intro .goals-visual,
         html.is-ranked-intro #actual-rules-overlay {
             display: none !important;
         }
 
-        /* During Active Ranked Match — show mini player cards and balance layout */
+        /* Embedded in presentation pitch deck */
+        html.is-demo-embedded #table-id-display,
+        html.is-demo-embedded a[href*="tournament"],
+        html.is-demo-embedded #btn-mic,
+        html.is-demo-embedded .pro-controls-bar {
+            display: none !important;
+        }
+
+        /* Demo Match Theme: Marcus (Red) on Left, Chloe (Blue) on Right */
+        html.is-demo-marcus-left .player-left,
+        html.is-demo-marcus-left.is-ranked-playing .player-left {
+            background: linear-gradient(135deg, #8b0a14 0%, #5a0009 100%) !important;
+        }
+        html.is-demo-marcus-left .player-right,
+        html.is-demo-marcus-left.is-ranked-playing .player-right {
+            background: linear-gradient(135deg, #0d2e44 0%, #081a29 100%) !important;
+        }
+        html.is-demo-marcus-left .player-left .vs-intro-avatar-wrap {
+            border-color: rgba(196, 30, 42, 0.65) !important;
+        }
+        html.is-demo-marcus-left .player-right .vs-intro-avatar-wrap {
+            border-color: rgba(138, 180, 248, 0.65) !important;
+        }
+
+        /* Full-page victory image responsiveness */
+        @media (max-aspect-ratio: 1/1) {
+            #demo-victory-hero-img {
+                object-fit: contain !important;
+            }
+        }
+        @media (min-aspect-ratio: 1/1) {
+            #demo-victory-hero-img {
+                object-fit: cover !important;
+            }
+        }
+
+        /* During Active Ranked Match — Scores in the center, Large Pro Cards on outer sides */
         html.is-ranked-playing .player-label {
             display: none !important; /* Hide duplicate top name so card acts as the sole identity */
         }
 
+        html.is-ranked-playing .player-left {
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 0 clamp(10px, 2.5vw, 36px) !important;
+            box-sizing: border-box !important;
+        }
+
+        html.is-ranked-playing .player-right {
+            flex-direction: row-reverse !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 0 clamp(10px, 2.5vw, 36px) !important;
+            box-sizing: border-box !important;
+        }
+
         html.is-ranked-playing .vs-intro-player {
             display: flex !important;
-            pointer-events: none;
-            margin-top: clamp(6px, 1.5vh, 20px);
-            margin-bottom: clamp(8px, 2vh, 18px);
+            pointer-events: none !important;
+            margin: 0 !important;
             z-index: 3;
+            flex-shrink: 0;
+        }
+
+        html.is-ranked-playing .vs-intro-avatar-wrap,
+        html.is-ranked-playing .vs-intro-avatar-wrap * {
+            pointer-events: none !important;
         }
 
         html.is-ranked-playing .vs-intro-avatar-wrap {
-            width: clamp(140px, 24vw, 240px) !important;
-            aspect-ratio: 2.5 / 4 !important;
+            height: clamp(230px, 78vh, 440px) !important;
+            width: auto !important;
+            aspect-ratio: 2.5 / 3.85 !important;
             opacity: 1;
             border-radius: 8px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.45);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6) !important;
         }
 
         html.is-ranked-playing .player-left .vs-intro-avatar-wrap {
-            border-color: rgba(138, 180, 248, 0.55);
+            border-color: rgba(138, 180, 248, 0.55) !important;
         }
 
         html.is-ranked-playing .player-right .vs-intro-avatar-wrap {
-            border-color: rgba(255, 255, 255, 0.55);
+            border-color: rgba(196, 30, 42, 0.55) !important;
         }
 
         html.is-ranked-playing .vs-intro-elo {
             display: none !important;
         }
 
-        html.is-ranked-playing .vs-card-header {
-            padding: 6px 12px 4px;
+        /* Center Score Blocks meeting at divider line */
+        html.is-ranked-playing .score-block,
+        html.is-ranked-playing .score-block * {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-width: 0;
+            pointer-events: none !important;
+            z-index: 2;
         }
 
-        html.is-ranked-playing .vs-card-header-label {
-            font-size: clamp(0.42rem, 1.1vw, 0.58rem);
-            letter-spacing: 1.5px;
-        }
-
-        html.is-ranked-playing .vs-card-header-icon {
-            font-size: clamp(0.55rem, 1.3vw, 0.75rem);
-        }
-
-        html.is-ranked-playing .vs-card-info {
-            padding: 10px 12px 12px;
-            gap: 4px;
-        }
-
-        html.is-ranked-playing .vs-card-name {
-            font-size: clamp(0.95rem, 2.5vw, 1.4rem);
-            letter-spacing: 1.2px;
-        }
-
-        html.is-ranked-playing .vs-card-rating {
-            font-size: clamp(0.78rem, 1.8vw, 1.05rem);
-            padding: 2px 8px;
-            border-radius: 4px;
-            letter-spacing: 0.5px;
-        }
-
-        html.is-ranked-playing .vs-card-winratio-label {
-            font-size: clamp(0.35rem, 0.9vw, 0.48rem);
-            color: rgba(255, 255, 255, 0.7) !important;
-            letter-spacing: 1px;
-        }
-
-        html.is-ranked-playing .vs-card-winratio-value {
-            font-size: clamp(0.78rem, 1.8vw, 1.05rem);
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        /* Score & Goals tight & centered under card */
         html.is-ranked-playing .score {
-            font-size: clamp(7rem, 22vh, 15rem);
+            font-size: clamp(5.5rem, 24vh, 14rem) !important;
             margin-top: 0 !important;
-            line-height: 0.95;
+            line-height: 0.95 !important;
+            color: #ffffff;
+            text-shadow: 0 0 35px rgba(255, 255, 255, 0.25);
         }
 
         html.is-ranked-playing .goals-visual {
-            font-size: clamp(1.8rem, 4.5vh, 3.2rem);
-            margin-top: clamp(6px, 1.2vh, 12px);
+            font-size: clamp(1.2rem, 3.8vh, 2.6rem) !important;
+            margin-top: clamp(6px, 1.5vh, 16px) !important;
+            letter-spacing: clamp(6px, 1.5vw, 16px) !important;
         }
     </style>
 
@@ -532,6 +848,10 @@
             position: relative;
             border: 2px solid #222;
             cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .player-left {
@@ -910,11 +1230,139 @@
             #table-id-display {
                 top: 50% !important;
                 left: 50% !important;
-                bottom: auto !important; /* This prevents the previous stretch bug */
+                bottom: auto !important;
                 transform: translate(-50%, -50%) !important;
                 font-size: 0.7rem !important;
                 padding: 4px 10px !important;
                 z-index: 50 !important;
+            }
+
+            /* Ranked Match in Portrait: Intro Phase */
+            html.is-ranked-intro .player-left,
+            html.is-ranked-intro .player-right {
+                justify-content: flex-start !important;
+                align-items: center !important;
+                padding-top: clamp(72px, 11.5vh, 110px) !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                padding-bottom: 0 !important;
+                box-sizing: border-box !important;
+            }
+
+            html.is-ranked-intro .vs-intro-avatar-wrap {
+                height: auto !important;
+                width: clamp(140px, 44vw, 195px) !important;
+                max-height: 48vh !important;
+                aspect-ratio: 2.5 / 3.85 !important;
+                border-radius: 8px !important;
+                flex-shrink: 0 !important;
+            }
+
+            /* VS Badge aligned directly between the cards in portrait */
+            html.is-ranked-intro .vs-center-badge {
+                position: absolute !important;
+                top: calc(clamp(72px, 11.5vh, 110px) + (clamp(140px, 44vw, 195px) * 1.54 / 2)) !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                z-index: 105 !important;
+                padding: 5px 14px !important;
+                border: 2px solid #333333 !important;
+                background: #000000 !important;
+                display: block !important;
+            }
+
+            html.is-ranked-intro .vs-center-badge span {
+                font-size: clamp(1.3rem, 4vw, 1.8rem) !important;
+                letter-spacing: 1.5px !important;
+            }
+
+            /* Compact & Sleek Challenging Panel in Portrait */
+            html.is-ranked-intro .vs-center-overlay {
+                bottom: clamp(18px, 4.5vh, 38px) !important;
+                width: calc(100% - 24px) !important;
+                max-width: 340px !important;
+            }
+
+            html.is-ranked-intro .vs-card-panel {
+                padding: 10px 14px 10px !important;
+                border-radius: 8px !important;
+                background: rgba(10, 10, 10, 0.95) !important;
+                border: 1px solid rgba(255, 255, 255, 0.14) !important;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.65) !important;
+            }
+
+            html.is-ranked-intro .vs-center-stakes {
+                font-size: 0.72rem !important;
+                letter-spacing: 1px !important;
+                margin-bottom: 7px !important;
+                line-height: 1.35 !important;
+            }
+
+            html.is-ranked-intro .vs-center-btn {
+                padding: 9px 12px !important;
+                font-size: 0.92rem !important;
+                letter-spacing: 1.2px !important;
+                border-radius: 4px !important;
+            }
+
+            html.is-ranked-intro .vs-center-btn.vs-btn-guest {
+                padding: 7px 10px !important;
+                font-size: 0.72rem !important;
+                letter-spacing: 0.8px !important;
+                margin-top: 5px !important;
+                border-radius: 4px !important;
+            }
+
+            /* Ranked Match in Portrait: Active Gameplay */
+            /* Crucial: Maintain the EXACT SAME card position, width and aspect-ratio as intro so nothing jumps or squashes */
+            html.is-ranked-playing .player-left,
+            html.is-ranked-playing .player-right {
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                align-items: center !important;
+                padding-top: clamp(72px, 11.5vh, 110px) !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                padding-bottom: 0 !important;
+                box-sizing: border-box !important;
+            }
+
+            html.is-ranked-playing .vs-intro-avatar-wrap {
+                height: auto !important;
+                width: clamp(140px, 44vw, 195px) !important;
+                max-height: 48vh !important;
+                aspect-ratio: 2.5 / 3.85 !important;
+                border-radius: 8px !important;
+                flex-shrink: 0 !important;
+            }
+
+            /* In portrait mode, hide Subsoccer central logo during ranked match so it doesn't overlap cards */
+            html.is-ranked-intro #game-logo,
+            html.is-ranked-playing #game-logo {
+                display: none !important;
+            }
+
+            /* Score block in Portrait: cleanly centered in the spacious bottom area */
+            html.is-ranked-playing .score-block {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                flex: 1 !important;
+                margin-top: clamp(12px, 3vh, 28px) !important;
+                padding-bottom: clamp(16px, 4vh, 32px) !important;
+            }
+
+            html.is-ranked-playing .score {
+                font-size: clamp(4.5rem, 14vh, 8rem) !important;
+                line-height: 1 !important;
+                margin-top: 0 !important;
+            }
+
+            html.is-ranked-playing .goals-visual {
+                font-size: clamp(1.4rem, 3.5vh, 2.2rem) !important;
+                margin-top: 4px !important;
+                letter-spacing: clamp(4px, 1.5vw, 8px) !important;
             }
         }
 
@@ -941,99 +1389,153 @@
                 letter-spacing: 6px !important;
             }
 
-            /* VS Intro in Short Landscape — height-driven scaling so photo is never crushed */
-            .vs-intro-player {
-                margin-top: clamp(2px, 1vh, 8px) !important;
-            }
-
+            /* Large side cards in short landscape */
             .vs-intro-avatar-wrap {
-                width: clamp(100px, 24vh, 150px) !important;
-                height: auto !important;
-                aspect-ratio: 2.5 / 4 !important;
+                height: clamp(210px, 78vh, 340px) !important;
+                width: auto !important;
+                aspect-ratio: 2.5 / 3.85 !important;
                 margin-bottom: 0 !important;
-                border-radius: 6px !important;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.45) !important;
+                border-radius: 8px !important;
+                box-shadow: 0 6px 24px rgba(0,0,0,0.55) !important;
             }
 
-            .vs-card-header {
-                padding: 3px 6px 1px !important;
+            .card-header-bar {
+                height: 20px !important;
+                padding: 2px 6px 0 !important;
             }
 
-            .vs-card-header-label {
+            .card-brand-tag {
+                font-size: 0.44rem !important;
+            }
+
+            .card-edition-serial,
+            .card-pro-chip {
                 font-size: 0.38rem !important;
-                letter-spacing: 1px !important;
             }
 
-            .vs-card-header-icon {
-                font-size: 0.48rem !important;
+            .card-player-name {
+                font-size: clamp(0.75rem, 2.2vh, 1rem) !important;
             }
 
-            .vs-card-photo {
-                min-height: 45px !important;
+            .card-team-kicker {
+                font-size: 0.36rem !important;
             }
 
-            .vs-card-info {
-                padding: 4px 6px 6px !important;
+            .card-stats-block {
+                padding: 3px 6px 4px !important;
                 gap: 2px !important;
             }
 
-            .vs-card-name {
-                font-size: clamp(0.7rem, 2.4vh, 0.95rem) !important;
+            .card-elo-tag .elo-value,
+            .card-rank-tag .rank-value {
+                font-size: clamp(0.72rem, 1.9vh, 0.92rem) !important;
             }
 
-            .vs-card-rating {
-                font-size: clamp(0.55rem, 1.8vh, 0.75rem) !important;
-                padding: 1px 4px !important;
+            .card-sub-stats {
+                padding: 2px 1px !important;
             }
 
-            .vs-card-winratio-label {
+            .card-stat-col .col-val {
+                font-size: 0.52rem !important;
+            }
+
+            .card-stat-col .col-lbl {
                 font-size: 0.28rem !important;
             }
 
-            .vs-card-winratio-value {
-                font-size: clamp(0.55rem, 1.8vh, 0.75rem) !important;
+            .card-micro-footer {
+                display: block !important;
+                padding-top: 1px !important;
+            }
+
+            .card-micro-footer span {
+                font-size: 0.32rem !important;
             }
 
             .vs-center-overlay {
-                bottom: 6px !important;
-                max-width: 290px !important;
+                bottom: calc(env(safe-area-inset-bottom, 4px) + 6px) !important;
+                max-width: clamp(230px, 32vw, 280px) !important;
+                width: 85% !important;
             }
 
-            .vs-center-box {
-                padding: 4px 8px !important;
-            }
-
-            .vs-center-title {
-                font-size: 0.6rem !important;
-                margin-bottom: 2px !important;
+            .vs-card-panel {
+                padding: 6px 10px !important;
+                border-radius: 6px !important;
+                background: rgba(10, 10, 10, 0.96) !important;
             }
 
             .vs-center-stakes {
-                font-size: 0.6rem !important;
+                font-size: 0.62rem !important;
+                letter-spacing: 0.8px !important;
                 margin-bottom: 4px !important;
+                line-height: 1.2 !important;
             }
 
             .vs-center-btn {
                 padding: 6px 10px !important;
-                font-size: 0.8rem !important;
+                font-size: 0.82rem !important;
+                letter-spacing: 1px !important;
+                border-radius: 4px !important;
             }
 
-            /* During Active Match in Short Landscape */
+            .vs-center-btn.vs-btn-guest {
+                padding: 4px 8px !important;
+                font-size: 0.65rem !important;
+                margin-top: 3px !important;
+            }
+
+            #vs-swap-btn {
+                font-size: 0.55rem !important;
+                padding: 1px 6px !important;
+                margin-top: 0 !important;
+                margin-bottom: 2px !important;
+            }
+
+            .vs-center-badge {
+                top: clamp(28%, 34vh, 38%) !important;
+                padding: 3px 12px !important;
+                border: 1.5px solid #333 !important;
+            }
+
+            .vs-center-badge span {
+                font-size: 1.15rem !important;
+                letter-spacing: 1px !important;
+            }
+
+            /* During Active Match in Short Landscape: Scores in center, big cards on outer sides */
+            html.is-ranked-playing .player-left {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 0 clamp(8px, 2vw, 24px) !important;
+            }
+
+            html.is-ranked-playing .player-right {
+                flex-direction: row-reverse !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 0 clamp(8px, 2vw, 24px) !important;
+            }
+
             html.is-ranked-playing .vs-intro-player {
-                margin-top: clamp(2px, 1vh, 8px) !important;
-                margin-bottom: clamp(10px, 2.5vh, 20px) !important; /* Clean space between card and score */
+                margin: 0 !important;
             }
 
             html.is-ranked-playing .vs-intro-avatar-wrap {
-                width: clamp(80px, 18vh, 120px) !important;
-                height: auto !important;
-                aspect-ratio: 2.5 / 4 !important;
-                border-radius: 5px !important;
-                box-shadow: 0 3px 12px rgba(0,0,0,0.4) !important; /* Tighter, softer shadow */
+                height: clamp(210px, 78vh, 340px) !important;
+                width: auto !important;
+                aspect-ratio: 2.5 / 3.85 !important;
+                border-radius: 8px !important;
+                box-shadow: 0 6px 24px rgba(0,0,0,0.55) !important;
+            }
+
+            html.is-ranked-playing .score-block {
+                flex: 1;
+                min-width: 0;
             }
 
             html.is-ranked-playing .score {
-                font-size: clamp(3rem, 19vh, 5.2rem) !important;
+                font-size: clamp(4.2rem, 24vh, 7.5rem) !important;
                 margin-top: 0 !important;
                 line-height: 0.9 !important;
             }
@@ -1382,6 +1884,7 @@
     people: { set: function(){} }
   };
 </script>
+    <script src="/app-mode.js"></script>
 </head>
 
 <body>
@@ -1482,31 +1985,68 @@
 
             <!-- VS Intro Left (Visible during ranked intro) -->
             <div class="vs-intro-player" id="vs-intro-p1">
-                <div class="vs-intro-avatar-wrap" onclick="event.stopPropagation()">
-                    <div class="vs-card-header">
-                        <span class="vs-card-header-label">PRO CARD // 2026</span>
-                        <i class="fa-solid fa-crown vs-card-header-icon"></i>
+                <div class="vs-intro-avatar-wrap">
+                    <div class="card-foil-border"></div>
+                    <div class="card-holo-shine"></div>
+                    <div class="card-header-bar">
+                        <div class="card-brand-tag"><span class="card-brand-dot"></span> SUBSOCCER PRO</div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span class="card-edition-serial" id="vs-p1-card-serial">SERIES 1 // #2026</span>
+                            <span class="card-pro-chip" id="vs-p1-card-chip">PRO</span>
+                        </div>
                     </div>
-                    <div class="vs-card-photo">
-                        <i class="fa-solid fa-user-astronaut"></i>
+                    <div class="card-photo-hero">
+                        <i class="fa-solid fa-user-astronaut card-placeholder-icon" id="vs-p1-card-icon" style="display:none;"></i>
                         <img id="vs-p1-avatar" src="avatar-human-1.png" alt="Player 1">
+                        <div class="card-flag-badge" id="vs-p1-flag-wrap">
+                            <img id="vs-p1-flag-img" src="https://flagcdn.com/w40/fi.png" alt="Country">
+                            <span id="vs-p1-country-code">FIN</span>
+                        </div>
+                        <div class="card-verified-badge" id="vs-p1-verified-wrap">
+                            <i class="fa-solid fa-shield-check"></i> VERIFIED
+                        </div>
+                        <div class="card-photo-overlay">
+                            <div class="card-team-kicker" id="vs-p1-card-kicker">SUBSOCCER PRO LEAGUE</div>
+                            <div class="card-player-name" id="vs-p1-card-name">PLAYER 1</div>
+                        </div>
                     </div>
-                    <div class="vs-card-info">
-                        <div class="vs-card-name" id="vs-p1-card-name">PLAYER 1</div>
-                        <div class="vs-card-stats">
-                            <div class="vs-card-rating" id="vs-p1-card-rating">1300</div>
-                            <div class="vs-card-winratio">
-                                <div class="vs-card-winratio-label">WIN RATIO</div>
-                                <div class="vs-card-winratio-value" id="vs-p1-card-wr">0%</div>
+                    <div class="card-stats-block">
+                        <div class="card-primary-stats">
+                            <div class="card-elo-tag">
+                                <span class="elo-value" id="vs-p1-card-rating">1,300</span>
+                                <span class="elo-title">PTS</span>
                             </div>
+                            <div class="card-rank-tag">
+                                <div class="rank-value" id="vs-p1-card-rank">#—</div>
+                                <div class="rank-title">GLOBAL RANK</div>
+                            </div>
+                        </div>
+                        <div class="card-sub-stats">
+                            <div class="card-stat-col">
+                                <span class="col-val" id="vs-p1-card-wr">0%</span>
+                                <span class="col-lbl">WIN %</span>
+                            </div>
+                            <div class="card-stat-col">
+                                <span class="col-val" id="vs-p1-card-record">0W - 0L</span>
+                                <span class="col-lbl">RECORD</span>
+                            </div>
+                            <div class="card-stat-col">
+                                <span class="col-val" id="vs-p1-card-matches">0</span>
+                                <span class="col-lbl">MATCHES</span>
+                            </div>
+                        </div>
+                        <div class="card-micro-footer">
+                            <span>SERIES 1 // OFFICIAL PLAYER CARD</span>
                         </div>
                     </div>
                 </div>
-                <div class="vs-intro-elo" onclick="event.stopPropagation()"><span id="vs-p1-elo">1300 RATING</span></div>
+                <div class="vs-intro-elo"><span id="vs-p1-elo">1300 RATING</span></div>
             </div>
 
-            <div class="score" id="score-p1">0</div>
-            <div class="goals-visual" id="goals-p1">○○○</div>
+            <div class="score-block" id="score-block-p1">
+                <div class="score" id="score-p1">0</div>
+                <div class="goals-visual" id="goals-p1">○○○</div>
+            </div>
         </div>
 
         <!-- Center divider -->
@@ -1518,36 +2058,75 @@
 
             <!-- VS Intro Right (Visible during ranked intro) -->
             <div class="vs-intro-player" id="vs-intro-p2">
-                <div class="vs-intro-avatar-wrap" onclick="event.stopPropagation()">
-                    <div class="vs-card-header">
-                        <span class="vs-card-header-label">PRO CARD // 2026</span>
-                        <i class="fa-solid fa-crown vs-card-header-icon"></i>
+                <div class="vs-intro-avatar-wrap">
+                    <div class="card-foil-border"></div>
+                    <div class="card-holo-shine"></div>
+                    <div class="card-header-bar">
+                        <div class="card-brand-tag"><span class="card-brand-dot"></span> SUBSOCCER PRO</div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span class="card-edition-serial" id="vs-p2-card-serial">SERIES 1 // #2026</span>
+                            <span class="card-pro-chip" id="vs-p2-card-chip">PRO</span>
+                        </div>
                     </div>
-                    <div class="vs-card-photo">
-                        <i class="fa-solid fa-user-astronaut"></i>
+                    <div class="card-photo-hero">
+                        <i class="fa-solid fa-user-astronaut card-placeholder-icon" id="vs-p2-card-icon" style="display:none;"></i>
                         <img id="vs-p2-avatar" src="avatar-human-2.png" alt="Player 2">
+                        <div class="card-flag-badge" id="vs-p2-flag-wrap">
+                            <img id="vs-p2-flag-img" src="https://flagcdn.com/w40/fi.png" alt="Country">
+                            <span id="vs-p2-country-code">FIN</span>
+                        </div>
+                        <div class="card-verified-badge" id="vs-p2-verified-wrap">
+                            <i class="fa-solid fa-shield-check"></i> VERIFIED
+                        </div>
+                        <div class="card-photo-overlay">
+                            <div class="card-team-kicker" id="vs-p2-card-kicker">SUBSOCCER PRO LEAGUE</div>
+                            <div class="card-player-name" id="vs-p2-card-name">PLAYER 2</div>
+                        </div>
                     </div>
-                    <div class="vs-card-info">
-                        <div class="vs-card-name" id="vs-p2-card-name">PLAYER 2</div>
-                        <div class="vs-card-stats">
-                            <div class="vs-card-rating" id="vs-p2-card-rating">1300</div>
-                            <div class="vs-card-winratio">
-                                <div class="vs-card-winratio-label">WIN RATIO</div>
-                                <div class="vs-card-winratio-value" id="vs-p2-card-wr">0%</div>
+                    <div class="card-stats-block">
+                        <div class="card-primary-stats">
+                            <div class="card-elo-tag">
+                                <span class="elo-value" id="vs-p2-card-rating">1,300</span>
+                                <span class="elo-title">PTS</span>
                             </div>
+                            <div class="card-rank-tag">
+                                <div class="rank-value" id="vs-p2-card-rank">#—</div>
+                                <div class="rank-title">GLOBAL RANK</div>
+                            </div>
+                        </div>
+                        <div class="card-sub-stats">
+                            <div class="card-stat-col">
+                                <span class="col-val" id="vs-p2-card-wr">0%</span>
+                                <span class="col-lbl">WIN %</span>
+                            </div>
+                            <div class="card-stat-col">
+                                <span class="col-val" id="vs-p2-card-record">0W - 0L</span>
+                                <span class="col-lbl">RECORD</span>
+                            </div>
+                            <div class="card-stat-col">
+                                <span class="col-val" id="vs-p2-card-matches">0</span>
+                                <span class="col-lbl">MATCHES</span>
+                            </div>
+                        </div>
+                        <div class="card-micro-footer">
+                            <span>SERIES 1 // OFFICIAL PLAYER CARD</span>
                         </div>
                     </div>
                 </div>
-                <div class="vs-intro-elo" onclick="event.stopPropagation()"><span id="vs-p2-elo">1300 RATING</span></div>
+                <div class="vs-intro-elo"><span id="vs-p2-elo">1300 RATING</span></div>
             </div>
 
-            <div class="score" id="score-p2">0</div>
-            <div class="goals-visual" id="goals-p2">○○○</div>
+            <div class="score-block" id="score-block-p2">
+                <div class="score" id="score-p2">0</div>
+                <div class="goals-visual" id="goals-p2">○○○</div>
+            </div>
         </div>
+
+        <!-- Center VS Badge (Visible during Ranked Match Intro) -->
+        <div class="vs-center-badge" id="vs-center-badge"><span>VS</span></div>
 
         <!-- Floating Center Action Overlay (during Ranked Match Intro) -->
         <div class="vs-center-overlay" id="vs-center-overlay" onclick="event.stopPropagation()">
-            <div class="vs-center-badge"><span>VS</span></div>
             <button id="vs-swap-btn" onclick="swapSides()" style="display:none; background:transparent; border:none; color:rgba(255,255,255,0.45); font-size:0.65rem; letter-spacing:2px; font-family:'Resolve', sans-serif; cursor:pointer; padding:4px 8px; margin-top:-2px; transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">
                 🔄 SWAP
             </button>
@@ -1556,12 +2135,12 @@
                     WIN: <span style="color:#4ade80; font-weight:bold;">+16</span> &nbsp;|&nbsp; LOSS: <span style="color:#f87171; font-weight:bold;">-16</span>
                 </div>
                 <div id="vs-action-wrap" style="width:100%;">
-                    <button id="vs-start-btn" onclick="startRankedMatch()" class="vs-center-btn">
-                        ⚔️ START MATCH
-                    </button>
                     <a id="vs-login-btn" href="login.html" class="vs-center-btn" style="display:none; text-decoration:none;">
                         LOG IN TO PLAY RANKED
                     </a>
+                    <button id="vs-start-btn" onclick="startRankedMatch()" class="vs-center-btn">
+                        ⚔️ START MATCH
+                    </button>
                 </div>
             </div>
         </div>
@@ -1861,7 +2440,7 @@
                 </div>
 
                 <!-- Both Players Comparison Cards (Side-by-Side) -->
-                <div style="display:flex; justify-content:center; align-items:center; gap:16px; width:100%; margin-bottom:14px;">
+                <div id="ranked-players-compare" style="display:flex; justify-content:center; align-items:center; gap:16px; width:100%; margin-bottom:14px;">
                     
                     <!-- Player 1 Card -->
                     <div id="ranked-card-p1" style="flex:1; max-width:140px; display:flex; flex-direction:column; align-items:center;">
@@ -1889,6 +2468,19 @@
                     </div>
                 </div>
 
+                <!-- Demo Mode: Physical Collectible Cards in Display Cases on Table -->
+                <div id="demo-victory-cards-preview" style="display:none; width:100%; max-width:440px; margin: 0 0 14px 0; border-radius: 12px; overflow: hidden; border: 1.5px solid rgba(255,255,255,0.25); box-shadow: 0 16px 36px rgba(0,0,0,0.6); position: relative;">
+                    <img src="assets/cards_display_cases.jpg" alt="Subsoccer Pro Physical Collectible Cards in Display Cases" style="width:100%; height:auto; display:block; aspect-ratio:16/9; object-fit:cover;">
+                    <div style="background: rgba(8,10,15,0.88); backdrop-filter: blur(10px); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.12); flex-wrap: wrap; gap: 6px;">
+                        <span style="font-family:'Resolve', sans-serif; font-size:0.68rem; font-weight:800; color:#d4af37; letter-spacing:1px; text-transform:uppercase; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-microchip"></i> Physical RFID Cards
+                        </span>
+                        <span id="demo-victory-elo-summary" style="font-family:'Resolve', sans-serif; font-size:0.75rem; font-weight:800; color:#ffffff; letter-spacing:0.5px;">
+                            +13 PTS / -13 PTS
+                        </span>
+                    </div>
+                </div>
+
                 <!-- Action Buttons -->
                 <div class="ranked-action-btns" style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:320px;">
                     <!-- 1. Primary: Share Result Card -->
@@ -1902,7 +2494,7 @@
                     </button>
 
                     <!-- 3. Tertiary: Back to Pro Card -->
-                    <a href="player-card.html" class="sub-back-link">
+                    <a href="player-card.html" class="sub-back-link" id="ranked-back-btn">
                         <i class="fa-solid fa-arrow-left"></i>
                         <span>BACK TO MY PRO CARD</span>
                     </a>
@@ -1932,6 +2524,59 @@
                 <button id="end-game-btn" class="play-again-btn"
                     style="background: transparent; color: #888; border: none; width: 250px; font-size: 0.8rem; padding: 12px 0; margin-top: 5px; font-family: 'Open Sans', sans-serif; box-shadow: none;"
                     onclick="window.location.href='./'">EXIT MATCH</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEMO FULLPAGE VICTORY SCREEN (Series 1 Cards in Display Slabs on Table) -->
+    <div id="demo-fullpage-victory" style="display:none; position:fixed; inset:0; width:100vw; height:100vh; height:100dvh; z-index:9999; background:#0a0c10; overflow:hidden; flex-direction:column; justify-content:space-between; align-items:center;">
+        <!-- Full-bleed background layer -->
+        <div style="position:absolute; inset:0; width:100%; height:100%; overflow:hidden;">
+            <!-- Blurred ambiance backdrop for narrow / portrait screens -->
+            <img src="assets/cards_display_cases.jpg" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(28px) brightness(0.35); transform:scale(1.2);">
+            <!-- Crisp full image -->
+            <img id="demo-victory-hero-img" src="assets/cards_display_cases.jpg" alt="Marcus Vance & Chloe Quinn Pro Cards in Display Cases" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center center; z-index:2;">
+        </div>
+
+        <!-- Subtle Top & Bottom dark vignette to ensure text contrast while leaving cards center clear -->
+        <div style="position:absolute; inset:0; z-index:3; pointer-events:none; background:linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.25) 24%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0.92) 100%);"></div>
+
+        <!-- Floating Content Container -->
+        <div style="position:relative; z-index:4; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center; box-sizing:border-box; padding:clamp(12px, 2.5vh, 24px) clamp(14px, 3vw, 30px);">
+            <!-- Top Championship Banner -->
+            <div style="width:100%; max-width:860px; display:flex; flex-direction:column; align-items:center; text-align:center;">
+                <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(0,0,0,0.72); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(212,175,55,0.45); padding:5px 16px; border-radius:30px; margin-bottom:6px; box-shadow:0 4px 20px rgba(0,0,0,0.6);">
+                    <span style="color:#d4af37; font-size:clamp(0.65rem, 1.6vw, 0.78rem); font-family:'Resolve', sans-serif; font-weight:800; letter-spacing:2px; text-transform:uppercase; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-trophy"></i> SERIES 1 COLLECTIBLE PHYSICAL CARDS
+                    </span>
+                </div>
+                <div id="demo-full-winner-title" style="font-family:'Subsoccer', sans-serif; font-size:clamp(1.9rem, 5.2vw, 3.4rem); color:#ffffff; letter-spacing:3px; text-transform:uppercase; text-shadow:0 2px 20px rgba(0,0,0,0.95); line-height:1.05;">
+                    MARCUS VANCE WINS!
+                </div>
+                <div style="display:inline-flex; align-items:center; justify-content:center; gap:14px; margin-top:4px; background:rgba(8,10,15,0.7); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); padding:4px 18px; border-radius:8px; border:1px solid rgba(255,255,255,0.12);">
+                    <span id="demo-full-score" style="font-family:'Subsoccer', sans-serif; font-size:clamp(1.8rem, 4vw, 2.4rem); color:#ffffff; letter-spacing:4px; line-height:1;">
+                        3 — 1
+                    </span>
+                    <span style="color:rgba(255,255,255,0.3); font-size:1.2rem;">|</span>
+                    <span id="demo-full-elo-stakes" style="font-family:'Resolve', sans-serif; font-size:clamp(0.72rem, 1.8vw, 0.92rem); font-weight:800; color:#fff; letter-spacing:0.8px;">
+                        MARCUS: +19 (1,859 PTS) &nbsp;|&nbsp; CHLOE: -19 (1,891 PTS)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Middle open space: Both acrylic card slabs on the wooden table remain 100% visible! -->
+            <div style="flex:1; width:100%; pointer-events:none;"></div>
+
+            <!-- Bottom Floating Action Bar -->
+            <div style="width:100%; max-width:520px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <div style="display:flex; gap:10px; width:100%;">
+                    <button onclick="playAgain()" style="flex:2; padding:clamp(12px, 2.2vh, 16px); background:linear-gradient(135deg, #c41e2a 0%, #8b0a14 100%); color:#fff; border:none; border-radius:4px; font-family:'Subsoccer', sans-serif; font-size:clamp(1.05rem, 2.4vw, 1.3rem); letter-spacing:2.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; text-transform:uppercase; box-shadow:0 8px 30px rgba(196,30,42,0.55); transition:transform 0.15s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                        <i class="fa-solid fa-rotate-right"></i> REMATCH (0 — 0)
+                    </button>
+                    <button onclick="shareRankedResult()" id="btn-share-demo-result" style="flex:1; padding:clamp(12px, 2.2vh, 16px); background:rgba(20,22,28,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); color:#fff; border:1px solid rgba(255,255,255,0.25); border-radius:4px; font-family:'Subsoccer', sans-serif; font-size:clamp(0.85rem, 1.8vw, 1.05rem); letter-spacing:1.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; text-transform:uppercase; transition:background 0.2s;" onmouseover="this.style.background='rgba(40,44,56,0.9)'" onmouseout="this.style.background='rgba(20,22,28,0.85)'">
+                        <i class="fa-solid fa-share-nodes"></i> SHARE
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2321,17 +2966,313 @@
             return presets[hash];
         }
 
+        // Fetch global rank asynchronously for vs card
+        async function fetchPlayerVsRank(playerNum, elo) {
+            try {
+                const rankEl = document.getElementById(`vs-p${playerNum}-card-rank`);
+                if (!rankEl) return;
+                const { count, error } = await _supabase
+                    .from('players')
+                    .select('id', { count: 'exact', head: true })
+                    .gt('elo', elo);
+                if (!error && typeof count === 'number') {
+                    rankEl.textContent = `#${count + 1}`;
+                } else {
+                    rankEl.textContent = elo >= 1400 ? '#12' : '#—';
+                }
+            } catch(e) {
+                const rankEl = document.getElementById(`vs-p${playerNum}-card-rank`);
+                if (rankEl) rankEl.textContent = '#—';
+            }
+        }
+
         // --- Ranked Match Helper Functions ---
         function populateVsCard(playerNum, data) {
+            if (!data) data = {};
+            const isGuest = !data.id && (data.username === 'GUEST' || !data.username);
+            const name = data.username ? data.username.toUpperCase() : 'PLAYER';
+            const elo = (data.elo !== undefined && data.elo !== null && data.elo !== '—') ? Number(data.elo) : (isGuest ? 1300 : 1300);
+            const wins = Number(data.wins) || 0;
+            const losses = Number(data.losses) || 0;
+            const matches = data.matches !== undefined ? Number(data.matches) : (wins + losses);
+            const ratio = data.win_rate !== undefined ? Number(data.win_rate) : (matches > 0 ? Math.round((wins / matches) * 100) : 0);
+
+            // Name
             const nameEl = document.getElementById(`vs-p${playerNum}-card-name`);
+            if (nameEl) nameEl.textContent = name;
+
+            // Rating / PTS
             const ratingEl = document.getElementById(`vs-p${playerNum}-card-rating`);
+            if (ratingEl) {
+                ratingEl.textContent = isGuest && data.elo === '—' ? '1,300' : Number(elo).toLocaleString();
+                if (data.pts_color && ratingEl.nextElementSibling) {
+                    ratingEl.nextElementSibling.style.color = data.pts_color;
+                }
+            }
+
+            // Global Rank (async lookup from Supabase or explicit demo value)
+            const rankEl = document.getElementById(`vs-p${playerNum}-card-rank`);
+            if (rankEl) {
+                if (data.rank) {
+                    rankEl.textContent = `#${data.rank}`;
+                } else if (isGuest) {
+                    rankEl.textContent = '#—';
+                } else {
+                    rankEl.textContent = '#...';
+                    fetchPlayerVsRank(playerNum, elo);
+                }
+            }
+
+            // Stats: Win ratio, Record, Matches
             const wrEl = document.getElementById(`vs-p${playerNum}-card-wr`);
-            if (nameEl) nameEl.textContent = data.username || 'PLAYER';
-            if (ratingEl) ratingEl.textContent = data.elo || 1300;
-            const w = data.wins || 0, l = data.losses || 0;
-            const wr = (w + l) > 0 ? Math.round(w / (w + l) * 100) : 0;
-            if (wrEl) wrEl.textContent = wr + '%';
+            if (wrEl) {
+                const displayWr = data.win_rate !== undefined ? data.win_rate : ratio;
+                wrEl.textContent = displayWr + '%';
+                wrEl.style.color = displayWr >= 50 ? '#4ade80' : '#ffffff';
+            }
+            const recordEl = document.getElementById(`vs-p${playerNum}-card-record`);
+            if (recordEl) recordEl.textContent = `${wins}W - ${losses}L`;
+            const matchesEl = document.getElementById(`vs-p${playerNum}-card-matches`);
+            if (matchesEl) matchesEl.textContent = matches;
+
+            // Country & Flag badge
+            const countryWrap = document.getElementById(`vs-p${playerNum}-flag-wrap`);
+            const countryEl = document.getElementById(`vs-p${playerNum}-country-code`);
+            const flagImg = document.getElementById(`vs-p${playerNum}-flag-img`);
+            const rawCountry = (data.country || (isGuest ? '' : 'fi')).trim();
+            if (rawCountry) {
+                const cCode = rawCountry.toLowerCase().slice(0, 2);
+                let displayCode = rawCountry.toUpperCase();
+                if (displayCode === 'GB') displayCode = 'GBR';
+                if (displayCode === 'US') displayCode = 'USA';
+                if (countryEl) countryEl.textContent = displayCode;
+                if (flagImg) {
+                    flagImg.src = data.flag_url || `https://flagcdn.com/w40/${cCode}.png`;
+                    flagImg.style.display = 'inline-block';
+                }
+                if (countryWrap) countryWrap.style.display = 'flex';
+            } else {
+                if (countryWrap) countryWrap.style.display = 'none';
+            }
+
+            // Series serial & Tier chip
+            const serialEl = document.getElementById(`vs-p${playerNum}-card-serial`);
+            if (serialEl) {
+                serialEl.textContent = data.serial || (data.id ? `SERIES 1 // #${String(data.id).substring(0, 4).toUpperCase()}` : (isGuest ? 'SERIES 1 // #GUEST' : 'SERIES 1 // #2026'));
+            }
+
+            const tier = data.tier || (elo >= 1800 ? 'LEGEND' : elo >= 1500 ? 'PRO' : elo >= 1300 ? 'CHALLENGER' : 'ROOKIE');
+            const chipEl = document.getElementById(`vs-p${playerNum}-card-chip`);
+            if (chipEl) {
+                chipEl.textContent = isGuest ? 'GUEST' : tier;
+                if (data.chip_style) {
+                    chipEl.style.cssText = data.chip_style;
+                } else if (isGuest) {
+                    chipEl.style.background = 'rgba(255,255,255,0.15)';
+                    chipEl.style.color = '#ffffff';
+                } else {
+                    chipEl.style.background = 'linear-gradient(135deg, #d4af37 0%, #aa8214 100%)';
+                    chipEl.style.color = '#000000';
+                }
+            }
+
+            // Dot color
+            const dotEl = document.querySelector(`#vs-intro-p${playerNum} .card-brand-dot`);
+            if (dotEl && data.dot_color) {
+                dotEl.style.background = data.dot_color;
+            }
+
+            // Card type top border
+            const cardWrap = document.querySelector(`#vs-intro-p${playerNum} .vs-intro-avatar-wrap`);
+            if (cardWrap) {
+                if (data.card_type === 'red') {
+                    cardWrap.style.borderTop = '3px solid #c41e2a';
+                } else if (data.card_type === 'blue') {
+                    cardWrap.style.borderTop = '3px solid #0077cc';
+                } else {
+                    cardWrap.style.borderTop = '';
+                }
+            }
+
+            // NFC Linked micro footer
+            const footerEl = document.querySelector(`#vs-intro-p${playerNum} .card-micro-footer`);
+            if (footerEl && data.nfc) {
+                const iconColor = data.card_type === 'blue' ? '#60a5fa' : '#d4af37';
+                footerEl.innerHTML = `<span>OFFICIAL COMPETITOR CARD</span><span><i class="fa-solid fa-wifi" style="transform: rotate(90deg); font-size: 0.55rem; color: ${iconColor};"></i> NFC LINKED</span>`;
+            }
+
+            // Verified Badge (hide for guest unless verified)
+            const verifiedWrap = document.getElementById(`vs-p${playerNum}-verified-wrap`);
+            if (verifiedWrap) {
+                verifiedWrap.style.display = (isGuest && !data.verified) ? 'none' : 'flex';
+            }
+
+            // Kicker subtitle
+            const kickerEl = document.getElementById(`vs-p${playerNum}-card-kicker`);
+            if (kickerEl) {
+                if (data.kicker) {
+                    kickerEl.textContent = data.kicker.toUpperCase();
+                } else if (isGuest) {
+                    kickerEl.textContent = 'CHALLENGER';
+                } else if (data.team_data && data.team_data.name) {
+                    kickerEl.textContent = data.team_data.name.toUpperCase();
+                } else if (data.city && data.country) {
+                    kickerEl.textContent = `${data.city.toUpperCase()} • ${data.country.toUpperCase()}`;
+                } else {
+                    kickerEl.textContent = 'SUBSOCCER PRO LEAGUE';
+                }
+            }
+
+            // Avatar photo handling
+            const imgEl = document.getElementById(`vs-p${playerNum}-avatar`);
+            const iconEl = document.getElementById(`vs-p${playerNum}-card-icon`);
+            if (imgEl) {
+                let avatarSrc = data.avatar_url;
+                if (!avatarSrc) {
+                    avatarSrc = getSubsoccerPresetAvatar(data.username || (isGuest ? 'GUEST' : `P${playerNum}`), playerNum);
+                }
+                if (avatarSrc && avatarSrc.includes('supabase.co/storage/v1/object/public/')) {
+                    avatarSrc = avatarSrc.split('?')[0].replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + '?width=512&height=512&resize=cover&quality=85';
+                }
+                if (avatarSrc) {
+                    imgEl.src = avatarSrc;
+                    if (data.avatar_pos) imgEl.style.objectPosition = data.avatar_pos;
+                    imgEl.style.display = 'block';
+                    if (iconEl) iconEl.style.display = 'none';
+                    imgEl.onerror = () => {
+                        imgEl.style.display = 'none';
+                        if (iconEl) iconEl.style.display = 'block';
+                    };
+                } else {
+                    imgEl.style.display = 'none';
+                    if (iconEl) iconEl.style.display = 'block';
+                }
+            }
         }
+
+        // Demo Match Mode: Marcus Vance (UK) vs Chloe Quinn (USA)
+        function initDemoRankedMatch() {
+            try {
+                // Instantly enter live playing mode (no intro modal)
+                document.documentElement.classList.remove('is-ranked-intro');
+                document.documentElement.classList.remove('vs-loaded');
+                document.documentElement.classList.add('is-ranked-playing');
+
+                const rulesOverlay = document.getElementById('actual-rules-overlay');
+                if (rulesOverlay) rulesOverlay.style.display = 'none';
+
+                const urlParams = new URLSearchParams(window.location.search);
+
+                const DEMO_CHLOE = {
+                    id: 'demo-chloe',
+                    username: 'CHLOE QUINN',
+                    elo: 1910,
+                    rank: 94,
+                    wins: 45,
+                    losses: 10,
+                    matches: 55,
+                    win_rate: 82,
+                    country: 'US',
+                    city: 'Miami',
+                    kicker: 'Miami Hub • Subsoccer USA',
+                    serial: 'SERIES 1 // #016',
+                    tier: 'PRO',
+                    chip_style: 'background: linear-gradient(135deg, #0077cc 0%, #004d80 100%); color: #fff;',
+                    dot_color: '#0077cc',
+                    pts_color: '#60a5fa',
+                    avatar_url: 'assets/athlete_female_pro.jpg',
+                    avatar_pos: 'center 10%',
+                    verified: true,
+                    nfc: true,
+                    card_type: 'blue'
+                };
+
+                const DEMO_MARCUS = {
+                    id: 'demo-marcus',
+                    username: 'MARCUS VANCE',
+                    elo: 1840,
+                    rank: 127,
+                    wins: 38,
+                    losses: 12,
+                    matches: 50,
+                    win_rate: 76,
+                    country: 'GB',
+                    city: 'London',
+                    kicker: 'London Hub • Subsoccer UK',
+                    serial: 'SERIES 1 // #044',
+                    tier: 'PRO',
+                    chip_style: 'background: linear-gradient(135deg, #d4af37 0%, #aa8214 100%); color: #000;',
+                    dot_color: '#e30613',
+                    pts_color: '#d4af37',
+                    avatar_url: 'assets/athlete_red_pro.jpg',
+                    avatar_pos: 'center 12%',
+                    verified: true,
+                    nfc: true,
+                    card_type: 'red'
+                };
+
+                // Marcus on left, Chloe on right (matching the physical collectible cards photo)
+                const isChloeLeft = urlParams.get('p1') === 'chloe' || urlParams.get('left') === 'chloe';
+                if (isChloeLeft) {
+                    _rankedP1 = { ...DEMO_CHLOE };
+                    _rankedP2 = { ...DEMO_MARCUS };
+                } else {
+                    _rankedP1 = { ...DEMO_MARCUS };
+                    _rankedP2 = { ...DEMO_CHLOE };
+                    document.documentElement.classList.add('is-demo-marcus-left');
+                }
+
+                _isRankedMatch = true;
+                WIN_SCORE = 3;
+
+                // Render Player 1 (Left: Marcus Vance - Red)
+                const l1 = document.getElementById('label-p1');
+                if (l1) l1.textContent = _rankedP1.username;
+                const elo1 = document.getElementById('vs-p1-elo');
+                if (elo1) elo1.textContent = `${_rankedP1.elo} RATING`;
+                populateVsCard(1, _rankedP1);
+
+                // Render Player 2 (Right: Chloe Quinn - Blue)
+                const l2 = document.getElementById('label-p2');
+                if (l2) l2.textContent = _rankedP2.username;
+                const elo2 = document.getElementById('vs-p2-elo');
+                if (elo2) elo2.textContent = `${_rankedP2.elo} RATING`;
+                populateVsCard(2, _rankedP2);
+
+                // Hide floating modal & VS badge in demo mode
+                const overlay = document.getElementById('vs-center-overlay');
+                if (overlay) overlay.style.display = 'none';
+                const vsBadge = document.getElementById('vs-center-badge');
+                if (vsBadge) vsBadge.style.display = 'none';
+                const fullDemoVictory = document.getElementById('demo-fullpage-victory');
+                if (fullDemoVictory) fullDemoVictory.style.display = 'none';
+
+                // Initialize scores to 0-0 ready to play immediately
+                scoreP1 = 0;
+                scoreP2 = 0;
+                goalHistory = [];
+                goalTimestamps = [];
+                isMatchEnding = false;
+                const s1 = document.getElementById('score-p1');
+                if (s1) s1.textContent = '0';
+                const s2 = document.getElementById('score-p2');
+                if (s2) s2.textContent = '0';
+                updateGoalVisuals();
+
+                if (urlParams.get('embed') === '1') {
+                    document.documentElement.classList.add('is-demo-embedded');
+                }
+            } catch(e) {
+                console.error('initDemoRankedMatch error:', e);
+            }
+        }
+
+        window.resetDemoDuel = function() {
+            document.getElementById('winner-overlay').classList.remove('show');
+            stopLasers();
+            resetGame();
+            initDemoRankedMatch();
+        };
 
         async function initRankedMatch(opponentUsername) {
           try {
@@ -2341,24 +3282,33 @@
 
             // 1. Fetch Opponent Data
             let oppData = null;
-            try {
-                const { data, error } = await _supabase
-                    .from('players')
-                    .select('id, username, elo, avatar_url, country, wins, losses')
-                    .ilike('username', opponentUsername.trim())
-                    .maybeSingle();
-                if (data) oppData = data;
-            } catch(e) {
-                console.warn('Failed to fetch opponent:', e);
+            if (opponentUsername) {
+                try {
+                    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(opponentUsername.trim());
+                    let query = _supabase
+                        .from('players')
+                        .select('id, username, elo, avatar_url, country, city, wins, losses');
+                    if (isUuid) {
+                        query = query.eq('id', opponentUsername.trim());
+                    } else {
+                        query = query.ilike('username', opponentUsername.trim());
+                    }
+                    const { data, error } = await query.maybeSingle();
+                    if (data) oppData = data;
+                } catch(e) {
+                    console.warn('Failed to fetch opponent:', e);
+                }
             }
 
             if (!oppData) {
                 oppData = {
                     id: null,
-                    username: opponentUsername.toUpperCase(),
+                    username: (opponentUsername || 'PLAYER 2').toUpperCase(),
                     elo: 1300,
                     avatar_url: null,
-                    country: ''
+                    country: '',
+                    wins: 0,
+                    losses: 0
                 };
             }
             _rankedP2 = oppData;
@@ -2390,7 +3340,7 @@
                 if (userId) {
                     const { data } = await _supabase
                         .from('players')
-                        .select('id, username, elo, avatar_url, country, wins, losses')
+                        .select('id, username, elo, avatar_url, country, city, wins, losses')
                         .eq('id', userId)
                         .maybeSingle();
                     if (data) {
@@ -2414,11 +3364,6 @@
             const elo2 = document.getElementById('vs-p2-elo');
             if (elo2) elo2.textContent = `${oppData.elo || 1300} RATING`;
             populateVsCard(2, oppData);
-            const p2Img = document.getElementById('vs-p2-avatar');
-            if (p2Img) {
-                p2Img.src = oppData.avatar_url || getSubsoccerPresetAvatar(oppData.username, 2);
-                p2Img.style.display = 'block';
-            }
 
             const startBtn = document.getElementById('vs-start-btn');
             const loginBtn = document.getElementById('vs-login-btn');
@@ -2434,11 +3379,6 @@
                 const elo1 = document.getElementById('vs-p1-elo');
                 if (elo1) elo1.textContent = `${currentUser.elo || 1300} RATING`;
                 populateVsCard(1, currentUser);
-                const p1Img = document.getElementById('vs-p1-avatar');
-                if (p1Img) {
-                    p1Img.src = currentUser.avatar_url || getSubsoccerPresetAvatar(currentUser.username, 1);
-                    p1Img.style.display = 'block';
-                }
 
                 // Calculate potential ELO change
                 const p1Elo = currentUser.elo || 1300;
@@ -2454,6 +3394,12 @@
                 if (startBtn) {
                     startBtn.style.display = 'block';
                     startBtn.textContent = '⚔️ START RANKED MATCH';
+                    startBtn.className = 'vs-center-btn';
+                    startBtn.style.background = '';
+                    startBtn.style.border = '';
+                    startBtn.style.marginTop = '';
+                    startBtn.style.fontSize = '';
+                    startBtn.style.boxShadow = 'none';
                 }
                 if (loginBtn) loginBtn.style.display = 'none';
                 // Show swap sides button
@@ -2468,14 +3414,10 @@
                 const elo1 = document.getElementById('vs-p1-elo');
                 if (elo1) elo1.textContent = 'UNRANKED';
                 populateVsCard(1, { username: 'GUEST', elo: '—', wins: 0, losses: 0 });
-                const p1Img = document.getElementById('vs-p1-avatar');
-                if (p1Img) {
-                    p1Img.src = getSubsoccerPresetAvatar('GUEST', 1);
-                    p1Img.style.display = 'block';
-                }
 
                 if (stakesEl) {
-                    stakesEl.innerHTML = `Challenging <strong>${oppData.username}</strong>!<br><span style="color:#ffffff; font-weight:bold;">Log in to record match to your Pro Card:</span>`;
+                    const oppName = (oppData.username || 'OPPONENT').replace(/[<>&"]/g, '');
+                    stakesEl.innerHTML = `CHALLENGING <strong style="color:var(--sub-gold, #e5a823);">${oppName.toUpperCase()}</strong><br><span style="font-size:0.62rem; color:#94a3b8; font-weight:600; text-transform:none; letter-spacing:0.3px;">Log in to record match to your Pro Card</span>`;
                 }
 
                 if (loginBtn) {
@@ -2484,11 +3426,12 @@
                 }
                 if (startBtn) {
                     startBtn.style.display = 'block';
-                    startBtn.textContent = 'PLAY UNRANKED (GUEST)';
-                    startBtn.style.marginTop = '10px';
-                    startBtn.style.background = 'rgba(255,255,255,0.08)';
-                    startBtn.style.border = '1px solid rgba(255,255,255,0.2)';
-                    startBtn.style.fontSize = '0.95rem';
+                    startBtn.textContent = 'PLAY AS GUEST (UNRANKED)';
+                    startBtn.className = 'vs-center-btn vs-btn-guest';
+                    startBtn.style.background = '';
+                    startBtn.style.border = '';
+                    startBtn.style.marginTop = '';
+                    startBtn.style.fontSize = '';
                     startBtn.style.boxShadow = 'none';
                 }
             }
@@ -2514,9 +3457,14 @@
         window.shareRankedResult = async function() {
             if (!_rankedMatchPayload) return;
             const btn = document.getElementById('btn-share-ranked-result');
+            const demoBtn = document.getElementById('btn-share-demo-result');
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GENERATING CARD...';
                 btn.disabled = true;
+            }
+            if (demoBtn) {
+                demoBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GENERATING...';
+                demoBtn.disabled = true;
             }
             try {
                 await MatchShareCard.shareMatchResult(_rankedMatchPayload);
@@ -2526,6 +3474,10 @@
                 if (btn) {
                     btn.innerHTML = '<i class="fa-solid fa-share-nodes"></i> SHARE RESULT CARD';
                     btn.disabled = false;
+                }
+                if (demoBtn) {
+                    demoBtn.innerHTML = '<i class="fa-solid fa-share-nodes"></i> SHARE';
+                    demoBtn.disabled = false;
                 }
             }
         };
@@ -2543,8 +3495,6 @@
             const elo1 = document.getElementById('vs-p1-elo');
             if (elo1) elo1.textContent = `${_rankedP1.elo || 1300} RATING`;
             populateVsCard(1, _rankedP1);
-            const p1Img = document.getElementById('vs-p1-avatar');
-            if (p1Img) p1Img.src = _rankedP1.avatar_url || getSubsoccerPresetAvatar(_rankedP1.username, 1);
 
             // Re-render P2 (right/red)
             const l2 = document.getElementById('label-p2');
@@ -2552,8 +3502,6 @@
             const elo2 = document.getElementById('vs-p2-elo');
             if (elo2) elo2.textContent = `${_rankedP2.elo || 1300} RATING`;
             populateVsCard(2, _rankedP2);
-            const p2Img = document.getElementById('vs-p2-avatar');
-            if (p2Img) p2Img.src = _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2);
 
             // Recalculate ELO stakes
             const p1Elo = _rankedP1.elo || 1300;
@@ -2582,29 +3530,14 @@
             // Check for Game ID or Serial Number (sn) in URL
             const urlParams = new URLSearchParams(window.location.search);
 
-            // Ranked Match Mode (?match_vs=USERNAME or ?match_vs_id=UUID)
+            // Ranked Match Mode (?demo=... or ?match_vs=USERNAME or ?match_vs_id=UUID)
             const matchVs = urlParams.get('match_vs');
             const matchVsId = urlParams.get('match_vs_id');
-            if (matchVsId) {
-                // UUID-based: fetch username from ID first, then init
-                (async () => {
-                    try {
-                        const { data } = await _supabase
-                            .from('players')
-                            .select('username')
-                            .eq('id', matchVsId)
-                            .maybeSingle();
-                        if (data && data.username) {
-                            initRankedMatch(data.username);
-                        } else {
-                            console.warn('Player ID not found:', matchVsId);
-                            initRankedMatch(matchVsId); // fallback: use as name
-                        }
-                    } catch(e) {
-                        console.warn('UUID lookup failed:', e);
-                        initRankedMatch(matchVsId);
-                    }
-                })();
+            const isDemo = urlParams.has('demo') || urlParams.get('mode') === 'demo';
+            if (isDemo) {
+                initDemoRankedMatch();
+            } else if (matchVsId) {
+                initRankedMatch(matchVsId);
             } else if (matchVs) {
                 initRankedMatch(matchVs);
             } else if (urlParams.get('mode') !== 'display' && !urlParams.get('p1')) {
@@ -3152,7 +4085,6 @@
                 winTextEl.style.display = (_isRankedMatch && _rankedP1 && _rankedP2) ? 'none' : 'block';
             }
             document.documentElement.classList.remove('is-ranked-playing');
-            document.getElementById('winner-overlay').classList.add('show');
 
             // Ranked Match ELO Calculation & Heroic Victory Screen
             if (_isRankedMatch && _rankedP1 && _rankedP2) {
@@ -3194,14 +4126,17 @@
                 const rScore = document.getElementById('ranked-final-score');
                 if (rScore) rScore.textContent = `${scoreP1} — ${scoreP2}`;
 
-                // Player 1 Card Details (Petrol Blue half)
+                // Player 1 Card Details
                 const resP1Name = document.getElementById('ranked-res-p1-name');
                 const resP1Elo = document.getElementById('ranked-res-p1-elo');
                 const resP1Img = document.getElementById('ranked-res-p1-img');
                 const resP1Wrap = document.getElementById('ranked-res-p1-wrap');
 
                 if (resP1Name) resP1Name.textContent = p1DisplayName;
-                if (resP1Img) resP1Img.src = _rankedP1.avatar_url || getSubsoccerPresetAvatar(_rankedP1.username, 1);
+                if (resP1Img) {
+                    resP1Img.src = _rankedP1.avatar_url || getSubsoccerPresetAvatar(_rankedP1.username, 1);
+                    if (_rankedP1.avatar_pos) resP1Img.style.objectPosition = _rankedP1.avatar_pos;
+                }
                 if (resP1Wrap) {
                     resP1Wrap.style.borderColor = p1Won ? '#ffffff' : 'rgba(255,255,255,0.35)';
                     resP1Wrap.style.opacity = '1';
@@ -3211,14 +4146,17 @@
                     resP1Elo.style.color = p1Diff >= 0 ? '#4ade80' : '#f87171';
                 }
 
-                // Player 2 Card Details (Subsoccer Red half)
+                // Player 2 Card Details
                 const resP2Name = document.getElementById('ranked-res-p2-name');
                 const resP2Elo = document.getElementById('ranked-res-p2-elo');
                 const resP2Img = document.getElementById('ranked-res-p2-img');
                 const resP2Wrap = document.getElementById('ranked-res-p2-wrap');
 
                 if (resP2Name) resP2Name.textContent = p2DisplayName;
-                if (resP2Img) resP2Img.src = _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2);
+                if (resP2Img) {
+                    resP2Img.src = _rankedP2.avatar_url || getSubsoccerPresetAvatar(_rankedP2.username, 2);
+                    if (_rankedP2.avatar_pos) resP2Img.style.objectPosition = _rankedP2.avatar_pos;
+                }
                 if (resP2Wrap) {
                     resP2Wrap.style.borderColor = !p1Won ? '#ffffff' : 'rgba(255,255,255,0.35)';
                     resP2Wrap.style.opacity = '1';
@@ -3227,6 +4165,45 @@
                     resP2Elo.textContent = `${p2Diff >= 0 ? '+' : ''}${p2Diff}`;
                     resP2Elo.style.color = p2Diff >= 0 ? '#4ade80' : '#f87171';
                 }
+
+                // In demo mode: display full-page photo overlay of physical collectible cards
+                const isDemoPlayer = (_rankedP1.id && String(_rankedP1.id).startsWith('demo-')) || (_rankedP2.id && String(_rankedP2.id).startsWith('demo-'));
+
+                if (isDemoPlayer) {
+                    document.getElementById('winner-overlay').classList.remove('show');
+                    const fullDemoVictory = document.getElementById('demo-fullpage-victory');
+                    if (fullDemoVictory) {
+                        fullDemoVictory.style.display = 'flex';
+                        const winTitle = document.getElementById('demo-full-winner-title');
+                        if (winTitle) winTitle.textContent = `${winnerDisplayName.toUpperCase()} WINS!`;
+                        const scoreEl = document.getElementById('demo-full-score');
+                        if (scoreEl) scoreEl.textContent = `${scoreP1} — ${scoreP2}`;
+                        const stakesEl = document.getElementById('demo-full-elo-stakes');
+                        if (stakesEl) {
+                            const p1Sign = p1Diff >= 0 ? '+' : '';
+                            const p2Sign = p2Diff >= 0 ? '+' : '';
+                            stakesEl.innerHTML = `<span style="color:${p1Diff >= 0 ? '#4ade80' : '#f87171'}; font-weight:bold;">${_rankedP1.username.split(' ')[0]}: ${p1Sign}${p1Diff} (${p1NewElo} PTS)</span> &nbsp;|&nbsp; <span style="color:${p2Diff >= 0 ? '#4ade80' : '#f87171'}; font-weight:bold;">${_rankedP2.username.split(' ')[0]}: ${p2Sign}${p2Diff} (${p2NewElo} PTS)</span>`;
+                        }
+                    }
+                } else {
+                    const fullDemoVictory = document.getElementById('demo-fullpage-victory');
+                    if (fullDemoVictory) fullDemoVictory.style.display = 'none';
+                    document.getElementById('winner-overlay').classList.add('show');
+                }
+
+                // Notify parent frame (e.g. presentation slide deck)
+                try {
+                    window.parent.postMessage({
+                        type: 'SUBSOCCER_MATCH_END',
+                        winner: winnerDisplayName,
+                        winnerNumber: p1Won ? 1 : 2,
+                        score: `${scoreP1} — ${scoreP2}`,
+                        p1Name: _rankedP1.username,
+                        p2Name: _rankedP2.username,
+                        p1EloAfter: p1NewElo,
+                        p2EloAfter: p2NewElo
+                    }, '*');
+                } catch(e) {}
 
                 // Prepare 1080x1080 Victory Share Card payload (1:1 with match screen)
                 const mins = gameDuration ? Math.floor(gameDuration / 60) : 0;
@@ -3253,8 +4230,16 @@
                     date: new Date().toLocaleDateString()
                 };
 
-                // Server-side authoritative recording (with retry)
-                if (_rankedP1.id && _rankedP2.id) {
+                // Customize victory actions in demo mode
+                const backBtn = document.getElementById('ranked-back-btn');
+                if (backBtn && isDemoPlayer) {
+                    backBtn.href = "javascript:void(0)";
+                    backBtn.setAttribute('onclick', 'resetDemoDuel()');
+                    backBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> <span>NEW GAME (0 — 0)</span>';
+                }
+
+                // Server-side authoritative recording (with retry, skip for demo players)
+                if (_rankedP1.id && _rankedP2.id && !String(_rankedP1.id).startsWith('demo-') && !String(_rankedP2.id).startsWith('demo-')) {
                     const rpcPayload = {
                         p1_id: _rankedP1.id,
                         p2_id: _rankedP2.id,
@@ -3431,6 +4416,13 @@
             document.getElementById('winner-overlay').classList.remove('show');
             stopLasers();
 
+            if (_rankedP2) {
+                document.documentElement.classList.add('is-ranked-playing');
+                WIN_SCORE = 3;
+                if (_rankedP1) populateVsCard(1, _rankedP1);
+                if (_rankedP2) populateVsCard(2, _rankedP2);
+            }
+
             // Reset Pin It card
             const pinCard = document.getElementById('pin-it-card');
             const pinAlready = document.getElementById('pin-it-already');
@@ -3495,7 +4487,15 @@
             document.getElementById('score-p2').textContent = '0';
             updateGoalVisuals();
             document.getElementById('winner-overlay').classList.remove('show');
+            const fullDemoVictory = document.getElementById('demo-fullpage-victory');
+            if (fullDemoVictory) fullDemoVictory.style.display = 'none';
             stopLasers();
+
+            if (_rankedP2 && !document.documentElement.classList.contains('is-ranked-intro')) {
+                document.documentElement.classList.add('is-ranked-playing');
+                if (_rankedP1) populateVsCard(1, _rankedP1);
+                if (_rankedP2) populateVsCard(2, _rankedP2);
+            }
 
             BroadcastService.sendScoreUpdate('Player 1', 'Player 2', 0, 0, false);
         }
