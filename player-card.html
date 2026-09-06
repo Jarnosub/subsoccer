@@ -53,8 +53,8 @@
             width: 100%;
             background: #10171f;
             border-bottom: 1px solid #233140;
-            padding: 15px 20px;
-            padding-top: calc(15px + env(safe-area-inset-top, 20px));
+            padding: 10px 16px;
+            padding-top: calc(10px + env(safe-area-inset-top, 14px));
             position: relative;
             z-index: 99;
         }
@@ -96,14 +96,14 @@
            ======================================== */
         .pc-showcase {
             width: 100%;
-            max-width: 340px;
+            max-width: 360px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             perspective: 1000px;
             position: relative;
-            padding: 20px 0 0;
+            padding: 10px 0 0;
             background: transparent;
         }
 
@@ -192,9 +192,9 @@
            AUTHENTIC PRO CARD (exact presentation dimensions & fonts)
            ======================================== */
         .pro-card {
-            width: 232px !important;
-            height: 362px !important;
-            margin: 0 auto 24px auto !important;
+            width: 268px !important;
+            height: 418px !important;
+            margin: 0 auto 12px auto !important;
             perspective: 1200px !important;
             -webkit-perspective: 1200px !important;
         }
@@ -240,8 +240,8 @@
         }
         .card-header-bar {
             width: 100%;
-            height: 26px;
-            padding: 3.5px 10px 0 10px;
+            height: 28px;
+            padding: 4px 12px 0 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -253,12 +253,12 @@
         }
         .card-brand-tag {
             font-family: 'Subsoccer', 'Resolve', sans-serif;
-            font-size: 0.56rem;
-            letter-spacing: 0.7px;
+            font-size: 0.64rem;
+            letter-spacing: 0.8px;
             color: #ffffff;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             white-space: nowrap;
             flex-shrink: 0;
         }
@@ -273,9 +273,9 @@
         }
         .card-edition-serial {
             font-family: 'Space Grotesk', 'Resolve', sans-serif;
-            font-size: 0.49rem;
+            font-size: 0.55rem;
             color: #94a3b8;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.5px;
             font-weight: 600;
             white-space: nowrap;
             flex-shrink: 0;
@@ -284,9 +284,9 @@
             background: linear-gradient(135deg, #d4af37 0%, #aa8214 100%);
             color: #000;
             font-family: 'Resolve', sans-serif;
-            font-size: 0.46rem;
+            font-size: 0.52rem;
             font-weight: 800;
-            padding: 1px 3px;
+            padding: 1.5px 4px;
             border-radius: 2px;
             letter-spacing: 0.4px;
             white-space: nowrap;
@@ -294,7 +294,7 @@
         }
         .card-photo-hero {
             width: 100%;
-            height: 218px;
+            height: 254px;
             position: relative;
             overflow: hidden;
             background: #0a0d14;
@@ -304,6 +304,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: top center;
             display: block;
             transition: transform 0.4s ease;
         }
@@ -329,7 +330,7 @@
             border-radius: 1px;
         }
         .card-flag-badge span {
-            font-size: 0.55rem;
+            font-size: 0.58rem;
             font-weight: 700;
             color: #ffffff;
             letter-spacing: 0.5px;
@@ -346,7 +347,7 @@
             border-radius: 3px;
             padding: 2px 6px;
             color: #d4af37;
-            font-size: 0.52rem;
+            font-size: 0.55rem;
             font-weight: 700;
             letter-spacing: 0.5px;
             display: flex;
@@ -370,7 +371,7 @@
             box-sizing: border-box;
         }
         .card-team-kicker {
-            font-size: 0.56rem;
+            font-size: 0.62rem;
             font-weight: 700;
             color: #d4af37;
             text-transform: uppercase;
@@ -383,7 +384,7 @@
         }
         .card-player-name {
             font-family: 'Resolve', 'Subsoccer', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.7rem;
             font-weight: 800;
             color: #ffffff;
             text-transform: uppercase;
@@ -399,7 +400,7 @@
             padding: 6px 12px 10px;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
             flex-grow: 1;
             width: 100%;
             justify-content: space-between;
@@ -419,18 +420,18 @@
             background: rgba(196, 30, 42, 0.18);
             border: 1px solid rgba(196, 30, 42, 0.5);
             border-radius: 4px;
-            padding: 4px 9px;
+            padding: 4px 10px;
         }
         .card-elo-tag .elo-value {
             font-family: 'Resolve', 'Subsoccer', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             font-weight: 800;
             color: #ffffff;
             line-height: 1;
             letter-spacing: 0.5px;
         }
         .card-elo-tag .elo-title {
-            font-size: 0.52rem;
+            font-size: 0.56rem;
             font-weight: 700;
             color: #d4af37;
             letter-spacing: 0.5px;
@@ -442,14 +443,14 @@
         }
         .card-rank-tag .rank-value {
             font-family: 'Resolve', sans-serif;
-            font-size: 1.2rem;
+            font-size: 1.35rem;
             font-weight: 800;
             color: #ffffff;
             line-height: 1;
             letter-spacing: -0.5px;
         }
         .card-rank-tag .rank-title {
-            font-size: 0.48rem;
+            font-size: 0.52rem;
             font-weight: 600;
             color: #94a3b8;
             text-transform: uppercase;
@@ -460,12 +461,12 @@
         .card-sub-stats {
             display: grid;
             grid-template-columns: 1fr 1.3fr 1fr;
-            gap: 2px;
+            gap: 3px;
             text-align: center;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 4px;
-            padding: 5px 4px;
+            padding: 6px 5px;
             margin: 0;
         }
         .card-stat-col {
@@ -476,13 +477,13 @@
         }
         .card-stat-col .col-val {
             font-family: 'Resolve', sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: #ffffff;
             line-height: 1;
         }
         .card-stat-col .col-lbl {
-            font-size: 0.47rem;
+            font-size: 0.5rem;
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -493,10 +494,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 0.45rem;
+            font-size: 0.48rem;
             color: #475569;
             letter-spacing: 1px;
-            padding-top: 3px;
+            padding-top: 4px;
             padding-bottom: 2px;
             border-top: 1px solid rgba(255, 255, 255, 0.06);
             font-family: 'Resolve', sans-serif;
@@ -1018,19 +1019,29 @@
 
         /* Accordion Profile Details */
         .profile-accordion {
-            width: 280px;
+            width: 268px;
             max-width: 100%;
             margin: 0 auto 12px;
             padding: 0;
+            box-sizing: border-box;
         }
         .profile-accordion-btn {
-            width: 100%; background: rgba(255,255,255,0.03);
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.06);
             border-radius: 6px;
-            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
-            cursor: pointer; color: #888;
-            font-family: 'Resolve', sans-serif; font-size: 0.75rem; font-weight: bold;
-            letter-spacing: 2px; text-transform: uppercase;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            color: #888;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             transition: all 0.2s;
         }
         .profile-accordion-btn:hover { border-color: rgba(255,255,255,0.12); color: #aaa; }
@@ -1046,7 +1057,7 @@
             opacity: 0;
             transition: max-height 0.4s ease, opacity 0.3s ease;
         }
-        .profile-accordion-body.open { max-height: 600px; opacity: 1; }
+        .profile-accordion-body.open { max-height: 1400px; opacity: 1; }
         .profile-accordion-inner {
             padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 10px;
         }
@@ -1129,7 +1140,7 @@
 
     <!-- CARD SHOWCASE -->
     <div class="pc-showcase">
-        <div class="subsoccer-font" style="font-size: 3.2rem; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0; text-align: center; line-height: 1;">
+        <div class="subsoccer-font" style="font-size: 2.7rem; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0; text-align: center; line-height: 1;">
             <span class="subsoccer-font pc-title-player" data-i18n="pc_title_player">PLAYER</span> <span class="subsoccer-font" style="color: #c41e2a;" data-i18n="pc_title_card">CARD</span>
         </div>
         <div class="pc-spotlight"></div>
@@ -1274,24 +1285,27 @@
     </div>
 
     <!-- PRIMARY ACTION: MY MATCH QR -->
-    <div style="width: 232px; max-width: 100%; margin: 0 auto 16px; padding: 0;">
-        <button class="pc-save-btn" id="btn-match-qr" onclick="showMyMatchQr()" style="width:100%; background:linear-gradient(135deg, #c41e2a 0%, #a01520 100%); color: #fff; font-size: 0.85rem; padding: 14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:6px; box-shadow:0 4px 15px rgba(196,30,42,0.35);">
+    <div style="width: 268px; max-width: 100%; margin: 0 auto 12px; padding: 0;">
+        <button class="pc-save-btn" id="btn-match-qr" onclick="showMyMatchQr()" style="width:100%; box-sizing:border-box; background:linear-gradient(135deg, #c41e2a 0%, #a01520 100%); color: #fff; font-family:'Resolve',sans-serif; font-size: 0.85rem; font-weight: bold; letter-spacing: 2px; padding: 14px 20px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:6px; box-shadow:0 4px 15px rgba(196,30,42,0.35); border:none; cursor:pointer; text-transform:uppercase;">
             <i class="fa-solid fa-qrcode" style="font-size:1.1rem;"></i><span>MY MATCH QR</span>
         </button>
     </div>
 
-    <!-- SECTION: CHANGE AVATAR & PHOTO -->
-    <div class="profile-accordion" style="margin-bottom: 12px;">
-        <button class="profile-accordion-btn" id="studio-accordion-btn" onclick="toggleStudioAccordion()">
-            <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-user-pen"></i> CHANGE AVATAR / PHOTO</span>
+    <!-- PROFILE & AVATAR EDIT ACCORDION -->
+    <div class="profile-accordion" style="width: 268px; max-width: 100%; margin: 0 auto 24px; padding: 0;">
+        <button class="profile-accordion-btn" id="profile-accordion-btn" onclick="toggleProfileAccordion()">
+            <span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-user-pen"></i> <span data-i18n="pc_edit_profile">EDIT PROFILE</span></span>
             <i class="fa-solid fa-chevron-down chevron"></i>
         </button>
-        <div class="profile-accordion-body" id="studio-accordion-body">
+        <div class="profile-accordion-body" id="profile-accordion-body">
             <div class="profile-accordion-inner">
-                <!-- Carousel inside -->
+                
+                <!-- 1. AVATAR & PHOTO -->
+                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#d4af37; letter-spacing:2px; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-camera"></i> <span>AVATAR & PHOTO</span>
+                </div>
+
                 <div style="width:100%; margin-bottom:4px;">
-                    <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-bottom:8px;"><i class="fa-solid fa-palette"></i> SAVED AVATARS</div>
-                    
                     <div class="avatar-carousel-wrap" style="width:100%; justify-content:center; gap:8px; margin-bottom:0;">
                         <button class="avatar-carousel-btn" id="avatar-prev" onclick="avatarCarouselStep(-1)" disabled>
                             <i class="fa-solid fa-chevron-left"></i>
@@ -1325,8 +1339,8 @@
 
                     <!-- Delete text -->
                     <div id="remove-avatar-wrap" style="display:none; text-align:center; margin-top:6px;">
-                        <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#555; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#c41e2a'" onmouseout="this.style.color='#555'">
-                            <i class="fa-solid fa-trash-can" style="margin-right:4px;"></i><span>DELETE AVATAR</span>
+                        <a href="#" id="remove-avatar-btn" onclick="removeAvatar(event)" style="font-family:'Resolve',sans-serif; font-size:0.6rem; letter-spacing:1px; color:#64748b; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#c41e2a'" onmouseout="this.style.color='#64748b'">
+                            <i class="fa-solid fa-trash-can" style="margin-right:4px;"></i><span>REMOVE PHOTO</span>
                         </a>
                     </div>
                 </div>
@@ -1348,35 +1362,20 @@
                     </div>
                 </div>
 
-                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-top:8px; margin-bottom:-4px;"><i class="fa-solid fa-camera"></i> OR UPLOAD NEW PHOTO</div>
-
-                <label class="ai-upload-btn" id="ai-upload-label" style="width:100%; margin:0;">
-                    <i class="fa-solid fa-camera" style="font-size:1.1rem"></i>
+                <label class="ai-upload-btn" id="ai-upload-label" style="width:100%; margin:6px 0 0;">
+                    <i class="fa-solid fa-camera" style="font-size:1rem"></i>
                     <span id="ai-selfie-label">CHOOSE PHOTO</span>
                     <input type="file" accept="image/*" id="ai-selfie-input" style="display:none;" onchange="handleSelfieSelect(this)">
                 </label>
-                
-                <hr style="border:0; height:1px; background:rgba(255,255,255,0.05); margin: 2px 0;">
 
-                <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%; margin:0;">
-                    <i class="fa-solid fa-check" style="margin-right:8px;"></i><span>SAVE AVATAR</span>
-                </button>
+                <hr style="border:0; height:1px; background:rgba(255,255,255,0.08); margin: 16px 0 10px;">
 
-                <div id="pc-ai-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
-                <div id="pc-edit-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
-            </div>
-        </div>
-    </div>
+                <!-- 2. PLAYER DETAILS -->
+                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#d4af37; letter-spacing:2px; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-id-card"></i> <span>PLAYER DETAILS</span>
+                </div>
 
-    <!-- PROFILE DETAILS ACCORDION -->
-    <div class="profile-accordion" style="margin-bottom: 24px;">
-        <button class="profile-accordion-btn" id="profile-accordion-btn" onclick="toggleProfileAccordion()">
-            <span data-i18n="pc_edit_profile">EDIT PROFILE DETAILS</span>
-            <i class="fa-solid fa-chevron-down chevron"></i>
-        </button>
-        <div class="profile-accordion-body" id="profile-accordion-body">
-            <div class="profile-accordion-inner">
-                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-top:5px; margin-bottom: -5px;" data-i18n="pc_username">USERNAME</div>
+                <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-top:2px; margin-bottom: -5px;" data-i18n="pc_username">USERNAME</div>
                 <input type="text" class="pc-edit-input" id="pc-edit-name" placeholder="YOUR NAME" maxlength="20" autocomplete="off" style="width:100%;">
                 
                 <div style="font-family:'Resolve',sans-serif; font-size:0.6rem; color:#888; letter-spacing:2px; margin-bottom: -5px;" data-i18n="pc_country">COUNTRY</div>
@@ -1384,15 +1383,25 @@
                     <option value="" disabled selected data-i18n="pc_select_country">SELECT COUNTRY</option>
                 </select>
 
-                <button class="pc-save-btn" onclick="saveProfile()" style="width:100%;" data-i18n="pc_save_changes">SAVE CHANGES</button>
-                <button class="pc-logout-btn" onclick="logoutPlayer()"><i class="fa-solid fa-sign-out-alt" style="margin-right:8px;"></i><span data-i18n="log_out">LOG OUT</span></button>
+                <!-- SAVE BUTTON -->
+                <button class="pc-save-btn" id="pc-save-btn" onclick="saveProfile()" style="width:100%; margin-top:4px;" data-i18n="pc_save_changes">
+                    <i class="fa-solid fa-check" style="margin-right:8px;"></i><span>SAVE CHANGES</span>
+                </button>
+                <div id="pc-edit-msg" class="pc-save-status" style="margin:4px 0 0; min-height:0; font-size:0.65rem;"></div>
+                <div id="pc-ai-msg" class="pc-save-status" style="margin:0; min-height:0; font-size:0.55rem;"></div>
 
-                <div id="danger-zone" style="margin-top: 20px; padding-top: 16px; border-top: 2px solid rgba(227,6,19,0.2);">
-                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: #E30613; letter-spacing: 2px; margin-bottom: 10px;">DANGER ZONE</div>
-                    <button type="button" id="btn-delete-account" onclick="deleteAccountFlow()" style="width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(227,6,19,0.4); border-radius: 4px; color: #E30613; font-family: 'Resolve', sans-serif; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <!-- LOG OUT -->
+                <button class="pc-logout-btn" onclick="logoutPlayer()" style="margin-top:6px;">
+                    <i class="fa-solid fa-sign-out-alt" style="margin-right:8px;"></i><span data-i18n="log_out">LOG OUT</span>
+                </button>
+
+                <!-- DANGER ZONE -->
+                <div id="danger-zone" style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(227,6,19,0.25);">
+                    <div style="font-family: 'Resolve', sans-serif; font-size: 0.6rem; color: #E30613; letter-spacing: 2px; margin-bottom: 8px;">DANGER ZONE</div>
+                    <button type="button" id="btn-delete-account" onclick="deleteAccountFlow()" style="width: 100%; padding: 12px; background: transparent; border: 1px solid rgba(227,6,19,0.4); border-radius: 4px; color: #E30613; font-family: 'Resolve', sans-serif; font-size: 0.68rem; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <i class="fa-solid fa-trash"></i> DELETE MY ACCOUNT
                     </button>
-                    <p style="font-size: 0.6rem; color: #666; text-align: center; margin-top: 6px;">This permanently deletes your account, game history, and all data.</p>
+                    <p style="font-size: 0.55rem; color: #666; text-align: center; margin-top: 6px;">This permanently deletes your account, game history, and all data.</p>
                 </div>
             </div>
         </div>
@@ -1725,13 +1734,7 @@
         }
 
         function toggleStudioAccordion() {
-            const btn = document.getElementById('studio-accordion-btn');
-            const body = document.getElementById('studio-accordion-body');
-            btn.classList.toggle('open');
-            body.classList.toggle('open');
-            if(body.classList.contains('open')) {
-                setTimeout(() => body.scrollIntoView({behavior: 'smooth', block: 'end'}), 200);
-            }
+            toggleProfileAccordion();
         }
 
         // Avatar carousel logic
@@ -3450,7 +3453,7 @@
 
                 // Ensure perfect 2.5x3.5" (750x1050 px @ 300DPI) format
                 const cardFront = document.querySelector('.pro-card-front');
-                const scaleTarget = 750 / 280; // Scale from 280px CSS width to 750px high-res width
+                const scaleTarget = 750 / (cardFront.offsetWidth || 268); // Scale to 750px high-res width
                 
                 const canvas = await html2canvas(cardFront, {
                     scale: scaleTarget,

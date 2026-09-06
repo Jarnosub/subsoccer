@@ -108,7 +108,7 @@ const TRANSLATIONS = {
         pc_take_selfie: "TAKE SELFIE",
         pc_generate_avatar: "GENERATE AVATAR",
         pc_save_avatar: "SAVE AVATAR",
-        pc_edit_profile: "EDIT PROFILE DETAILS",
+        pc_edit_profile: "EDIT PROFILE",
         pc_username: "USERNAME",
         pc_country: "COUNTRY",
         pc_select_country: "SELECT COUNTRY",
