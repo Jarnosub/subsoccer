@@ -184,10 +184,6 @@
             color: #ffffff;
         }
 
-        .pro-card-flipper {
-            box-shadow: none !important;
-        }
-
         /* ========================================
            AUTHENTIC PRO CARD (exact presentation dimensions & fonts)
            ======================================== */
@@ -197,10 +193,14 @@
             margin: 0 auto 12px auto !important;
             perspective: 1200px !important;
             -webkit-perspective: 1200px !important;
+            box-shadow: none !important;
+            filter: none !important;
         }
         .pro-card-flipper {
             border-radius: 10px !important;
-            box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.15) !important;
+            box-shadow: none !important;
+            -webkit-box-shadow: none !important;
+            filter: none !important;
         }
         .pro-card-front,
         .pro-card-back {
@@ -211,6 +211,8 @@
             background-image: none !important;
             overflow: hidden !important;
             padding: 0 !important;
+            box-shadow: none !important;
+            filter: none !important;
         }
         .pro-card-front::after,
         .pro-card-back::after {
