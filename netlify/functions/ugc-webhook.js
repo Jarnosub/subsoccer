@@ -1,7 +1,7 @@
 const https = require('https');
 const { createClient } = require('@supabase/supabase-js');
 
-const UGC_WEBHOOK_SECRET = process.env.UGC_WEBHOOK_SECRET || 'subsoccer-pro-ugc-2026';
+const UGC_WEBHOOK_SECRET = process.env.UGC_WEBHOOK_SECRET || '';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;

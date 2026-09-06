@@ -50,3 +50,10 @@ jarno-ventures
 .env.backup
 *.expect
 *.exp
+
+# Scratch and test artifacts
+scratch/
+test-results/
+playwright-report/
+*.backup*
+*.backup-*

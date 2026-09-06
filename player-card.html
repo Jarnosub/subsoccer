@@ -37,8 +37,7 @@
 
         body {
             font-family: 'Open Sans', sans-serif;
-            background: #141d26;
-            
+            background: #141d26 !important;
             color: #ffffff;
             min-height: 100dvh;
             overflow-x: hidden;
@@ -187,6 +186,322 @@
 
         .pro-card-flipper {
             box-shadow: none !important;
+        }
+
+        /* ========================================
+           AUTHENTIC PRO CARD (exact presentation dimensions & fonts)
+           ======================================== */
+        .pro-card {
+            width: 232px !important;
+            height: 362px !important;
+            margin: 0 auto 24px auto !important;
+            perspective: 1200px !important;
+            -webkit-perspective: 1200px !important;
+        }
+        .pro-card-flipper {
+            border-radius: 10px !important;
+            box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.15) !important;
+        }
+        .pro-card-front,
+        .pro-card-back {
+            border-radius: 10px !important;
+            border: 1px solid rgba(0, 0, 0, 0.6) !important;
+            border-top: none !important;
+            background: #080a0f !important;
+            background-image: none !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+        }
+        .pro-card-front::after,
+        .pro-card-back::after {
+            display: none !important;
+        }
+        .card-foil-border {
+            position: absolute;
+            inset: 5px;
+            border: 1.5px solid #d4af37;
+            border-radius: 6px;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.85;
+        }
+        .card-holo-shine {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(125deg, transparent 35%, rgba(255, 255, 255, 0.08) 45%, rgba(212, 175, 55, 0.16) 50%, rgba(255, 255, 255, 0.08) 55%, transparent 65%);
+            mix-blend-mode: overlay;
+            pointer-events: none;
+            z-index: 11;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        .pro-card:hover .card-holo-shine {
+            opacity: 1;
+        }
+        .card-header-bar {
+            width: 100%;
+            height: 26px;
+            padding: 3.5px 10px 0 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #040508;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            z-index: 5;
+            box-sizing: border-box;
+            white-space: nowrap;
+        }
+        .card-brand-tag {
+            font-family: 'Subsoccer', 'Resolve', sans-serif;
+            font-size: 0.56rem;
+            letter-spacing: 0.7px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .card-brand-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #c41e2a;
+            display: inline-block;
+            box-shadow: 0 0 6px rgba(196, 30, 42, 0.8);
+            flex-shrink: 0;
+        }
+        .card-edition-serial {
+            font-family: 'Space Grotesk', 'Resolve', sans-serif;
+            font-size: 0.49rem;
+            color: #94a3b8;
+            letter-spacing: 0.4px;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .card-pro-chip {
+            background: linear-gradient(135deg, #d4af37 0%, #aa8214 100%);
+            color: #000;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.46rem;
+            font-weight: 800;
+            padding: 1px 3px;
+            border-radius: 2px;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .card-photo-hero {
+            width: 100%;
+            height: 218px;
+            position: relative;
+            overflow: hidden;
+            background: #0a0d14;
+            flex-shrink: 0;
+        }
+        .card-photo-hero img#pc-card-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.4s ease;
+        }
+        .card-flag-badge {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(4, 5, 8, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 3px;
+            padding: 2px 6px;
+            z-index: 4;
+        }
+        .card-flag-badge img {
+            width: 14px;
+            height: 10px;
+            object-fit: cover;
+            border-radius: 1px;
+        }
+        .card-flag-badge span {
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            font-family: 'Resolve', sans-serif;
+        }
+        .card-verified-badge {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: rgba(4, 5, 8, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(212, 175, 55, 0.45);
+            border-radius: 3px;
+            padding: 2px 6px;
+            color: #d4af37;
+            font-size: 0.52rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 4;
+            font-family: 'Resolve', sans-serif;
+        }
+        .card-photo-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 55%;
+            background: linear-gradient(to top, rgba(5, 7, 11, 1) 0%, rgba(5, 7, 11, 0.88) 35%, rgba(5, 7, 11, 0.45) 60%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 0 12px 10px;
+            z-index: 3;
+            box-sizing: border-box;
+        }
+        .card-team-kicker {
+            font-size: 0.56rem;
+            font-weight: 700;
+            color: #d4af37;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 3px;
+            font-family: 'Resolve', sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-player-name {
+            font-family: 'Resolve', 'Subsoccer', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-stats-block {
+            background: #080a0f;
+            padding: 6px 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex-grow: 1;
+            width: 100%;
+            justify-content: space-between;
+            z-index: 5;
+            box-sizing: border-box;
+        }
+        .card-primary-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 1px;
+        }
+        .card-elo-tag {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            background: rgba(196, 30, 42, 0.18);
+            border: 1px solid rgba(196, 30, 42, 0.5);
+            border-radius: 4px;
+            padding: 4px 9px;
+        }
+        .card-elo-tag .elo-value {
+            font-family: 'Resolve', 'Subsoccer', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: 0.5px;
+        }
+        .card-elo-tag .elo-title {
+            font-size: 0.52rem;
+            font-weight: 700;
+            color: #d4af37;
+            letter-spacing: 0.5px;
+            font-family: 'Resolve', sans-serif;
+        }
+        .card-rank-tag {
+            text-align: right;
+            padding-right: 1px;
+        }
+        .card-rank-tag .rank-value {
+            font-family: 'Resolve', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+        .card-rank-tag .rank-title {
+            font-size: 0.48rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-family: 'Resolve', sans-serif;
+            margin-top: 1px;
+        }
+        .card-sub-stats {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr 1fr;
+            gap: 2px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 4px;
+            padding: 5px 4px;
+            margin: 0;
+        }
+        .card-stat-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+        }
+        .card-stat-col .col-val {
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+        }
+        .card-stat-col .col-lbl {
+            font-size: 0.47rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            font-family: 'Resolve', sans-serif;
+        }
+        .card-micro-footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.45rem;
+            color: #475569;
+            letter-spacing: 1px;
+            padding-top: 3px;
+            padding-bottom: 2px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-family: 'Resolve', sans-serif;
+            text-align: center;
+            text-transform: uppercase;
         }
 
         /* ========================================
@@ -480,10 +795,10 @@
         }
 
         /* ========================================
-           DARK MODE OVERRIDES
+           DARK MODE
            ======================================== */
         body.dark-mode {
-            background: #111111;
+            background: #141d26 !important;
             color: #ffffff;
         }
 
@@ -492,8 +807,8 @@
         }
 
         body.dark-mode .pc-header {
-            background: #111111;
-            border-bottom-color: #333333;
+            background: #10171f !important;
+            border-bottom-color: #233140 !important;
         }
 
         body.dark-mode .pc-back-btn,
@@ -502,7 +817,7 @@
         }
 
         body.dark-mode .pc-stat-card {
-            background: #222222;
+            background: #1b2632;
         }
 
         body.dark-mode .pc-stat-value {
@@ -522,26 +837,26 @@
         }
 
         body.dark-mode .pc-edit-card {
-            background: #222222;
-            border-color: #444444;
+            background: #1b2632;
+            border-color: #233140;
         }
 
         body.dark-mode .pc-edit-input,
         body.dark-mode .pc-edit-select {
-            background: #111111;
-            border-color: #444444;
+            background: #141d26;
+            border-color: #233140;
             color: #ffffff;
         }
 
         body.dark-mode .pc-edit-file-label {
-            background: #111111;
-            border-color: #444444;
+            background: #141d26;
+            border-color: #233140;
             color: #aaaaaa;
         }
 
         body.dark-mode .pc-logout-btn {
             color: #ffffff;
-            border-color: #444444;
+            border-color: #233140;
         }
 
         body.dark-mode .pc-logout-btn:hover {
@@ -805,7 +1120,7 @@
             <i class="fas fa-arrow-left"></i>
         </button>
         <div class="pc-header-title">
-            <img src="subsoccer_logo.svg" style="height: 24px; cursor: pointer;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com';">
+            <img src="subsoccer_logo.svg" style="height: 24px; cursor: pointer;" alt="Subsoccer" onclick="window.location.href='https://subsoccer.com?utm_source=subsoccer_pro&utm_medium=pwa&utm_campaign=logo_click&utm_content=player_card';">
         </div>
         <button class="pc-settings-btn" onclick="toggleProfileAccordion(); document.getElementById('profile-accordion-body').scrollIntoView({behavior:'smooth', block:'center'})">
             <i class="fas fa-cog"></i>
@@ -819,96 +1134,139 @@
         </div>
         <div class="pc-spotlight"></div>
         
-        <!-- Pro Card (uses existing CSS from style.css) -->
+        <!-- Pro Card (Authentic Pro Card Presentation Style) -->
         <div class="pro-card" onclick="this.classList.toggle('flipped')" style="z-index: 10;">
             <div class="pro-card-flipper">
                 <!-- FRONT SIDE -->
                 <div class="pro-card-front">
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 15px 6px; z-index: 2;">
-                        <div style="font-size: 0.65rem; color: #c41e2a; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                            PRO CARD // 2026</div>
-                        <div style="display: flex; gap: 5px; align-items: center;">
-                            <i class="fa-solid fa-crown" style="color: #c41e2a; font-size: 1.1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8);"></i>
+                    <div class="card-foil-border"></div>
+                    <div class="card-holo-shine"></div>
+
+                    <!-- Top Brand Bar -->
+                    <div class="card-header-bar">
+                        <div class="card-brand-tag">
+                            <span class="card-brand-dot"></span> SUBSOCCER PRO
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap;">
+                            <span class="card-edition-serial" id="pc-card-serial">SERIES 1 // #2026</span>
+                            <span class="card-pro-chip" id="pc-card-tier-chip">PRO</span>
                         </div>
                     </div>
 
-                    <!-- Photo area -->
-                    <div style="width: 100%; height: 225px; flex-shrink: 0; background: #1a1a1a; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <i class="fa-solid fa-user-astronaut" id="pc-card-icon" style="font-size: 3rem; color: #333;"></i>
-                        <img src="" id="pc-card-photo" alt="Player Avatar" crossorigin="anonymous" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; display: none;">
+                    <!-- Photo Area with Overlays -->
+                    <div class="card-photo-hero">
+                        <i class="fa-solid fa-user-astronaut" id="pc-card-icon" style="font-size: 3.5rem; color: #334155; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 1;"></i>
+                        <img src="" id="pc-card-photo" alt="Player Avatar" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; object-position: top center; display: none;">
+
+                        <!-- Flag Badge -->
+                        <div class="card-flag-badge" id="pc-card-flag-wrap">
+                            <img id="pc-card-flag-img" src="https://flagcdn.com/w40/fi.png" alt="Country" onerror="this.style.display='none'">
+                            <span id="pc-card-country-code">FIN</span>
+                        </div>
+
+                        <!-- Verified Badge -->
+                        <div class="card-verified-badge" id="pc-card-verified-wrap">
+                            <i class="fa-solid fa-circle-check"></i> VERIFIED
+                        </div>
+
+                        <!-- Photo Bottom Overlay: Kicker + Name -->
+                        <div class="card-photo-overlay">
+                            <div class="card-team-kicker" id="pc-card-location">HELSINKI ARENA • FINLAND</div>
+                            <div class="card-player-name" id="pc-card-name">PLAYER</div>
+                        </div>
                     </div>
 
-                    <!-- Bottom info -->
-                    <div style="width: 100%; padding: 15px; display: flex; flex-direction: column; z-index: 2; flex: 1; align-items: flex-start; box-sizing: border-box;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 2px;">
-                            <div style="display: flex; align-items: center; gap: 6px; color: #c41e2a; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                                <i class="fa-solid fa-location-dot"></i> <span id="pc-card-location" data-i18n="pc_local_arena">LOCAL ARENA</span>
+                    <!-- Stats Block -->
+                    <div class="card-stats-block">
+                        <div class="card-primary-stats">
+                            <div class="card-elo-tag">
+                                <span class="elo-value" id="pc-card-elo">1,500</span>
+                                <span class="elo-title">PTS</span>
                             </div>
-                            <img src="subsoccer_logo.svg" style="height: 18px; opacity: 1;" alt="Subsoccer">
-                        </div>
-
-                        <div id="pc-card-name" class="subsoccer-font" style="font-size: 2.6rem; text-transform: uppercase; color: #fff; margin-top: 2px; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
-                            PLAYER</div>
-
-                        <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-bottom: 5px;">
-                            <div id="pc-card-elo" style="background: #c41e2a; color: #fff; padding: 4px 10px; font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif; font-weight: normal; font-size: 1.4rem; border-radius: 6px; line-height: 1; margin-bottom: 2px;">
-                                1500</div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 0.65rem; color: #888; font-weight: bold; margin-bottom: 2px; letter-spacing: 0.5px;" data-i18n="pc_win_ratio">
-                                    WIN RATIO</div>
-                                <div id="pc-card-winratio" style="font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif; font-weight: normal; font-size: 1.4rem; color: #fff; line-height: 1;">
-                                    0%</div>
+                            <div class="card-rank-tag">
+                                <div class="rank-value" id="pc-card-rank">#—</div>
+                                <div class="rank-title">GLOBAL RANK</div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Tap to flip -->
-                    <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); padding: 4px 14px; border-radius: 20px; color: rgba(255,255,255,0.6); font-size: 0.6rem; font-family:'Resolve', sans-serif; letter-spacing: 2px; z-index: 2; white-space: nowrap;">
-                        <i class="fa-solid fa-rotate" style="margin-right: 4px;"></i><span data-i18n="pc_flip_card">FLIP CARD</span>
+                        <div class="card-sub-stats">
+                            <div class="card-stat-col">
+                                <span class="col-val" id="pc-card-winratio" style="color: #4ade80;">0%</span>
+                                <span class="col-lbl" data-i18n="pc_win_ratio">WIN RATE</span>
+                            </div>
+                            <div class="card-stat-col">
+                                <span class="col-val" id="pc-card-record">0W - 0L</span>
+                                <span class="col-lbl">RECORD</span>
+                            </div>
+                            <div class="card-stat-col">
+                                <span class="col-val" id="pc-card-matches">0</span>
+                                <span class="col-lbl" data-i18n="pc_matches">MATCHES</span>
+                            </div>
+                        </div>
+
+                        <div class="card-micro-footer">
+                            <span>OFFICIAL COMPETITOR CARD</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- BACK SIDE -->
-                <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column;">
-                    <div style="text-align:center; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:10px; padding:20px 20px 10px 20px; background: rgba(0,0,0,0.3);">
-                        <h4 style="color:#c41e2a; font-family:'Subsoccer', sans-serif; margin:0; letter-spacing:2px; font-size:1.1rem;">
-                            <span data-i18n="pc_player_dossier">PLAYER DOSSIER</span></h4>
-                        <div id="pc-card-tier" style="color:#fff; font-size:0.75rem; font-family:'Resolve', sans-serif; margin-top:5px; text-transform:uppercase; letter-spacing: 1px;">
-                            <span data-i18n="pc_new_recruit">NEW RECRUIT</span></div>
+                <div class="pro-card-back" style="padding: 0; box-sizing: border-box; display: flex; flex-direction: column; position: relative;">
+                    <div class="card-foil-border"></div>
+                    
+                    <div class="card-header-bar">
+                        <div class="card-brand-tag">
+                            <span class="card-brand-dot"></span> SUBSOCCER PRO
+                        </div>
+                        <div class="card-edition-serial">
+                            <span id="pc-card-tier">PRO PLAYER</span>
+                        </div>
                     </div>
-                    <div style="padding: 10px 20px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;" data-i18n="pc_global_rating">GLOBAL RATING</div>
-                                <div id="pc-back-elo" style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">1500</div>
+
+                    <div style="padding: 14px 14px 10px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; z-index: 5;">
+                        <div style="text-align: center;">
+                            <div style="font-family:'Resolve', sans-serif; color: #d4af37; font-size: 0.62rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">
+                                <span data-i18n="pc_player_dossier">PLAYER DOSSIER</span>
                             </div>
-                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;" data-i18n="pc_win_ratio">WIN RATIO</div>
-                                <div id="pc-back-ratio" style="color:#fff; font-size: 1.4rem; font-family:'Subsoccer', sans-serif;">0%</div>
-                            </div>
-                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;" data-i18n="pc_matches">MATCHES</div>
-                                <div id="pc-back-matches" style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
-                            </div>
-                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                <div style="font-family:'Resolve', sans-serif; color:#888; font-size:0.6rem; letter-spacing:1px; margin-bottom:4px;" data-i18n="pc_wins">WINS</div>
-                                <div id="pc-back-wins" style="color:#fff; font-size: 1.2rem; font-family:'Resolve', sans-serif; font-weight: bold;">0</div>
+                            <div id="pc-back-name" style="font-family: 'Resolve', sans-serif; font-size: 1rem; font-weight: 900; color: #fff; text-transform: uppercase; margin-top: 1px;">
+                                PLAYER
                             </div>
                         </div>
-                        
-                        <div style="margin-top: 8px; text-align: center; background: rgba(196,30,42,0.08); border: 1px solid rgba(196,30,42,0.25); padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 12px;">
-                            <div style="background: #fff; padding: 4px; border-radius: 4px; line-height: 0;">
-                                <div id="pc-card-back-qr" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;"></div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 6px 0;">
+                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);">
+                                <div style="font-family:'Resolve', sans-serif; color:#64748b; font-size:0.5rem; letter-spacing:0.8px; text-transform:uppercase;" data-i18n="pc_global_rating">GLOBAL RATING</div>
+                                <div id="pc-back-elo" style="color:#ffffff; font-size: 1.05rem; font-family:'Resolve', sans-serif; font-weight: 800;">1500</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);">
+                                <div style="font-family:'Resolve', sans-serif; color:#64748b; font-size:0.5rem; letter-spacing:0.8px; text-transform:uppercase;" data-i18n="pc_win_ratio">WIN RATIO</div>
+                                <div id="pc-back-ratio" style="color:#ffffff; font-size: 1.05rem; font-family:'Resolve', sans-serif; font-weight: 800;">0%</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);">
+                                <div style="font-family:'Resolve', sans-serif; color:#64748b; font-size:0.5rem; letter-spacing:0.8px; text-transform:uppercase;" data-i18n="pc_matches">MATCHES</div>
+                                <div id="pc-back-matches" style="color:#ffffff; font-size: 1.05rem; font-family:'Resolve', sans-serif; font-weight: 800;">0</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);">
+                                <div style="font-family:'Resolve', sans-serif; color:#64748b; font-size:0.5rem; letter-spacing:0.8px; text-transform:uppercase;" data-i18n="pc_wins">WINS</div>
+                                <div id="pc-back-wins" style="color:#ffffff; font-size: 1.05rem; font-family:'Resolve', sans-serif; font-weight: 800;">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Match QR code section -->
+                        <div style="background: rgba(196,30,42,0.1); border: 1px solid rgba(196,30,42,0.3); padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <div style="background: #fff; padding: 3px; border-radius: 4px; line-height: 0;">
+                                <div id="pc-card-back-qr" style="width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;"></div>
                             </div>
                             <div style="text-align: left;">
-                                <div style="font-family:'Resolve', sans-serif; color:#c41e2a; font-size:0.65rem; font-weight: 800; letter-spacing:1.5px;">MATCH QR</div>
-                                <div style="font-size:0.55rem; color:#aaa; line-height:1.2; margin-top:2px;">Scan to start instant 1-on-1 match</div>
+                                <div style="font-family:'Resolve', sans-serif; color:#e30613; font-size:0.6rem; font-weight: 800; letter-spacing:1px;">INSTANT 1V1 QR</div>
+                                <div style="font-size:0.5rem; color:#94a3b8; line-height:1.2; margin-top:1px;">Scan with opponent phone to match</div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div style="position:absolute; bottom:12px; width:100%; left:0; text-align:center; color:rgba(255,255,255,0.4); font-size:0.65rem; font-family:'Resolve', sans-serif; letter-spacing:2px; z-index:2;">
-                        <i class="fa-solid fa-rotate-left" style="margin-right: 4px;"></i><span data-i18n="pc_flip_card">FLIP CARD</span>
+
+                        <div class="card-micro-footer" style="margin-top: 4px;">
+                            <span>OFFICIAL SUBSOCCER SYSTEM</span>
+                            <span>SERIES 1</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -916,8 +1274,8 @@
     </div>
 
     <!-- PRIMARY ACTION: MY MATCH QR -->
-    <div style="width: 280px; max-width: 100%; margin: 0 auto 16px; padding: 0;">
-        <button class="pc-save-btn" id="btn-match-qr" onclick="showMyMatchQr()" style="width:100%; background:linear-gradient(135deg, #c41e2a 0%, #a01520 100%); color: #fff; font-size: 0.85rem; padding: 16px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:6px; box-shadow:0 4px 15px rgba(196,30,42,0.35);">
+    <div style="width: 232px; max-width: 100%; margin: 0 auto 16px; padding: 0;">
+        <button class="pc-save-btn" id="btn-match-qr" onclick="showMyMatchQr()" style="width:100%; background:linear-gradient(135deg, #c41e2a 0%, #a01520 100%); color: #fff; font-size: 0.85rem; padding: 14px; display:flex; align-items:center; justify-content:center; gap:10px; border-radius:6px; box-shadow:0 4px 15px rgba(196,30,42,0.35);">
             <i class="fa-solid fa-qrcode" style="font-size:1.1rem;"></i><span>MY MATCH QR</span>
         </button>
     </div>
@@ -1160,6 +1518,38 @@
             return await res.json();
         }
 
+        // Fetch global rank: count players with higher ELO, add 1
+        async function fetchPlayerRank(elo) {
+            try {
+                const rankEl = document.getElementById('pc-card-rank');
+                if (!rankEl) return;
+                // Use HEAD request with count to get number of players with elo > this player's elo
+                const url = `${SUPA_URL}/rest/v1/players?elo=gt.${elo}&select=id`;
+                const res = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPA_KEY,
+                        'Authorization': `Bearer ${SUPA_KEY}`,
+                        'Prefer': 'count=exact',
+                        'Range': '0-0'
+                    }
+                });
+                if (res.ok || res.status === 206) {
+                    const contentRange = res.headers.get('Content-Range');
+                    // Content-Range: 0-0/127 means 127 players have higher ELO
+                    if (contentRange) {
+                        const total = parseInt(contentRange.split('/')[1]);
+                        if (!isNaN(total)) {
+                            rankEl.innerText = `#${total + 1}`;
+                            return;
+                        }
+                    }
+                }
+            } catch(e) {
+                console.warn('Rank fetch failed:', e.message);
+            }
+        }
+
         function applyPlayerData(player) {
             if (!player) return;
             _currentPlayer = player;
@@ -1171,8 +1561,66 @@
             const ratio = matches > 0 ? Math.round((wins / matches) * 100) : 0;
 
             document.getElementById('pc-card-name').innerText = name;
-            document.getElementById('pc-card-elo').innerText = elo;
-            document.getElementById('pc-card-winratio').innerText = ratio + '%';
+            const backNameEl = document.getElementById('pc-back-name');
+            if (backNameEl) backNameEl.innerText = name;
+
+            document.getElementById('pc-card-elo').innerText = Number(elo).toLocaleString();
+            
+            // Fetch and display global rank asynchronously
+            fetchPlayerRank(elo);
+            
+            const winRatioEl = document.getElementById('pc-card-winratio');
+            if (winRatioEl) {
+                winRatioEl.innerText = ratio + '%';
+                winRatioEl.style.color = ratio >= 50 ? '#4ade80' : '#ffffff';
+            }
+
+            const recordEl = document.getElementById('pc-card-record');
+            if (recordEl) recordEl.innerText = `${wins}W - ${losses}L`;
+
+            const matchesEl = document.getElementById('pc-card-matches');
+            if (matchesEl) matchesEl.innerText = matches;
+
+            // Country & Flag badge
+            const cCode = (player.country || 'fi').toLowerCase();
+            const countryEl = document.getElementById('pc-card-country-code');
+            if (countryEl) countryEl.innerText = cCode.toUpperCase();
+            const flagImg = document.getElementById('pc-card-flag-img');
+            if (flagImg) {
+                flagImg.src = `https://flagcdn.com/w40/${cCode}.png`;
+                flagImg.style.display = 'inline-block';
+            }
+
+            // Kicker location title
+            const kickerEl = document.getElementById('pc-card-location');
+            if (kickerEl) {
+                if (player.team_data && player.team_data.name) {
+                    kickerEl.innerText = player.team_data.name.toUpperCase();
+                } else if (player.city && player.country) {
+                    kickerEl.innerText = `${player.city.toUpperCase()} ARENA • ${player.country.toUpperCase()}`;
+                } else if (player.country) {
+                    kickerEl.innerText = `OFFICIAL ARENA • ${player.country.toUpperCase()}`;
+                } else {
+                    kickerEl.innerText = 'OFFICIAL COMPETITOR • SUBSOCCER PRO';
+                }
+            }
+
+            // Series serial number & tier chip
+            const serialEl = document.getElementById('pc-card-serial');
+            if (serialEl) {
+                const serialCode = player.id ? player.id.substring(0, 4).toUpperCase() : '2026';
+                serialEl.innerText = `SERIES 1 // #${serialCode}`;
+            }
+
+            const tier = elo >= 1800 ? 'LEGEND' : elo >= 1500 ? 'PRO' : elo >= 1300 ? 'CHALLENGER' : 'ROOKIE';
+            const tierChip = document.getElementById('pc-card-tier-chip');
+            if (tierChip) tierChip.innerText = tier;
+            const tierLabel = document.getElementById('pc-card-tier-label');
+            if (tierLabel) tierLabel.innerText = tier;
+
+            const tierFull = elo >= 1800 ? 'LEGEND' : elo >= 1500 ? 'PRO PLAYER' : elo >= 1300 ? 'CHALLENGER' : 'ROOKIE';
+            const tierEl = document.getElementById('pc-card-tier');
+            if (tierEl) tierEl.innerText = tierFull;
 
             if (player.avatar_url) {
                 const photo = document.getElementById('pc-card-photo');
@@ -1222,18 +1670,10 @@
             const removeWrap = document.getElementById('remove-avatar-wrap');
             if (removeWrap) removeWrap.style.display = player.avatar_url ? 'block' : 'none';
 
-            if (player.team_data && player.team_data.name) {
-                document.getElementById('pc-card-location').innerText = player.team_data.name;
-            } else if (player.country) {
-                document.getElementById('pc-card-location').innerText = player.country.toUpperCase();
-            }
-
-            document.getElementById('pc-back-elo').innerText = elo;
+            document.getElementById('pc-back-elo').innerText = Number(elo).toLocaleString();
             document.getElementById('pc-back-ratio').innerText = ratio + '%';
             document.getElementById('pc-back-matches').innerText = matches;
             document.getElementById('pc-back-wins').innerText = wins;
-            const tier = elo >= 1800 ? 'LEGEND' : elo >= 1500 ? 'PRO PLAYER' : elo >= 1300 ? 'CHALLENGER' : 'ROOKIE';
-            document.getElementById('pc-card-tier').innerText = tier;
 
             // Generate Card Back QR code
             const backQr = document.getElementById('pc-card-back-qr');
@@ -2793,7 +3233,7 @@
             const playerName = document.getElementById('pc-card-name')?.textContent || 'Player';
             const elo = document.getElementById('pc-card-elo')?.textContent || '1300';
             const shareUrl = `https://subsoccer.pro/player-card.html?u=${encodeURIComponent(playerName)}`;
-            const shareText = `Check out ${playerName}'s Subsoccer Pro Card — ELO ${elo} ⚽🏆`;
+            const shareText = `Check out ${playerName}'s Subsoccer Pro Card — ${elo} PTS ⚽🏆`;
             
             if (navigator.share) {
                 try {

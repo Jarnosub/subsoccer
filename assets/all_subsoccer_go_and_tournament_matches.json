@@ -1,0 +1,4844 @@
+[
+  {
+    "location": "Newport, GB",
+    "lat": 51.5893,
+    "lng": -2.9931,
+    "count": 51
+  },
+  {
+    "location": "GB",
+    "lat": 51.4402,
+    "lng": -0.0259,
+    "count": 21
+  },
+  {
+    "location": "GB",
+    "lat": 51.4964,
+    "lng": -0.1224,
+    "count": 383
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.4702,
+    "lng": -2.2305,
+    "count": 13
+  },
+  {
+    "location": "Bottrop, DE",
+    "lat": 51.5208,
+    "lng": 6.9297,
+    "count": 1
+  },
+  {
+    "location": "Aarhus, DK",
+    "lat": 56.1567,
+    "lng": 10.2153,
+    "count": 6
+  },
+  {
+    "location": "Edinburgh, GB",
+    "lat": 55.9409,
+    "lng": -3.2939,
+    "count": 1
+  },
+  {
+    "location": "Huddersfield, GB",
+    "lat": 53.6479,
+    "lng": -1.7812,
+    "count": 28
+  },
+  {
+    "location": "Bacoor, PH",
+    "lat": 14.456,
+    "lng": 120.9401,
+    "count": 2
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.4867,
+    "lng": -1.8989,
+    "count": 211
+  },
+  {
+    "location": "Sutton in Ashfield, GB",
+    "lat": 53.1187,
+    "lng": -1.2649,
+    "count": 7
+  },
+  {
+    "location": "Edinburgh, GB",
+    "lat": 55.9632,
+    "lng": -3.2546,
+    "count": 34
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.1617,
+    "lng": 24.9181,
+    "count": 21
+  },
+  {
+    "location": "Makati City, PH",
+    "lat": 14.5562,
+    "lng": 121.0298,
+    "count": 8
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3248,
+    "lng": 103.8566,
+    "count": 33
+  },
+  {
+    "location": "Skarżysko-Kamienna, PL",
+    "lat": 51.1147,
+    "lng": 20.8715,
+    "count": 2
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.2872,
+    "lng": 103.8507,
+    "count": 117
+  },
+  {
+    "location": "FI",
+    "lat": 60.1719,
+    "lng": 24.9347,
+    "count": 361
+  },
+  {
+    "location": "Converse, US",
+    "lat": 29.5211,
+    "lng": -98.3293,
+    "count": 2
+  },
+  {
+    "location": "Horsham, GB",
+    "lat": 51.0528,
+    "lng": -0.3369,
+    "count": 10
+  },
+  {
+    "location": "Atlanta, US",
+    "lat": 33.8923,
+    "lng": -84.2545,
+    "count": 2
+  },
+  {
+    "location": "Atlanta, US",
+    "lat": 33.7838,
+    "lng": -84.4455,
+    "count": 1
+  },
+  {
+    "location": "Medea, DZ",
+    "lat": 36.0762,
+    "lng": 3.0777,
+    "count": 635
+  },
+  {
+    "location": "Austin, US",
+    "lat": 30.2625,
+    "lng": -97.7463,
+    "count": 13
+  },
+  {
+    "location": "Brunswick, US",
+    "lat": 41.2463,
+    "lng": -81.8315,
+    "count": 1
+  },
+  {
+    "location": "Vojens, DK",
+    "lat": 55.2462,
+    "lng": 9.3051,
+    "count": 1
+  },
+  {
+    "location": "Sheffield, GB",
+    "lat": 53.3562,
+    "lng": -1.2939,
+    "count": 1
+  },
+  {
+    "location": "Brent, GB",
+    "lat": 51.5591,
+    "lng": -0.2283,
+    "count": 13
+  },
+  {
+    "location": "Montreal, CA",
+    "lat": 45.5212,
+    "lng": -73.5524,
+    "count": 2
+  },
+  {
+    "location": "Crestwood, US",
+    "lat": 38.3334,
+    "lng": -85.4674,
+    "count": 1
+  },
+  {
+    "location": "Saint-Cuthbert, CA",
+    "lat": 46.1515,
+    "lng": -73.2237,
+    "count": 40
+  },
+  {
+    "location": "Seattle, US",
+    "lat": 47.6109,
+    "lng": -122.3303,
+    "count": 20
+  },
+  {
+    "location": "Montreal, CA",
+    "lat": 45.5725,
+    "lng": -73.6195,
+    "count": 67
+  },
+  {
+    "location": "Morden, GB",
+    "lat": 51.3981,
+    "lng": -0.2013,
+    "count": 1
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 52.9036,
+    "lng": -1.265,
+    "count": 4
+  },
+  {
+    "location": "Los Angeles, US",
+    "lat": 34.0544,
+    "lng": -118.244,
+    "count": 318
+  },
+  {
+    "location": "Zagreb, HR",
+    "lat": 45.8293,
+    "lng": 15.9793,
+    "count": 66
+  },
+  {
+    "location": "US",
+    "lat": 37.751,
+    "lng": -97.822,
+    "count": 51
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.5062,
+    "lng": -1.9425,
+    "count": 128
+  },
+  {
+    "location": "Houston, US",
+    "lat": 29.6731,
+    "lng": -95.5856,
+    "count": 21
+  },
+  {
+    "location": "Houston, US",
+    "lat": 29.8834,
+    "lng": -95.4553,
+    "count": 3
+  },
+  {
+    "location": "Osijek, HR",
+    "lat": 45.5473,
+    "lng": 18.6951,
+    "count": 13
+  },
+  {
+    "location": "Atlanta, US",
+    "lat": 33.8212,
+    "lng": -84.3578,
+    "count": 5
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 52.9538,
+    "lng": -1.1571,
+    "count": 102
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 52.9648,
+    "lng": -1.2132,
+    "count": 9
+  },
+  {
+    "location": "New York, US",
+    "lat": 40.7126,
+    "lng": -74.0066,
+    "count": 571
+  },
+  {
+    "location": "Leeds, GB",
+    "lat": 53.7945,
+    "lng": -1.5524,
+    "count": 2
+  },
+  {
+    "location": "FR",
+    "lat": 48.8582,
+    "lng": 2.3387,
+    "count": 5
+  },
+  {
+    "location": "London, GB",
+    "lat": 51.5081,
+    "lng": -0.1278,
+    "count": 1685
+  },
+  {
+    "location": "GB",
+    "lat": 51.4223,
+    "lng": -0.1984,
+    "count": 1
+  },
+  {
+    "location": "Central Jakarta, ID",
+    "lat": -6.2121,
+    "lng": 106.8319,
+    "count": 1
+  },
+  {
+    "location": "Mansfield, GB",
+    "lat": 53.1369,
+    "lng": -1.1995,
+    "count": 12
+  },
+  {
+    "location": "Basingstoke, GB",
+    "lat": 51.2604,
+    "lng": -1.0825,
+    "count": 6
+  },
+  {
+    "location": "JP",
+    "lat": 35.69,
+    "lng": 139.69,
+    "count": 12
+  },
+  {
+    "location": "West Jakarta, ID",
+    "lat": -6.1572,
+    "lng": 106.7566,
+    "count": 18
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3352,
+    "lng": 103.8529,
+    "count": 46
+  },
+  {
+    "location": "Maramag, PH",
+    "lat": 7.7619,
+    "lng": 125.0092,
+    "count": 38
+  },
+  {
+    "location": "US",
+    "lat": 32.7797,
+    "lng": -96.8022,
+    "count": 15
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.7065,
+    "lng": -104.9289,
+    "count": 1
+  },
+  {
+    "location": "San Juan, PH",
+    "lat": 14.6077,
+    "lng": 121.0463,
+    "count": 11
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.6814,
+    "lng": -104.8837,
+    "count": 1
+  },
+  {
+    "location": "San Antonio, US",
+    "lat": 29.5418,
+    "lng": -98.4212,
+    "count": 32
+  },
+  {
+    "location": "Louisville, US",
+    "lat": 38.1608,
+    "lng": -85.7807,
+    "count": 2
+  },
+  {
+    "location": "US",
+    "lat": 39.9587,
+    "lng": -82.9987,
+    "count": 6
+  },
+  {
+    "location": "Bloomfield, US",
+    "lat": 40.803,
+    "lng": -74.1909,
+    "count": 1
+  },
+  {
+    "location": "Aïn Oussera, DZ",
+    "lat": 35.454,
+    "lng": 2.9094,
+    "count": 102
+  },
+  {
+    "location": "Lithonia, US",
+    "lat": 33.7344,
+    "lng": -84.0986,
+    "count": 5
+  },
+  {
+    "location": "US",
+    "lat": 40.6118,
+    "lng": -111.9008,
+    "count": 3
+  },
+  {
+    "location": "Memphis, US",
+    "lat": 35.1128,
+    "lng": -89.9085,
+    "count": 1
+  },
+  {
+    "location": "Mount Holly, US",
+    "lat": 40.0022,
+    "lng": -74.7885,
+    "count": 81
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.4783,
+    "lng": -2.1394,
+    "count": 1
+  },
+  {
+    "location": "Miami, US",
+    "lat": 25.7701,
+    "lng": -80.1928,
+    "count": 29
+  },
+  {
+    "location": "Riverside, US",
+    "lat": 33.9258,
+    "lng": -117.4899,
+    "count": 3
+  },
+  {
+    "location": "Cardiff, GB",
+    "lat": 51.4984,
+    "lng": -3.2229,
+    "count": 1
+  },
+  {
+    "location": "Pasadena, US",
+    "lat": 34.1648,
+    "lng": -118.1515,
+    "count": 6
+  },
+  {
+    "location": "Alfreton, GB",
+    "lat": 53.0938,
+    "lng": -1.3827,
+    "count": 3
+  },
+  {
+    "location": "San Antonio, US",
+    "lat": 29.521,
+    "lng": -98.362,
+    "count": 1
+  },
+  {
+    "location": "Austin, US",
+    "lat": 30.3643,
+    "lng": -97.6864,
+    "count": 4
+  },
+  {
+    "location": "Buckland, US",
+    "lat": 42.5923,
+    "lng": -72.7918,
+    "count": 1
+  },
+  {
+    "location": "City of London, GB",
+    "lat": 51.5164,
+    "lng": -0.093,
+    "count": 58
+  },
+  {
+    "location": "Austin, US",
+    "lat": 30.1826,
+    "lng": -97.7394,
+    "count": 8
+  },
+  {
+    "location": "Round Rock, US",
+    "lat": 30.5154,
+    "lng": -97.6689,
+    "count": 5
+  },
+  {
+    "location": "Croydon, GB",
+    "lat": 51.3904,
+    "lng": -0.0992,
+    "count": 44
+  },
+  {
+    "location": "US",
+    "lat": 39.7391,
+    "lng": -104.9866,
+    "count": 246
+  },
+  {
+    "location": "Poznan, PL",
+    "lat": 52.3948,
+    "lng": 16.9046,
+    "count": 1
+  },
+  {
+    "location": "GB",
+    "lat": 51.4862,
+    "lng": -0.1008,
+    "count": 29
+  },
+  {
+    "location": "Derby, GB",
+    "lat": 52.8794,
+    "lng": -1.4819,
+    "count": 10
+  },
+  {
+    "location": "US",
+    "lat": 33.7485,
+    "lng": -84.3871,
+    "count": 45
+  },
+  {
+    "location": "Lahti, FI",
+    "lat": 60.9801,
+    "lng": 25.6124,
+    "count": 1
+  },
+  {
+    "location": "Secaucus, US",
+    "lat": 40.7908,
+    "lng": -74.056,
+    "count": 27
+  },
+  {
+    "location": "Miami, US",
+    "lat": 25.8295,
+    "lng": -80.2927,
+    "count": 8
+  },
+  {
+    "location": "Seinäjoki, FI",
+    "lat": 62.763,
+    "lng": 22.8778,
+    "count": 3
+  },
+  {
+    "location": "Canary Wharf, GB",
+    "lat": 51.5064,
+    "lng": -0.02,
+    "count": 6
+  },
+  {
+    "location": "Del Valle, US",
+    "lat": 30.2159,
+    "lng": -97.6459,
+    "count": 1
+  },
+  {
+    "location": "Baku, AZ",
+    "lat": 40.3771,
+    "lng": 49.8875,
+    "count": 7
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3051,
+    "lng": 103.8447,
+    "count": 8
+  },
+  {
+    "location": "Swadlincote, GB",
+    "lat": 52.7788,
+    "lng": -1.5491,
+    "count": 2
+  },
+  {
+    "location": "Quezon City, PH",
+    "lat": 14.6477,
+    "lng": 121.0494,
+    "count": 24
+  },
+  {
+    "location": "West Jakarta, ID",
+    "lat": -6.1677,
+    "lng": 106.7809,
+    "count": 11
+  },
+  {
+    "location": "Liverpool, GB",
+    "lat": 53.4096,
+    "lng": -2.9792,
+    "count": 5
+  },
+  {
+    "location": "Bristol, GB",
+    "lat": 51.4535,
+    "lng": -2.5917,
+    "count": 6
+  },
+  {
+    "location": "Caloocan, PH",
+    "lat": 14.6438,
+    "lng": 120.9632,
+    "count": 30
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3596,
+    "lng": 103.8637,
+    "count": 45
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3732,
+    "lng": 103.8431,
+    "count": 33
+  },
+  {
+    "location": "Edmonton, CA",
+    "lat": 53.5185,
+    "lng": -113.6579,
+    "count": 3
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.327,
+    "lng": 103.8972,
+    "count": 2
+  },
+  {
+    "location": "Austin, US",
+    "lat": 30.4548,
+    "lng": -97.7664,
+    "count": 1
+  },
+  {
+    "location": "San Luis Obispo, US",
+    "lat": 35.2612,
+    "lng": -120.655,
+    "count": 4
+  },
+  {
+    "location": "Calgary, CA",
+    "lat": 50.8833,
+    "lng": -114.0334,
+    "count": 4
+  },
+  {
+    "location": "San Antonio, US",
+    "lat": 29.4963,
+    "lng": -98.4004,
+    "count": 1
+  },
+  {
+    "location": "Washington, US",
+    "lat": 38.8892,
+    "lng": -76.9417,
+    "count": 1
+  },
+  {
+    "location": "Los Angeles, US",
+    "lat": 34.0337,
+    "lng": -118.3509,
+    "count": 3
+  },
+  {
+    "location": "Los Angeles, US",
+    "lat": 33.9555,
+    "lng": -118.2863,
+    "count": 1
+  },
+  {
+    "location": "Djelfa, DZ",
+    "lat": 34.9801,
+    "lng": 3.4811,
+    "count": 166
+  },
+  {
+    "location": "Bastrop, US",
+    "lat": 30.1105,
+    "lng": -97.3153,
+    "count": 1
+  },
+  {
+    "location": "Riverside, US",
+    "lat": 33.9764,
+    "lng": -117.3341,
+    "count": 4
+  },
+  {
+    "location": "Kadiria, DZ",
+    "lat": 36.5306,
+    "lng": 3.6825,
+    "count": 1309
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.1787,
+    "lng": 24.9326,
+    "count": 10
+  },
+  {
+    "location": "Hastings, US",
+    "lat": 44.7433,
+    "lng": -92.8524,
+    "count": 1
+  },
+  {
+    "location": "Wednesbury, GB",
+    "lat": 52.5474,
+    "lng": -2.0097,
+    "count": 1
+  },
+  {
+    "location": "Hackney, GB",
+    "lat": 51.5507,
+    "lng": -0.0537,
+    "count": 6
+  },
+  {
+    "location": "Burnsville, US",
+    "lat": 44.7601,
+    "lng": -93.2748,
+    "count": 4
+  },
+  {
+    "location": "Ilmajoki, FI",
+    "lat": 62.7513,
+    "lng": 22.7073,
+    "count": 1
+  },
+  {
+    "location": "Derby, GB",
+    "lat": 52.9234,
+    "lng": -1.4725,
+    "count": 34
+  },
+  {
+    "location": "Reading, GB",
+    "lat": 51.4566,
+    "lng": -0.968,
+    "count": 1
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3209,
+    "lng": 103.8331,
+    "count": 2
+  },
+  {
+    "location": "Hamburg, DE",
+    "lat": 53.5544,
+    "lng": 9.9946,
+    "count": 17
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3552,
+    "lng": 103.8859,
+    "count": 9
+  },
+  {
+    "location": "Tokyo, JP",
+    "lat": 35.6837,
+    "lng": 139.6805,
+    "count": 136
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 52.9922,
+    "lng": -1.233,
+    "count": 3
+  },
+  {
+    "location": "Virginia Beach, US",
+    "lat": 36.7969,
+    "lng": -76.1797,
+    "count": 2
+  },
+  {
+    "location": "Albany, US",
+    "lat": 42.7227,
+    "lng": -73.8178,
+    "count": 1
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.2037,
+    "lng": 25.1319,
+    "count": 3
+  },
+  {
+    "location": "Rüsselsheim am Main, DE",
+    "lat": 49.9874,
+    "lng": 8.4232,
+    "count": 7
+  },
+  {
+    "location": "Paranaque City, PH",
+    "lat": 14.5051,
+    "lng": 121.0272,
+    "count": 7
+  },
+  {
+    "location": "Hyvinkää, FI",
+    "lat": 60.619,
+    "lng": 24.8415,
+    "count": 4
+  },
+  {
+    "location": "Pasig, PH",
+    "lat": 14.5688,
+    "lng": 121.0827,
+    "count": 4
+  },
+  {
+    "location": "Schenectady, US",
+    "lat": 42.781,
+    "lng": -73.9115,
+    "count": 13
+  },
+  {
+    "location": "Djelfa, DZ",
+    "lat": 34.6678,
+    "lng": 3.2518,
+    "count": 1221
+  },
+  {
+    "location": "Chicago, US",
+    "lat": 41.8183,
+    "lng": -87.6095,
+    "count": 1
+  },
+  {
+    "location": "Parrita, CR",
+    "lat": 9.5612,
+    "lng": -84.321,
+    "count": 1
+  },
+  {
+    "location": "Montreal, CA",
+    "lat": 45.4995,
+    "lng": -73.5848,
+    "count": 1
+  },
+  {
+    "location": "Val-d'Or, CA",
+    "lat": 48.1037,
+    "lng": -77.783,
+    "count": 17
+  },
+  {
+    "location": "Dronninglund, DK",
+    "lat": 57.1791,
+    "lng": 10.2976,
+    "count": 1
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 52.9994,
+    "lng": -1.1318,
+    "count": 22
+  },
+  {
+    "location": "Tczew, PL",
+    "lat": 54.0888,
+    "lng": 18.7783,
+    "count": 15
+  },
+  {
+    "location": "Port Orchard, US",
+    "lat": 47.4739,
+    "lng": -122.6431,
+    "count": 1
+  },
+  {
+    "location": "Leicester, GB",
+    "lat": 52.6181,
+    "lng": -1.1804,
+    "count": 29
+  },
+  {
+    "location": "Walthamstow, GB",
+    "lat": 51.5909,
+    "lng": -0.0215,
+    "count": 25
+  },
+  {
+    "location": "Dorval, CA",
+    "lat": 45.4413,
+    "lng": -73.7537,
+    "count": 1
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.506,
+    "lng": -1.8846,
+    "count": 15
+  },
+  {
+    "location": "Pflugerville, US",
+    "lat": 30.4421,
+    "lng": -97.6339,
+    "count": 2
+  },
+  {
+    "location": "Skjern, DK",
+    "lat": 55.9479,
+    "lng": 8.505,
+    "count": 1
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.4809,
+    "lng": -2.2374,
+    "count": 122
+  },
+  {
+    "location": "Santo Domingo Este, DO",
+    "lat": 18.4842,
+    "lng": -69.8466,
+    "count": 102
+  },
+  {
+    "location": "Wolverhampton, GB",
+    "lat": 52.6257,
+    "lng": -2.0545,
+    "count": 12
+  },
+  {
+    "location": "Austin, US",
+    "lat": 30.3414,
+    "lng": -97.7312,
+    "count": 1
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3427,
+    "lng": 103.872,
+    "count": 11
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.1532,
+    "lng": 24.9356,
+    "count": 38
+  },
+  {
+    "location": "Shawnee, US",
+    "lat": 39.0452,
+    "lng": -94.7189,
+    "count": 2
+  },
+  {
+    "location": "Hammond, US",
+    "lat": 41.5883,
+    "lng": -87.4593,
+    "count": 1
+  },
+  {
+    "location": "Houston, US",
+    "lat": 29.8738,
+    "lng": -95.5233,
+    "count": 2
+  },
+  {
+    "location": "Houston, US",
+    "lat": 29.6966,
+    "lng": -95.5441,
+    "count": 3
+  },
+  {
+    "location": "San Rafael, US",
+    "lat": 37.9681,
+    "lng": -122.5119,
+    "count": 1
+  },
+  {
+    "location": "Chesterfield, GB",
+    "lat": 53.234,
+    "lng": -1.4462,
+    "count": 1
+  },
+  {
+    "location": "Sheffield, GB",
+    "lat": 53.386,
+    "lng": -1.4648,
+    "count": 3
+  },
+  {
+    "location": "San Antonio, US",
+    "lat": 29.4698,
+    "lng": -98.5357,
+    "count": 7
+  },
+  {
+    "location": "Peterborough, GB",
+    "lat": 52.5836,
+    "lng": -0.2528,
+    "count": 3
+  },
+  {
+    "location": "Sheffield, GB",
+    "lat": 53.3488,
+    "lng": -1.4091,
+    "count": 83
+  },
+  {
+    "location": "Oldham, GB",
+    "lat": 53.5477,
+    "lng": -2.1259,
+    "count": 3
+  },
+  {
+    "location": "Dhaka, BD",
+    "lat": 23.7729,
+    "lng": 90.3657,
+    "count": 22
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.4759,
+    "lng": -1.8516,
+    "count": 25
+  },
+  {
+    "location": "Essen, DE",
+    "lat": 51.4444,
+    "lng": 7.0114,
+    "count": 15
+  },
+  {
+    "location": "HK",
+    "lat": 22.2578,
+    "lng": 114.1657,
+    "count": 50
+  },
+  {
+    "location": "GB",
+    "lat": 51.477,
+    "lng": -0.1959,
+    "count": 1
+  },
+  {
+    "location": "Poznan, PL",
+    "lat": 52.4031,
+    "lng": 16.9262,
+    "count": 1
+  },
+  {
+    "location": "Quesada, CR",
+    "lat": 10.328,
+    "lng": -84.4099,
+    "count": 1
+  },
+  {
+    "location": "FR",
+    "lat": 48.8558,
+    "lng": 2.3494,
+    "count": 131
+  },
+  {
+    "location": "Mountain View, US",
+    "lat": 37.3859,
+    "lng": -122.0882,
+    "count": 4
+  },
+  {
+    "location": "US",
+    "lat": 45.5248,
+    "lng": -122.6789,
+    "count": 1
+  },
+  {
+    "location": "US",
+    "lat": 38.6646,
+    "lng": -90.5758,
+    "count": 1
+  },
+  {
+    "location": "Tottenham, GB",
+    "lat": 51.5834,
+    "lng": -0.0755,
+    "count": 8
+  },
+  {
+    "location": "Jackson, US",
+    "lat": 32.3705,
+    "lng": -90.1746,
+    "count": 24
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.5012,
+    "lng": -2.4112,
+    "count": 1
+  },
+  {
+    "location": "San Antonio, US",
+    "lat": 29.4553,
+    "lng": -98.5677,
+    "count": 3
+  },
+  {
+    "location": "GB",
+    "lat": 51.512,
+    "lng": 0.0154,
+    "count": 8
+  },
+  {
+    "location": "Bergen, NO",
+    "lat": 60.3951,
+    "lng": 5.3237,
+    "count": 1
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 53.0172,
+    "lng": -0.9699,
+    "count": 1
+  },
+  {
+    "location": "Stuttgart, DE",
+    "lat": 48.767,
+    "lng": 9.1827,
+    "count": 9
+  },
+  {
+    "location": "Beausoleil, FR",
+    "lat": 43.7468,
+    "lng": 7.4179,
+    "count": 1
+  },
+  {
+    "location": "Lichfield, GB",
+    "lat": 52.6883,
+    "lng": -1.8231,
+    "count": 11
+  },
+  {
+    "location": "Chesterfield, GB",
+    "lat": 53.2558,
+    "lng": -1.4292,
+    "count": 6
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.5189,
+    "lng": -1.9189,
+    "count": 76
+  },
+  {
+    "location": "Asia/Jakarta",
+    "lat": -6.2088,
+    "lng": 106.8456,
+    "count": 368
+  },
+  {
+    "location": "Mansfield, GB",
+    "lat": 53.1706,
+    "lng": -1.249,
+    "count": 4
+  },
+  {
+    "location": "Derby, GB",
+    "lat": 52.9887,
+    "lng": -1.4407,
+    "count": 86
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.4994,
+    "lng": -2.2433,
+    "count": 23
+  },
+  {
+    "location": "Cologne, DE",
+    "lat": 50.939,
+    "lng": 6.9644,
+    "count": 24
+  },
+  {
+    "location": "Reading, GB",
+    "lat": 51.4425,
+    "lng": -0.9267,
+    "count": 21
+  },
+  {
+    "location": "Pune, IN",
+    "lat": 18.5211,
+    "lng": 73.8502,
+    "count": 6
+  },
+  {
+    "location": "Bottrop, DE",
+    "lat": 51.6063,
+    "lng": 6.9172,
+    "count": 4
+  },
+  {
+    "location": "East Jakarta, ID",
+    "lat": -6.2722,
+    "lng": 106.8535,
+    "count": 4
+  },
+  {
+    "location": "San Diego, US",
+    "lat": 32.7104,
+    "lng": -117.0528,
+    "count": 1
+  },
+  {
+    "location": "Royal Oak, US",
+    "lat": 42.4933,
+    "lng": -83.135,
+    "count": 145
+  },
+  {
+    "location": "Houston, US",
+    "lat": 29.69,
+    "lng": -95.2564,
+    "count": 1
+  },
+  {
+    "location": "Montreal, CA",
+    "lat": 45.5075,
+    "lng": -73.5887,
+    "count": 11
+  },
+  {
+    "location": "Luton, GB",
+    "lat": 51.9322,
+    "lng": -0.4568,
+    "count": 2
+  },
+  {
+    "location": "San Diego, US",
+    "lat": 32.5799,
+    "lng": -117.0694,
+    "count": 3
+  },
+  {
+    "location": "Cedar Park, US",
+    "lat": 30.5045,
+    "lng": -97.8209,
+    "count": 1
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.5451,
+    "lng": -1.881,
+    "count": 1
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.4993,
+    "lng": -1.9752,
+    "count": 27
+  },
+  {
+    "location": "Riverside, US",
+    "lat": 33.9388,
+    "lng": -117.416,
+    "count": 1
+  },
+  {
+    "location": "Oslo, NO",
+    "lat": 59.9133,
+    "lng": 10.7389,
+    "count": 69
+  },
+  {
+    "location": "Bolbec, FR",
+    "lat": 49.5701,
+    "lng": 0.4648,
+    "count": 3
+  },
+  {
+    "location": "Paterna, ES",
+    "lat": 39.5012,
+    "lng": -0.4313,
+    "count": 1
+  },
+  {
+    "location": "Eisenstadt, AT",
+    "lat": 47.8485,
+    "lng": 16.5246,
+    "count": 1
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3296,
+    "lng": 103.8799,
+    "count": 1
+  },
+  {
+    "location": "Lucena City, PH",
+    "lat": 13.9301,
+    "lng": 121.6202,
+    "count": 1
+  },
+  {
+    "location": "East Jakarta, ID",
+    "lat": -6.2369,
+    "lng": 106.853,
+    "count": 6
+  },
+  {
+    "location": "Corona, US",
+    "lat": 33.8419,
+    "lng": -117.6043,
+    "count": 1
+  },
+  {
+    "location": "Atlanta, US",
+    "lat": 33.7855,
+    "lng": -84.3612,
+    "count": 8
+  },
+  {
+    "location": "Atlanta, US",
+    "lat": 33.7153,
+    "lng": -84.3312,
+    "count": 3
+  },
+  {
+    "location": "Taguig, PH",
+    "lat": 14.5185,
+    "lng": 121.0689,
+    "count": 15
+  },
+  {
+    "location": "Lumberton, US",
+    "lat": 30.2766,
+    "lng": -94.2015,
+    "count": 25
+  },
+  {
+    "location": "Rennes, FR",
+    "lat": 48.11,
+    "lng": -1.6744,
+    "count": 1
+  },
+  {
+    "location": "San Antonio, US",
+    "lat": 29.522,
+    "lng": -98.5305,
+    "count": 45
+  },
+  {
+    "location": "Manila, PH",
+    "lat": 14.6019,
+    "lng": 120.9896,
+    "count": 2
+  },
+  {
+    "location": "US",
+    "lat": 41.8483,
+    "lng": -87.6517,
+    "count": 8
+  },
+  {
+    "location": "Indianapolis, US",
+    "lat": 39.9012,
+    "lng": -86.1717,
+    "count": 9
+  },
+  {
+    "location": "NL",
+    "lat": 52.3824,
+    "lng": 4.8995,
+    "count": 33
+  },
+  {
+    "location": "Esbjerg, DK",
+    "lat": 55.4692,
+    "lng": 8.4496,
+    "count": 1
+  },
+  {
+    "location": "Warsaw, PL",
+    "lat": 52.2296,
+    "lng": 21.0646,
+    "count": 1
+  },
+  {
+    "location": "Värnamo, SE",
+    "lat": 57.1847,
+    "lng": 14.0444,
+    "count": 1
+  },
+  {
+    "location": "Leeds, GB",
+    "lat": 53.8167,
+    "lng": -1.4167,
+    "count": 15
+  },
+  {
+    "location": "Chicago, US",
+    "lat": 41.923,
+    "lng": -87.7531,
+    "count": 1
+  },
+  {
+    "location": "Dallas, US",
+    "lat": 32.9993,
+    "lng": -96.8346,
+    "count": 1
+  },
+  {
+    "location": "Hamburg, DE",
+    "lat": 53.5717,
+    "lng": 9.9545,
+    "count": 3
+  },
+  {
+    "location": "US",
+    "lat": 36.1671,
+    "lng": -86.7861,
+    "count": 8
+  },
+  {
+    "location": "Atlanta, US",
+    "lat": 33.7697,
+    "lng": -84.3754,
+    "count": 1
+  },
+  {
+    "location": "Houston, US",
+    "lat": 29.7738,
+    "lng": -95.406,
+    "count": 2
+  },
+  {
+    "location": "Richmond, US",
+    "lat": 37.5115,
+    "lng": -77.5662,
+    "count": 3
+  },
+  {
+    "location": "NO",
+    "lat": 59.9463,
+    "lng": 10.7541,
+    "count": 44
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.5197,
+    "lng": -2.2109,
+    "count": 45
+  },
+  {
+    "location": "Luton, GB",
+    "lat": 51.8842,
+    "lng": -0.4208,
+    "count": 27
+  },
+  {
+    "location": "Heredia, CR",
+    "lat": 9.9983,
+    "lng": -84.1171,
+    "count": 2
+  },
+  {
+    "location": "DE",
+    "lat": 51.2993,
+    "lng": 9.491,
+    "count": 3
+  },
+  {
+    "location": "Bergkamen, DE",
+    "lat": 51.6182,
+    "lng": 7.6449,
+    "count": 11
+  },
+  {
+    "location": "Dortmund, DE",
+    "lat": 51.4978,
+    "lng": 7.4698,
+    "count": 5
+  },
+  {
+    "location": "Central Jakarta, ID",
+    "lat": -6.2077,
+    "lng": 106.8354,
+    "count": 2
+  },
+  {
+    "location": "Stord, NO",
+    "lat": 59.8232,
+    "lng": 5.4578,
+    "count": 2
+  },
+  {
+    "location": "Burton-on-Trent, GB",
+    "lat": 52.8312,
+    "lng": -1.5858,
+    "count": 1
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.1798,
+    "lng": 24.9453,
+    "count": 12
+  },
+  {
+    "location": "North Jakarta, ID",
+    "lat": -6.1804,
+    "lng": 106.9038,
+    "count": 6
+  },
+  {
+    "location": "MX",
+    "lat": 19.4371,
+    "lng": -99.0111,
+    "count": 9
+  },
+  {
+    "location": "Austin, US",
+    "lat": 30.2424,
+    "lng": -97.767,
+    "count": 1
+  },
+  {
+    "location": "Salt Lake City, US",
+    "lat": 40.65,
+    "lng": -112.0061,
+    "count": 10
+  },
+  {
+    "location": "Houston, US",
+    "lat": 29.7646,
+    "lng": -95.3657,
+    "count": 1
+  },
+  {
+    "location": "Castleford, GB",
+    "lat": 53.7259,
+    "lng": -1.3626,
+    "count": 1
+  },
+  {
+    "location": "Algiers, DZ",
+    "lat": 36.7296,
+    "lng": 3.0905,
+    "count": 468
+  },
+  {
+    "location": "Gdansk, PL",
+    "lat": 54.3183,
+    "lng": 18.5839,
+    "count": 1
+  },
+  {
+    "location": "San Antonio, US",
+    "lat": 29.5531,
+    "lng": -98.3598,
+    "count": 1
+  },
+  {
+    "location": "Portsmouth, GB",
+    "lat": 50.8431,
+    "lng": -1.064,
+    "count": 41
+  },
+  {
+    "location": "Riverside, US",
+    "lat": 33.9249,
+    "lng": -117.4592,
+    "count": 3
+  },
+  {
+    "location": "Derby, GB",
+    "lat": 52.9453,
+    "lng": -1.4953,
+    "count": 10
+  },
+  {
+    "location": "Sheffield, GB",
+    "lat": 53.3368,
+    "lng": -1.3547,
+    "count": 1
+  },
+  {
+    "location": "Ilford, GB",
+    "lat": 51.5564,
+    "lng": 0.0715,
+    "count": 5
+  },
+  {
+    "location": "San Antonio, US",
+    "lat": 29.522,
+    "lng": -98.5974,
+    "count": 1
+  },
+  {
+    "location": "Leeds, GB",
+    "lat": 53.9169,
+    "lng": -1.5735,
+    "count": 5
+  },
+  {
+    "location": "Leeds, GB",
+    "lat": 53.7999,
+    "lng": -1.5125,
+    "count": 88
+  },
+  {
+    "location": "BE",
+    "lat": 50.8509,
+    "lng": 4.3447,
+    "count": 5
+  },
+  {
+    "location": "Malmö, SE",
+    "lat": 55.6078,
+    "lng": 12.9982,
+    "count": 5
+  },
+  {
+    "location": "Matlock, GB",
+    "lat": 53.1384,
+    "lng": -1.5556,
+    "count": 1
+  },
+  {
+    "location": "Haugesund, NO",
+    "lat": 59.4116,
+    "lng": 5.2677,
+    "count": 1
+  },
+  {
+    "location": "Lambeth, GB",
+    "lat": 51.4772,
+    "lng": -0.1197,
+    "count": 27
+  },
+  {
+    "location": "GB",
+    "lat": 51.504,
+    "lng": -0.3609,
+    "count": 25
+  },
+  {
+    "location": "Leicester, GB",
+    "lat": 52.5739,
+    "lng": -1.2819,
+    "count": 32
+  },
+  {
+    "location": "Rochester, US",
+    "lat": 44.0484,
+    "lng": -92.4948,
+    "count": 7
+  },
+  {
+    "location": "Kensington, GB",
+    "lat": 51.489,
+    "lng": -0.1696,
+    "count": 3
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.4636,
+    "lng": -1.7912,
+    "count": 5
+  },
+  {
+    "location": "Quezon City, PH",
+    "lat": 14.6263,
+    "lng": 121.0399,
+    "count": 3
+  },
+  {
+    "location": "Warsaw, PL",
+    "lat": 52.2337,
+    "lng": 21.0224,
+    "count": 3
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3193,
+    "lng": 103.8674,
+    "count": 2
+  },
+  {
+    "location": "Prague, CZ",
+    "lat": 50.1242,
+    "lng": 14.398,
+    "count": 1
+  },
+  {
+    "location": "Leipzig, DE",
+    "lat": 51.342,
+    "lng": 12.3819,
+    "count": 1
+  },
+  {
+    "location": "DE",
+    "lat": 51.0545,
+    "lng": 13.7413,
+    "count": 9
+  },
+  {
+    "location": "Pacoima, US",
+    "lat": 34.2529,
+    "lng": -118.418,
+    "count": 1
+  },
+  {
+    "location": "Lincoln, GB",
+    "lat": 53.1758,
+    "lng": -0.5515,
+    "count": 6
+  },
+  {
+    "location": "Bogotá, CO",
+    "lat": 4.6115,
+    "lng": -74.0833,
+    "count": 2
+  },
+  {
+    "location": "Innsbruck, AT",
+    "lat": 47.2637,
+    "lng": 11.4016,
+    "count": 4
+  },
+  {
+    "location": "Chino Hills, US",
+    "lat": 33.9952,
+    "lng": -117.757,
+    "count": 1
+  },
+  {
+    "location": "Liverpool, GB",
+    "lat": 53.4516,
+    "lng": -2.9147,
+    "count": 1
+  },
+  {
+    "location": "Camden, GB",
+    "lat": 51.5268,
+    "lng": -0.187,
+    "count": 7
+  },
+  {
+    "location": "Tampere, FI",
+    "lat": 61.4966,
+    "lng": 23.7831,
+    "count": 5
+  },
+  {
+    "location": "Washington, US",
+    "lat": 38.9328,
+    "lng": -77.0289,
+    "count": 7
+  },
+  {
+    "location": "Prague, CZ",
+    "lat": 50.0883,
+    "lng": 14.4124,
+    "count": 3
+  },
+  {
+    "location": "Redhill, GB",
+    "lat": 51.2405,
+    "lng": -0.1704,
+    "count": 23
+  },
+  {
+    "location": "DK",
+    "lat": 55.7123,
+    "lng": 12.0564,
+    "count": 1
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3302,
+    "lng": 103.8238,
+    "count": 1
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.4146,
+    "lng": -2.2274,
+    "count": 6
+  },
+  {
+    "location": "Manila, PH",
+    "lat": 14.5933,
+    "lng": 120.9781,
+    "count": 4
+  },
+  {
+    "location": "Taguig, PH",
+    "lat": 14.532,
+    "lng": 121.0781,
+    "count": 9
+  },
+  {
+    "location": "LV",
+    "lat": 56.9473,
+    "lng": 24.0979,
+    "count": 24
+  },
+  {
+    "location": "SE",
+    "lat": 59.3247,
+    "lng": 18.056,
+    "count": 10
+  },
+  {
+    "location": "Harlesden, GB",
+    "lat": 51.5426,
+    "lng": -0.2449,
+    "count": 3
+  },
+  {
+    "location": "San Pedro, PH",
+    "lat": 14.3613,
+    "lng": 121.0505,
+    "count": 1
+  },
+  {
+    "location": "Jesolo, IT",
+    "lat": 45.5334,
+    "lng": 12.6434,
+    "count": 6
+  },
+  {
+    "location": "Carmona, PH",
+    "lat": 14.2922,
+    "lng": 120.9998,
+    "count": 3
+  },
+  {
+    "location": "Shenzhen, CN",
+    "lat": 22.5455,
+    "lng": 114.0683,
+    "count": 3
+  },
+  {
+    "location": "Quezon City, PH",
+    "lat": 14.6214,
+    "lng": 121.0501,
+    "count": 3
+  },
+  {
+    "location": "Morton Grove, US",
+    "lat": 42.0431,
+    "lng": -87.7899,
+    "count": 4
+  },
+  {
+    "location": "Salt Lake City, US",
+    "lat": 40.6596,
+    "lng": -111.9195,
+    "count": 1
+  },
+  {
+    "location": "Santo Domingo, DO",
+    "lat": 18.475,
+    "lng": -69.8993,
+    "count": 2
+  },
+  {
+    "location": "ES",
+    "lat": 40.4172,
+    "lng": -3.684,
+    "count": 5
+  },
+  {
+    "location": "Stony Brook, US",
+    "lat": 40.9076,
+    "lng": -73.122,
+    "count": 3
+  },
+  {
+    "location": "Kirkby in Ashfield, GB",
+    "lat": 53.1113,
+    "lng": -1.2531,
+    "count": 103
+  },
+  {
+    "location": "Griffin, US",
+    "lat": 33.2406,
+    "lng": -84.2713,
+    "count": 1
+  },
+  {
+    "location": "Slough, GB",
+    "lat": 51.5563,
+    "lng": -0.5982,
+    "count": 11
+  },
+  {
+    "location": "Camberwell, GB",
+    "lat": 51.4743,
+    "lng": -0.0928,
+    "count": 16
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.4918,
+    "lng": -1.8598,
+    "count": 1
+  },
+  {
+    "location": "Edgware, GB",
+    "lat": 51.6112,
+    "lng": -0.2937,
+    "count": 3
+  },
+  {
+    "location": "Leicester, GB",
+    "lat": 52.6488,
+    "lng": -1.2478,
+    "count": 12
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.336,
+    "lng": 103.7716,
+    "count": 1
+  },
+  {
+    "location": "Brighton, GB",
+    "lat": 50.8545,
+    "lng": -0.1502,
+    "count": 3
+  },
+  {
+    "location": "IE",
+    "lat": 53.3472,
+    "lng": -6.2439,
+    "count": 4
+  },
+  {
+    "location": "Derby, GB",
+    "lat": 52.8901,
+    "lng": -1.4522,
+    "count": 9
+  },
+  {
+    "location": "Madrid, ES",
+    "lat": 40.3482,
+    "lng": -3.6989,
+    "count": 4
+  },
+  {
+    "location": "Stavanger, NO",
+    "lat": 58.9731,
+    "lng": 5.7427,
+    "count": 1
+  },
+  {
+    "location": "Mirfield, GB",
+    "lat": 53.6732,
+    "lng": -1.6975,
+    "count": 1
+  },
+  {
+    "location": "Norwich, GB",
+    "lat": 52.6259,
+    "lng": 1.3032,
+    "count": 9
+  },
+  {
+    "location": "US",
+    "lat": 44.9834,
+    "lng": -93.2622,
+    "count": 9
+  },
+  {
+    "location": "New Braunfels, US",
+    "lat": 29.7065,
+    "lng": -98.1221,
+    "count": 4
+  },
+  {
+    "location": "Park City, US",
+    "lat": 40.7038,
+    "lng": -111.5437,
+    "count": 3
+  },
+  {
+    "location": "Austin, US",
+    "lat": 30.2971,
+    "lng": -97.8181,
+    "count": 8
+  },
+  {
+    "location": "Dereham, GB",
+    "lat": 52.683,
+    "lng": 0.9339,
+    "count": 1
+  },
+  {
+    "location": "Minneapolis, US",
+    "lat": 45.0196,
+    "lng": -93.2402,
+    "count": 1
+  },
+  {
+    "location": "US",
+    "lat": 33.5226,
+    "lng": -86.8033,
+    "count": 1
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.2473,
+    "lng": 25.0207,
+    "count": 29
+  },
+  {
+    "location": "London, GB",
+    "lat": 51.5178,
+    "lng": -0.1609,
+    "count": 8
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.1999,
+    "lng": 24.9246,
+    "count": 27
+  },
+  {
+    "location": "SE",
+    "lat": 59.3287,
+    "lng": 18.0717,
+    "count": 130
+  },
+  {
+    "location": "Frankfurt am Main, DE",
+    "lat": 50.1143,
+    "lng": 8.6641,
+    "count": 4
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.5289,
+    "lng": -1.8533,
+    "count": 29
+  },
+  {
+    "location": "Stalybridge, GB",
+    "lat": 53.4834,
+    "lng": -2.0596,
+    "count": 1
+  },
+  {
+    "location": "GB",
+    "lat": 51.5088,
+    "lng": -0.093,
+    "count": 2
+  },
+  {
+    "location": "Riyadh, SA",
+    "lat": 24.6869,
+    "lng": 46.7224,
+    "count": 3
+  },
+  {
+    "location": "Gogolewo, PL",
+    "lat": 54.3744,
+    "lng": 17.3914,
+    "count": 10
+  },
+  {
+    "location": "Riihimäki, FI",
+    "lat": 60.7291,
+    "lng": 24.8029,
+    "count": 82
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.1968,
+    "lng": 24.9608,
+    "count": 3
+  },
+  {
+    "location": "Anaheim, US",
+    "lat": 33.8359,
+    "lng": -117.9063,
+    "count": 1
+  },
+  {
+    "location": "Tampa, US",
+    "lat": 28.0109,
+    "lng": -82.4948,
+    "count": 13
+  },
+  {
+    "location": "South Tangerang, ID",
+    "lat": -6.264,
+    "lng": 106.7324,
+    "count": 5
+  },
+  {
+    "location": "Moreno Valley, US",
+    "lat": 33.9553,
+    "lng": -117.2457,
+    "count": 1
+  },
+  {
+    "location": "Djelfa, DZ",
+    "lat": 34.9489,
+    "lng": 3.2483,
+    "count": 370
+  },
+  {
+    "location": "Bessemer, US",
+    "lat": 33.4076,
+    "lng": -86.9473,
+    "count": 1
+  },
+  {
+    "location": "Uxbridge, GB",
+    "lat": 51.5513,
+    "lng": -0.4845,
+    "count": 1
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.547,
+    "lng": -1.9396,
+    "count": 10
+  },
+  {
+    "location": "Tottenham, GB",
+    "lat": 51.6017,
+    "lng": -0.0732,
+    "count": 1
+  },
+  {
+    "location": "Walsall, GB",
+    "lat": 52.5876,
+    "lng": -1.9828,
+    "count": 1
+  },
+  {
+    "location": "Wejherowo, PL",
+    "lat": 54.6064,
+    "lng": 18.2496,
+    "count": 1
+  },
+  {
+    "location": "GB",
+    "lat": 53.484,
+    "lng": -2.0892,
+    "count": 3
+  },
+  {
+    "location": "Richmond, US",
+    "lat": 29.6654,
+    "lng": -95.7245,
+    "count": 1
+  },
+  {
+    "location": "Hamm, DE",
+    "lat": 51.6885,
+    "lng": 7.7392,
+    "count": 7
+  },
+  {
+    "location": "Sheffield, GB",
+    "lat": 53.3123,
+    "lng": -1.3394,
+    "count": 3
+  },
+  {
+    "location": "Oldham, GB",
+    "lat": 53.5249,
+    "lng": -2.1189,
+    "count": 3
+  },
+  {
+    "location": "Jarvenpaa, FI",
+    "lat": 60.5146,
+    "lng": 25.0911,
+    "count": 1
+  },
+  {
+    "location": "AT",
+    "lat": 48.2048,
+    "lng": 16.3801,
+    "count": 5
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.2421,
+    "lng": 24.9301,
+    "count": 53
+  },
+  {
+    "location": "Barcelona, ES",
+    "lat": 41.3773,
+    "lng": 2.1816,
+    "count": 1
+  },
+  {
+    "location": "Sour el Ghozlane, DZ",
+    "lat": 36.1532,
+    "lng": 3.6926,
+    "count": 363
+  },
+  {
+    "location": "Łaziska Górne, PL",
+    "lat": 50.1441,
+    "lng": 18.8675,
+    "count": 4
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.5496,
+    "lng": -2.2959,
+    "count": 6
+  },
+  {
+    "location": "Leicester, GB",
+    "lat": 52.6407,
+    "lng": -1.1354,
+    "count": 3
+  },
+  {
+    "location": "Grodków, PL",
+    "lat": 50.6942,
+    "lng": 17.3897,
+    "count": 7
+  },
+  {
+    "location": "Barcelona, ES",
+    "lat": 41.4231,
+    "lng": 2.188,
+    "count": 3
+  },
+  {
+    "location": "Ilkeston, GB",
+    "lat": 52.9696,
+    "lng": -1.3159,
+    "count": 34
+  },
+  {
+    "location": "Montreal, CA",
+    "lat": 45.5332,
+    "lng": -73.6091,
+    "count": 1
+  },
+  {
+    "location": "Wembley, GB",
+    "lat": 51.5571,
+    "lng": -0.2972,
+    "count": 1
+  },
+  {
+    "location": "Landstuhl, DE",
+    "lat": 49.4333,
+    "lng": 7.6,
+    "count": 3
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.4479,
+    "lng": -2.2277,
+    "count": 1
+  },
+  {
+    "location": "Tangerang, ID",
+    "lat": -6.2833,
+    "lng": 106.6464,
+    "count": 3
+  },
+  {
+    "location": "Salford, GB",
+    "lat": 53.4836,
+    "lng": -2.2862,
+    "count": 19
+  },
+  {
+    "location": "Torvastad, NO",
+    "lat": 59.3798,
+    "lng": 5.2228,
+    "count": 1
+  },
+  {
+    "location": "Glasgow, GB",
+    "lat": 55.867,
+    "lng": -4.2621,
+    "count": 15
+  },
+  {
+    "location": "Bangkok, TH",
+    "lat": 13.7618,
+    "lng": 100.5324,
+    "count": 1
+  },
+  {
+    "location": "Montreal, CA",
+    "lat": 45.518,
+    "lng": -73.6048,
+    "count": 4
+  },
+  {
+    "location": "Hendersonville, US",
+    "lat": 36.3066,
+    "lng": -86.6101,
+    "count": 1
+  },
+  {
+    "location": "MO",
+    "lat": 22.1592,
+    "lng": 113.5638,
+    "count": 1
+  },
+  {
+    "location": "Medford, US",
+    "lat": 39.901,
+    "lng": -74.8235,
+    "count": 147
+  },
+  {
+    "location": "US",
+    "lat": 35.0737,
+    "lng": -78.8883,
+    "count": 2
+  },
+  {
+    "location": "Brownsville, US",
+    "lat": 25.9729,
+    "lng": -97.4695,
+    "count": 20
+  },
+  {
+    "location": "Atlanta, US",
+    "lat": 33.8336,
+    "lng": -84.3797,
+    "count": 4
+  },
+  {
+    "location": "Salford, GB",
+    "lat": 53.4916,
+    "lng": -2.3009,
+    "count": 1
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.8661,
+    "lng": -104.9197,
+    "count": 9
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.7277,
+    "lng": -104.9815,
+    "count": 18
+  },
+  {
+    "location": "Ontario, US",
+    "lat": 34.0607,
+    "lng": -117.6644,
+    "count": 1
+  },
+  {
+    "location": "Islington, GB",
+    "lat": 51.5269,
+    "lng": -0.0991,
+    "count": 1
+  },
+  {
+    "location": "Portsmouth, US",
+    "lat": 36.8721,
+    "lng": -76.3885,
+    "count": 1
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.6993,
+    "lng": -104.8814,
+    "count": 1
+  },
+  {
+    "location": "Hollywood, US",
+    "lat": 26.0162,
+    "lng": -80.1955,
+    "count": 2
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.4979,
+    "lng": -1.7835,
+    "count": 13
+  },
+  {
+    "location": "Liverpool, GB",
+    "lat": 53.4036,
+    "lng": -2.7475,
+    "count": 2
+  },
+  {
+    "location": "Chiswick, GB",
+    "lat": 51.4936,
+    "lng": -0.2583,
+    "count": 29
+  },
+  {
+    "location": "Edmond, US",
+    "lat": 35.6679,
+    "lng": -97.4795,
+    "count": 5
+  },
+  {
+    "location": "Edinburgh, GB",
+    "lat": 55.9495,
+    "lng": -3.1983,
+    "count": 1
+  },
+  {
+    "location": "St Helens, GB",
+    "lat": 53.4325,
+    "lng": -2.7542,
+    "count": 3
+  },
+  {
+    "location": "Amsterdam, NL",
+    "lat": 52.3716,
+    "lng": 4.8883,
+    "count": 17
+  },
+  {
+    "location": "PL",
+    "lat": 52.4056,
+    "lng": 16.9302,
+    "count": 2
+  },
+  {
+    "location": "Bolton, GB",
+    "lat": 53.5501,
+    "lng": -2.4003,
+    "count": 5
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 52.8702,
+    "lng": -1.2168,
+    "count": 14
+  },
+  {
+    "location": "City of Westminster, GB",
+    "lat": 51.5212,
+    "lng": -0.1825,
+    "count": 11
+  },
+  {
+    "location": "Gdynia, PL",
+    "lat": 54.5026,
+    "lng": 18.4435,
+    "count": 1
+  },
+  {
+    "location": "Wals-Siezenheim, AT",
+    "lat": 47.8179,
+    "lng": 12.9933,
+    "count": 5
+  },
+  {
+    "location": "South Tangerang, ID",
+    "lat": -6.2876,
+    "lng": 106.722,
+    "count": 1
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3057,
+    "lng": 103.8586,
+    "count": 10
+  },
+  {
+    "location": "Quezon City, PH",
+    "lat": 14.6143,
+    "lng": 121.0419,
+    "count": 3
+  },
+  {
+    "location": "Oakland, US",
+    "lat": 37.7428,
+    "lng": -122.1745,
+    "count": 1
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.8693,
+    "lng": -105.0036,
+    "count": 1
+  },
+  {
+    "location": "Los Angeles, US",
+    "lat": 33.9576,
+    "lng": -118.267,
+    "count": 1
+  },
+  {
+    "location": "Thornton, US",
+    "lat": 39.8662,
+    "lng": -104.9755,
+    "count": 1
+  },
+  {
+    "location": "Toluca, MX",
+    "lat": 19.2858,
+    "lng": -99.6525,
+    "count": 2
+  },
+  {
+    "location": "Zapopan, MX",
+    "lat": 20.7226,
+    "lng": -103.3836,
+    "count": 5
+  },
+  {
+    "location": "Chino, US",
+    "lat": 34.0121,
+    "lng": -117.6883,
+    "count": 2
+  },
+  {
+    "location": "Hayward, US",
+    "lat": 37.6403,
+    "lng": -122.0667,
+    "count": 1
+  },
+  {
+    "location": "Daly City, US",
+    "lat": 37.6811,
+    "lng": -122.4806,
+    "count": 1
+  },
+  {
+    "location": "Pružina, SK",
+    "lat": 49.0173,
+    "lng": 18.4778,
+    "count": 9
+  },
+  {
+    "location": "FR",
+    "lat": 43.2951,
+    "lng": 5.3861,
+    "count": 1
+  },
+  {
+    "location": "Scunthorpe, GB",
+    "lat": 53.5762,
+    "lng": -0.7391,
+    "count": 1
+  },
+  {
+    "location": "Schaumburg, US",
+    "lat": 42.0317,
+    "lng": -88.0833,
+    "count": 1
+  },
+  {
+    "location": "Trnava, SK",
+    "lat": 48.3762,
+    "lng": 17.5829,
+    "count": 401
+  },
+  {
+    "location": "Milwaukee, US",
+    "lat": 43.0382,
+    "lng": -87.91,
+    "count": 1
+  },
+  {
+    "location": "Cradley Heath, GB",
+    "lat": 52.4844,
+    "lng": -2.0609,
+    "count": 5
+  },
+  {
+    "location": "Doncaster, GB",
+    "lat": 53.5875,
+    "lng": -0.9278,
+    "count": 2
+  },
+  {
+    "location": "Hackney, GB",
+    "lat": 51.5638,
+    "lng": -0.0765,
+    "count": 1
+  },
+  {
+    "location": "Warsaw, PL",
+    "lat": 52.2299,
+    "lng": 21.0093,
+    "count": 30
+  },
+  {
+    "location": "Oulu, FI",
+    "lat": 65.005,
+    "lng": 25.617,
+    "count": 23
+  },
+  {
+    "location": "Oulu",
+    "lat": 65.0124,
+    "lng": 25.4682,
+    "count": 22
+  },
+  {
+    "location": "Madrid",
+    "lat": 40.4168,
+    "lng": -3.7038,
+    "count": 57
+  },
+  {
+    "location": "Hagan",
+    "lat": 59.9139,
+    "lng": 10.7522,
+    "count": 404
+  },
+  {
+    "location": "Hong Kong",
+    "lat": 22.3193,
+    "lng": 114.1694,
+    "count": 117
+  },
+  {
+    "location": "Wals-Siezenheim",
+    "lat": 48.2082,
+    "lng": 16.3738,
+    "count": 38
+  },
+  {
+    "location": "US (America/Chicago)",
+    "lat": 41.8781,
+    "lng": -87.6298,
+    "count": 459
+  },
+  {
+    "location": "Munich",
+    "lat": 52.52,
+    "lng": 13.405,
+    "count": 460
+  },
+  {
+    "location": "Caloocan",
+    "lat": 14.65,
+    "lng": 120.9667,
+    "count": 18
+  },
+  {
+    "location": "Croydon",
+    "lat": 51.3762,
+    "lng": -0.0982,
+    "count": 33
+  },
+  {
+    "location": "Singapore",
+    "lat": 1.3521,
+    "lng": 103.8198,
+    "count": 1151
+  },
+  {
+    "location": "Wembley",
+    "lat": 51.556,
+    "lng": -0.2795,
+    "count": 14
+  },
+  {
+    "location": "Rochdale, GB",
+    "lat": 53.5823,
+    "lng": -2.1822,
+    "count": 9
+  },
+  {
+    "location": "Petaling Jaya, MY",
+    "lat": 3.11,
+    "lng": 101.5688,
+    "count": 1
+  },
+  {
+    "location": "Kilchberg, CH",
+    "lat": 47.3254,
+    "lng": 8.5513,
+    "count": 40
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.7491,
+    "lng": -104.9945,
+    "count": 29
+  },
+  {
+    "location": "Oulu, FI",
+    "lat": 64.9913,
+    "lng": 25.4942,
+    "count": 25
+  },
+  {
+    "location": "Cabuyao, PH",
+    "lat": 14.2782,
+    "lng": 121.1215,
+    "count": 1
+  },
+  {
+    "location": "Jacksonville, US",
+    "lat": 30.2903,
+    "lng": -81.5092,
+    "count": 20
+  },
+  {
+    "location": "Turku, FI",
+    "lat": 60.4897,
+    "lng": 22.3193,
+    "count": 1
+  },
+  {
+    "location": "Milan, IT",
+    "lat": 45.4722,
+    "lng": 9.1922,
+    "count": 2
+  },
+  {
+    "location": "Detroit, US",
+    "lat": 42.3318,
+    "lng": -83.0465,
+    "count": 24
+  },
+  {
+    "location": "Helsingborg, SE",
+    "lat": 56.045,
+    "lng": 12.6923,
+    "count": 1
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.5051,
+    "lng": -2.1619,
+    "count": 3
+  },
+  {
+    "location": "Heanor, GB",
+    "lat": 53.0115,
+    "lng": -1.3562,
+    "count": 1
+  },
+  {
+    "location": "Hyvinkää, FI",
+    "lat": 60.5644,
+    "lng": 24.7665,
+    "count": 1
+  },
+  {
+    "location": "Leicester, GB",
+    "lat": 52.6494,
+    "lng": -1.1203,
+    "count": 7
+  },
+  {
+    "location": "GB",
+    "lat": 51.5975,
+    "lng": -0.1915,
+    "count": 35
+  },
+  {
+    "location": "West Bromwich, GB",
+    "lat": 52.5199,
+    "lng": -1.9985,
+    "count": 1
+  },
+  {
+    "location": "IT",
+    "lat": 46.4887,
+    "lng": 11.3394,
+    "count": 2
+  },
+  {
+    "location": "Penafiel, PT",
+    "lat": 41.1762,
+    "lng": -8.3037,
+    "count": 1
+  },
+  {
+    "location": "Tralee, IE",
+    "lat": 52.2716,
+    "lng": -9.7056,
+    "count": 1
+  },
+  {
+    "location": "Las Vegas, US",
+    "lat": 36.102,
+    "lng": -115.1447,
+    "count": 1
+  },
+  {
+    "location": "Szczecin, PL",
+    "lat": 53.4288,
+    "lng": 14.5569,
+    "count": 1
+  },
+  {
+    "location": "Vilnius, LT",
+    "lat": 54.6876,
+    "lng": 25.2806,
+    "count": 6
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 52.9991,
+    "lng": -1.1963,
+    "count": 4
+  },
+  {
+    "location": "Central Jakarta, ID",
+    "lat": -6.2035,
+    "lng": 106.8139,
+    "count": 4
+  },
+  {
+    "location": "Munich, DE",
+    "lat": 48.1078,
+    "lng": 11.586,
+    "count": 1
+  },
+  {
+    "location": "PL",
+    "lat": 53.1223,
+    "lng": 18.0054,
+    "count": 3
+  },
+  {
+    "location": "Oulu, FI",
+    "lat": 65.0121,
+    "lng": 25.4753,
+    "count": 1
+  },
+  {
+    "location": "ES",
+    "lat": 28.1,
+    "lng": -15.4098,
+    "count": 3
+  },
+  {
+    "location": "Regensdorf, CH",
+    "lat": 47.4384,
+    "lng": 8.4623,
+    "count": 91
+  },
+  {
+    "location": "Milford, US",
+    "lat": 42.5758,
+    "lng": -83.5924,
+    "count": 1
+  },
+  {
+    "location": "Mt. Morris, US",
+    "lat": 43.116,
+    "lng": -83.6895,
+    "count": 15
+  },
+  {
+    "location": "Central Jakarta, ID",
+    "lat": -6.1956,
+    "lng": 106.8308,
+    "count": 1
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 53.0836,
+    "lng": -1.1526,
+    "count": 1
+  },
+  {
+    "location": "Slough, GB",
+    "lat": 51.5177,
+    "lng": -0.6215,
+    "count": 1
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.3896,
+    "lng": -2.2801,
+    "count": 1
+  },
+  {
+    "location": "Calgary, CA",
+    "lat": 51.1613,
+    "lng": -113.9518,
+    "count": 6
+  },
+  {
+    "location": "Bremerton, US",
+    "lat": 47.6276,
+    "lng": -122.6431,
+    "count": 1
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.4606,
+    "lng": -2.2572,
+    "count": 2
+  },
+  {
+    "location": "Skarpnäck, SE",
+    "lat": 59.2688,
+    "lng": 18.1182,
+    "count": 1
+  },
+  {
+    "location": "Mumbai, IN",
+    "lat": 19.0748,
+    "lng": 72.8856,
+    "count": 6
+  },
+  {
+    "location": "Sutton, GB",
+    "lat": 51.3503,
+    "lng": -0.2014,
+    "count": 18
+  },
+  {
+    "location": "SE",
+    "lat": 57.7065,
+    "lng": 11.967,
+    "count": 16
+  },
+  {
+    "location": "West Jakarta, ID",
+    "lat": -6.2065,
+    "lng": 106.7926,
+    "count": 1
+  },
+  {
+    "location": "Cagayan de Oro, PH",
+    "lat": 8.4817,
+    "lng": 124.6467,
+    "count": 3
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.519,
+    "lng": -1.9094,
+    "count": 7
+  },
+  {
+    "location": "East Jakarta, ID",
+    "lat": -6.2298,
+    "lng": 106.9134,
+    "count": 2
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3267,
+    "lng": 103.8869,
+    "count": 1
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3159,
+    "lng": 103.8175,
+    "count": 1
+  },
+  {
+    "location": "Seattle, US",
+    "lat": 47.5415,
+    "lng": -122.393,
+    "count": 6
+  },
+  {
+    "location": "Seattle, US",
+    "lat": 47.3957,
+    "lng": -122.3036,
+    "count": 5
+  },
+  {
+    "location": "IL",
+    "lat": 31.5,
+    "lng": 34.75,
+    "count": 1
+  },
+  {
+    "location": "Orlando, US",
+    "lat": 28.5177,
+    "lng": -81.4508,
+    "count": 5
+  },
+  {
+    "location": "Hagan, NO",
+    "lat": 59.9774,
+    "lng": 10.9425,
+    "count": 15
+  },
+  {
+    "location": "NL",
+    "lat": 51.9235,
+    "lng": 4.4813,
+    "count": 10
+  },
+  {
+    "location": "Toronto, CA",
+    "lat": 43.709,
+    "lng": -79.4057,
+    "count": 5
+  },
+  {
+    "location": "Markham, CA",
+    "lat": 43.866,
+    "lng": -79.266,
+    "count": 3
+  },
+  {
+    "location": "Tewkesbury, GB",
+    "lat": 51.996,
+    "lng": -2.1583,
+    "count": 1
+  },
+  {
+    "location": "Sumqayit, AZ",
+    "lat": 40.5841,
+    "lng": 49.6651,
+    "count": 1
+  },
+  {
+    "location": "Sheffield, GB",
+    "lat": 53.3511,
+    "lng": -1.3671,
+    "count": 10
+  },
+  {
+    "location": "GB",
+    "lat": 51.4667,
+    "lng": -0.1118,
+    "count": 3
+  },
+  {
+    "location": "Dublin, IE",
+    "lat": 53.3382,
+    "lng": -6.2591,
+    "count": 11
+  },
+  {
+    "location": "Vienna, AT",
+    "lat": 48.2049,
+    "lng": 16.3662,
+    "count": 10
+  },
+  {
+    "location": "Munich, DE",
+    "lat": 48.114,
+    "lng": 11.5422,
+    "count": 5
+  },
+  {
+    "location": "Minneapolis, US",
+    "lat": 44.9399,
+    "lng": -93.2548,
+    "count": 1
+  },
+  {
+    "location": "Caerphilly, GB",
+    "lat": 51.5844,
+    "lng": -3.2123,
+    "count": 8
+  },
+  {
+    "location": "Arlington Heights, US",
+    "lat": 42.1124,
+    "lng": -87.979,
+    "count": 24
+  },
+  {
+    "location": "Wörth am Rhein, DE",
+    "lat": 49.0492,
+    "lng": 8.257,
+    "count": 3
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.4202,
+    "lng": -1.9983,
+    "count": 1
+  },
+  {
+    "location": "Tower Hamlets, GB",
+    "lat": 51.5128,
+    "lng": -0.0638,
+    "count": 5
+  },
+  {
+    "location": "Castelldefels, ES",
+    "lat": 41.2568,
+    "lng": 1.9387,
+    "count": 1
+  },
+  {
+    "location": "Madrid, ES",
+    "lat": 40.4188,
+    "lng": -3.7326,
+    "count": 3
+  },
+  {
+    "location": "Central Jakarta, ID",
+    "lat": -6.1924,
+    "lng": 106.8453,
+    "count": 1
+  },
+  {
+    "location": "Wels, AT",
+    "lat": 48.1676,
+    "lng": 14.031,
+    "count": 1
+  },
+  {
+    "location": "Hanover, DE",
+    "lat": 52.3671,
+    "lng": 9.7213,
+    "count": 1
+  },
+  {
+    "location": "West Jakarta, ID",
+    "lat": -6.2188,
+    "lng": 106.748,
+    "count": 4
+  },
+  {
+    "location": "Limassol, CY",
+    "lat": 34.6874,
+    "lng": 33.0366,
+    "count": 2
+  },
+  {
+    "location": "Cebu City, PH",
+    "lat": 10.3099,
+    "lng": 123.893,
+    "count": 1
+  },
+  {
+    "location": "Central Jakarta, ID",
+    "lat": -6.1871,
+    "lng": 106.8105,
+    "count": 1
+  },
+  {
+    "location": "Nicosia, CY",
+    "lat": 35.1681,
+    "lng": 33.3503,
+    "count": 6
+  },
+  {
+    "location": "Erzhausen, DE",
+    "lat": 49.958,
+    "lng": 8.6483,
+    "count": 1
+  },
+  {
+    "location": "Langlingen, DE",
+    "lat": 52.5594,
+    "lng": 10.2863,
+    "count": 1
+  },
+  {
+    "location": "Randlett, US",
+    "lat": 40.2327,
+    "lng": -109.8076,
+    "count": 3
+  },
+  {
+    "location": "Harlingen, US",
+    "lat": 26.1966,
+    "lng": -97.6912,
+    "count": 7
+  },
+  {
+    "location": "Vernal, US",
+    "lat": 40.4425,
+    "lng": -109.5455,
+    "count": 13
+  },
+  {
+    "location": "Montreal, CA",
+    "lat": 45.4978,
+    "lng": -73.5485,
+    "count": 1
+  },
+  {
+    "location": "Lancaster, US",
+    "lat": 39.7184,
+    "lng": -82.6073,
+    "count": 4
+  },
+  {
+    "location": "Granada, ES",
+    "lat": 37.1757,
+    "lng": -3.5975,
+    "count": 4
+  },
+  {
+    "location": "Crawley, GB",
+    "lat": 51.1147,
+    "lng": -0.184,
+    "count": 1
+  },
+  {
+    "location": "Skellefteå, SE",
+    "lat": 64.7472,
+    "lng": 20.9529,
+    "count": 24
+  },
+  {
+    "location": "Madrid, ES",
+    "lat": 40.4645,
+    "lng": -3.6875,
+    "count": 1
+  },
+  {
+    "location": "Harlingen, US",
+    "lat": 26.1813,
+    "lng": -97.7483,
+    "count": 11
+  },
+  {
+    "location": "Munich, DE",
+    "lat": 48.1477,
+    "lng": 11.5695,
+    "count": 1
+  },
+  {
+    "location": "Berlin, DE",
+    "lat": 52.5196,
+    "lng": 13.4069,
+    "count": 2
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.7593,
+    "lng": -104.9651,
+    "count": 1
+  },
+  {
+    "location": "IT",
+    "lat": 43.1479,
+    "lng": 12.1097,
+    "count": 3
+  },
+  {
+    "location": "GB",
+    "lat": 52.503,
+    "lng": -2.0839,
+    "count": 13
+  },
+  {
+    "location": "Viby J, DK",
+    "lat": 56.1313,
+    "lng": 10.1339,
+    "count": 3
+  },
+  {
+    "location": "Hämeenlinna, FI",
+    "lat": 60.9936,
+    "lng": 24.4755,
+    "count": 5
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.4467,
+    "lng": -2.1838,
+    "count": 14
+  },
+  {
+    "location": "Budapest, HU",
+    "lat": 47.5,
+    "lng": 19.0412,
+    "count": 84
+  },
+  {
+    "location": "Berlin, DE",
+    "lat": 52.4337,
+    "lng": 13.4487,
+    "count": 1
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3254,
+    "lng": 103.7433,
+    "count": 1
+  },
+  {
+    "location": "Rome, IT",
+    "lat": 41.8905,
+    "lng": 12.5127,
+    "count": 11
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.5201,
+    "lng": -1.7899,
+    "count": 12
+  },
+  {
+    "location": "Tórshavn, FO",
+    "lat": 62.0061,
+    "lng": -6.7679,
+    "count": 1
+  },
+  {
+    "location": "Bologna, IT",
+    "lat": 44.4847,
+    "lng": 11.328,
+    "count": 1
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.2289,
+    "lng": 24.8964,
+    "count": 7
+  },
+  {
+    "location": "Bratislava, SK",
+    "lat": 48.1504,
+    "lng": 17.1081,
+    "count": 40
+  },
+  {
+    "location": "HU",
+    "lat": 47.4919,
+    "lng": 19.05,
+    "count": 4
+  },
+  {
+    "location": "Larvik, NO",
+    "lat": 59.0488,
+    "lng": 10.0526,
+    "count": 1
+  },
+  {
+    "location": "Roosevelt, US",
+    "lat": 40.2994,
+    "lng": -109.9888,
+    "count": 4
+  },
+  {
+    "location": "Philadelphia, US",
+    "lat": 40.0149,
+    "lng": -75.1439,
+    "count": 3
+  },
+  {
+    "location": "Jackson, US",
+    "lat": 32.3153,
+    "lng": -90.1737,
+    "count": 2
+  },
+  {
+    "location": "Montreal, CA",
+    "lat": 45.5059,
+    "lng": -73.631,
+    "count": 1
+  },
+  {
+    "location": "Silver Spring, US",
+    "lat": 39.037,
+    "lng": -77.0412,
+    "count": 1
+  },
+  {
+    "location": "GB",
+    "lat": 51.753,
+    "lng": -0.3256,
+    "count": 7
+  },
+  {
+    "location": "Sereď, SK",
+    "lat": 48.2915,
+    "lng": 17.7438,
+    "count": 65
+  },
+  {
+    "location": "Dublin, IE",
+    "lat": 53.3627,
+    "lng": -6.2342,
+    "count": 20
+  },
+  {
+    "location": "Palma, ES",
+    "lat": 39.5661,
+    "lng": 2.6487,
+    "count": 1
+  },
+  {
+    "location": "Málaga, ES",
+    "lat": 36.7162,
+    "lng": -4.4161,
+    "count": 26
+  },
+  {
+    "location": "Bradford, GB",
+    "lat": 53.7981,
+    "lng": -1.7623,
+    "count": 2
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.4804,
+    "lng": -2.1862,
+    "count": 1
+  },
+  {
+    "location": "Southampton, GB",
+    "lat": 50.9142,
+    "lng": -1.388,
+    "count": 1
+  },
+  {
+    "location": "Bengaluru, IN",
+    "lat": 12.9753,
+    "lng": 77.591,
+    "count": 1
+  },
+  {
+    "location": "Pszów, PL",
+    "lat": 50.0426,
+    "lng": 18.3892,
+    "count": 7
+  },
+  {
+    "location": "Helsinki, FI",
+    "lat": 60.2059,
+    "lng": 24.8552,
+    "count": 2
+  },
+  {
+    "location": "Eisenach, DE",
+    "lat": 50.9831,
+    "lng": 10.3168,
+    "count": 1
+  },
+  {
+    "location": "North Jakarta, ID",
+    "lat": -6.1474,
+    "lng": 106.8711,
+    "count": 2
+  },
+  {
+    "location": "Leeds, GB",
+    "lat": 53.8151,
+    "lng": -1.4532,
+    "count": 7
+  },
+  {
+    "location": "Varaždin, HR",
+    "lat": 46.3058,
+    "lng": 16.3383,
+    "count": 5
+  },
+  {
+    "location": "Saint Paul, US",
+    "lat": 45.0001,
+    "lng": -93.0986,
+    "count": 1
+  },
+  {
+    "location": "Aldie, US",
+    "lat": 38.9757,
+    "lng": -77.6414,
+    "count": 2
+  },
+  {
+    "location": "Madison, US",
+    "lat": 43.0773,
+    "lng": -89.3994,
+    "count": 21
+  },
+  {
+    "location": "Bothell, US",
+    "lat": 47.7586,
+    "lng": -122.2057,
+    "count": 3
+  },
+  {
+    "location": "Madison, US",
+    "lat": 43.0977,
+    "lng": -89.3118,
+    "count": 11
+  },
+  {
+    "location": "Orlando",
+    "lat": 28.5383,
+    "lng": -81.3792,
+    "count": 12
+  },
+  {
+    "location": "Atlanta, US",
+    "lat": 33.8895,
+    "lng": -84.2921,
+    "count": 32
+  },
+  {
+    "location": "Bangkok",
+    "lat": 13.7563,
+    "lng": 100.5018,
+    "count": 85
+  },
+  {
+    "location": "Bedworth, GB",
+    "lat": 52.4724,
+    "lng": -1.4636,
+    "count": 1
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.5039,
+    "lng": -2.1959,
+    "count": 2
+  },
+  {
+    "location": "Radzionków, PL",
+    "lat": 50.3915,
+    "lng": 18.9066,
+    "count": 3
+  },
+  {
+    "location": "Krakow, PL",
+    "lat": 50.0637,
+    "lng": 19.9338,
+    "count": 4
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3239,
+    "lng": 103.79,
+    "count": 1
+  },
+  {
+    "location": "Cartagena, CO",
+    "lat": 10.3956,
+    "lng": -75.5117,
+    "count": 20
+  },
+  {
+    "location": "Lenexa, US",
+    "lat": 38.9524,
+    "lng": -94.7395,
+    "count": 2
+  },
+  {
+    "location": "PT",
+    "lat": 38.7057,
+    "lng": -9.1359,
+    "count": 14
+  },
+  {
+    "location": "Hammersmith, GB",
+    "lat": 51.4889,
+    "lng": -0.2318,
+    "count": 1
+  },
+  {
+    "location": "FI (Europe/Helsinki)",
+    "lat": 60.1548,
+    "lng": 24.887,
+    "count": 2525
+  },
+  {
+    "location": "Essen, DE",
+    "lat": 51.4985,
+    "lng": 7.0135,
+    "count": 1
+  },
+  {
+    "location": "DK",
+    "lat": 55.674,
+    "lng": 12.5696,
+    "count": 16
+  },
+  {
+    "location": "Ho Chi Minh City, VN",
+    "lat": 10.822,
+    "lng": 106.6257,
+    "count": 36
+  },
+  {
+    "location": "Basingstoke, GB",
+    "lat": 51.2483,
+    "lng": -1.1266,
+    "count": 1
+  },
+  {
+    "location": "Frederikshavn, DK",
+    "lat": 57.4404,
+    "lng": 10.5041,
+    "count": 3
+  },
+  {
+    "location": "GB",
+    "lat": 55.8319,
+    "lng": -4.4322,
+    "count": 3
+  },
+  {
+    "location": "Shrewsbury, GB",
+    "lat": 52.7101,
+    "lng": -2.7485,
+    "count": 1
+  },
+  {
+    "location": "South Tangerang, ID",
+    "lat": -6.3018,
+    "lng": 106.7074,
+    "count": 1
+  },
+  {
+    "location": "Tallinn, EE",
+    "lat": 59.4381,
+    "lng": 24.7369,
+    "count": 7
+  },
+  {
+    "location": "General Trias, PH",
+    "lat": 14.3842,
+    "lng": 120.884,
+    "count": 2
+  },
+  {
+    "location": "Colindale, GB",
+    "lat": 51.5943,
+    "lng": -0.2491,
+    "count": 1
+  },
+  {
+    "location": "Inglewood, US",
+    "lat": 33.9624,
+    "lng": -118.3434,
+    "count": 2
+  },
+  {
+    "location": "Moreno Valley, US",
+    "lat": 33.919,
+    "lng": -117.2359,
+    "count": 1
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.7312,
+    "lng": -104.9672,
+    "count": 1
+  },
+  {
+    "location": "Denver, US",
+    "lat": 39.642,
+    "lng": -104.8958,
+    "count": 1
+  },
+  {
+    "location": "Minneapolis, US",
+    "lat": 44.9985,
+    "lng": -93.3029,
+    "count": 1
+  },
+  {
+    "location": "Lakhdaria, DZ",
+    "lat": 36.5682,
+    "lng": 3.5953,
+    "count": 201
+  },
+  {
+    "location": "Overland Park, US",
+    "lat": 38.9507,
+    "lng": -94.6824,
+    "count": 3
+  },
+  {
+    "location": "Cinfães, PT",
+    "lat": 41.0692,
+    "lng": -8.0914,
+    "count": 13
+  },
+  {
+    "location": "Los Angeles, US",
+    "lat": 34.0481,
+    "lng": -118.2531,
+    "count": 4
+  },
+  {
+    "location": "Essen, DE",
+    "lat": 51.501,
+    "lng": 7.0469,
+    "count": 2
+  },
+  {
+    "location": "Birmingham, US",
+    "lat": 33.4663,
+    "lng": -86.808,
+    "count": 10
+  },
+  {
+    "location": "Selston, GB",
+    "lat": 53.0696,
+    "lng": -1.3191,
+    "count": 2
+  },
+  {
+    "location": "Jackson, US",
+    "lat": 32.3779,
+    "lng": -90.1273,
+    "count": 1
+  },
+  {
+    "location": "Lambeth, GB",
+    "lat": 51.4249,
+    "lng": -0.1032,
+    "count": 3
+  },
+  {
+    "location": "Derby, GB",
+    "lat": 52.8418,
+    "lng": -1.4919,
+    "count": 1
+  },
+  {
+    "location": "Skövde, SE",
+    "lat": 58.3937,
+    "lng": 13.8463,
+    "count": 5
+  },
+  {
+    "location": "CH",
+    "lat": 47.1449,
+    "lng": 8.1551,
+    "count": 10
+  },
+  {
+    "location": "Gelsenkirchen, DE",
+    "lat": 51.5085,
+    "lng": 7.087,
+    "count": 1
+  },
+  {
+    "location": "Manchester, GB",
+    "lat": 53.5123,
+    "lng": -2.3143,
+    "count": 1
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3164,
+    "lng": 103.9232,
+    "count": 1
+  },
+  {
+    "location": "Slough, GB",
+    "lat": 51.5012,
+    "lng": -0.5989,
+    "count": 1
+  },
+  {
+    "location": "Porto, PT",
+    "lat": 41.1459,
+    "lng": -8.6169,
+    "count": 40
+  },
+  {
+    "location": "Orlando, US",
+    "lat": 28.4883,
+    "lng": -81.4061,
+    "count": 1
+  },
+  {
+    "location": "Pryor, US",
+    "lat": 36.2959,
+    "lng": -95.312,
+    "count": 1
+  },
+  {
+    "location": "Dortmund, DE",
+    "lat": 51.513,
+    "lng": 7.4728,
+    "count": 13
+  },
+  {
+    "location": "Reims, FR",
+    "lat": 49.2627,
+    "lng": 4.0324,
+    "count": 14
+  },
+  {
+    "location": "Altoona, US",
+    "lat": 41.6473,
+    "lng": -93.4744,
+    "count": 2
+  },
+  {
+    "location": "Tampines New Town, SG",
+    "lat": 1.3579,
+    "lng": 103.9429,
+    "count": 1
+  },
+  {
+    "location": "Los Angeles, US",
+    "lat": 34.003,
+    "lng": -118.4298,
+    "count": 9
+  },
+  {
+    "location": "Copenhagen, DK",
+    "lat": 55.6482,
+    "lng": 12.6014,
+    "count": 1
+  },
+  {
+    "location": "Streamwood, US",
+    "lat": 42.0221,
+    "lng": -88.1705,
+    "count": 11
+  },
+  {
+    "location": "Marietta, US",
+    "lat": 34.0034,
+    "lng": -84.4605,
+    "count": 3
+  },
+  {
+    "location": "Lady Lake, US",
+    "lat": 28.9269,
+    "lng": -81.9227,
+    "count": 13
+  },
+  {
+    "location": "Garden Grove, US",
+    "lat": 33.762,
+    "lng": -117.9325,
+    "count": 1
+  },
+  {
+    "location": "Hinckley, GB",
+    "lat": 52.5357,
+    "lng": -1.3662,
+    "count": 9
+  },
+  {
+    "location": "Dublin, IE",
+    "lat": 53.3843,
+    "lng": -6.4203,
+    "count": 2
+  },
+  {
+    "location": "Atlanta, US",
+    "lat": 33.8231,
+    "lng": -84.3258,
+    "count": 5
+  },
+  {
+    "location": "Derby, GB",
+    "lat": 52.8996,
+    "lng": -1.5396,
+    "count": 1
+  },
+  {
+    "location": "Coventry, GB",
+    "lat": 52.4486,
+    "lng": -1.5499,
+    "count": 7
+  },
+  {
+    "location": "Bromley, GB",
+    "lat": 51.4048,
+    "lng": 0.0098,
+    "count": 9
+  },
+  {
+    "location": "Birmingham, GB",
+    "lat": 52.4724,
+    "lng": -1.8563,
+    "count": 25
+  },
+  {
+    "location": "Lahti",
+    "lat": 60.9827,
+    "lng": 25.6615,
+    "count": 3
+  },
+  {
+    "location": "Watford, GB",
+    "lat": 51.6555,
+    "lng": -0.3893,
+    "count": 4
+  },
+  {
+    "location": "Southampton, GB",
+    "lat": 50.9357,
+    "lng": -1.3688,
+    "count": 3
+  },
+  {
+    "location": "Walsall, GB",
+    "lat": 52.6304,
+    "lng": -1.8859,
+    "count": 12
+  },
+  {
+    "location": "Acton, GB",
+    "lat": 51.5113,
+    "lng": -0.2714,
+    "count": 1
+  },
+  {
+    "location": "Nottingham, GB",
+    "lat": 52.9292,
+    "lng": -1.1065,
+    "count": 1
+  },
+  {
+    "location": "Roskilde, DK",
+    "lat": 55.6523,
+    "lng": 12.0805,
+    "count": 2
+  },
+  {
+    "location": "US",
+    "lat": 34.0007,
+    "lng": -81.0348,
+    "count": 11
+  },
+  {
+    "location": "Depok, ID",
+    "lat": -6.4231,
+    "lng": 106.8439,
+    "count": 1
+  },
+  {
+    "location": "Islington, GB",
+    "lat": 51.5648,
+    "lng": -0.1374,
+    "count": 3
+  },
+  {
+    "location": "Tecumseh, US",
+    "lat": 39.0481,
+    "lng": -95.5791,
+    "count": 1
+  },
+  {
+    "location": "Torrington, US",
+    "lat": 41.8138,
+    "lng": -73.1126,
+    "count": 1
+  },
+  {
+    "location": "Höhenkirchen-Siegertsbrunn, DE",
+    "lat": 48.0164,
+    "lng": 11.7233,
+    "count": 146
+  },
+  {
+    "location": "Leeds, GB",
+    "lat": 53.8226,
+    "lng": -1.568,
+    "count": 4
+  },
+  {
+    "location": "Bedford, GB",
+    "lat": 52.1073,
+    "lng": -0.4649,
+    "count": 3
+  },
+  {
+    "location": "Mühlheim am Main, DE",
+    "lat": 50.1069,
+    "lng": 8.8256,
+    "count": 1
+  },
+  {
+    "location": "Ballerup Municipality, DK",
+    "lat": 55.7327,
+    "lng": 12.3656,
+    "count": 1
+  },
+  {
+    "location": "Barnsley, GB",
+    "lat": 53.552,
+    "lng": -1.4872,
+    "count": 1
+  },
+  {
+    "location": "Singapore, SG",
+    "lat": 1.3343,
+    "lng": 103.8724,
+    "count": 1
+  },
+  {
+    "location": "Kadiria",
+    "lat": 36.5333,
+    "lng": 3.5667,
+    "count": 889
+  },
+  {
+    "location": "Dublin",
+    "lat": 53.3498,
+    "lng": -6.2603,
+    "count": 27
+  },
+  {
+    "location": "Montreal",
+    "lat": 45.5017,
+    "lng": -73.5673,
+    "count": 253
+  },
+  {
+    "location": "Algiers",
+    "lat": 36.7538,
+    "lng": 3.0588,
+    "count": 230
+  },
+  {
+    "location": "Birmingham",
+    "lat": 52.4862,
+    "lng": -1.8904,
+    "count": 59
+  },
+  {
+    "location": "Frankfurt am Main",
+    "lat": 50.1109,
+    "lng": 8.6821,
+    "count": 35
+  },
+  {
+    "location": "Islington",
+    "lat": 51.5465,
+    "lng": -0.1058,
+    "count": 40
+  },
+  {
+    "location": "Oldham",
+    "lat": 53.5409,
+    "lng": -2.1114,
+    "count": 3
+  },
+  {
+    "location": "West Jakarta",
+    "lat": -6.1683,
+    "lng": 106.7583,
+    "count": 44
+  },
+  {
+    "location": "Bekasi",
+    "lat": -6.2383,
+    "lng": 106.9756,
+    "count": 3
+  },
+  {
+    "location": "Belgrade",
+    "lat": 44.7866,
+    "lng": 20.4489,
+    "count": 3
+  },
+  {
+    "location": "Leeds",
+    "lat": 53.8008,
+    "lng": -1.5491,
+    "count": 22
+  },
+  {
+    "location": "Tangerang",
+    "lat": -6.1781,
+    "lng": 106.63,
+    "count": 24
+  },
+  {
+    "location": "Quezon City",
+    "lat": 14.676,
+    "lng": 121.0437,
+    "count": 56
+  },
+  {
+    "location": "Phoenix",
+    "lat": 33.4484,
+    "lng": -112.074,
+    "count": 10
+  },
+  {
+    "location": "Asia/Manila",
+    "lat": 14.5995,
+    "lng": 120.9842,
+    "count": 539
+  },
+  {
+    "location": "Toronto",
+    "lat": 43.6532,
+    "lng": -79.3832,
+    "count": 100
+  },
+  {
+    "location": "DK (Europe/Copenhagen)",
+    "lat": 55.6761,
+    "lng": 12.5683,
+    "count": 177
+  },
+  {
+    "location": "High Wycombe",
+    "lat": 51.6293,
+    "lng": -0.7482,
+    "count": 32
+  },
+  {
+    "location": "Medea",
+    "lat": 36.2675,
+    "lng": 2.7504,
+    "count": 179
+  },
+  {
+    "location": "Amsterdam",
+    "lat": 52.3676,
+    "lng": 4.9041,
+    "count": 34
+  },
+  {
+    "location": "East Jakarta",
+    "lat": -6.225,
+    "lng": 106.9004,
+    "count": 10
+  },
+  {
+    "location": "Reinach",
+    "lat": 47.3769,
+    "lng": 8.5417,
+    "count": 35
+  },
+  {
+    "location": "Baku",
+    "lat": 40.4093,
+    "lng": 49.8671,
+    "count": 88
+  },
+  {
+    "location": "Miami",
+    "lat": 25.7617,
+    "lng": -80.1918,
+    "count": 210
+  },
+  {
+    "location": "Jacksonville",
+    "lat": 30.3322,
+    "lng": -81.6557,
+    "count": 28
+  },
+  {
+    "location": "Bedford",
+    "lat": 39.7684,
+    "lng": -86.1581,
+    "count": 6
+  },
+  {
+    "location": "Melbourne",
+    "lat": -37.8136,
+    "lng": 144.9631,
+    "count": 9
+  },
+  {
+    "location": "Hamilton",
+    "lat": 32.3078,
+    "lng": -64.7505,
+    "count": 1
+  },
+  {
+    "location": "Portsmouth",
+    "lat": 50.8037,
+    "lng": -1.0913,
+    "count": 195
+  },
+  {
+    "location": "Mumbai",
+    "lat": 19.076,
+    "lng": 72.8777,
+    "count": 45
+  },
+  {
+    "location": "Shijiazhuang",
+    "lat": 31.2304,
+    "lng": 121.4737,
+    "count": 151
+  },
+  {
+    "location": "São Paulo",
+    "lat": -23.5505,
+    "lng": -46.6333,
+    "count": 24
+  },
+  {
+    "location": "San Juan",
+    "lat": 14.6019,
+    "lng": 121.0358,
+    "count": 38
+  },
+  {
+    "location": "MX (America/Mexico_City)",
+    "lat": 19.4326,
+    "lng": -99.1332,
+    "count": 22
+  },
+  {
+    "location": "Atlanta",
+    "lat": 38,
+    "lng": -84.39,
+    "count": 38
+  },
+  {
+    "location": "Las Vegas",
+    "lat": 36.1699,
+    "lng": -115.1398,
+    "count": 35
+  },
+  {
+    "location": "Lakhdaria",
+    "lat": 36.5617,
+    "lng": 3.5933,
+    "count": 5
+  },
+  {
+    "location": "Luanda",
+    "lat": -8.839,
+    "lng": 13.2894,
+    "count": 13
+  },
+  {
+    "location": "Hassi Bahbah",
+    "lat": 35.0733,
+    "lng": 3.0172,
+    "count": 6
+  },
+  {
+    "location": "LV (Europe/Riga)",
+    "lat": 56.9496,
+    "lng": 24.1052,
+    "count": 75
+  },
+  {
+    "location": "GT (America/Guatemala)",
+    "lat": 14.6349,
+    "lng": -90.5069,
+    "count": 1
+  },
+  {
+    "location": "Laghouat",
+    "lat": 33.8001,
+    "lng": 2.8828,
+    "count": 21
+  },
+  {
+    "location": "Prague",
+    "lat": 50.0755,
+    "lng": 14.4378,
+    "count": 178
+  },
+  {
+    "location": "Valencia",
+    "lat": 39.4699,
+    "lng": -0.3763,
+    "count": 46
+  },
+  {
+    "location": "JP (Asia/Tokyo)",
+    "lat": 35.6762,
+    "lng": 139.6503,
+    "count": 40
+  },
+  {
+    "location": "EE (Europe/Tallinn)",
+    "lat": 59.437,
+    "lng": 24.7536,
+    "count": 26
+  },
+  {
+    "location": "Tlemcen",
+    "lat": 34.8828,
+    "lng": -1.3167,
+    "count": 3
+  },
+  {
+    "location": "Hialeah",
+    "lat": 25.8576,
+    "lng": -80.2781,
+    "count": 28
+  },
+  {
+    "location": "Vancouver",
+    "lat": 49.2827,
+    "lng": -123.1207,
+    "count": 99
+  },
+  {
+    "location": "Edinburgh",
+    "lat": 55.9533,
+    "lng": -3.1883,
+    "count": 44
+  },
+  {
+    "location": "Iquitos",
+    "lat": -12.0464,
+    "lng": -77.0428,
+    "count": 5
+  },
+  {
+    "location": "Minneapolis",
+    "lat": 44.9778,
+    "lng": -93.265,
+    "count": 40
+  },
+  {
+    "location": "Saint-Denis",
+    "lat": -21.1151,
+    "lng": 55.5364,
+    "count": 105
+  },
+  {
+    "location": "Aarhus",
+    "lat": 56.1629,
+    "lng": 10.2039,
+    "count": 20
+  },
+  {
+    "location": "Tangier",
+    "lat": 33.5731,
+    "lng": -7.5898,
+    "count": 1
+  },
+  {
+    "location": "Gdynia",
+    "lat": 54.5189,
+    "lng": 18.5305,
+    "count": 24
+  },
+  {
+    "location": "Yongsan-gu",
+    "lat": 37.5665,
+    "lng": 126.978,
+    "count": 15
+  },
+  {
+    "location": "Philadelphia",
+    "lat": 39.9526,
+    "lng": -75.1652,
+    "count": 27
+  },
+  {
+    "location": "Ploieşti",
+    "lat": 44.4268,
+    "lng": 26.1025,
+    "count": 10
+  },
+  {
+    "location": "Pune",
+    "lat": 18.5204,
+    "lng": 73.8567,
+    "count": 12
+  },
+  {
+    "location": "Brisbane",
+    "lat": -27.4698,
+    "lng": 153.0251,
+    "count": 10
+  },
+  {
+    "location": "Brooklyn",
+    "lat": 40.6782,
+    "lng": -73.9442,
+    "count": 1
+  },
+  {
+    "location": "Springfield",
+    "lat": 39.7817,
+    "lng": -89.6501,
+    "count": 37
+  },
+  {
+    "location": "AR (America/Argentina/Buenos_Aires)",
+    "lat": -34.6037,
+    "lng": -58.3816,
+    "count": 4
+  },
+  {
+    "location": "Lambeth",
+    "lat": 51.4935,
+    "lng": -0.1177,
+    "count": 4
+  },
+  {
+    "location": "Taguig",
+    "lat": 14.5176,
+    "lng": 121.0509,
+    "count": 14
+  },
+  {
+    "location": "Central Jakarta",
+    "lat": -6.1865,
+    "lng": 106.8341,
+    "count": 17
+  },
+  {
+    "location": "Sydney",
+    "lat": -33.8688,
+    "lng": 151.2093,
+    "count": 1
+  },
+  {
+    "location": "Espoo",
+    "lat": 60.2055,
+    "lng": 24.6559,
+    "count": 19
+  },
+  {
+    "location": "Perth",
+    "lat": -31.9505,
+    "lng": 115.8605,
+    "count": 10
+  },
+  {
+    "location": "Regina",
+    "lat": 50.4452,
+    "lng": -104.6189,
+    "count": 51
+  },
+  {
+    "location": "Los Cabos",
+    "lat": 23.2494,
+    "lng": -106.4111,
+    "count": 50
+  },
+  {
+    "location": "Bogotá",
+    "lat": 4.711,
+    "lng": -74.0721,
+    "count": 10
+  },
+  {
+    "location": "Mariehamn",
+    "lat": 60.097,
+    "lng": 19.9348,
+    "count": 5
+  },
+  {
+    "location": "Salt Lake City",
+    "lat": 40.7608,
+    "lng": -111.891,
+    "count": 33
+  },
+  {
+    "location": "Willemstad",
+    "lat": 12.1696,
+    "lng": -68.99,
+    "count": 2
+  },
+  {
+    "location": "Calgary",
+    "lat": 53.5461,
+    "lng": -113.4938,
+    "count": 7
+  },
+  {
+    "location": "Naaldwijk",
+    "lat": 51.9894,
+    "lng": 4.2072,
+    "count": 7
+  },
+  {
+    "location": "Frederikshavn",
+    "lat": 57.4378,
+    "lng": 10.5364,
+    "count": 15
+  },
+  {
+    "location": "Renton",
+    "lat": 47.4797,
+    "lng": -122.2079,
+    "count": 4
+  },
+  {
+    "location": "Glasgow",
+    "lat": 55.8642,
+    "lng": -4.2518,
+    "count": 64
+  },
+  {
+    "location": "Porto",
+    "lat": 38.7223,
+    "lng": -9.1393,
+    "count": 19
+  },
+  {
+    "location": "Vantaa",
+    "lat": 60.2934,
+    "lng": 25.0408,
+    "count": 3
+  },
+  {
+    "location": "Kuala Lumpur",
+    "lat": 3.139,
+    "lng": 101.6869,
+    "count": 2
+  },
+  {
+    "location": "Doral",
+    "lat": 25.8195,
+    "lng": -80.3553,
+    "count": 51
+  },
+  {
+    "location": "Civitavecchia",
+    "lat": 41.9028,
+    "lng": 12.4964,
+    "count": 25
+  },
+  {
+    "location": "Fort St. James",
+    "lat": 54.4418,
+    "lng": -124.2514,
+    "count": 191
+  },
+  {
+    "location": "Istanbul",
+    "lat": 41.0082,
+    "lng": 28.9784,
+    "count": 40
+  },
+  {
+    "location": "Juárez",
+    "lat": 21.1619,
+    "lng": -86.8515,
+    "count": 1
+  },
+  {
+    "location": "Athens",
+    "lat": 37.9838,
+    "lng": 23.7275,
+    "count": 19
+  },
+  {
+    "location": "Tel Aviv",
+    "lat": 32.0853,
+    "lng": 34.7818,
+    "count": 3
+  },
+  {
+    "location": "Fort Lauderdale",
+    "lat": 26.1224,
+    "lng": -80.1373,
+    "count": 22
+  },
+  {
+    "location": "BE (Europe/Brussels)",
+    "lat": 50.8503,
+    "lng": 4.3517,
+    "count": 48
+  },
+  {
+    "location": "Montevideo",
+    "lat": -34.9011,
+    "lng": -56.1645,
+    "count": 5
+  },
+  {
+    "location": "Basingstoke",
+    "lat": 51.2625,
+    "lng": -1.087,
+    "count": 11
+  },
+  {
+    "location": "Düsseldorf",
+    "lat": 51.2277,
+    "lng": 6.7735,
+    "count": 90
+  },
+  {
+    "location": "Luxembourg",
+    "lat": 49.6117,
+    "lng": 6.13,
+    "count": 4
+  },
+  {
+    "location": "Auckland",
+    "lat": -36.8485,
+    "lng": 174.7633,
+    "count": 4
+  },
+  {
+    "location": "Tirana",
+    "lat": 41.3275,
+    "lng": 19.8187,
+    "count": 2
+  },
+  {
+    "location": "Gdansk",
+    "lat": 54.352,
+    "lng": 18.6466,
+    "count": 26
+  },
+  {
+    "location": "Pasig",
+    "lat": 14.5764,
+    "lng": 121.0851,
+    "count": 2
+  },
+  {
+    "location": "TW (Asia/Taipei)",
+    "lat": 25.033,
+    "lng": 121.5654,
+    "count": 4
+  },
+  {
+    "location": "Leipzig",
+    "lat": 51.3397,
+    "lng": 12.3731,
+    "count": 15
+  },
+  {
+    "location": "San José",
+    "lat": 9.9281,
+    "lng": -84.0907,
+    "count": 9
+  },
+  {
+    "location": "Vigo",
+    "lat": 42.2406,
+    "lng": -8.7207,
+    "count": 10
+  },
+  {
+    "location": "Winnipeg",
+    "lat": 49.8951,
+    "lng": -97.1384,
+    "count": 1
+  },
+  {
+    "location": "Adelaide",
+    "lat": -34.9285,
+    "lng": 138.6007,
+    "count": 1
+  },
+  {
+    "location": "Saint John",
+    "lat": 46.0878,
+    "lng": -64.7782,
+    "count": 2
+  },
+  {
+    "location": "Reutlingen",
+    "lat": 48.4919,
+    "lng": 9.2108,
+    "count": 45
+  },
+  {
+    "location": "UTC",
+    "lat": 51.4769,
+    "lng": 0.0005,
+    "count": 6
+  },
+  {
+    "location": "Třebíč",
+    "lat": 49.2149,
+    "lng": 15.8816,
+    "count": 20
+  },
+  {
+    "location": "Dubai",
+    "lat": 25.2048,
+    "lng": 55.2708,
+    "count": 7
+  },
+  {
+    "location": "Liverpool",
+    "lat": 53.4084,
+    "lng": -2.9916,
+    "count": 6
+  },
+  {
+    "location": "Riyadh",
+    "lat": 24.7136,
+    "lng": 46.6753,
+    "count": 2
+  },
+  {
+    "location": "Petaling Jaya",
+    "lat": 3.1073,
+    "lng": 101.6067,
+    "count": 3
+  },
+  {
+    "location": "Santa Cruz de Tenerife",
+    "lat": 28.2916,
+    "lng": -16.6291,
+    "count": 5
+  },
+  {
+    "location": "CA (America/Halifax)",
+    "lat": 44.6488,
+    "lng": -63.5752,
+    "count": 1
+  },
+  {
+    "location": "Tbilisi",
+    "lat": 41.7151,
+    "lng": 44.8271,
+    "count": 3
+  },
+  {
+    "location": "San Bernardino",
+    "lat": 34.1083,
+    "lng": -117.2898,
+    "count": 4
+  },
+  {
+    "location": "Sofia",
+    "lat": 42.6977,
+    "lng": 23.3219,
+    "count": 16
+  },
+  {
+    "location": "Bracknell",
+    "lat": 51.416,
+    "lng": -0.749,
+    "count": 1
+  },
+  {
+    "location": "Swanley",
+    "lat": 51.396,
+    "lng": 0.175,
+    "count": 3
+  },
+  {
+    "location": "Podgorica",
+    "lat": 42.4304,
+    "lng": 19.2594,
+    "count": 1
+  },
+  {
+    "location": "Pangil",
+    "lat": 14.4014,
+    "lng": 121.4633,
+    "count": 1
+  },
+  {
+    "location": "Chorley",
+    "lat": 53.653,
+    "lng": -2.63,
+    "count": 3
+  },
+  {
+    "location": "Henderson",
+    "lat": 36.0395,
+    "lng": -114.9817,
+    "count": 2
+  },
+  {
+    "location": "San Diego",
+    "lat": 32.7157,
+    "lng": -117.1611,
+    "count": 15
+  },
+  {
+    "location": "Asia/Calcutta",
+    "lat": 22.5726,
+    "lng": 88.3639,
+    "count": 67
+  },
+  {
+    "location": "Asia/Qatar",
+    "lat": 25.2854,
+    "lng": 51.531,
+    "count": 4
+  },
+  {
+    "location": "Atlantic/Reykjavik",
+    "lat": 64.1466,
+    "lng": -21.9426,
+    "count": 7
+  },
+  {
+    "location": "Africa/Cairo",
+    "lat": 30.0444,
+    "lng": 31.2357,
+    "count": 6
+  },
+  {
+    "location": "Asia/Amman",
+    "lat": 31.9454,
+    "lng": 35.9284,
+    "count": 6
+  },
+  {
+    "location": "Africa/Lagos",
+    "lat": 6.5244,
+    "lng": 3.3792,
+    "count": 3
+  },
+  {
+    "location": "Asia/Beirut",
+    "lat": 33.8938,
+    "lng": 35.5018,
+    "count": 12
+  },
+  {
+    "location": "Asia/Almaty",
+    "lat": 43.222,
+    "lng": 76.8512,
+    "count": 2
+  },
+  {
+    "location": "Africa/Accra",
+    "lat": 5.6037,
+    "lng": -0.187,
+    "count": 9
+  },
+  {
+    "location": "Europe/Kiev",
+    "lat": 50.4501,
+    "lng": 30.5234,
+    "count": 2
+  },
+  {
+    "location": "America/Hermosillo",
+    "lat": 29.073,
+    "lng": -110.9559,
+    "count": 2
+  },
+  {
+    "location": "Europe/Malta",
+    "lat": 35.9375,
+    "lng": 14.3754,
+    "count": 3
+  },
+  {
+    "location": "Africa/Nairobi",
+    "lat": -1.2921,
+    "lng": 36.8219,
+    "count": 6
+  }
+]

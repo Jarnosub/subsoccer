@@ -1278,28 +1278,36 @@
                 <div class="kpi-section-header collapsed" onclick="toggleSection(this)">
                     <span class="section-icon">🎬</span>
                     <span class="section-title">Social Content</span>
-                    <span style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-left:8px;letter-spacing:1px;">INSTAGRAM REELS</span>
+                    <span style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-left:8px;letter-spacing:1px;">INSTAGRAM · YOUTUBE · TIKTOK</span>
                     <i class="fas fa-chevron-down section-chevron"></i>
                 </div>
                 <div class="kpi-section-body collapsed">
+                    <!-- Fetch metrics button -->
+                    <div style="display:flex; justify-content:flex-end; margin-bottom:12px; gap:8px;">
+                        <button id="fetch-social-metrics-btn" onclick="fetchSocialMetricsFromApi()"
+                            style="background:rgba(255,0,0,0.12); border:1px solid rgba(255,0,0,0.3); color:#ff6b6b; padding:6px 14px; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="fab fa-youtube"></i><i class="fab fa-tiktok" style="color:#00f2fe;"></i> Fetch YouTube & TikTok Metrics
+                        </button>
+                        <span id="social-metrics-status" style="font-size:0.7rem; color:#4a5568; align-self:center;"></span>
+                    </div>
                     <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                         <div class="kpi-card" style="border-left: 3px solid #E1306C;">
                             <div class="kpi-header"><span>TOTAL VIEWS</span><i class="fas fa-eye" style="color:#E1306C;"></i></div>
                             <div class="kpi-value" id="sc-total-views">—</div>
-                            <div class="kpi-trend"><i class="fas fa-play-circle"></i> All reels combined</div>
+                            <div class="kpi-trend"><i class="fas fa-play-circle"></i> All platforms combined</div>
                         </div>
                         <div class="kpi-card" style="border-left: 3px solid #c41e2a;">
                             <div class="kpi-header"><span>TOTAL LIKES</span><i class="fas fa-heart" style="color:#c41e2a;"></i></div>
                             <div class="kpi-value" id="sc-total-likes">—</div>
-                            <div class="kpi-trend"><i class="fas fa-thumbs-up"></i> Instagram engagement</div>
+                            <div class="kpi-trend"><i class="fas fa-thumbs-up"></i> All platforms engagement</div>
                         </div>
                         <div class="kpi-card" style="border-left: 3px solid #4ade80;">
-                            <div class="kpi-header"><span>REELS TOTAL</span><i class="fas fa-film" style="color:#4ade80;"></i></div>
+                            <div class="kpi-header"><span>VIDEOS TOTAL</span><i class="fas fa-film" style="color:#4ade80;"></i></div>
                             <div class="kpi-value" id="sc-total-reels">—</div>
-                            <div class="kpi-trend"><i class="fas fa-instagram"></i> Published videos</div>
+                            <div class="kpi-trend"><i class="fab fa-instagram"></i> <i class="fab fa-youtube" style="color:#ff0000;"></i> <i class="fab fa-tiktok" style="color:#00f2fe;"></i> All platforms</div>
                         </div>
                         <div class="kpi-card" style="border-left: 3px solid #facc15;">
-                            <div class="kpi-header"><span>TOP REEL VIEWS</span><i class="fas fa-trophy" style="color:#facc15;"></i></div>
+                            <div class="kpi-header"><span>TOP VIDEO VIEWS</span><i class="fas fa-trophy" style="color:#facc15;"></i></div>
                             <div class="kpi-value" id="sc-top-views">—</div>
                             <div class="kpi-trend" id="sc-top-url"><i class="fas fa-star"></i> Best performing</div>
                         </div>
@@ -1756,6 +1764,69 @@
                 <div id="ugc-view-content">
                     <!-- Populated dynamically by renderUgcTable() -->
                 </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- VENUE KPI INTELLIGENCE (reads from venue_kpis view)       -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="kpi-section" style="margin-bottom: 36px;" id="venue-kpi-section">
+            <div class="kpi-section-header collapsed" onclick="toggleSection(this)" style="background: linear-gradient(90deg, rgba(46,204,113,0.14) 0%, rgba(46,204,113,0.06) 100%);">
+                <span class="section-icon"><i class="fas fa-store" style="color: #2ecc71;"></i></span>
+                <span class="section-title">
+                    Venue KPI Intelligence
+                    <span id="venue-kpi-badge" style="font-size:0.7rem; background:rgba(46,204,113,0.2); color:#2ecc71; border:1px solid rgba(46,204,113,0.4); padding:2px 8px; border-radius:10px; font-weight:700; margin-left:8px;">Loading...</span>
+                </span>
+                <i class="fas fa-chevron-up section-chevron"></i>
+            </div>
+            <div class="kpi-section-body collapsed" style="padding: 16px 16px 24px 16px;">
+
+                <!-- Summary KPI row -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; margin-bottom:18px;">
+                    <div class="kpi-card"><div class="kpi-label">ACTIVE VENUES</div><div class="kpi-value" id="vk-total-venues">—</div></div>
+                    <div class="kpi-card"><div class="kpi-label">TOTAL SCANS (ALL)</div><div class="kpi-value" id="vk-total-scans">—</div></div>
+                    <div class="kpi-card"><div class="kpi-label">TOTAL MATCHES</div><div class="kpi-value" id="vk-total-matches">—</div></div>
+                    <div class="kpi-card"><div class="kpi-label">AVG CONVERSION</div><div class="kpi-value" id="vk-avg-conversion">—</div></div>
+                    <div class="kpi-card"><div class="kpi-label">AVG RETENTION</div><div class="kpi-value" id="vk-avg-retention">—</div></div>
+                </div>
+
+                <!-- Venue table -->
+                <div style="overflow-x:auto;">
+                    <table class="data-table" style="width:100%; font-size:0.78rem;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left;">Venue</th>
+                                <th style="text-align:left;">Type</th>
+                                <th style="text-align:left;">City</th>
+                                <th>Scans (7d)</th>
+                                <th>Scans (30d)</th>
+                                <th>Scans (All)</th>
+                                <th>Matches (7d)</th>
+                                <th>Matches (All)</th>
+                                <th>Conv %</th>
+                                <th>Ret %</th>
+                                <th>Countries</th>
+                                <th>Last Active</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="venue-kpi-table-body">
+                            <tr><td colspan="13" style="text-align:center; color:#8ba2b5; padding:24px;">Loading venue data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Activity Log -->
+                <div style="margin-top:20px;">
+                    <div style="font-size:0.82rem; font-weight:700; color:#fff; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-history" style="color:#60a5fa;"></i> Recent B2B Activities
+                        <span id="vk-activities-count" style="font-size:0.68rem; background:rgba(96,165,250,0.15); color:#60a5fa; padding:2px 8px; border-radius:10px; border:1px solid rgba(96,165,250,0.3);">0</span>
+                    </div>
+                    <div id="venue-activities-feed" style="max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+                        <div style="text-align:center; color:#8ba2b5; font-size:0.75rem; padding:16px;">No activities logged yet</div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -3491,6 +3562,33 @@
         }
 
         // ─── Social Content ───────────────────────────────────────────────────
+        // Fetch YouTube & TikTok metrics from API
+        async function fetchSocialMetricsFromApi() {
+            const btn = document.getElementById('fetch-social-metrics-btn');
+            const status = document.getElementById('social-metrics-status');
+            if (btn) btn.disabled = true;
+            if (status) status.textContent = '⏳ Fetching metrics...';
+            try {
+                const res = await fetch('/.netlify/functions/fetch-social-metrics?platform=all');
+                const data = await res.json();
+                if (data.success) {
+                    const ytCount = data.youtube?.count || 0;
+                    const ttCount = data.tiktok?.count || 0;
+                    const ytViews = data.youtube?.totalViews || 0;
+                    if (status) status.textContent = `✅ ${ytCount} YouTube (${ytViews.toLocaleString()} views) + ${ttCount} TikTok synced`;
+                    // Refresh social content display
+                    _scLoaded = false;
+                    fetchSocialContent();
+                } else {
+                    if (status) status.textContent = '❌ Error fetching metrics';
+                }
+            } catch (e) {
+                console.error('Social metrics fetch error:', e);
+                if (status) status.textContent = '❌ Network error';
+            }
+            if (btn) btn.disabled = false;
+        }
+
         let _scLoaded = false;
         async function fetchSocialContent() {
             if (_scLoaded) return;
@@ -3504,20 +3602,35 @@
 
                 if (error) throw error;
 
-                // KPI totals (fetch all for sums)
-                const { data: allData } = await client
-                    .from('social_content')
-                    .select('views,likes')
-                    .eq('active', true);
+                // KPI totals (fetch all pages to bypass Supabase 1000 max_rows limit)
+                let allData = [];
+                let scPage = 0;
+                const scPageSize = 1000;
+                while (true) {
+                    const { data: pageRows, error: pageErr } = await client
+                        .from('social_content')
+                        .select('views,likes')
+                        .eq('active', true)
+                        .range(scPage * scPageSize, (scPage + 1) * scPageSize - 1);
+                    if (pageErr) {
+                        console.error('social_content pagination error:', pageErr);
+                        break;
+                    }
+                    if (!pageRows || pageRows.length === 0) break;
+                    allData.push(...pageRows);
+                    if (pageRows.length < scPageSize) break;
+                    scPage++;
+                    if (scPage > 50) break;
+                }
 
-                const totalViews = (allData || []).reduce((s, r) => s + (r.views || 0), 0);
-                const totalLikes = (allData || []).reduce((s, r) => s + (r.likes || 0), 0);
+                const totalViews = allData.reduce((s, r) => s + (r.views || 0), 0);
+                const totalLikes = allData.reduce((s, r) => s + (r.likes || 0), 0);
 
                 const fmt = n => n >= 1e9 ? (n/1e9).toFixed(1)+'B' : n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(0)+'K' : String(n);
 
                 document.getElementById('sc-total-views').textContent = fmt(totalViews);
                 document.getElementById('sc-total-likes').textContent = fmt(totalLikes);
-                document.getElementById('sc-total-reels').textContent = (allData || []).length;
+                document.getElementById('sc-total-reels').textContent = allData.length.toLocaleString();
                 if (data && data[0]) {
                     document.getElementById('sc-top-views').textContent = fmt(data[0].views);
                     const topEl = document.getElementById('sc-top-url');
@@ -3649,6 +3762,14 @@
             // Sync CRM statuses from Supabase (cross-browser persistence)
             if (typeof syncB2bCrmFromSupabase === 'function') {
                 syncB2bCrmFromSupabase();
+            }
+            // Fetch Venue KPIs from Supabase view
+            if (typeof fetchVenueKpis === 'function') {
+                fetchVenueKpis();
+            }
+            // Fetch B2B activity log
+            if (typeof fetchB2bActivities === 'function') {
+                fetchB2bActivities();
             }
             // Sync UGC videos from Supabase immediately on page load
             if (typeof initUgcIntelligence === 'function') {
@@ -9726,12 +9847,31 @@ jarno@subsoccer.com | https://subsoccer.pro`;
         function setProspectStatus(id, status) {
             // 1. Save to localStorage immediately (fast)
             const data = b2bCrmLoad();
+            const oldStatus = data[id] || 'new';
             data[id] = status;
             b2bCrmSave(data);
-            // 2. Upsert to Supabase async (cross-browser sync)
+            // 2. Find prospect details for enriched CRM upsert
+            const prospect = (_b2bProspectorTargets || []).find(t => t.id === id);
+            const upsertData = {
+                prospect_id: id,
+                status,
+                updated_at: new Date().toISOString()
+            };
+            if (prospect) {
+                upsertData.venue_name = prospect.name || '';
+                upsertData.city = prospect.city || '';
+                upsertData.country = prospect.country || '';
+                upsertData.category = prospect.category || '';
+            }
+            // 3. Upsert to Supabase async (cross-browser sync)
             client.from('b2b_crm')
-                .upsert({ prospect_id: id, status, updated_at: new Date().toISOString() }, { onConflict: 'prospect_id' })
+                .upsert(upsertData, { onConflict: 'prospect_id' })
                 .then(({ error }) => { if (error) console.warn('B2B CRM sync error:', error.message); });
+            // 4. Log activity if status actually changed
+            if (oldStatus !== status && typeof logB2bActivity === 'function') {
+                const label = B2B_STATUS_CONFIG[status]?.label || status;
+                logB2bActivity(id, 'status_change', `${label}`, `Changed from ${oldStatus} to ${status}` + (prospect ? ` — ${prospect.name}, ${prospect.city}` : ''));
+            }
             renderB2bProspectorTable();
         }
 
@@ -9746,6 +9886,129 @@ jarno@subsoccer.com | https://subsoccer.pro`;
                 renderB2bProspectorTable();
                 console.log(`B2B CRM: synced ${data.length} statuses from Supabase`);
             } catch(e) { console.warn('B2B CRM Supabase sync failed:', e); }
+        }
+
+        // ─── Venue KPI Intelligence ──────────────────────────────────────
+        const VENUE_TYPE_ICONS = {
+            arcade: '🕹️', activity_park: '🧗', sports_club: '⚽', mall: '🛍️',
+            social_bar: '🎳', event_rental: '🚚', hotel: '🏨', corporate: '🏢',
+            private: '🏠', other: '📍'
+        };
+
+        async function fetchVenueKpis() {
+            try {
+                const { data, error } = await client.from('venue_kpis').select('*');
+                if (error) { console.warn('Venue KPI fetch error:', error.message); return; }
+                if (!data?.length) {
+                    document.getElementById('venue-kpi-badge').textContent = '0 Venues';
+                    return;
+                }
+
+                // Sort by total_scans DESC
+                data.sort((a, b) => (b.total_scans || 0) - (a.total_scans || 0));
+
+                // Only venues with names (enriched)
+                const enriched = data.filter(v => v.venue_name);
+                const active = enriched.filter(v => v.venue_status === 'active');
+
+                // Summary KPIs
+                const totalScans = enriched.reduce((s, v) => s + (v.total_scans || 0), 0);
+                const totalMatches = enriched.reduce((s, v) => s + (v.total_matches || 0), 0);
+                const convVenues = enriched.filter(v => v.conversion_pct > 0);
+                const avgConv = convVenues.length ? (convVenues.reduce((s, v) => s + v.conversion_pct, 0) / convVenues.length).toFixed(1) : '—';
+                const retVenues = enriched.filter(v => v.retention_pct > 0);
+                const avgRet = retVenues.length ? (retVenues.reduce((s, v) => s + v.retention_pct, 0) / retVenues.length).toFixed(1) : '—';
+
+                document.getElementById('venue-kpi-badge').textContent = `${active.length} Active Venues`;
+                document.getElementById('vk-total-venues').textContent = active.length;
+                document.getElementById('vk-total-scans').textContent = totalScans.toLocaleString();
+                document.getElementById('vk-total-matches').textContent = totalMatches.toLocaleString();
+                document.getElementById('vk-avg-conversion').textContent = avgConv + '%';
+                document.getElementById('vk-avg-retention').textContent = avgRet + '%';
+
+                // Render table
+                const tbody = document.getElementById('venue-kpi-table-body');
+                tbody.innerHTML = enriched.map(v => {
+                    const icon = VENUE_TYPE_ICONS[v.venue_type] || '📍';
+                    const typeLabel = (v.venue_type || 'unknown').replace(/_/g, ' ');
+                    const lastActive = v.last_scan ? new Date(v.last_scan).toLocaleDateString() : '—';
+                    const convColor = v.conversion_pct >= 50 ? '#2ecc71' : v.conversion_pct >= 25 ? '#ffa726' : '#8ba2b5';
+                    const retColor = v.retention_pct >= 50 ? '#2ecc71' : v.retention_pct >= 25 ? '#ffa726' : '#8ba2b5';
+                    return `<tr>
+                        <td style="text-align:left; font-weight:700; color:#fff;">${icon} ${v.venue_name || v.game_name || '—'}</td>
+                        <td style="text-align:left; text-transform:capitalize; color:#8ba2b5;">${typeLabel}</td>
+                        <td style="text-align:left;">${v.city || '—'} <span style="color:#4a5568;">${v.country_code || ''}</span></td>
+                        <td>${v.scans_last_7d || 0}</td>
+                        <td>${v.scans_last_30d || 0}</td>
+                        <td style="font-weight:700;">${(v.total_scans || 0).toLocaleString()}</td>
+                        <td>${v.matches_last_7d || 0}</td>
+                        <td style="font-weight:700;">${(v.total_matches || 0).toLocaleString()}</td>
+                        <td style="color:${convColor}; font-weight:700;">${v.conversion_pct || 0}%</td>
+                        <td style="color:${retColor}; font-weight:700;">${v.retention_pct || 0}%</td>
+                        <td>${v.unique_countries || 0}</td>
+                        <td style="color:#8ba2b5;">${lastActive}</td>
+                        <td><button onclick="openB2bLeadModal('${(v.venue_name || '').replace(/'/g, "\\'")}', '')" style="background:rgba(10,102,194,0.15); border:1px solid rgba(10,102,194,0.3); color:#60a5fa; padding:4px 10px; border-radius:4px; font-size:0.7rem; cursor:pointer; font-weight:700;">Pitch</button></td>
+                    </tr>`;
+                }).join('');
+
+                console.log(`Venue KPIs: loaded ${enriched.length} venues`);
+            } catch(e) { console.warn('Venue KPI error:', e); }
+        }
+
+        // ─── B2B Activity Logging ────────────────────────────────────────
+        async function logB2bActivity(prospectId, action, subject = '', body = '', outcome = '') {
+            try {
+                await client.from('b2b_activities').insert({
+                    prospect_id: prospectId,
+                    action,
+                    subject,
+                    body,
+                    outcome,
+                    performed_by: 'jarno'
+                });
+                fetchB2bActivities(); // Refresh feed
+            } catch(e) { console.warn('Activity log error:', e); }
+        }
+
+        async function fetchB2bActivities() {
+            try {
+                const { data, error } = await client.from('b2b_activities')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+                if (error || !data?.length) return;
+
+                const countEl = document.getElementById('vk-activities-count');
+                if (countEl) countEl.textContent = data.length;
+
+                const ACTION_ICONS = {
+                    email_sent: '📧', call: '📞', meeting: '🤝', demo: '🎮',
+                    follow_up: '🔄', note: '📝', status_change: '🔀'
+                };
+                const OUTCOME_COLORS = {
+                    positive: '#2ecc71', neutral: '#ffa726', negative: '#e74c3c', no_response: '#8ba2b5'
+                };
+
+                const feed = document.getElementById('venue-activities-feed');
+                if (!feed) return;
+                feed.innerHTML = data.map(a => {
+                    const icon = ACTION_ICONS[a.action] || '📋';
+                    const time = new Date(a.created_at).toLocaleDateString('fi-FI', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                    const outcomeDot = a.outcome ? `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${OUTCOME_COLORS[a.outcome] || '#8ba2b5'}; margin-left:6px;"></span>` : '';
+                    return `<div style="background:#141d26; border:1px solid #233140; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:1.1rem;">${icon}</span>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:0.78rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:4px;">
+                                ${a.subject || a.action.replace(/_/g, ' ')} ${outcomeDot}
+                            </div>
+                            <div style="font-size:0.72rem; color:#8ba2b5; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                ${a.prospect_id} ${a.body ? '— ' + a.body.substring(0, 80) : ''}
+                            </div>
+                        </div>
+                        <div style="font-size:0.68rem; color:#4a5568; white-space:nowrap;">${time}</div>
+                    </div>`;
+                }).join('');
+            } catch(e) { console.warn('Activity feed error:', e); }
         }
 
         // ─── B2B CSV Export ──────────────────────────────────────────────
@@ -14488,8 +14751,8 @@ jarno@subsoccer.com | https://subsoccer.pro`;
                                     <span style="background:${sc.bg}; border:1px solid ${sc.border}; color:${sc.color}; font-size:0.68rem; font-weight:700; padding:1px 7px; border-radius:10px;">
                                         ${sc.icon} ${sc.label}
                                     </span>
-                                    <span style="background:linear-gradient(135deg, rgba(46,204,113,0.2), rgba(39,174,96,0.2)); border:1px solid rgba(46,204,113,0.5); color:#2ecc71; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px;">
-                                        🔥 ${t.matchScore}% Match
+                                    <span style="background:linear-gradient(135deg, ${t.aiBonus > 0 ? 'rgba(124,58,237,0.25), rgba(46,204,113,0.2)' : 'rgba(46,204,113,0.2), rgba(39,174,96,0.2)'}); border:1px solid ${t.aiBonus > 0 ? 'rgba(124,58,237,0.5)' : 'rgba(46,204,113,0.5)'}; color:${t.aiBonus > 0 ? '#a78bfa' : '#2ecc71'}; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px;" title="${t.aiBonus > 0 ? 'Base: ' + t.aiBaseScore + ' + AI: +' + t.aiBonus : 'Base Score'}">
+                                        ${t.aiBonus > 0 ? '🧠' : '🔥'} ${t.matchScore}% ${t.aiBonus > 0 ? 'AI' : ''} Match
                                     </span>
                                 </div>
                             </div>
@@ -14501,6 +14764,12 @@ jarno@subsoccer.com | https://subsoccer.pro`;
                             <div style="font-size:0.75rem; color:#60a5fa; margin-bottom:8px; display:flex; align-items:center; gap:4px;">
                                 <i class="fas fa-map-marker-alt" style="color:#E1306C; font-size:0.7rem;"></i> ${escapeHtml(t.city)}, ${escapeHtml(t.country)}
                             </div>
+
+                            <!-- AI Scoring Reasons (if enriched) -->
+                            ${t.aiReasons && t.aiReasons.length > 0 ? `
+                            <div style="background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.25); border-radius:6px; padding:5px 8px; font-size:0.68rem; color:#c4b5fd; margin-bottom:6px; line-height:1.5;">
+                                <strong style="color:#a78bfa;">🧠 AI Insights:</strong> ${t.aiReasons.join(' · ')}
+                            </div>` : ''}
 
                             <!-- Learned Benchmark Reason -->
                             <div style="background:rgba(255,255,255,0.03); border:1px solid #233140; border-radius:6px; padding:6px 8px; font-size:0.72rem; color:#8ba2b5; margin-bottom:6px;">

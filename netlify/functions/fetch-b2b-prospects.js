@@ -14,8 +14,15 @@
  *   ?limit=200                 (optional, default 500)
  */
 
+const { createClient } = require('@supabase/supabase-js');
+
 const PLACES_API_URL = 'https://places.googleapis.com/v1/places:searchText';
-const FIELD_MASK = 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.id,places.types,places.shortFormattedAddress';
+const FIELD_MASK = 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.id,places.types,places.shortFormattedAddress,places.location';
+
+// Supabase client for telemetry enrichment
+const SUPA_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
+const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
+const supabase = createClient(SUPA_URL, SUPA_KEY);
 
 // ── Lookalike Search Query Bank ──────────────────────────────────────────────
 const SEARCH_QUERIES = {
@@ -97,40 +104,177 @@ const CITIES = [
     { name: 'Dubai', country: 'UAE', region: 'MIDDLE_EAST' },
 ];
 
-// ── Match Score Calculator ───────────────────────────────────────────────────
-function calcMatchScore(place, category) {
+// ── Base Match Score Calculator (Google Places data only) ────────────────────
+function calcBaseScore(place, category) {
     let score = 0;
 
     // Rating quality
-    if (place.rating >= 4.5) score += 30;
-    else if (place.rating >= 4.0) score += 20;
-    else if (place.rating >= 3.5) score += 10;
+    if (place.rating >= 4.5) score += 20;
+    else if (place.rating >= 4.0) score += 14;
+    else if (place.rating >= 3.5) score += 8;
 
     // Review volume (social proof = foot traffic)
     const reviews = place.userRatingCount || 0;
-    if (reviews >= 1000) score += 25;
-    else if (reviews >= 500) score += 20;
-    else if (reviews >= 200) score += 15;
-    else if (reviews >= 100) score += 8;
+    if (reviews >= 1000) score += 18;
+    else if (reviews >= 500) score += 14;
+    else if (reviews >= 200) score += 10;
+    else if (reviews >= 100) score += 6;
 
     // Has a website (professional operation)
-    if (place.websiteUri) score += 15;
+    if (place.websiteUri) score += 8;
 
     // Has phone (contactable)
-    if (place.nationalPhoneNumber) score += 5;
+    if (place.nationalPhoneNumber) score += 4;
 
     // Category-specific bonus
     const types = place.types || [];
-    if (category === 'event_rentals' && types.some(t => ['event_venue', 'point_of_interest', 'general_contractor'].includes(t))) score += 25;
-    else if (category === 'arcade_lounges' && types.some(t => ['amusement_center', 'bar', 'bowling_alley', 'night_club'].includes(t))) score += 25;
-    else if (category === 'activity_parks' && types.some(t => ['amusement_center', 'sports_complex', 'gym'].includes(t))) score += 25;
-    else if (category === 'malls_outlets' && types.some(t => ['shopping_mall', 'department_store'].includes(t))) score += 25;
-    else if (category === 'social_bars' && types.some(t => ['bar', 'restaurant', 'night_club'].includes(t))) score += 25;
-    else if (category === 'sports_clubs' && types.some(t => ['sports_club', 'gym', 'stadium'].includes(t))) score += 25;
-    else score += 10; // partial category match
+    if (category === 'event_rentals' && types.some(t => ['event_venue', 'point_of_interest', 'general_contractor'].includes(t))) score += 15;
+    else if (category === 'arcade_lounges' && types.some(t => ['amusement_center', 'bar', 'bowling_alley', 'night_club'].includes(t))) score += 15;
+    else if (category === 'activity_parks' && types.some(t => ['amusement_center', 'sports_complex', 'gym'].includes(t))) score += 15;
+    else if (category === 'malls_outlets' && types.some(t => ['shopping_mall', 'department_store'].includes(t))) score += 15;
+    else if (category === 'social_bars' && types.some(t => ['bar', 'restaurant', 'night_club'].includes(t))) score += 15;
+    else if (category === 'sports_clubs' && types.some(t => ['sports_club', 'gym', 'stadium'].includes(t))) score += 15;
+    else score += 5; // partial category match
 
-    return Math.min(score, 100);
+    return Math.min(score, 65); // max 65 from base
 }
+
+// ── AI Smart Score: Telemetry + Social Enrichment ────────────────────────────
+// Adds up to 35 bonus points based on real Subsoccer performance data
+function calcSmartScore(baseScore, category, city, telemetryInsights) {
+    let bonus = 0;
+    const reasons = [];
+
+    // 1. Category Performance Bonus (0-12 pts)
+    // Categories where existing venues perform best get higher scores
+    const catPerf = telemetryInsights.categoryPerformance[category];
+    if (catPerf) {
+        if (catPerf.avgRetention >= 30) { bonus += 12; reasons.push(`🔥 ${catPerf.avgRetention}% retention in ${category.replace(/_/g, ' ')}`); }
+        else if (catPerf.avgRetention >= 15) { bonus += 8; reasons.push(`📈 ${catPerf.avgRetention}% retention in category`); }
+        else if (catPerf.totalScans > 0) { bonus += 4; reasons.push(`✅ Proven category`); }
+    }
+
+    // 2. City Proximity Bonus (0-10 pts)
+    // If we already have a successful venue in the same city → social proof
+    const cityVenue = telemetryInsights.activeVenues.find(v => 
+        v.city && city && v.city.toLowerCase() === city.toLowerCase()
+    );
+    if (cityVenue && cityVenue.total_scans > 100) {
+        bonus += 10;
+        reasons.push(`📍 ${cityVenue.venue_name} (${cityVenue.total_scans} scans) already active in ${city}`);
+    } else if (cityVenue) {
+        bonus += 5;
+        reasons.push(`📍 Active venue exists in ${city}`);
+    }
+
+    // 3. Social Viral Proof Bonus (0-8 pts)
+    // Categories with strong UGC / viral content perform better
+    const socialProof = telemetryInsights.socialByCategory[category];
+    if (socialProof && socialProof.totalViews >= 100000000) {
+        bonus += 8;
+        reasons.push(`🎬 ${Math.round(socialProof.totalViews / 1000000)}M+ viral views in category`);
+    } else if (socialProof && socialProof.totalViews >= 10000000) {
+        bonus += 5;
+        reasons.push(`📱 ${Math.round(socialProof.totalViews / 1000000)}M views in category`);
+    }
+
+    // 4. Market Penetration Signal (0-5 pts)
+    // Region with existing customers → warmer market
+    const regionVenues = telemetryInsights.activeVenues.filter(v => v.total_scans > 50);
+    if (regionVenues.length >= 3) {
+        bonus += 5;
+        reasons.push(`🌍 ${regionVenues.length} active venues in network — warm market`);
+    } else if (regionVenues.length >= 1) {
+        bonus += 3;
+        reasons.push(`🌱 Growing market presence`);
+    }
+
+    const smartScore = Math.min(baseScore + bonus, 100);
+    return { smartScore, reasons, baseScore, bonus };
+}
+
+// ── Fetch Telemetry Insights from Supabase ───────────────────────────────────
+async function fetchTelemetryInsights() {
+    const insights = {
+        activeVenues: [],
+        categoryPerformance: {},
+        socialByCategory: {}
+    };
+
+    try {
+        // 1. Active venues with KPIs
+        const { data: venues } = await supabase
+            .from('venue_kpis')
+            .select('venue_name, venue_type, city, country_code, total_scans, total_matches, conversion_pct, retention_pct');
+        
+        if (venues) {
+            insights.activeVenues = venues.filter(v => v.venue_name && v.total_scans > 0);
+            
+            // Aggregate by venue_type → category performance
+            const catMap = {
+                'sports_club': 'sports_clubs',
+                'activity_park': 'activity_parks',
+                'mall': 'malls_outlets',
+                'arcade': 'arcade_lounges',
+                'social_bar': 'social_bars',
+                'event_rental': 'event_rentals'
+            };
+            
+            for (const v of insights.activeVenues) {
+                const cat = catMap[v.venue_type];
+                if (!cat) continue;
+                if (!insights.categoryPerformance[cat]) {
+                    insights.categoryPerformance[cat] = { totalScans: 0, totalMatches: 0, venues: 0, retentionSum: 0 };
+                }
+                const cp = insights.categoryPerformance[cat];
+                cp.totalScans += v.total_scans || 0;
+                cp.totalMatches += v.total_matches || 0;
+                cp.venues += 1;
+                cp.retentionSum += v.retention_pct || 0;
+            }
+            
+            for (const [cat, cp] of Object.entries(insights.categoryPerformance)) {
+                cp.avgRetention = cp.venues > 0 ? Math.round(cp.retentionSum / cp.venues) : 0;
+            }
+        }
+
+        // 2. Social content stats by category keywords
+        const { data: social } = await supabase
+            .from('social_content')
+            .select('views, likes, caption')
+            .eq('active', true);
+        
+        if (social) {
+            // Map social content to categories by keyword matching
+            const catKeywords = {
+                arcade_lounges: ['arcade', 'gaming', 'bar', 'lounge', 'retroids', 'haymaker'],
+                sports_clubs: ['stadium', 'football', 'soccer', 'fc', 'fan zone', 'match'],
+                activity_parks: ['superpark', 'jumpyard', 'trampoline', 'activity', 'park'],
+                malls_outlets: ['mall', 'outlet', 'shopping', 'eastmidlands'],
+                social_bars: ['bar', 'pub', 'darts', 'bowling', 'lane7', 'flight club'],
+                event_rentals: ['event', 'corporate', 'hire', 'rental']
+            };
+            
+            for (const [cat, keywords] of Object.entries(catKeywords)) {
+                const matching = social.filter(s => {
+                    const text = (s.caption || '').toLowerCase();
+                    return keywords.some(kw => text.includes(kw));
+                });
+                insights.socialByCategory[cat] = {
+                    totalViews: matching.reduce((sum, s) => sum + (s.views || 0), 0),
+                    totalLikes: matching.reduce((sum, s) => sum + (s.likes || 0), 0),
+                    count: matching.length
+                };
+            }
+        }
+
+    } catch (err) {
+        console.warn('Telemetry insights fetch failed (non-fatal):', err.message);
+    }
+
+    return insights;
+}
+
 
 // ── Category → Peer Benchmark Lookup ─────────────────────────────────────────
 function getPeerBenchmark(category) {
@@ -220,7 +364,10 @@ exports.handler = async function(event) {
     const categoryFilter = params.category || null; // optional filter
     const regionFilter = params.region || null;     // optional region filter (e.g. UK, NORDICS, EUROPE, USA)
     const limitParam = parseInt(params.limit || '300', 10);
-    console.log(`[B2B Fetch Request] Category: ${categoryFilter || 'ALL'} | Region: ${regionFilter || 'ALL'} | Limit: ${limitParam}`);
+    console.log(`[B2B AI Fetch] Category: ${categoryFilter || 'ALL'} | Region: ${regionFilter || 'ALL'} | Limit: ${limitParam}`);
+
+    // ── Fetch telemetry insights ONCE (parallel with first Places call) ──
+    const telemetryPromise = fetchTelemetryInsights();
 
     const categoriesToFetch = categoryFilter
         ? { [categoryFilter]: SEARCH_QUERIES[categoryFilter] || [] }
@@ -234,7 +381,7 @@ exports.handler = async function(event) {
     }
 
     const seen = new Set();
-    const results = [];
+    const rawResults = [];
     let totalRequests = 0;
 
     // Balanced Round-Robin: Pick queries across categories and top cities evenly
@@ -243,10 +390,10 @@ exports.handler = async function(event) {
 
     for (let round = 0; round < maxRounds; round++) {
         for (const city of targetCities) {
-            if (results.length >= limitParam) break;
+            if (rawResults.length >= limitParam) break;
 
             for (const category of catKeys) {
-                if (results.length >= limitParam) break;
+                if (rawResults.length >= limitParam) break;
 
                 const queryList = categoriesToFetch[category];
                 if (!queryList || round >= queryList.length) continue;
@@ -265,10 +412,10 @@ exports.handler = async function(event) {
                         if (!placeId || seen.has(placeId)) continue;
                         seen.add(placeId);
 
-                        const score = calcMatchScore(place, category);
-                        if (score < 30) continue; // skip very low quality
+                        const baseScore = calcBaseScore(place, category);
+                        if (baseScore < 20) continue; // skip very low quality
 
-                        results.push({
+                        rawResults.push({
                             id: placeId,
                             name: place.displayName?.text || 'Unknown',
                             chain: place.displayName?.text?.split(' ').slice(0, 2).join(' ') || 'Unknown',
@@ -276,12 +423,14 @@ exports.handler = async function(event) {
                             country: city.country,
                             region: city.region,
                             category,
-                            matchScore: score,
+                            baseScore,
                             rating: place.rating || null,
                             reviewCount: place.userRatingCount || 0,
                             website: place.websiteUri || null,
                             phone: place.nationalPhoneNumber || null,
                             address: place.shortFormattedAddress || place.formattedAddress || null,
+                            lat: place.location?.latitude || null,
+                            lng: place.location?.longitude || null,
                             benchmark: peerInfo.benchmark,
                             peerAccount: peerInfo.peerAccount,
                             peerProof: peerInfo.peerProof,
@@ -298,12 +447,32 @@ exports.handler = async function(event) {
                 }
             }
         }
-        if (results.length >= limitParam) break;
+        if (rawResults.length >= limitParam) break;
     }
 
-    // Sort by match score descending
+    // ── Apply AI Smart Scoring with telemetry data ──
+    const telemetryInsights = await telemetryPromise;
+    const results = rawResults.map(prospect => {
+        const { smartScore, reasons, baseScore, bonus } = calcSmartScore(
+            prospect.baseScore, prospect.category, prospect.city, telemetryInsights
+        );
+        return {
+            ...prospect,
+            matchScore: smartScore,         // backwards compatible field name
+            aiSmartScore: smartScore,
+            aiReasons: reasons,
+            aiBaseScore: baseScore,
+            aiBonus: bonus,
+        };
+    });
+
+    // Sort by AI smart score descending
     results.sort((a, b) => b.matchScore - a.matchScore);
-    console.log(`[B2B Fetch Result] Successfully gathered ${results.length} lookalike venues across ${totalRequests} Places API calls`);
+    
+    const avgBonus = results.length > 0 
+        ? Math.round(results.reduce((s, r) => s + r.aiBonus, 0) / results.length) 
+        : 0;
+    console.log(`[B2B AI Result] ${results.length} prospects | ${totalRequests} API calls | avg AI bonus: +${avgBonus}pts | telemetry venues: ${telemetryInsights.activeVenues.length}`);
 
     return {
         statusCode: 200,
@@ -317,6 +486,9 @@ exports.handler = async function(event) {
             count: results.length,
             totalApiRequests: totalRequests,
             generatedAt: new Date().toISOString(),
+            aiEnriched: true,
+            telemetryVenues: telemetryInsights.activeVenues.length,
+            categoryPerformance: telemetryInsights.categoryPerformance,
             prospects: results,
         }),
     };
