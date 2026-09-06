@@ -1,22 +1,26 @@
 @font-face {
     font-family: 'SubsoccerLogo';
     src: url('fonts/Subsoccer-2-Regular.woff2') format('woff2'), url('fonts/Subsoccer-2-Regular.woff') format('woff'), url('fonts/Subsoccer-2-Regular.otf') format('opentype');
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'Resolve';
     /* Vaihdettu Condensed -> Narrow */
     src: url('fonts/Resolve-BoldNrw.otf') format('opentype');
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'ResolveRegular';
     src: url('fonts/Resolve-RegularCn.otf') format('opentype');
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'ResolveNarrowReg';
     src: url('fonts/Resolve-RegularNrw.otf') format('opentype');
+    font-display: swap;
 }
 
 @font-face {
@@ -24,6 +28,7 @@
     src: url('https://fonts.gstatic.com/s/opensans/v34/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
 }
 
 :root {
