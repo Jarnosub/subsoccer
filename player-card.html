@@ -1726,10 +1726,18 @@
         function toggleProfileAccordion() {
             const btn = document.getElementById('profile-accordion-btn');
             const body = document.getElementById('profile-accordion-body');
+            const isClosing = body.classList.contains('open');
             btn.classList.toggle('open');
             body.classList.toggle('open');
             if(body.classList.contains('open')) {
                 setTimeout(() => body.scrollIntoView({behavior: 'smooth', block: 'end'}), 200);
+            } else if (isClosing) {
+                // User closed the accordion: auto-save any pending avatar selection in the background
+                const selectedUrl = document.getElementById('selected-avatar-url')?.value;
+                const selectedB64 = document.getElementById('selected-avatar-b64')?.value;
+                if ((selectedUrl && selectedUrl !== _currentPlayer?.avatar_url) || selectedB64) {
+                    saveProfile();
+                }
             }
         }
 
@@ -2068,14 +2076,6 @@
             loadCropData();
             applyCropToCard();
             showCropTool(imgSrc);
-
-            // Auto-save when an avatar is selected (if user is loaded)
-            if (_currentPlayer && _currentPlayer.id) {
-                // Small delay to allow UI to update (like the selected ring)
-                setTimeout(() => {
-                    saveProfile();
-                }, 50);
-            }
         }
 
         // ===== PRINT CARD GENERATOR (Topps 2.5" × 3.5" @ 300 DPI = 750×1050px) =====
@@ -2568,6 +2568,9 @@
                 icon.style.display = 'none';
                 
                 document.getElementById('selected-avatar-url').value = newAvatarUrl;
+                loadCropData();
+                applyCropToCard();
+                showCropTool(newAvatarUrl);
             } else {
                 // No avatars left — show default silhouette
                 const photo = document.getElementById('pc-card-photo');
@@ -2576,16 +2579,23 @@
                 photo.src = '';
                 icon.style.display = 'block';
                 document.getElementById('selected-avatar-url').value = '__remove__';
+                showCropTool(null);
+                const removeWrap = document.getElementById('remove-avatar-wrap');
+                if (removeWrap) removeWrap.style.display = 'none';
             }
             document.getElementById('selected-avatar-b64').value = '';
             
             updateCarouselButtons();
             
-            // Auto-save to DB immediately (prevents broken avatar if user navigates away)
+            // Auto-save to DB immediately via secure Netlify function
             try {
                 if (_currentPlayer?.id) {
                     const updatePayload = newAvatarUrl ? { avatar_url: newAvatarUrl } : { avatar_url: null };
-                    await directQuery('PATCH', 'players', { id: `eq.${_currentPlayer.id}` }, updatePayload);
+                    await fetch('/.netlify/functions/save-player-profile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: _currentPlayer.id, updates: updatePayload })
+                    });
                     _currentPlayer.avatar_url = newAvatarUrl || null;
                     localStorage.setItem('subsoccer-user', JSON.stringify(_currentPlayer));
                     console.log('✅ Avatar updated in DB after deletion');
@@ -2599,6 +2609,20 @@
         document.getElementById('pc-edit-name').addEventListener('input', function(e) {
             const val = e.target.value.trim().toUpperCase() || 'PLAYER';
             document.getElementById('pc-card-name').innerText = val;
+            const backName = document.getElementById('pc-back-name');
+            if (backName) backName.innerText = val;
+        });
+
+        // Sync country live
+        document.getElementById('pc-edit-country').addEventListener('change', function(e) {
+            const code = (e.target.value || 'fi').toLowerCase();
+            const countryEl = document.getElementById('pc-card-country-code');
+            if (countryEl) countryEl.innerText = code.toUpperCase();
+            const flagImg = document.getElementById('pc-card-flag-img');
+            if (flagImg) {
+                flagImg.src = `https://flagcdn.com/w40/${code}.png`;
+                flagImg.style.display = 'inline-block';
+            }
         });
 
         // Load countries
@@ -3153,12 +3177,67 @@
                     addToAvatarGallery(userId, updates.avatar_url);
                 }
 
+                // If a new photo was uploaded, insert it into the carousel track immediately
+                if (avatarB64 && updates.avatar_url) {
+                    const track = document.getElementById('avatar-selection');
+                    if (track) {
+                        const opt = document.createElement('div');
+                        opt.className = 'avatar-option selected';
+                        opt.setAttribute('data-avatar', updates.avatar_url);
+                        opt.setAttribute('data-avatar-url', updates.avatar_url.split('?')[0]);
+                        opt.setAttribute('data-custom', 'true');
+                        opt.onclick = function() { selectAvatar(this); };
+                        opt.innerHTML = `<img src="${updates.avatar_url}" alt="Custom Avatar" style="border-radius:8px;">`;
+                        track.insertBefore(opt, track.firstChild);
+                        track.querySelectorAll('.avatar-option:not(:first-child)').forEach(el => el.classList.remove('selected'));
+                        updateCarouselButtons();
+                    }
+                    _aiSelfieB64 = null;
+                    const b64Input = document.getElementById('selected-avatar-b64');
+                    if (b64Input) b64Input.value = '';
+                    const urlInput = document.getElementById('selected-avatar-url');
+                    if (urlInput) urlInput.value = updates.avatar_url;
+                    const lbl = document.getElementById('ai-selfie-label');
+                    if (lbl) lbl.innerText = 'CHOOSE PHOTO';
+                    const uploadBtn = document.getElementById('ai-upload-label');
+                    if (uploadBtn) uploadBtn.classList.remove('ready');
+                }
+
+                // Update live card UI elements immediately
+                if (updates.username) {
+                    const cleanU = updates.username.toUpperCase();
+                    const elName = document.getElementById('pc-card-name');
+                    if (elName) elName.innerText = cleanU;
+                    const elBackName = document.getElementById('pc-back-name');
+                    if (elBackName) elBackName.innerText = cleanU;
+                    document.title = `${cleanU} — Subsoccer Pro Card`;
+                }
+                if (updates.country) {
+                    const cCode = updates.country.toLowerCase();
+                    const cEl = document.getElementById('pc-card-country-code');
+                    if (cEl) cEl.innerText = cCode.toUpperCase();
+                    const flagImg = document.getElementById('pc-card-flag-img');
+                    if (flagImg) {
+                        flagImg.src = `https://flagcdn.com/w40/${cCode}.png`;
+                        flagImg.style.display = 'inline-block';
+                    }
+                }
+                if (updates.avatar_url) {
+                    const removeWrap = document.getElementById('remove-avatar-wrap');
+                    if (removeWrap) removeWrap.style.display = 'block';
+                }
+
                 msg.style.color = '#4CAF50';
                 msg.innerText = '✓ SAVED SUCCESSFULLY';
                 btn.disabled = false;
                 btn.innerText = 'SAVE CHANGES';
 
-                setTimeout(() => location.reload(), 800);
+                // Keep accordion open, clear success message after 3.5s (no page reload)
+                setTimeout(() => {
+                    if (msg.innerText === '✓ SAVED SUCCESSFULLY') {
+                        msg.innerText = '';
+                    }
+                }, 3500);
             } catch(e) {
                 console.error('Save error:', e);
                 msg.style.color = '#E30613';
