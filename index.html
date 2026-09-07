@@ -481,7 +481,7 @@
         .top-header {
             position: relative;
             width: 100%;
-            padding: 12px 20px;
+            padding: calc(12px + env(safe-area-inset-top, 0px)) 20px 12px;
             box-sizing: border-box;
             background: #ffffff;
             border-bottom: 1px solid #e0e0e0;
@@ -550,7 +550,7 @@
             margin-top: 8px;
         }
 
-        /* KUVABLOKKI */
+        /* KUVABLOKKI & BROADCAST LOWER-THIRD TICKER */
         .content-image {
             width: 100%;
             max-width: 600px;
@@ -559,15 +559,130 @@
             box-sizing: border-box;
             position: relative;
         }
-        .content-image img {
+
+        .hero-media-card {
+            position: relative;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+            background: #111;
+        }
+
+        .hero-media-card img {
             width: 100%;
             height: auto;
             display: block;
         }
 
+        body.dark-mode .hero-media-card {
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        /* BROADCAST LOWER-THIRD TICKER */
+        .hero-broadcast-ticker {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 32px;
+            background: rgba(14, 18, 26, 0.88);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .broadcast-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #E30613;
+            color: #ffffff;
+            font-family: 'Resolve', sans-serif;
+            font-weight: 800;
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 0 9px;
+            height: 100%;
+            flex-shrink: 0;
+            z-index: 2;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            display: inline-block;
+            animation: livePulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.75); }
+        }
+
+        .broadcast-ticker-track {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            mask-image: linear-gradient(to right, transparent, black 10px, black calc(100% - 14px), transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10px, black calc(100% - 14px), transparent);
+        }
+
+        .ticker-wrapper {
+            display: flex;
+            width: max-content;
+            white-space: nowrap;
+        }
+
+        .ticker-content {
+            display: inline-flex;
+            align-items: center;
+            font-family: 'Resolve', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.85);
+            padding-right: 40px;
+        }
+
+        #top-ticker.animating {
+            animation: marquee 55s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+            100% {
+                transform: translate3d(-50%, 0, 0);
+            }
+        }
+
         @media (min-width: 600px) {
-            .content-image {
-                border-radius: 12px;
+            .hero-broadcast-ticker {
+                height: 36px;
+            }
+            .broadcast-badge {
+                font-size: 0.7rem;
+                padding: 0 12px;
+                gap: 6px;
+            }
+            .ticker-content {
+                font-size: 0.7rem;
+                letter-spacing: 0.9px;
             }
         }
 
@@ -626,9 +741,9 @@
         }
 
         body.dark-mode .content-image img {
-            border-radius: 4px;
+            border-radius: 0;
             box-shadow: none !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border: none !important;
         }
 
         /* SOCIAL PROOF BAR */
@@ -894,68 +1009,6 @@
     </div>
     <style>@keyframes authPulse{0%,100%{opacity:0.3;transform:scale(1);}50%{opacity:0.6;transform:scale(1.04);}}</style>
 
-    <div id="top-ticker-container">
-        <div id="top-ticker" class="ticker-wrapper">
-            <div class="ticker-content">
-                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities" style="color: #ff4d5a; margin-left: 10px;"></span>
-            </div>
-            <div class="ticker-content" aria-hidden="true">
-                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities" style="color: #ff4d5a; margin-left: 10px;"></span>
-            </div>
-        </div>
-    </div>
-    <style>
-        #top-ticker-container {
-            width: 100%;
-            background-color: #1a1a1a;
-            color: rgba(255,255,255,0.75);
-            border-bottom: 1px solid #c41e2a;
-            padding: calc(3px + env(safe-area-inset-top, 0px)) 0 3px;
-            font-family: 'Resolve', sans-serif;
-            font-weight: bold;
-            font-size: 0.45rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            box-sizing: border-box;
-            z-index: 100;
-            position: relative;
-            overflow: hidden;
-            white-space: nowrap;
-            display: flex;
-        }
-
-        .ticker-wrapper {
-            display: flex;
-            width: max-content;
-        }
-
-        .ticker-content {
-            padding-right: 15vw;
-        }
-
-        #top-ticker.animating {
-            animation: marquee 65s linear infinite;
-        }
-
-        @media (min-width: 768px) {
-            #top-ticker-container {
-                padding: calc(8px + env(safe-area-inset-top, 0px)) 0 8px;
-                font-size: 0.75rem;
-                letter-spacing: 1.5px;
-            }
-        }
-
-        @keyframes marquee {
-            0% {
-                transform: translate3d(0, 0, 0);
-            }
-
-            100% {
-                transform: translate3d(-50%, 0, 0);
-            }
-        }
-    </style>
-
     <!-- YLÄPALKKI / LOGO JA PELAAJAKORTTI -->
     <div class="top-header">
 
@@ -1032,8 +1085,28 @@
             <div class="page-tagline" data-i18n="tagline_home_of_bench_soccer">THE HOME OF BENCH SOCCER</div>
         </div>
 
-        <!-- KUVABLOKKI -->
-        <div class="content-image"><img src="hero-real.jpg?v=20260818" alt="Players competing in an intense Subsoccer match with cheering crowd" width="1024" height="722" fetchpriority="high"></div>
+        <!-- KUVABLOKKI & LOWER-THIRD BROADCAST TICKER -->
+        <div class="content-image">
+            <div class="hero-media-card">
+                <img src="hero-real.jpg?v=20260818" alt="Players competing in an intense Subsoccer match with cheering crowd" width="1024" height="722" fetchpriority="high">
+                <div class="hero-broadcast-ticker">
+                    <div class="broadcast-badge">
+                        <span class="live-dot"></span>
+                        <span>LIVE</span>
+                    </div>
+                    <div class="broadcast-ticker-track">
+                        <div id="top-ticker" class="ticker-wrapper">
+                            <div class="ticker-content">
+                                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities"></span>
+                            </div>
+                            <div class="ticker-content" aria-hidden="true">
+                                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- PÄÄVALIKKO / TARINAN VALINTA -->
         <div class="hub-menu">
@@ -1985,9 +2058,9 @@
             function updateTicker() {
                 const spans = document.querySelectorAll('.ticker-cities');
                 if (activeCities.length > 0) {
-                    const label = typeof t === 'function' ? t('recent_global_activity').toUpperCase() : 'RECENT GLOBAL ACTIVITY FEED';
+                    const label = typeof t === 'function' ? t('recent_global_activity').toUpperCase() : 'RECENT GLOBAL ACTIVITY';
                     spans.forEach(tc => {
-                        tc.innerHTML = `&nbsp;·&nbsp; ${label}: <span style="color:#ffffff;">${activeCities.join(' &nbsp;·&nbsp; ')}</span>`;
+                        tc.innerHTML = `&nbsp;·&nbsp; <span style="color:#ff4d5a;font-weight:800;">${label}:</span> <span style="color:#ffffff;">${activeCities.join(' &nbsp;·&nbsp; ')}</span>`;
                     });
                 }
             }
@@ -2060,7 +2133,7 @@
                         activeCities = seenCities.slice(0, 10).map(city => {
                             const score = cityScoreMap[city];
                             if (score) {
-                                return `${city} <span style="color:#ffffff;font-weight:bold;">${score}</span>`;
+                                return `${city} <span style="color:#FFD700;font-weight:800;">${score}</span>`;
                             }
                             return city;
                         });
