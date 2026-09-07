@@ -3724,6 +3724,37 @@ for (const lang in profileTranslations) {
     }
 }
 
+const extraGlobalTranslations = {
+    en: { tagline_home_of_bench_soccer: "THE HOME OF BENCH SOCCER" },
+    fi: { tagline_home_of_bench_soccer: "PENKKIJALKAPALLON KOTI" },
+    sv: { tagline_home_of_bench_soccer: "HEMMET FÖR BÄNKFOTBOLL", add_to_map_btn: "LÄGG TILL PÅ KARTAN" },
+    da: { tagline_home_of_bench_soccer: "HJEMMET FOR BÆNKFODBOLD", add_to_map_btn: "TILFØJ TIL KORTET" },
+    nb: { tagline_home_of_bench_soccer: "HJEMMET FOR BENKEFOTBALL", add_to_map_btn: "LEGG TIL PÅ KARTET" },
+    de: { tagline_home_of_bench_soccer: "DAS ZUHAUSE DES TISCHFUSSBALLS" },
+    fr: { tagline_home_of_bench_soccer: "LE FOYER DU BENCH SOCCER" },
+    es: { tagline_home_of_bench_soccer: "EL HOGAR DEL FÚTBOL DE BANCO" },
+    it: { tagline_home_of_bench_soccer: "LA CASA DEL BENCH SOCCER", add_to_map_btn: "AGGIUNGI ALLA MAPPA" },
+    pt: { tagline_home_of_bench_soccer: "A CASA DO BENCH SOCCER", add_to_map_btn: "ADICIONAR AO MAPA" },
+    nl: { tagline_home_of_bench_soccer: "HET THUIS VAN BENCH SOCCER", add_to_map_btn: "TOEVOEGEN AAN KAART" },
+    pl: { tagline_home_of_bench_soccer: "DOM BENCH SOCCER", add_to_map_btn: "DODAJ DO MAPY" },
+    cs: { tagline_home_of_bench_soccer: "DOMOV BENCH SOCCER", add_to_map_btn: "PŘIDAT DO MAPY" },
+    hu: { tagline_home_of_bench_soccer: "A BENCH SOCCER OTTHONA", add_to_map_btn: "HOZZÁADÁS A TÉRKÉPHEZ" },
+    tr: { tagline_home_of_bench_soccer: "BENCH SOCCER'IN EVİ", add_to_map_btn: "HARİTAYA EKLE" },
+    id: { tagline_home_of_bench_soccer: "RUMAH BENCH SOCCER", add_to_map_btn: "TAMBAHKAN KE PETA" },
+    vi: { tagline_home_of_bench_soccer: "NGÔI NHÀ CỦA BENCH SOCCER", add_to_map_btn: "THÊM VÀO BẢN ĐỒ" },
+    ja: { tagline_home_of_bench_soccer: "ベンチサッカーの拠点", add_to_map_btn: "マップに追加" },
+    zh: { tagline_home_of_bench_soccer: "桌下足球之乡", add_to_map_btn: "添加到地图" },
+    ko: { tagline_home_of_bench_soccer: "벤치 축구의 본고장" },
+    ar: { tagline_home_of_bench_soccer: "موطن كرة القدم على المقاعد" },
+    az: { tagline_home_of_bench_soccer: "SKAMYA FUTBOLUNUN EVİ" }
+};
+
+for (const lang in extraGlobalTranslations) {
+    if (TRANSLATIONS[lang]) {
+        Object.assign(TRANSLATIONS[lang], extraGlobalTranslations[lang]);
+    }
+}
+
 function translateDOM(root = document) {
     root.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
