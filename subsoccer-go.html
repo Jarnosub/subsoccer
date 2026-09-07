@@ -497,23 +497,26 @@ h1{font-size:52px;color:#fff;font-weight:normal;letter-spacing:2px;
     <button class="gobtn gobtn-secondary" id="bstart-online" style="display:none !important;">
       <i class="fa-solid fa-user-group" style="font-size:1rem;color:var(--sub-gold);"></i> VS FRIEND (ONLINE)
     </button>
-    <a href="#" onclick="
-       event.preventDefault();
-       var ids = ['rtxt','stxt','match-time-card','profile-saved-badge','name-entry-box','guest-conversion-card','bagain'];
-       var over = document.getElementById('over');
-       var lb = document.getElementById('leaderboard-section');
-       if (!over || !lb) return;
-       ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
-       lb.style.display = 'block';
-       over.style.display = 'flex';
-       if (typeof fetchLeaderboard === 'function') fetchLeaderboard('cup', '1');
-       setTimeout(function(){ lb.scrollIntoView({behavior:'smooth'}); }, 100);
-     " style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,215,0,0.6);text-decoration:none;text-transform:uppercase;padding:4px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,215,0,1)'" onmouseout="this.style.color='rgba(255,215,0,0.6)'" id="ranking-link">
-      <i class="fa-solid fa-ranking-star" style="font-size:10px;"></i> RANKING
-    </a>
-    <a href="/" style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.45);text-decoration:none;text-transform:uppercase;padding:6px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color 0.2s;margin-top:2px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">
-      <i class="fa-solid fa-arrow-left" style="font-size:10px;"></i> BACK TO HOME
-    </a>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;margin-top:6px;">
+      <a href="#" onclick="
+          event.preventDefault();
+          var ids = ['rtxt','stxt','match-time-card','profile-saved-badge','name-entry-box','guest-conversion-card','bagain'];
+          var over = document.getElementById('over');
+          var lb = document.getElementById('leaderboard-section');
+          if (!over || !lb) return;
+          ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+          lb.style.display = 'block';
+          over.style.display = 'flex';
+          if (typeof fetchLeaderboard === 'function') fetchLeaderboard('cup', '1');
+          setTimeout(function(){ lb.scrollIntoView({behavior:'smooth'}); }, 100);
+        " style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,215,0,0.7);text-decoration:none;text-transform:uppercase;padding:6px 8px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,215,0,1)'" onmouseout="this.style.color='rgba(255,215,0,0.7)'" id="ranking-link">
+        <i class="fa-solid fa-ranking-star" style="font-size:10px;"></i> RANKING
+      </a>
+      <span style="color:rgba(255,255,255,0.25);font-size:11px;user-select:none;">•</span>
+      <a href="/" style="font-family:'Resolve',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,0.45);text-decoration:none;text-transform:uppercase;padding:6px 8px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.45)'">
+        <i class="fa-solid fa-arrow-left" style="font-size:10px;"></i> BACK TO HOME
+      </a>
+    </div>
   </div>
 </div>
 
