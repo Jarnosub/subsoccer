@@ -2014,13 +2014,26 @@
             const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
             let activeCities = [
                 'HELSINKI, FI <span style="color:#ffffff;font-weight:800;">3-1</span>',
-                'LONDON, GB <span style="color:#ffffff;font-weight:800;">4-2</span>',
-                'NEW YORK, US <span style="color:#ffffff;font-weight:800;">2-0</span>',
-                'SINGAPORE, SG <span style="color:#ffffff;font-weight:800;">3-0</span>',
-                'BARCELONA, ES <span style="color:#ffffff;font-weight:800;">5-3</span>',
-                'TOKYO, JP <span style="color:#ffffff;font-weight:800;">3-3</span>',
-                'BERLIN, DE <span style="color:#ffffff;font-weight:800;">4-1</span>'
+                'LONDON, GB <span style="color:#ffffff;font-weight:800;">3-2</span>',
+                'NEW YORK, US <span style="color:#ffffff;font-weight:800;">3-0</span>',
+                'SINGAPORE, SG <span style="color:#ffffff;font-weight:800;">3-1</span>',
+                'BARCELONA, ES <span style="color:#ffffff;font-weight:800;">3-2</span>',
+                'TOKYO, JP <span style="color:#ffffff;font-weight:800;">3-1</span>',
+                'BERLIN, DE <span style="color:#ffffff;font-weight:800;">3-0</span>'
             ];
+
+            // Official Subsoccer rules: first to 3 goals wins (3-0, 3-1, 3-2)
+            function formatSubsoccerScore(rawScore) {
+                if (!rawScore || typeof rawScore !== 'string') return null;
+                const match = rawScore.trim().match(/^([0-3])-([0-3])$/);
+                if (!match) return null;
+                const s1 = parseInt(match[1], 10);
+                const s2 = parseInt(match[2], 10);
+                if ((s1 === 3 && s2 < 3) || (s2 === 3 && s1 < 3)) {
+                    return s1 >= s2 ? `${s1}-${s2}` : `${s2}-${s1}`;
+                }
+                return null;
+            }
 
             function updateTicker() {
                 const spans = document.querySelectorAll('.ticker-cities');
@@ -2083,12 +2096,13 @@
                             const city = parseCityFromLocation(row.location);
                             if (!city) return;
 
+                            const validScore = formatSubsoccerScore(row.match_score);
+
                             if (!(city in cityScoreMap)) {
-                                cityScoreMap[city] = row.match_score || '';
+                                cityScoreMap[city] = validScore || '';
                                 seenCities.push(city);
-                            } else if (cityScoreMap[city] === '' && row.match_score) {
-                                // Multiple locations may map to same city — use first score found
-                                cityScoreMap[city] = row.match_score;
+                            } else if (cityScoreMap[city] === '' && validScore) {
+                                cityScoreMap[city] = validScore;
                             }
                         });
 
