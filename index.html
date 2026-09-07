@@ -1056,10 +1056,10 @@
                     <div class="broadcast-ticker-track">
                         <div id="top-ticker" class="ticker-wrapper">
                             <div class="ticker-content">
-                                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities"></span>
+                                <span class="ticker-cities"></span>
                             </div>
                             <div class="ticker-content" aria-hidden="true">
-                                <span data-i18n="players_in_countries">Players in 80+ countries · Join the community</span><span class="ticker-cities"></span>
+                                <span class="ticker-cities"></span>
                             </div>
                         </div>
                     </div>
@@ -2012,20 +2012,31 @@
         document.addEventListener('DOMContentLoaded', () => {
             const SUPABASE_URL = 'https://ujxmmrsmdwrgcwatdhvx.supabase.co';
             const SUPABASE_ANON = 'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t';
-            let activeCities = []; // Array of "CITY SCORE" strings
+            let activeCities = [
+                'HELSINKI, FI <span style="color:#ffffff;font-weight:800;">3-1</span>',
+                'LONDON, GB <span style="color:#ffffff;font-weight:800;">4-2</span>',
+                'NEW YORK, US <span style="color:#ffffff;font-weight:800;">2-0</span>',
+                'SINGAPORE, SG <span style="color:#ffffff;font-weight:800;">3-0</span>',
+                'BARCELONA, ES <span style="color:#ffffff;font-weight:800;">5-3</span>',
+                'TOKYO, JP <span style="color:#ffffff;font-weight:800;">3-3</span>',
+                'BERLIN, DE <span style="color:#ffffff;font-weight:800;">4-1</span>'
+            ];
 
             function updateTicker() {
                 const spans = document.querySelectorAll('.ticker-cities');
                 if (activeCities.length > 0) {
-                    const label = typeof t === 'function' ? t('recent_global_activity').toUpperCase() : 'RECENT GLOBAL ACTIVITY';
+                    const sep = '<span style="color:rgba(255,255,255,0.3);margin:0 12px;">•</span>';
+                    const content = activeCities.join(sep) + sep;
                     spans.forEach(tc => {
-                        tc.innerHTML = `&nbsp;·&nbsp; <span style="color:rgba(255,255,255,0.55);font-weight:700;">${label}:</span> <span style="color:#ffffff;">${activeCities.join(' &nbsp;·&nbsp; ')}</span>`;
+                        tc.innerHTML = content;
                     });
                 }
             }
 
-            // Listen for language changes to update the ticker live!
-            window.addEventListener('subsoccer-language-changed', updateTicker);
+            // Immediately render initial feed and start animation
+            updateTicker();
+            const initialTickerNode = document.getElementById('top-ticker');
+            if (initialTickerNode) initialTickerNode.classList.add('animating');
 
             // Helper: parse city name from location string (v3 — includes country code for dedup)
             function parseCityFromLocation(loc) {
@@ -2088,8 +2099,8 @@
                             spEl.textContent = `${cityCount}+`;
                         }
 
-                        // Top 10 cities for ticker, each with their last score
-                        activeCities = seenCities.slice(0, 10).map(city => {
+                        // Top 16 cities for ticker, each with their last score
+                        activeCities = seenCities.slice(0, 16).map(city => {
                             const score = cityScoreMap[city];
                             if (score) {
                                 return `${city} <span style="color:#ffffff;font-weight:800;">${score}</span>`;
