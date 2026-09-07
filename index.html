@@ -305,10 +305,9 @@
             text-shadow: none !important;
         }
 
-        body.dark-mode #main-content .page-title-go {
-            color: transparent !important;
-            -webkit-text-stroke: 1.05px #ffffff !important;
-            text-stroke: 1.05px #ffffff !important;
+        body.dark-mode #main-content .page-title-go,
+        body.dark-mode #main-content .page-title-go-svg {
+            color: #ffffff !important;
             text-shadow: none !important;
         }
 
@@ -507,6 +506,7 @@
         .page-title-container h1 {
             margin: 0;
             line-height: 1;
+            font-size: clamp(2.8rem, 11.8vw, 4.1rem);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -516,7 +516,7 @@
         .page-title-subsoccer {
             font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif !important;
             font-weight: normal;
-            font-size: clamp(2.7rem, 11.6vw, 4rem);
+            font-size: 1em;
             color: #111827;
             letter-spacing: 0.8px;
             line-height: 1;
@@ -525,19 +525,13 @@
             display: inline-block;
         }
 
-        .page-title-go {
-            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif !important;
-            font-weight: normal;
-            font-size: clamp(2.7rem, 11.6vw, 4rem);
-            color: transparent !important;
-            -webkit-text-stroke: 1.05px #111827;
-            text-stroke: 1.05px #111827;
-            letter-spacing: 0.8px;
-            line-height: 1;
-            margin: 0;
-            text-transform: uppercase;
+        .page-title-go-svg {
+            height: 0.667em;
+            width: auto;
             display: inline-block;
-            margin-left: 3.5px;
+            color: #111827;
+            margin-left: 4.5px;
+            flex-shrink: 0;
         }
 
         .page-tagline {
@@ -1044,7 +1038,7 @@
     <!-- ISO OTSIKKO -->
     <main id="main-content">
         <div class="page-title-container">
-            <h1><span class="page-title-subsoccer">SUBSOCCER</span><span class="page-title-go">GO</span></h1>
+            <h1><span class="page-title-subsoccer">SUBSOCCER</span><svg class="page-title-go-svg" viewBox="0 0 559 667" aria-label="GO" role="img"><defs><clipPath id="go-inner-clip"><path d="M82 667L235 667L235 293L118 293L118 369L145 369L145 586L91 586L91 81L145 81L145 234L235 234L235 81C235 37 198 0 154 0L82 0C37 0 0 37 0 81L0 586C0 630 37 667 82 667ZM415 81L415 586L469 586L469 81ZM325 586L325 81C325 37 361 0 406 0L478 0C523 0 559 37 559 81L559 586C559 630 523 667 478 667L406 667C361 667 325 630 325 586Z"/></clipPath></defs><path d="M82 667L235 667L235 293L118 293L118 369L145 369L145 586L91 586L91 81L145 81L145 234L235 234L235 81C235 37 198 0 154 0L82 0C37 0 0 37 0 81L0 586C0 630 37 667 82 667ZM415 81L415 586L469 586L469 81ZM325 586L325 81C325 37 361 0 406 0L478 0C523 0 559 37 559 81L559 586C559 630 523 667 478 667L406 667C361 667 325 630 325 586Z" fill="none" stroke="currentColor" stroke-width="22" clip-path="url(#go-inner-clip)"/></svg></h1>
             <div class="page-tagline" data-i18n="tagline_home_of_bench_soccer">THE HOME OF BENCH SOCCER</div>
         </div>
 
