@@ -305,8 +305,11 @@
             text-shadow: none !important;
         }
 
-        body.dark-mode #main-content .main-title-logo {
-            color: #ffffff !important;
+        body.dark-mode #main-content .page-title-go {
+            color: transparent !important;
+            -webkit-text-stroke: 0.85px #ffffff !important;
+            text-stroke: 0.85px #ffffff !important;
+            text-shadow: none !important;
         }
 
         body.dark-mode #main-content .page-tagline {
@@ -502,13 +505,40 @@
             text-align: center;
         }
 
-        .main-title-logo {
-            width: 100%;
-            max-width: clamp(220px, 62vw, 275px);
-            height: auto;
-            display: block;
-            margin: 0 auto;
+        .page-title-container h1 {
+            margin: 0;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .page-title-subsoccer {
+            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif !important;
+            font-weight: normal;
+            font-size: clamp(2.3rem, 9.5vw, 3.3rem);
             color: #111827;
+            letter-spacing: 0.8px;
+            line-height: 1;
+            margin: 0;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .page-title-go {
+            font-family: 'Subsoccer', 'SubsoccerLogo', sans-serif !important;
+            font-weight: normal;
+            font-size: clamp(2.3rem, 9.5vw, 3.3rem);
+            color: transparent !important;
+            -webkit-text-stroke: 0.85px #111827;
+            text-stroke: 0.85px #111827;
+            letter-spacing: 0.8px;
+            line-height: 1;
+            margin: 0;
+            margin-left: 4px;
+            text-transform: uppercase;
+            display: inline-block;
         }
 
         .page-tagline {
@@ -1015,31 +1045,7 @@
     <!-- ISO OTSIKKO -->
     <main id="main-content">
         <div class="page-title-container">
-            <h1 style="margin:0;padding:0;line-height:1;">
-                <svg class="main-title-logo" viewBox="0 0 358.61 66.6" aria-label="SUBSOCCER GO" role="img">
-                    <path fill="currentColor" d="M23.4,8.1v15.3h-9v-15.3h-5.4v21.1h6.3c4.4,0,8.1,3.7,8.1,8.1v21.2c0,4.4-3.7,8.1-8.1,8.1h-7.2c-4.5,0-8.1-3.7-8.1-8.1v-15.3h9v15.3h5.4v-21.2h-6.3c-4.5,0-8.1-3.6-8.1-8.1V8.1C0,3.6,3.6,0,8.1,0h7.2c4.4,0,8.1,3.6,8.1,8.1Z"/>
-                    <path fill="currentColor" d="M47.7,66.6h-7.2c-4.5,0-8.1-3.7-8.1-8.1V-.1h9v58.6h5.4V-.1h9v58.6c0,4.4-3.6,8.1-8.1,8.1Z"/>
-                    <path fill="currentColor" d="M64.8-.1h11.7c6.5,0,11.8,5.3,11.8,11.7v14.4c0,3-1.2,5.6-3.1,7.5,1.9,2,3.1,4.8,3.1,7.8v14.5c0,6.4-5.3,10.8-11.8,10.8h-11.7V-.1ZM76.5,8h-2.7v21.2h2.7c1.5,0,2.7-1.2,2.7-2.7v-15.8c0-1.4-1.2-2.7-2.7-2.7ZM76.5,58.9c1.5,0,2.7-1.2,2.7-2.7v-15.8c0-1.4-1.2-2.7-2.7-2.7h-2.7v21.2h2.7Z"/>
-                    <path fill="currentColor" d="M120.7,8.1v15.3h-9v-15.3h-5.4v21.1h6.3c4.4,0,8.1,3.7,8.1,8.1v21.2c0,4.4-3.7,8.1-8.1,8.1h-7.2c-4.5,0-8.1-3.7-8.1-8.1v-15.3h9v15.3h5.4v-21.2h-6.3c-4.5,0-8.1-3.6-8.1-8.1V8.1c0-4.5,3.6-8.1,8.1-8.1h7.2c4.4,0,8.1,3.6,8.1,8.1Z"/>
-                    <path fill="currentColor" d="M129.7,58.5V8c0-4.4,3.6-8.1,8.1-8.1h7.2c4.5,0,8.1,3.7,8.1,8.1v50.5c0,4.4-3.6,8.1-8.1,8.1h-7.2c-4.5,0-8.1-3.7-8.1-8.1ZM138.7,8v50.5h5.4V8h-5.4Z"/>
-                    <path fill="currentColor" d="M177.4,66.6h-7.2c-4.5,0-8.1-3.7-8.1-8.1V8c0-4.4,3.6-8.1,8.1-8.1h7.2c4.4,0,8.1,3.7,8.1,8.1v15.3h-9v-15.3h-5.4v50.5h5.4v-15.4h9v15.4c0,4.4-3.7,8.1-8.1,8.1Z"/>
-                    <path fill="currentColor" d="M209.8,66.6h-7.2c-4.5,0-8.1-3.7-8.1-8.1V8c0-4.4,3.6-8.1,8.1-8.1h7.2c4.4,0,8.1,3.7,8.1,8.1v15.3h-9v-15.3h-5.4v50.5h5.4v-15.4h9v15.4c0,4.4-3.7,8.1-8.1,8.1Z"/>
-                    <path fill="currentColor" d="M250.4,23.3h-9v-15.3h-5.4v21.2h14.4v8.1h-14.4v21.2h5.4v-15.4h9v23.5h-23.5V-.1h23.5v23.4Z"/>
-                    <path fill="currentColor" d="M259.3-.1h11.7c6.5,0,11.7,5.3,11.7,11.7v14.4c0,3-1.1,5.5-2.9,7.3,1.8,2,2.9,4.6,2.9,7.6v25.7h-9v-26.6c0-1.5-1.2-2.7-2.7-2.7h-2.7v29.3h-9V-.1ZM271,8h-2.7v21.2h2.7c1.5,0,2.7-1.2,2.7-2.7v-15.8c0-1.4-1.2-2.7-2.7-2.7Z"/>
-                    <defs>
-                        <clipPath id="go-g-clip">
-                            <path d="M318.11-.1h-7.2c-4.5,0-8.2,3.7-8.2,8.1v50.5c0,4.4,3.7,8.1,8.2,8.1h15.3V29.2h-11.7v7.6h2.7v21.7h-5.4V8h5.4v15.3h9V8c0-4.4-3.7-8.1-8.1-8.1h0Z"/>
-                        </clipPath>
-                        <clipPath id="go-o-clip">
-                            <path fill-rule="evenodd" d="M350.51-.1h-7.2c-4.5,0-8.1,3.7-8.1,8.1v50.5c0,4.4,3.6,8.1,8.1,8.1h7.2c4.5,0,8.1-3.7,8.1-8.1V8c0-4.4-3.6-8.1-8.1-8.1h0ZM344.21,58.5V8h5.4v50.5h-5.4Z"/>
-                        </clipPath>
-                    </defs>
-                    <!-- G aito sisäpuolinen linja -->
-                    <path clip-path="url(#go-g-clip)" d="M318.11-.1h-7.2c-4.5,0-8.2,3.7-8.2,8.1v50.5c0,4.4,3.7,8.1,8.2,8.1h15.3V29.2h-11.7v7.6h2.7v21.7h-5.4V8h5.4v15.3h9V8c0-4.4-3.7-8.1-8.1-8.1h0Z" fill="none" stroke="currentColor" stroke-width="5.2"/>
-                    <!-- O aito sisäpuolinen linja -->
-                    <path clip-path="url(#go-o-clip)" d="M350.51-.1h-7.2c-4.5,0-8.1,3.7-8.1,8.1v50.5c0,4.4,3.6,8.1,8.1,8.1h7.2c4.5,0,8.1-3.7,8.1-8.1V8c0-4.4-3.6-8.1-8.1-8.1h0ZM344.21,58.5V8h5.4v50.5h-5.4Z" fill="none" stroke="currentColor" stroke-width="5.2"/>
-                </svg>
-            </h1>
+            <h1><span class="page-title-subsoccer">SUBSOCCER</span><span class="page-title-go">GO</span></h1>
             <div class="page-tagline" data-i18n="tagline_home_of_bench_soccer">THE HOME OF BENCH SOCCER</div>
         </div>
 
