@@ -1119,8 +1119,53 @@
 
         // ─── ADMIN & SIMULATION CONTROLS ───
 
-        function emergencyStop() {
+        async function emergencyStop() {
             if (currentState === 'ACTIVE' || currentState === 'REQUESTING') {
+                // If running against live HTTP backend, verify admin token
+                let adminToken = null;
+                if (window.location.protocol.startsWith('http')) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    adminToken = urlParams.get('adminToken') || urlParams.get('admin') || sessionStorage.getItem('arcade_admin_token');
+                    if (!adminToken) {
+                        adminToken = prompt('Syötä ylläpidon salasana / admin-token releen hätäkatkaisua varten:');
+                        if (adminToken) {
+                            sessionStorage.setItem('arcade_admin_token', adminToken.trim());
+                        }
+                    }
+
+                    if (!adminToken) {
+                        alert('Toiminto peruutettu: Releohjaus vaatii ylläpitäjän valtuutuksen.');
+                        appendLog('AUTH_REJECTED', 'danger', 'ADMIN: Emergency cut rejected — no admin token provided.');
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch('/.netlify/functions/arcade-session', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-admin-token': adminToken
+                            },
+                            body: JSON.stringify({
+                                action: 'emergency-cut',
+                                table: currentTableId,
+                                adminToken
+                            })
+                        });
+
+                        if (!res.ok) {
+                            const data = await res.json().catch(() => ({}));
+                            alert(`Relekomento hylättiin: ${data.error || 'Unauthorized'}`);
+                            appendLog('RELAY_ERROR', 'danger', `Relay rejected command: ${data.error || 'Unauthorized'}`);
+                            return;
+                        }
+                    } catch (err) {
+                        alert(`Yhteysvirhe releeseen: ${err.message}`);
+                        appendLog('NET_ERROR', 'danger', `Network error commanding relay: ${err.message}`);
+                        return;
+                    }
+                }
+
                 cancelTimer();
                 currentState = 'COOLDOWN';
 

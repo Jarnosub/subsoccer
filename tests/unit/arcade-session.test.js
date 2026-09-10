@@ -210,4 +210,47 @@ describe('Arcade Session Netlify Function', () => {
         assert.strictEqual(body.outletId, 2);
         assert.strictEqual(body.state, true);
     });
+
+    it('rolls back session lock and returns 502 when NETIO hardware fails', async () => {
+        const { NetioAdapter } = require('../../netlify/functions/utils/netio-adapter.js');
+        const origStart = NetioAdapter.prototype.startTimedPlay;
+
+        // Force hardware failure
+        NetioAdapter.prototype.startTimedPlay = async () => {
+            throw new Error('Hardware connection timeout (EHOSTUNREACH)');
+        };
+
+        try {
+            const res = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-fail-rollback',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 502);
+            const body = JSON.parse(res.body);
+            assert.ok(body.error.includes('Failed to activate hardware relay'));
+
+            // Verify rollback: lock is released, next attempt with working hardware succeeds (not 409)
+            NetioAdapter.prototype.startTimedPlay = origStart;
+
+            const resRetry = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-fail-rollback',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(resRetry.statusCode, 200);
+            const bodyRetry = JSON.parse(resRetry.body);
+            assert.strictEqual(bodyRetry.success, true);
+        } finally {
+            NetioAdapter.prototype.startTimedPlay = origStart;
+        }
+    });
 });
