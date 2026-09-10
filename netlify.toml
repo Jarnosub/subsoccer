@@ -55,6 +55,33 @@
   status = 200
   force = true
 
+# Protected Diagnostics Studio (blocked unless admin parameter provided)
+[[redirects]]
+  from = "/arcade-access.html"
+  query = { admin = ":admin" }
+  to = "/arcade-access.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/arcade-access.html"
+  to = "/arcade"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/arcade-access"
+  query = { admin = ":admin" }
+  to = "/arcade-access.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/arcade-access"
+  to = "/arcade"
+  status = 302
+  force = true
+
 # White Label Brands: /brands/SLUG/ → single brands/index.html
 # Assets (brand.json, images) pass through because they match real files
 [[redirects]]

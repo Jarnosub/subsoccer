@@ -384,6 +384,21 @@
             font-weight: 500;
         }
 
+        /* ─── ERROR NOTICE CALLOUT ─── */
+        .arcade-error-notice {
+            background-color: rgba(242, 139, 130, 0.12);
+            border: 1px solid rgba(242, 139, 130, 0.35);
+            border-radius: 6px;
+            color: var(--accent-red);
+            padding: 12px 14px;
+            font-size: 0.8125rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-sizing: border-box;
+            line-height: 1.4;
+        }
+
         /* ─── PACKAGE SELECTOR (USE CASE 1: POWER LEASE) ─── */
         .package-section {
             display: flex;
@@ -769,6 +784,12 @@
             </div>
         </div>
 
+        <!-- ERROR NOTICE BANNER -->
+        <div class="arcade-error-notice" id="arcadeErrorNotice" style="display:none;">
+            <i class="fas fa-circle-exclamation" style="font-size:1.1rem; flex-shrink:0;"></i>
+            <span id="arcadeErrorText">Yhteys pöytään epäonnistui.</span>
+        </div>
+
         <!-- TIME PACKAGE SELECTOR (USE CASE 1: POWER LEASE) -->
         <div class="package-section" id="packageSection">
             <div class="section-headline">
@@ -911,7 +932,30 @@
             const sel = document.getElementById('adminTableSelect');
             if (sel) sel.value = currentTableId;
             initTable(currentTableId);
+
+            // Production safeguard: Hide demo/admin drawer unless explicitly requested via ?admin=1 or ?debug=1
+            const showAdmin = queryParams.has('admin') || queryParams.has('debug');
+            const adminToggle = document.querySelector('.admin-toggle-btn');
+            const adminDrawer = document.getElementById('adminDrawer');
+            if (!showAdmin) {
+                if (adminToggle) adminToggle.style.display = 'none';
+                if (adminDrawer) adminDrawer.style.display = 'none';
+            }
         });
+
+        function showErrorNotice(msg) {
+            const box = document.getElementById('arcadeErrorNotice');
+            const text = document.getElementById('arcadeErrorText');
+            if (box && text) {
+                text.textContent = msg;
+                box.style.display = 'flex';
+            }
+        }
+
+        function hideErrorNotice() {
+            const box = document.getElementById('arcadeErrorNotice');
+            if (box) box.style.display = 'none';
+        }
 
         function switchTable(tableId) {
             currentTableId = tableId;
@@ -960,8 +1004,11 @@
             }
         }
 
-        function setAvailable() {
+        function setAvailable(keepErrorNotice = false) {
             currentState = 'AVAILABLE';
+            if (!keepErrorNotice) {
+                hideErrorNotice();
+            }
 
             // Status Badge
             const badge = document.getElementById('statusBadge');
@@ -986,6 +1033,7 @@
 
         function setLocked(reason) {
             currentState = 'LOCKED';
+            hideErrorNotice();
 
             // Status Badge
             const badge = document.getElementById('statusBadge');
@@ -1010,6 +1058,8 @@
         async function activateTablePower() {
             if (currentState !== 'AVAILABLE') return;
 
+            hideErrorNotice();
+
             // Idempotency: Lock button immediately
             currentState = 'REQUESTING';
             const btn = document.getElementById('btnActivatePlay');
@@ -1019,9 +1069,9 @@
 
             const clientToken = 'tok-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
 
-            try {
-                // Call backend Netlify Function (with automatic graceful fallback if running file:// or offline)
-                if (window.location.protocol.startsWith('http')) {
+            const shouldCallBackend = window.location.protocol.startsWith('http') || window._forceFetchForTesting;
+            if (shouldCallBackend) {
+                try {
                     const res = await fetch('/.netlify/functions/arcade-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1031,19 +1081,31 @@
                             durationMinutes: selectedMinutes,
                             clientToken
                         })
-                    }).catch(() => null);
+                    });
 
-                    if (res && res.status === 409) {
-                        alert('Table is currently in an active session. Please wait for current players to finish.');
-                        setAvailable();
+                    const data = await res.json().catch(() => ({}));
+
+                    if (res.status === 409) {
+                        showErrorNotice(data.error || 'Pöytä on parhaillaan toisen pelaajan käytössä. Odota vuoron päättymistä.');
+                        setAvailable(true);
                         return;
                     }
+
+                    if (!res.ok || !data.success) {
+                        const errMsg = data.error || (data.details ? `${data.error}: ${data.details}` : 'Yhteys pöytään epäonnistui. Yritä uudelleen.');
+                        showErrorNotice(errMsg);
+                        setAvailable(true);
+                        return;
+                    }
+                } catch (err) {
+                    console.error('[ARCADE] Backend call failed:', err);
+                    showErrorNotice('Verkkovirhe: Pöytään ei saatu yhteyttä. Tarkista verkkoyhteys ja yritä uudelleen.');
+                    setAvailable(true);
+                    return;
                 }
-            } catch (err) {
-                console.warn('[ARCADE] Backend call note:', err);
             }
 
-            // Start active play UI
+            // ONLY start active play if backend returned success: true (or in local file testing)
             startActivePlay(simulatedSeconds);
         }
 

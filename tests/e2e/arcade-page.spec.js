@@ -71,4 +71,55 @@ test.describe('Subsoccer Arcade Customer Page (arcade.html)', () => {
         await expect(btn).toContainText('TABLE OUT OF SERVICE');
         await expect(page.locator('#statusBadgeText')).toHaveText('Locked');
     });
+
+    test('does not start active UI if backend fails and displays error notice', async ({ page }) => {
+        const filePath = 'file://' + path.resolve(__dirname, '../../arcade.html') + '?table=demo-pulse-01';
+        await page.goto(filePath);
+
+        // Simulate backend 502/error response
+        await page.evaluate(() => {
+            window._forceFetchForTesting = true;
+            window.fetch = async () => ({
+                ok: false,
+                status: 502,
+                json: async () => ({ error: 'Hardware communication timeout' })
+            });
+        });
+
+        const btn = page.locator('#btnActivatePlay');
+        await btn.click();
+
+        // Active panel must NOT appear
+        const activePanel = page.locator('#activeSessionPanel');
+        await expect(activePanel).not.toHaveClass(/show/);
+
+        // Error notice must be displayed
+        const errorNotice = page.locator('#arcadeErrorNotice');
+        await expect(errorNotice).toBeVisible();
+        await expect(errorNotice).toContainText('Hardware communication timeout');
+
+        // Hardware visualizer must remain standby
+        const visual = page.locator('#hardwareVisual');
+        await expect(visual).not.toHaveClass(/power-on/);
+
+        // Button should recover and become available again
+        await expect(btn).toBeEnabled();
+    });
+
+    test('hides admin drawer by default in production and reveals with ?admin=1', async ({ page }) => {
+        // Customer view without admin param
+        const customerUrl = 'file://' + path.resolve(__dirname, '../../arcade.html') + '?table=demo-pulse-01';
+        await page.goto(customerUrl);
+
+        const adminToggle = page.locator('.admin-toggle-btn');
+        await expect(adminToggle).toBeHidden();
+        const adminDrawer = page.locator('#adminDrawer');
+        await expect(adminDrawer).toBeHidden();
+
+        // Operator view with ?admin=1
+        const adminUrl = 'file://' + path.resolve(__dirname, '../../arcade.html') + '?table=demo-pulse-01&admin=1';
+        await page.goto(adminUrl);
+
+        await expect(page.locator('.admin-toggle-btn')).toBeVisible();
+    });
 });
