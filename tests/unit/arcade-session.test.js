@@ -502,6 +502,7 @@ describe('Arcade Session Netlify Function', () => {
 
     it('returns 503 DB_CONFIG_MISSING in production mode if database credentials are missing', async () => {
         process.env.ARCADE_ENV = 'production';
+        process.env.PILOT_TABLE_ID = 'test-table-01';
         try {
             const res = await handler({
                 httpMethod: 'GET',
@@ -513,6 +514,7 @@ describe('Arcade Session Netlify Function', () => {
             assert.strictEqual(body.code, 'DB_CONFIG_MISSING');
         } finally {
             delete process.env.ARCADE_ENV;
+            delete process.env.PILOT_TABLE_ID;
         }
     });
 
@@ -561,11 +563,11 @@ describe('Arcade Session Netlify Function', () => {
         }
     });
 
-    it('reconciles session to active if command times out but probe confirms relay is ON', async () => {
+    it('locks table and returns 502 HARDWARE_UNCERTAIN if startTimedPlay fails even when relay reports ON (does not assume lease)', async () => {
         const origStart = NetioAdapter.prototype.startTimedPlay;
         const origProbe = NetioAdapter.prototype.isOutputActive;
 
-        // Force timeout on start, but probe confirms relay actually turned ON
+        // Force timeout on start, and probe confirms relay is ON
         NetioAdapter.prototype.startTimedPlay = async () => {
             const err = new Error('The operation was aborted due to timeout');
             err.name = 'AbortError';
@@ -583,11 +585,20 @@ describe('Arcade Session Netlify Function', () => {
                 })
             }, {});
 
-            assert.strictEqual(res.statusCode, 200);
+            assert.strictEqual(res.statusCode, 502);
             const body = JSON.parse(res.body);
-            assert.strictEqual(body.success, true);
-            assert.strictEqual(body.reconciled, true);
-            assert.ok(body.expiresAt);
+            assert.strictEqual(body.code, 'HARDWARE_UNCERTAIN');
+
+            // Table must remain locked because timed watchdog lease was not proven
+            const followup = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-reconcile-on',
+                    durationMinutes: 15
+                })
+            }, {});
+            assert.ok(followup.statusCode === 409 || followup.statusCode === 423);
         } finally {
             NetioAdapter.prototype.startTimedPlay = origStart;
             NetioAdapter.prototype.isOutputActive = origProbe;
@@ -636,5 +647,117 @@ describe('Arcade Session Netlify Function', () => {
             NetioAdapter.prototype.startTimedPlay = origStart;
             NetioAdapter.prototype.isOutputActive = origProbe;
         }
+    });
+
+    it('returns 503 PILOT_CONFIG_MISSING in production mode if PILOT_TABLE_ID is missing', async () => {
+        process.env.ARCADE_ENV = 'production';
+        delete process.env.PILOT_TABLE_ID;
+        try {
+            const res = await handler({
+                httpMethod: 'GET',
+                queryStringParameters: { table: 'subsoccer-tripla-live-01' }
+            }, {});
+
+            assert.strictEqual(res.statusCode, 503);
+            const body = JSON.parse(res.body);
+            assert.strictEqual(body.code, 'PILOT_CONFIG_MISSING');
+        } finally {
+            delete process.env.ARCADE_ENV;
+        }
+    });
+
+    it('performs emergency cut and returns 500 DB_UPDATE_FAILED if DB activate update fails after relay starts', async () => {
+        _memoryDb._simulateDbErrorOnActivate = true;
+
+        try {
+            const res = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-db-fail',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 500);
+            const body = JSON.parse(res.body);
+            assert.strictEqual(body.code, 'DB_UPDATE_FAILED');
+
+            // Emergency cut safely cleaned up session, so retry works
+            _memoryDb._simulateDbErrorOnActivate = false;
+            const resRetry = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-db-fail',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(resRetry.statusCode, 200);
+            const bodyRetry = JSON.parse(resRetry.body);
+            assert.strictEqual(bodyRetry.success, true);
+        } finally {
+            _memoryDb._simulateDbErrorOnActivate = false;
+        }
+    });
+
+    it('locks table to HARDWARE_UNCERTAIN if DB update fails AND emergency cut also fails', async () => {
+        _memoryDb._simulateDbErrorOnActivate = true;
+        const origStop = NetioAdapter.prototype.emergencyStop;
+        NetioAdapter.prototype.emergencyStop = async () => {
+            throw new Error('Emergency stop relay timeout');
+        };
+
+        try {
+            const res = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-double-fault',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 502);
+            const body = JSON.parse(res.body);
+            assert.strictEqual(body.code, 'HARDWARE_UNCERTAIN');
+
+            // Table MUST remain locked
+            const resFollowup = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-double-fault',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.ok(resFollowup.statusCode === 409 || resFollowup.statusCode === 423);
+        } finally {
+            _memoryDb._simulateDbErrorOnActivate = false;
+            NetioAdapter.prototype.emergencyStop = origStop;
+        }
+    });
+
+    it('resolves table-specific device_endpoint from table configuration', async () => {
+        _memoryDb.tableConfigs.set('test-custom-route', {
+            table_id: 'test-custom-route',
+            is_enabled: true,
+            lock_state: 'available',
+            switch_output_id: 2,
+            is_free_play_allowed: true,
+            device_endpoint: 'http://192.168.1.188'
+        });
+
+        const res = await handler({
+            httpMethod: 'GET',
+            queryStringParameters: { table: 'test-custom-route' }
+        }, {});
+
+        assert.strictEqual(res.statusCode, 200);
+        const body = JSON.parse(res.body);
+        assert.strictEqual(body.hardware.endpoint, 'table_endpoint');
+        assert.strictEqual(body.outputId, 2);
     });
 });

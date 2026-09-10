@@ -207,7 +207,10 @@ class NetioAdapter {
     async isOutputActive(outletId = 1) {
         const status = await this.getStatus();
         const output = (status.outputs || []).find(o => o.id === outletId);
-        return output ? output.state === 1 : false;
+        if (!output) {
+            throw new Error(`Outlet ${outletId} not found in NETIO status response`);
+        }
+        return output.state === 1;
     }
 
     /**
@@ -254,11 +257,24 @@ class NetioAdapter {
                 throw new Error("NETIO response missing required 'Outputs' confirmation array");
             }
 
-            const targetOutputId = payload?.Outputs?.[0]?.ID;
-            if (targetOutputId !== undefined) {
+            const targetOutput = payload?.Outputs?.[0];
+            if (targetOutput && targetOutput.ID !== undefined) {
+                const targetOutputId = targetOutput.ID;
+                const targetAction = targetOutput.Action;
                 const confirmedOutput = responseData.Outputs.find(o => o.ID === targetOutputId);
                 if (!confirmedOutput) {
                     throw new Error(`NETIO response did not confirm action for Outlet ${targetOutputId}`);
+                }
+
+                // Vahvista että releen palauttama tila (State) vastaa annettua käskyä (Action)
+                if (targetAction === 0 && confirmedOutput.State !== 0) {
+                    throw new Error(`NETIO cutoff command for Outlet ${targetOutputId} failed: device reported State=${confirmedOutput.State} (expected 0/OFF)`);
+                }
+                if (targetAction === 1 && confirmedOutput.State !== 1) {
+                    throw new Error(`NETIO power ON command for Outlet ${targetOutputId} failed: device reported State=${confirmedOutput.State} (expected 1/ON)`);
+                }
+                if (targetAction === 3 && confirmedOutput.State !== 1) {
+                    throw new Error(`NETIO timed play (Short ON) for Outlet ${targetOutputId} failed: device reported State=${confirmedOutput.State} (expected 1/ON)`);
                 }
             }
 

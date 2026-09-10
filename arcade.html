@@ -1242,12 +1242,12 @@
             badge.className = 'status-badge cooldown';
             document.getElementById('statusBadgeText').textContent = 'Cooldown';
 
-            // Cut Hardware Visualizer
+            // Hardware Visualizer cooldown state
             document.getElementById('hardwareVisual').classList.remove('power-on');
-            document.getElementById('relayStatusText').textContent = 'POWER CUT (COOLDOWN)';
+            document.getElementById('relayStatusText').textContent = 'EXPIRED (COOLDOWN)';
             document.getElementById('timerDigits').textContent = '0s';
             document.getElementById('progressBarFill').style.width = '0%';
-            document.getElementById('ctaNote').textContent = 'Session finished! Hardware auto-off cut table power. Resetting for next player...';
+            document.getElementById('ctaNote').textContent = 'Session time expired. Power cutoff scheduled by hardware watchdog. Resetting...';
 
             setTimeout(() => {
                 setAvailable();

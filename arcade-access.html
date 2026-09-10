@@ -1087,14 +1087,14 @@
             cancelTimer();
             currentState = 'COOLDOWN';
 
-            appendLog('SESSION_EXPIRED', 'warning', `Lease expired (${selectedMinutes} min). Switch auto-off cut relay power.`);
+            appendLog('SESSION_EXPIRED', 'warning', `Lease expired (${selectedMinutes} min). Power cutoff scheduled by hardware watchdog.`);
 
             // Cut visuals
             document.getElementById('visualDisplay').classList.remove('power-on');
-            document.getElementById('powerStatusLabel').textContent = 'RELAY POWER: OFF (COOLDOWN)';
+            document.getElementById('powerStatusLabel').textContent = 'RELAY POWER: EXPIRED (COOLDOWN)';
             document.getElementById('countdownDigits').textContent = '0s';
             document.getElementById('progressFill').style.width = '0%';
-            document.getElementById('statusNote').textContent = 'Time expired! Power terminated. Resetting table for next player...';
+            document.getElementById('statusNote').textContent = 'Session time expired. Power cutoff scheduled by hardware watchdog. Resetting table...';
 
             // KPIs
             const kpiStatusCard = document.getElementById('kpiStatusCard');
@@ -1104,8 +1104,8 @@
 
             const kpiPowerCard = document.getElementById('kpiPowerCard');
             kpiPowerCard.className = 'kpi-card';
-            document.getElementById('kpiPowerText').textContent = 'OFF';
-            document.getElementById('kpiPowerSub').textContent = 'Confirmed zero current';
+            document.getElementById('kpiPowerText').textContent = 'EXPIRED';
+            document.getElementById('kpiPowerSub').textContent = 'Watchdog cutoff scheduled';
 
             setTimeout(() => {
                 appendLog('COOLDOWN_DONE', 'info', `Cooldown complete. Table '${currentTableId}' returned to available state.`);

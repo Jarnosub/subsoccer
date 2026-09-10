@@ -103,4 +103,53 @@ describe('NETIO PowerBOX 3PF Adapter', () => {
             global.fetch = origFetch;
         }
     });
+
+    it('throws error when cutoff command returns state still ON (State !== 0)', async () => {
+        const adapter = new NetioAdapter({ endpoint: 'http://localhost:9999', isMock: false });
+        
+        const origFetch = global.fetch;
+        global.fetch = async () => ({
+            ok: true,
+            status: 200,
+            json: async () => ({
+                Outputs: [
+                    { ID: 1, Action: 0, State: 1 } // Action was 0 (OFF), but State is 1 (still ON!)
+                ]
+            })
+        });
+
+        try {
+            await assert.rejects(
+                async () => adapter.emergencyStop(1),
+                /cutoff command for Outlet 1 failed: device reported State=1/
+            );
+        } finally {
+            global.fetch = origFetch;
+        }
+    });
+
+    it('throws error when isOutputActive is called for missing outlet ID', async () => {
+        const adapter = new NetioAdapter({ endpoint: 'http://localhost:9999', isMock: false });
+        
+        const origFetch = global.fetch;
+        global.fetch = async () => ({
+            ok: true,
+            status: 200,
+            json: async () => ({
+                Outputs: [
+                    { ID: 1, Name: 'Table 1', State: 1 } // Only outlet 1 exists
+                ]
+            })
+        });
+
+        try {
+            // Asking for outlet 99 must throw, not return false!
+            await assert.rejects(
+                async () => adapter.isOutputActive(99),
+                /Outlet 99 not found in NETIO status response/
+            );
+        } finally {
+            global.fetch = origFetch;
+        }
+    });
 });
