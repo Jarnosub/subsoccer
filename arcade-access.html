@@ -821,9 +821,12 @@
                 </button>
             </div>
 
-            <!-- LIVE TELEMETRY LOG (DATA STUDIO FORMAT) -->
+            <!-- LIVE TELEMETRY LOG (BROWSER DIAGNOSTICS & SIMULATION) -->
             <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; font-weight:500; margin-top:6px;">
-                <i class="fas fa-list-check"></i> Real-Time Arcade Telemetry Log (arcade_events)
+                <i class="fas fa-desktop"></i> Client Diagnostics & Simulation Telemetry (Browser Local Memory)
+            </div>
+            <div style="font-size:0.68rem; color:#888; margin-top:-2px; margin-bottom:4px;">
+                Huom: Tämä on selaimen paikallinen käyttöliittymäloki diagnostiikkaan, ei palvelimen arcade_events-tietokantaloki.
             </div>
             <div class="log-table-container">
                 <table class="log-table">
@@ -1119,13 +1122,11 @@
 
         // ─── ADMIN & SIMULATION CONTROLS ───
 
-        async function emergencyStop() {
+        async function emergencyStop(tokenOverride) {
             if (currentState === 'ACTIVE' || currentState === 'REQUESTING') {
-                // If running against live HTTP backend, verify admin token
-                let adminToken = null;
                 if (window.location.protocol.startsWith('http')) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    adminToken = urlParams.get('adminToken') || urlParams.get('admin') || sessionStorage.getItem('arcade_admin_token');
+                    // If running against live HTTP backend, verify admin token
+                    let adminToken = tokenOverride || sessionStorage.getItem('arcade_admin_token');
                     if (!adminToken) {
                         adminToken = prompt('Syötä ylläpidon salasana / admin-token releen hätäkatkaisua varten:');
                         if (adminToken) {

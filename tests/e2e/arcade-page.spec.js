@@ -57,7 +57,7 @@ test.describe('Subsoccer Arcade Customer Page (arcade.html)', () => {
         await expect(instruction).toContainText('Press the physical start button');
 
         // Emergency cut test
-        await page.evaluate(() => emergencyCut());
+        await page.evaluate(() => emergencyCut('test-admin-token'));
         await expect(visual).not.toHaveClass(/power-on/);
         await expect(page.locator('#relayStatusText')).toContainText('EMERGENCY CUT');
     });

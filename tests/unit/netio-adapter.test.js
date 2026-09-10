@@ -53,4 +53,54 @@ describe('NETIO PowerBOX 3PF Adapter', () => {
         assert.strictEqual(stop.outletId, 1);
         assert.strictEqual(stop.state, 0);
     });
+
+    it('checks if an output is active using isOutputActive', async () => {
+        const adapter = new NetioAdapter({ isMock: true });
+        const isOff = await adapter.isOutputActive(1);
+        assert.strictEqual(isOff, false); // mock outlet 1 state is 0 initially
+
+        const isOn = await adapter.isOutputActive(2);
+        assert.strictEqual(isOn, true); // mock outlet 2 state is 1
+    });
+
+    it('throws error when hardware endpoint responds with invalid JSON or missing Outputs', async () => {
+        const adapter = new NetioAdapter({ endpoint: 'http://localhost:9999', isMock: false });
+        
+        // Mock global fetch to return malformed non-JSON response
+        const origFetch = global.fetch;
+        global.fetch = async () => ({
+            ok: true,
+            status: 200,
+            json: async () => { throw new Error('Unexpected token < in JSON'); }
+        });
+
+        try {
+            await assert.rejects(
+                async () => adapter.startTimedPlay(15, 1),
+                /invalid non-JSON payload/
+            );
+        } finally {
+            global.fetch = origFetch;
+        }
+    });
+
+    it('throws error when hardware response is missing Outputs array', async () => {
+        const adapter = new NetioAdapter({ endpoint: 'http://localhost:9999', isMock: false });
+        
+        const origFetch = global.fetch;
+        global.fetch = async () => ({
+            ok: true,
+            status: 200,
+            json: async () => ({ Status: 'OK' }) // missing Outputs array!
+        });
+
+        try {
+            await assert.rejects(
+                async () => adapter.startTimedPlay(15, 1),
+                /missing required 'Outputs' confirmation array/
+            );
+        } finally {
+            global.fetch = origFetch;
+        }
+    });
 });

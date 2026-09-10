@@ -20,18 +20,25 @@
 class NetioAdapter {
     /**
      * @param {Object} config
-     * @param {string} config.endpoint - e.g. "http://192.168.1.150" or remote URL.
-     * @param {string} [config.username] - JSON API username (default: "admin")
+     * @param {string} [config.endpoint] - e.g. "http://192.168.1.150" or remote URL.
+     * @param {string} [config.username] - JSON API username
      * @param {string} [config.password] - JSON API password
-     * @param {number} [config.timeoutMs] - HTTP timeout (default: 3000ms)
+     * @param {number} [config.timeoutMs] - HTTP timeout (default: 3500ms)
      * @param {boolean} [config.isMock] - Force mock simulation mode
      */
     constructor(config = {}) {
-        this.endpoint = config.endpoint || process.env.NETIO_ENDPOINT || 'simulated';
-        this.username = config.username || process.env.NETIO_USER || 'admin';
-        this.password = config.password || process.env.NETIO_PASS || '';
+        const rawEndpoint = config.endpoint || process.env.NETIO_BASE_URL || process.env.NETIO_ENDPOINT;
+        const allowMock = process.env.ARCADE_MOCK_MODE === 'true' || process.env.NODE_ENV === 'test' || process.env.ARCADE_ENV === 'test';
+        
+        this.endpoint = rawEndpoint || (allowMock ? 'simulated' : '');
+        this.username = config.username || process.env.NETIO_USERNAME || process.env.NETIO_USER || 'admin';
+        this.password = config.password || process.env.NETIO_PASSWORD || process.env.NETIO_PASS || '';
         this.timeoutMs = config.timeoutMs || 3500;
-        this.isMock = config.isMock || this.endpoint === 'simulated' || !config.endpoint;
+        this.isMock = config.isMock ?? (this.endpoint === 'simulated' || (!rawEndpoint && allowMock));
+
+        if (!this.isMock && !this.endpoint) {
+            throw new Error('NETIO configuration missing: NETIO_BASE_URL (or NETIO_ENDPOINT) must be provided in non-test mode');
+        }
     }
 
     /**
@@ -161,7 +168,17 @@ class NetioAdapter {
                 throw new Error(`NETIO responded with status ${res.status}: ${res.statusText}`);
             }
 
-            const data = await res.json();
+            let data;
+            try {
+                data = await res.json();
+            } catch (jsonErr) {
+                throw new Error(`NETIO getStatus returned invalid non-JSON payload (status ${res.status}): ${jsonErr.message}`);
+            }
+
+            if (!data || typeof data !== 'object' || !Array.isArray(data.Outputs)) {
+                throw new Error("NETIO getStatus response missing required 'Outputs' array");
+            }
+
             return {
                 success: true,
                 mode: 'hardware',
@@ -180,6 +197,17 @@ class NetioAdapter {
             console.error('[NETIO ERROR] getStatus failed:', err.message);
             throw err;
         }
+    }
+
+    /**
+     * Check if a specific outlet is currently powered ON
+     * @param {number} [outletId=1]
+     * @returns {Promise<boolean>}
+     */
+    async isOutputActive(outletId = 1) {
+        const status = await this.getStatus();
+        const output = (status.outputs || []).find(o => o.id === outletId);
+        return output ? output.state === 1 : false;
     }
 
     /**
@@ -215,7 +243,25 @@ class NetioAdapter {
                 throw new Error(`NETIO command failed with HTTP status ${res.status}`);
             }
 
-            const responseData = await res.json().catch(() => ({}));
+            let responseData;
+            try {
+                responseData = await res.json();
+            } catch (jsonErr) {
+                throw new Error(`NETIO returned invalid non-JSON payload (status ${res.status}): ${jsonErr.message}`);
+            }
+
+            if (!responseData || typeof responseData !== 'object' || !Array.isArray(responseData.Outputs)) {
+                throw new Error("NETIO response missing required 'Outputs' confirmation array");
+            }
+
+            const targetOutputId = payload?.Outputs?.[0]?.ID;
+            if (targetOutputId !== undefined) {
+                const confirmedOutput = responseData.Outputs.find(o => o.ID === targetOutputId);
+                if (!confirmedOutput) {
+                    throw new Error(`NETIO response did not confirm action for Outlet ${targetOutputId}`);
+                }
+            }
+
             return {
                 success: true,
                 mode: 'hardware',

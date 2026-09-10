@@ -924,8 +924,8 @@
         // Read query string ?table=...
         const queryParams = new URLSearchParams(window.location.search);
         const urlTable = queryParams.get('table');
-        if (urlTable && TABLE_FLEET[urlTable]) {
-            currentTableId = urlTable;
+        if (urlTable) {
+            currentTableId = urlTable.trim();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -941,7 +941,53 @@
                 if (adminToggle) adminToggle.style.display = 'none';
                 if (adminDrawer) adminDrawer.style.display = 'none';
             }
+
+            // Sync with backend on startup
+            syncStatusWithBackend();
         });
+
+        // Re-sync on page visibility change or focus
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                syncStatusWithBackend();
+            }
+        });
+        window.addEventListener('focus', () => {
+            syncStatusWithBackend();
+        });
+
+        async function syncStatusWithBackend() {
+            if (!window.location.protocol.startsWith('http') && !window._forceFetchForTesting) return;
+
+            try {
+                const res = await fetch(`/.netlify/functions/arcade-session?action=status&table=${encodeURIComponent(currentTableId)}`);
+                const data = await res.json().catch(() => ({}));
+
+                if (res.status === 404) {
+                    setLocked('Tuntematon pöytätunnus. Pöytää ei löydy järjestelmästä.');
+                    showErrorNotice('Tuntematon pöytätunnus. Tarkista pöydän QR-koodi.');
+                    return;
+                }
+
+                if (res.status === 423 || data.state === 'maintenance_locked' || data.state === 'error_locked') {
+                    setLocked(data.state === 'error_locked' ? 'Pöytä on lukittu laitehäiriön vuoksi.' : 'Pöytä on tilapäisesti pois käytöstä huollon vuoksi.');
+                    return;
+                }
+
+                if (data.state === 'active' && data.expiresAt) {
+                    const remaining = Math.max(0, Math.round((new Date(data.expiresAt).getTime() - Date.now()) / 1000));
+                    if (remaining > 0) {
+                        startActivePlay(remaining, data.expiresAt);
+                    } else {
+                        setAvailable();
+                    }
+                } else if (data.state === 'available' && currentState === 'LOCKED') {
+                    setAvailable();
+                }
+            } catch (err) {
+                console.warn('[ARCADE] Status sync warning:', err.message);
+            }
+        }
 
         function showErrorNotice(msg) {
             const box = document.getElementById('arcadeErrorNotice');
@@ -965,13 +1011,14 @@
 
             resetTimer();
             initTable(tableId);
+            syncStatusWithBackend();
         }
 
         function initTable(tableId) {
             const table = TABLE_FLEET[tableId] || {
                 id: tableId,
                 name: 'Table ' + tableId,
-                venue: 'Venue',
+                venue: 'Subsoccer Venue',
                 city: 'Helsinki',
                 isEnabled: true,
                 lockState: 'available'
@@ -981,7 +1028,7 @@
             document.getElementById('tableLocationText').textContent = `${table.venue}, ${table.city}`;
             document.getElementById('venueNameTop').textContent = table.venue;
 
-            if (!table.isEnabled || table.lockState === 'maintenance_locked') {
+            if (!table.isEnabled || table.lockState === 'maintenance_locked' || table.lockState === 'error_locked') {
                 setLocked('Table is temporarily disabled for maintenance.');
             } else {
                 setAvailable();
@@ -1072,6 +1119,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             const adminToken = urlParams.get('adminToken') || sessionStorage.getItem('arcade_admin_token') || '';
 
+            let serverExpiresAt = null;
+
             const shouldCallBackend = window.location.protocol.startsWith('http') || window._forceFetchForTesting;
             if (shouldCallBackend) {
                 try {
@@ -1110,6 +1159,8 @@
                         setAvailable(true);
                         return;
                     }
+
+                    serverExpiresAt = data.expiresAt;
                 } catch (err) {
                     console.error('[ARCADE] Backend call failed:', err);
                     showErrorNotice('Verkkovirhe: Pöytään ei saatu yhteyttä. Tarkista verkkoyhteys ja yritä uudelleen.');
@@ -1119,11 +1170,19 @@
             }
 
             // ONLY start active play if backend returned success: true (or in local file testing)
-            startActivePlay(simulatedSeconds);
+            if (serverExpiresAt) {
+                const remaining = Math.max(0, Math.round((new Date(serverExpiresAt).getTime() - Date.now()) / 1000));
+                startActivePlay(remaining, serverExpiresAt);
+            } else {
+                startActivePlay(simulatedSeconds);
+            }
         }
 
-        function startActivePlay(secondsDuration) {
+        let activeTargetExpiresAt = null;
+
+        function startActivePlay(secondsDuration, targetExpiresAt = null) {
             currentState = 'ACTIVE';
+            activeTargetExpiresAt = targetExpiresAt ? new Date(targetExpiresAt).getTime() : null;
             timeRemaining = secondsDuration;
 
             // Status Badge
@@ -1148,7 +1207,11 @@
 
             resetTimer();
             countdownTimerId = setInterval(() => {
-                timeRemaining--;
+                if (activeTargetExpiresAt) {
+                    timeRemaining = Math.max(0, Math.round((activeTargetExpiresAt - Date.now()) / 1000));
+                } else {
+                    timeRemaining--;
+                }
                 updateCountdownDisplay();
 
                 if (timeRemaining <= 0) {
@@ -1158,8 +1221,15 @@
         }
 
         function updateCountdownDisplay() {
-            document.getElementById('timerDigits').textContent = Math.max(0, timeRemaining) + 's';
-            const pct = Math.max(0, Math.min(100, (timeRemaining / simulatedSeconds) * 100));
+            if (activeTargetExpiresAt && timeRemaining > 60) {
+                const m = Math.floor(timeRemaining / 60);
+                const s = timeRemaining % 60;
+                document.getElementById('timerDigits').textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+            } else {
+                document.getElementById('timerDigits').textContent = Math.max(0, timeRemaining) + 's';
+            }
+            const totalDuration = selectedMinutes * 60;
+            const pct = Math.max(0, Math.min(100, (timeRemaining / (activeTargetExpiresAt ? totalDuration : simulatedSeconds)) * 100));
             document.getElementById('progressBarFill').style.width = pct + '%';
         }
 
@@ -1192,30 +1262,60 @@
         }
 
         // ─── ADMIN & EMERGENCY TOOLS ───
-        async function emergencyCut() {
-            if (currentState === 'ACTIVE' || currentState === 'REQUESTING') {
-                resetTimer();
-                currentState = 'COOLDOWN';
+        async function emergencyCut(tokenOverride) {
+            if (currentState !== 'ACTIVE' && currentState !== 'REQUESTING') return;
 
-                if (window.location.protocol.startsWith('http')) {
-                    fetch('/.netlify/functions/arcade-session', {
+            let token = tokenOverride || sessionStorage.getItem('arcade_admin_token') || '';
+            if (!token) {
+                token = prompt('Syötä ylläpidon admin-token hätäkatkaisua varten:');
+                if (token) {
+                    sessionStorage.setItem('arcade_admin_token', token.trim());
+                }
+            }
+
+            if (!token) {
+                alert('Hätäkatkaisu peruutettu: Ylläpidon valtuutus puuttuu.');
+                return;
+            }
+
+            if (window.location.protocol.startsWith('http')) {
+                try {
+                    const res = await fetch('/.netlify/functions/arcade-session', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-token': token.trim()
+                        },
                         body: JSON.stringify({
                             action: 'emergency-cut',
-                            table: currentTableId
+                            table: currentTableId,
+                            adminToken: token.trim()
                         })
-                    }).catch(() => null);
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+
+                    if (!res.ok || !data.success) {
+                        alert(`Hätäkatkaisu epäonnistui: ${data.error || 'Palvelinvirhe'}`);
+                        showErrorNotice(`Hätäkatkaisu epäonnistui: ${data.error || 'Yhteysvirhe'}`);
+                        return;
+                    }
+                } catch (err) {
+                    alert(`Verkkovirhe hätäkatkaisussa: ${err.message}`);
+                    showErrorNotice(`Verkkovirhe hätäkatkaisussa: ${err.message}`);
+                    return;
                 }
-
-                document.getElementById('hardwareVisual').classList.remove('power-on');
-                document.getElementById('relayStatusText').textContent = 'EMERGENCY CUT (OFF)';
-                document.getElementById('ctaNote').textContent = 'Admin emergency stop triggered. Power cut immediately.';
-
-                setTimeout(() => {
-                    setAvailable();
-                }, 3000);
             }
+
+            resetTimer();
+            currentState = 'COOLDOWN';
+            document.getElementById('hardwareVisual').classList.remove('power-on');
+            document.getElementById('relayStatusText').textContent = 'EMERGENCY CUT (OFF)';
+            document.getElementById('ctaNote').textContent = 'Ylläpidon hätäkatkaisu vahvistettu. Virta katkaistu releeltä välittömästi.';
+
+            setTimeout(() => {
+                setAvailable();
+            }, 3000);
         }
 
         function toggleTableLock() {

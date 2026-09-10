@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.arcade_table_configs (
 CREATE TABLE IF NOT EXISTS public.arcade_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     table_id TEXT NOT NULL REFERENCES public.arcade_table_configs(table_id) ON DELETE CASCADE,
-    status TEXT NOT NULL CHECK (status IN ('requested', 'active', 'cooldown', 'completed', 'failed', 'canceled', 'force_stopped')),
+    status TEXT NOT NULL CHECK (status IN ('requested', 'active', 'cooldown', 'completed', 'failed', 'canceled', 'force_stopped', 'hardware_uncertain')),
     auth_source TEXT NOT NULL DEFAULT 'test_table' CHECK (auth_source IN ('free_play', 'test_table', 'stripe', 'admin')),
     duration_seconds INT NOT NULL DEFAULT 900,
     client_session_token TEXT NOT NULL,           -- Selaimen uniikki idempotenssiavain
@@ -40,10 +40,10 @@ CREATE TABLE IF NOT EXISTS public.arcade_sessions (
 );
 
 -- KRIITTINEN IDEMPOTENSSIRAJOITE 1:
--- Estää useamman samanaikaisen aktiivisen tai pyydetyn session samalle pöydälle
+-- Estää useamman samanaikaisen aktiivisen tai epäselvän session samalle pöydälle
 CREATE UNIQUE INDEX IF NOT EXISTS idx_single_active_arcade_session 
 ON public.arcade_sessions (table_id) 
-WHERE status IN ('requested', 'active', 'cooldown');
+WHERE status IN ('requested', 'active', 'cooldown', 'hardware_uncertain');
 
 -- KRIITTINEN IDEMPOTENSSIRAJOITE 2:
 -- Estää saman selaintapahtuman toistamisen (tuplaklikkaukset, verkkoretryt)
