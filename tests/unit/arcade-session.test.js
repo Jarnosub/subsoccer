@@ -253,4 +253,140 @@ describe('Arcade Session Netlify Function', () => {
             NetioAdapter.prototype.startTimedPlay = origStart;
         }
     });
+
+    it('rejects activation on production table without admin token (returns 403 ACTIVATION_RESTRICTED)', async () => {
+        const res = await handler({
+            httpMethod: 'POST',
+            body: JSON.stringify({
+                action: 'activate',
+                table: 'subsoccer-tripla-live-01', // Real production table name
+                durationMinutes: 15
+            }),
+            headers: {}
+        }, {});
+
+        assert.strictEqual(res.statusCode, 403);
+        const body = JSON.parse(res.body);
+        assert.strictEqual(body.code, 'ACTIVATION_RESTRICTED');
+        assert.ok(body.error.includes('vaatii ylläpidon valtuutuksen tai maksun'));
+    });
+
+    it('allows activation on production table when admin token is provided', async () => {
+        const res = await handler({
+            httpMethod: 'POST',
+            body: JSON.stringify({
+                action: 'activate',
+                table: 'subsoccer-tripla-live-01',
+                durationMinutes: 15,
+                adminToken: ADMIN_TOKEN
+            }),
+            headers: {}
+        }, {});
+
+        assert.strictEqual(res.statusCode, 200);
+        const body = JSON.parse(res.body);
+        assert.strictEqual(body.success, true);
+    });
+
+    it('allows activation on production table when ARCADE_FREE_PLAY_APPROVED is true', async () => {
+        process.env.ARCADE_FREE_PLAY_APPROVED = 'true';
+        try {
+            const res = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'subsoccer-freeplay-venue-01',
+                    durationMinutes: 30
+                }),
+                headers: {}
+            }, {});
+
+            assert.strictEqual(res.statusCode, 200);
+            const body = JSON.parse(res.body);
+            assert.strictEqual(body.success, true);
+        } finally {
+            delete process.env.ARCADE_FREE_PLAY_APPROVED;
+        }
+    });
+
+    it('rolls back session lock and returns 502 when NETIO rejects with 401 Unauthorized', async () => {
+        const { NetioAdapter } = require('../../netlify/functions/utils/netio-adapter.js');
+        const origStart = NetioAdapter.prototype.startTimedPlay;
+
+        NetioAdapter.prototype.startTimedPlay = async () => {
+            throw new Error('NETIO command failed with HTTP status 401');
+        };
+
+        try {
+            const res = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-auth-err',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 502);
+            const body = JSON.parse(res.body);
+            assert.ok(body.error.includes('Failed to activate hardware relay'));
+            assert.ok(body.details.includes('401'));
+
+            // Table must be unlocked immediately
+            NetioAdapter.prototype.startTimedPlay = origStart;
+            const resRetry = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-auth-err',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(resRetry.statusCode, 200);
+        } finally {
+            NetioAdapter.prototype.startTimedPlay = origStart;
+        }
+    });
+
+    it('rolls back session lock and returns 502 when NETIO response times out', async () => {
+        const { NetioAdapter } = require('../../netlify/functions/utils/netio-adapter.js');
+        const origStart = NetioAdapter.prototype.startTimedPlay;
+
+        NetioAdapter.prototype.startTimedPlay = async () => {
+            const err = new Error('The operation was aborted due to timeout');
+            err.name = 'AbortError';
+            throw err;
+        };
+
+        try {
+            const res = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-timeout',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 502);
+            const body = JSON.parse(res.body);
+            assert.ok(body.error.includes('Failed to activate hardware relay'));
+
+            // Table must be unlocked immediately
+            NetioAdapter.prototype.startTimedPlay = origStart;
+            const resRetry = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-table-timeout',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(resRetry.statusCode, 200);
+        } finally {
+            NetioAdapter.prototype.startTimedPlay = origStart;
+        }
+    });
 });

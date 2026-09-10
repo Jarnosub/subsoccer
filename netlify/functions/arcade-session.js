@@ -64,12 +64,50 @@ function cleanExpiredMemorySessions() {
  * Check Admin Authorization for protected endpoints
  */
 function isAuthorizedAdmin(event, body) {
-    const headerToken = event.headers['x-admin-token'] || 
-                        (event.headers['authorization'] ? event.headers['authorization'].replace(/^Bearer\s+/i, '') : '');
+    const headers = event?.headers || {};
+    const headerToken = headers['x-admin-token'] || 
+                        (headers['authorization'] ? headers['authorization'].replace(/^Bearer\s+/i, '') : '');
     const bodyToken = body?.adminToken;
     const candidate = (headerToken || bodyToken || '').trim();
 
     return candidate.length > 0 && candidate === ADMIN_SECRET;
+}
+
+/**
+ * Production Activation Policy Gate:
+ * Estää avoimen ilmaisaktivoinnin tuotannossa ilman liiketoimintapäätöstä.
+ * 
+ * Sallitut ehdot:
+ * 1. Ylläpitäjän admin-token (x-admin-token tai body.adminToken).
+ * 2. Vahvistettu maksutapahtuma (body.authSource === 'stripe').
+ * 3. Taulussa on hyväksytty ilmaisjakso (tableConfig.is_free_play_allowed === true tai ARCADE_FREE_PLAY_APPROVED === 'true').
+ * 4. Pöytä on nimetty kehitys-/testipöytä ('demo-pulse-01', 'demo-arcade-02', 'test-*') ja ARCADE_ALLOW_TEST_TABLES !== 'false'.
+ */
+function checkActivationPolicy(tableId, tableConfig, event, body) {
+    if (isAuthorizedAdmin(event, body)) {
+        return { allowed: true, authSource: 'admin' };
+    }
+
+    if (body?.authSource === 'stripe') {
+        return { allowed: true, authSource: 'stripe' };
+    }
+
+    const globalFreePlay = process.env.ARCADE_FREE_PLAY_APPROVED === 'true';
+    if (globalFreePlay || tableConfig?.is_free_play_allowed === true) {
+        return { allowed: true, authSource: 'free_play' };
+    }
+
+    const isTestTable = tableId === 'demo-pulse-01' || tableId === 'demo-arcade-02' || tableId.startsWith('test-');
+    const allowTestTables = process.env.ARCADE_ALLOW_TEST_TABLES !== 'false';
+    if (isTestTable && allowTestTables) {
+        return { allowed: true, authSource: 'test_table' };
+    }
+
+    return {
+        allowed: false,
+        code: 'ACTIVATION_RESTRICTED',
+        error: 'Pöydän aktivointi vaatii ylläpidon valtuutuksen tai maksun. Yleinen ilmaisaktivointi on suljettu tuotannossa.'
+    };
 }
 
 exports.handler = async function (event, context) {
@@ -233,6 +271,16 @@ exports.handler = async function (event, context) {
                         };
                     }
 
+                    // Production Activation Policy Gate
+                    const policy = checkActivationPolicy(table, cfg, event, body);
+                    if (!policy.allowed) {
+                        return {
+                            statusCode: 403,
+                            headers: CORS_HEADERS,
+                            body: JSON.stringify({ error: policy.error, code: policy.code })
+                        };
+                    }
+
                     // Insert session with status 'requested'.
                     // idx_single_active_arcade_session unique index prevents concurrent active/requested sessions!
                     const { data: session, error: insertError } = await supabase
@@ -240,7 +288,7 @@ exports.handler = async function (event, context) {
                         .insert({
                             table_id: table,
                             status: 'requested',
-                            auth_source: body.authSource || 'free_play',
+                            auth_source: policy.authSource,
                             duration_seconds: durationMinutes * 60,
                             client_session_token: clientToken,
                             requested_at: requestedAt
@@ -340,6 +388,26 @@ exports.handler = async function (event, context) {
                 } else {
                     // ─── IN-MEMORY FALLBACK (Exact same constraint model) ───
                     cleanExpiredMemorySessions();
+
+                    const cfg = memoryDb.tableConfigs.get(table);
+                    if (cfg && (!cfg.is_enabled || cfg.lock_state !== 'available')) {
+                        return {
+                            statusCode: 423,
+                            headers: CORS_HEADERS,
+                            body: JSON.stringify({ error: 'Table is currently disabled for maintenance.' })
+                        };
+                    }
+
+                    // Production Activation Policy Gate
+                    const policy = checkActivationPolicy(table, cfg, event, body);
+                    if (!policy.allowed) {
+                        return {
+                            statusCode: 403,
+                            headers: CORS_HEADERS,
+                            body: JSON.stringify({ error: policy.error, code: policy.code })
+                        };
+                    }
+
                     const currentSession = memoryDb.sessions.get(table);
                     if (currentSession && (currentSession.expiresAt > Date.now() || currentSession.status === 'requested')) {
                         return {
@@ -359,6 +427,7 @@ exports.handler = async function (event, context) {
                         id: fallbackSessionId,
                         tableId: table,
                         status: 'requested',
+                        authSource: policy.authSource,
                         clientToken,
                         requestedAt
                     });

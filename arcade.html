@@ -1069,21 +1069,34 @@
 
             const clientToken = 'tok-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
 
+            const urlParams = new URLSearchParams(window.location.search);
+            const adminToken = urlParams.get('adminToken') || sessionStorage.getItem('arcade_admin_token') || '';
+
             const shouldCallBackend = window.location.protocol.startsWith('http') || window._forceFetchForTesting;
             if (shouldCallBackend) {
                 try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (adminToken) headers['x-admin-token'] = adminToken;
+
                     const res = await fetch('/.netlify/functions/arcade-session', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers,
                         body: JSON.stringify({
                             action: 'activate',
                             table: currentTableId,
                             durationMinutes: selectedMinutes,
-                            clientToken
+                            clientToken,
+                            adminToken: adminToken || undefined
                         })
                     });
 
                     const data = await res.json().catch(() => ({}));
+
+                    if (res.status === 403) {
+                        showErrorNotice(data.error || 'Pöydän aktivointi vaatii ylläpidon valtuutuksen tai maksun.');
+                        setAvailable(true);
+                        return;
+                    }
 
                     if (res.status === 409) {
                         showErrorNotice(data.error || 'Pöytä on parhaillaan toisen pelaajan käytössä. Odota vuoron päättymistä.');

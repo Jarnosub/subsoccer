@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.arcade_table_configs (
     table_id TEXT PRIMARY KEY,                     -- esim. 'pulse-tripla-01' tai 'demo-pulse-01'
     game_id UUID REFERENCES public.games(id) ON DELETE SET NULL, -- valinnainen linkki games-tauluun
     is_enabled BOOLEAN NOT NULL DEFAULT true,
+    is_free_play_allowed BOOLEAN NOT NULL DEFAULT false, -- Tuotantorajoite: ilmaisaktivointi vaatii tietoisen hyväksynnän
     switch_type TEXT NOT NULL DEFAULT 'netio_json', -- 'simulation', 'netio_json', 'netio_cloud', 'shelly_cloud'
     switch_endpoint TEXT,                          -- esim. pilvi- tai laiterajapinnan URL
     switch_auth_secret TEXT,                      -- laitteen API-token/salasana (vain palvelimen luettavissa)
@@ -27,7 +28,7 @@ CREATE TABLE IF NOT EXISTS public.arcade_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     table_id TEXT NOT NULL REFERENCES public.arcade_table_configs(table_id) ON DELETE CASCADE,
     status TEXT NOT NULL CHECK (status IN ('requested', 'active', 'cooldown', 'completed', 'failed', 'canceled', 'force_stopped')),
-    auth_source TEXT NOT NULL DEFAULT 'free_play' CHECK (auth_source IN ('free_play', 'stripe', 'admin')),
+    auth_source TEXT NOT NULL DEFAULT 'test_table' CHECK (auth_source IN ('free_play', 'test_table', 'stripe', 'admin')),
     duration_seconds INT NOT NULL DEFAULT 900,
     client_session_token TEXT NOT NULL,           -- Selaimen uniikki idempotenssiavain
     requested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
