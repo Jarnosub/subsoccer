@@ -49,6 +49,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/arcade"
+  to = "/arcade.html"
+  status = 200
+  force = true
+
 # White Label Brands: /brands/SLUG/ → single brands/index.html
 # Assets (brand.json, images) pass through because they match real files
 [[redirects]]
