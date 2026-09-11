@@ -992,26 +992,26 @@
             </div>
 
             <div class="slots-grid">
-                <!-- 15 MIN -->
-                <button class="slot-btn" onclick="selectDuration(15, 5.00)" data-duration="15">
+                <!-- 5 MIN -->
+                <button class="slot-btn" onclick="selectDuration(5, 2.50)" data-duration="5">
+                    <span class="slot-time">5 min</span>
+                    <span class="slot-price">2,50 €</span>
+                    <span class="slot-desc">Pikatesti</span>
+                </button>
+
+                <!-- 15 MIN (SUOSITUIN) -->
+                <button class="slot-btn selected" onclick="selectDuration(15, 5.00)" data-duration="15">
+                    <span class="slot-popular-badge">Suosituin</span>
                     <span class="slot-time">15 min</span>
                     <span class="slot-price">5,00 €</span>
                     <span class="slot-desc">Alkumatsi</span>
                 </button>
 
-                <!-- 30 MIN (SUOSITUIN) -->
-                <button class="slot-btn selected" onclick="selectDuration(30, 9.00)" data-duration="30">
-                    <span class="slot-popular-badge">Suosituin</span>
+                <!-- 30 MIN -->
+                <button class="slot-btn" onclick="selectDuration(30, 7.00)" data-duration="30">
                     <span class="slot-time">30 min</span>
-                    <span class="slot-price">9,00 €</span>
+                    <span class="slot-price">7,00 €</span>
                     <span class="slot-desc">Turnausmatsi</span>
-                </button>
-
-                <!-- 60 MIN -->
-                <button class="slot-btn" onclick="selectDuration(60, 16.00)" data-duration="60">
-                    <span class="slot-time">60 min</span>
-                    <span class="slot-price">16,00 €</span>
-                    <span class="slot-desc">Pelitunti</span>
                 </button>
             </div>
 
@@ -1019,7 +1019,7 @@
             <div class="order-summary-card">
                 <div class="order-row">
                     <span>Valittu aika:</span>
-                    <strong id="summaryDuration">30 minuuttia</strong>
+                    <strong id="summaryDuration">15 minuuttia</strong>
                 </div>
                 <div class="order-row">
                     <span>Pöytä:</span>
@@ -1027,7 +1027,7 @@
                 </div>
                 <div class="order-row total">
                     <span>Maksettava summa:</span>
-                    <span id="summaryTotal">9,00 €</span>
+                    <span id="summaryTotal">5,00 €</span>
                 </div>
                 <div class="order-vat-note">
                     <i class="fas fa-shield-halved" style="color:var(--accent-green);"></i>
@@ -1038,8 +1038,8 @@
             <!-- CTA BUTTON -->
             <div class="cta-container">
                 <button class="btn-primary-action" id="btnProceedToPay" onclick="openPaymentSheet()">
-                    <i class="fas fa-credit-card"></i>
-                    <span id="btnPayLabel">Siirry maksamaan • 9,00 €</span>
+                    <i class="fas fa-bolt"></i>
+                    <span id="btnPayLabel">Siirry maksamaan • 5,00 €</span>
                 </button>
                 <div class="cta-note" id="ctaSubNote">
                     Turvallinen simuloitu maksu • Ei oikeaa veloitusta
@@ -1122,12 +1122,12 @@
                     Peliaika päättyi
                 </h3>
                 <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.4;">
-                    Kiitos pelistä! Pöydän virta on katkaistu turvallisesti ajastimella.
+                    Pöytä on vapautunut ja virta katkaistu ajastimella.
                 </p>
             </div>
-            <button class="btn-primary-action" onclick="resetToSelection()" style="width:100%; margin-top:6px;">
+            <button class="btn-primary-action" id="btnPlayAgain" onclick="resetToSelection()" style="width:100%; margin-top:6px;">
                 <i class="fas fa-rotate-right"></i>
-                <span>Osta uutta peliaikaa</span>
+                <span>Pelaa uudelleen</span>
             </button>
         </div>
 
@@ -1149,7 +1149,7 @@
                 <i class="fas fa-credit-card" style="margin-top:2px;"></i>
                 <div>
                     <strong>Hyvitys vahvistettu (Simuloitu)</strong><br>
-                    Summa <span id="refundAmount">9,00 €</span> palautuu maksutavallesi 1-2 arkipäivässä. Pahoittelemme häiriötä!
+                    Summa <span id="refundAmount">5,00 €</span> palautuu maksutavallesi 1-2 arkipäivässä. Pahoittelemme häiriötä!
                 </div>
             </div>
 
@@ -1159,7 +1159,7 @@
             </button>
         </div>
 
-        <!-- ─── STATE 6: STARTUP UNCERTAIN (INVESTIGATING) ─── -->
+        <!-- ─── STATE 6: UNCERTAIN HARDWARE LOCK STATE ─── -->
         <div id="stateUncertain" class="status-card-panel" style="display:none; border-left: 4px solid var(--accent-yellow);">
             <div class="spinner-icon" style="color:var(--accent-yellow);">
                 <i class="fas fa-satellite-dish"></i>
@@ -1169,12 +1169,9 @@
                     Selvitämme pöydän käynnistystä...
                 </h3>
                 <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.4;">
-                    Releen tilaa varmennetaan. Älä sulje tätä sivua.
+                    Releyhteys viivästyy. Varmistamme laitteen tilan automaattisesti ennen pelin alkua tai hyvitystä.
                 </p>
             </div>
-            <p style="font-size:0.75rem; color:var(--text-secondary);">
-                Mikäli pöytä ei vahvista virtaa 15 sekunnissa, maksu hyvitetään automaattisesti ilman toimenpiteitä.
-            </p>
         </div>
 
     </main>
@@ -1187,9 +1184,9 @@
             <div class="sheet-header">
                 <div>
                     <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Ostoskori</span>
-                    <div class="sheet-title" id="sheetItemTitle">Subsoccer Pulse 30 min</div>
+                    <div class="sheet-title" id="sheetItemTitle">Subsoccer Pulse 15 min</div>
                 </div>
-                <div class="sheet-amount" id="sheetItemPrice">9,00 €</div>
+                <div class="sheet-amount" id="sheetItemPrice">5,00 €</div>
             </div>
 
             <div style="font-size:0.75rem; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:6px; border:1px solid var(--border-color);">
@@ -1322,11 +1319,11 @@
     <script>
         const STORAGE_KEY = 'subsoccer_arcade_checkout_demo_v1';
 
-        // Price catalog (easily editable)
+        // Price catalog (easily editable) - Pilottitestipaketit: 5 min / 2,50 €, 15 min / 5,00 €, 30 min / 7,00 €
         const PRICES = {
+            5: { price: 2.50, formatted: '2,50 €', label: 'Pikatesti' },
             15: { price: 5.00, formatted: '5,00 €', label: 'Alkumatsi' },
-            30: { price: 9.00, formatted: '9,00 €', label: 'Turnausmatsi' },
-            60: { price: 16.00, formatted: '16,00 €', label: 'Pelitunti' }
+            30: { price: 7.00, formatted: '7,00 €', label: 'Turnausmatsi' }
         };
 
         // Current demo state
@@ -1334,12 +1331,12 @@
             tableId: 'pulse-tripla-01',
             tableName: 'Subsoccer Pulse #01',
             location: 'Mall of Tripla • 4. krs Tapahtuma-alue',
-            selectedMinutes: 30,
+            selectedMinutes: 15,
             status: 'AVAILABLE', // AVAILABLE, PAYING, STARTING, ACTIVE, EXPIRED, CONFLICT, MAINTENANCE, REFUNDED, UNCERTAIN
             scenario: 'success', // success, fast, conflict, maintenance, payfail, startup_fail, uncertain
             expiresAtMs: null,
             startedAtMs: null,
-            paidAmount: 9.00
+            paidAmount: 5.00
         };
 
         let countdownTimerId = null;
@@ -1359,6 +1356,8 @@
                 state.status = 'AVAILABLE';
                 state.expiresAtMs = null;
                 state.startedAtMs = null;
+                state.selectedMinutes = 15;
+                state.paidAmount = 5.00;
             }
             if (params.get('table')) {
                 state.tableId = params.get('table').trim();
@@ -1401,6 +1400,12 @@
                         state.scenario = currentScenario;
                     }
 
+                    // Palauta oletus 15 min jos tallennettu minuuttimäärä on vanhentunut (esim. poistettu 60 min)
+                    if (!PRICES[state.selectedMinutes]) {
+                        state.selectedMinutes = 15;
+                        state.paidAmount = 5.00;
+                    }
+
                     // Check if active session already expired while away
                     if (state.status === 'ACTIVE' && state.expiresAtMs) {
                         const now = Date.now();
@@ -1418,9 +1423,14 @@
             localStorage.removeItem(STORAGE_KEY);
             state.status = 'AVAILABLE';
             state.scenario = 'success';
+            state.selectedMinutes = 15;
+            state.paidAmount = 5.00;
             state.expiresAtMs = null;
             state.startedAtMs = null;
-            if (countdownTimerId) clearInterval(countdownTimerId);
+            if (countdownTimerId) {
+                clearInterval(countdownTimerId);
+                countdownTimerId = null;
+            }
             closeTestDrawer();
             hideNotice();
             updateUI();
@@ -1567,13 +1577,38 @@
         }
 
         function resetToSelection() {
-            if (countdownTimerId) clearInterval(countdownTimerId);
+            if (countdownTimerId) {
+                clearInterval(countdownTimerId);
+                countdownTimerId = null;
+            }
             state.status = 'AVAILABLE';
             state.expiresAtMs = null;
             state.startedAtMs = null;
             hideNotice();
             updateUI();
             saveToStorage();
+        }
+
+        function syncSelectedPackageUI() {
+            if (!PRICES[state.selectedMinutes]) {
+                state.selectedMinutes = 15;
+                state.paidAmount = 5.00;
+            }
+            const currentPkg = PRICES[state.selectedMinutes];
+            document.querySelectorAll('.slot-btn').forEach(btn => {
+                const d = Number(btn.getAttribute('data-duration'));
+                if (d === state.selectedMinutes) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+            const summaryDur = document.getElementById('summaryDuration');
+            const summaryTot = document.getElementById('summaryTotal');
+            const btnLabel = document.getElementById('btnPayLabel');
+            if (summaryDur) summaryDur.textContent = `${state.selectedMinutes} minuuttia`;
+            if (summaryTot) summaryTot.textContent = currentPkg.formatted;
+            if (btnLabel) btnLabel.textContent = `Siirry maksamaan • ${currentPkg.formatted}`;
         }
 
         // 7. UI Rendering
@@ -1605,6 +1640,7 @@
                     statusBadgeText.textContent = 'Vapaa';
                     relayStatusText.textContent = 'VIRTA POIS (VALMIUSTILA)';
                     document.getElementById('btnProceedToPay').disabled = false;
+                    syncSelectedPackageUI();
                     break;
 
                 case 'CONFLICT':
@@ -1643,9 +1679,9 @@
 
                 case 'EXPIRED':
                     document.getElementById('stateExpired').style.display = 'flex';
-                    statusBadge.classList.add('cooldown');
-                    statusBadgeText.textContent = 'Päättynyt';
-                    relayStatusText.textContent = 'VIRTA KATKAISTU (PÄÄTTYNYT)';
+                    statusBadge.classList.add('available');
+                    statusBadgeText.textContent = 'Pöytä vapaa';
+                    relayStatusText.textContent = 'VIRTA KATKAISTU • PÖYTÄ VAPAUTUNUT';
                     break;
 
                 case 'REFUNDED':
