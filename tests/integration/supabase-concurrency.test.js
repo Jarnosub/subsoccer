@@ -7,7 +7,7 @@ const ANON_KEY = process.env.SUPABASE_TEST_ANON_KEY || 'mock-anon-key';
 
 const hasRealTestDb = Boolean(process.env.SUPABASE_TEST_URL && process.env.SUPABASE_TEST_SERVICE_ROLE_KEY);
 
-describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tests', () => {
+describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tests', { timeout: 30000 }, () => {
     let adminClient;
     let anonClient;
     const createdTableIds = [];
@@ -75,7 +75,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
         });
 
         expect(adminErr).toBeNull();
-        expect(adminData.success).toBe(true);
+        expect(adminData?.success).toBe(true);
 
         // Step 2: Kutsutaan täsmälleen samaa olemassa olevaa funktiota kelvollisella anon-avaimella
         const { data: anonData, error: anonErr } = await anonClient.rpc('arcade_create_payment_hold', {
@@ -127,7 +127,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_token_hash: generateUniqueId('token_hash')
         });
         expect(holdErr).toBeNull();
-        expect(hold.success).toBe(true);
+        expect(hold?.success).toBe(true);
         const orderId = hold.order_id;
 
         // Sidotaan PaymentIntent
@@ -137,7 +137,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_payment_intent_id: paymentIntentId
         });
         expect(bindErr).toBeNull();
-        expect(bind.success).toBe(true);
+        expect(bind?.success).toBe(true);
 
         // A. Väärä summa (Tilausta EI saa perua!)
         const { data: wrongAmount, error: wrongAmountErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
@@ -149,9 +149,9 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_worker_id: 'worker-test-1'
         });
         expect(wrongAmountErr).toBeNull();
-        expect(wrongAmount.success).toBe(false);
-        expect(wrongAmount.code).toBe('AMOUNT_MISMATCH');
-        expect(wrongAmount.refund_required).toBe(true);
+        expect(wrongAmount?.success).toBe(false);
+        expect(wrongAmount?.code).toBe('AMOUNT_MISMATCH');
+        expect(wrongAmount?.refund_required).toBe(true);
 
         // B. Väärä pöytä (tableB pöydän tableA sijaan)
         const { data: wrongTable, error: wrongTableErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
@@ -163,9 +163,9 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_worker_id: 'worker-test-1'
         });
         expect(wrongTableErr).toBeNull();
-        expect(wrongTable.success).toBe(false);
-        expect(wrongTable.code).toBe('TABLE_MISMATCH');
-        expect(wrongTable.refund_required).toBe(true);
+        expect(wrongTable?.success).toBe(false);
+        expect(wrongTable?.code).toBe('TABLE_MISMATCH');
+        expect(wrongTable?.refund_required).toBe(true);
 
         // C. Väärä PaymentIntent
         const { data: wrongPI, error: wrongPIErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
@@ -177,9 +177,9 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_worker_id: 'worker-test-1'
         });
         expect(wrongPIErr).toBeNull();
-        expect(wrongPI.success).toBe(false);
-        expect(wrongPI.code).toBe('PAYMENT_INTENT_MISMATCH');
-        expect(wrongPI.refund_required).toBe(true);
+        expect(wrongPI?.success).toBe(false);
+        expect(wrongPI?.code).toBe('PAYMENT_INTENT_MISMATCH');
+        expect(wrongPI?.refund_required).toBe(true);
 
         // Varmistetaan, että oikea tilaus on edelleen holding-tilassa eikä sitä korruptoitu
         const { data: checkOrder, error: checkOrderErr } = await adminClient
@@ -191,21 +191,21 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
         expect(checkOrder.status).toBe('holding');
     });
 
-    it('4. Rejects release when p_confirmed_off is NULL or false on real expired order and session', async () => {
+    it('4. Real session: tests all OFF observation edge cases (NULL, false, missing time, early, stale, future, and valid)', async () => {
         const tableId = await createIsolatedTable('null-off-real');
         const paymentIntentId = generateUniqueId('pi_null_off');
 
-        // Luodaan oikea tilaus ja viedään se aktiiviseksi
+        // Luodaan oikea 1s pelijakso (kokonaisaika 1s + 4s turvamarginaali = 5s)
         const { data: hold, error: holdErr } = await adminClient.rpc('arcade_create_payment_hold', {
             p_table_id: tableId,
             p_duration_minutes: 5,
-            p_duration_seconds: 300,
+            p_duration_seconds: 1,
             p_amount_cents: 250,
             p_currency: 'eur',
             p_client_token_hash: generateUniqueId('hash_null_off')
         });
         expect(holdErr).toBeNull();
-        expect(hold.success).toBe(true);
+        expect(hold?.success).toBe(true);
         const orderId = hold.order_id;
 
         const { data: bind, error: bindErr } = await adminClient.rpc('arcade_bind_payment_intent', {
@@ -214,7 +214,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_payment_intent_id: paymentIntentId
         });
         expect(bindErr).toBeNull();
-        expect(bind.success).toBe(true);
+        expect(bind?.success).toBe(true);
 
         const { data: claim, error: claimErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
             p_table_id: tableId,
@@ -225,7 +225,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_worker_id: 'worker-null-off'
         });
         expect(claimErr).toBeNull();
-        expect(claim.success).toBe(true);
+        expect(claim?.success).toBe(true);
 
         const { data: guard, error: guardErr } = await adminClient.rpc('arcade_pre_dispatch_guard', {
             p_table_id: tableId,
@@ -234,7 +234,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_session_token: generateUniqueId('tok_null_off')
         });
         expect(guardErr).toBeNull();
-        expect(guard.success).toBe(true);
+        expect(guard?.success).toBe(true);
         const sessionId = guard.session_id;
 
         const { data: final, error: finalErr } = await adminClient.rpc('arcade_finalize_activation', {
@@ -246,23 +246,13 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_hardware_uncertain: false
         });
         expect(finalErr).toBeNull();
-        expect(final.success).toBe(true);
+        expect(final?.success).toBe(true);
 
-        // Asetetaan peliaika ja turvamarginaali päättyneeksi menneisyyteen
-        const expiredPastTimestamp = new Date(Date.now() - 10000).toISOString();
-        const { error: updOrderErr } = await adminClient
-            .from('arcade_orders')
-            .update({ expires_at: expiredPastTimestamp })
-            .eq('order_id', orderId);
-        expect(updOrderErr).toBeNull();
+        // Odotetaan luonnollisesti että 1s peliaika + 4s turvamarginaali kuluvat (5200 ms)
+        // Tämä säilyttää chk_expires_after_dispatch -rajoitteen eheyden ilman keinotekoista DB-muokkausta!
+        await new Promise(r => setTimeout(r, 5200));
 
-        const { error: updSessErr } = await adminClient
-            .from('arcade_sessions')
-            .update({ expires_at: expiredPastTimestamp })
-            .eq('id', sessionId);
-        expect(updSessErr).toBeNull();
-
-        // A. Kutsu p_confirmed_off: NULL -> Estää vapautuksen koodilla RELE_STILL_ON_OR_UNCONFIRMED
+        // A. p_confirmed_off: NULL -> Estää vapautuksen koodilla RELE_STILL_ON_OR_UNCONFIRMED
         const { data: releaseNull, error: releaseNullErr } = await adminClient.rpc('arcade_release_reconciled_table', {
             p_table_id: tableId,
             p_order_id: orderId,
@@ -271,10 +261,10 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_confirmed_off_at: new Date().toISOString()
         });
         expect(releaseNullErr).toBeNull();
-        expect(releaseNull.success).toBe(false);
-        expect(releaseNull.code).toBe('RELE_STILL_ON_OR_UNCONFIRMED');
+        expect(releaseNull?.success).toBe(false);
+        expect(releaseNull?.code).toBe('RELE_STILL_ON_OR_UNCONFIRMED');
 
-        // B. Kutsu p_confirmed_off: false -> Estää vapautuksen koodilla RELE_STILL_ON_OR_UNCONFIRMED
+        // B. p_confirmed_off: false -> Estää vapautuksen koodilla RELE_STILL_ON_OR_UNCONFIRMED
         const { data: releaseFalse, error: releaseFalseErr } = await adminClient.rpc('arcade_release_reconciled_table', {
             p_table_id: tableId,
             p_order_id: orderId,
@@ -283,10 +273,10 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_confirmed_off_at: new Date().toISOString()
         });
         expect(releaseFalseErr).toBeNull();
-        expect(releaseFalse.success).toBe(false);
-        expect(releaseFalse.code).toBe('RELE_STILL_ON_OR_UNCONFIRMED');
+        expect(releaseFalse?.success).toBe(false);
+        expect(releaseFalse?.code).toBe('RELE_STILL_ON_OR_UNCONFIRMED');
 
-        // C. Kutsu ilman havaintoaikaa p_confirmed_off_at: null -> Estää vapautuksen koodilla MISSING_OFF_CONFIRMATION_TIME
+        // C. Puuttuva aikaleima (p_confirmed_off_at: null) -> MISSING_OFF_CONFIRMATION_TIME
         const { data: releaseNoTime, error: releaseNoTimeErr } = await adminClient.rpc('arcade_release_reconciled_table', {
             p_table_id: tableId,
             p_order_id: orderId,
@@ -295,10 +285,49 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_confirmed_off_at: null
         });
         expect(releaseNoTimeErr).toBeNull();
-        expect(releaseNoTime.success).toBe(false);
-        expect(releaseNoTime.code).toBe('MISSING_OFF_CONFIRMATION_TIME');
+        expect(releaseNoTime?.success).toBe(false);
+        expect(releaseNoTime?.code).toBe('MISSING_OFF_CONFIRMATION_TIME');
 
-        // Pöytä on edelleen lukittuna aktiiviseksi
+        // D. Ennen aikarajaa tehty havainto (havaintoaika < expires_at + 4s) -> OFF_OBSERVED_BEFORE_DEADLINE
+        const beforeDeadlineObsTime = new Date(new Date(guard.expires_at).getTime() + 2000).toISOString();
+        const { data: releaseEarlyObs, error: releaseEarlyObsErr } = await adminClient.rpc('arcade_release_reconciled_table', {
+            p_table_id: tableId,
+            p_order_id: orderId,
+            p_session_id: sessionId,
+            p_confirmed_off: true,
+            p_confirmed_off_at: beforeDeadlineObsTime
+        });
+        expect(releaseEarlyObsErr).toBeNull();
+        expect(releaseEarlyObs?.success).toBe(false);
+        expect(releaseEarlyObs?.code).toBe('OFF_OBSERVED_BEFORE_DEADLINE');
+
+        // E. Vanhentunut havainto (> 120s vanha) -> OFF_OBSERVATION_STALE
+        const staleObsTime = new Date(Date.now() - 150000).toISOString();
+        const { data: releaseStaleObs, error: releaseStaleObsErr } = await adminClient.rpc('arcade_release_reconciled_table', {
+            p_table_id: tableId,
+            p_order_id: orderId,
+            p_session_id: sessionId,
+            p_confirmed_off: true,
+            p_confirmed_off_at: staleObsTime
+        });
+        expect(releaseStaleObsErr).toBeNull();
+        expect(releaseStaleObs?.success).toBe(false);
+        expect(releaseStaleObs?.code).toBe('OFF_OBSERVATION_STALE');
+
+        // F. Liian kaukana tulevaisuudessa oleva havainto (> 5s tulevaisuudessa) -> OFF_OBSERVATION_IN_FUTURE
+        const futureObsTime = new Date(Date.now() + 60000).toISOString();
+        const { data: releaseFutureObs, error: releaseFutureObsErr } = await adminClient.rpc('arcade_release_reconciled_table', {
+            p_table_id: tableId,
+            p_order_id: orderId,
+            p_session_id: sessionId,
+            p_confirmed_off: true,
+            p_confirmed_off_at: futureObsTime
+        });
+        expect(releaseFutureObsErr).toBeNull();
+        expect(releaseFutureObs?.success).toBe(false);
+        expect(releaseFutureObs?.code).toBe('OFF_OBSERVATION_IN_FUTURE');
+
+        // Pöytä on kaikkien näiden hylkäysten jälkeen edelleen lukittuna aktiiviseksi
         const { data: tableCheck, error: tableCheckErr } = await adminClient
             .from('arcade_table_configs')
             .select('lock_state')
@@ -306,6 +335,18 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             .single();
         expect(tableCheckErr).toBeNull();
         expect(tableCheck.lock_state).toBe('active');
+
+        // G. Kelvollinen, tuore OFF-havainto aikarajan jälkeen -> ONNISTUU!
+        const { data: releaseValid, error: releaseValidErr } = await adminClient.rpc('arcade_release_reconciled_table', {
+            p_table_id: tableId,
+            p_order_id: orderId,
+            p_session_id: sessionId,
+            p_confirmed_off: true,
+            p_confirmed_off_at: new Date().toISOString()
+        });
+        expect(releaseValidErr).toBeNull();
+        expect(releaseValid?.success).toBe(true);
+        expect(releaseValid?.lock_state).toBe('available');
     });
 
     it('5. Rejects contradictory parameters in arcade_finalize_activation', async () => {
@@ -342,17 +383,18 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_hold_seconds: 60
         });
         expect(hold1Err).toBeNull();
-        expect(hold1.success).toBe(true);
+        expect(hold1?.success).toBe(true);
         const orderId1 = hold1.order_id;
 
-        const { error: bind1Err } = await adminClient.rpc('arcade_bind_payment_intent', {
+        const { data: bind1, error: bind1Err } = await adminClient.rpc('arcade_bind_payment_intent', {
             p_table_id: tableId,
             p_order_id: orderId1,
             p_payment_intent_id: piCust1
         });
         expect(bind1Err).toBeNull();
+        expect(bind1?.success).toBe(true);
 
-        const { error: claim1Err } = await adminClient.rpc('arcade_claim_order_for_activation', {
+        const { data: claim1, error: claim1Err } = await adminClient.rpc('arcade_claim_order_for_activation', {
             p_table_id: tableId,
             p_order_id: orderId1,
             p_payment_intent_id: piCust1,
@@ -361,6 +403,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_worker_id: 'worker-c1'
         });
         expect(claim1Err).toBeNull();
+        expect(claim1?.success).toBe(true);
 
         const { data: guard1, error: guard1Err } = await adminClient.rpc('arcade_pre_dispatch_guard', {
             p_table_id: tableId,
@@ -369,9 +412,10 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_session_token: generateUniqueId('tok_c1')
         });
         expect(guard1Err).toBeNull();
+        expect(guard1?.success).toBe(true);
         const sessionId1 = guard1.session_id;
 
-        const { error: final1Err } = await adminClient.rpc('arcade_finalize_activation', {
+        const { data: final1, error: final1Err } = await adminClient.rpc('arcade_finalize_activation', {
             p_table_id: tableId,
             p_order_id: orderId1,
             p_session_id: sessionId1,
@@ -380,6 +424,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_hardware_uncertain: false
         });
         expect(final1Err).toBeNull();
+        expect(final1?.success).toBe(true);
 
         // A. Vapautuksen estyminen ENNEN aikarajaa ja 4s turvamarginaalia
         const { data: earlyRel, error: earlyRelErr } = await adminClient.rpc('arcade_release_reconciled_table', {
@@ -390,8 +435,8 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_confirmed_off_at: new Date().toISOString()
         });
         expect(earlyRelErr).toBeNull();
-        expect(earlyRel.success).toBe(false);
-        expect(earlyRel.code).toBe('DEADLINE_NOT_ELAPSED');
+        expect(earlyRel?.success).toBe(false);
+        expect(earlyRel?.code).toBe('DEADLINE_NOT_ELAPSED');
 
         // B. Odotetaan että 1s peliaika + 4s turvamarginaali kuluvat (5200 ms)
         await new Promise(r => setTimeout(r, 5200));
@@ -406,8 +451,8 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_confirmed_off_at: nowOffTime
         });
         expect(rel1Err).toBeNull();
-        expect(rel1.success).toBe(true);
-        expect(rel1.lock_state).toBe('available');
+        expect(rel1?.success).toBe(true);
+        expect(rel1?.lock_state).toBe('available');
 
         // C. Asiakas 2: Vie toisen asiakkaan tilaus AKTIIVISEKSI peliksi
         const { data: hold2, error: hold2Err } = await adminClient.rpc('arcade_create_payment_hold', {
@@ -419,17 +464,18 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_token_hash: generateUniqueId('hash_c2')
         });
         expect(hold2Err).toBeNull();
-        expect(hold2.success).toBe(true);
+        expect(hold2?.success).toBe(true);
         const orderId2 = hold2.order_id;
 
-        const { error: bind2Err } = await adminClient.rpc('arcade_bind_payment_intent', {
+        const { data: bind2, error: bind2Err } = await adminClient.rpc('arcade_bind_payment_intent', {
             p_table_id: tableId,
             p_order_id: orderId2,
             p_payment_intent_id: piCust2
         });
         expect(bind2Err).toBeNull();
+        expect(bind2?.success).toBe(true);
 
-        const { error: claim2Err } = await adminClient.rpc('arcade_claim_order_for_activation', {
+        const { data: claim2, error: claim2Err } = await adminClient.rpc('arcade_claim_order_for_activation', {
             p_table_id: tableId,
             p_order_id: orderId2,
             p_payment_intent_id: piCust2,
@@ -438,6 +484,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_worker_id: 'worker-c2'
         });
         expect(claim2Err).toBeNull();
+        expect(claim2?.success).toBe(true);
 
         const { data: guard2, error: guard2Err } = await adminClient.rpc('arcade_pre_dispatch_guard', {
             p_table_id: tableId,
@@ -446,9 +493,10 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_session_token: generateUniqueId('tok_c2')
         });
         expect(guard2Err).toBeNull();
+        expect(guard2?.success).toBe(true);
         const sessionId2 = guard2.session_id;
 
-        const { error: final2Err } = await adminClient.rpc('arcade_finalize_activation', {
+        const { data: final2, error: final2Err } = await adminClient.rpc('arcade_finalize_activation', {
             p_table_id: tableId,
             p_order_id: orderId2,
             p_session_id: sessionId2,
@@ -457,6 +505,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_hardware_uncertain: false
         });
         expect(final2Err).toBeNull();
+        expect(final2?.success).toBe(true);
 
         // Vahvistetaan Asiakkaan 2 aktiiviset tilat
         const { data: tableCheckActive } = await adminClient.from('arcade_table_configs').select('lock_state').eq('table_id', tableId).single();
@@ -472,8 +521,8 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
         });
 
         expect(staleReplayErr).toBeNull();
-        expect(staleReplay.success).toBe(true);
-        expect(staleReplay.already_resolved).toBe(true);
+        expect(staleReplay?.success).toBe(true);
+        expect(staleReplay?.already_resolved).toBe(true);
 
         // E. VARMISTUS: Asiakkaan 2 tilaus, sessio ja pöytälukko ovat edelleen 'active'!
         const { data: order2Check } = await adminClient.from('arcade_orders').select('status').eq('order_id', orderId2).single();
@@ -499,16 +548,18 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_token_hash: generateUniqueId('hash_unc')
         });
         expect(holdErr).toBeNull();
+        expect(hold?.success).toBe(true);
         const orderId = hold.order_id;
 
-        const { error: bindErr } = await adminClient.rpc('arcade_bind_payment_intent', {
+        const { data: bind, error: bindErr } = await adminClient.rpc('arcade_bind_payment_intent', {
             p_table_id: tableId,
             p_order_id: orderId,
             p_payment_intent_id: paymentIntentId
         });
         expect(bindErr).toBeNull();
+        expect(bind?.success).toBe(true);
 
-        const { error: claimErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
+        const { data: claim, error: claimErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
             p_table_id: tableId,
             p_order_id: orderId,
             p_payment_intent_id: paymentIntentId,
@@ -517,6 +568,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_worker_id: 'worker-unc'
         });
         expect(claimErr).toBeNull();
+        expect(claim?.success).toBe(true);
 
         const { data: guard, error: guardErr } = await adminClient.rpc('arcade_pre_dispatch_guard', {
             p_table_id: tableId,
@@ -525,10 +577,11 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_session_token: generateUniqueId('tok_unc')
         });
         expect(guardErr).toBeNull();
+        expect(guard?.success).toBe(true);
         const sessionId = guard.session_id;
 
         // Finalisoidaan epävarmaksi
-        const { error: finalErr } = await adminClient.rpc('arcade_finalize_activation', {
+        const { data: final, error: finalErr } = await adminClient.rpc('arcade_finalize_activation', {
             p_table_id: tableId,
             p_order_id: orderId,
             p_session_id: sessionId,
@@ -538,6 +591,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_error_reason: 'Emergency cut unconfirmed'
         });
         expect(finalErr).toBeNull();
+        expect(final?.success).toBe(true);
 
         const { data: lockedCheck } = await adminClient.from('arcade_table_configs').select('lock_state').eq('table_id', tableId).single();
         expect(lockedCheck.lock_state).toBe('error_locked');
@@ -551,8 +605,8 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_confirmed_off_at: new Date().toISOString()
         });
         expect(earlyRelErr).toBeNull();
-        expect(earlyRel.success).toBe(false);
-        expect(earlyRel.code).toBe('DEADLINE_NOT_ELAPSED');
+        expect(earlyRel?.success).toBe(false);
+        expect(earlyRel?.code).toBe('DEADLINE_NOT_ELAPSED');
 
         // B. Odotetaan 1s + 4s marginaali
         await new Promise(r => setTimeout(r, 5200));
@@ -567,8 +621,8 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_confirmed_off_at: nowOffTime
         });
         expect(relErr).toBeNull();
-        expect(release.success).toBe(true);
-        expect(release.lock_state).toBe('available');
+        expect(release?.success).toBe(true);
+        expect(release?.lock_state).toBe('available');
 
         // Tila on resolved_uncertain ja refund_required säilyy
         const { data: orderRow } = await adminClient.from('arcade_orders').select('status, refund_status').eq('order_id', orderId).single();
@@ -585,7 +639,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_token_hash: generateUniqueId('hash_new_player')
         });
         expect(newHoldErr).toBeNull();
-        expect(newHold.success).toBe(true);
+        expect(newHold?.success).toBe(true);
     });
 
     it('8. Webhook retry on bound order preserves refund_completed after processed retry', async () => {
@@ -602,15 +656,17 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_hold_seconds: 1
         });
         expect(holdErr).toBeNull();
+        expect(hold?.success).toBe(true);
         const orderId = hold.order_id;
 
         // Sidotaan PaymentIntent tilaukseen ENNEN webhook-kutsua
-        const { error: bindErr } = await adminClient.rpc('arcade_bind_payment_intent', {
+        const { data: bind, error: bindErr } = await adminClient.rpc('arcade_bind_payment_intent', {
             p_table_id: tableId,
             p_order_id: orderId,
             p_payment_intent_id: paymentIntentId
         });
         expect(bindErr).toBeNull();
+        expect(bind?.success).toBe(true);
 
         // Odotetaan että hold raukeaa ja simuloidaan, että ylläpito on jo palauttanut maksun
         await new Promise(r => setTimeout(r, 1200));
@@ -633,9 +689,9 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
 
         // Tarkistetaan kutsun tulos: maksu ohjataan hylkäykseen ja hyvitysvaatimukseen
         expect(webhookErr).toBeNull();
-        expect(webhookResult.success).toBe(false);
-        expect(webhookResult.code).toBe('hold_expired');
-        expect(webhookResult.refund_required).toBe(true);
+        expect(webhookResult?.success).toBe(false);
+        expect(webhookResult?.code).toBe('hold_expired');
+        expect(webhookResult?.refund_required).toBe(true);
 
         // Varmistetaan että refund_status säilyy refund_completed -tilassa
         const { data: orderCheck, error: orderCheckErr } = await adminClient
@@ -686,14 +742,16 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_token_hash: generateUniqueId('race_hash')
         });
         expect(holdErr).toBeNull();
+        expect(hold?.success).toBe(true);
         const orderId = hold.order_id;
 
-        const { error: bindErr } = await adminClient.rpc('arcade_bind_payment_intent', {
+        const { data: bind, error: bindErr } = await adminClient.rpc('arcade_bind_payment_intent', {
             p_table_id: tableId,
             p_order_id: orderId,
             p_payment_intent_id: paymentIntentId
         });
         expect(bindErr).toBeNull();
+        expect(bind?.success).toBe(true);
 
         // 5 rinnakkaista claim-pyyntöä samanaikaisesti
         const claims = await Promise.all(
@@ -734,15 +792,17 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_token_hash: generateUniqueId('hash_a')
         });
         expect(holdAErr).toBeNull();
+        expect(holdA?.success).toBe(true);
 
-        const { error: bindAErr } = await adminClient.rpc('arcade_bind_payment_intent', {
+        const { data: bindA, error: bindAErr } = await adminClient.rpc('arcade_bind_payment_intent', {
             p_table_id: tableDispatched,
             p_order_id: holdA.order_id,
             p_payment_intent_id: piA
         });
         expect(bindAErr).toBeNull();
+        expect(bindA?.success).toBe(true);
 
-        const { error: claimAErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
+        const { data: claimA, error: claimAErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
             p_table_id: tableDispatched,
             p_order_id: holdA.order_id,
             p_payment_intent_id: piA,
@@ -751,14 +811,16 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_worker_id: 'worker-dead-a'
         });
         expect(claimAErr).toBeNull();
+        expect(claimA?.success).toBe(true);
 
-        const { error: guardAErr } = await adminClient.rpc('arcade_pre_dispatch_guard', {
+        const { data: guardA, error: guardAErr } = await adminClient.rpc('arcade_pre_dispatch_guard', {
             p_table_id: tableDispatched,
             p_order_id: holdA.order_id,
             p_worker_id: 'worker-dead-a',
             p_client_session_token: generateUniqueId('tok_dead_a')
         });
         expect(guardAErr).toBeNull();
+        expect(guardA?.success).toBe(true);
 
         const { error: updAErr } = await adminClient
             .from('arcade_orders')
@@ -776,15 +838,17 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_client_token_hash: generateUniqueId('hash_b')
         });
         expect(holdBErr).toBeNull();
+        expect(holdB?.success).toBe(true);
 
-        const { error: bindBErr } = await adminClient.rpc('arcade_bind_payment_intent', {
+        const { data: bindB, error: bindBErr } = await adminClient.rpc('arcade_bind_payment_intent', {
             p_table_id: tableUndispatched,
             p_order_id: holdB.order_id,
             p_payment_intent_id: piB
         });
         expect(bindBErr).toBeNull();
+        expect(bindB?.success).toBe(true);
 
-        const { error: claimBErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
+        const { data: claimB, error: claimBErr } = await adminClient.rpc('arcade_claim_order_for_activation', {
             p_table_id: tableUndispatched,
             p_order_id: holdB.order_id,
             p_payment_intent_id: piB,
@@ -793,6 +857,7 @@ describe.runIf(hasRealTestDb)('Supabase Atomic RPC & Concurrency Integration Tes
             p_worker_id: 'worker-dead-b'
         });
         expect(claimBErr).toBeNull();
+        expect(claimB?.success).toBe(true);
 
         const { error: updBErr } = await adminClient
             .from('arcade_orders')
