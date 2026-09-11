@@ -13,6 +13,7 @@ DO $$ BEGIN
         'hold_expired',        -- Varausaika raukesi ennen maksua
         'activation_failed',   -- Rele sammutettu turvallisesti (State 0), mutta epäonnistui
         'hardware_uncertain',  -- Releen tila epävarma, pöytä virhelukittu (error_locked)
+        'resolved_uncertain',  -- Epävarma tila purettu turvallisesti OFF-varmistuksen ja aikarajan jälkeen
         'cancelled'            -- Maksu epäonnistui tai peruttiin
     );
 EXCEPTION WHEN duplicate_object THEN NULL;
@@ -207,7 +208,7 @@ BEGIN
             RETURN jsonb_build_object(
                 'success', false, 
                 'code', 'TABLE_BUSY', 
-                'statusCode', 409,
+                'statusCode', 409, 
                 'error', 'Pöytä on parhaillaan varattu tai käytössä.',
                 'expires_at', v_active_order.expires_at
             );
@@ -231,7 +232,7 @@ BEGIN
                 RETURN jsonb_build_object(
                     'success', false, 
                     'code', 'TABLE_HELD', 
-                    'statusCode', 409,
+                    'statusCode', 409, 
                     'error', 'Pöytä on parhaillaan toisen pelaajan varattavana.',
                     'hold_expires_at', v_active_order.hold_expires_at
                 );
@@ -403,31 +404,27 @@ BEGIN
     END IF;
 
     -- 4. VASTAAVUUSTARKISTUKSET ENNEN MITÄÄN REPLAY-PALAUTUSTA:
+    -- ÄLÄ MUUTA OIKEAN TILAUKSEN ELINKAARTA RISTIRIITAISEN TAPAHTUMAN VUOKSI!
     -- A. Pöydän vastaavuus
     IF v_order.table_id <> p_table_id THEN
-        UPDATE public.arcade_orders
-        SET status = 'cancelled', payment_status = 'succeeded', refund_status = 'refund_required',
-            refund_reason = 'TABLE_MISMATCH', updated_at = now()
-        WHERE id = v_order.id;
+        INSERT INTO public.arcade_events (table_id, event_type, payload)
+        VALUES (p_table_id, 'switch_error', jsonb_build_object('error', 'TABLE_MISMATCH', 'order_id', p_order_id, 'incoming_table', p_table_id, 'order_table', v_order.table_id, 'payment_intent_id', p_payment_intent_id));
 
         RETURN jsonb_build_object('success', false, 'code', 'TABLE_MISMATCH', 'statusCode', 400, 'refund_required', true);
     END IF;
 
     -- B. Summan ja valuutan vastaavuus
     IF v_order.amount_cents <> p_amount_cents OR lower(v_order.currency) <> lower(p_currency) THEN
-        UPDATE public.arcade_orders
-        SET status = 'cancelled', payment_status = 'succeeded', refund_status = 'refund_required',
-            refund_reason = 'AMOUNT_OR_CURRENCY_MISMATCH', updated_at = now()
-        WHERE id = v_order.id;
+        INSERT INTO public.arcade_events (table_id, event_type, payload)
+        VALUES (p_table_id, 'switch_error', jsonb_build_object('error', 'AMOUNT_OR_CURRENCY_MISMATCH', 'order_id', p_order_id, 'expected_cents', v_order.amount_cents, 'incoming_cents', p_amount_cents, 'payment_intent_id', p_payment_intent_id));
 
         RETURN jsonb_build_object('success', false, 'code', 'AMOUNT_MISMATCH', 'statusCode', 400, 'refund_required', true);
     END IF;
 
-    -- C. PaymentIntentin vastaavuus
-    IF v_order.stripe_payment_intent_id IS NOT NULL AND v_order.stripe_payment_intent_id <> p_payment_intent_id THEN
-        UPDATE public.arcade_orders
-        SET refund_status = 'refund_required', refund_reason = 'PAYMENT_INTENT_MISMATCH', updated_at = now()
-        WHERE id = v_order.id;
+    -- C. PaymentIntentin vastaavuus (Vaadi ennalta sidottu PaymentIntent)
+    IF v_order.stripe_payment_intent_id IS NULL OR v_order.stripe_payment_intent_id <> p_payment_intent_id THEN
+        INSERT INTO public.arcade_events (table_id, event_type, payload)
+        VALUES (p_table_id, 'switch_error', jsonb_build_object('error', 'PAYMENT_INTENT_MISMATCH', 'order_id', p_order_id, 'expected_pi', v_order.stripe_payment_intent_id, 'incoming_pi', p_payment_intent_id));
 
         RETURN jsonb_build_object('success', false, 'code', 'PAYMENT_INTENT_MISMATCH', 'statusCode', 400, 'refund_required', true);
     END IF;
@@ -469,13 +466,17 @@ BEGIN
     END IF;
 
     -- D. Myöhästynyt maksu tilaan, joka on jo expired tai cancelled:
-    -- TALLENNETAAN MAKSU JA HYVITYSTARVE PYSYVÄSTI KANTAAN
-    IF v_order.status IN ('hold_expired', 'activation_failed', 'hardware_uncertain', 'cancelled') THEN
+    -- TALLENNETAAN MAKSU JA HYVITYSTARVE PYSYVÄSTI KANTAAN.
+    -- HUOM: Hyvitystila ei saa koskaan palautua taaksepäin (initiated/completed säilytetään!)
+    IF v_order.status IN ('hold_expired', 'activation_failed', 'hardware_uncertain', 'resolved_uncertain', 'cancelled') THEN
         UPDATE public.arcade_orders
         SET 
             payment_status = 'succeeded',
             stripe_payment_intent_id = p_payment_intent_id,
-            refund_status = 'refund_required',
+            refund_status = CASE 
+                WHEN refund_status IN ('refund_initiated', 'refund_completed') THEN refund_status
+                ELSE 'refund_required'::arcade_refund_status
+            END,
             refund_reason = COALESCE(refund_reason, 'LATE_PAYMENT_ON_' || v_order.status),
             updated_at = now()
         WHERE id = v_order.id;
@@ -496,7 +497,10 @@ BEGIN
             status = 'hold_expired',
             payment_status = 'succeeded',
             stripe_payment_intent_id = p_payment_intent_id,
-            refund_status = 'refund_required',
+            refund_status = CASE 
+                WHEN refund_status IN ('refund_initiated', 'refund_completed') THEN refund_status
+                ELSE 'refund_required'::arcade_refund_status
+            END,
             refund_reason = 'LATE_PAYMENT_AFTER_HOLD_EXPIRY',
             updated_at = now()
         WHERE id = v_order.id;
@@ -643,32 +647,43 @@ DECLARE
     v_order RECORD;
     v_session RECORD;
 BEGIN
+    -- 1. PARAMETRIEN VALIDIOINTI (Hylkää NULL ja ristiriitaiset arvot)
     IF p_table_id IS NULL OR trim(p_table_id) = '' OR
        p_order_id IS NULL OR trim(p_order_id) = '' OR
        p_session_id IS NULL OR
-       p_worker_id IS NULL OR trim(p_worker_id) = '' THEN
+       p_worker_id IS NULL OR trim(p_worker_id) = '' OR
+       p_success IS NULL OR p_hardware_uncertain IS NULL THEN
         RETURN jsonb_build_object('success', false, 'code', 'INVALID_PARAMETERS', 'statusCode', 400);
     END IF;
 
-    -- 1. LUKITUSJÄRJESTYS 1: PÖYTÄ
+    IF p_success IS TRUE AND p_hardware_uncertain IS TRUE THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'CONTRADICTORY_PARAMETERS',
+            'statusCode', 400,
+            'error', 'Aktivointi ei voi olla samanaikaisesti onnistunut (success=true) ja epävarma (hardware_uncertain=true).'
+        );
+    END IF;
+
+    -- 2. LUKITUSJÄRJESTYS 1: PÖYTÄ
     SELECT * INTO v_table FROM public.arcade_table_configs WHERE table_id = p_table_id FOR UPDATE;
     IF NOT FOUND THEN
         RETURN jsonb_build_object('success', false, 'code', 'TABLE_NOT_FOUND', 'statusCode', 404);
     END IF;
 
-    -- 2. LUKITUSJÄRJESTYS 2: TILAUS
+    -- 3. LUKITUSJÄRJESTYS 2: TILAUS
     SELECT * INTO v_order FROM public.arcade_orders WHERE order_id = p_order_id FOR UPDATE;
     IF NOT FOUND THEN
         RETURN jsonb_build_object('success', false, 'code', 'ORDER_NOT_FOUND', 'statusCode', 404);
     END IF;
 
-    -- 3. LUKITUSJÄRJESTYS 3: SESSIO
+    -- 4. LUKITUSJÄRJESTYS 3: SESSIO
     SELECT * INTO v_session FROM public.arcade_sessions WHERE id = p_session_id FOR UPDATE;
     IF NOT FOUND THEN
         RETURN jsonb_build_object('success', false, 'code', 'SESSION_NOT_FOUND', 'statusCode', 404);
     END IF;
 
-    -- 4. OMISTAJA- JA TILATARKISTUKSET
+    -- 5. OMISTAJA- JA TILATARKISTUKSET
     IF v_order.table_id <> p_table_id OR v_session.table_id <> p_table_id OR v_order.session_id <> p_session_id THEN
         RETURN jsonb_build_object('success', false, 'code', 'OWNERSHIP_MISMATCH', 'statusCode', 400);
     END IF;
@@ -685,7 +700,7 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'code', 'INVALID_TABLE_LOCK_STATE', 'statusCode', 409);
     END IF;
 
-    -- 5. TILAPÄIVITYKSET
+    -- 6. TILAPÄIVITYKSET
     IF p_success THEN
         UPDATE public.arcade_orders
         SET status = 'active', activated_at = now(), updated_at = now()
@@ -788,8 +803,19 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'code', 'OWNERSHIP_MISMATCH', 'statusCode', 400);
     END IF;
 
-    -- 3. TURVALLISUUSTARKISTUS: OFF-varmistus on pakollinen
-    IF NOT p_confirmed_off THEN
+    -- 3. IDEMPOTENSSI: Jos tilaus on jo aiemmin ratkaistu tai purettu, älä koske pöydän nykytilaan!
+    IF v_order.status IN ('completed', 'resolved_uncertain', 'hold_expired', 'activation_failed', 'cancelled') THEN
+        RETURN jsonb_build_object(
+            'success', true,
+            'is_idempotent_replay', true,
+            'already_resolved', true,
+            'status', v_order.status,
+            'message', 'Tilaus on jo aiemmin purettu. Pöydän tilaa ei muuteta.'
+        );
+    END IF;
+
+    -- 4. TURVALLISUUSTARKISTUS: OFF-varmistus on pakollinen (hylkää FALSE ja NULL!)
+    IF p_confirmed_off IS NOT TRUE THEN
         RETURN jsonb_build_object(
             'success', false, 
             'code', 'RELE_STILL_ON_OR_UNCONFIRMED', 
@@ -798,8 +824,17 @@ BEGIN
         );
     END IF;
 
-    -- 4. TURVALLISUUSTARKISTUS: Aikaraja + 4 sekunnin marginaali on täytynyt kulua
-    IF v_order.expires_at IS NOT NULL AND now() <= (v_order.expires_at + interval '4 seconds') THEN
+    -- 5. TURVALLISUUSTARKISTUS: Aikaraja + 4 sekunnin marginaali on täytynyt kulua
+    IF v_order.expires_at IS NULL THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'MISSING_EXPIRES_AT',
+            'statusCode', 409,
+            'error', 'Pöytää ei voida vapauttaa: tilaukselta puuttuu aikaraja.'
+        );
+    END IF;
+
+    IF now() <= (v_order.expires_at + interval '4 seconds') THEN
         RETURN jsonb_build_object(
             'success', false, 
             'code', 'DEADLINE_NOT_ELAPSED', 
@@ -808,10 +843,27 @@ BEGIN
         );
     END IF;
 
-    -- 5. TILAN PÄIVITYS
+    -- 6. PÖYDÄN NYKYISEN OMISTAJUUDEN TARKISTUS:
+    -- Vapautus saa muuttaa pöydän tilaa vain, jos pöytä on tämän kyseisen tilauksen lukitsema!
+    IF v_table.lock_state NOT IN ('active', 'error_locked') THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'TABLE_NOT_IN_RELEASABLE_STATE',
+            'statusCode', 409,
+            'lock_state', v_table.lock_state
+        );
+    END IF;
+
+    -- 7. TILAN PÄIVITYS:
+    -- Siirretään myös hardware_uncertain -tilaus pois uniikki-indeksistä tilaan resolved_uncertain,
+    -- säilyttäen refund_status = refund_required ennallaan!
     IF v_order.status = 'active' THEN
         UPDATE public.arcade_orders
         SET status = 'completed', completed_at = now(), updated_at = now()
+        WHERE id = v_order.id;
+    ELSIF v_order.status = 'hardware_uncertain' THEN
+        UPDATE public.arcade_orders
+        SET status = 'resolved_uncertain', completed_at = now(), updated_at = now()
         WHERE id = v_order.id;
     END IF;
 
@@ -867,8 +919,11 @@ BEGIN
                 UPDATE public.arcade_orders
                 SET 
                     status = 'hardware_uncertain',
-                    refund_status = 'refund_required',
-                    refund_reason = 'SERVER_CRASH_DURING_DISPATCH_UNCERTAIN',
+                    refund_status = CASE 
+                        WHEN refund_status IN ('refund_initiated', 'refund_completed') THEN refund_status
+                        ELSE 'refund_required'::arcade_refund_status
+                    END,
+                    refund_reason = COALESCE(refund_reason, 'SERVER_CRASH_DURING_DISPATCH_UNCERTAIN'),
                     last_error_code = 'HARDWARE_UNCERTAIN',
                     updated_at = now()
                 WHERE id = v_order.id;
@@ -895,8 +950,11 @@ BEGIN
                 UPDATE public.arcade_orders
                 SET 
                     status = 'activation_failed',
-                    refund_status = 'refund_required',
-                    refund_reason = 'SERVER_CRASH_BEFORE_DISPATCH',
+                    refund_status = CASE 
+                        WHEN refund_status IN ('refund_initiated', 'refund_completed') THEN refund_status
+                        ELSE 'refund_required'::arcade_refund_status
+                    END,
+                    refund_reason = COALESCE(refund_reason, 'SERVER_CRASH_BEFORE_DISPATCH'),
                     updated_at = now()
                 WHERE id = v_order.id;
 
