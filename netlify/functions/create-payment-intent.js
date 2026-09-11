@@ -5,6 +5,7 @@ const {
     checkIsTestMode,
     createPaymentHold,
     releasePaymentHold,
+    bindPaymentIntent,
     saveMemorySessions
 } = require('./utils/arcade-core');
 
@@ -96,7 +97,7 @@ exports.handler = async (event, context) => {
     // 2. Initialize Stripe & Create PaymentIntent
     const stripe = getStripeClient();
     if (!stripe) {
-        releasePaymentHold({ tableId: table, orderId: order.orderId, reason: 'stripe_unconfigured' });
+        await releasePaymentHold({ tableId: table, orderId: order.orderId, reason: 'stripe_unconfigured' });
         return {
             statusCode: 503,
             headers: CORS_HEADERS,
@@ -123,6 +124,41 @@ exports.handler = async (event, context) => {
             idempotencyKey: `pi-hold-${order.orderId}`
         });
 
+        // 3. Atomically bind PaymentIntent to order in database (Requirement 5 & 6)
+        const bindResult = await bindPaymentIntent({
+            tableId: table,
+            orderId: order.orderId,
+            paymentIntentId: paymentIntent.id,
+            idempotencyKey: `pi-hold-${order.orderId}`,
+            isTestMode
+        });
+
+        if (!bindResult.success) {
+            console.error('[PAYMENT INTENT BIND ERROR] Cancelling Stripe PaymentIntent:', bindResult.error);
+            try {
+                await stripe.paymentIntents.cancel(paymentIntent.id, {
+                    cancellation_reason: 'abandoned'
+                });
+            } catch (cancelErr) {
+                console.error('[STRIPE] Failed to cancel unbonded PaymentIntent:', cancelErr.message);
+            }
+
+            await releasePaymentHold({
+                tableId: table,
+                orderId: order.orderId,
+                reason: 'bind_payment_intent_failed'
+            });
+
+            return {
+                statusCode: 502,
+                headers: CORS_HEADERS,
+                body: JSON.stringify({
+                    error: `PaymentIntent syntyi mutta tilaussidonta epäonnistui: ${bindResult.error}. Maksu on peruttu.`,
+                    code: 'BIND_PAYMENT_INTENT_FAILED'
+                })
+            };
+        }
+
         order.paymentIntentId = paymentIntent.id;
         saveMemorySessions();
 
@@ -141,7 +177,7 @@ exports.handler = async (event, context) => {
         };
     } catch (stripeErr) {
         console.error('[STRIPE ERROR] Failed to create PaymentIntent:', stripeErr.message);
-        releasePaymentHold({ tableId: table, orderId: order.orderId, reason: 'stripe_api_error' });
+        await releasePaymentHold({ tableId: table, orderId: order.orderId, reason: 'stripe_api_error' });
 
         return {
             statusCode: 502,

@@ -29,33 +29,8 @@ function getAdminSecret() {
     return process.env.ADMIN_TOKEN || process.env.ARCADE_ADMIN_KEY || null;
 }
 
-// Determine environment mode: mock/simulation is permitted ONLY in explicit test mode
-function checkIsTestMode() {
-    if (process.env.ARCADE_ENV === 'production' || process.env.NODE_ENV === 'production') {
-        return false;
-    }
-    return process.env.NODE_ENV === 'test' || 
-           process.env.ARCADE_ENV === 'test' || 
-           process.env.ARCADE_MOCK_MODE === 'true';
-}
-
 function getPilotTableId() {
     return process.env.PILOT_TABLE_ID || null;
-}
-
-// Initialize Supabase Client if credentials exist
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-let supabase = null;
-if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-    try {
-        supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-            auth: { persistSession: false }
-        });
-    } catch (e) {
-        console.warn('[ARCADE] Supabase init warning:', e.message);
-    }
 }
 
 const {
@@ -64,10 +39,15 @@ const {
     saveMemorySessions,
     loadMemorySessions,
     resetMemoryDb,
+    checkIsTestMode,
+    getSupabase,
+    reconcileTableState,
     activateSessionCore,
     getOrderStatus,
     _setSupabaseClient: _setCoreSupabaseClient
 } = require('./utils/arcade-core');
+
+let supabase = getSupabase();
 
 
 function getTableConfig(tableId, isTestMode) {
@@ -118,174 +98,7 @@ function getNetioAdapter(tableConfig, isTestMode) {
     });
 }
 
-/**
- * Pöydän ja sessioiden tilan sovittelu (Reconciliation)
- * Pöytää EI SAA vapauttaa ennen kuin:
- * 1. Alkuperäinen expires_at + 4000ms turvamarginaali on kulunut umpeen.
- * 2. NETIO-tilakysely vahvistaa, että releen State === 0.
- * Jos rele on edelleen State === 1 tai kysely epäonnistuu, pöytä lukitaan error_locked -tilaan.
- */
-async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
-    const now = Date.now();
-    const targetOutputId = tableConfig?.switch_output_id || 1;
 
-    if (supabase) {
-        // 1. Käsittele sessiot joissa relekäskyä EI KOSKAAN lähetetty (hardware_dispatched_at IS NULL)
-        const staleThreshold = new Date(now - 30000).toISOString();
-        await supabase.from('arcade_sessions')
-            .update({ status: 'failed', error_reason: 'Activation timed out before hardware command was dispatched' })
-            .eq('table_id', tableId)
-            .eq('status', 'requested')
-            .is('hardware_dispatched_at', null)
-            .lt('requested_at', staleThreshold);
-
-        // 2. Hae kaikki aktiiviset tai lukitut sessiot
-        const { data: sessions } = await supabase
-            .from('arcade_sessions')
-            .select('*')
-            .eq('table_id', tableId)
-            .in('status', ['requested', 'active', 'cooldown', 'hardware_uncertain'])
-            .order('created_at', { ascending: false });
-
-        if (!sessions || sessions.length === 0) {
-            return;
-        }
-
-        for (const s of sessions) {
-            const expiresAtMs = s.expires_at ? new Date(s.expires_at).getTime() : (new Date(s.requested_at).getTime() + (s.duration_seconds || 900) * 1000);
-            const isDeadlinePassedWithMargin = now > (expiresAtMs + 4000);
-
-            if (!isDeadlinePassedWithMargin) {
-                // Deadline EI ole vielä kulunut: sessiota ja pöytää EI saa vapauttaa!
-                if (s.status === 'requested' && s.hardware_dispatched_at && now > (new Date(s.requested_at).getTime() + 30000)) {
-                    await supabase.from('arcade_sessions')
-                        .update({ status: 'hardware_uncertain', error_reason: 'Hardware dispatched but not confirmed active within 30s' })
-                        .eq('id', s.id);
-                    await supabase.from('arcade_table_configs')
-                        .update({ lock_state: 'error_locked' })
-                        .eq('table_id', tableId);
-                }
-                continue;
-            }
-
-            // Deadline + 4000ms ON kulunut: Nyt tarkistetaan fyysisen laitteen tila!
-            let isConfirmedOff = false;
-            if (netio) {
-                try {
-                    isConfirmedOff = await netio.verifyConfirmedOff(targetOutputId);
-                } catch (probeErr) {
-                    console.warn(`[RECONCILE] Hardware probe failed for table ${tableId}:`, probeErr.message);
-                    isConfirmedOff = false;
-                }
-            }
-
-            if (isConfirmedOff) {
-                // Rele on todistettavasti State === 0: Voidaan vapauttaa!
-                await supabase.from('arcade_sessions')
-                    .update({ status: 'completed', confirmed_off_at: new Date().toISOString() })
-                    .eq('id', s.id);
-
-                await supabase.from('arcade_table_configs')
-                    .update({ lock_state: 'available' })
-                    .eq('table_id', tableId)
-                    .eq('lock_state', 'error_locked');
-            } else {
-                // Rele on edelleen ON tai yhteys epäonnistui: Pöytä pysyy lukittuna!
-                await supabase.from('arcade_sessions')
-                    .update({ 
-                        status: 'hardware_uncertain', 
-                        error_reason: 'Deadline passed but hardware relay is still ON or unreachable' 
-                    })
-                    .eq('id', s.id);
-
-                await supabase.from('arcade_table_configs')
-                    .update({ lock_state: 'error_locked' })
-                    .eq('table_id', tableId);
-            }
-        }
-    } else {
-        // In-memory fallback
-        loadMemorySessions();
-        let s = memoryDb.sessions.get(tableId);
-
-        // Jos muistissa ei ole sessiota mutta oikea fyysinen laite ilmoittaa releen olevan päällä:
-        if (!s && netio && !netio.isMock && !process.env.VITEST) {
-            const isRelayOn = await netio.isOutputActive(targetOutputId).catch(() => false);
-            if (isRelayOn) {
-                s = {
-                    id: 'recovered-' + Date.now(),
-                    tableId,
-                    status: 'active',
-                    expiresAt: Date.now() + 15 * 60 * 1000,
-                    recoveredFromHardware: true
-                };
-                memoryDb.sessions.set(tableId, s);
-                saveMemorySessions();
-            }
-        }
-
-        // Jos testitilassa rele on todistettavasti sammunut fyysisesti (esim. virran katkaisun jälkeen):
-        if (isTestMode && s && netio && !netio.isMock && !process.env.VITEST) {
-            const isConfirmedOff = await netio.verifyConfirmedOff(targetOutputId).catch(() => false);
-            if (isConfirmedOff) {
-                s.status = 'completed';
-                memoryDb.sessions.delete(tableId);
-                saveMemorySessions();
-                const cfg = memoryDb.tableConfigs.get(tableId);
-                if (cfg && cfg.lock_state === 'error_locked') {
-                    cfg.lock_state = 'available';
-                }
-                s = null;
-            }
-        }
-
-        if (!s) return;
-
-        const expiresAtMs = s.expiresAt || (new Date(s.requestedAt).getTime() + (s.durationSeconds ? s.durationSeconds * 1000 : (s.durationMinutes || 15) * 60 * 1000));
-        const isDeadlinePassedWithMargin = now > (expiresAtMs + 4000);
-
-        if (!isDeadlinePassedWithMargin) {
-            if (s.status === 'requested' && now > (new Date(s.requestedAt).getTime() + 30000)) {
-                if (s.cmdSent) {
-                    s.status = 'hardware_uncertain';
-                    const cfg = memoryDb.tableConfigs.get(tableId);
-                    if (cfg) cfg.lock_state = 'error_locked';
-                    saveMemorySessions();
-                } else {
-                    s.status = 'failed';
-                    memoryDb.sessions.delete(tableId);
-                    saveMemorySessions();
-                }
-            }
-            return;
-        }
-
-        // Deadline + margin has passed: verify hardware
-        let isConfirmedOff = false;
-        if (netio) {
-            try {
-                isConfirmedOff = await netio.verifyConfirmedOff(targetOutputId);
-            } catch (probeErr) {
-                isConfirmedOff = false;
-            }
-        }
-
-        if (isConfirmedOff) {
-            s.status = 'completed';
-            memoryDb.sessions.delete(tableId);
-            saveMemorySessions();
-            const cfg = memoryDb.tableConfigs.get(tableId);
-            if (cfg && cfg.lock_state === 'error_locked') {
-                cfg.lock_state = 'available';
-            }
-        } else {
-            s.status = 'hardware_uncertain';
-            saveMemorySessions();
-            const cfg = memoryDb.tableConfigs.get(tableId);
-            if (cfg) cfg.lock_state = 'error_locked';
-        }
-    }
-}
 
 /**
  * Check Admin Authorization for protected endpoints
@@ -485,7 +298,7 @@ exports.handler = async function (event, context) {
             const clientToken = (event.queryStringParameters?.clientToken || '').trim();
             let orderData = null;
             if (orderId) {
-                orderData = getOrderStatus({ tableId, orderId, clientToken });
+                orderData = await getOrderStatus({ tableId, orderId, clientToken });
             }
 
             // Check if table is currently held during checkout:

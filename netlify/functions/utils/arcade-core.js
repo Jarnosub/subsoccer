@@ -34,19 +34,27 @@ const CORS_HEADERS = {
     'Content-Type': 'application/json'
 };
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
 let supabase = null;
-if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-    try {
-        supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-            auth: { persistSession: false }
-        });
-    } catch (e) {
-        console.warn('[ARCADE-CORE] Supabase init warning:', e.message);
+
+function getSupabase() {
+    if (supabase) return supabase;
+    const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.SUPABASE_TEST_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_TEST_SERVICE_ROLE_KEY;
+    if (url && key) {
+        try {
+            supabase = createClient(url, key, {
+                auth: { persistSession: false }
+            });
+            return supabase;
+        } catch (e) {
+            console.warn('[ARCADE-CORE] Supabase init warning:', e.message);
+        }
     }
+    return null;
 }
+
+// Initial attempt to bind Supabase client
+getSupabase();
 
 // In-memory simulation fallback storage (used when in test mode or without Supabase credentials)
 const memoryDb = {
@@ -131,17 +139,17 @@ function checkIsTestMode() {
     if (process.env.ARCADE_ENV === 'production' || process.env.NODE_ENV === 'production') {
         return false;
     }
-    if (process.env.ARCADE_ENV === 'test' || process.env.NODE_ENV === 'test' || process.env.VITEST) {
-        return true;
-    }
-    return !supabase;
+    return process.env.ARCADE_ENV === 'test' || 
+           process.env.NODE_ENV === 'test' || 
+           process.env.ARCADE_MOCK_MODE === 'true' || 
+           Boolean(process.env.VITEST);
 }
 
 function getTableConfig(tableId, isTestMode) {
     if (memoryDb.tableConfigs.has(tableId)) {
         return memoryDb.tableConfigs.get(tableId);
     }
-    if (isTestMode && tableId.startsWith('test-')) {
+    if (isTestMode && tableId && tableId.startsWith('test-')) {
         const dynamicCfg = {
             table_id: tableId,
             is_enabled: true,
@@ -154,6 +162,23 @@ function getTableConfig(tableId, isTestMode) {
         return dynamicCfg;
     }
     return null;
+}
+
+async function getTableConfigAsync(tableId, isTestMode) {
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data: dbCfg } = await sb
+                .from('arcade_table_configs')
+                .select('*')
+                .eq('table_id', tableId)
+                .maybeSingle();
+            if (dbCfg) return dbCfg;
+        } catch (e) {
+            console.warn('[ARCADE-CORE] Failed to load table config from Supabase:', e.message);
+        }
+    }
+    return getTableConfig(tableId, isTestMode);
 }
 
 function getNetioAdapter(tableConfig, isTestMode) {
@@ -235,59 +260,94 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
     }
 
     // 3. Supabase session reconciliation
-    try {
-        const { data: expiredSessions } = await supabase
-            .from('arcade_sessions')
-            .select('*')
-            .eq('table_id', tableId)
-            .in('status', ['active', 'requested'])
-            .order('created_at', { ascending: false });
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const staleThreshold = new Date(now - 30000).toISOString();
+            await sb.from('arcade_sessions')
+                .update({ status: 'failed', error_reason: 'Activation timed out before hardware command was dispatched' })
+                .eq('table_id', tableId)
+                .eq('status', 'requested')
+                .is('hardware_dispatched_at', null)
+                .lt('requested_at', staleThreshold);
 
-        if (expiredSessions && expiredSessions.length > 0) {
-            const currentSession = expiredSessions[0];
-            const expiresAtMs = new Date(currentSession.expires_at).getTime();
+            const { data: expiredSessions } = await sb
+                .from('arcade_sessions')
+                .select('*')
+                .eq('table_id', tableId)
+                .in('status', ['active', 'requested', 'hardware_uncertain'])
+                .order('created_at', { ascending: false });
 
-            if (now > (expiresAtMs + 4000)) {
-                const targetOutputId = tableConfig?.switch_output_id || 1;
-                let isOff = false;
-                try {
-                    isOff = await netio.verifyConfirmedOff(targetOutputId);
-                } catch (probeErr) {
-                    console.warn('[RECONCILIATION] Supabase probe error:', probeErr.message);
-                }
+            if (expiredSessions && expiredSessions.length > 0) {
+                const currentSession = expiredSessions[0];
+                const expiresAtMs = currentSession.expires_at 
+                    ? new Date(currentSession.expires_at).getTime() 
+                    : (new Date(currentSession.requested_at).getTime() + (currentSession.duration_seconds || 900) * 1000);
 
-                if (isOff) {
-                    await supabase
-                        .from('arcade_sessions')
-                        .update({ status: 'completed', confirmed_off_at: new Date().toISOString() })
-                        .eq('id', currentSession.id);
+                if (now > (expiresAtMs + 4000)) {
+                    const targetOutputId = tableConfig?.switch_output_id || 1;
+                    let isOff = false;
+                    try {
+                        if (netio) {
+                            isOff = await netio.verifyConfirmedOff(targetOutputId);
+                        }
+                    } catch (probeErr) {
+                        console.warn('[RECONCILIATION] Supabase probe error:', probeErr.message);
+                    }
 
-                    await supabase
-                        .from('arcade_table_configs')
-                        .update({ lock_state: 'available' })
-                        .eq('table_id', tableId);
+                    if (isOff) {
+                        const confirmedOffAt = new Date().toISOString();
+                        const { data: matchedOrder } = await sb
+                            .from('arcade_orders')
+                            .select('order_id')
+                            .eq('table_id', tableId)
+                            .eq('session_id', currentSession.id)
+                            .in('status', ['active', 'hardware_uncertain'])
+                            .maybeSingle();
 
-                    await supabase.from('arcade_events').insert({
-                        table_id: tableId,
-                        session_id: currentSession.id,
-                        event_type: 'switch_confirmed_off',
-                        payload: { confirmedAt: new Date().toISOString() }
-                    });
-                } else {
-                    await supabase
-                        .from('arcade_sessions')
-                        .update({ status: 'hardware_uncertain', error_reason: 'Relay not confirmed OFF after expiration buffer' })
-                        .eq('id', currentSession.id);
+                        if (matchedOrder?.order_id) {
+                            await sb.rpc('arcade_release_reconciled_table', {
+                                p_table_id: tableId,
+                                p_order_id: matchedOrder.order_id,
+                                p_session_id: currentSession.id,
+                                p_confirmed_off: true,
+                                p_confirmed_off_at: confirmedOffAt
+                            });
+                        } else {
+                            await sb
+                                .from('arcade_sessions')
+                                .update({ status: 'completed', confirmed_off_at: confirmedOffAt })
+                                .eq('id', currentSession.id);
 
-                    await supabase
-                        .from('arcade_table_configs')
-                        .update({ lock_state: 'error_locked' })
-                        .eq('table_id', tableId);
+                            await sb
+                                .from('arcade_table_configs')
+                                .update({ lock_state: 'available' })
+                                .eq('table_id', tableId);
+                        }
+
+                        await sb.from('arcade_events').insert({
+                            table_id: tableId,
+                            session_id: currentSession.id,
+                            event_type: 'switch_confirmed_off',
+                            payload: { confirmedAt: confirmedOffAt }
+                        }).catch(() => {});
+                    } else {
+                        await sb
+                            .from('arcade_sessions')
+                            .update({ status: 'hardware_uncertain', error_reason: 'Relay not confirmed OFF after expiration buffer' })
+                            .eq('id', currentSession.id);
+
+                        await sb
+                            .from('arcade_table_configs')
+                            .update({ lock_state: 'error_locked' })
+                            .eq('table_id', tableId);
+                    }
                 }
             }
+        } catch (e) {
+            console.warn('[RECONCILE ERROR]', e.message);
         }
-    } catch (e) {
-        console.warn('[RECONCILE ERROR]', e.message);
+        return;
     }
 }
 
@@ -295,6 +355,86 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
  * Creates an atomic table hold for the customer during checkout (3 min window).
  */
 async function createPaymentHold({ tableId, durationMinutes, clientToken, isTestMode }) {
+    const pkg = PRICE_CATALOG[durationMinutes];
+    if (!pkg) {
+        return {
+            success: false,
+            statusCode: 400,
+            code: 'INVALID_DURATION',
+            error: `Invalid durationMinutes. Allowed values: ${ALLOWED_DURATIONS.join(', ')}`
+        };
+    }
+
+    const sb = getSupabase();
+    if (sb) {
+        const crypto = require('crypto');
+        const token = (clientToken || `tok-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`).trim();
+        const clientTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+        const durationSeconds = durationMinutes * 60;
+
+        const { data, error } = await sb.rpc('arcade_create_payment_hold', {
+            p_table_id: tableId,
+            p_duration_minutes: durationMinutes,
+            p_duration_seconds: durationSeconds,
+            p_amount_cents: pkg.amountCents,
+            p_currency: pkg.currency,
+            p_client_token_hash: clientTokenHash,
+            p_hold_seconds: 180
+        });
+
+        if (error) {
+            console.error('[SUPABASE RPC ERROR] arcade_create_payment_hold:', error.message);
+            return {
+                success: false,
+                statusCode: 500,
+                code: 'DB_RPC_ERROR',
+                error: `Tietokantavirhe varausta luotaessa: ${error.message}`
+            };
+        }
+
+        if (!data || !data.success) {
+            return {
+                success: false,
+                statusCode: data?.statusCode || 409,
+                code: data?.code || 'TABLE_HOLD_FAILED',
+                error: data?.error || 'Pöydän varaaminen epäonnistui.',
+                holdExpiresAt: data?.hold_expires_at || null,
+                lockState: data?.lock_state || null
+            };
+        }
+
+        const order = {
+            orderId: data.order_id,
+            tableId,
+            durationMinutes,
+            durationSeconds,
+            amountCents: pkg.amountCents,
+            currency: pkg.currency,
+            clientToken: token,
+            clientTokenHash,
+            status: 'holding',
+            holdExpiresAt: data.hold_expires_at,
+            paymentIntentId: null
+        };
+
+        return {
+            success: true,
+            order,
+            isReplay: Boolean(data.is_idempotent_replay)
+        };
+    }
+
+    // Fail closed in production if Supabase is missing (Requirement 3)
+    if (!isTestMode) {
+        return {
+            success: false,
+            statusCode: 503,
+            code: 'DATABASE_NOT_CONFIGURED',
+            error: 'Tietokantayhteys puuttuu. Maksullinen varaus ei ole käytettävissä tuotannossa.'
+        };
+    }
+
+    // In-memory fallback for local unit tests without Supabase
     loadMemorySessions();
     const cfg = getTableConfig(tableId, isTestMode);
     if (!cfg) {
@@ -352,16 +492,6 @@ async function createPaymentHold({ tableId, durationMinutes, clientToken, isTest
         }
     }
 
-    const pkg = PRICE_CATALOG[durationMinutes];
-    if (!pkg) {
-        return {
-            success: false,
-            statusCode: 400,
-            code: 'INVALID_DURATION',
-            error: `Invalid durationMinutes. Allowed values: ${ALLOWED_DURATIONS.join(', ')}`
-        };
-    }
-
     const orderId = `ord-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const holdExpiresAt = now + HOLD_DURATION_MS;
 
@@ -392,7 +522,26 @@ async function createPaymentHold({ tableId, durationMinutes, clientToken, isTest
 /**
  * Releases a payment hold if still pending
  */
-function releasePaymentHold({ tableId, orderId, reason }) {
+async function releasePaymentHold({ tableId, orderId, reason }) {
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            await sb.from('arcade_orders')
+                .update({ status: 'cancelled', refund_reason: reason || 'released', updated_at: new Date().toISOString() })
+                .eq('order_id', orderId)
+                .eq('status', 'holding');
+
+            await sb.from('arcade_table_configs')
+                .update({ lock_state: 'available', updated_at: new Date().toISOString() })
+                .eq('table_id', tableId)
+                .eq('lock_state', 'pending_payment');
+            return true;
+        } catch (e) {
+            console.warn('[RELEASE HOLD ERROR]', e.message);
+            return false;
+        }
+    }
+
     loadMemorySessions();
     const activeHoldId = memoryDb.holds.get(tableId);
     const order = memoryDb.orders.get(orderId);
@@ -407,6 +556,69 @@ function releasePaymentHold({ tableId, orderId, reason }) {
         return true;
     }
     return false;
+}
+
+/**
+ * Atomically binds a Stripe PaymentIntent to an active holding order.
+ * Ensures the order cannot be hijacked or paid for with an unbonded intent.
+ */
+async function bindPaymentIntent({ tableId, orderId, paymentIntentId, idempotencyKey, isTestMode }) {
+    if (!tableId || !orderId || !paymentIntentId) {
+        return { success: false, code: 'INVALID_PARAMETERS', error: 'Missing tableId, orderId, or paymentIntentId' };
+    }
+
+    const sb = getSupabase();
+    if (sb) {
+        const { data, error } = await sb.rpc('arcade_bind_payment_intent', {
+            p_table_id: tableId,
+            p_order_id: orderId,
+            p_payment_intent_id: paymentIntentId,
+            p_idempotency_key: idempotencyKey || null
+        });
+
+        if (error) {
+            console.error('[SUPABASE RPC ERROR] arcade_bind_payment_intent:', error.message);
+            return {
+                success: false,
+                code: 'DB_RPC_ERROR',
+                error: `Tietokantavirhe PaymentIntentiä sidottaessa: ${error.message}`
+            };
+        }
+
+        if (!data || !data.success) {
+            return {
+                success: false,
+                code: data?.code || 'BIND_FAILED',
+                error: data?.error || 'PaymentIntentin sitominen tilaukseen epäonnistui.'
+            };
+        }
+
+        return {
+            success: true,
+            orderId,
+            paymentIntentId
+        };
+    }
+
+    if (!isTestMode) {
+        return {
+            success: false,
+            code: 'DATABASE_NOT_CONFIGURED',
+            error: 'Tietokantayhteys puuttuu. PaymentIntentin sitominen ei onnistu tuotannossa.'
+        };
+    }
+
+    loadMemorySessions();
+    const order = memoryDb.orders.get(orderId);
+    if (!order) {
+        return { success: false, code: 'ORDER_NOT_FOUND', error: `Order '${orderId}' not found in memoryDb` };
+    }
+    if (order.tableId !== tableId) {
+        return { success: false, code: 'TABLE_MISMATCH', error: `Order table mismatch` };
+    }
+    order.paymentIntentId = paymentIntentId;
+    saveMemorySessions();
+    return { success: true, orderId, paymentIntentId };
 }
 
 /**
@@ -1042,10 +1254,277 @@ async function activateSessionCore({
  * and maintains physical hardware locking separated from financial refunds.
  */
 async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
-    loadMemorySessions();
     if (!paymentIntent || !paymentIntent.id) {
         return { success: false, statusCode: 400, code: 'INVALID_PAYMENT_INTENT', error: 'Missing PaymentIntent data' };
     }
+
+    const sb = getSupabase();
+    if (sb) {
+        const tableId = paymentIntent.metadata?.table_id;
+        const amountCents = paymentIntent.amount;
+        const currency = paymentIntent.currency;
+        const workerId = `worker-${process.pid || 1}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const clientToken = paymentIntent.metadata?.client_token || `tok-${Date.now()}`;
+
+        // 1. Call atomic claim RPC: arcade_claim_order_for_activation
+        const { data: claimData, error: claimErr } = await sb.rpc('arcade_claim_order_for_activation', {
+            p_table_id: tableId,
+            p_order_id: orderId,
+            p_payment_intent_id: paymentIntent.id,
+            p_amount_cents: amountCents,
+            p_currency: currency,
+            p_worker_id: workerId
+        });
+
+        if (claimErr) {
+            console.error('[SUPABASE RPC ERROR] arcade_claim_order_for_activation:', claimErr.message);
+            return {
+                success: false,
+                statusCode: 500,
+                code: 'DB_RPC_ERROR',
+                refundRequired: true,
+                error: `Tietokantavirhe maksun lunastuksessa: ${claimErr.message}`
+            };
+        }
+
+        // Idempotent replay: already active, completed, or being processed concurrently
+        if (claimData.is_idempotent_replay) {
+            return {
+                success: true,
+                isIdempotentReplay: true,
+                orderId,
+                status: claimData.status,
+                sessionId: claimData.session_id || null,
+                expiresAt: claimData.expires_at || null
+            };
+        }
+
+        // Claim failure (e.g. late payment, hold expired, amount mismatch, table mismatch)
+        if (!claimData.success) {
+            return {
+                success: false,
+                statusCode: claimData.statusCode || 409,
+                code: claimData.code || 'CLAIM_FAILED',
+                refundRequired: Boolean(claimData.refund_required),
+                error: claimData.error || 'Maksun lunastus epäonnistui.'
+            };
+        }
+
+        const effectiveTableId = claimData.table_id || tableId;
+        const durationMinutes = claimData.duration_minutes;
+        const durationSeconds = claimData.duration_seconds || (durationMinutes * 60);
+
+        // 2. Pre-dispatch guard: arcade_pre_dispatch_guard
+        const { data: guardData, error: guardErr } = await sb.rpc('arcade_pre_dispatch_guard', {
+            p_table_id: effectiveTableId,
+            p_order_id: orderId,
+            p_worker_id: workerId,
+            p_client_session_token: clientToken
+        });
+
+        if (guardErr || !guardData?.success) {
+            const errReason = guardErr ? guardErr.message : (guardData?.error || 'Pre-dispatch guard rejected');
+            console.error('[DISPATCH GUARD] Pre-dispatch guard failed:', errReason);
+
+            await sb.from('arcade_orders').update({
+                status: 'activation_failed',
+                refund_status: 'refund_required',
+                refund_reason: errReason,
+                last_error_code: 'DISPATCH_GUARD_FAILED',
+                last_error_details: errReason,
+                updated_at: new Date().toISOString()
+            }).eq('order_id', orderId).catch(() => {});
+
+            return {
+                success: false,
+                statusCode: guardData?.statusCode || 500,
+                code: guardData?.code || 'DISPATCH_RECORDING_FAILED',
+                refundRequired: true,
+                error: `Failed to record hardware dispatch state before execution: ${errReason}`
+            };
+        }
+
+        const sessionId = guardData.session_id;
+        const expiresAt = guardData.expires_at;
+
+        // 3. Obtain table configuration & NETIO adapter
+        const cfg = await getTableConfigAsync(effectiveTableId, isTestMode);
+        const netio = getNetioAdapter(cfg, isTestMode);
+
+        if (!netio && !isTestMode) {
+            await sb.rpc('arcade_finalize_activation', {
+                p_table_id: effectiveTableId,
+                p_order_id: orderId,
+                p_session_id: sessionId,
+                p_worker_id: workerId,
+                p_success: false,
+                p_hardware_uncertain: false,
+                p_error_reason: 'Hardware adapter configuration missing'
+            }).catch(() => {});
+
+            return {
+                success: false,
+                statusCode: 503,
+                code: 'HARDWARE_CONFIG_MISSING',
+                refundRequired: true,
+                error: `Hardware configuration missing for table '${effectiveTableId}'.`
+            };
+        }
+
+        const targetOutputId = cfg?.switch_output_id || 1;
+
+        // 4. Send command to NETIO hardware (Short ON)
+        let netioResult;
+        let dispatchError = null;
+        try {
+            netioResult = await netio.startTimedPlay(durationMinutes, targetOutputId, durationSeconds);
+        } catch (err) {
+            dispatchError = err;
+        }
+
+        if (dispatchError) {
+            console.error('[HARDWARE ERROR] startTimedPlay failed:', dispatchError.message);
+            let isConfirmedOff = false;
+            try {
+                if (netio) {
+                    isConfirmedOff = await netio.verifyConfirmedOff(targetOutputId);
+                }
+            } catch (probeErr) {
+                console.warn('[HARDWARE PROBE] Probe after error failed:', probeErr.message);
+            }
+
+            if (isConfirmedOff) {
+                await sb.rpc('arcade_finalize_activation', {
+                    p_table_id: effectiveTableId,
+                    p_order_id: orderId,
+                    p_session_id: sessionId,
+                    p_worker_id: workerId,
+                    p_success: false,
+                    p_hardware_uncertain: false,
+                    p_error_reason: `Relay activation failed (confirmed OFF): ${dispatchError.message}`
+                }).catch(() => {});
+
+                return {
+                    success: false,
+                    statusCode: 502,
+                    code: 'RELAY_ACTIVATION_FAILED',
+                    refundRequired: true,
+                    error: `Releen käynnistys epäonnistui: ${dispatchError.message}`
+                };
+            } else {
+                await sb.rpc('arcade_finalize_activation', {
+                    p_table_id: effectiveTableId,
+                    p_order_id: orderId,
+                    p_session_id: sessionId,
+                    p_worker_id: workerId,
+                    p_success: false,
+                    p_hardware_uncertain: true,
+                    p_error_reason: `Relay state uncertain (not confirmed OFF): ${dispatchError.message}`
+                }).catch(() => {});
+
+                return {
+                    success: false,
+                    statusCode: 502,
+                    code: 'HARDWARE_UNCERTAIN',
+                    tableLocked: true,
+                    refundRequired: true,
+                    expiresAt,
+                    error: `Hardware state uncertain: unable to confirm relay watchdog lease. Table has been locked for operator inspection.`
+                };
+            }
+        }
+
+        // 5. Finalize activation in Supabase (transition processing -> active)
+        const { data: finalizeData, error: finalizeErr } = await sb.rpc('arcade_finalize_activation', {
+            p_table_id: effectiveTableId,
+            p_order_id: orderId,
+            p_session_id: sessionId,
+            p_worker_id: workerId,
+            p_success: true,
+            p_hardware_uncertain: false,
+            p_error_reason: null
+        });
+
+        if (finalizeErr || !finalizeData?.success) {
+            console.error('[FINALIZE ERROR] arcade_finalize_activation failed after hardware ON:', finalizeErr?.message || finalizeData?.error);
+            let cutConfirmedOff = false;
+            try {
+                if (netio) {
+                    await netio.emergencyStop(targetOutputId);
+                    cutConfirmedOff = await netio.verifyConfirmedOff(targetOutputId);
+                }
+            } catch (cutErr) {}
+
+            if (cutConfirmedOff) {
+                await sb.from('arcade_orders').update({
+                    status: 'activation_failed',
+                    refund_status: 'refund_required',
+                    refund_reason: 'DB finalize failed; emergency power cut confirmed OFF',
+                    updated_at: new Date().toISOString()
+                }).eq('order_id', orderId).catch(() => {});
+
+                return {
+                    success: false,
+                    statusCode: 500,
+                    code: 'DB_FINALIZE_FAILED',
+                    refundRequired: true,
+                    error: 'Database finalize failed after hardware start. Table power was safely cut. Payment will be refunded.'
+                };
+            } else {
+                await sb.from('arcade_orders').update({
+                    status: 'hardware_uncertain',
+                    refund_status: 'refund_required',
+                    refund_reason: 'DB finalize failed and emergency cut unconfirmed',
+                    updated_at: new Date().toISOString()
+                }).eq('order_id', orderId).catch(() => {});
+
+                await sb.from('arcade_table_configs').update({
+                    lock_state: 'error_locked',
+                    updated_at: new Date().toISOString()
+                }).eq('table_id', effectiveTableId).catch(() => {});
+
+                return {
+                    success: false,
+                    statusCode: 502,
+                    code: 'HARDWARE_UNCERTAIN',
+                    tableLocked: true,
+                    refundRequired: true,
+                    expiresAt,
+                    error: 'Hardware state uncertain: session state could not be finalized and power cut could not be verified. Table has been locked.'
+                };
+            }
+        }
+
+        // 6. Record successful event in arcade_events
+        await sb.from('arcade_events').insert({
+            table_id: effectiveTableId,
+            session_id: sessionId,
+            event_type: 'switch_confirmed_on',
+            payload: { hardware: netioResult, expiresAt, outputId: targetOutputId }
+        }).catch(() => {});
+
+        return {
+            success: true,
+            orderId,
+            sessionId,
+            expiresAt,
+            hardware: netioResult
+        };
+    }
+
+    // Fail closed in production if Supabase is missing (Requirement 3 & 12)
+    if (!isTestMode) {
+        return {
+            success: false,
+            statusCode: 503,
+            code: 'DATABASE_NOT_CONFIGURED',
+            refundRequired: true,
+            error: 'Tietokantayhteys puuttuu. Maksullinen lunastus ei ole käytettävissä tuotannossa.'
+        };
+    }
+
+    // In-memory fallback for local unit tests without Supabase
+    loadMemorySessions();
 
     // 1. Idempotency Check: Has this payment intent already been processed?
     if (memoryDb.processedPaymentIntents.has(paymentIntent.id)) {
@@ -1062,7 +1541,6 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
     // 2. Order Lookup
     const order = memoryDb.orders.get(orderId);
     if (!order) {
-        // Unknown order: Flag for review/refund
         return {
             success: false,
             statusCode: 404,
@@ -1073,7 +1551,6 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
     }
 
     // 3. Strict Order & PaymentIntent Verification
-    // A. Test Mode validation: livemode must be false
     if (paymentIntent.livemode === true) {
         order.status = 'livemode_rejected';
         order.refundStatus = 'refund_required';
@@ -1087,7 +1564,6 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         };
     }
 
-    // B. Amount & Currency verification
     if (paymentIntent.amount !== order.amountCents || paymentIntent.currency.toLowerCase() !== order.currency.toLowerCase()) {
         order.status = 'amount_mismatch';
         order.refundStatus = 'refund_required';
@@ -1101,7 +1577,6 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         };
     }
 
-    // C. Table & Duration metadata verification
     if (paymentIntent.metadata?.table_id && paymentIntent.metadata.table_id !== order.tableId) {
         order.status = 'table_mismatch';
         order.refundStatus = 'refund_required';
@@ -1115,11 +1590,10 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         };
     }
 
-    // 4. Hold Expiration and Conflict Check (Requirement 6)
+    // 4. Hold Expiration and Conflict Check
     const now = Date.now();
     const currentTableHold = memoryDb.holds.get(order.tableId);
 
-    // Is hold already claimed concurrently?
     if (order.isClaimed) {
         return {
             success: true,
@@ -1130,7 +1604,6 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         };
     }
 
-    // Has hold expired or been replaced?
     if (now > order.holdExpiresAt || currentTableHold !== order.orderId) {
         order.status = 'late_payment_conflict';
         order.refundStatus = 'refund_required';
@@ -1145,7 +1618,6 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
     }
 
     // 5. ATOMIC CLAIM TRANSITION
-    // Synchronously claim the hold in the event loop before any async points
     order.isClaimed = true;
     order.status = 'activating';
     order.paymentIntentId = paymentIntent.id;
@@ -1170,7 +1642,7 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         order.sessionId = activationResult.body.sessionId;
         order.expiresAt = activationResult.body.expiresAt;
         order.activatedAt = new Date().toISOString();
-        memoryDb.holds.delete(order.tableId); // Release the pre-payment hold since play is now active
+        memoryDb.holds.delete(order.tableId);
         saveMemorySessions();
 
         return {
@@ -1181,8 +1653,6 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
             hardware: activationResult.body.hardware
         };
     } else {
-        // Hardware or activation failed
-        // Requirement 4: Separate physical lock from financial refund
         order.status = 'activation_failed';
         order.refundStatus = 'refund_required';
         order.errorReason = activationResult.body.error;
@@ -1202,7 +1672,52 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
 /**
  * Returns clean customer-facing order status
  */
-function getOrderStatus({ tableId, orderId, clientToken }) {
+async function getOrderStatus({ tableId, orderId, clientToken }) {
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data: order } = await sb
+                .from('arcade_orders')
+                .select('*')
+                .eq('order_id', orderId)
+                .maybeSingle();
+
+            if (order) {
+                if (tableId && order.table_id !== tableId) return null;
+                if (clientToken) {
+                    const crypto = require('crypto');
+                    const hash = crypto.createHash('sha256').update(clientToken.trim()).digest('hex');
+                    if (order.client_token_hash && order.client_token_hash !== hash) {
+                        return null;
+                    }
+                }
+
+                let timeRemainingSecs = 0;
+                if (order.status === 'active' && order.expires_at) {
+                    const expMs = new Date(order.expires_at).getTime();
+                    timeRemainingSecs = Math.max(0, Math.round((expMs - Date.now()) / 1000));
+                }
+
+                return {
+                    orderId: order.order_id,
+                    tableId: order.table_id,
+                    durationMinutes: order.duration_minutes,
+                    amountCents: order.amount_cents,
+                    currency: order.currency,
+                    status: order.status,
+                    isActivated: order.status === 'active',
+                    timeRemainingSecs,
+                    expiresAt: order.expires_at,
+                    holdExpiresAt: order.hold_expires_at,
+                    refundStatus: order.refund_status,
+                    errorReason: order.refund_reason || order.last_error_details
+                };
+            }
+        } catch (e) {
+            console.warn('[ARCADE-CORE] getOrderStatus DB query failed:', e.message);
+        }
+    }
+
     loadMemorySessions();
     const order = memoryDb.orders.get(orderId);
     if (!order) return null;
@@ -1271,6 +1786,9 @@ module.exports = {
     reconcileTableState,
     createPaymentHold,
     releasePaymentHold,
+    bindPaymentIntent,
+    getTableConfigAsync,
+    getSupabase,
     activateSessionCore,
     claimAndActivateOrder,
     getOrderStatus,

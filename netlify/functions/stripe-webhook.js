@@ -3,7 +3,8 @@ const {
     claimAndActivateOrder,
     releasePaymentHold,
     saveMemorySessions,
-    memoryDb
+    memoryDb,
+    getSupabase
 } = require('./utils/arcade-core');
 
 let stripeClient = null;
@@ -23,16 +24,28 @@ exports.handler = async (event, context) => {
         };
     }
 
+    const isTestMode = checkIsTestMode();
+    const sb = getSupabase();
+
+    // Fail-closed in production if database is not configured (Requirement 3 & 12)
+    if (!sb && !isTestMode) {
+        console.error('[STRIPE WEBHOOK] Database not configured in production. Failing closed.');
+        return {
+            statusCode: 503,
+            body: JSON.stringify({ error: 'Database not configured in production', code: 'DATABASE_NOT_CONFIGURED' })
+        };
+    }
+
     const stripe = getStripeClient();
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    const isTestMode = checkIsTestMode();
 
     let stripeEvent;
     const sig = event.headers['stripe-signature'] || event.headers['Stripe-Signature'];
+    const rawBody = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString('utf8') : (event.body || '');
 
     if (webhookSecret && stripe && sig) {
         try {
-            stripeEvent = stripe.webhooks.constructEvent(event.body, sig, webhookSecret);
+            stripeEvent = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
         } catch (err) {
             console.error('[WEBHOOK ERROR] Signature verification failed:', err.message);
             return {
@@ -43,14 +56,14 @@ exports.handler = async (event, context) => {
     } else if (isTestMode) {
         // Fallback in unit test environments if no secret configured
         try {
-            stripeEvent = typeof event.body === 'string' ? JSON.parse(event.body) : (event.body || {});
+            stripeEvent = typeof rawBody === 'string' ? JSON.parse(rawBody) : (rawBody || {});
         } catch (e) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON payload' }) };
         }
     } else {
         return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Stripe webhook secret not configured in production' })
+            statusCode: 400,
+            body: JSON.stringify({ error: 'Missing webhook signature or webhook secret in production' })
         };
     }
 
@@ -124,7 +137,7 @@ exports.handler = async (event, context) => {
         if (orderId && tableId) {
             // Only release hold IF it is still in pending_payment!
             // If the session is already active (e.g. out-of-order event), do NOT cancel active game!
-            const released = releasePaymentHold({
+            const released = await releasePaymentHold({
                 tableId,
                 orderId,
                 reason: 'stripe_payment_intent_canceled'

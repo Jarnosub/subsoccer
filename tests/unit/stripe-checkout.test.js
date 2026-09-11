@@ -14,7 +14,9 @@ const {
     getOrderStatus,
     claimAndActivateOrder,
     createPaymentHold,
-    releasePaymentHold
+    releasePaymentHold,
+    bindPaymentIntent,
+    _setSupabaseClient
 } = require('../../netlify/functions/utils/arcade-core.js');
 
 describe('Stripe Checkout & Webhook Integration', () => {
@@ -22,6 +24,7 @@ describe('Stripe Checkout & Webhook Integration', () => {
 
     beforeEach(() => {
         resetMemoryDb();
+        _setSupabaseClient(null);
 
         // Configure mock NETIO
         memoryDb._mockNetioConfig = {
@@ -41,6 +44,9 @@ describe('Stripe Checkout & Webhook Integration', () => {
                         status: 'requires_payment_method',
                         livemode: false
                     };
+                },
+                cancel: async (id, opts) => {
+                    return { id, status: 'canceled', cancellation_reason: opts?.cancellation_reason };
                 }
             },
             webhooks: {
@@ -557,5 +563,284 @@ describe('Stripe Checkout & Webhook Integration', () => {
         assert.strictEqual(pollAfterBody.order.status, 'active');
         assert.strictEqual(pollAfterBody.order.isActivated, true);
         assert.ok(pollAfterBody.order.timeRemainingSecs > 0);
+    });
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // REQUIREMENT 5 & 6: BIND PAYMENT INTENT & CANCELLATION ON FAILURE
+    // ──────────────────────────────────────────────────────────────────────────
+    it('cancels Stripe PaymentIntent and releases hold if Supabase binding fails (returns 502 BIND_PAYMENT_INTENT_FAILED)', async () => {
+        let cancelledIntentId = null;
+        mockStripe.paymentIntents.cancel = async (id) => {
+            cancelledIntentId = id;
+            return { id, status: 'canceled' };
+        };
+
+        const mockSupabase = {
+            rpc: async (fnName, params) => {
+                if (fnName === 'arcade_create_payment_hold') {
+                    return {
+                        data: {
+                            success: true,
+                            order_id: 'ord-bind-fail-test',
+                            hold_expires_at: new Date(Date.now() + 180000).toISOString()
+                        },
+                        error: null
+                    };
+                }
+                if (fnName === 'arcade_bind_payment_intent') {
+                    return {
+                        data: {
+                            success: false,
+                            code: 'BIND_CONFLICT',
+                            error: 'Order already bound or expired'
+                        },
+                        error: null
+                    };
+                }
+                return { data: null, error: new Error(`Unknown RPC ${fnName}`) };
+            },
+            from: () => ({
+                update: () => ({
+                    eq: () => ({
+                        eq: () => Promise.resolve({ error: null })
+                    })
+                })
+            })
+        };
+
+        _setSupabaseClient(mockSupabase);
+
+        const res = await createPaymentIntentHandler({
+            httpMethod: 'POST',
+            body: JSON.stringify({ table: 'demo-pulse-01', durationMinutes: 5 })
+        }, {});
+
+        assert.strictEqual(res.statusCode, 502);
+        const body = JSON.parse(res.body);
+        assert.strictEqual(body.code, 'BIND_PAYMENT_INTENT_FAILED');
+        assert.ok(cancelledIntentId, 'Stripe PaymentIntent must be cancelled when binding fails');
+    });
+
+    it('fails closed with 503 DATABASE_NOT_CONFIGURED when Supabase is missing in production for payment hold', async () => {
+        const origArcadeEnv = process.env.ARCADE_ENV;
+        const origNodeEnv = process.env.NODE_ENV;
+        const origVitest = process.env.VITEST;
+
+        try {
+            process.env.ARCADE_ENV = 'production';
+            process.env.NODE_ENV = 'production';
+            delete process.env.VITEST;
+
+            const res = await createPaymentIntentHandler({
+                httpMethod: 'POST',
+                body: JSON.stringify({ table: 'demo-pulse-01', durationMinutes: 5 })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 503);
+            const body = JSON.parse(res.body);
+            assert.strictEqual(body.code, 'DATABASE_NOT_CONFIGURED');
+        } finally {
+            process.env.ARCADE_ENV = origArcadeEnv;
+            process.env.NODE_ENV = origNodeEnv;
+            if (origVitest) process.env.VITEST = origVitest;
+        }
+    });
+
+    it('fails closed with 503 DATABASE_NOT_CONFIGURED when Supabase is missing in production for webhook processing', async () => {
+        const origArcadeEnv = process.env.ARCADE_ENV;
+        const origNodeEnv = process.env.NODE_ENV;
+        const origVitest = process.env.VITEST;
+
+        try {
+            process.env.ARCADE_ENV = 'production';
+            process.env.NODE_ENV = 'production';
+            delete process.env.VITEST;
+
+            const res = await webhookHandler({
+                httpMethod: 'POST',
+                headers: { 'stripe-signature': 'valid_sig' },
+                body: JSON.stringify({
+                    type: 'payment_intent.succeeded',
+                    data: {
+                        object: {
+                            id: 'pi_prod_fail_closed',
+                            amount: 250,
+                            currency: 'eur',
+                            metadata: { order_id: 'ord-123', table_id: 'demo-pulse-01' }
+                        }
+                    }
+                })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 503);
+            const body = JSON.parse(res.body);
+            assert.strictEqual(body.code, 'DATABASE_NOT_CONFIGURED');
+        } finally {
+            process.env.ARCADE_ENV = origArcadeEnv;
+            process.env.NODE_ENV = origNodeEnv;
+            if (origVitest) process.env.VITEST = origVitest;
+        }
+    });
+
+    it('rejects unauthenticated webhook in production when stripe-signature or secret is missing', async () => {
+        const origArcadeEnv = process.env.ARCADE_ENV;
+        const origNodeEnv = process.env.NODE_ENV;
+        const origVitest = process.env.VITEST;
+        const origSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+        _setSupabaseClient({ rpc: async () => ({ data: {}, error: null }) });
+
+        try {
+            process.env.ARCADE_ENV = 'production';
+            process.env.NODE_ENV = 'production';
+            delete process.env.VITEST;
+            delete process.env.STRIPE_WEBHOOK_SECRET;
+
+            const res = await webhookHandler({
+                httpMethod: 'POST',
+                headers: {},
+                body: JSON.stringify({ type: 'payment_intent.succeeded' })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 400);
+        } finally {
+            process.env.ARCADE_ENV = origArcadeEnv;
+            process.env.NODE_ENV = origNodeEnv;
+            if (origVitest) process.env.VITEST = origVitest;
+            process.env.STRIPE_WEBHOOK_SECRET = origSecret;
+        }
+    });
+
+    it('handles duplicate webhook delivery during processing state without dispatching relay a second time', async () => {
+        let dispatchCount = 0;
+        const mockSupabase = {
+            rpc: async (fnName, params) => {
+                if (fnName === 'arcade_claim_order_for_activation') {
+                    return {
+                        data: {
+                            success: true,
+                            is_idempotent_replay: true,
+                            status: 'processing',
+                            order_id: params.p_order_id
+                        },
+                        error: null
+                    };
+                }
+                if (fnName === 'arcade_pre_dispatch_guard') {
+                    dispatchCount++;
+                    return { data: { success: true }, error: null };
+                }
+                return { data: null, error: new Error(`Unexpected RPC ${fnName}`) };
+            }
+        };
+
+        _setSupabaseClient(mockSupabase);
+
+        const res = await webhookHandler({
+            httpMethod: 'POST',
+            headers: { 'stripe-signature': 'valid_sig' },
+            body: JSON.stringify({
+                type: 'payment_intent.succeeded',
+                data: {
+                    object: {
+                        id: 'pi_processing_replay',
+                        amount: 250,
+                        currency: 'eur',
+                        livemode: false,
+                        metadata: { order_id: 'ord-processing-123', table_id: 'demo-pulse-01' }
+                    }
+                }
+            })
+        }, {});
+
+        assert.strictEqual(res.statusCode, 200);
+        const body = JSON.parse(res.body);
+        assert.strictEqual(body.activation.isIdempotentReplay, true);
+        assert.strictEqual(dispatchCount, 0, 'Pre-dispatch guard must NOT be called for processing replay');
+    });
+
+    it('executes full Supabase atomic RPC orchestration when Supabase client is connected', async () => {
+        let rpcCalls = [];
+        const mockSupabase = {
+            rpc: async (fnName, params) => {
+                rpcCalls.push(fnName);
+                if (fnName === 'arcade_claim_order_for_activation') {
+                    return {
+                        data: {
+                            success: true,
+                            is_idempotent_replay: false,
+                            table_id: params.p_table_id,
+                            duration_minutes: 5,
+                            duration_seconds: 300
+                        },
+                        error: null
+                    };
+                }
+                if (fnName === 'arcade_pre_dispatch_guard') {
+                    return {
+                        data: {
+                            success: true,
+                            session_id: 'sess-sb-456',
+                            expires_at: new Date(Date.now() + 300000).toISOString()
+                        },
+                        error: null
+                    };
+                }
+                if (fnName === 'arcade_finalize_activation') {
+                    return {
+                        data: {
+                            success: true,
+                            status: 'active'
+                        },
+                        error: null
+                    };
+                }
+                return { data: null, error: new Error(`Unexpected RPC ${fnName}`) };
+            },
+            from: (table) => ({
+                select: () => ({
+                    eq: () => ({
+                        maybeSingle: async () => ({
+                            data: { table_id: 'demo-pulse-01', is_enabled: true, lock_state: 'pending_payment', switch_output_id: 1 }
+                        })
+                    })
+                }),
+                insert: async () => ({ error: null }),
+                update: () => ({
+                    eq: () => Promise.resolve({ error: null })
+                })
+            })
+        };
+
+        _setSupabaseClient(mockSupabase);
+
+        const res = await webhookHandler({
+            httpMethod: 'POST',
+            headers: { 'stripe-signature': 'valid_sig' },
+            body: JSON.stringify({
+                type: 'payment_intent.succeeded',
+                data: {
+                    object: {
+                        id: 'pi_full_sb_flow',
+                        amount: 250,
+                        currency: 'eur',
+                        livemode: false,
+                        metadata: { order_id: 'ord-sb-999', table_id: 'demo-pulse-01' }
+                    }
+                }
+            })
+        }, {});
+
+        assert.strictEqual(res.statusCode, 200);
+        const body = JSON.parse(res.body);
+        assert.strictEqual(body.activation.success, true);
+        assert.strictEqual(body.activation.sessionId, 'sess-sb-456');
+
+        // Verify the exact required RPC sequence:
+        assert.deepStrictEqual(rpcCalls, [
+            'arcade_claim_order_for_activation',
+            'arcade_pre_dispatch_guard',
+            'arcade_finalize_activation'
+        ]);
     });
 });
