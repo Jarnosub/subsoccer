@@ -7,6 +7,7 @@
     <!-- Fonts & Icons matching analytics-dashboard.html -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
     
     <style>
         :root {
@@ -487,6 +488,16 @@
             color: var(--brand-red);
         }
 
+        .slot-price {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .slot-btn.selected .slot-price {
+            color: var(--brand-red);
+        }
+
         .slot-desc {
             font-size: 0.72rem;
             color: var(--text-secondary);
@@ -538,6 +549,374 @@
             color: var(--text-secondary);
             text-align: center;
             line-height: 1.4;
+        }
+
+        /* ─── LOCAL TEST MODE CONTROLS ─── */
+        .test-controls-card {
+            background-color: rgba(251, 188, 4, 0.05);
+            border: 1px solid rgba(251, 188, 4, 0.25);
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3);
+            box-sizing: border-box;
+        }
+
+        .test-controls-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .test-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-yellow);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .test-device-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .test-controls-desc {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .btn-test-30s {
+            width: 100%;
+            background-color: rgba(251, 188, 4, 0.12);
+            border: 1px solid rgba(251, 188, 4, 0.4);
+            color: #ffd666;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.15s ease;
+            box-sizing: border-box;
+        }
+
+        .btn-test-30s:hover:not(:disabled) {
+            background-color: rgba(251, 188, 4, 0.25);
+            border-color: var(--accent-yellow);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(251, 188, 4, 0.2);
+        }
+
+        .btn-test-30s:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        /* ─── STATUS CARD PANELS (STARTING, EXPIRED, REFUNDED) ─── */
+        .status-card-panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3);
+        }
+
+        .panel-icon-wrap {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+
+        .panel-icon-wrap.starting {
+            background-color: rgba(138, 180, 248, 0.12);
+            color: var(--accent-blue);
+            border: 1px solid rgba(138, 180, 248, 0.3);
+        }
+
+        .panel-icon-wrap.expired {
+            background-color: rgba(160, 165, 170, 0.12);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .panel-icon-wrap.refunded {
+            background-color: rgba(242, 139, 130, 0.12);
+            color: var(--accent-red);
+            border: 1px solid rgba(242, 139, 130, 0.3);
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .panel-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            max-width: 320px;
+        }
+
+        .panel-status-tag {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(138, 180, 248, 0.1);
+            color: var(--accent-blue);
+            border: 1px solid rgba(138, 180, 248, 0.25);
+            font-weight: 500;
+        }
+
+        .btn-secondary-action {
+            background-color: var(--bg-card-inner);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            transition: all 0.15s ease;
+        }
+
+        .btn-secondary-action:hover {
+            border-color: var(--border-hover);
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        /* ─── STRIPE CHECKOUT MODAL ─── */
+        .stripe-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @media (min-width: 540px) {
+            .stripe-modal-backdrop {
+                align-items: center;
+                padding: 20px;
+            }
+        }
+
+        .stripe-modal-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px 22px 28px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+            animation: slideUp 0.25s ease;
+        }
+
+        @media (min-width: 540px) {
+            .stripe-modal-card {
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .stripe-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .stripe-modal-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stripe-modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: color 0.15s ease;
+        }
+
+        .stripe-modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .stripe-order-summary {
+            background-color: var(--bg-card-inner);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .order-summary-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .order-summary-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .total-amount {
+            color: var(--brand-red);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .test-card-callout {
+            background-color: rgba(253, 226, 147, 0.08);
+            border: 1px solid rgba(253, 226, 147, 0.25);
+            border-radius: 6px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .test-card-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--accent-yellow);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .test-card-details {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .test-card-details code {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #ffd666;
+            background: rgba(0,0,0,0.3);
+            padding: 3px 6px;
+            border-radius: 4px;
+        }
+
+        .test-card-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-copy-card {
+            background: rgba(253, 226, 147, 0.15);
+            border: 1px solid rgba(253, 226, 147, 0.35);
+            color: #ffd666;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: inherit;
+            transition: all 0.15s ease;
+        }
+
+        .btn-copy-card:hover {
+            background: rgba(253, 226, 147, 0.25);
+            color: #fff;
+        }
+
+        .stripe-card-error {
+            color: var(--accent-red);
+            font-size: 0.8rem;
+            line-height: 1.3;
+            padding: 8px 10px;
+            background: rgba(242, 139, 130, 0.1);
+            border: 1px solid rgba(242, 139, 130, 0.3);
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .stripe-secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
         }
 
         /* ─── HOW IT WORKS (Data Studio Card) ─── */
@@ -784,6 +1163,43 @@
             </div>
         </div>
 
+        <!-- STARTING / PENDING ACTIVATION STATUS PANEL -->
+        <div class="status-card-panel" id="stateStartingPanel" style="display: none;">
+            <div class="panel-icon-wrap starting">
+                <i class="fas fa-circle-notch fa-spin"></i>
+            </div>
+            <div class="panel-title" id="startingTitle">Maksu hyväksytty!</div>
+            <div class="panel-desc" id="startingDesc">Odotetaan pöydän ja valojen käynnistystä (NETIO)...</div>
+            <div class="panel-status-tag">Varmistetaan laiteyhteys</div>
+        </div>
+
+        <!-- EXPIRED SESSION STATUS PANEL -->
+        <div class="status-card-panel" id="stateExpiredPanel" style="display: none;">
+            <div class="panel-icon-wrap expired">
+                <i class="fas fa-flag-checkered"></i>
+            </div>
+            <div class="panel-title">Peliaika päättynyt</div>
+            <div class="panel-desc">Kiitos pelistä! Haluatko aloittaa uuden pelin?</div>
+            <button class="btn-primary-action" onclick="resetToAvailable()" type="button" style="margin-top: 10px;">
+                <i class="fas fa-rotate-right"></i>
+                <span>PELAA UUDELLEEN</span>
+            </button>
+        </div>
+
+        <!-- REFUNDED / ACTIVATION FAILED STATUS PANEL -->
+        <div class="status-card-panel" id="stateRefundedPanel" style="display: none;">
+            <div class="panel-icon-wrap refunded">
+                <i class="fas fa-triangle-exclamation"></i>
+            </div>
+            <div class="panel-title">Käynnistys epäonnistui</div>
+            <div class="panel-desc" id="refundedDesc">Pöytää ei saatu käynnistettyä. Maksusi palautetaan automaattisesti pankkitilillesi/kortillesi.</div>
+            <div class="panel-status-tag" style="background: rgba(242, 139, 130, 0.15); color: var(--accent-red); border-color: rgba(242, 139, 130, 0.3);">Hyvitys rekisteröity</div>
+            <button class="btn-secondary-action" onclick="resetToAvailable()" type="button" style="margin-top: 10px;">
+                <i class="fas fa-arrow-left"></i>
+                <span>Palaa alkuun</span>
+            </button>
+        </div>
+
         <!-- ERROR NOTICE BANNER -->
         <div class="arcade-error-notice" id="arcadeErrorNotice" style="display:none;">
             <i class="fas fa-circle-exclamation" style="font-size:1.1rem; flex-shrink:0;"></i>
@@ -793,27 +1209,34 @@
         <!-- TIME PACKAGE SELECTOR (USE CASE 1: POWER LEASE) -->
         <div class="package-section" id="packageSection">
             <div class="section-headline">
-                <span>Select Play Time</span>
-                <span class="demo-tag">
-                    <i class="fas fa-bolt"></i> Demo: 1s = 1 min
-                </span>
+                <span>Valitse peliaika</span>
             </div>
 
             <div class="slots-grid">
+                <button class="slot-btn" id="slot-test30s" onclick="selectSlot('test30s')" type="button" style="display:none; border-color:rgba(251,188,4,0.45); background:rgba(251,188,4,0.08);">
+                    <span class="slot-popular-badge" style="background:var(--accent-yellow); color:#1a1a1a;">Pikatesti</span>
+                    <span class="slot-time" style="color:var(--accent-yellow);">30 s</span>
+                    <span class="slot-price" style="color:#ffd666;">Maksuton</span>
+                    <span class="slot-desc" style="color:#ffd666;">Testi 30 s</span>
+                </button>
+
+                <button class="slot-btn" id="slot-5" onclick="selectSlot(5)" type="button">
+                    <span class="slot-time">5 min</span>
+                    <span class="slot-price">2,50 €</span>
+                    <span class="slot-desc">Peli</span>
+                </button>
+
                 <button class="slot-btn selected" id="slot-15" onclick="selectSlot(15)" type="button">
-                    <span class="slot-time">15m</span>
-                    <span class="slot-desc">15s demo</span>
+                    <span class="slot-popular-badge">Suosittu</span>
+                    <span class="slot-time">15 min</span>
+                    <span class="slot-price">5,00 €</span>
+                    <span class="slot-desc">Turnaus</span>
                 </button>
 
                 <button class="slot-btn" id="slot-30" onclick="selectSlot(30)" type="button">
-                    <span class="slot-popular-badge">Popular</span>
-                    <span class="slot-time">30m</span>
-                    <span class="slot-desc">30s demo</span>
-                </button>
-
-                <button class="slot-btn" id="slot-60" onclick="selectSlot(60)" type="button">
-                    <span class="slot-time">60m</span>
-                    <span class="slot-desc">60s demo</span>
+                    <span class="slot-time">30 min</span>
+                    <span class="slot-price">7,00 €</span>
+                    <span class="slot-desc">Pitkä sessio</span>
                 </button>
             </div>
         </div>
@@ -822,11 +1245,28 @@
         <div class="cta-container">
             <button class="btn-primary-action" id="btnActivatePlay" onclick="activateTablePower()" type="button">
                 <i class="fas fa-bolt"></i>
-                <span id="btnActivateLabel">ACTIVATE 15 MIN PLAY (15s DEMO)</span>
+                <span id="btnActivateLabel">MAKSA 15 MIN · 5,00 €</span>
             </button>
             <p class="cta-note" id="ctaNote">
-                Activates table lights and power. Use the table's physical buttons to play matches freely.
+                Siirtyy turvalliseen Stripe-testimaksuun. Pöytä kytkeytyy heti maksun jälkeen.
             </p>
+        </div>
+
+        <!-- LOCAL HARDWARE TEST CONTROLS (TESTI 30 S) -->
+        <div class="test-controls-card" id="testModeSection" style="display: none;">
+            <div class="test-controls-header">
+                <span class="test-badge">
+                    <i class="fas fa-flask"></i> Paikallinen testitila
+                </span>
+                <span class="test-device-label" id="testDeviceLabel">NETIO PowerBOX 3PF · Output 1</span>
+            </div>
+            <p class="test-controls-desc">
+                Käynnistää 30 sekunnin pikatestin oikealla NETIO-laitteella (Action: 3, Delay: 30000). Rele katkaisee virran itsenäisesti. Pöytä vapautuu 4 s turvamarginaalin ja fyysisen OFF-varmistuksen jälkeen.
+            </p>
+            <button class="btn-test-30s" id="btnTest30s" onclick="activate30sTest()" type="button">
+                <i class="fas fa-stopwatch"></i>
+                <span id="btnTest30sLabel">Testi 30 s</span>
+            </button>
         </div>
 
         <!-- HOW IT WORKS (Data Studio Card) -->
@@ -884,6 +1324,67 @@
         </div>
     </footer>
 
+    <!-- STRIPE TEST PAYMENT MODAL SHEET -->
+    <div class="stripe-modal-backdrop" id="stripeModalBackdrop" style="display: none;">
+        <div class="stripe-modal-card">
+            <div class="stripe-modal-header">
+                <div class="stripe-modal-title">
+                    <i class="fas fa-credit-card" style="color: var(--accent-blue);"></i>
+                    <span>Turvallinen testimaksu</span>
+                </div>
+                <button class="stripe-modal-close" onclick="closeStripeCheckout()" type="button" aria-label="Sulje">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="stripe-order-summary">
+                <div class="order-summary-item">
+                    <span class="summary-label" id="summaryTableName">Subsoccer Arcade #1</span>
+                    <span class="summary-value" id="summaryDuration">15 min</span>
+                </div>
+                <div class="order-summary-total">
+                    <span>Yhteensä</span>
+                    <span class="total-amount" id="summaryAmount">5,00 €</span>
+                </div>
+            </div>
+
+            <!-- Test Card Helper Callout -->
+            <div class="test-card-callout">
+                <div class="test-card-header">
+                    <i class="fas fa-flask" style="color: var(--accent-yellow);"></i>
+                    <span>Stripe Testikortti</span>
+                </div>
+                <div class="test-card-details">
+                    <code id="testCardNumber">4242 4242 4242 4242</code>
+                    <span class="test-card-meta">12/28 · 123</span>
+                    <button class="btn-copy-card" id="btnCopyCard" onclick="copyTestCard()" type="button">
+                        <i class="fas fa-copy"></i>
+                        <span id="copyCardLabel">Kopioi</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stripe Elements Container -->
+            <div id="stripePaymentElementContainer">
+                <div id="stripePaymentElement">
+                    <!-- Stripe Payment Element mounts here -->
+                </div>
+                <div id="stripePaymentError" class="stripe-card-error" style="display:none;"></div>
+            </div>
+
+            <!-- Confirm Button -->
+            <button class="btn-primary-action" id="btnConfirmStripePayment" onclick="handleConfirmPayment()" type="button">
+                <i class="fas fa-lock"></i>
+                <span id="btnConfirmPaymentLabel">MAKSA 5,00 €</span>
+            </button>
+
+            <div class="stripe-secure-badge">
+                <i class="fas fa-shield-halved"></i>
+                <span>Salattu Stripe-testiyhteys · Ei oikeaa veloitusta</span>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ─── TABLE FLEET DATA ───
         const TABLE_FLEET = {
@@ -913,13 +1414,34 @@
             }
         };
 
-        // ─── RUNTIME STATE ───
-        let currentState = 'AVAILABLE'; // 'AVAILABLE', 'REQUESTING', 'ACTIVE', 'COOLDOWN', 'LOCKED'
+        // ─── RUNTIME STATE & PRICING ───
+        const PRICING_CATALOG = {
+            5: { minutes: 5, priceStr: '2,50 €', cents: 250 },
+            15: { minutes: 15, priceStr: '5,00 €', cents: 500 },
+            30: { minutes: 30, priceStr: '7,00 €', cents: 700 }
+        };
+
+        let currentState = 'AVAILABLE'; // 'AVAILABLE', 'REQUESTING', 'STARTING', 'ACTIVE', 'COOLDOWN', 'LOCKED'
         let currentTableId = 'demo-pulse-01';
         let selectedMinutes = 15;
-        let simulatedSeconds = 15; // 15 min = 15s in prototype demo
+        let simulatedSeconds = 5; // prototype simulation fallback
         let timeRemaining = 0;
         let countdownTimerId = null;
+        let is30sTestSelected = false;
+
+        let currentOrderId = null;
+        let currentStripe = null;
+        let currentElements = null;
+        let orderPollingTimerId = null;
+
+        function getClientToken() {
+            let tok = sessionStorage.getItem('arcade_client_token');
+            if (!tok) {
+                tok = 'tok-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+                sessionStorage.setItem('arcade_client_token', tok);
+            }
+            return tok;
+        }
 
         // Read query string ?table=...
         const queryParams = new URLSearchParams(window.location.search);
@@ -942,6 +1464,9 @@
                 if (adminDrawer) adminDrawer.style.display = 'none';
             }
 
+            // Initial view: set ready state with 15 min selected
+            selectSlot(15);
+
             // Sync with backend on startup
             syncStatusWithBackend();
         });
@@ -959,9 +1484,26 @@
         async function syncStatusWithBackend() {
             if (!window.location.protocol.startsWith('http') && !window._forceFetchForTesting) return;
 
+            // Do not override user checkout or pending activation
+            if (currentState === 'STARTING') return;
+
             try {
                 const res = await fetch(`/.netlify/functions/arcade-session?action=status&table=${encodeURIComponent(currentTableId)}`);
                 const data = await res.json().catch(() => ({}));
+
+                if (data.allow30sTest || data.isTestMode || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    window._allow30sTest = true;
+                    const testSlot = document.getElementById('slot-test30s');
+                    if (testSlot) testSlot.style.display = 'flex';
+                    const testCard = document.getElementById('testModeSection');
+                    if (testCard && currentState === 'AVAILABLE') {
+                        testCard.style.display = 'flex';
+                    }
+                    if (data.hardware?.endpoint) {
+                        const devLabel = document.getElementById('testDeviceLabel');
+                        if (devLabel) devLabel.textContent = `NETIO · ${data.hardware.endpoint}`;
+                    }
+                }
 
                 if (res.status === 404) {
                     setLocked('Tuntematon pöytätunnus. Pöytää ei löydy järjestelmästä.');
@@ -974,6 +1516,11 @@
                     return;
                 }
 
+                if (data.state === 'pending_payment') {
+                    showErrorNotice('Pöytä on toisen pelaajan maksamisvarauksessa. Odota hetki.');
+                    return;
+                }
+
                 if (data.state === 'active' && data.expiresAt) {
                     const remaining = Math.max(0, Math.round((new Date(data.expiresAt).getTime() - Date.now()) / 1000));
                     if (remaining > 0) {
@@ -981,7 +1528,7 @@
                     } else {
                         setAvailable();
                     }
-                } else if (data.state === 'available' && currentState === 'LOCKED') {
+                } else if (data.state === 'available' && (currentState === 'LOCKED' || currentState === 'COOLDOWN')) {
                     setAvailable();
                 }
             } catch (err) {
@@ -1035,26 +1582,115 @@
             }
         }
 
-        function selectSlot(minutes) {
+        function updateCtaButtonLabel() {
+            const label = document.getElementById('btnActivateLabel');
+            const note = document.getElementById('ctaNote');
+            if (!label) return;
+
+            if (is30sTestSelected) {
+                label.textContent = 'KÄYNNISTÄ TESTI 30 S (NETIO DELAY: 30 000 ms)';
+                if (note) note.textContent = 'Käynnistää 30 sekunnin pikatestin fyysisellä releellä. Rele sammuu itsenäisesti 30 s kuluttua.';
+            } else {
+                const pkg = PRICING_CATALOG[selectedMinutes] || PRICING_CATALOG[15];
+                label.textContent = `MAKSA ${pkg.minutes} MIN · ${pkg.priceStr}`;
+                if (note) note.textContent = 'Siirtyy turvalliseen Stripe-testimaksuun. Pöytä kytkeytyy heti maksun jälkeen.';
+            }
+        }
+
+        function selectSlot(duration) {
             if (currentState !== 'AVAILABLE' && currentState !== 'LOCKED') return;
 
-            selectedMinutes = minutes;
-            simulatedSeconds = minutes; // Prototype speed: 1 min = 1 second
-
-            // Update slot buttons
             document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('selected'));
-            const activeBtn = document.getElementById('slot-' + minutes);
-            if (activeBtn) activeBtn.classList.add('selected');
+
+            if (duration === 'test30s' || duration === 0.5) {
+                selectedMinutes = 0.5;
+                is30sTestSelected = true;
+                const activeBtn = document.getElementById('slot-test30s');
+                if (activeBtn) activeBtn.classList.add('selected');
+            } else {
+                selectedMinutes = Number(duration);
+                is30sTestSelected = false;
+                const activeBtn = document.getElementById('slot-' + duration);
+                if (activeBtn) activeBtn.classList.add('selected');
+            }
 
             if (currentState === 'AVAILABLE') {
-                document.getElementById('btnActivateLabel').textContent = `ACTIVATE ${minutes} MIN PLAY (${simulatedSeconds}s DEMO)`;
+                updateCtaButtonLabel();
             }
+        }
+
+        function showStartingPanel(title, desc) {
+            currentState = 'STARTING';
+            hideExpiredPanel();
+            hideRefundedPanel();
+            document.getElementById('packageSection').style.display = 'none';
+            document.getElementById('btnActivatePlay').style.display = 'none';
+            const testSection = document.getElementById('testModeSection');
+            if (testSection) testSection.style.display = 'none';
+
+            if (title) document.getElementById('startingTitle').textContent = title;
+            if (desc) document.getElementById('startingDesc').textContent = desc;
+            document.getElementById('stateStartingPanel').style.display = 'flex';
+        }
+
+        function hideStartingPanel() {
+            const p = document.getElementById('stateStartingPanel');
+            if (p) p.style.display = 'none';
+        }
+
+        function showExpiredPanel() {
+            hideStartingPanel();
+            hideRefundedPanel();
+            document.getElementById('activeSessionPanel').classList.remove('show');
+            document.getElementById('packageSection').style.display = 'none';
+            document.getElementById('btnActivatePlay').style.display = 'none';
+            const testSection = document.getElementById('testModeSection');
+            if (testSection) testSection.style.display = 'none';
+            document.getElementById('stateExpiredPanel').style.display = 'flex';
+        }
+
+        function hideExpiredPanel() {
+            const p = document.getElementById('stateExpiredPanel');
+            if (p) p.style.display = 'none';
+        }
+
+        function showRefundedPanel(reason) {
+            hideStartingPanel();
+            hideExpiredPanel();
+            document.getElementById('activeSessionPanel').classList.remove('show');
+            document.getElementById('packageSection').style.display = 'none';
+            document.getElementById('btnActivatePlay').style.display = 'none';
+            const testSection = document.getElementById('testModeSection');
+            if (testSection) testSection.style.display = 'none';
+            if (reason) document.getElementById('refundedDesc').textContent = reason;
+            document.getElementById('stateRefundedPanel').style.display = 'flex';
+        }
+
+        function hideRefundedPanel() {
+            const p = document.getElementById('stateRefundedPanel');
+            if (p) p.style.display = 'none';
+        }
+
+        function resetToAvailable() {
+            hideStartingPanel();
+            hideExpiredPanel();
+            hideRefundedPanel();
+            setAvailable();
         }
 
         function setAvailable(keepErrorNotice = false) {
             currentState = 'AVAILABLE';
             if (!keepErrorNotice) {
                 hideErrorNotice();
+            }
+
+            hideStartingPanel();
+            hideExpiredPanel();
+            hideRefundedPanel();
+
+            if (orderPollingTimerId) {
+                clearInterval(orderPollingTimerId);
+                orderPollingTimerId = null;
             }
 
             // Status Badge
@@ -1074,13 +1710,30 @@
             const btn = document.getElementById('btnActivatePlay');
             btn.disabled = false;
             btn.style.display = 'flex';
-            document.getElementById('btnActivateLabel').textContent = `ACTIVATE ${selectedMinutes} MIN PLAY (${simulatedSeconds}s DEMO)`;
-            document.getElementById('ctaNote').textContent = 'Activates table lights and power. Use the table\'s physical buttons to play matches freely.';
+            updateCtaButtonLabel();
+
+            const testSlot = document.getElementById('slot-test30s');
+            if (testSlot && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window._allow30sTest)) {
+                testSlot.style.display = 'flex';
+            }
+
+            const testSection = document.getElementById('testModeSection');
+            if (testSection && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window._allow30sTest)) {
+                testSection.style.display = 'flex';
+            }
+            const testBtn = document.getElementById('btnTest30s');
+            if (testBtn) testBtn.disabled = false;
+            const testLabel = document.getElementById('btnTest30sLabel');
+            if (testLabel) testLabel.innerHTML = 'Testi 30 s';
         }
 
         function setLocked(reason) {
             currentState = 'LOCKED';
             hideErrorNotice();
+
+            hideStartingPanel();
+            hideExpiredPanel();
+            hideRefundedPanel();
 
             // Status Badge
             const badge = document.getElementById('statusBadge');
@@ -1094,6 +1747,8 @@
             // UI Panels
             document.getElementById('activeSessionPanel').classList.remove('show');
             document.getElementById('packageSection').style.display = 'none';
+            const testSection = document.getElementById('testModeSection');
+            if (testSection) testSection.style.display = 'none';
 
             // Button
             const btn = document.getElementById('btnActivatePlay');
@@ -1102,53 +1757,319 @@
             document.getElementById('ctaNote').textContent = reason;
         }
 
-        async function activateTablePower() {
+        // ─── STRIPE CHECKOUT MODAL LOGIC ───
+        function copyTestCard() {
+            const num = '4242424242424242';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(num).then(() => {
+                    const lbl = document.getElementById('copyCardLabel');
+                    if (lbl) {
+                        lbl.textContent = 'Kopioitu!';
+                        setTimeout(() => { lbl.textContent = 'Kopioi'; }, 2000);
+                    }
+                }).catch(() => {});
+            }
+        }
+
+        function closeStripeCheckout() {
+            const modal = document.getElementById('stripeModalBackdrop');
+            if (modal) modal.style.display = 'none';
+            const btn = document.getElementById('btnActivatePlay');
+            if (btn && currentState === 'AVAILABLE') {
+                btn.disabled = false;
+                updateCtaButtonLabel();
+            }
+        }
+
+        async function openStripeCheckout(minutes) {
+            const pkg = PRICING_CATALOG[minutes] || PRICING_CATALOG[15];
+            const btn = document.getElementById('btnActivatePlay');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> VALMISTELLAAN MAKSUA...`;
+            }
+
+            try {
+                const clientToken = getClientToken();
+                const res = await fetch('/.netlify/functions/create-payment-intent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        table: currentTableId,
+                        durationMinutes: minutes,
+                        clientToken
+                    })
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.status === 409) {
+                    showErrorNotice(data.error || 'Pöytä on parhaillaan varattu tai maksussa toiselle pelaajalle.');
+                    setAvailable(true);
+                    return;
+                }
+
+                if (!res.ok || !data.success) {
+                    showErrorNotice(data.error || 'Maksun alustus epäonnistui. Yritä uudelleen.');
+                    setAvailable(true);
+                    return;
+                }
+
+                currentOrderId = data.orderId;
+
+                // Update modal summary
+                const summaryTable = document.getElementById('summaryTableName');
+                if (summaryTable) summaryTable.textContent = TABLE_FLEET[currentTableId]?.name || currentTableId;
+                const summaryDur = document.getElementById('summaryDuration');
+                if (summaryDur) summaryDur.textContent = `${minutes} min`;
+                const summaryAmt = document.getElementById('summaryAmount');
+                if (summaryAmt) summaryAmt.textContent = pkg.priceStr;
+                const btnLabel = document.getElementById('btnConfirmPaymentLabel');
+                if (btnLabel) btnLabel.textContent = `MAKSA ${pkg.priceStr}`;
+
+                if (!window.Stripe) {
+                    showErrorNotice('Stripe.js kirjastoa ei voitu ladata. Tarkista verkkoyhteys.');
+                    setAvailable(true);
+                    return;
+                }
+
+                const stripeKey = data.publishableKey || 'pk_test_placeholder';
+                currentStripe = window.Stripe(stripeKey);
+
+                currentElements = currentStripe.elements({
+                    clientSecret: data.clientSecret,
+                    appearance: {
+                        theme: 'night',
+                        variables: {
+                            colorPrimary: '#E30613',
+                            colorBackground: '#24262A',
+                            colorText: '#E8EAED',
+                            colorDanger: '#F28B82',
+                            fontFamily: 'Roboto, -apple-system, sans-serif',
+                            spacingUnit: '4px',
+                            borderRadius: '6px'
+                        }
+                    }
+                });
+
+                const paymentElement = currentElements.create('payment');
+                const container = document.getElementById('stripePaymentElement');
+                if (container) {
+                    container.innerHTML = '';
+                    paymentElement.mount('#stripePaymentElement');
+                }
+
+                const errBox = document.getElementById('stripePaymentError');
+                if (errBox) errBox.style.display = 'none';
+
+                const modal = document.getElementById('stripeModalBackdrop');
+                if (modal) modal.style.display = 'flex';
+
+                if (btn) {
+                    btn.disabled = false;
+                    updateCtaButtonLabel();
+                }
+            } catch (err) {
+                console.error('[STRIPE CHECKOUT] Error opening checkout:', err);
+                showErrorNotice('Virhe maksutapahtuman luonnissa: ' + err.message);
+                setAvailable(true);
+            }
+        }
+
+        async function handleConfirmPayment() {
+            if (!currentStripe || !currentElements) return;
+
+            const confirmBtn = document.getElementById('btnConfirmStripePayment');
+            const errBox = document.getElementById('stripePaymentError');
+            if (errBox) errBox.style.display = 'none';
+
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> VAHVISTETAAN MAKSUA...`;
+            }
+
+            try {
+                const { error, paymentIntent } = await currentStripe.confirmPayment({
+                    elements: currentElements,
+                    redirect: 'if_required'
+                });
+
+                if (error) {
+                    if (errBox) {
+                        errBox.textContent = error.message || 'Maksun vahvistaminen epäonnistui.';
+                        errBox.style.display = 'block';
+                    }
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        const pkg = PRICING_CATALOG[selectedMinutes] || PRICING_CATALOG[15];
+                        confirmBtn.innerHTML = `<i class="fas fa-lock"></i> <span id="btnConfirmPaymentLabel">MAKSA ${pkg.priceStr}</span>`;
+                    }
+                    return;
+                }
+
+                // Payment confirmed -> close modal sheet
+                closeStripeCheckout();
+
+                // Show starting status panel
+                showStartingPanel('Maksu hyväksytty!', 'Odotetaan pöydän ja valojen käynnistystä (NETIO)...');
+
+                // Start order polling
+                startOrderPolling(currentOrderId, getClientToken());
+
+            } catch (err) {
+                console.error('[STRIPE] confirmPayment error:', err);
+                if (errBox) {
+                    errBox.textContent = 'Maksun käsittelyssä tapahtui virhe: ' + err.message;
+                    errBox.style.display = 'block';
+                }
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = `<i class="fas fa-lock"></i> <span>Yritä uudelleen</span>`;
+                }
+            }
+        }
+
+        function startOrderPolling(orderId, clientToken) {
+            if (orderPollingTimerId) {
+                clearInterval(orderPollingTimerId);
+                orderPollingTimerId = null;
+            }
+
+            let pollCount = 0;
+            const maxPolls = 40; // 40 * 1.5s = 60s max
+
+            orderPollingTimerId = setInterval(async () => {
+                pollCount++;
+                try {
+                    const res = await fetch(`/.netlify/functions/arcade-session?action=status&table=${encodeURIComponent(currentTableId)}&orderId=${encodeURIComponent(orderId)}&clientToken=${encodeURIComponent(clientToken)}`);
+                    const data = await res.json().catch(() => ({}));
+
+                    if (data.order) {
+                        const order = data.order;
+                        if (order.status === 'active') {
+                            clearInterval(orderPollingTimerId);
+                            orderPollingTimerId = null;
+                            hideStartingPanel();
+                            startActivePlay(order.timeRemainingSecs, order.expiresAt);
+                            return;
+                        }
+
+                        if (order.status === 'refund_required' || order.status === 'hardware_uncertain') {
+                            clearInterval(orderPollingTimerId);
+                            orderPollingTimerId = null;
+                            hideStartingPanel();
+                            showRefundedPanel(order.errorReason || 'Pöydän käynnistys epäonnistui. Maksu palautetaan automaattisesti.');
+                            return;
+                        }
+
+                        if (order.status === 'failed' || order.status === 'conflict_refunded') {
+                            clearInterval(orderPollingTimerId);
+                            orderPollingTimerId = null;
+                            hideStartingPanel();
+                            showErrorNotice(order.errorReason || 'Pöydän varaus epäonnistui tai vanhentui.');
+                            setAvailable(true);
+                            return;
+                        }
+
+                        if (order.status === 'pending_activation') {
+                            const desc = document.getElementById('startingDesc');
+                            if (desc) desc.textContent = 'Maksu vastaanotettu. Käynnistetään NETIO-relettä...';
+                        }
+                    } else if (data.state === 'active' && data.expiresAt) {
+                        const remaining = Math.max(0, Math.round((new Date(data.expiresAt).getTime() - Date.now()) / 1000));
+                        if (remaining > 0) {
+                            clearInterval(orderPollingTimerId);
+                            orderPollingTimerId = null;
+                            hideStartingPanel();
+                            startActivePlay(remaining, data.expiresAt);
+                            return;
+                        }
+                    }
+
+                    if (pollCount >= maxPolls) {
+                        clearInterval(orderPollingTimerId);
+                        orderPollingTimerId = null;
+                        hideStartingPanel();
+                        showErrorNotice('Laitteen käynnistys kesti odotettua kauemmin. Tarkista tilanne tai ota yhteys ylläpitoon.');
+                        setAvailable(true);
+                    }
+                } catch (err) {
+                    console.warn('[ORDER POLL] Warning during status poll:', err.message);
+                }
+            }, 1500);
+        }
+
+        // ─── TABLE POWER ACTIVATION (DIRECT / 30S TEST / COMMERCIAL) ───
+        async function activate30sTest() {
+            if (currentState !== 'AVAILABLE') return;
+            await activateTablePower({ is30sTest: true, durationSeconds: 30 });
+        }
+
+        async function activateTablePower(options = {}) {
             if (currentState !== 'AVAILABLE') return;
 
             hideErrorNotice();
 
-            // Idempotency: Lock button immediately
+            const is30sTest = options.is30sTest || options.durationSeconds === 30 || is30sTestSelected;
+            if (!is30sTest) {
+                // Commercial slot: Open Stripe checkout modal
+                await openStripeCheckout(selectedMinutes);
+                return;
+            }
+
+            // 30s test mode activation:
+            const testSecs = 30;
+            const durMinutes = 0.5;
+
             currentState = 'REQUESTING';
             const btn = document.getElementById('btnActivatePlay');
-            btn.disabled = true;
-            document.getElementById('btnActivateLabel').innerHTML = `<i class="fas fa-spinner fa-spin"></i> CONNECTING TO TABLE...`;
-            document.getElementById('ctaNote').textContent = `Authorizing ${selectedMinutes} min session and commanding relay...`;
+            const testBtn = document.getElementById('btnTest30s');
+            if (btn) btn.disabled = true;
+            if (testBtn) {
+                testBtn.disabled = true;
+                const testLabel = document.getElementById('btnTest30sLabel');
+                if (testLabel) testLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Käynnistetään 30 s testi...`;
+            }
 
-            const clientToken = 'tok-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+            document.getElementById('ctaNote').textContent = `Käynnistetään 30 s testijakso oikealla NETIO-laitteella (Action: 3, Delay: 30000)...`;
 
+            const clientToken = getClientToken();
             const urlParams = new URLSearchParams(window.location.search);
             const adminToken = urlParams.get('adminToken') || sessionStorage.getItem('arcade_admin_token') || '';
 
             let serverExpiresAt = null;
-
             const shouldCallBackend = window.location.protocol.startsWith('http') || window._forceFetchForTesting;
             if (shouldCallBackend) {
                 try {
                     const headers = { 'Content-Type': 'application/json' };
                     if (adminToken) headers['x-admin-token'] = adminToken;
 
+                    const payload = {
+                        action: 'activate',
+                        table: currentTableId,
+                        durationMinutes: durMinutes,
+                        durationSeconds: 30,
+                        is30sTest: true,
+                        clientToken,
+                        adminToken: adminToken || undefined
+                    };
+
                     const res = await fetch('/.netlify/functions/arcade-session', {
                         method: 'POST',
                         headers,
-                        body: JSON.stringify({
-                            action: 'activate',
-                            table: currentTableId,
-                            durationMinutes: selectedMinutes,
-                            clientToken,
-                            adminToken: adminToken || undefined
-                        })
+                        body: JSON.stringify(payload)
                     });
 
                     const data = await res.json().catch(() => ({}));
 
                     if (res.status === 403) {
-                        showErrorNotice(data.error || 'Pöydän aktivointi vaatii ylläpidon valtuutuksen tai maksun.');
+                        showErrorNotice(data.error || 'Pöydän aktivointi vaatii paikallisen testitilan.');
                         setAvailable(true);
                         return;
                     }
 
                     if (res.status === 409) {
-                        showErrorNotice(data.error || 'Pöytä on parhaillaan toisen pelaajan käytössä. Odota vuoron päättymistä.');
+                        showErrorNotice(data.error || 'Pöytä on parhaillaan toisen pelaajan käytössä.');
                         setAvailable(true);
                         return;
                     }
@@ -1162,28 +2083,38 @@
 
                     serverExpiresAt = data.expiresAt;
                 } catch (err) {
-                    console.error('[ARCADE] Backend call failed:', err);
-                    showErrorNotice('Verkkovirhe: Pöytään ei saatu yhteyttä. Tarkista verkkoyhteys ja yritä uudelleen.');
+                    console.error('[ARCADE] Test activation failed:', err);
+                    showErrorNotice('Verkkovirhe: Pöytään ei saatu yhteyttä.');
                     setAvailable(true);
                     return;
                 }
             }
 
-            // ONLY start active play if backend returned success: true (or in local file testing)
             if (serverExpiresAt) {
                 const remaining = Math.max(0, Math.round((new Date(serverExpiresAt).getTime() - Date.now()) / 1000));
-                startActivePlay(remaining, serverExpiresAt);
+                startActivePlay(remaining, serverExpiresAt, testSecs);
             } else {
-                startActivePlay(simulatedSeconds);
+                startActivePlay(testSecs, null, testSecs);
             }
         }
 
         let activeTargetExpiresAt = null;
+        let activeTotalDuration = null;
 
-        function startActivePlay(secondsDuration, targetExpiresAt = null) {
+        function startActivePlay(secondsDuration, targetExpiresAt = null, explicitTotalSeconds = null) {
             currentState = 'ACTIVE';
             activeTargetExpiresAt = targetExpiresAt ? new Date(targetExpiresAt).getTime() : null;
             timeRemaining = secondsDuration;
+            activeTotalDuration = explicitTotalSeconds || (activeTargetExpiresAt ? secondsDuration : simulatedSeconds);
+
+            hideStartingPanel();
+            hideExpiredPanel();
+            hideRefundedPanel();
+
+            if (orderPollingTimerId) {
+                clearInterval(orderPollingTimerId);
+                orderPollingTimerId = null;
+            }
 
             // Status Badge
             const badge = document.getElementById('statusBadge');
@@ -1194,14 +2125,16 @@
             document.getElementById('hardwareVisual').classList.add('power-on');
             document.getElementById('relayStatusText').textContent = 'POWER ON (PULSE PCB ACTIVE)';
 
-            // Hide Package Selection & Button
+            // Hide Package Selection, Button & Test Section
             document.getElementById('packageSection').style.display = 'none';
             document.getElementById('btnActivatePlay').style.display = 'none';
+            const testSection = document.getElementById('testModeSection');
+            if (testSection) testSection.style.display = 'none';
 
             // Show Active Countdown Panel
             const activePanel = document.getElementById('activeSessionPanel');
             activePanel.classList.add('show');
-            document.getElementById('ctaNote').textContent = 'Table power is active. Power will automatically cut off when the timer reaches 0.';
+            document.getElementById('ctaNote').textContent = 'Pöydän virta on aktiivinen. Rele sammuu itsenäisesti kun peliaika päättyy.';
 
             updateCountdownDisplay();
 
@@ -1228,8 +2161,8 @@
             } else {
                 document.getElementById('timerDigits').textContent = Math.max(0, timeRemaining) + 's';
             }
-            const totalDuration = selectedMinutes * 60;
-            const pct = Math.max(0, Math.min(100, (timeRemaining / (activeTargetExpiresAt ? totalDuration : simulatedSeconds)) * 100));
+            const total = activeTotalDuration || (selectedMinutes * 60);
+            const pct = Math.max(0, Math.min(100, (timeRemaining / total) * 100));
             document.getElementById('progressBarFill').style.width = pct + '%';
         }
 
@@ -1247,10 +2180,11 @@
             document.getElementById('relayStatusText').textContent = 'EXPIRED (COOLDOWN)';
             document.getElementById('timerDigits').textContent = '0s';
             document.getElementById('progressBarFill').style.width = '0%';
-            document.getElementById('ctaNote').textContent = 'Session time expired. Power cutoff scheduled by hardware watchdog. Resetting...';
+            document.getElementById('ctaNote').textContent = 'Peliaika päättyi. Rele katkaisee virran. Varmistetaan laitteen OFF-tila...';
 
             setTimeout(() => {
-                setAvailable();
+                showExpiredPanel();
+                syncStatusWithBackend();
             }, 4000);
         }
 

@@ -30,7 +30,7 @@ describe('Arcade Session Netlify Function', () => {
         assert.strictEqual(body.tableId, 'test-table-01');
         assert.strictEqual(body.state, 'available');
         assert.strictEqual(body.hardware.mode, 'simulation');
-        assert.deepStrictEqual(body.packages, [15, 30, 60]);
+        assert.deepStrictEqual(body.packages, [5, 10, 20]);
     });
 
     it('returns 400 if GET table parameter is missing', async () => {
@@ -50,7 +50,7 @@ describe('Arcade Session Netlify Function', () => {
             httpMethod: 'POST',
             body: JSON.stringify({
                 action: 'activate',
-                durationMinutes: 15
+                durationMinutes: 5
             })
         };
 
@@ -66,7 +66,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'test-table-val',
-                durationMinutes: 45 // Not in [15, 30, 60]
+                durationMinutes: 45 // Not in [5, 10, 20]
             })
         };
 
@@ -90,7 +90,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'unknown-table-xyz',
-                durationMinutes: 15
+                durationMinutes: 5
             })
         }, {});
         assert.strictEqual(postRes.statusCode, 404);
@@ -104,7 +104,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'demo-locked-03',
-                durationMinutes: 15
+                durationMinutes: 5
             })
         }, {});
 
@@ -123,7 +123,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'demo-arcade-02',
-                durationMinutes: 15
+                durationMinutes: 5
             })
         }, {});
         assert.strictEqual(blockRes.statusCode, 403);
@@ -136,7 +136,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'demo-pulse-01',
-                durationMinutes: 15
+                durationMinutes: 5
             })
         }, {});
         assert.strictEqual(allowRes.statusCode, 200);
@@ -150,7 +150,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'test-table-02',
-                durationMinutes: 15,
+                durationMinutes: 5,
                 clientToken: 'tok-test-123'
             })
         };
@@ -160,9 +160,9 @@ describe('Arcade Session Netlify Function', () => {
 
         const body = JSON.parse(res.body);
         assert.strictEqual(body.success, true);
-        assert.strictEqual(body.durationMinutes, 15);
+        assert.strictEqual(body.durationMinutes, 5);
         assert.strictEqual(body.hardware.action, 3);
-        assert.strictEqual(body.hardware.delayMs, 900000);
+        assert.strictEqual(body.hardware.delayMs, 300000);
         assert.ok(body.expiresAt);
     });
 
@@ -173,7 +173,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'test-table-conflict',
-                durationMinutes: 15
+                durationMinutes: 5
             })
         }, {});
 
@@ -183,7 +183,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'test-table-conflict',
-                durationMinutes: 30
+                durationMinutes: 10
             })
         };
 
@@ -204,7 +204,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'test-table-idemp',
-                durationMinutes: 15,
+                durationMinutes: 5,
                 clientToken
             })
         }, {});
@@ -219,7 +219,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'test-table-idemp',
-                durationMinutes: 15,
+                durationMinutes: 5,
                 clientToken
             })
         }, {});
@@ -239,7 +239,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table,
-                durationMinutes: 15
+                durationMinutes: 5
             })
         }, {});
         assert.strictEqual(res1.statusCode, 200);
@@ -255,13 +255,13 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table,
-                durationMinutes: 30
+                durationMinutes: 10
             })
         }, {});
         assert.strictEqual(res2.statusCode, 200);
         const body2 = JSON.parse(res2.body);
         assert.strictEqual(body2.success, true);
-        assert.strictEqual(body2.durationMinutes, 30);
+        assert.strictEqual(body2.durationMinutes, 10);
     });
 
     it('rejects emergency-cut without admin authorization (returns 401)', async () => {
@@ -401,7 +401,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-fail-rollback',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -417,7 +417,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-fail-rollback',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -435,7 +435,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'subsoccer-tripla-live-01', // Real production table name
-                durationMinutes: 15
+                durationMinutes: 5
             }),
             headers: {}
         }, {});
@@ -452,7 +452,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'subsoccer-tripla-live-01',
-                durationMinutes: 15,
+                durationMinutes: 5,
                 authSource: 'stripe' // Client spoof attempt
             }),
             headers: {}
@@ -469,7 +469,7 @@ describe('Arcade Session Netlify Function', () => {
             body: JSON.stringify({
                 action: 'activate',
                 table: 'subsoccer-tripla-live-01',
-                durationMinutes: 15,
+                durationMinutes: 5,
                 adminToken: ADMIN_TOKEN
             }),
             headers: {}
@@ -488,7 +488,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'subsoccer-freeplay-venue-01',
-                    durationMinutes: 30
+                    durationMinutes: 10
                 }),
                 headers: {}
             }, {});
@@ -534,7 +534,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-fail-rollback',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -551,7 +551,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-fail-rollback',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -584,7 +584,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-reconcile-on',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -598,7 +598,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-reconcile-on',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
             assert.ok(followup.statusCode === 409 || followup.statusCode === 423);
@@ -629,7 +629,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-uncertain',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -643,7 +643,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-uncertain',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -682,7 +682,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-db-fail',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -697,7 +697,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-db-fail',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -722,7 +722,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-double-fault',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -736,7 +736,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-table-double-fault',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -778,7 +778,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-short-on-400',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -804,7 +804,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-short-on-400',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
             assert.ok(resRetry.statusCode === 409 || resRetry.statusCode === 423);
@@ -819,7 +819,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-cutoff-state1',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -844,7 +844,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-clean-cut',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -859,7 +859,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-clean-cut',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
             assert.strictEqual(resRetry.statusCode, 200);
@@ -871,7 +871,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-deadline-active',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
             assert.strictEqual(res.statusCode, 200);
@@ -890,7 +890,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-deadline-active',
-                    durationMinutes: 30
+                    durationMinutes: 10
                 })
             }, {});
             assert.strictEqual(conflictRes.statusCode, 409);
@@ -902,7 +902,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-reconcile-release',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
             assert.strictEqual(res.statusCode, 200);
@@ -930,7 +930,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-reconcile-release',
-                    durationMinutes: 30
+                    durationMinutes: 10
                 })
             }, {});
             assert.strictEqual(nextRes.statusCode, 200);
@@ -942,7 +942,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-reconcile-stuck-on',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
             assert.strictEqual(res.statusCode, 200);
@@ -970,7 +970,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-reconcile-stuck-on',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
             assert.ok(nextRes.statusCode === 409 || nextRes.statusCode === 423);
@@ -984,7 +984,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-idemp-immutable',
-                    durationMinutes: 15,
+                    durationMinutes: 5,
                     clientToken
                 })
             }, {});
@@ -1001,7 +1001,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-idemp-immutable',
-                    durationMinutes: 15,
+                    durationMinutes: 5,
                     clientToken
                 })
             }, {});
@@ -1017,7 +1017,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-concurrent-block',
-                    durationMinutes: 15,
+                    durationMinutes: 5,
                     clientToken: 'tok-user-1'
                 })
             }, {});
@@ -1028,7 +1028,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-concurrent-block',
-                    durationMinutes: 30,
+                    durationMinutes: 10,
                     clientToken: 'tok-user-2'
                 })
             }, {});
@@ -1065,7 +1065,7 @@ describe('Arcade Session Netlify Function', () => {
             origNetioStart = NetioAdapter.prototype.startTimedPlay;
             NetioAdapter.prototype.startTimedPlay = async function (...args) {
                 startTimedPlayCalled = true;
-                return { success: true, action: 3, delayMs: 900000 };
+                return { success: true, action: 3, delayMs: 300000 };
             };
         });
 
@@ -1077,7 +1077,7 @@ describe('Arcade Session Netlify Function', () => {
         function createMockSupabaseClient({
             tableConfig = { table_id: 'test-supabase-table', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true },
             existingSessions = [],
-            insertSessionResult = { data: { id: 'sess-mock-001', table_id: 'test-supabase-table', status: 'requested', expires_at: new Date(Date.now() + 900000).toISOString() }, error: null },
+            insertSessionResult = { data: { id: 'sess-mock-001', table_id: 'test-supabase-table', status: 'requested', expires_at: new Date(Date.now() + 300000).toISOString() }, error: null },
             dispatchUpdateResult = { data: [{ id: 'sess-mock-001' }], error: null },
             activeUpdateResult = { data: [{ id: 'sess-mock-001', status: 'active' }], error: null }
         } = {}) {
@@ -1170,7 +1170,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-supabase-table',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -1199,7 +1199,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-supabase-table',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -1226,7 +1226,7 @@ describe('Arcade Session Netlify Function', () => {
                 body: JSON.stringify({
                     action: 'activate',
                     table: 'test-supabase-table',
-                    durationMinutes: 15
+                    durationMinutes: 5
                 })
             }, {});
 
@@ -1275,6 +1275,106 @@ describe('Arcade Session Netlify Function', () => {
             } finally {
                 NetioAdapter.prototype.emergencyStop = origStop;
             }
+        });
+    });
+
+    describe('30-second local test mode', () => {
+        beforeEach(() => {
+            _resetMemoryDb();
+        });
+
+        it('allows 30-second test activation in test mode and commands NETIO with Action: 3, Delay: 30000', async () => {
+            let capturedDelayMs = null;
+            let capturedAction = null;
+            const origStart = NetioAdapter.prototype.startTimedPlay;
+            NetioAdapter.prototype.startTimedPlay = async function (durationMinutes, outletId, durationSeconds) {
+                const res = await origStart.call(this, durationMinutes, outletId, durationSeconds);
+                capturedDelayMs = res.delayMs;
+                capturedAction = res.action;
+                return res;
+            };
+
+            try {
+                const beforeMs = Date.now();
+                const res = await handler({
+                    httpMethod: 'POST',
+                    body: JSON.stringify({
+                        action: 'activate',
+                        table: 'demo-pulse-01',
+                        durationSeconds: 30
+                    })
+                }, {});
+
+                assert.strictEqual(res.statusCode, 200);
+                const body = JSON.parse(res.body);
+                assert.strictEqual(body.success, true);
+                assert.strictEqual(body.durationSeconds, 30);
+                assert.strictEqual(body.durationMinutes, 0.5);
+                assert.strictEqual(capturedDelayMs, 30000, 'NETIO delay must be exactly 30000 ms');
+                assert.strictEqual(capturedAction, 3, 'NETIO action must be 3 (Short ON)');
+
+                const expiresAtMs = new Date(body.expiresAt).getTime();
+                const diffSecs = (expiresAtMs - beforeMs) / 1000;
+                assert.ok(diffSecs >= 29 && diffSecs <= 32, `expiresAt must be ~30s, got ${diffSecs}s`);
+            } finally {
+                NetioAdapter.prototype.startTimedPlay = origStart;
+            }
+        });
+
+        it('strictly rejects 30-second test activation in production mode with 403 TEST_MODE_REQUIRED', async () => {
+            const origEnv = process.env.ARCADE_ENV;
+            const origNodeEnv = process.env.NODE_ENV;
+            const origPilot = process.env.PILOT_TABLE_ID;
+            const mockSupabase = {
+                from: () => ({
+                    select: () => ({
+                        eq: () => ({
+                            maybeSingle: async () => ({
+                                data: { table_id: 'demo-pulse-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true }
+                            })
+                        })
+                    })
+                })
+            };
+            _setSupabaseClient(mockSupabase);
+
+            try {
+                process.env.ARCADE_ENV = 'production';
+                delete process.env.NODE_ENV;
+                process.env.PILOT_TABLE_ID = 'demo-pulse-01';
+
+                const res = await handler({
+                    httpMethod: 'POST',
+                    body: JSON.stringify({
+                        action: 'activate',
+                        table: 'demo-pulse-01',
+                        durationSeconds: 30
+                    })
+                }, {});
+
+                assert.strictEqual(res.statusCode, 403);
+                const body = JSON.parse(res.body);
+                assert.strictEqual(body.code, 'TEST_MODE_REQUIRED');
+                assert.ok(body.error.includes('production mode'));
+            } finally {
+                process.env.ARCADE_ENV = origEnv;
+                if (origNodeEnv) process.env.NODE_ENV = origNodeEnv;
+                if (origPilot) process.env.PILOT_TABLE_ID = origPilot; else delete process.env.PILOT_TABLE_ID;
+                _setSupabaseClient(null);
+            }
+        });
+
+        it('does not alter commercial packages [5, 10, 20] in GET /arcade-session', async () => {
+            const res = await handler({
+                httpMethod: 'GET',
+                queryStringParameters: { table: 'demo-pulse-01' }
+            }, {});
+
+            assert.strictEqual(res.statusCode, 200);
+            const body = JSON.parse(res.body);
+            assert.deepStrictEqual(body.packages, [5, 10, 20], 'Commercial packages must stay strictly [5, 10, 20]');
+            assert.strictEqual(body.isTestMode, true);
+            assert.strictEqual(body.allow30sTest, true);
         });
     });
 });

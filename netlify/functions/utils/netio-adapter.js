@@ -57,15 +57,18 @@ class NetioAdapter {
      * Activate a timed session for the Subsoccer table (Käyttötapaus 1: Power Lease)
      * Uses NETIO Action: 3 (Short ON) with Delay in milliseconds.
      * 
-     * @param {number} durationMinutes - e.g. 15, 30, 60
+     * @param {number} durationMinutes - e.g. 15, 30, 60 or 0.5 (for 30s test)
      * @param {number} [outletId=1] - Pistorasia 1 = Pelipöytä
+     * @param {number} [durationSeconds] - e.g. 30 (optional explicit seconds)
      * @returns {Promise<Object>}
      */
-    async startTimedPlay(durationMinutes, outletId = 1) {
-        const delayMs = Math.round(durationMinutes * 60 * 1000);
+    async startTimedPlay(durationMinutes, outletId = 1, durationSeconds = null) {
+        const delayMs = durationSeconds != null 
+            ? Math.round(durationSeconds * 1000) 
+            : Math.round(durationMinutes * 60 * 1000);
 
         if (this.isMock) {
-            console.log(`[NETIO MOCK] startTimedPlay: Outlet ${outletId} -> Short ON for ${durationMinutes} min (${delayMs} ms).`);
+            console.log(`[NETIO MOCK] startTimedPlay: Outlet ${outletId} -> Short ON for ${delayMs} ms.`);
             const out = this._mockOutputs.find(o => o.id === outletId);
             if (out) {
                 out.state = 1;
@@ -77,7 +80,7 @@ class NetioAdapter {
                 outletId,
                 action: 3,
                 delayMs,
-                autoOffSecs: durationMinutes * 60,
+                autoOffSecs: Math.round(delayMs / 1000),
                 timestamp: new Date().toISOString()
             };
         }
@@ -398,6 +401,6 @@ class NetioAdapter {
     }
 }
 
-module.exports = {
-    NetioAdapter
-};
+module.exports = NetioAdapter;
+module.exports.NetioAdapter = NetioAdapter;
+

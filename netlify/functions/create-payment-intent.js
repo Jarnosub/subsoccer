@@ -1,0 +1,159 @@
+const {
+    PRICE_CATALOG,
+    ALLOWED_DURATIONS,
+    CORS_HEADERS,
+    checkIsTestMode,
+    createPaymentHold,
+    releasePaymentHold,
+    saveMemorySessions
+} = require('./utils/arcade-core');
+
+let stripeClient = null;
+function getStripeClient() {
+    if (stripeClient) return stripeClient;
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) return null;
+    stripeClient = require('stripe')(secretKey);
+    return stripeClient;
+}
+
+exports.handler = async (event, context) => {
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 204,
+            headers: CORS_HEADERS,
+            body: ''
+        };
+    }
+
+    if (event.httpMethod !== 'POST') {
+        return {
+            statusCode: 405,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({ error: 'Method Not Allowed. Use POST.' })
+        };
+    }
+
+    let body = {};
+    try {
+        body = JSON.parse(event.body || '{}');
+    } catch (e) {
+        return {
+            statusCode: 400,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({ error: 'Invalid JSON payload' })
+        };
+    }
+
+    const table = (body.table || '').trim();
+    if (!table) {
+        return {
+            statusCode: 400,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({ error: "Missing or invalid 'table' parameter", code: 'MISSING_TABLE' })
+        };
+    }
+
+    const durationMinutes = Number(body.durationMinutes);
+    if (!ALLOWED_DURATIONS.includes(durationMinutes)) {
+        return {
+            statusCode: 400,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({
+                error: `Invalid 'durationMinutes'. Allowed values: ${ALLOWED_DURATIONS.join(', ')}`,
+                allowedDurations: ALLOWED_DURATIONS,
+                code: 'INVALID_DURATION'
+            })
+        };
+    }
+
+    const clientToken = (body.clientToken || `tok-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`).trim();
+    const isTestMode = checkIsTestMode();
+
+    // 1. Create atomic table hold (3 min reservation)
+    const holdResult = await createPaymentHold({
+        tableId: table,
+        durationMinutes,
+        clientToken,
+        isTestMode
+    });
+
+    if (!holdResult.success) {
+        return {
+            statusCode: holdResult.statusCode || 409,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({
+                error: holdResult.error,
+                code: holdResult.code,
+                holdExpiresAt: holdResult.holdExpiresAt || null,
+                expiresAt: holdResult.expiresAt || null
+            })
+        };
+    }
+
+    const order = holdResult.order;
+
+    // 2. Initialize Stripe & Create PaymentIntent
+    const stripe = getStripeClient();
+    if (!stripe) {
+        releasePaymentHold({ tableId: table, orderId: order.orderId, reason: 'stripe_unconfigured' });
+        return {
+            statusCode: 503,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({
+                error: 'Stripe is not configured in backend: STRIPE_SECRET_KEY missing in environment.',
+                code: 'STRIPE_NOT_CONFIGURED'
+            })
+        };
+    }
+
+    try {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: order.amountCents,
+            currency: order.currency,
+            payment_method_types: ['card'],
+            metadata: {
+                table_id: order.tableId,
+                duration_minutes: String(order.durationMinutes),
+                order_id: order.orderId,
+                client_token: order.clientToken
+            },
+            description: `Subsoccer Pulse Table (${order.tableId}) - ${order.durationMinutes} min play`
+        }, {
+            idempotencyKey: `pi-hold-${order.orderId}`
+        });
+
+        order.paymentIntentId = paymentIntent.id;
+        saveMemorySessions();
+
+        return {
+            statusCode: 200,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({
+                success: true,
+                orderId: order.orderId,
+                clientSecret: paymentIntent.client_secret,
+                amountCents: order.amountCents,
+                durationMinutes: order.durationMinutes,
+                holdExpiresAt: new Date(order.holdExpiresAt).toISOString(),
+                publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ''
+            })
+        };
+    } catch (stripeErr) {
+        console.error('[STRIPE ERROR] Failed to create PaymentIntent:', stripeErr.message);
+        releasePaymentHold({ tableId: table, orderId: order.orderId, reason: 'stripe_api_error' });
+
+        return {
+            statusCode: 502,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({
+                error: `Failed to create Stripe payment intent: ${stripeErr.message}`,
+                code: 'STRIPE_API_ERROR'
+            })
+        };
+    }
+};
+
+exports._setStripeClient = function(client) {
+    stripeClient = client;
+};
