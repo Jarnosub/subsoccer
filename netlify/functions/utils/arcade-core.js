@@ -354,12 +354,14 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                                 .eq('table_id', tableId);
                         }
 
-                        await sb.from('arcade_events').insert({
-                            table_id: tableId,
-                            session_id: currentSession.id,
-                            event_type: 'switch_confirmed_off',
-                            payload: { confirmedAt: confirmedOffAt }
-                        }).catch(() => {});
+                        try {
+                            await sb.from('arcade_events').insert({
+                                table_id: tableId,
+                                session_id: currentSession.id,
+                                event_type: 'switch_confirmed_off',
+                                payload: { confirmedAt: confirmedOffAt }
+                            });
+                        } catch (e) {}
                     } else {
                         await sb
                             .from('arcade_sessions')
@@ -805,12 +807,14 @@ async function activateSessionCore({
         const targetOutputId = cfg?.switch_output_id || 1;
 
         const clientTokenHash = clientToken ? crypto.createHash('sha256').update(clientToken.trim()).digest('hex') : null;
-        await supabase.from('arcade_events').insert({
-            table_id: table,
-            session_id: sessionId,
-            event_type: 'session_requested',
-            payload: { durationMinutes: targetMinutes, clientTokenHash, outputId: targetOutputId, paymentIntentId }
-        }).catch(() => {});
+        try {
+            await supabase.from('arcade_events').insert({
+                table_id: table,
+                session_id: sessionId,
+                event_type: 'session_requested',
+                payload: { durationMinutes: targetMinutes, clientTokenHash, outputId: targetOutputId, paymentIntentId }
+            });
+        } catch (e) {}
 
         const dispatchTimestamp = new Date().toISOString();
         const { data: dispatchRows, error: dispatchErr } = await supabase
@@ -827,18 +831,21 @@ async function activateSessionCore({
                 : `Dispatch update targeted ${dispatchRows?.length ?? 0} rows (expected exactly 1)`;
             console.error('[DISPATCH GUARD] Hardware dispatch aborted:', errReason);
 
-            await supabase.from('arcade_events').insert({
-                table_id: table,
-                session_id: sessionId,
-                event_type: 'switch_error',
-                payload: { error: errReason, phase: 'pre_dispatch_guard' }
-            }).catch(() => {});
+            try {
+                await supabase.from('arcade_events').insert({
+                    table_id: table,
+                    session_id: sessionId,
+                    event_type: 'switch_error',
+                    payload: { error: errReason, phase: 'pre_dispatch_guard' }
+                });
+            } catch (e) {}
 
             if (dispatchErr) {
-                await supabase.from('arcade_sessions')
-                    .update({ status: 'failed', error_reason: errReason })
-                    .eq('id', sessionId)
-                    .catch(() => {});
+                try {
+                    await supabase.from('arcade_sessions')
+                        .update({ status: 'failed', error_reason: errReason })
+                        .eq('id', sessionId);
+                } catch (e) {}
             }
 
             return {
@@ -852,12 +859,14 @@ async function activateSessionCore({
             };
         }
 
-        await supabase.from('arcade_events').insert({
-            table_id: table,
-            session_id: sessionId,
-            event_type: 'switch_cmd_sent',
-            payload: { outletId: targetOutputId, durationMinutes: targetMinutes }
-        }).catch(() => {});
+        try {
+            await supabase.from('arcade_events').insert({
+                table_id: table,
+                session_id: sessionId,
+                event_type: 'switch_cmd_sent',
+                payload: { outletId: targetOutputId, durationMinutes: targetMinutes }
+            });
+        } catch (e) {}
 
         let netioResult;
         try {
@@ -940,10 +949,12 @@ async function activateSessionCore({
             }
 
             if (cutConfirmedOff) {
-                await supabase.from('arcade_sessions').update({
-                    status: 'failed',
-                    error_reason: `DB update to active failed; emergency power cut confirmed OFF: ${updErr.message}`
-                }).eq('id', sessionId).catch(() => {});
+                try {
+                    await supabase.from('arcade_sessions').update({
+                        status: 'failed',
+                        error_reason: `DB update to active failed; emergency power cut confirmed OFF: ${updErr.message}`
+                    }).eq('id', sessionId);
+                } catch (e) {}
 
                 return {
                     statusCode: 500,
@@ -959,15 +970,19 @@ async function activateSessionCore({
                     ? 'DB update failed and emergency cut was rejected by device'
                     : `DB update failed and emergency cut unconfirmed (state not 0): ${cutError?.message || 'cut unverified'}`;
 
-                await supabase.from('arcade_sessions').update({
-                    status: 'hardware_uncertain',
-                    error_reason: reason,
-                    expires_at: expiresAt
-                }).eq('id', sessionId).catch(() => {});
+                try {
+                    await supabase.from('arcade_sessions').update({
+                        status: 'hardware_uncertain',
+                        error_reason: reason,
+                        expires_at: expiresAt
+                    }).eq('id', sessionId);
+                } catch (e) {}
 
-                await supabase.from('arcade_table_configs').update({
-                    lock_state: 'error_locked'
-                }).eq('table_id', table).catch(() => {});
+                try {
+                    await supabase.from('arcade_table_configs').update({
+                        lock_state: 'error_locked'
+                    }).eq('table_id', table);
+                } catch (e) {}
 
                 return {
                     statusCode: 502,
@@ -983,12 +998,14 @@ async function activateSessionCore({
             }
         }
 
-        await supabase.from('arcade_events').insert({
-            table_id: table,
-            session_id: sessionId,
-            event_type: 'switch_confirmed_on',
-            payload: { hardware: netioResult, expiresAt, outputId: targetOutputId }
-        }).catch(() => {});
+        try {
+            await supabase.from('arcade_events').insert({
+                table_id: table,
+                session_id: sessionId,
+                event_type: 'switch_confirmed_on',
+                payload: { hardware: netioResult, expiresAt, outputId: targetOutputId }
+            });
+        } catch (e) {}
 
         return {
             statusCode: 200,
@@ -1388,14 +1405,16 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
             const errReason = guardErr ? guardErr.message : (guardData?.error || 'Pre-dispatch guard rejected');
             console.error('[DISPATCH GUARD] Pre-dispatch guard failed:', errReason);
 
-            await sb.from('arcade_orders').update({
-                status: 'activation_failed',
-                refund_status: 'refund_required',
-                refund_reason: errReason,
-                last_error_code: 'DISPATCH_GUARD_FAILED',
-                last_error_details: errReason,
-                updated_at: new Date().toISOString()
-            }).eq('order_id', orderId).catch(() => {});
+            try {
+                await sb.from('arcade_orders').update({
+                    status: 'activation_failed',
+                    refund_status: 'refund_required',
+                    refund_reason: errReason,
+                    last_error_code: 'DISPATCH_GUARD_FAILED',
+                    last_error_details: errReason,
+                    updated_at: new Date().toISOString()
+                }).eq('order_id', orderId);
+            } catch (e) {}
 
             return {
                 success: false,
@@ -1637,12 +1656,14 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         }
 
         // 6. Record successful event in arcade_events
-        await sb.from('arcade_events').insert({
-            table_id: effectiveTableId,
-            session_id: sessionId,
-            event_type: 'switch_confirmed_on',
-            payload: { hardware: netioResult, expiresAt, outputId: targetOutputId }
-        }).catch(() => {});
+        try {
+            await sb.from('arcade_events').insert({
+                table_id: effectiveTableId,
+                session_id: sessionId,
+                event_type: 'switch_confirmed_on',
+                payload: { hardware: netioResult, expiresAt, outputId: targetOutputId }
+            });
+        } catch (e) {}
 
         return {
             success: true,
