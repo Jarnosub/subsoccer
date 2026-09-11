@@ -1,23 +1,20 @@
 -- ==============================================================================
--- SUBSOCCER ARCADE — PATCH FOR RESOLVED_UNCERTAIN & RECONCILE FUNCTIONS
--- Migration: 20260911221500_arcade_orders_patch_resolved_uncertain.sql
+-- SUBSOCCER ARCADE — STEP 2: REBUILD PARTIAL INDEX & HARDEN RPC FUNCTIONS
+-- Migration: 20260911221600_arcade_orders_patch_reconcile_and_index.sql
 -- ==============================================================================
 
--- 1. Lisätään 'resolved_uncertain' olemassa olevaan arcade_order_status ENUM -tyyppiin
-ALTER TYPE public.arcade_order_status ADD VALUE IF NOT EXISTS 'resolved_uncertain';
-
--- 2. Päivitetään osittainen uniikki-indeksi pudottamalla vanha ja luomalla uusi
+-- 1. Päivitetään osittainen uniikki-indeksi pudottamalla vanha ja luomalla uusi
 DROP INDEX IF EXISTS public.idx_arcade_orders_single_active_per_table;
 
 CREATE UNIQUE INDEX idx_arcade_orders_single_active_per_table
 ON public.arcade_orders (table_id)
 WHERE status IN ('holding', 'processing', 'active', 'hardware_uncertain');
 
--- 3. Poistetaan vanha 4-parametrinen versio funktiosta arcade_release_reconciled_table
+-- 2. Poistetaan vanhat versiot funktiosta arcade_release_reconciled_table
 DROP FUNCTION IF EXISTS public.arcade_release_reconciled_table(TEXT, TEXT, UUID, BOOLEAN);
 DROP FUNCTION IF EXISTS public.arcade_release_reconciled_table(TEXT, TEXT, UUID, BOOLEAN, TIMESTAMPTZ);
 
--- 4. Päivitetty arcade_release_reconciled_table (vaatii tuoreen p_confirmed_off_at -aikaleiman ja rajatut tilat)
+-- 3. Päivitetty arcade_release_reconciled_table (vaatii tuoreen p_confirmed_off_at -aikaleiman ja rajatut tilat)
 CREATE OR REPLACE FUNCTION public.arcade_release_reconciled_table(
     p_table_id TEXT,
     p_order_id TEXT,
@@ -230,7 +227,7 @@ BEGIN
 END;
 $$;
 
--- 5. Päivitetty arcade_reconcile_stuck_orders (taulualiasoitu nimiristiriitojen poistamiseksi)
+-- 4. Päivitetty arcade_reconcile_stuck_orders (taulualiasoitu nimiristiriitojen poistamiseksi)
 CREATE OR REPLACE FUNCTION public.arcade_reconcile_stuck_orders(
     p_timeout_seconds INTEGER DEFAULT 60
 )
@@ -331,7 +328,7 @@ BEGIN
 END;
 $$;
 
--- 6. Oikeuksien hallinta
+-- 5. Oikeuksien hallinta
 REVOKE EXECUTE ON FUNCTION public.arcade_release_reconciled_table(TEXT, TEXT, UUID, BOOLEAN, TIMESTAMPTZ) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.arcade_reconcile_stuck_orders(INTEGER) FROM PUBLIC, anon, authenticated;
 
