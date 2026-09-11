@@ -25,6 +25,17 @@ test.describe('Subsoccer Arcade / Pulse Checkout Demo (arcade-checkout-demo.html
         await expect(slot30).toBeVisible();
         await expect(slot60).toHaveCount(0); // 60 min must be removed
 
+        // Verify packages contain pure time & price without confusing game-mode sublabels
+        await expect(page.locator('.slot-desc')).toHaveCount(0);
+
+        // Verify pre-payment surface transparency explanation in Finnish and English
+        const explainerFi = page.locator('.surface-text-fi');
+        const explainerEn = page.locator('.surface-text-en');
+        await expect(explainerFi).toBeVisible();
+        await expect(explainerFi).toContainText('Maksun jälkeen pelipinta muuttuu läpinäkyväksi. Peliajan päättyessä pinta muuttuu jälleen läpinäkymättömäksi.');
+        await expect(explainerEn).toBeVisible();
+        await expect(explainerEn).toContainText('After payment, the playing surface turns transparent. When play time expires, the surface turns opaque again.');
+
         // Initial order summary (15 min / 5,00 €)
         await expect(page.locator('#summaryDuration')).toHaveText('15 minuuttia');
         await expect(page.locator('#summaryTotal')).toHaveText('5,00 €');
