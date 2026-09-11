@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 
+try {
+    process.loadEnvFile?.('.env');
+} catch {
+    // .env might not exist or already loaded
+}
+
 const SUPABASE_URL = process.env.SUPABASE_TEST_URL || process.env.SUPABASE_URL || 'https://mock-test-project.supabase.co';
 const SERVICE_ROLE_KEY = process.env.SUPABASE_TEST_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock-service-role-key';
 const ANON_KEY = process.env.SUPABASE_TEST_ANON_KEY || 'mock-anon-key';
