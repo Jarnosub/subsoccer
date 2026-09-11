@@ -67,7 +67,8 @@ const memoryDb = {
     ]),
     sessions: new Map(), // key: table_id -> active session object
     events: [],
-    _simulateDbErrorOnActivate: false
+    _simulateDbErrorOnActivate: false,
+    _mockNetioConfig: {}
 };
 
 function getTableConfig(tableId, isTestMode) {
@@ -76,7 +77,7 @@ function getTableConfig(tableId, isTestMode) {
     }
     // Allow dynamic test tables in test mode
     if (isTestMode && tableId.startsWith('test-')) {
-        return {
+        const dynamicCfg = {
             table_id: tableId,
             is_enabled: true,
             lock_state: 'available',
@@ -84,6 +85,8 @@ function getTableConfig(tableId, isTestMode) {
             is_free_play_allowed: true,
             device_endpoint: null
         };
+        memoryDb.tableConfigs.set(tableId, dynamicCfg);
+        return dynamicCfg;
     }
     return null;
 }
@@ -101,31 +104,149 @@ function getNetioAdapter(tableConfig, isTestMode) {
         return null;
     }
 
+    const mockConfig = (isTestMode && memoryDb._mockNetioConfig) || {};
+
     return new NetioAdapter({
         endpoint: rawEndpoint || (isTestMode ? 'simulated' : ''),
         username,
         password,
-        isMock
+        timeoutMs: tableConfig?.timeoutMs || 3500,
+        isMock,
+        mockActiveShortOn: mockConfig.mockActiveShortOn ?? tableConfig?.mockActiveShortOn,
+        mockCutoffReturnsState1: mockConfig.mockCutoffReturnsState1 ?? tableConfig?.mockCutoffReturnsState1,
+        mockStatusOutputState: mockConfig.mockStatusOutputState ?? tableConfig?.mockStatusOutputState,
+        mockStatusFails: mockConfig.mockStatusFails ?? tableConfig?.mockStatusFails
     });
 }
 
-// Clean up expired in-memory sessions
-function cleanExpiredMemorySessions() {
+/**
+ * Pöydän ja sessioiden tilan sovittelu (Reconciliation)
+ * Pöytää EI SAA vapauttaa ennen kuin:
+ * 1. Alkuperäinen expires_at + 4000ms turvamarginaali on kulunut umpeen.
+ * 2. NETIO-tilakysely vahvistaa, että releen State === 0.
+ * Jos rele on edelleen State === 1 tai kysely epäonnistuu, pöytä lukitaan error_locked -tilaan.
+ */
+async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
     const now = Date.now();
-    for (const [tableId, s] of memoryDb.sessions.entries()) {
-        if (s.expiresAt && now > (s.expiresAt + 4000)) { // 4s cooldown buffer
+    const targetOutputId = tableConfig?.switch_output_id || 1;
+
+    if (supabase) {
+        // 1. Käsittele sessiot joissa relekäskyä EI KOSKAAN lähetetty (hardware_dispatched_at IS NULL)
+        const staleThreshold = new Date(now - 30000).toISOString();
+        await supabase.from('arcade_sessions')
+            .update({ status: 'failed', error_reason: 'Activation timed out before hardware command was dispatched' })
+            .eq('table_id', tableId)
+            .eq('status', 'requested')
+            .is('hardware_dispatched_at', null)
+            .lt('requested_at', staleThreshold);
+
+        // 2. Hae kaikki aktiiviset tai lukitut sessiot
+        const { data: sessions } = await supabase
+            .from('arcade_sessions')
+            .select('*')
+            .eq('table_id', tableId)
+            .in('status', ['requested', 'active', 'cooldown', 'hardware_uncertain'])
+            .order('created_at', { ascending: false });
+
+        if (!sessions || sessions.length === 0) {
+            return;
+        }
+
+        for (const s of sessions) {
+            const expiresAtMs = s.expires_at ? new Date(s.expires_at).getTime() : (new Date(s.requested_at).getTime() + (s.duration_seconds || 900) * 1000);
+            const isDeadlinePassedWithMargin = now > (expiresAtMs + 4000);
+
+            if (!isDeadlinePassedWithMargin) {
+                // Deadline EI ole vielä kulunut: sessiota ja pöytää EI saa vapauttaa!
+                if (s.status === 'requested' && s.hardware_dispatched_at && now > (new Date(s.requested_at).getTime() + 30000)) {
+                    await supabase.from('arcade_sessions')
+                        .update({ status: 'hardware_uncertain', error_reason: 'Hardware dispatched but not confirmed active within 30s' })
+                        .eq('id', s.id);
+                    await supabase.from('arcade_table_configs')
+                        .update({ lock_state: 'error_locked' })
+                        .eq('table_id', tableId);
+                }
+                continue;
+            }
+
+            // Deadline + 4000ms ON kulunut: Nyt tarkistetaan fyysisen laitteen tila!
+            let isConfirmedOff = false;
+            if (netio) {
+                try {
+                    isConfirmedOff = await netio.verifyConfirmedOff(targetOutputId);
+                } catch (probeErr) {
+                    console.warn(`[RECONCILE] Hardware probe failed for table ${tableId}:`, probeErr.message);
+                    isConfirmedOff = false;
+                }
+            }
+
+            if (isConfirmedOff) {
+                // Rele on todistettavasti State === 0: Voidaan vapauttaa!
+                await supabase.from('arcade_sessions')
+                    .update({ status: 'completed', confirmed_off_at: new Date().toISOString() })
+                    .eq('id', s.id);
+
+                await supabase.from('arcade_table_configs')
+                    .update({ lock_state: 'available' })
+                    .eq('table_id', tableId)
+                    .eq('lock_state', 'error_locked');
+            } else {
+                // Rele on edelleen ON tai yhteys epäonnistui: Pöytä pysyy lukittuna!
+                await supabase.from('arcade_sessions')
+                    .update({ 
+                        status: 'hardware_uncertain', 
+                        error_reason: 'Deadline passed but hardware relay is still ON or unreachable' 
+                    })
+                    .eq('id', s.id);
+
+                await supabase.from('arcade_table_configs')
+                    .update({ lock_state: 'error_locked' })
+                    .eq('table_id', tableId);
+            }
+        }
+    } else {
+        // In-memory fallback
+        const s = memoryDb.sessions.get(tableId);
+        if (!s) return;
+
+        const expiresAtMs = s.expiresAt || (new Date(s.requestedAt).getTime() + (s.durationMinutes || 15) * 60 * 1000);
+        const isDeadlinePassedWithMargin = now > (expiresAtMs + 4000);
+
+        if (!isDeadlinePassedWithMargin) {
+            if (s.status === 'requested' && now > (new Date(s.requestedAt).getTime() + 30000)) {
+                if (s.cmdSent) {
+                    s.status = 'hardware_uncertain';
+                    const cfg = memoryDb.tableConfigs.get(tableId);
+                    if (cfg) cfg.lock_state = 'error_locked';
+                } else {
+                    s.status = 'failed';
+                    memoryDb.sessions.delete(tableId);
+                }
+            }
+            return;
+        }
+
+        // Deadline + margin has passed: verify hardware
+        let isConfirmedOff = false;
+        if (netio) {
+            try {
+                isConfirmedOff = await netio.verifyConfirmedOff(targetOutputId);
+            } catch (probeErr) {
+                isConfirmedOff = false;
+            }
+        }
+
+        if (isConfirmedOff) {
             s.status = 'completed';
             memoryDb.sessions.delete(tableId);
-        } else if (s.status === 'requested' && now > (new Date(s.requestedAt).getTime() + 30000)) {
-            if (s.cmdSent) {
-                // Käsky lähetettiin mutta aktivointi jäi epävarmaksi: ei saa vapauttaa pöytää!
-                s.status = 'hardware_uncertain';
-                const cfg = memoryDb.tableConfigs.get(tableId);
-                if (cfg) cfg.lock_state = 'error_locked';
-            } else {
-                s.status = 'failed';
-                memoryDb.sessions.delete(tableId);
+            const cfg = memoryDb.tableConfigs.get(tableId);
+            if (cfg && cfg.lock_state === 'error_locked') {
+                cfg.lock_state = 'available';
             }
+        } else {
+            s.status = 'hardware_uncertain';
+            const cfg = memoryDb.tableConfigs.get(tableId);
+            if (cfg) cfg.lock_state = 'error_locked';
         }
     }
 }
@@ -236,61 +357,52 @@ exports.handler = async function (event, context) {
                 };
             }
 
-            cleanExpiredMemorySessions();
-
-            let tableState = 'available';
-            let timeRemainingSecs = 0;
             let tableConfig = null;
-            let activeExpiresAt = null;
-
             if (supabase) {
-                const nowIso = new Date().toISOString();
-                // Automaattinen vanhentuneiden sessioiden hallittu päättäminen
-                await supabase.from('arcade_sessions')
-                    .update({ status: 'completed' })
-                    .eq('table_id', tableId)
-                    .in('status', ['active', 'cooldown'])
-                    .lt('expires_at', nowIso);
-
-                // Vanhentuneet requested-sessiot (yli 30s vanhat)
-                const staleThreshold = new Date(Date.now() - 30000).toISOString();
-                // 1. Jos relekäskyä EI lähetetty -> turvallista merkitä failed ja vapauttaa lukko
-                await supabase.from('arcade_sessions')
-                    .update({ status: 'failed', error_reason: 'Activation timed out before hardware command was dispatched' })
-                    .eq('table_id', tableId)
-                    .eq('status', 'requested')
-                    .is('hardware_dispatched_at', null)
-                    .lt('requested_at', staleThreshold);
-
-                // 2. Jos relekäsky LÄHETETTIIN mutta tila jäi epävarmaksi -> SÄILYTETÄÄN LUKITUS!
-                const { data: uncertainList } = await supabase.from('arcade_sessions')
-                    .update({ status: 'hardware_uncertain', error_reason: 'Hardware command was dispatched but activation was not confirmed in time' })
-                    .eq('table_id', tableId)
-                    .eq('status', 'requested')
-                    .not('hardware_dispatched_at', 'is', null)
-                    .lt('requested_at', staleThreshold)
-                    .select('id');
-
-                if (uncertainList && uncertainList.length > 0) {
-                    await supabase.from('arcade_table_configs')
-                        .update({ lock_state: 'error_locked' })
-                        .eq('table_id', tableId);
-                }
-
                 const { data: cfg } = await supabase
                     .from('arcade_table_configs')
                     .select('*')
                     .eq('table_id', tableId)
                     .maybeSingle();
                 tableConfig = cfg;
+            } else {
+                tableConfig = getTableConfig(tableId, isTestMode);
+            }
 
-                if (!tableConfig && !isTestMode) {
-                    return {
-                        statusCode: 404,
-                        headers: CORS_HEADERS,
-                        body: JSON.stringify({ error: `Unknown table ID '${tableId}'. Table is not registered in arcade fleet.`, code: 'TABLE_NOT_FOUND' })
-                    };
-                }
+            if (!tableConfig) {
+                return {
+                    statusCode: 404,
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify({ error: `Unknown table ID '${tableId}'. Table is not registered in arcade fleet.`, code: 'TABLE_NOT_FOUND' })
+                };
+            }
+
+            const netio = getNetioAdapter(tableConfig, isTestMode);
+            if (!netio && !isTestMode) {
+                return {
+                    statusCode: 503,
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify({
+                        error: `Hardware configuration missing for table '${tableId}': no device endpoint configured and no global NETIO_BASE_URL.`,
+                        code: 'HARDWARE_CONFIG_MISSING'
+                    })
+                };
+            }
+
+            // Aja sovittelu laitteen ja tietokannan välillä
+            await reconcileTableState(tableId, tableConfig, netio, isTestMode);
+
+            let tableState = 'available';
+            let timeRemainingSecs = 0;
+            let activeExpiresAt = null;
+
+            if (supabase) {
+                const { data: updatedCfg } = await supabase
+                    .from('arcade_table_configs')
+                    .select('*')
+                    .eq('table_id', tableId)
+                    .maybeSingle();
+                if (updatedCfg) tableConfig = updatedCfg;
 
                 const { data: activeSession } = await supabase
                     .from('arcade_sessions')
@@ -301,7 +413,7 @@ exports.handler = async function (event, context) {
                     .limit(1)
                     .maybeSingle();
 
-                if (activeSession?.status === 'hardware_uncertain' || tableConfig?.lock_state === 'error_locked') {
+                if (tableConfig?.lock_state === 'error_locked' || activeSession?.status === 'hardware_uncertain') {
                     tableState = 'error_locked';
                 } else if (tableConfig && (!tableConfig.is_enabled || tableConfig.lock_state !== 'available')) {
                     tableState = tableConfig.lock_state || 'locked';
@@ -317,21 +429,10 @@ exports.handler = async function (event, context) {
                     }
                 }
             } else {
-                // In-memory fallback (vain testitilassa)
-                const cfg = getTableConfig(tableId, isTestMode);
-                tableConfig = cfg;
-
-                if (!tableConfig) {
-                    return {
-                        statusCode: 404,
-                        headers: CORS_HEADERS,
-                        body: JSON.stringify({ error: `Unknown table ID '${tableId}'. Table is not registered in arcade fleet.`, code: 'TABLE_NOT_FOUND' })
-                    };
-                }
-
+                const cfg = memoryDb.tableConfigs.get(tableId) || tableConfig;
                 const existingSession = memoryDb.sessions.get(tableId);
 
-                if (existingSession?.status === 'hardware_uncertain' || cfg?.lock_state === 'error_locked') {
+                if (cfg?.lock_state === 'error_locked' || existingSession?.status === 'hardware_uncertain') {
                     tableState = 'error_locked';
                 } else if (cfg && (!cfg.is_enabled || cfg.lock_state !== 'available')) {
                     tableState = cfg.lock_state || 'locked';
@@ -342,18 +443,6 @@ exports.handler = async function (event, context) {
                 } else if (existingSession && Date.now() - existingSession.expiresAt < 4000) {
                     tableState = 'cooldown';
                 }
-            }
-
-            const netio = getNetioAdapter(tableConfig, isTestMode);
-            if (!netio && !isTestMode) {
-                return {
-                    statusCode: 503,
-                    headers: CORS_HEADERS,
-                    body: JSON.stringify({
-                        error: `Hardware configuration missing for table '${tableId}': no device endpoint configured and no global NETIO_BASE_URL.`,
-                        code: 'HARDWARE_CONFIG_MISSING'
-                    })
-                };
             }
 
             const netioStatus = netio ? await netio.getStatus().catch(() => ({ mode: 'offline' })) : { mode: 'offline' };
@@ -520,13 +609,12 @@ exports.handler = async function (event, context) {
                         };
                     }
 
-                    // Automaattinen vanhentuneiden sessioiden hallittu päättäminen ennen varausta
-                    const nowIso = new Date().toISOString();
-                    await supabase.from('arcade_sessions')
-                        .update({ status: 'completed' })
-                        .eq('table_id', table)
-                        .in('status', ['active', 'cooldown'])
-                        .lt('expires_at', nowIso);
+                    // Reconcile table state before reservation
+                    await reconcileTableState(table, cfg, netio, isTestMode);
+
+                    const delayMs = durationMinutes * 60 * 1000;
+                    const durationSeconds = durationMinutes * 60;
+                    const expiresAt = new Date(Date.now() + delayMs).toISOString();
 
                     // Insert session with status 'requested'.
                     // idx_single_active_arcade_session uniikki-indeksi estää rinnakkaiset varaukset!
@@ -536,9 +624,10 @@ exports.handler = async function (event, context) {
                             table_id: table,
                             status: 'requested',
                             auth_source: policy.authSource,
-                            duration_seconds: durationMinutes * 60,
+                            duration_seconds: durationSeconds,
                             client_session_token: clientToken,
                             requested_at: requestedAt,
+                            expires_at: expiresAt, // Muuttumaton deadline asetettu heti alussa
                             hardware_dispatched_at: null
                         })
                         .select()
@@ -596,15 +685,14 @@ exports.handler = async function (event, context) {
                     try {
                         netioResult = await netio.startTimedPlay(durationMinutes, targetOutputId);
                     } catch (netioErr) {
-                        // Epäselvän laitevastauksen selvitys: Tutkitaan laitteen todellinen tila
-                        let isRelayOn = null;
+                        let isRelayOff = false;
                         try {
-                            isRelayOn = await netio.isOutputActive(targetOutputId);
+                            isRelayOff = await netio.verifyConfirmedOff(targetOutputId);
                         } catch (probeErr) {
                             console.warn('[PROBE FAILED] Hardware probe failed after command error:', probeErr.message);
                         }
 
-                        if (isRelayOn === false) {
+                        if (isRelayOff) {
                             // Rele on varmasti POIS PÄÄLTÄ: Vapautetaan lukko turvallisesti
                             await supabase.from('arcade_sessions')
                                 .update({ status: 'failed', error_reason: `Relay failed: ${netioErr.message} (confirmed inactive)` })
@@ -624,12 +712,11 @@ exports.handler = async function (event, context) {
                             };
                         } else {
                             // Rele on ON tai probe epäonnistui:
-                            // Pelkkä ON-tila ei vahvista ajastuksen onnistumista eikä watchdog-aikakatkaisua!
-                            // Pöytää EI saa avata eikä olettaa toimivaksi, vaan se on lukittava virhetilaan.
                             await supabase.from('arcade_sessions')
                                 .update({ 
                                     status: 'hardware_uncertain', 
-                                    error_reason: `Hardware state uncertain (relay ${isRelayOn === true ? 'reported ON without verified watchdog lease' : 'probe failed'}): ${netioErr.message}` 
+                                    error_reason: `Hardware state uncertain (relay not confirmed OFF): ${netioErr.message}`,
+                                    expires_at: expiresAt
                                 })
                                 .eq('id', sessionId);
 
@@ -641,7 +728,7 @@ exports.handler = async function (event, context) {
                                 table_id: table,
                                 session_id: sessionId,
                                 event_type: 'switch_error',
-                                payload: { error: netioErr.message, relayOn: isRelayOn, state: 'uncertain', actionTaken: 'error_locked' }
+                                payload: { error: netioErr.message, state: 'uncertain', actionTaken: 'error_locked', expiresAt }
                             });
 
                             return {
@@ -650,46 +737,52 @@ exports.handler = async function (event, context) {
                                 body: JSON.stringify({ 
                                     error: 'Hardware state uncertain: unable to confirm relay watchdog lease. Table has been locked for operator inspection.',
                                     code: 'HARDWARE_UNCERTAIN',
+                                    tableLocked: true,
+                                    expiresAt,
                                     details: netioErr.message 
                                 })
                             };
                         }
                     }
 
-                    // Success: Update session to active and calculate expires_at
+                    // Success: Update session to active
                     const activatedAt = new Date().toISOString();
-                    const expiresAt = new Date(Date.now() + (durationMinutes * 60 * 1000)).toISOString();
 
                     const { error: updErr } = await supabase.from('arcade_sessions').update({
                         status: 'active',
-                        activated_at: activatedAt,
-                        expires_at: expiresAt
+                        activated_at: activatedAt
                     }).eq('id', sessionId);
 
                     if (updErr) {
                         console.error('[SUPABASE ERROR] session activate update failed:', updErr.message);
 
-                        // Kriittinen turvatarkistus: Rele käynnistyi, mutta session tilaa ei saatu tallennettua kantaan!
-                        // Yritetään välitöntä hätäkatkaisua virran katkaisemiseksi.
-                        let cutSucceeded = false;
+                        let cutConfirmedOff = false;
+                        let cutError = null;
                         try {
-                            await netio.emergencyStop(targetOutputId);
-                            cutSucceeded = true;
+                            const cutResult = await netio.emergencyStop(targetOutputId);
+                            const confirmedState = cutResult?.response?.Outputs?.find(o => o.ID === targetOutputId)?.State ?? cutResult?.state;
+                            if (confirmedState === 0) {
+                                const isOff = await netio.verifyConfirmedOff(targetOutputId);
+                                if (isOff) {
+                                    cutConfirmedOff = true;
+                                }
+                            }
                         } catch (cutErr) {
-                            console.error('[EMERGENCY CUT FAILED] Failed to cut power after DB update error:', cutErr.message);
+                            cutError = cutErr;
+                            console.error('[EMERGENCY CUT FAILED] Relay cutoff failed or rejected:', cutErr.code || cutErr.message);
                         }
 
-                        if (cutSucceeded) {
+                        if (cutConfirmedOff) {
                             await supabase.from('arcade_sessions').update({
                                 status: 'failed',
-                                error_reason: `DB update to active failed; emergency power cut executed: ${updErr.message}`
+                                error_reason: `DB update to active failed; emergency power cut confirmed OFF: ${updErr.message}`
                             }).eq('id', sessionId).catch(() => {});
 
                             await supabase.from('arcade_events').insert({
                                 table_id: table,
                                 session_id: sessionId,
                                 event_type: 'switch_error',
-                                payload: { error: updErr.message, emergencyCut: 'success' }
+                                payload: { error: updErr.message, emergencyCut: 'confirmed_off' }
                             }).catch(() => {});
 
                             return {
@@ -702,9 +795,14 @@ exports.handler = async function (event, context) {
                                 })
                             };
                         } else {
+                            const reason = cutError?.code === 'SHORT_ON_ACTIVE'
+                                ? 'DB update failed and emergency cut was rejected (Short ON active on device)'
+                                : `DB update failed and emergency cut unconfirmed (state not 0): ${cutError?.message || 'cut unverified'}`;
+
                             await supabase.from('arcade_sessions').update({
                                 status: 'hardware_uncertain',
-                                error_reason: `DB update failed and emergency cut failed: ${updErr.message}`
+                                error_reason: reason,
+                                expires_at: expiresAt // Säilytä alkuperäinen muuttumaton deadline!
                             }).eq('id', sessionId).catch(() => {});
 
                             await supabase.from('arcade_table_configs').update({
@@ -715,16 +813,24 @@ exports.handler = async function (event, context) {
                                 table_id: table,
                                 session_id: sessionId,
                                 event_type: 'switch_error',
-                                payload: { error: updErr.message, emergencyCut: 'failed', actionTaken: 'error_locked' }
+                                payload: {
+                                    error: updErr.message,
+                                    cutError: cutError?.message,
+                                    cutErrorCode: cutError?.code,
+                                    actionTaken: 'error_locked',
+                                    expiresAt
+                                }
                             }).catch(() => {});
 
                             return {
                                 statusCode: 502,
                                 headers: CORS_HEADERS,
                                 body: JSON.stringify({
-                                    error: 'Hardware state uncertain: session state could not be saved and emergency power cut failed. Table has been locked for operator inspection.',
+                                    error: 'Hardware state uncertain: session state could not be saved and power cut could not be verified. Table has been locked for operator inspection.',
                                     code: 'HARDWARE_UNCERTAIN',
-                                    details: updErr.message
+                                    tableLocked: true,
+                                    expiresAt,
+                                    details: cutError?.message || updErr.message
                                 })
                             };
                         }
@@ -754,8 +860,6 @@ exports.handler = async function (event, context) {
 
                 } else {
                     // ─── IN-MEMORY FALLBACK (Vain testitilassa) ───
-                    cleanExpiredMemorySessions();
-
                     const cfg = getTableConfig(table, isTestMode);
                     if (!cfg) {
                         return {
@@ -768,18 +872,6 @@ exports.handler = async function (event, context) {
                         };
                     }
 
-                    if (!cfg.is_enabled || cfg.lock_state !== 'available') {
-                        return {
-                            statusCode: 423,
-                            headers: CORS_HEADERS,
-                            body: JSON.stringify({ 
-                                error: 'Table is currently disabled or locked for maintenance.',
-                                code: 'TABLE_LOCKED',
-                                lockState: cfg.lock_state
-                            })
-                        };
-                    }
-
                     const netio = getNetioAdapter(cfg, isTestMode);
                     if (!netio && !isTestMode) {
                         return {
@@ -788,6 +880,21 @@ exports.handler = async function (event, context) {
                             body: JSON.stringify({
                                 error: `Hardware configuration missing for table '${table}'.`,
                                 code: 'HARDWARE_CONFIG_MISSING'
+                            })
+                        };
+                    }
+
+                    // Sovittelu ennen varausta
+                    await reconcileTableState(table, cfg, netio, isTestMode);
+
+                    if (!cfg.is_enabled || cfg.lock_state !== 'available') {
+                        return {
+                            statusCode: 423,
+                            headers: CORS_HEADERS,
+                            body: JSON.stringify({ 
+                                error: 'Table is currently disabled or locked for maintenance.',
+                                code: 'TABLE_LOCKED',
+                                lockState: cfg.lock_state
                             })
                         };
                     }
@@ -822,7 +929,13 @@ exports.handler = async function (event, context) {
                     }
 
                     const currentSession = memoryDb.sessions.get(table);
-                    if (currentSession && (currentSession.expiresAt > Date.now() || currentSession.status === 'requested' || currentSession.status === 'hardware_uncertain')) {
+                    if (currentSession && (
+                        currentSession.status === 'requested' || 
+                        currentSession.status === 'active' || 
+                        currentSession.status === 'cooldown' || 
+                        currentSession.status === 'hardware_uncertain' || 
+                        (currentSession.expiresAt && currentSession.expiresAt > Date.now())
+                    )) {
                         return {
                             statusCode: 409,
                             headers: CORS_HEADERS,
@@ -836,6 +949,9 @@ exports.handler = async function (event, context) {
 
                     const fallbackSessionId = 'mem-' + Date.now();
                     const targetOutputId = cfg?.switch_output_id || 1;
+                    const delayMs = durationMinutes * 60 * 1000;
+                    const expiresAtMs = Date.now() + delayMs;
+                    const expiresAtIso = new Date(expiresAtMs).toISOString();
 
                     memoryDb.sessions.set(table, {
                         id: fallbackSessionId,
@@ -843,7 +959,9 @@ exports.handler = async function (event, context) {
                         status: 'requested',
                         authSource: policy.authSource,
                         clientToken,
+                        durationMinutes,
                         requestedAt,
+                        expiresAt: expiresAtMs, // Muuttumaton deadline tallennetaan heti
                         cmdSent: true
                     });
 
@@ -870,14 +988,14 @@ exports.handler = async function (event, context) {
                     try {
                         netioResult = await netio.startTimedPlay(durationMinutes, targetOutputId);
                     } catch (netioErr) {
-                        let isRelayOn = null;
+                        let isRelayOff = false;
                         try {
-                            isRelayOn = await netio.isOutputActive(targetOutputId);
+                            isRelayOff = await netio.verifyConfirmedOff(targetOutputId);
                         } catch (probeErr) {
                             // ignore probe error
                         }
 
-                        if (isRelayOn === false) {
+                        if (isRelayOff) {
                             memoryDb.sessions.delete(table);
                             memoryDb.events.push({
                                 table_id: table,
@@ -899,6 +1017,7 @@ exports.handler = async function (event, context) {
                                 status: 'hardware_uncertain',
                                 clientToken,
                                 requestedAt,
+                                expiresAt: expiresAtMs,
                                 cmdSent: true
                             });
                             if (cfg) cfg.lock_state = 'error_locked';
@@ -909,6 +1028,8 @@ exports.handler = async function (event, context) {
                                 body: JSON.stringify({ 
                                     error: 'Hardware state uncertain: unable to confirm relay watchdog lease. Table has been locked for operator inspection.',
                                     code: 'HARDWARE_UNCERTAIN',
+                                    tableLocked: true,
+                                    expiresAt: expiresAtIso,
                                     details: netioErr.message 
                                 })
                             };
@@ -917,15 +1038,22 @@ exports.handler = async function (event, context) {
 
                     // Test-tilan simulaatio DB-päivityksen epäonnistumiselle relekäskyn jälkeen
                     if (memoryDb._simulateDbErrorOnActivate) {
-                        let cutSucceeded = false;
+                        let cutConfirmedOff = false;
+                        let cutError = null;
                         try {
-                            await netio.emergencyStop(targetOutputId);
-                            cutSucceeded = true;
+                            const cutResult = await netio.emergencyStop(targetOutputId);
+                            const confirmedState = cutResult?.response?.Outputs?.find(o => o.ID === targetOutputId)?.State ?? cutResult?.state;
+                            if (confirmedState === 0) {
+                                const isOff = await netio.verifyConfirmedOff(targetOutputId);
+                                if (isOff) {
+                                    cutConfirmedOff = true;
+                                }
+                            }
                         } catch (cutErr) {
-                            // cut failed
+                            cutError = cutErr;
                         }
 
-                        if (cutSucceeded) {
+                        if (cutConfirmedOff) {
                             memoryDb.sessions.delete(table);
                             return {
                                 statusCode: 500,
@@ -937,28 +1065,35 @@ exports.handler = async function (event, context) {
                                 })
                             };
                         } else {
+                            const reason = cutError?.code === 'SHORT_ON_ACTIVE'
+                                ? 'DB update failed and emergency cut was rejected (Short ON active on device)'
+                                : `DB update failed and emergency cut unconfirmed (state not 0): ${cutError?.message || 'cut unverified'}`;
+
                             memoryDb.sessions.set(table, {
                                 id: fallbackSessionId,
                                 tableId: table,
                                 status: 'hardware_uncertain',
                                 clientToken,
-                                requestedAt
+                                requestedAt,
+                                expiresAt: expiresAtMs, // Säilytä muuttumaton deadline!
+                                cmdSent: true,
+                                errorReason: reason
                             });
                             if (cfg) cfg.lock_state = 'error_locked';
+
                             return {
                                 statusCode: 502,
                                 headers: CORS_HEADERS,
                                 body: JSON.stringify({
-                                    error: 'Hardware state uncertain: session state could not be saved and emergency power cut failed. Table has been locked for operator inspection.',
+                                    error: 'Hardware state uncertain: session state could not be saved and power cut could not be verified. Table has been locked for operator inspection.',
                                     code: 'HARDWARE_UNCERTAIN',
-                                    details: 'Simulated database update failure'
+                                    tableLocked: true,
+                                    expiresAt: expiresAtIso,
+                                    details: cutError?.message || 'Simulated database update failure'
                                 })
                             };
                         }
                     }
-
-                    const expiresAtMs = Date.now() + (durationMinutes * 60 * 1000);
-                    const expiresAtIso = new Date(expiresAtMs).toISOString();
 
                     memoryDb.sessions.set(table, {
                         id: fallbackSessionId,
@@ -1035,13 +1170,42 @@ exports.handler = async function (event, context) {
 
                 const outputId = cfg?.switch_output_id || 1;
                 let commandResult;
+                let cutError = null;
                 try {
                     commandResult = await netio.emergencyStop(outputId);
                 } catch (netErr) {
+                    cutError = netErr;
+                }
+
+                if (cutError) {
+                    if (cutError.code === 'SHORT_ON_ACTIVE') {
+                        return {
+                            statusCode: 409,
+                            headers: CORS_HEADERS,
+                            body: JSON.stringify({
+                                error: 'NETIO rejected cutoff: Short ON timer is active on hardware. Outlet will turn off autonomously when timer expires.',
+                                code: 'SHORT_ON_ACTIVE',
+                                details: cutError.message
+                            })
+                        };
+                    }
                     return {
                         statusCode: 502,
                         headers: CORS_HEADERS,
-                        body: JSON.stringify({ error: 'Failed to cut relay power on hardware', details: netErr.message })
+                        body: JSON.stringify({ error: 'Failed to cut relay power on hardware', details: cutError.message })
+                    };
+                }
+
+                // Varmista että laite vahvisti tilan State === 0
+                const confirmedState = commandResult?.response?.Outputs?.find(o => o.ID === outputId)?.State ?? commandResult?.state;
+                if (confirmedState !== 0) {
+                    return {
+                        statusCode: 502,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({
+                            error: `Hardware cutoff unconfirmed: device reported State=${confirmedState}`,
+                            code: 'CUTOFF_STILL_ON'
+                        })
                     };
                 }
 
@@ -1207,4 +1371,7 @@ exports._resetMemoryDb = function () {
     memoryDb.tableConfigs.set('demo-locked-03', { table_id: 'demo-locked-03', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
     memoryDb.tableConfigs.set('subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
     memoryDb.tableConfigs.set('subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null });
+    memoryDb._mockNetioConfig = {};
 };
+exports._reconcileTableState = reconcileTableState;
+

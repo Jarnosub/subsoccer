@@ -36,6 +36,17 @@ class NetioAdapter {
         this.timeoutMs = config.timeoutMs || 3500;
         this.isMock = config.isMock ?? (this.endpoint === 'simulated' || (!rawEndpoint && allowMock));
 
+        // Mock state tracking for high-fidelity physical hardware simulation
+        this._mockOutputs = config.mockOutputs ? JSON.parse(JSON.stringify(config.mockOutputs)) : [
+            { id: 1, name: 'Subsoccer Pulse Table', state: 0, delayMs: 0 },
+            { id: 2, name: 'Attract Lights', state: 1, delayMs: 0 },
+            { id: 3, name: 'Kiosk Display', state: 1, delayMs: 0 }
+        ];
+        this.mockActiveShortOn = config.mockActiveShortOn ?? false;
+        this.mockCutoffReturnsState1 = config.mockCutoffReturnsState1 ?? false;
+        this.mockStatusOutputState = config.mockStatusOutputState ?? null;
+        this.mockStatusFails = config.mockStatusFails ?? false;
+
         if (!this.isMock && !this.endpoint) {
             throw new Error('NETIO configuration missing: NETIO_BASE_URL (or NETIO_ENDPOINT) must be provided in non-test mode');
         }
@@ -54,6 +65,11 @@ class NetioAdapter {
 
         if (this.isMock) {
             console.log(`[NETIO MOCK] startTimedPlay: Outlet ${outletId} -> Short ON for ${durationMinutes} min (${delayMs} ms).`);
+            const out = this._mockOutputs.find(o => o.id === outletId);
+            if (out) {
+                out.state = 1;
+                out.delayMs = delayMs;
+            }
             return {
                 success: true,
                 mode: 'simulation',
@@ -93,11 +109,38 @@ class NetioAdapter {
 
         if (this.isMock) {
             console.log(`[NETIO MOCK] setOutletState: Outlet ${outletId} -> ${turnOn ? 'ON' : 'OFF'} (Action ${action}).`);
+
+            if (!turnOn) {
+                // Katkaisuyritys (Action 0)
+                if (this.mockActiveShortOn) {
+                    const err = new Error(`NETIO cutoff rejected with 400 Bad request: Short ON active on Outlet ${outletId}`);
+                    err.code = 'SHORT_ON_ACTIVE';
+                    err.status = 400;
+                    throw err;
+                }
+                if (this.mockCutoffReturnsState1) {
+                    const err = new Error(`NETIO cutoff command for Outlet ${outletId} failed: device reported State=1 (expected 0/OFF)`);
+                    err.code = 'CUTOFF_STILL_ON';
+                    throw err;
+                }
+            }
+
+            const out = this._mockOutputs.find(o => o.id === outletId);
+            if (out) {
+                out.state = turnOn ? 1 : 0;
+                out.delayMs = 0;
+            }
+
             return {
                 success: true,
                 mode: 'simulation',
                 outletId,
                 state: turnOn ? 1 : 0,
+                response: {
+                    Outputs: [
+                        { ID: outletId, Action: action, State: turnOn ? 1 : 0 }
+                    ]
+                },
                 timestamp: new Date().toISOString()
             };
         }
@@ -128,19 +171,27 @@ class NetioAdapter {
      */
     async getStatus() {
         if (this.isMock) {
+            if (this.mockStatusFails) {
+                const err = new Error('NETIO getStatus failed: simulated device unreachable');
+                err.code = 'NETWORK_ERROR';
+                throw err;
+            }
+
             return {
                 success: true,
                 mode: 'simulation',
                 device: {
                     model: 'NETIO PowerBOX 3PF',
                     firmware: '4.0.0-sim',
-                    numOutputs: 3
+                    numOutputs: this._mockOutputs.length
                 },
-                outputs: [
-                    { id: 1, name: 'Subsoccer Pulse Table', state: 0, delayMs: 0 },
-                    { id: 2, name: 'Attract Lights', state: 1, delayMs: 0 },
-                    { id: 3, name: 'Kiosk Display', state: 1, delayMs: 0 }
-                ],
+                outputs: this._mockOutputs.map(o => ({
+                    id: o.id,
+                    name: o.name,
+                    state: this.mockStatusOutputState !== null ? this.mockStatusOutputState : o.state,
+                    action: o.state === 1 ? 1 : 0,
+                    delayMs: o.delayMs || 0
+                })),
                 timestamp: new Date().toISOString()
             };
         }
@@ -165,7 +216,9 @@ class NetioAdapter {
             clearTimeout(timeoutId);
 
             if (!res.ok) {
-                throw new Error(`NETIO responded with status ${res.status}: ${res.statusText}`);
+                const err = new Error(`NETIO responded with status ${res.status}: ${res.statusText}`);
+                err.status = res.status;
+                throw err;
             }
 
             let data;
@@ -194,6 +247,14 @@ class NetioAdapter {
             };
         } catch (err) {
             clearTimeout(timeoutId);
+            if (err.name === 'AbortError') {
+                const timeoutErr = new Error(`NETIO getStatus timed out after ${this.timeoutMs}ms`);
+                timeoutErr.code = 'TIMEOUT';
+                throw timeoutErr;
+            }
+            if (!err.code) {
+                err.code = err.status ? `HTTP_${err.status}` : 'NETWORK_ERROR';
+            }
             console.error('[NETIO ERROR] getStatus failed:', err.message);
             throw err;
         }
@@ -214,6 +275,22 @@ class NetioAdapter {
     }
 
     /**
+     * Strictly verify that an outlet is confirmed to be OFF (State === 0).
+     * If device reports State === 1 or status check fails, returns false.
+     * @param {number} [outletId=1]
+     * @returns {Promise<boolean>} true if definitively OFF (State === 0), false otherwise
+     */
+    async verifyConfirmedOff(outletId = 1) {
+        try {
+            const isActive = await this.isOutputActive(outletId);
+            return isActive === false;
+        } catch (err) {
+            console.warn(`[NETIO] verifyConfirmedOff probe failed for Outlet ${outletId}:`, err.message);
+            return false;
+        }
+    }
+
+    /**
      * Internal helper: Send POST /netio.json
      * @private
      */
@@ -221,6 +298,10 @@ class NetioAdapter {
         const cleanUrl = this.endpoint.replace(/\/$/, '') + '/netio.json';
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+
+        const targetOutput = payload?.Outputs?.[0];
+        const targetOutputId = targetOutput?.ID;
+        const targetAction = targetOutput?.Action;
 
         try {
             const headers = {
@@ -243,7 +324,16 @@ class NetioAdapter {
             clearTimeout(timeoutId);
 
             if (!res.ok) {
-                throw new Error(`NETIO command failed with HTTP status ${res.status}`);
+                if (res.status === 400 && targetAction === 0) {
+                    const err = new Error(`NETIO cutoff rejected with 400 Bad request: Short ON active on Outlet ${targetOutputId}`);
+                    err.code = 'SHORT_ON_ACTIVE';
+                    err.status = 400;
+                    throw err;
+                }
+                const err = new Error(`NETIO command failed with HTTP status ${res.status}`);
+                err.status = res.status;
+                err.code = `HTTP_${res.status}`;
+                throw err;
             }
 
             let responseData;
@@ -257,10 +347,7 @@ class NetioAdapter {
                 throw new Error("NETIO response missing required 'Outputs' confirmation array");
             }
 
-            const targetOutput = payload?.Outputs?.[0];
             if (targetOutput && targetOutput.ID !== undefined) {
-                const targetOutputId = targetOutput.ID;
-                const targetAction = targetOutput.Action;
                 const confirmedOutput = responseData.Outputs.find(o => o.ID === targetOutputId);
                 if (!confirmedOutput) {
                     throw new Error(`NETIO response did not confirm action for Outlet ${targetOutputId}`);
@@ -268,7 +355,9 @@ class NetioAdapter {
 
                 // Vahvista että releen palauttama tila (State) vastaa annettua käskyä (Action)
                 if (targetAction === 0 && confirmedOutput.State !== 0) {
-                    throw new Error(`NETIO cutoff command for Outlet ${targetOutputId} failed: device reported State=${confirmedOutput.State} (expected 0/OFF)`);
+                    const err = new Error(`NETIO cutoff command for Outlet ${targetOutputId} failed: device reported State=${confirmedOutput.State} (expected 0/OFF)`);
+                    err.code = 'CUTOFF_STILL_ON';
+                    throw err;
                 }
                 if (targetAction === 1 && confirmedOutput.State !== 1) {
                     throw new Error(`NETIO power ON command for Outlet ${targetOutputId} failed: device reported State=${confirmedOutput.State} (expected 1/ON)`);
@@ -286,6 +375,14 @@ class NetioAdapter {
             };
         } catch (err) {
             clearTimeout(timeoutId);
+            if (err.name === 'AbortError') {
+                const timeoutErr = new Error(`NETIO command timed out after ${this.timeoutMs}ms`);
+                timeoutErr.code = 'TIMEOUT';
+                throw timeoutErr;
+            }
+            if (!err.code) {
+                err.code = 'NETWORK_ERROR';
+            }
             console.error('[NETIO ERROR] Command failed:', err.message);
             throw err;
         }

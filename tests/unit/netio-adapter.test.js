@@ -152,4 +152,91 @@ describe('NETIO PowerBOX 3PF Adapter', () => {
             global.fetch = origFetch;
         }
     });
+
+    it('throws SHORT_ON_ACTIVE error when cutoff is attempted during active Short ON in mock mode', async () => {
+        const adapter = new NetioAdapter({ isMock: true, mockActiveShortOn: true });
+        try {
+            await adapter.emergencyStop(1);
+            assert.fail('Should have thrown SHORT_ON_ACTIVE');
+        } catch (err) {
+            assert.strictEqual(err.code, 'SHORT_ON_ACTIVE');
+            assert.strictEqual(err.status, 400);
+            assert.ok(err.message.includes('400 Bad request'));
+        }
+    });
+
+    it('classifies HTTP 400 cutoff response as SHORT_ON_ACTIVE in hardware mode', async () => {
+        const adapter = new NetioAdapter({ endpoint: 'http://localhost:9999', isMock: false });
+        const origFetch = global.fetch;
+        global.fetch = async () => ({
+            ok: false,
+            status: 400,
+            statusText: 'Bad request',
+            json: async () => ({ error: 'Bad request' })
+        });
+
+        try {
+            await assert.rejects(
+                async () => adapter.emergencyStop(1),
+                (err) => err.code === 'SHORT_ON_ACTIVE' && err.status === 400
+            );
+        } finally {
+            global.fetch = origFetch;
+        }
+    });
+
+    it('classifies cutoff returning State 1 as CUTOFF_STILL_ON in mock mode', async () => {
+        const adapter = new NetioAdapter({ isMock: true, mockCutoffReturnsState1: true });
+        try {
+            await adapter.emergencyStop(1);
+            assert.fail('Should have thrown CUTOFF_STILL_ON');
+        } catch (err) {
+            assert.strictEqual(err.code, 'CUTOFF_STILL_ON');
+            assert.ok(err.message.includes('State=1'));
+        }
+    });
+
+    it('classifies AbortError as TIMEOUT in hardware mode', async () => {
+        const adapter = new NetioAdapter({ endpoint: 'http://localhost:9999', isMock: false, timeoutMs: 50 });
+        const origFetch = global.fetch;
+        global.fetch = async () => {
+            const err = new Error('The operation was aborted');
+            err.name = 'AbortError';
+            throw err;
+        };
+
+        try {
+            await assert.rejects(
+                async () => adapter.startTimedPlay(15, 1),
+                (err) => err.code === 'TIMEOUT'
+            );
+        } finally {
+            global.fetch = origFetch;
+        }
+    });
+
+    it('strictly verifies confirmed OFF status with verifyConfirmedOff', async () => {
+        const adapter = new NetioAdapter({ isMock: true });
+        
+        // Initially outlet 1 is 0
+        const isOffInitial = await adapter.verifyConfirmedOff(1);
+        assert.strictEqual(isOffInitial, true);
+
+        // Turn ON
+        await adapter.startTimedPlay(15, 1);
+        const isOffAfterStart = await adapter.verifyConfirmedOff(1);
+        assert.strictEqual(isOffAfterStart, false);
+
+        // Turn OFF
+        await adapter.emergencyStop(1);
+        const isOffAfterStop = await adapter.verifyConfirmedOff(1);
+        assert.strictEqual(isOffAfterStop, true);
+    });
+
+    it('returns false in verifyConfirmedOff if status probe fails', async () => {
+        const adapter = new NetioAdapter({ isMock: true, mockStatusFails: true });
+        const isOff = await adapter.verifyConfirmedOff(1);
+        assert.strictEqual(isOff, false);
+    });
 });
+
