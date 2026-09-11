@@ -19,6 +19,9 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
+-- Varmistetaan että 'resolved_uncertain' lisätään olemassa olevaan enumiin
+ALTER TYPE public.arcade_order_status ADD VALUE IF NOT EXISTS 'resolved_uncertain';
+
 DO $$ BEGIN
     CREATE TYPE arcade_payment_status AS ENUM (
         'pending',
@@ -108,7 +111,9 @@ CREATE TABLE IF NOT EXISTS public.arcade_orders (
 -- OSITTAINEN UNIIKKI-INDEKSI (Sisältää hardware_uncertain!):
 -- Takaa tietokantatasolla, ettei pöydällä voi koskaan olla kahta aktiivista,
 -- varaavaa tai epäselvää tilausta.
-CREATE UNIQUE INDEX IF NOT EXISTS idx_arcade_orders_single_active_per_table
+DROP INDEX IF EXISTS public.idx_arcade_orders_single_active_per_table;
+
+CREATE UNIQUE INDEX idx_arcade_orders_single_active_per_table
 ON public.arcade_orders (table_id)
 WHERE status IN ('holding', 'processing', 'active', 'hardware_uncertain');
 
@@ -762,11 +767,15 @@ END;
 $$;
 
 -- FUNKTIO 6: arcade_release_reconciled_table
+DROP FUNCTION IF EXISTS public.arcade_release_reconciled_table(TEXT, TEXT, UUID, BOOLEAN);
+DROP FUNCTION IF EXISTS public.arcade_release_reconciled_table(TEXT, TEXT, UUID, BOOLEAN, TIMESTAMPTZ);
+
 CREATE OR REPLACE FUNCTION public.arcade_release_reconciled_table(
     p_table_id TEXT,
     p_order_id TEXT,
     p_session_id UUID,
-    p_confirmed_off BOOLEAN
+    p_confirmed_off BOOLEAN,
+    p_confirmed_off_at TIMESTAMPTZ
 )
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -778,43 +787,110 @@ DECLARE
     v_order RECORD;
     v_session RECORD;
 BEGIN
-    IF p_table_id IS NULL OR p_order_id IS NULL OR p_session_id IS NULL THEN
+    -- 1. PARAMETRIEN PERUSVALIDOINTI
+    IF p_table_id IS NULL OR trim(p_table_id) = '' OR
+       p_order_id IS NULL OR trim(p_order_id) = '' OR
+       p_session_id IS NULL THEN
         RETURN jsonb_build_object('success', false, 'code', 'INVALID_PARAMETERS', 'statusCode', 400);
     END IF;
 
-    -- 1. LUKITUSJÄRJESTYS: Pöytä -> Tilaus -> Sessio
-    SELECT * INTO v_table FROM public.arcade_table_configs WHERE table_id = p_table_id FOR UPDATE;
+    -- 2. LUKITUSJÄRJESTYS: Pöytä -> Tilaus -> Sessio (käytetään taulualiasia)
+    SELECT * INTO v_table 
+    FROM public.arcade_table_configs AS tc 
+    WHERE tc.table_id = p_table_id 
+    FOR UPDATE;
+
     IF NOT FOUND THEN
         RETURN jsonb_build_object('success', false, 'code', 'TABLE_NOT_FOUND', 'statusCode', 404);
     END IF;
 
-    SELECT * INTO v_order FROM public.arcade_orders WHERE order_id = p_order_id FOR UPDATE;
+    SELECT * INTO v_order 
+    FROM public.arcade_orders AS ord 
+    WHERE ord.order_id = p_order_id 
+    FOR UPDATE;
+
     IF NOT FOUND THEN
         RETURN jsonb_build_object('success', false, 'code', 'ORDER_NOT_FOUND', 'statusCode', 404);
     END IF;
 
-    SELECT * INTO v_session FROM public.arcade_sessions WHERE id = p_session_id FOR UPDATE;
+    SELECT * INTO v_session 
+    FROM public.arcade_sessions AS sess 
+    WHERE sess.id = p_session_id 
+    FOR UPDATE;
+
     IF NOT FOUND THEN
         RETURN jsonb_build_object('success', false, 'code', 'SESSION_NOT_FOUND', 'statusCode', 404);
     END IF;
 
-    -- 2. OMISTAJUUSTARKISTUS
+    -- 3. OMISTAJUUSTARKISTUS
     IF v_order.table_id <> p_table_id OR v_session.table_id <> p_table_id OR v_order.session_id <> p_session_id THEN
         RETURN jsonb_build_object('success', false, 'code', 'OWNERSHIP_MISMATCH', 'statusCode', 400);
     END IF;
 
-    -- 3. IDEMPOTENSSI: Jos tilaus on jo aiemmin ratkaistu tai purettu, älä koske pöydän nykytilaan!
-    IF v_order.status IN ('completed', 'resolved_uncertain', 'hold_expired', 'activation_failed', 'cancelled') THEN
+    -- 4. IDEMPOTENSSI: Jos tilaus tai sessio on jo aiemmin ratkaistu tai purettu, ÄLÄ KOSKE PÖYTÄÄN!
+    IF v_order.status IN ('completed', 'resolved_uncertain', 'hold_expired', 'activation_failed', 'cancelled')
+       OR v_session.status IN ('completed', 'failed', 'canceled', 'force_stopped') THEN
         RETURN jsonb_build_object(
             'success', true,
             'is_idempotent_replay', true,
             'already_resolved', true,
-            'status', v_order.status,
-            'message', 'Tilaus on jo aiemmin purettu. Pöydän tilaa ei muuteta.'
+            'order_status', v_order.status,
+            'session_status', v_session.status,
+            'message', 'Tilaus on jo aiemmin purettu. Pöydän tilaan ei kosketa.'
         );
     END IF;
 
-    -- 4. TURVALLISUUSTARKISTUS: OFF-varmistus on pakollinen (hylkää FALSE ja NULL!)
+    -- 5. RAJAUS VAIN SALLITTUIHIN TILOIHIN: active ja hardware_uncertain
+    IF v_order.status NOT IN ('active', 'hardware_uncertain') THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'ORDER_NOT_IN_RELEASABLE_STATE',
+            'statusCode', 409,
+            'status', v_order.status,
+            'error', 'Vapautus on sallittu vain tiloissa active tai hardware_uncertain.'
+        );
+    END IF;
+
+    IF v_order.status = 'active' AND v_session.status NOT IN ('active', 'cooldown') THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'INVALID_SESSION_STATE_FOR_RELEASE',
+            'statusCode', 409,
+            'session_status', v_session.status
+        );
+    END IF;
+
+    IF v_order.status = 'hardware_uncertain' AND v_session.status <> 'hardware_uncertain' THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'INVALID_SESSION_STATE_FOR_RELEASE',
+            'statusCode', 409,
+            'session_status', v_session.status
+        );
+    END IF;
+
+    -- Pöydän lukkotilan vastaavuus
+    IF v_order.status = 'active' AND v_table.lock_state <> 'active' THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'TABLE_LOCK_MISMATCH',
+            'statusCode', 409,
+            'lock_state', v_table.lock_state,
+            'error', 'Aktiivisen tilauksen vapautus edellyttää pöydän active-lukkotilaa.'
+        );
+    END IF;
+
+    IF v_order.status = 'hardware_uncertain' AND v_table.lock_state <> 'error_locked' THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'TABLE_LOCK_MISMATCH',
+            'statusCode', 409,
+            'lock_state', v_table.lock_state,
+            'error', 'Epävarman tilauksen vapautus edellyttää pöydän error_locked-lukkotilaa.'
+        );
+    END IF;
+
+    -- 6. TURVALLISUUSTARKISTUS: OFF-varmistus ja sen aikaleima
     IF p_confirmed_off IS NOT TRUE THEN
         RETURN jsonb_build_object(
             'success', false, 
@@ -824,7 +900,15 @@ BEGIN
         );
     END IF;
 
-    -- 5. TURVALLISUUSTARKISTUS: Aikaraja + 4 sekunnin marginaali on täytynyt kulua
+    IF p_confirmed_off_at IS NULL THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'MISSING_OFF_CONFIRMATION_TIME',
+            'statusCode', 400,
+            'error', 'Pöytää ei voida vapauttaa: releen OFF-havainnon aikaleima puuttuu.'
+        );
+    END IF;
+
     IF v_order.expires_at IS NULL THEN
         RETURN jsonb_build_object(
             'success', false,
@@ -834,7 +918,7 @@ BEGIN
         );
     END IF;
 
-    IF now() <= (v_order.expires_at + interval '4 seconds') THEN
+    IF now() < (v_order.expires_at + interval '4 seconds') THEN
         RETURN jsonb_build_object(
             'success', false, 
             'code', 'DEADLINE_NOT_ELAPSED', 
@@ -843,43 +927,57 @@ BEGIN
         );
     END IF;
 
-    -- 6. PÖYDÄN NYKYISEN OMISTAJUUDEN TARKISTUS:
-    -- Vapautus saa muuttaa pöydän tilaa vain, jos pöytä on tämän kyseisen tilauksen lukitsema!
-    IF v_table.lock_state NOT IN ('active', 'error_locked') THEN
+    IF p_confirmed_off_at < (v_order.expires_at + interval '4 seconds') THEN
         RETURN jsonb_build_object(
             'success', false,
-            'code', 'TABLE_NOT_IN_RELEASABLE_STATE',
+            'code', 'OFF_OBSERVED_BEFORE_DEADLINE',
             'statusCode', 409,
-            'lock_state', v_table.lock_state
+            'error', 'OFF-havainto on tehty ennen peliajan ja turvamarginaalin päättymistä.'
+        );
+    END IF;
+
+    IF p_confirmed_off_at < (now() - interval '120 seconds') THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'OFF_OBSERVATION_STALE',
+            'statusCode', 409,
+            'error', 'OFF-havainto on vanhentunut (yli 120 sekuntia vanha).'
+        );
+    END IF;
+
+    IF p_confirmed_off_at > (now() + interval '5 seconds') THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'code', 'OFF_OBSERVATION_IN_FUTURE',
+            'statusCode', 400,
+            'error', 'OFF-havainnon aikaleima on tulevaisuudessa.'
         );
     END IF;
 
     -- 7. TILAN PÄIVITYS:
-    -- Siirretään myös hardware_uncertain -tilaus pois uniikki-indeksistä tilaan resolved_uncertain,
-    -- säilyttäen refund_status = refund_required ennallaan!
     IF v_order.status = 'active' THEN
-        UPDATE public.arcade_orders
+        UPDATE public.arcade_orders AS ord
         SET status = 'completed', completed_at = now(), updated_at = now()
-        WHERE id = v_order.id;
+        WHERE ord.id = v_order.id;
     ELSIF v_order.status = 'hardware_uncertain' THEN
-        UPDATE public.arcade_orders
+        UPDATE public.arcade_orders AS ord
         SET status = 'resolved_uncertain', completed_at = now(), updated_at = now()
-        WHERE id = v_order.id;
+        WHERE ord.id = v_order.id;
     END IF;
 
-    UPDATE public.arcade_sessions
-    SET status = 'completed', confirmed_off_at = now()
-    WHERE id = v_session.id;
+    UPDATE public.arcade_sessions AS sess
+    SET status = 'completed', confirmed_off_at = p_confirmed_off_at
+    WHERE sess.id = v_session.id;
 
-    UPDATE public.arcade_table_configs
+    UPDATE public.arcade_table_configs AS tc
     SET lock_state = 'available', updated_at = now()
-    WHERE table_id = p_table_id;
+    WHERE tc.table_id = p_table_id;
 
     RETURN jsonb_build_object(
         'success', true, 
         'table_id', p_table_id, 
         'lock_state', 'available',
-        'message', 'Pöytä vapautettu turvallisesti vahvistetun OFF-tilan jälkeen.'
+        'message', 'Pöytä vapautettu turvallisesti vahvistetun tuoreen OFF-havainnon jälkeen.'
     );
 END;
 $$;
@@ -904,69 +1002,80 @@ DECLARE
     v_session RECORD;
 BEGIN
     FOR r IN 
-        SELECT o.table_id, o.order_id
-        FROM public.arcade_orders o
-        WHERE o.status = 'processing'
-          AND o.updated_at < (now() - (p_timeout_seconds || ' seconds')::interval)
+        SELECT ord_loop.table_id AS loop_table_id, ord_loop.order_id AS loop_order_id
+        FROM public.arcade_orders AS ord_loop
+        WHERE ord_loop.status = 'processing'
+          AND ord_loop.updated_at < (now() - (p_timeout_seconds || ' seconds')::interval)
     LOOP
-        -- Lukitusjärjestys jokaiselle riville: Pöytä -> Tilaus -> Sessio
-        SELECT * INTO v_table FROM public.arcade_table_configs WHERE table_id = r.table_id FOR UPDATE;
-        SELECT * INTO v_order FROM public.arcade_orders WHERE order_id = r.order_id FOR UPDATE;
+        -- Lukitusjärjestys jokaiselle riville: Pöytä -> Tilaus -> Sessio (taulualiasoitu)
+        SELECT * INTO v_table 
+        FROM public.arcade_table_configs AS tc 
+        WHERE tc.table_id = r.loop_table_id 
+        FOR UPDATE;
+
+        SELECT * INTO v_order 
+        FROM public.arcade_orders AS ord 
+        WHERE ord.order_id = r.loop_order_id 
+        FOR UPDATE;
 
         IF v_order.status = 'processing' AND v_order.updated_at < (now() - (p_timeout_seconds || ' seconds')::interval) THEN
             IF v_order.hardware_dispatched_at IS NOT NULL THEN
                 -- Relekäsky oli lähetetty: ÄLÄ KOSKAAN LÄHETÄ UUDESTAAN. Lukitse epävarmaksi.
-                UPDATE public.arcade_orders
+                UPDATE public.arcade_orders AS ord
                 SET 
                     status = 'hardware_uncertain',
                     refund_status = CASE 
-                        WHEN refund_status IN ('refund_initiated', 'refund_completed') THEN refund_status
+                        WHEN ord.refund_status IN ('refund_initiated', 'refund_completed') THEN ord.refund_status
                         ELSE 'refund_required'::arcade_refund_status
                     END,
-                    refund_reason = COALESCE(refund_reason, 'SERVER_CRASH_DURING_DISPATCH_UNCERTAIN'),
+                    refund_reason = COALESCE(ord.refund_reason, 'SERVER_CRASH_DURING_DISPATCH_UNCERTAIN'),
                     last_error_code = 'HARDWARE_UNCERTAIN',
                     updated_at = now()
-                WHERE id = v_order.id;
+                WHERE ord.id = v_order.id;
 
-                UPDATE public.arcade_table_configs
+                UPDATE public.arcade_table_configs AS tc
                 SET lock_state = 'error_locked', updated_at = now()
-                WHERE table_id = r.table_id;
+                WHERE tc.table_id = r.loop_table_id;
 
                 IF v_order.session_id IS NOT NULL THEN
-                    SELECT * INTO v_session FROM public.arcade_sessions WHERE id = v_order.session_id FOR UPDATE;
+                    SELECT * INTO v_session 
+                    FROM public.arcade_sessions AS sess 
+                    WHERE sess.id = v_order.session_id 
+                    FOR UPDATE;
+
                     IF FOUND THEN
-                        UPDATE public.arcade_sessions
+                        UPDATE public.arcade_sessions AS sess
                         SET status = 'hardware_uncertain', error_reason = 'Server crash during dispatch'
-                        WHERE id = v_session.id;
+                        WHERE sess.id = v_session.id;
                     END IF;
                 END IF;
 
                 reconciled_order_id := v_order.order_id;
                 action_taken := 'MARKED_HARDWARE_UNCERTAIN_AND_LOCKED';
-                table_id := r.table_id;
+                table_id := r.loop_table_id;
                 RETURN NEXT;
             ELSE
                 -- Käskyä ei oltu lähetetty: turvallinen peruminen ja hyvitys
-                UPDATE public.arcade_orders
+                UPDATE public.arcade_orders AS ord
                 SET 
                     status = 'activation_failed',
                     refund_status = CASE 
-                        WHEN refund_status IN ('refund_initiated', 'refund_completed') THEN refund_status
+                        WHEN ord.refund_status IN ('refund_initiated', 'refund_completed') THEN ord.refund_status
                         ELSE 'refund_required'::arcade_refund_status
                     END,
-                    refund_reason = COALESCE(refund_reason, 'SERVER_CRASH_BEFORE_DISPATCH'),
+                    refund_reason = COALESCE(ord.refund_reason, 'SERVER_CRASH_BEFORE_DISPATCH'),
                     updated_at = now()
-                WHERE id = v_order.id;
+                WHERE ord.id = v_order.id;
 
                 IF v_table.lock_state = 'pending_payment' THEN
-                    UPDATE public.arcade_table_configs
+                    UPDATE public.arcade_table_configs AS tc
                     SET lock_state = 'available', updated_at = now()
-                    WHERE table_id = r.table_id;
+                    WHERE tc.table_id = r.loop_table_id;
                 END IF;
 
                 reconciled_order_id := v_order.order_id;
                 action_taken := 'CANCELLED_SAFE_AVAILABLE';
-                table_id := r.table_id;
+                table_id := r.loop_table_id;
                 RETURN NEXT;
             END IF;
         END IF;
@@ -983,13 +1092,13 @@ REVOKE EXECUTE ON FUNCTION public.arcade_bind_payment_intent FROM PUBLIC, anon, 
 REVOKE EXECUTE ON FUNCTION public.arcade_claim_order_for_activation FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.arcade_pre_dispatch_guard FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.arcade_finalize_activation FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.arcade_release_reconciled_table FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.arcade_reconcile_stuck_orders FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.arcade_release_reconciled_table(TEXT, TEXT, UUID, BOOLEAN, TIMESTAMPTZ) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.arcade_reconcile_stuck_orders(INTEGER) FROM PUBLIC, anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION public.arcade_create_payment_hold TO service_role;
 GRANT EXECUTE ON FUNCTION public.arcade_bind_payment_intent TO service_role;
 GRANT EXECUTE ON FUNCTION public.arcade_claim_order_for_activation TO service_role;
 GRANT EXECUTE ON FUNCTION public.arcade_pre_dispatch_guard TO service_role;
 GRANT EXECUTE ON FUNCTION public.arcade_finalize_activation TO service_role;
-GRANT EXECUTE ON FUNCTION public.arcade_release_reconciled_table TO service_role;
-GRANT EXECUTE ON FUNCTION public.arcade_reconcile_stuck_orders TO service_role;
+GRANT EXECUTE ON FUNCTION public.arcade_release_reconciled_table(TEXT, TEXT, UUID, BOOLEAN, TIMESTAMPTZ) TO service_role;
+GRANT EXECUTE ON FUNCTION public.arcade_reconcile_stuck_orders(INTEGER) TO service_role;
