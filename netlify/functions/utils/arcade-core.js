@@ -14,6 +14,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 const NetioAdapter = require('./netio-adapter');
 
@@ -182,6 +183,9 @@ async function getTableConfigAsync(tableId, isTestMode) {
 }
 
 function getNetioAdapter(tableConfig, isTestMode) {
+    if (isTestMode && memoryDb._mockNetioInstance) {
+        return memoryDb._mockNetioInstance;
+    }
     const rawEndpoint = tableConfig?.device_endpoint || tableConfig?.switch_endpoint || process.env.NETIO_BASE_URL || process.env.NETIO_ENDPOINT || '';
     const username = tableConfig?.device_username || process.env.NETIO_USERNAME || process.env.NETIO_USER || 'admin';
     const password = tableConfig?.device_password || tableConfig?.switch_auth_secret || process.env.NETIO_PASSWORD || process.env.NETIO_PASS || '';
@@ -227,20 +231,31 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
         const session = memoryDb.sessions.get(tableId);
         if (!session) return;
 
-        // Active session whose scheduled time + 4s has elapsed
-        if (session.status === 'active' && session.expiresAt && now > (session.expiresAt + 4000)) {
+        // Active or hardware_uncertain session whose scheduled time + 4s has elapsed
+        if ((session.status === 'active' || session.status === 'hardware_uncertain') && session.expiresAt && now > (session.expiresAt + 4000)) {
             const targetOutputId = tableConfig?.switch_output_id || 1;
             let isOff = false;
             try {
-                isOff = await netio.verifyConfirmedOff(targetOutputId);
+                if (netio && typeof netio.verifyConfirmedOff === 'function') {
+                    isOff = (await netio.verifyConfirmedOff(targetOutputId) === true);
+                }
             } catch (err) {
                 console.warn('[RECONCILIATION] Hardware probe failed during session expiration:', err.message);
+                isOff = false;
             }
 
-            if (isOff) {
+            if (isOff === true) {
                 memoryDb.sessions.delete(tableId);
-                if (tableConfig && tableConfig.lock_state === 'error_locked') {
+                if (tableConfig) {
                     tableConfig.lock_state = 'available';
+                }
+                const matchedOrder = Array.from(memoryDb.orders.values()).find(o => o.tableId === tableId && (o.sessionId === session.id || o.status === 'hardware_uncertain' || o.status === 'active'));
+                if (matchedOrder) {
+                    if (matchedOrder.status === 'hardware_uncertain') {
+                        matchedOrder.status = 'resolved_uncertain';
+                    } else if (matchedOrder.status === 'active') {
+                        matchedOrder.status = 'completed';
+                    }
                 }
                 saveMemorySessions();
                 memoryDb.events.push({
@@ -288,14 +303,15 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                     const targetOutputId = tableConfig?.switch_output_id || 1;
                     let isOff = false;
                     try {
-                        if (netio) {
-                            isOff = await netio.verifyConfirmedOff(targetOutputId);
+                        if (netio && typeof netio.verifyConfirmedOff === 'function') {
+                            isOff = (await netio.verifyConfirmedOff(targetOutputId) === true);
                         }
                     } catch (probeErr) {
                         console.warn('[RECONCILIATION] Supabase probe error:', probeErr.message);
+                        isOff = false;
                     }
 
-                    if (isOff) {
+                    if (isOff === true) {
                         const confirmedOffAt = new Date().toISOString();
                         const { data: matchedOrder } = await sb
                             .from('arcade_orders')
@@ -306,13 +322,26 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                             .maybeSingle();
 
                         if (matchedOrder?.order_id) {
-                            await sb.rpc('arcade_release_reconciled_table', {
-                                p_table_id: tableId,
-                                p_order_id: matchedOrder.order_id,
-                                p_session_id: currentSession.id,
-                                p_confirmed_off: true,
-                                p_confirmed_off_at: confirmedOffAt
-                            });
+                            let releaseData = null;
+                            let releaseErr = null;
+                            try {
+                                const res = await sb.rpc('arcade_release_reconciled_table', {
+                                    p_table_id: tableId,
+                                    p_order_id: matchedOrder.order_id,
+                                    p_session_id: currentSession.id,
+                                    p_confirmed_off: true,
+                                    p_confirmed_off_at: confirmedOffAt
+                                });
+                                releaseData = res.data;
+                                releaseErr = res.error;
+                            } catch (relEx) {
+                                releaseErr = relEx;
+                            }
+
+                            if (releaseErr || !releaseData?.success) {
+                                console.error('[RECONCILIATION ERROR] arcade_release_reconciled_table failed:', releaseErr?.message || releaseData?.error);
+                                return;
+                            }
                         } else {
                             await sb
                                 .from('arcade_sessions')
@@ -372,15 +401,23 @@ async function createPaymentHold({ tableId, durationMinutes, clientToken, isTest
         const clientTokenHash = crypto.createHash('sha256').update(token).digest('hex');
         const durationSeconds = durationMinutes * 60;
 
-        const { data, error } = await sb.rpc('arcade_create_payment_hold', {
-            p_table_id: tableId,
-            p_duration_minutes: durationMinutes,
-            p_duration_seconds: durationSeconds,
-            p_amount_cents: pkg.amountCents,
-            p_currency: pkg.currency,
-            p_client_token_hash: clientTokenHash,
-            p_hold_seconds: 180
-        });
+        let data = null;
+        let error = null;
+        try {
+            const res = await sb.rpc('arcade_create_payment_hold', {
+                p_table_id: tableId,
+                p_duration_minutes: durationMinutes,
+                p_duration_seconds: durationSeconds,
+                p_amount_cents: pkg.amountCents,
+                p_currency: pkg.currency,
+                p_client_token_hash: clientTokenHash,
+                p_hold_seconds: 180
+            });
+            data = res.data;
+            error = res.error;
+        } catch (holdEx) {
+            error = holdEx;
+        }
 
         if (error) {
             console.error('[SUPABASE RPC ERROR] arcade_create_payment_hold:', error.message);
@@ -410,7 +447,6 @@ async function createPaymentHold({ tableId, durationMinutes, clientToken, isTest
             durationSeconds,
             amountCents: pkg.amountCents,
             currency: pkg.currency,
-            clientToken: token,
             clientTokenHash,
             status: 'holding',
             holdExpiresAt: data.hold_expires_at,
@@ -569,12 +605,20 @@ async function bindPaymentIntent({ tableId, orderId, paymentIntentId, idempotenc
 
     const sb = getSupabase();
     if (sb) {
-        const { data, error } = await sb.rpc('arcade_bind_payment_intent', {
-            p_table_id: tableId,
-            p_order_id: orderId,
-            p_payment_intent_id: paymentIntentId,
-            p_idempotency_key: idempotencyKey || null
-        });
+        let data = null;
+        let error = null;
+        try {
+            const res = await sb.rpc('arcade_bind_payment_intent', {
+                p_table_id: tableId,
+                p_order_id: orderId,
+                p_payment_intent_id: paymentIntentId,
+                p_idempotency_key: idempotencyKey || null
+            });
+            data = res.data;
+            error = res.error;
+        } catch (bindEx) {
+            error = bindEx;
+        }
 
         if (error) {
             console.error('[SUPABASE RPC ERROR] arcade_bind_payment_intent:', error.message);
@@ -760,11 +804,12 @@ async function activateSessionCore({
         const sessionId = session.id;
         const targetOutputId = cfg?.switch_output_id || 1;
 
+        const clientTokenHash = clientToken ? crypto.createHash('sha256').update(clientToken.trim()).digest('hex') : null;
         await supabase.from('arcade_events').insert({
             table_id: table,
             session_id: sessionId,
             event_type: 'session_requested',
-            payload: { durationMinutes: targetMinutes, clientToken, outputId: targetOutputId, paymentIntentId }
+            payload: { durationMinutes: targetMinutes, clientTokenHash, outputId: targetOutputId, paymentIntentId }
         }).catch(() => {});
 
         const dispatchTimestamp = new Date().toISOString();
@@ -1061,11 +1106,12 @@ async function activateSessionCore({
     memoryDb.sessions.set(table, sessionObj);
     saveMemorySessions();
 
+    const memClientTokenHash = clientToken ? crypto.createHash('sha256').update(clientToken.trim()).digest('hex') : null;
     memoryDb.events.push({
         table_id: table,
         session_id: sessionId,
         event_type: 'session_requested',
-        payload: { durationMinutes: targetMinutes, clientToken, outputId: targetOutputId, paymentIntentId },
+        payload: { durationMinutes: targetMinutes, clientTokenHash: memClientTokenHash, outputId: targetOutputId, paymentIntentId },
         created_at: requestedAt
     });
 
@@ -1264,17 +1310,25 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         const amountCents = paymentIntent.amount;
         const currency = paymentIntent.currency;
         const workerId = `worker-${process.pid || 1}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-        const clientToken = paymentIntent.metadata?.client_token || `tok-${Date.now()}`;
+        const clientSessionToken = 'tok-ord-' + orderId;
 
         // 1. Call atomic claim RPC: arcade_claim_order_for_activation
-        const { data: claimData, error: claimErr } = await sb.rpc('arcade_claim_order_for_activation', {
-            p_table_id: tableId,
-            p_order_id: orderId,
-            p_payment_intent_id: paymentIntent.id,
-            p_amount_cents: amountCents,
-            p_currency: currency,
-            p_worker_id: workerId
-        });
+        let claimData = null;
+        let claimErr = null;
+        try {
+            const res = await sb.rpc('arcade_claim_order_for_activation', {
+                p_table_id: tableId,
+                p_order_id: orderId,
+                p_payment_intent_id: paymentIntent.id,
+                p_amount_cents: amountCents,
+                p_currency: currency,
+                p_worker_id: workerId
+            });
+            claimData = res.data;
+            claimErr = res.error;
+        } catch (cEx) {
+            claimErr = cEx;
+        }
 
         if (claimErr) {
             console.error('[SUPABASE RPC ERROR] arcade_claim_order_for_activation:', claimErr.message);
@@ -1288,7 +1342,7 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         }
 
         // Idempotent replay: already active, completed, or being processed concurrently
-        if (claimData.is_idempotent_replay) {
+        if (claimData?.is_idempotent_replay) {
             return {
                 success: true,
                 isIdempotentReplay: true,
@@ -1300,13 +1354,13 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         }
 
         // Claim failure (e.g. late payment, hold expired, amount mismatch, table mismatch)
-        if (!claimData.success) {
+        if (!claimData || !claimData.success) {
             return {
                 success: false,
-                statusCode: claimData.statusCode || 409,
-                code: claimData.code || 'CLAIM_FAILED',
-                refundRequired: Boolean(claimData.refund_required),
-                error: claimData.error || 'Maksun lunastus epäonnistui.'
+                statusCode: claimData?.statusCode || 409,
+                code: claimData?.code || 'CLAIM_FAILED',
+                refundRequired: Boolean(claimData?.refund_required),
+                error: claimData?.error || 'Maksun lunastus epäonnistui.'
             };
         }
 
@@ -1315,12 +1369,20 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         const durationSeconds = claimData.duration_seconds || (durationMinutes * 60);
 
         // 2. Pre-dispatch guard: arcade_pre_dispatch_guard
-        const { data: guardData, error: guardErr } = await sb.rpc('arcade_pre_dispatch_guard', {
-            p_table_id: effectiveTableId,
-            p_order_id: orderId,
-            p_worker_id: workerId,
-            p_client_session_token: clientToken
-        });
+        let guardData = null;
+        let guardErr = null;
+        try {
+            const guardRes = await sb.rpc('arcade_pre_dispatch_guard', {
+                p_table_id: effectiveTableId,
+                p_order_id: orderId,
+                p_worker_id: workerId,
+                p_client_session_token: clientSessionToken
+            });
+            guardData = guardRes.data;
+            guardErr = guardRes.error;
+        } catch (gEx) {
+            guardErr = gEx;
+        }
 
         if (guardErr || !guardData?.success) {
             const errReason = guardErr ? guardErr.message : (guardData?.error || 'Pre-dispatch guard rejected');
@@ -1352,15 +1414,24 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         const netio = getNetioAdapter(cfg, isTestMode);
 
         if (!netio && !isTestMode) {
-            await sb.rpc('arcade_finalize_activation', {
-                p_table_id: effectiveTableId,
-                p_order_id: orderId,
-                p_session_id: sessionId,
-                p_worker_id: workerId,
-                p_success: false,
-                p_hardware_uncertain: false,
-                p_error_reason: 'Hardware adapter configuration missing'
-            }).catch(() => {});
+            let finErr = null;
+            try {
+                const finRes = await sb.rpc('arcade_finalize_activation', {
+                    p_table_id: effectiveTableId,
+                    p_order_id: orderId,
+                    p_session_id: sessionId,
+                    p_worker_id: workerId,
+                    p_success: false,
+                    p_hardware_uncertain: false,
+                    p_error_reason: 'Hardware adapter configuration missing'
+                });
+                if (finRes.error) finErr = finRes.error;
+            } catch (e) {
+                finErr = e;
+            }
+            if (finErr) {
+                console.error('[FINALIZE ERROR] arcade_finalize_activation failed on missing adapter:', finErr.message);
+            }
 
             return {
                 success: false,
@@ -1386,23 +1457,38 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
             console.error('[HARDWARE ERROR] startTimedPlay failed:', dispatchError.message);
             let isConfirmedOff = false;
             try {
-                if (netio) {
-                    isConfirmedOff = await netio.verifyConfirmedOff(targetOutputId);
+                if (netio && typeof netio.verifyConfirmedOff === 'function') {
+                    const probeRes = await netio.verifyConfirmedOff(targetOutputId);
+                    // Strictly numerical 0 returns true; State === 1, missing, or timeout returns false/throws
+                    isConfirmedOff = (probeRes === true);
                 }
             } catch (probeErr) {
-                console.warn('[HARDWARE PROBE] Probe after error failed:', probeErr.message);
+                console.warn('[HARDWARE PROBE] Probe after error failed with exception:', probeErr.message);
+                isConfirmedOff = false;
             }
 
-            if (isConfirmedOff) {
-                await sb.rpc('arcade_finalize_activation', {
-                    p_table_id: effectiveTableId,
-                    p_order_id: orderId,
-                    p_session_id: sessionId,
-                    p_worker_id: workerId,
-                    p_success: false,
-                    p_hardware_uncertain: false,
-                    p_error_reason: `Relay activation failed (confirmed OFF): ${dispatchError.message}`
-                }).catch(() => {});
+            if (isConfirmedOff === true) {
+                let finData = null;
+                let finErr = null;
+                try {
+                    const res = await sb.rpc('arcade_finalize_activation', {
+                        p_table_id: effectiveTableId,
+                        p_order_id: orderId,
+                        p_session_id: sessionId,
+                        p_worker_id: workerId,
+                        p_success: false,
+                        p_hardware_uncertain: false,
+                        p_error_reason: `Relay activation failed (confirmed OFF): ${dispatchError.message}`
+                    });
+                    finData = res.data;
+                    finErr = res.error;
+                } catch (e) {
+                    finErr = e;
+                }
+
+                if (finErr || !finData?.success) {
+                    console.error('[FINALIZE ERROR] arcade_finalize_activation failed in confirmed-off error path:', finErr?.message || finData?.error);
+                }
 
                 return {
                     success: false,
@@ -1412,15 +1498,60 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
                     error: `Releen käynnistys epäonnistui: ${dispatchError.message}`
                 };
             } else {
-                await sb.rpc('arcade_finalize_activation', {
-                    p_table_id: effectiveTableId,
-                    p_order_id: orderId,
-                    p_session_id: sessionId,
-                    p_worker_id: workerId,
-                    p_success: false,
-                    p_hardware_uncertain: true,
-                    p_error_reason: `Relay state uncertain (not confirmed OFF): ${dispatchError.message}`
-                }).catch(() => {});
+                // State === 1, timeout, network error, missing output, or any exception -> hardware_uncertain
+                let finData = null;
+                let finErr = null;
+                try {
+                    const res = await sb.rpc('arcade_finalize_activation', {
+                        p_table_id: effectiveTableId,
+                        p_order_id: orderId,
+                        p_session_id: sessionId,
+                        p_worker_id: workerId,
+                        p_success: false,
+                        p_hardware_uncertain: true,
+                        p_error_reason: `Relay state uncertain (not confirmed OFF): ${dispatchError.message}`
+                    });
+                    finData = res.data;
+                    finErr = res.error;
+                } catch (e) {
+                    finErr = e;
+                }
+
+                if (finErr || !finData?.success) {
+                    console.error('[FINALIZE ERROR] arcade_finalize_activation failed in hardware_uncertain error path:', finErr?.message || finData?.error);
+                }
+
+                // Explicitly persist order, session, and table lock in database even if RPC failed:
+                try {
+                    await sb.from('arcade_orders').update({
+                        status: 'hardware_uncertain',
+                        refund_status: 'refund_required',
+                        refund_reason: `Hardware uncertain: ${dispatchError.message}`,
+                        last_error_code: 'HARDWARE_UNCERTAIN',
+                        last_error_details: dispatchError.message,
+                        updated_at: new Date().toISOString()
+                    }).eq('order_id', orderId);
+                } catch (e) {
+                    console.error('[DB ERROR] Failed to lock order in hardware_uncertain:', e.message);
+                }
+
+                try {
+                    await sb.from('arcade_sessions').update({
+                        status: 'hardware_uncertain',
+                        error_reason: `Hardware uncertain: ${dispatchError.message}`
+                    }).eq('id', sessionId);
+                } catch (e) {
+                    console.error('[DB ERROR] Failed to update session in hardware_uncertain:', e.message);
+                }
+
+                try {
+                    await sb.from('arcade_table_configs').update({
+                        lock_state: 'error_locked',
+                        updated_at: new Date().toISOString()
+                    }).eq('table_id', effectiveTableId);
+                } catch (e) {
+                    console.error('[DB ERROR] Failed to lock table in error_locked:', e.message);
+                }
 
                 return {
                     success: false,
@@ -1435,64 +1566,74 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         }
 
         // 5. Finalize activation in Supabase (transition processing -> active)
-        const { data: finalizeData, error: finalizeErr } = await sb.rpc('arcade_finalize_activation', {
-            p_table_id: effectiveTableId,
-            p_order_id: orderId,
-            p_session_id: sessionId,
-            p_worker_id: workerId,
-            p_success: true,
-            p_hardware_uncertain: false,
-            p_error_reason: null
-        });
+        let finalizeData = null;
+        let finalizeErr = null;
+        try {
+            const res = await sb.rpc('arcade_finalize_activation', {
+                p_table_id: effectiveTableId,
+                p_order_id: orderId,
+                p_session_id: sessionId,
+                p_worker_id: workerId,
+                p_success: true,
+                p_hardware_uncertain: false,
+                p_error_reason: null
+            });
+            finalizeData = res.data;
+            finalizeErr = res.error;
+        } catch (fEx) {
+            finalizeErr = fEx;
+        }
 
         if (finalizeErr || !finalizeData?.success) {
             console.error('[FINALIZE ERROR] arcade_finalize_activation failed after hardware ON:', finalizeErr?.message || finalizeData?.error);
-            let cutConfirmedOff = false;
+
+            // Jos NETIO Short ON onnistuu mutta arcade_finalize_activation epäonnistuu tai aikakatkaistaan:
+            // - Älä palauta onnistumista äläkä vapauta pöytää.
+            // - Merkitse tilaus ja pöytä hardware_uncertain / error_locked.
+            // - Säilytä expires_at muuttumattomana.
+            // - Palauta 502 HARDWARE_UNCERTAIN.
+            // - Varmista, että myöhempi reconcileTableState vapauttaa pöydän turvallisesti vasta kun watchdog on varmasti sammunut ja rele on confirmed off.
+
             try {
-                if (netio) {
-                    await netio.emergencyStop(targetOutputId);
-                    cutConfirmedOff = await netio.verifyConfirmedOff(targetOutputId);
-                }
-            } catch (cutErr) {}
-
-            if (cutConfirmedOff) {
-                await sb.from('arcade_orders').update({
-                    status: 'activation_failed',
-                    refund_status: 'refund_required',
-                    refund_reason: 'DB finalize failed; emergency power cut confirmed OFF',
-                    updated_at: new Date().toISOString()
-                }).eq('order_id', orderId).catch(() => {});
-
-                return {
-                    success: false,
-                    statusCode: 500,
-                    code: 'DB_FINALIZE_FAILED',
-                    refundRequired: true,
-                    error: 'Database finalize failed after hardware start. Table power was safely cut. Payment will be refunded.'
-                };
-            } else {
                 await sb.from('arcade_orders').update({
                     status: 'hardware_uncertain',
                     refund_status: 'refund_required',
-                    refund_reason: 'DB finalize failed and emergency cut unconfirmed',
+                    refund_reason: `DB finalize failed after hardware ON: ${finalizeErr?.message || finalizeData?.error || 'Unknown error'}`,
+                    last_error_code: 'HARDWARE_UNCERTAIN',
+                    last_error_details: finalizeErr?.message || finalizeData?.error || 'Finalize RPC failed',
                     updated_at: new Date().toISOString()
-                }).eq('order_id', orderId).catch(() => {});
+                }).eq('order_id', orderId);
+            } catch (e) {
+                console.error('[DB ERROR] Failed to mark order hardware_uncertain:', e.message);
+            }
 
+            try {
+                await sb.from('arcade_sessions').update({
+                    status: 'hardware_uncertain',
+                    error_reason: `DB finalize failed after hardware ON: ${finalizeErr?.message || finalizeData?.error || 'Unknown error'}`
+                }).eq('id', sessionId);
+            } catch (e) {
+                console.error('[DB ERROR] Failed to mark session hardware_uncertain:', e.message);
+            }
+
+            try {
                 await sb.from('arcade_table_configs').update({
                     lock_state: 'error_locked',
                     updated_at: new Date().toISOString()
-                }).eq('table_id', effectiveTableId).catch(() => {});
-
-                return {
-                    success: false,
-                    statusCode: 502,
-                    code: 'HARDWARE_UNCERTAIN',
-                    tableLocked: true,
-                    refundRequired: true,
-                    expiresAt,
-                    error: 'Hardware state uncertain: session state could not be finalized and power cut could not be verified. Table has been locked.'
-                };
+                }).eq('table_id', effectiveTableId);
+            } catch (e) {
+                console.error('[DB ERROR] Failed to lock table in error_locked:', e.message);
             }
+
+            return {
+                success: false,
+                statusCode: 502,
+                code: 'HARDWARE_UNCERTAIN',
+                tableLocked: true,
+                refundRequired: true,
+                expiresAt,
+                error: 'Hardware state uncertain: session state could not be finalized. Table has been locked.'
+            };
         }
 
         // 6. Record successful event in arcade_events
@@ -1638,6 +1779,32 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
     });
 
     if (activationResult.statusCode === 200) {
+        if (memoryDb._simulateFinalizeError || memoryDb._simulateFinalizeTimeout) {
+            order.status = 'hardware_uncertain';
+            order.refundStatus = 'refund_required';
+            order.refundReason = memoryDb._simulateFinalizeTimeout ? 'Finalize RPC timed out' : 'Finalize RPC error';
+            order.lastErrorCode = 'HARDWARE_UNCERTAIN';
+            order.lastErrorDetails = memoryDb._simulateFinalizeTimeout ? 'Finalize RPC timed out' : 'Finalize RPC error';
+            order.sessionId = activationResult.body.sessionId;
+            order.expiresAt = activationResult.body.expiresAt;
+            memoryDb.holds.delete(order.tableId);
+            const cfg = memoryDb.tableConfigs.get(order.tableId);
+            if (cfg) cfg.lock_state = 'error_locked';
+            const memSession = memoryDb.sessions.get(order.tableId);
+            if (memSession) memSession.status = 'hardware_uncertain';
+            saveMemorySessions();
+
+            return {
+                success: false,
+                statusCode: 502,
+                code: 'HARDWARE_UNCERTAIN',
+                tableLocked: true,
+                refundRequired: true,
+                expiresAt: order.expiresAt,
+                error: 'Hardware state uncertain: session state could not be finalized. Table has been locked.'
+            };
+        }
+
         order.status = 'active';
         order.sessionId = activationResult.body.sessionId;
         order.expiresAt = activationResult.body.expiresAt;
@@ -1653,6 +1820,30 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
             hardware: activationResult.body.hardware
         };
     } else {
+        if (activationResult.body?.code === 'HARDWARE_UNCERTAIN' || activationResult.body?.tableLocked) {
+            order.status = 'hardware_uncertain';
+            order.refundStatus = 'refund_required';
+            order.refundReason = activationResult.body.error;
+            order.lastErrorCode = 'HARDWARE_UNCERTAIN';
+            order.lastErrorDetails = activationResult.body.details || activationResult.body.error;
+            order.sessionId = memoryDb.sessions.get(order.tableId)?.id || null;
+            order.expiresAt = activationResult.body?.expiresAt || null;
+            memoryDb.holds.delete(order.tableId);
+            const cfg = memoryDb.tableConfigs.get(order.tableId);
+            if (cfg) cfg.lock_state = 'error_locked';
+            saveMemorySessions();
+
+            return {
+                success: false,
+                statusCode: 502,
+                code: 'HARDWARE_UNCERTAIN',
+                tableLocked: true,
+                refundRequired: true,
+                expiresAt: order.expiresAt,
+                error: activationResult.body.error
+            };
+        }
+
         order.status = 'activation_failed';
         order.refundStatus = 'refund_required';
         order.errorReason = activationResult.body.error;
@@ -1766,6 +1957,9 @@ function resetMemoryDb() {
     memoryDb.tableConfigs.set('subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
     memoryDb.tableConfigs.set('subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null });
     memoryDb._mockNetioConfig = {};
+    memoryDb._mockNetioInstance = null;
+    memoryDb._simulateFinalizeError = false;
+    memoryDb._simulateFinalizeTimeout = false;
 }
 
 module.exports = {

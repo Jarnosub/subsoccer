@@ -47,6 +47,8 @@ class NetioAdapter {
         this.mockCutoffReturnsState1 = config.mockCutoffReturnsState1 ?? false;
         this.mockStatusOutputState = config.mockStatusOutputState ?? null;
         this.mockStatusFails = config.mockStatusFails ?? false;
+        this.mockStartFails = config.mockStartFails ?? false;
+        this.mockVerifyOffThrows = config.mockVerifyOffThrows ?? false;
 
         if (!this.isMock && !this.endpoint) {
             throw new Error('NETIO configuration missing: NETIO_BASE_URL (or NETIO_ENDPOINT) must be provided in non-test mode');
@@ -68,6 +70,11 @@ class NetioAdapter {
             : Math.round(durationMinutes * 60 * 1000);
 
         if (this.isMock) {
+            if (this.mockStartFails) {
+                const err = new Error('NETIO command failed: simulated hardware error');
+                err.code = 'COMMUNICATION_ERROR';
+                throw err;
+            }
             console.log(`[NETIO MOCK] startTimedPlay: Outlet ${outletId} -> Short ON for ${delayMs} ms.`);
             const out = this._mockOutputs.find(o => o.id === outletId);
             if (out) {
@@ -288,6 +295,11 @@ class NetioAdapter {
      * @returns {Promise<boolean>} true only if output exists and state is strictly numerical 0
      */
     async verifyConfirmedOff(outletId = 1) {
+        if (this.mockVerifyOffThrows) {
+            const err = new Error(`NETIO probe error: simulated probe exception thrown on Outlet ${outletId}`);
+            err.code = 'PROBE_EXCEPTION';
+            throw err;
+        }
         try {
             const status = await this.getStatus();
             const output = (status?.outputs || []).find(o => o.id === outletId);

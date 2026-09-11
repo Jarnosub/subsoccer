@@ -16,6 +16,7 @@ const {
     createPaymentHold,
     releasePaymentHold,
     bindPaymentIntent,
+    reconcileTableState,
     _setSupabaseClient
 } = require('../../netlify/functions/utils/arcade-core.js');
 
@@ -399,10 +400,10 @@ describe('Stripe Checkout & Webhook Integration', () => {
             assert.strictEqual(webhookBody.activation.success, false);
             assert.strictEqual(webhookBody.activation.refundRequired, true);
 
-            // Order status must reflect refund_required
+            // Order status must reflect refund_required and hardware_uncertain
             const order = memoryDb.orders.get(orderData.orderId);
             assert.strictEqual(order.refundStatus, 'refund_required');
-            assert.strictEqual(order.status, 'activation_failed');
+            assert.strictEqual(order.status, 'hardware_uncertain');
 
             // Table MUST be locked (hardware_uncertain / error_locked) - NOT released!
             const cfg = memoryDb.tableConfigs.get('demo-pulse-01');
@@ -842,5 +843,405 @@ describe('Stripe Checkout & Webhook Integration', () => {
             'arcade_pre_dispatch_guard',
             'arcade_finalize_activation'
         ]);
+    });
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // HARDENING & SAFETY TESTS (CRITICAL REQUIREMENTS)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    it('test_payment_intent_metadata_has_no_client_token', async () => {
+        let capturedParams = null;
+        const customStripe = {
+            paymentIntents: {
+                create: async (params) => {
+                    capturedParams = params;
+                    return {
+                        id: 'pi_test_no_client_token_metadata',
+                        client_secret: 'pi_test_secret_123',
+                        amount: params.amount,
+                        currency: params.currency,
+                        metadata: params.metadata,
+                        status: 'requires_payment_method',
+                        livemode: false
+                    };
+                },
+                cancel: async (id) => ({ id, status: 'canceled' })
+            },
+            webhooks: {
+                constructEvent: (b) => JSON.parse(b)
+            }
+        };
+        setCreateStripeClient(customStripe);
+
+        const rawClientToken = 'super_secret_token_12345';
+        const res = await createPaymentIntentHandler({
+            httpMethod: 'POST',
+            body: JSON.stringify({
+                table: 'demo-pulse-01',
+                durationMinutes: 5,
+                clientToken: rawClientToken
+            })
+        }, {});
+
+        assert.strictEqual(res.statusCode, 200);
+        const body = JSON.parse(res.body);
+        assert.strictEqual(body.success, true);
+
+        // Verify Stripe PaymentIntent metadata
+        assert.ok(capturedParams, 'Stripe paymentIntents.create should have been called');
+        assert.ok(capturedParams.metadata, 'Metadata should be present');
+        assert.strictEqual(capturedParams.metadata.client_token, undefined, 'client_token MUST NOT be present in PaymentIntent metadata');
+        assert.strictEqual(capturedParams.metadata.table_id, 'demo-pulse-01');
+        assert.strictEqual(capturedParams.metadata.duration_minutes, '5');
+        assert.strictEqual(capturedParams.metadata.order_id, body.orderId);
+        assert.deepStrictEqual(Object.keys(capturedParams.metadata).sort(), ['duration_minutes', 'order_id', 'table_id']);
+
+        // Verify response body does not leak raw client token
+        assert.strictEqual(JSON.stringify(body).includes(rawClientToken), false, 'Raw clientToken must not be present in response body');
+    });
+
+    it('test_netio_error_verify_exception_leads_to_hardware_uncertain', async () => {
+        let updatedOrder = null;
+        let updatedTable = null;
+        let finalizeParams = null;
+
+        const mockSupabase = {
+            rpc: async (fnName, params) => {
+                if (fnName === 'arcade_claim_order_for_activation') {
+                    return {
+                        data: {
+                            success: true,
+                            is_idempotent_replay: false,
+                            table_id: 'demo-pulse-01',
+                            duration_minutes: 5,
+                            duration_seconds: 300
+                        },
+                        error: null
+                    };
+                }
+                if (fnName === 'arcade_pre_dispatch_guard') {
+                    return {
+                        data: {
+                            success: true,
+                            session_id: 'sess-probe-fail-1',
+                            expires_at: new Date(Date.now() + 300000).toISOString()
+                        },
+                        error: null
+                    };
+                }
+                if (fnName === 'arcade_finalize_activation') {
+                    finalizeParams = params;
+                    return {
+                        data: { success: false, code: 'HARDWARE_UNCERTAIN' },
+                        error: null
+                    };
+                }
+                return { data: null, error: new Error(`Unexpected RPC ${fnName}`) };
+            },
+            from: (table) => ({
+                select: () => ({
+                    eq: () => ({
+                        maybeSingle: async () => ({
+                            data: { table_id: 'demo-pulse-01', is_enabled: true, lock_state: 'pending_payment', switch_output_id: 1 }
+                        })
+                    })
+                }),
+                insert: async () => ({ error: null }),
+                update: (data) => ({
+                    eq: () => {
+                        if (table === 'arcade_orders') updatedOrder = data;
+                        if (table === 'arcade_table_configs') updatedTable = data;
+                        return Promise.resolve({ error: null });
+                    }
+                })
+            })
+        };
+
+        _setSupabaseClient(mockSupabase);
+
+        // Provide custom Netio instance where startTimedPlay fails AND verifyConfirmedOff throws an exception
+        memoryDb._mockNetioInstance = {
+            startTimedPlay: async () => {
+                throw new Error('Hardware power surge on relay');
+            },
+            verifyConfirmedOff: async () => {
+                throw new Error('Hardware connection refused during probe inquiry');
+            }
+        };
+
+        const result = await claimAndActivateOrder({
+            orderId: 'ord-probe-exc-1',
+            paymentIntent: {
+                id: 'pi_probe_exc_1',
+                amount: 250,
+                currency: 'eur',
+                livemode: false,
+                metadata: { table_id: 'demo-pulse-01', order_id: 'ord-probe-exc-1' }
+            },
+            isTestMode: true
+        });
+
+        assert.strictEqual(result.success, false);
+        assert.strictEqual(result.statusCode, 502);
+        assert.strictEqual(result.code, 'HARDWARE_UNCERTAIN');
+        assert.strictEqual(result.tableLocked, true);
+        assert.ok(result.expiresAt, 'expiresAt must be preserved');
+
+        // Verify finalize RPC received p_hardware_uncertain: true
+        assert.strictEqual(finalizeParams?.p_hardware_uncertain, true);
+
+        // Verify table lock and order were persisted in hardware_uncertain / error_locked
+        assert.strictEqual(updatedOrder?.status, 'hardware_uncertain');
+        assert.strictEqual(updatedTable?.lock_state, 'error_locked');
+    });
+
+    it('test_netio_success_finalize_rpc_error_keeps_table_locked', async () => {
+        let orderStatus = null;
+        let tableLockState = null;
+
+        const mockSupabase = {
+            rpc: async (fnName, params) => {
+                if (fnName === 'arcade_claim_order_for_activation') {
+                    return {
+                        data: {
+                            success: true,
+                            is_idempotent_replay: false,
+                            table_id: 'demo-pulse-01',
+                            duration_minutes: 5,
+                            duration_seconds: 300
+                        },
+                        error: null
+                    };
+                }
+                if (fnName === 'arcade_pre_dispatch_guard') {
+                    return {
+                        data: {
+                            success: true,
+                            session_id: 'sess-fin-fail-1',
+                            expires_at: new Date(Date.now() + 300000).toISOString()
+                        },
+                        error: null
+                    };
+                }
+                if (fnName === 'arcade_finalize_activation') {
+                    // NETIO Short ON succeeded, but finalize RPC returns DB error!
+                    return {
+                        data: null,
+                        error: { message: 'Database deadlock while finalizing active status' }
+                    };
+                }
+                return { data: null, error: new Error(`Unexpected RPC ${fnName}`) };
+            },
+            from: (table) => ({
+                select: () => ({
+                    eq: () => ({
+                        maybeSingle: async () => ({
+                            data: { table_id: 'demo-pulse-01', is_enabled: true, lock_state: 'pending_payment', switch_output_id: 1 }
+                        })
+                    })
+                }),
+                insert: async () => ({ error: null }),
+                update: (data) => ({
+                    eq: () => {
+                        if (table === 'arcade_orders') orderStatus = data.status;
+                        if (table === 'arcade_table_configs') tableLockState = data.lock_state;
+                        return Promise.resolve({ error: null });
+                    }
+                })
+            })
+        };
+
+        _setSupabaseClient(mockSupabase);
+
+        // Mock NETIO where startTimedPlay succeeds and relay is ON
+        let netioStarted = false;
+        memoryDb._mockNetioInstance = {
+            startTimedPlay: async () => {
+                netioStarted = true;
+                return { success: true, action: 3, delayMs: 300000 };
+            },
+            verifyConfirmedOff: async () => false
+        };
+
+        const result = await claimAndActivateOrder({
+            orderId: 'ord-fin-err-1',
+            paymentIntent: {
+                id: 'pi_fin_err_1',
+                amount: 250,
+                currency: 'eur',
+                livemode: false,
+                metadata: { table_id: 'demo-pulse-01', order_id: 'ord-fin-err-1' }
+            },
+            isTestMode: true
+        });
+
+        assert.strictEqual(netioStarted, true, 'Hardware startTimedPlay must have succeeded');
+        assert.strictEqual(result.success, false, 'Must NOT return success when finalize RPC errors');
+        assert.strictEqual(result.statusCode, 502);
+        assert.strictEqual(result.code, 'HARDWARE_UNCERTAIN');
+        assert.strictEqual(result.tableLocked, true);
+        assert.ok(result.expiresAt, 'Must preserve expiresAt');
+
+        // Order and table must remain locked
+        assert.strictEqual(orderStatus, 'hardware_uncertain');
+        assert.strictEqual(tableLockState, 'error_locked');
+    });
+
+    it('test_netio_success_finalize_rpc_timeout_handled_by_reconcile', async () => {
+        let releaseRpcCalledWith = null;
+
+        // Session was previously created and locked into hardware_uncertain due to finalize timeout
+        const expiredTimeIso = new Date(Date.now() - 10000).toISOString(); // 10s ago, well past +4s margin
+
+        const mockSupabase = {
+            rpc: async (fnName, params) => {
+                if (fnName === 'arcade_release_reconciled_table') {
+                    releaseRpcCalledWith = params;
+                    return {
+                        data: { success: true, table_id: params.p_table_id },
+                        error: null
+                    };
+                }
+                return { data: null, error: new Error(`Unexpected RPC ${fnName}`) };
+            },
+            from: (table) => {
+                const builder = {
+                    select: () => builder,
+                    update: () => builder,
+                    insert: async () => ({ error: null }),
+                    eq: () => builder,
+                    in: () => builder,
+                    is: () => builder,
+                    lt: () => Promise.resolve({ error: null }),
+                    order: () => Promise.resolve({
+                        data: [
+                            {
+                                id: 'sess-reconcile-target',
+                                table_id: 'demo-pulse-01',
+                                status: 'hardware_uncertain',
+                                expires_at: expiredTimeIso,
+                                duration_seconds: 300
+                            }
+                        ]
+                    }),
+                    maybeSingle: async () => ({
+                        data: { order_id: 'ord-reconcile-target' }
+                    })
+                };
+                return builder;
+            }
+        };
+
+        _setSupabaseClient(mockSupabase);
+
+        const mockNetio = {
+            verifyConfirmedOff: async () => true // Hardware relay is now physically confirmed OFF (State === 0)
+        };
+
+        const tableConfig = {
+            table_id: 'demo-pulse-01',
+            is_enabled: true,
+            lock_state: 'error_locked',
+            switch_output_id: 1
+        };
+
+        await reconcileTableState('demo-pulse-01', tableConfig, mockNetio, false);
+
+        assert.ok(releaseRpcCalledWith, 'arcade_release_reconciled_table should have been called');
+        assert.strictEqual(releaseRpcCalledWith.p_table_id, 'demo-pulse-01');
+        assert.strictEqual(releaseRpcCalledWith.p_order_id, 'ord-reconcile-target');
+        assert.strictEqual(releaseRpcCalledWith.p_confirmed_off, true);
+        assert.ok(releaseRpcCalledWith.p_confirmed_off_at, 'confirmed_off_at timestamp must be provided');
+    });
+
+    it('test_all_critical_rpcs_check_error_field', async () => {
+        // 1. arcade_pre_dispatch_guard RPC error check
+        let sbGuard = {
+            rpc: async (fnName) => {
+                if (fnName === 'arcade_claim_order_for_activation') {
+                    return { data: { success: true, table_id: 'demo-pulse-01', duration_minutes: 5, duration_seconds: 300 }, error: null };
+                }
+                if (fnName === 'arcade_pre_dispatch_guard') {
+                    return { data: null, error: { message: 'Guard connection error' } };
+                }
+                return { data: null, error: null };
+            },
+            from: () => ({
+                update: () => ({ eq: () => Promise.resolve({ error: null }) })
+            })
+        };
+        _setSupabaseClient(sbGuard);
+
+        const guardRes = await claimAndActivateOrder({
+            orderId: 'ord-guard-err',
+            paymentIntent: { id: 'pi_guard_err', amount: 250, currency: 'eur', metadata: { table_id: 'demo-pulse-01' } },
+            isTestMode: true
+        });
+        assert.strictEqual(guardRes.success, false);
+        assert.strictEqual(guardRes.code, 'DISPATCH_RECORDING_FAILED');
+
+        // 2. arcade_create_payment_hold RPC error check
+        let sbHold = {
+            rpc: async (fnName) => {
+                if (fnName === 'arcade_create_payment_hold') {
+                    return { data: null, error: { message: 'Hold RPC timeout' } };
+                }
+                return { data: null, error: null };
+            }
+        };
+        _setSupabaseClient(sbHold);
+
+        const holdRes = await createPaymentHold({ tableId: 'demo-pulse-01', durationMinutes: 5, isTestMode: true });
+        assert.strictEqual(holdRes.success, false);
+        assert.strictEqual(holdRes.code, 'DB_RPC_ERROR');
+
+        // 3. arcade_bind_payment_intent RPC error check
+        let sbBind = {
+            rpc: async (fnName) => {
+                if (fnName === 'arcade_bind_payment_intent') {
+                    return { data: null, error: { message: 'Bind RPC error' } };
+                }
+                return { data: null, error: null };
+            }
+        };
+        _setSupabaseClient(sbBind);
+
+        const bindRes = await bindPaymentIntent({ tableId: 'demo-pulse-01', orderId: 'ord-123', paymentIntentId: 'pi-123', isTestMode: true });
+        assert.strictEqual(bindRes.success, false);
+        assert.strictEqual(bindRes.code, 'DB_RPC_ERROR');
+
+        // 4. arcade_release_reconciled_table RPC error check
+        let sbRelease = {
+            rpc: async (fnName) => {
+                if (fnName === 'arcade_release_reconciled_table') {
+                    return { data: null, error: { message: 'Deadlock on release' } };
+                }
+                return { data: null, error: null };
+            },
+            from: () => {
+                const builder = {
+                    select: () => builder,
+                    update: () => builder,
+                    insert: async () => ({ error: null }),
+                    eq: () => builder,
+                    in: () => builder,
+                    is: () => builder,
+                    lt: () => Promise.resolve({ error: null }),
+                    order: () => Promise.resolve({
+                        data: [{ id: 'sess-1', table_id: 'demo-pulse-01', status: 'active', expires_at: new Date(Date.now() - 10000).toISOString() }]
+                    }),
+                    maybeSingle: async () => ({ data: { order_id: 'ord-1' } })
+                };
+                return builder;
+            }
+        };
+        _setSupabaseClient(sbRelease);
+
+        const netio = { verifyConfirmedOff: async () => true };
+        const tableCfg = { table_id: 'demo-pulse-01', lock_state: 'active' };
+
+        // Should cleanly handle the error and NOT throw or corrupt state
+        await reconcileTableState('demo-pulse-01', tableCfg, netio, false);
+        assert.strictEqual(tableCfg.lock_state, 'active', 'Table lock state must not change when release RPC fails');
     });
 });

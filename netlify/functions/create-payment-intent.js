@@ -116,8 +116,7 @@ exports.handler = async (event, context) => {
             metadata: {
                 table_id: order.tableId,
                 duration_minutes: String(order.durationMinutes),
-                order_id: order.orderId,
-                client_token: order.clientToken
+                order_id: order.orderId
             },
             description: `Subsoccer Pulse Table (${order.tableId}) - ${order.durationMinutes} min play`
         }, {
