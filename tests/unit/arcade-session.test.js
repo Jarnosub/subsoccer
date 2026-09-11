@@ -2,13 +2,14 @@ process.env.ADMIN_TOKEN = 'test-subsoccer-admin-secret-2026';
 process.env.NODE_ENV = 'test';
 
 const assert = require('assert');
-const { handler, _resetMemoryDb, _memoryDb } = require('../../netlify/functions/arcade-session.js');
+const { handler, _resetMemoryDb, _memoryDb, _setSupabaseClient } = require('../../netlify/functions/arcade-session.js');
 const { NetioAdapter } = require('../../netlify/functions/utils/netio-adapter.js');
 
 describe('Arcade Session Netlify Function', () => {
     const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
     beforeEach(() => {
+        if (_setSupabaseClient) _setSupabaseClient(null);
         if (_resetMemoryDb) _resetMemoryDb();
         delete process.env.PILOT_TABLE_ID;
         delete process.env.ARCADE_ENV;
@@ -566,14 +567,16 @@ describe('Arcade Session Netlify Function', () => {
     it('locks table and returns 502 HARDWARE_UNCERTAIN if startTimedPlay fails even when relay reports ON (does not assume lease)', async () => {
         const origStart = NetioAdapter.prototype.startTimedPlay;
         const origProbe = NetioAdapter.prototype.isOutputActive;
+        const origVerify = NetioAdapter.prototype.verifyConfirmedOff;
 
-        // Force timeout on start, and probe confirms relay is ON
+        // Force timeout on start, and probe confirms relay is ON (not confirmed OFF)
         NetioAdapter.prototype.startTimedPlay = async () => {
             const err = new Error('The operation was aborted due to timeout');
             err.name = 'AbortError';
             throw err;
         };
         NetioAdapter.prototype.isOutputActive = async () => true;
+        NetioAdapter.prototype.verifyConfirmedOff = async () => false;
 
         try {
             const res = await handler({
@@ -602,12 +605,14 @@ describe('Arcade Session Netlify Function', () => {
         } finally {
             NetioAdapter.prototype.startTimedPlay = origStart;
             NetioAdapter.prototype.isOutputActive = origProbe;
+            NetioAdapter.prototype.verifyConfirmedOff = origVerify;
         }
     });
 
     it('retains lock and returns 502 HARDWARE_UNCERTAIN if command fails and probe also fails', async () => {
         const origStart = NetioAdapter.prototype.startTimedPlay;
         const origProbe = NetioAdapter.prototype.isOutputActive;
+        const origVerify = NetioAdapter.prototype.verifyConfirmedOff;
 
         // Command fails and probe also fails
         NetioAdapter.prototype.startTimedPlay = async () => {
@@ -616,6 +621,7 @@ describe('Arcade Session Netlify Function', () => {
         NetioAdapter.prototype.isOutputActive = async () => {
             throw new Error('Probe unreachable');
         };
+        NetioAdapter.prototype.verifyConfirmedOff = async () => false;
 
         try {
             const res = await handler({
@@ -646,6 +652,7 @@ describe('Arcade Session Netlify Function', () => {
         } finally {
             NetioAdapter.prototype.startTimedPlay = origStart;
             NetioAdapter.prototype.isOutputActive = origProbe;
+            NetioAdapter.prototype.verifyConfirmedOff = origVerify;
         }
     });
 
@@ -762,7 +769,7 @@ describe('Arcade Session Netlify Function', () => {
     });
 
     describe('NETIO Short ON Emergency Cut & Reconciliation State Machine', () => {
-        it('1. locks session to hardware_uncertain and table to error_locked when DB update fails and emergency cut returns 400 SHORT_ON_ACTIVE', async () => {
+        it('1. locks session to hardware_uncertain and table to error_locked when DB update fails and emergency cut returns 400 CUTOFF_REJECTED', async () => {
             _memoryDb._simulateDbErrorOnActivate = true;
             _memoryDb._mockNetioConfig = { mockActiveShortOn: true };
 
@@ -1030,7 +1037,7 @@ describe('Arcade Session Netlify Function', () => {
             assert.strictEqual(body2.code, 'SESSION_CONFLICT');
         });
 
-        it('rejects admin emergency-cut with 409 SHORT_ON_ACTIVE when Short ON timer is active on hardware', async () => {
+        it('rejects admin emergency-cut with 409 CUTOFF_REJECTED when cutoff is rejected by hardware', async () => {
             _memoryDb._mockNetioConfig = { mockActiveShortOn: true };
 
             const res = await handler({
@@ -1044,8 +1051,230 @@ describe('Arcade Session Netlify Function', () => {
 
             assert.strictEqual(res.statusCode, 409);
             const body = JSON.parse(res.body);
-            assert.strictEqual(body.code, 'SHORT_ON_ACTIVE');
-            assert.ok(body.error.includes('Short ON timer is active on hardware'));
+            assert.strictEqual(body.code, 'CUTOFF_REJECTED');
+            assert.strictEqual(body.error, 'Katkaisukäsky hylättiin. Virran katkeamista ei ole vahvistettu.');
+        });
+    });
+
+    describe('Supabase Atomic Hardware Dispatch Guard & Race Conditions', () => {
+        let origNetioStart;
+        let startTimedPlayCalled = false;
+
+        beforeEach(() => {
+            startTimedPlayCalled = false;
+            origNetioStart = NetioAdapter.prototype.startTimedPlay;
+            NetioAdapter.prototype.startTimedPlay = async function (...args) {
+                startTimedPlayCalled = true;
+                return { success: true, action: 3, delayMs: 900000 };
+            };
+        });
+
+        afterEach(() => {
+            NetioAdapter.prototype.startTimedPlay = origNetioStart;
+            if (_setSupabaseClient) _setSupabaseClient(null);
+        });
+
+        function createMockSupabaseClient({
+            tableConfig = { table_id: 'test-supabase-table', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true },
+            existingSessions = [],
+            insertSessionResult = { data: { id: 'sess-mock-001', table_id: 'test-supabase-table', status: 'requested', expires_at: new Date(Date.now() + 900000).toISOString() }, error: null },
+            dispatchUpdateResult = { data: [{ id: 'sess-mock-001' }], error: null },
+            activeUpdateResult = { data: [{ id: 'sess-mock-001', status: 'active' }], error: null }
+        } = {}) {
+            const events = [];
+            const sessionUpdates = [];
+
+            const client = {
+                events,
+                sessionUpdates,
+                from(table) {
+                    if (table === 'arcade_table_configs') {
+                        return {
+                            select: () => ({
+                                eq: () => ({
+                                    maybeSingle: async () => ({ data: tableConfig, error: null })
+                                })
+                            }),
+                            update: (vals) => ({
+                                eq: () => Promise.resolve({ data: [vals], error: null })
+                            })
+                        };
+                    }
+                    if (table === 'arcade_events') {
+                        return {
+                            insert: async (ev) => {
+                                events.push(ev);
+                                return { data: null, error: null };
+                            }
+                        };
+                    }
+                    if (table === 'arcade_sessions') {
+                        return {
+                            select: () => {
+                                const selChain = {
+                                    eq: () => selChain,
+                                    in: () => selChain,
+                                    order: () => selChain,
+                                    maybeSingle: async () => ({ data: null, error: null }),
+                                    single: async () => ({ data: null, error: null }),
+                                    then: (resolve) => Promise.resolve({ data: existingSessions, error: null }).then(resolve)
+                                };
+                                return selChain;
+                            },
+                            insert: () => ({
+                                select: () => ({
+                                    single: async () => insertSessionResult
+                                })
+                            }),
+                            update: (patch) => {
+                                sessionUpdates.push(patch);
+                                const chain = {
+                                    eq: () => chain,
+                                    in: () => chain,
+                                    is: () => chain,
+                                    lt: () => chain,
+                                    select: (cols) => {
+                                        if (patch.hardware_dispatched_at !== undefined) {
+                                            return Promise.resolve(dispatchUpdateResult);
+                                        }
+                                        return Promise.resolve({ data: [patch], error: null });
+                                    },
+                                    then: (resolve) => {
+                                        return Promise.resolve(activeUpdateResult).then(resolve);
+                                    },
+                                    catch: (reject) => {
+                                        return Promise.resolve(activeUpdateResult).catch(reject);
+                                    }
+                                };
+                                return chain;
+                            }
+                        };
+                    }
+                    throw new Error(`Unexpected table: ${table}`);
+                }
+            };
+            return client;
+        }
+
+        it('aborts hardware execution and returns 500 DISPATCH_RECORDING_FAILED when Supabase dispatch update fails with error', async () => {
+            const mockSupabase = createMockSupabaseClient({
+                dispatchUpdateResult: {
+                    data: null,
+                    error: { message: 'Database connection timeout on update', code: 'P0001' }
+                }
+            });
+            _setSupabaseClient(mockSupabase);
+
+            const res = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-supabase-table',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 500);
+            const body = JSON.parse(res.body);
+            assert.strictEqual(body.code, 'DISPATCH_RECORDING_FAILED');
+            assert.strictEqual(startTimedPlayCalled, false, 'NETIO startTimedPlay must NOT be called if dispatch record fails');
+
+            // Audit switch_error must be logged
+            const switchErrorEvent = mockSupabase.events.find(e => e.event_type === 'switch_error');
+            assert.ok(switchErrorEvent, 'Must record switch_error audit event');
+            assert.strictEqual(switchErrorEvent.payload.phase, 'pre_dispatch_guard');
+        });
+
+        it('aborts hardware execution and returns 500 DISPATCH_RECORDING_FAILED when Supabase dispatch update targets 0 rows', async () => {
+            const mockSupabase = createMockSupabaseClient({
+                dispatchUpdateResult: {
+                    data: [], // 0 rows updated because session was cancelled/modified
+                    error: null
+                }
+            });
+            _setSupabaseClient(mockSupabase);
+
+            const res = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-supabase-table',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 500);
+            const body = JSON.parse(res.body);
+            assert.strictEqual(body.code, 'DISPATCH_RECORDING_FAILED');
+            assert.strictEqual(startTimedPlayCalled, false, 'NETIO startTimedPlay must NOT be called if 0 rows were updated');
+
+            const switchErrorEvent = mockSupabase.events.find(e => e.event_type === 'switch_error');
+            assert.ok(switchErrorEvent, 'Must record switch_error audit event for 0 rows updated');
+        });
+
+        it('executes hardware command only after successful atomic dispatch update (1 row)', async () => {
+            const mockSupabase = createMockSupabaseClient({
+                dispatchUpdateResult: {
+                    data: [{ id: 'sess-mock-001' }],
+                    error: null
+                }
+            });
+            _setSupabaseClient(mockSupabase);
+
+            const res = await handler({
+                httpMethod: 'POST',
+                body: JSON.stringify({
+                    action: 'activate',
+                    table: 'test-supabase-table',
+                    durationMinutes: 15
+                })
+            }, {});
+
+            assert.strictEqual(res.statusCode, 200);
+            const body = JSON.parse(res.body);
+            assert.strictEqual(body.success, true);
+            assert.strictEqual(startTimedPlayCalled, true, 'NETIO startTimedPlay must be called after 1 row dispatch confirmation');
+
+            // Audit events in correct sequence: session_requested -> switch_cmd_sent -> switch_confirmed_on
+            const eventTypes = mockSupabase.events.map(e => e.event_type);
+            assert.ok(eventTypes.includes('session_requested'));
+            assert.ok(eventTypes.includes('switch_cmd_sent'));
+            assert.ok(eventTypes.includes('switch_confirmed_on'));
+        });
+
+        it('handles admin emergency-cut with mock Supabase on CUTOFF_REJECTED', async () => {
+            const mockSupabase = createMockSupabaseClient();
+            _setSupabaseClient(mockSupabase);
+
+            const origStop = NetioAdapter.prototype.emergencyStop;
+            NetioAdapter.prototype.emergencyStop = async () => {
+                const err = new Error('NETIO cutoff rejected with HTTP 400 Bad request on Outlet 1');
+                err.code = 'CUTOFF_REJECTED';
+                err.status = 400;
+                throw err;
+            };
+
+            try {
+                const res = await handler({
+                    httpMethod: 'POST',
+                    body: JSON.stringify({
+                        action: 'emergency-cut',
+                        table: 'test-supabase-table',
+                        adminToken: ADMIN_TOKEN
+                    })
+                }, {});
+
+                assert.strictEqual(res.statusCode, 409);
+                const body = JSON.parse(res.body);
+                assert.strictEqual(body.code, 'CUTOFF_REJECTED');
+                assert.strictEqual(body.error, 'Katkaisukäsky hylättiin. Virran katkeamista ei ole vahvistettu.');
+
+                // Session must NOT be updated to force_stopped
+                const forceStoppedUpdate = mockSupabase.sessionUpdates.find(u => u.status === 'force_stopped');
+                assert.strictEqual(forceStoppedUpdate, undefined, 'Session must remain protected/locked when cutoff is rejected');
+            } finally {
+                NetioAdapter.prototype.emergencyStop = origStop;
+            }
         });
     });
 });

@@ -153,19 +153,19 @@ describe('NETIO PowerBOX 3PF Adapter', () => {
         }
     });
 
-    it('throws SHORT_ON_ACTIVE error when cutoff is attempted during active Short ON in mock mode', async () => {
+    it('throws CUTOFF_REJECTED error when cutoff is attempted during active Short ON in mock mode', async () => {
         const adapter = new NetioAdapter({ isMock: true, mockActiveShortOn: true });
         try {
             await adapter.emergencyStop(1);
-            assert.fail('Should have thrown SHORT_ON_ACTIVE');
+            assert.fail('Should have thrown CUTOFF_REJECTED');
         } catch (err) {
-            assert.strictEqual(err.code, 'SHORT_ON_ACTIVE');
+            assert.strictEqual(err.code, 'CUTOFF_REJECTED');
             assert.strictEqual(err.status, 400);
             assert.ok(err.message.includes('400 Bad request'));
         }
     });
 
-    it('classifies HTTP 400 cutoff response as SHORT_ON_ACTIVE in hardware mode', async () => {
+    it('classifies HTTP 400 cutoff response as CUTOFF_REJECTED in hardware mode', async () => {
         const adapter = new NetioAdapter({ endpoint: 'http://localhost:9999', isMock: false });
         const origFetch = global.fetch;
         global.fetch = async () => ({
@@ -178,7 +178,7 @@ describe('NETIO PowerBOX 3PF Adapter', () => {
         try {
             await assert.rejects(
                 async () => adapter.emergencyStop(1),
-                (err) => err.code === 'SHORT_ON_ACTIVE' && err.status === 400
+                (err) => err.code === 'CUTOFF_REJECTED' && err.status === 400
             );
         } finally {
             global.fetch = origFetch;
@@ -237,6 +237,63 @@ describe('NETIO PowerBOX 3PF Adapter', () => {
         const adapter = new NetioAdapter({ isMock: true, mockStatusFails: true });
         const isOff = await adapter.verifyConfirmedOff(1);
         assert.strictEqual(isOff, false);
+    });
+
+    it('strictly confirms OFF only for numerical State === 0 (Codex verification)', async () => {
+        const adapter = new NetioAdapter({ endpoint: 'http://localhost:9999', isMock: false });
+        const origFetch = global.fetch;
+
+        try {
+            // Case 1: missing state (outputs: [{ id: 1 }]) -> false
+            global.fetch = async () => ({
+                ok: true,
+                status: 200,
+                json: async () => ({ Outputs: [{ ID: 1, Name: 'Table' }] })
+            });
+            assert.strictEqual(await adapter.verifyConfirmedOff(1), false);
+
+            // Case 2: state: 2 (unknown / transitional) -> false
+            global.fetch = async () => ({
+                ok: true,
+                status: 200,
+                json: async () => ({ Outputs: [{ ID: 1, Name: 'Table', State: 2 }] })
+            });
+            assert.strictEqual(await adapter.verifyConfirmedOff(1), false);
+
+            // Case 3: state: null -> false
+            global.fetch = async () => ({
+                ok: true,
+                status: 200,
+                json: async () => ({ Outputs: [{ ID: 1, Name: 'Table', State: null }] })
+            });
+            assert.strictEqual(await adapter.verifyConfirmedOff(1), false);
+
+            // Case 4: state: "0" (string instead of number) -> false
+            global.fetch = async () => ({
+                ok: true,
+                status: 200,
+                json: async () => ({ Outputs: [{ ID: 1, Name: 'Table', State: '0' }] })
+            });
+            assert.strictEqual(await adapter.verifyConfirmedOff(1), false);
+
+            // Case 5: missing output ID 1 -> false
+            global.fetch = async () => ({
+                ok: true,
+                status: 200,
+                json: async () => ({ Outputs: [{ ID: 2, Name: 'Screen', State: 0 }] })
+            });
+            assert.strictEqual(await adapter.verifyConfirmedOff(1), false);
+
+            // Case 6: strictly numerical State === 0 -> true
+            global.fetch = async () => ({
+                ok: true,
+                status: 200,
+                json: async () => ({ Outputs: [{ ID: 1, Name: 'Table', State: 0 }] })
+            });
+            assert.strictEqual(await adapter.verifyConfirmedOff(1), true);
+        } finally {
+            global.fetch = origFetch;
+        }
     });
 });
 

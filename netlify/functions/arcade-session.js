@@ -665,13 +665,55 @@ exports.handler = async function (event, context) {
                     });
                     if (evReqErr) console.warn('[AUDIT ERROR] session_requested:', evReqErr.message);
 
-                    // Merkitään hardware_dispatched_at ennen relekäskyn lähetystä,
-                    // jotta automaattisiivous tietää käskyn olleen matkalla eikä vapauta pöytää epävarmassa tilassa!
-                    await supabase.from('arcade_sessions').update({
-                        hardware_dispatched_at: new Date().toISOString()
-                    }).eq('id', sessionId);
+                    // Atominen ja ehdollinen merkintä ennen relekäskyä:
+                    // Varmistetaan että sessio on edelleen requested-tilassa eikä hardware_dispatched_at ole asetettu.
+                    // Jos taustasiivous (reconcileTableState) ehti perua session tai tapahtui virhe,
+                    // päivitys kohdistuu 0 riviin ja relekäsky ESTYY.
+                    const dispatchTimestamp = new Date().toISOString();
+                    const { data: dispatchRows, error: dispatchErr } = await supabase
+                        .from('arcade_sessions')
+                        .update({ hardware_dispatched_at: dispatchTimestamp })
+                        .eq('id', sessionId)
+                        .eq('status', 'requested')
+                        .is('hardware_dispatched_at', null)
+                        .select('id');
 
-                    // Audit Event: switch_cmd_sent
+                    if (dispatchErr || !Array.isArray(dispatchRows) || dispatchRows.length !== 1) {
+                        const errReason = dispatchErr 
+                            ? `Dispatch update error: ${dispatchErr.message}` 
+                            : `Dispatch update targeted ${dispatchRows?.length ?? 0} rows (expected exactly 1)`;
+                        console.error('[DISPATCH GUARD] Hardware dispatch aborted:', errReason);
+
+                        await supabase.from('arcade_events').insert({
+                            table_id: table,
+                            session_id: sessionId,
+                            event_type: 'switch_error',
+                            payload: { error: errReason, phase: 'pre_dispatch_guard' }
+                        }).catch(() => {});
+
+                        // Jos tietokantapäivitys epäonnistui virheen takia (ei tilamuutos kilpatilanteessa),
+                        // merkitään sessio failed-tilaan jottei se jää auki
+                        if (dispatchErr) {
+                            await supabase.from('arcade_sessions')
+                                .update({ status: 'failed', error_reason: errReason })
+                                .eq('id', sessionId)
+                                .eq('status', 'requested')
+                                .is('hardware_dispatched_at', null)
+                                .catch(() => {});
+                        }
+
+                        return {
+                            statusCode: 500,
+                            headers: CORS_HEADERS,
+                            body: JSON.stringify({
+                                error: 'Failed to record hardware dispatch state before execution. Relay activation aborted.',
+                                code: 'DISPATCH_RECORDING_FAILED',
+                                details: errReason
+                            })
+                        };
+                    }
+
+                    // Audit Event: switch_cmd_sent (kirjataan VAIN kun lähetysmerkintä onnistui)
                     const { error: evCmdErr } = await supabase.from('arcade_events').insert({
                         table_id: table,
                         session_id: sessionId,
@@ -795,8 +837,8 @@ exports.handler = async function (event, context) {
                                 })
                             };
                         } else {
-                            const reason = cutError?.code === 'SHORT_ON_ACTIVE'
-                                ? 'DB update failed and emergency cut was rejected (Short ON active on device)'
+                            const reason = cutError?.code === 'CUTOFF_REJECTED'
+                                ? 'DB update failed and emergency cut was rejected by device'
                                 : `DB update failed and emergency cut unconfirmed (state not 0): ${cutError?.message || 'cut unverified'}`;
 
                             await supabase.from('arcade_sessions').update({
@@ -962,7 +1004,8 @@ exports.handler = async function (event, context) {
                         durationMinutes,
                         requestedAt,
                         expiresAt: expiresAtMs, // Muuttumaton deadline tallennetaan heti
-                        cmdSent: true
+                        hardwareDispatchedAt: null,
+                        cmdSent: false
                     });
 
                     // Audit Event: session_requested
@@ -974,7 +1017,50 @@ exports.handler = async function (event, context) {
                         created_at: requestedAt
                     });
 
-                    // Audit Event: switch_cmd_sent
+                    // Pre-dispatch guard check
+                    if (memoryDb._simulateDispatchError) {
+                        memoryDb.events.push({
+                            table_id: table,
+                            session_id: fallbackSessionId,
+                            event_type: 'switch_error',
+                            payload: { error: 'Simulated dispatch record failure', phase: 'pre_dispatch_guard' },
+                            created_at: new Date().toISOString()
+                        });
+                        memoryDb.sessions.delete(table);
+                        return {
+                            statusCode: 500,
+                            headers: CORS_HEADERS,
+                            body: JSON.stringify({
+                                error: 'Failed to record hardware dispatch state before execution. Relay activation aborted.',
+                                code: 'DISPATCH_RECORDING_FAILED',
+                                details: 'Simulated dispatch update error'
+                            })
+                        };
+                    }
+
+                    const memSession = memoryDb.sessions.get(table);
+                    if (!memSession || memSession.id !== fallbackSessionId || memSession.status !== 'requested' || memSession.hardwareDispatchedAt) {
+                        memoryDb.events.push({
+                            table_id: table,
+                            session_id: fallbackSessionId,
+                            event_type: 'switch_error',
+                            payload: { error: 'Session state invalidated before dispatch', phase: 'pre_dispatch_guard' },
+                            created_at: new Date().toISOString()
+                        });
+                        return {
+                            statusCode: 500,
+                            headers: CORS_HEADERS,
+                            body: JSON.stringify({
+                                error: 'Failed to record hardware dispatch state before execution. Relay activation aborted.',
+                                code: 'DISPATCH_RECORDING_FAILED',
+                                details: 'Session state invalidated before dispatch'
+                            })
+                        };
+                    }
+                    memSession.hardwareDispatchedAt = new Date().toISOString();
+                    memSession.cmdSent = true;
+
+                    // Audit Event: switch_cmd_sent (only after dispatch record succeeds)
                     memoryDb.events.push({
                         table_id: table,
                         session_id: fallbackSessionId,
@@ -1065,8 +1151,8 @@ exports.handler = async function (event, context) {
                                 })
                             };
                         } else {
-                            const reason = cutError?.code === 'SHORT_ON_ACTIVE'
-                                ? 'DB update failed and emergency cut was rejected (Short ON active on device)'
+                            const reason = cutError?.code === 'CUTOFF_REJECTED'
+                                ? 'DB update failed and emergency cut was rejected by device'
                                 : `DB update failed and emergency cut unconfirmed (state not 0): ${cutError?.message || 'cut unverified'}`;
 
                             memoryDb.sessions.set(table, {
@@ -1178,13 +1264,13 @@ exports.handler = async function (event, context) {
                 }
 
                 if (cutError) {
-                    if (cutError.code === 'SHORT_ON_ACTIVE') {
+                    if (cutError.code === 'CUTOFF_REJECTED') {
                         return {
                             statusCode: 409,
                             headers: CORS_HEADERS,
                             body: JSON.stringify({
-                                error: 'NETIO rejected cutoff: Short ON timer is active on hardware. Outlet will turn off autonomously when timer expires.',
-                                code: 'SHORT_ON_ACTIVE',
+                                error: 'Katkaisukäsky hylättiin. Virran katkeamista ei ole vahvistettu.',
+                                code: 'CUTOFF_REJECTED',
                                 details: cutError.message
                             })
                         };
@@ -1299,6 +1385,17 @@ exports.handler = async function (event, context) {
                 try {
                     commandResult = await netio.setOutletState(outletId, targetState);
                 } catch (netErr) {
+                    if (netErr.code === 'CUTOFF_REJECTED') {
+                        return {
+                            statusCode: 409,
+                            headers: CORS_HEADERS,
+                            body: JSON.stringify({
+                                error: 'Katkaisukäsky hylättiin. Virran katkeamista ei ole vahvistettu.',
+                                code: 'CUTOFF_REJECTED',
+                                details: netErr.message
+                            })
+                        };
+                    }
                     return {
                         statusCode: 502,
                         headers: CORS_HEADERS,
@@ -1366,6 +1463,7 @@ exports._resetMemoryDb = function () {
     memoryDb.sessions.clear();
     memoryDb.events.length = 0;
     memoryDb._simulateDbErrorOnActivate = false;
+    memoryDb._simulateDispatchError = false;
     memoryDb.tableConfigs.set('demo-pulse-01', { table_id: 'demo-pulse-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null });
     memoryDb.tableConfigs.set('demo-arcade-02', { table_id: 'demo-arcade-02', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
     memoryDb.tableConfigs.set('demo-locked-03', { table_id: 'demo-locked-03', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
@@ -1374,4 +1472,10 @@ exports._resetMemoryDb = function () {
     memoryDb._mockNetioConfig = {};
 };
 exports._reconcileTableState = reconcileTableState;
+exports._setSupabaseClient = function (client) {
+    supabase = client;
+};
+exports._getSupabaseClient = function () {
+    return supabase;
+};
 

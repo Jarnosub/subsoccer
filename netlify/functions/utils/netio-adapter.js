@@ -43,6 +43,7 @@ class NetioAdapter {
             { id: 3, name: 'Kiosk Display', state: 1, delayMs: 0 }
         ];
         this.mockActiveShortOn = config.mockActiveShortOn ?? false;
+        this.mockCutoffRejected = config.mockCutoffRejected ?? false;
         this.mockCutoffReturnsState1 = config.mockCutoffReturnsState1 ?? false;
         this.mockStatusOutputState = config.mockStatusOutputState ?? null;
         this.mockStatusFails = config.mockStatusFails ?? false;
@@ -112,9 +113,9 @@ class NetioAdapter {
 
             if (!turnOn) {
                 // Katkaisuyritys (Action 0)
-                if (this.mockActiveShortOn) {
-                    const err = new Error(`NETIO cutoff rejected with 400 Bad request: Short ON active on Outlet ${outletId}`);
-                    err.code = 'SHORT_ON_ACTIVE';
+                if (this.mockCutoffRejected || this.mockActiveShortOn) {
+                    const err = new Error(`NETIO cutoff rejected with HTTP 400 Bad request on Outlet ${outletId}`);
+                    err.code = 'CUTOFF_REJECTED';
                     err.status = 400;
                     throw err;
                 }
@@ -271,19 +272,27 @@ class NetioAdapter {
         if (!output) {
             throw new Error(`Outlet ${outletId} not found in NETIO status response`);
         }
-        return output.state === 1;
+        return typeof output.state === 'number' && output.state === 1;
     }
 
     /**
      * Strictly verify that an outlet is confirmed to be OFF (State === 0).
-     * If device reports State === 1 or status check fails, returns false.
+     * Reads output directly from getStatus().
+     * Returns true ONLY if output exists and output.state === 0 (strictly numerical 0).
+     * Missing output, missing state, null, string "0", unknown value, or error must return false.
+     * 
      * @param {number} [outletId=1]
-     * @returns {Promise<boolean>} true if definitively OFF (State === 0), false otherwise
+     * @returns {Promise<boolean>} true only if output exists and state is strictly numerical 0
      */
     async verifyConfirmedOff(outletId = 1) {
         try {
-            const isActive = await this.isOutputActive(outletId);
-            return isActive === false;
+            const status = await this.getStatus();
+            const output = (status?.outputs || []).find(o => o.id === outletId);
+            if (!output) {
+                return false;
+            }
+            // Strict check: must be strictly numerical 0
+            return typeof output.state === 'number' && output.state === 0;
         } catch (err) {
             console.warn(`[NETIO] verifyConfirmedOff probe failed for Outlet ${outletId}:`, err.message);
             return false;
@@ -325,8 +334,8 @@ class NetioAdapter {
 
             if (!res.ok) {
                 if (res.status === 400 && targetAction === 0) {
-                    const err = new Error(`NETIO cutoff rejected with 400 Bad request: Short ON active on Outlet ${targetOutputId}`);
-                    err.code = 'SHORT_ON_ACTIVE';
+                    const err = new Error(`NETIO cutoff rejected with HTTP 400 Bad request on Outlet ${targetOutputId}`);
+                    err.code = 'CUTOFF_REJECTED';
                     err.status = 400;
                     throw err;
                 }
