@@ -1021,12 +1021,12 @@ BEGIN
         );
     END IF;
 
-    IF p_confirmed_off_at < (v_order.expires_at + interval '4 seconds') THEN
+    IF p_confirmed_off_at > (now() + interval '5 seconds') THEN
         RETURN jsonb_build_object(
             'success', false,
-            'code', 'OFF_OBSERVED_BEFORE_DEADLINE',
-            'statusCode', 409,
-            'error', 'OFF-havainto on tehty ennen peliajan ja turvamarginaalin päättymistä.'
+            'code', 'OFF_OBSERVATION_IN_FUTURE',
+            'statusCode', 400,
+            'error', 'OFF-havainnon aikaleima on tulevaisuudessa.'
         );
     END IF;
 
@@ -1039,12 +1039,12 @@ BEGIN
         );
     END IF;
 
-    IF p_confirmed_off_at > (now() + interval '5 seconds') THEN
+    IF p_confirmed_off_at < (v_order.expires_at + interval '4 seconds') THEN
         RETURN jsonb_build_object(
             'success', false,
-            'code', 'OFF_OBSERVATION_IN_FUTURE',
-            'statusCode', 400,
-            'error', 'OFF-havainnon aikaleima on tulevaisuudessa.'
+            'code', 'OFF_OBSERVED_BEFORE_DEADLINE',
+            'statusCode', 409,
+            'error', 'OFF-havainto on tehty ennen peliajan ja turvamarginaalin päättymistä.'
         );
     END IF;
 
