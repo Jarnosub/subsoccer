@@ -262,13 +262,42 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
     const now = Date.now();
 
     // 1. Clean up expired payment holds
-    const activeHoldOrderId = memoryDb.holds.get(tableId);
-    if (activeHoldOrderId) {
-        const order = memoryDb.orders.get(activeHoldOrderId);
-        if (order && order.status === 'pending_payment' && now > order.holdExpiresAt) {
-            order.status = 'hold_expired';
-            memoryDb.holds.delete(tableId);
-            saveMemorySessions();
+    if (supabase) {
+        if (tableConfig && tableConfig.lock_state === 'pending_payment') {
+            try {
+                const nowIso = new Date().toISOString();
+                const { data: expiredOrder } = await supabase
+                    .from('arcade_orders')
+                    .select('id, order_id')
+                    .eq('table_id', tableId)
+                    .eq('status', 'holding')
+                    .lte('hold_expires_at', nowIso)
+                    .maybeSingle();
+
+                if (expiredOrder) {
+                    await supabase.from('arcade_orders')
+                        .update({ status: 'hold_expired', updated_at: nowIso })
+                        .eq('id', expiredOrder.id);
+
+                    await supabase.from('arcade_table_configs')
+                        .update({ lock_state: 'available', updated_at: nowIso })
+                        .eq('table_id', tableId);
+
+                    tableConfig.lock_state = 'available';
+                }
+            } catch (err) {
+                console.warn('[RECONCILE] Supabase expired hold cleanup warning:', err.message);
+            }
+        }
+    } else {
+        const activeHoldOrderId = memoryDb.holds.get(tableId);
+        if (activeHoldOrderId) {
+            const order = memoryDb.orders.get(activeHoldOrderId);
+            if (order && order.status === 'pending_payment' && now > order.holdExpiresAt) {
+                order.status = 'hold_expired';
+                memoryDb.holds.delete(tableId);
+                saveMemorySessions();
+            }
         }
     }
 

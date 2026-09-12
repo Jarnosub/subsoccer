@@ -38,6 +38,13 @@ describe('Arcade Frontend Client (arcade.html)', () => {
                 paymentIntent: { id: 'pi_test_123', status: 'succeeded' }
             }))
         }));
+
+        // Default fetch mock to prevent syncStatus errors
+        window.fetch = vi.fn().mockImplementation(async () => ({
+            ok: true,
+            status: 200,
+            json: async () => ({ success: true, state: 'available' })
+        }));
     });
 
     afterEach(() => {
@@ -46,33 +53,33 @@ describe('Arcade Frontend Client (arcade.html)', () => {
         }
     });
 
-    it('initializes with slot 15 min selected and shows correct package prices', () => {
+    it('initializes with slot 5 min selected and shows correct package prices', () => {
         const slot5 = document.getElementById('slot-5');
-        const slot15 = document.getElementById('slot-15');
-        const slot30 = document.getElementById('slot-30');
+        const slot10 = document.getElementById('slot-10');
+        const slot20 = document.getElementById('slot-20');
 
-        expect(slot15.classList.contains('selected')).toBe(true);
-        expect(slot5.classList.contains('selected')).toBe(false);
-        expect(slot30.classList.contains('selected')).toBe(false);
+        expect(slot5.classList.contains('selected')).toBe(true);
+        expect(slot10.classList.contains('selected')).toBe(false);
+        expect(slot20.classList.contains('selected')).toBe(false);
 
         expect(slot5.textContent).toContain('2,50 €');
-        expect(slot15.textContent).toContain('5,00 €');
-        expect(slot30.textContent).toContain('7,00 €');
+        expect(slot10.textContent).toContain('4,50 €');
+        expect(slot20.textContent).toContain('8,00 €');
 
         const btnLabel = document.getElementById('btnActivateLabel');
-        expect(btnLabel.textContent).toContain('MAKSA 15 MIN · 5,00 €');
+        expect(btnLabel.textContent).toContain('MAKSA 5 MIN · 2,50 €');
     });
 
     it('updates CTA button label when user selects different slots', () => {
         const btnLabel = document.getElementById('btnActivateLabel');
 
-        // Select 5 min
-        window.selectSlot(5);
-        expect(btnLabel.textContent).toBe('MAKSA 5 MIN · 2,50 €');
+        // Select 10 min
+        window.selectSlot(10);
+        expect(btnLabel.textContent).toBe('MAKSA 10 MIN · 4,50 €');
 
-        // Select 30 min
-        window.selectSlot(30);
-        expect(btnLabel.textContent).toBe('MAKSA 30 MIN · 7,00 €');
+        // Select 20 min
+        window.selectSlot(20);
+        expect(btnLabel.textContent).toBe('MAKSA 20 MIN · 8,00 €');
 
         // Select 30 s test
         window.selectSlot('test30s');
@@ -90,8 +97,8 @@ describe('Arcade Frontend Client (arcade.html)', () => {
                         success: true,
                         orderId: 'ord-test-12345',
                         clientSecret: 'pi_test_secret_12345',
-                        amountCents: 500,
-                        durationMinutes: 15,
+                        amountCents: 450,
+                        durationMinutes: 10,
                         publishableKey: 'pk_test_sample'
                     })
                 };
@@ -103,7 +110,7 @@ describe('Arcade Frontend Client (arcade.html)', () => {
             };
         });
 
-        window.selectSlot(15);
+        window.selectSlot(10);
         await window.activateTablePower();
 
         // Modal should now be visible
@@ -111,8 +118,8 @@ describe('Arcade Frontend Client (arcade.html)', () => {
         expect(modal.style.display).toBe('flex');
 
         // Summary details should match
-        expect(document.getElementById('summaryDuration').textContent).toBe('15 min');
-        expect(document.getElementById('summaryAmount').textContent).toBe('5,00 €');
+        expect(document.getElementById('summaryDuration').textContent).toBe('10 min');
+        expect(document.getElementById('summaryAmount').textContent).toBe('4,50 €');
 
         // Stripe Elements should have mounted
         expect(window.Stripe).toHaveBeenCalledWith('pk_test_sample');
@@ -132,8 +139,8 @@ describe('Arcade Frontend Client (arcade.html)', () => {
                         success: true,
                         orderId: 'ord-poller-1',
                         clientSecret: 'pi_test_secret_poll',
-                        amountCents: 500,
-                        durationMinutes: 15,
+                        amountCents: 250,
+                        durationMinutes: 5,
                         publishableKey: 'pk_test_sample'
                     })
                 };

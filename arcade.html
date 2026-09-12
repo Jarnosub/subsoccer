@@ -1395,22 +1395,22 @@
                     <span class="slot-desc" style="color:#ffd666;">Testi 30 s</span>
                 </button>
 
-                <button class="slot-btn" id="slot-5" onclick="selectSlot(5)" type="button">
+                <button class="slot-btn selected" id="slot-5" onclick="selectSlot(5)" type="button">
                     <span class="slot-time">5 min</span>
                     <span class="slot-price">2,50 €</span>
-                    <span class="slot-desc">Peli</span>
+                    <span class="slot-desc">Nopea matsi</span>
                 </button>
 
-                <button class="slot-btn selected" id="slot-15" onclick="selectSlot(15)" type="button">
+                <button class="slot-btn" id="slot-10" onclick="selectSlot(10)" type="button">
                     <span class="slot-popular-badge">Suosittu</span>
-                    <span class="slot-time">15 min</span>
-                    <span class="slot-price">5,00 €</span>
+                    <span class="slot-time">10 min</span>
+                    <span class="slot-price">4,50 €</span>
                     <span class="slot-desc">Turnaus</span>
                 </button>
 
-                <button class="slot-btn" id="slot-30" onclick="selectSlot(30)" type="button">
-                    <span class="slot-time">30 min</span>
-                    <span class="slot-price">7,00 €</span>
+                <button class="slot-btn" id="slot-20" onclick="selectSlot(20)" type="button">
+                    <span class="slot-time">20 min</span>
+                    <span class="slot-price">8,00 €</span>
                     <span class="slot-desc">Pitkä sessio</span>
                 </button>
             </div>
@@ -1711,14 +1711,14 @@
 
         // ─── RUNTIME STATE & PRICING ───
         const PRICING_CATALOG = {
-            5: { minutes: 5, priceStr: '2,50 €', cents: 250 },
-            15: { minutes: 15, priceStr: '5,00 €', cents: 500 },
-            30: { minutes: 30, priceStr: '7,00 €', cents: 700 }
+            5: { minutes: 5, priceStr: '2,50 €', cents: 250, desc: 'Nopea matsi' },
+            10: { minutes: 10, priceStr: '4,50 €', cents: 450, desc: 'Turnaus' },
+            20: { minutes: 20, priceStr: '8,00 €', cents: 800, desc: 'Pitkä sessio' }
         };
 
         let currentState = 'AVAILABLE'; // 'AVAILABLE', 'REQUESTING', 'STARTING', 'ACTIVE', 'COOLDOWN', 'LOCKED'
         let currentTableId = 'demo-pulse-01';
-        let selectedMinutes = 15;
+        let selectedMinutes = 5;
         let simulatedSeconds = 5; // prototype simulation fallback
         let timeRemaining = 0;
         let countdownTimerId = null;
@@ -1759,8 +1759,8 @@
                 if (adminDrawer) adminDrawer.style.display = 'none';
             }
 
-            // Initial view: set ready state with 15 min selected
-            selectSlot(15);
+            // Initial view: set ready state with 5 min selected
+            selectSlot(5);
 
             // Sync with backend on startup
             syncStatusWithBackend();
@@ -1894,7 +1894,7 @@
                 label.textContent = 'KÄYNNISTÄ TESTI 30 S (NETIO DELAY: 30 000 ms)';
                 if (note) note.textContent = 'Käynnistää 30 sekunnin pikatestin fyysisellä releellä. Rele sammuu itsenäisesti 30 s kuluttua.';
             } else {
-                const pkg = PRICING_CATALOG[selectedMinutes] || PRICING_CATALOG[15];
+                const pkg = PRICING_CATALOG[selectedMinutes] || PRICING_CATALOG[5];
                 label.textContent = `MAKSA ${pkg.minutes} MIN · ${pkg.priceStr}`;
                 if (note) note.textContent = 'Siirtyy turvalliseen Stripe-testimaksuun. Pöytä kytkeytyy heti maksun jälkeen.';
             }
@@ -2085,7 +2085,7 @@
         }
 
         async function openStripeCheckout(minutes) {
-            const pkg = PRICING_CATALOG[minutes] || PRICING_CATALOG[15];
+            const pkg = PRICING_CATALOG[minutes] || PRICING_CATALOG[5];
             const btn = document.getElementById('btnActivatePlay');
             if (btn) {
                 btn.disabled = true;
@@ -2204,7 +2204,7 @@
                     }
                     if (confirmBtn) {
                         confirmBtn.disabled = false;
-                        const pkg = PRICING_CATALOG[selectedMinutes] || PRICING_CATALOG[15];
+                        const pkg = PRICING_CATALOG[selectedMinutes] || PRICING_CATALOG[5];
                         confirmBtn.innerHTML = `<i class="fas fa-lock"></i> <span id="btnConfirmPaymentLabel">MAKSA ${pkg.priceStr}</span>`;
                     }
                     return;
@@ -2257,11 +2257,14 @@
                             return;
                         }
 
-                        if (order.status === 'refund_required' || order.status === 'hardware_uncertain') {
+                        if (order.status === 'activation_failed' || order.status === 'refund_required' || order.refund_status === 'refund_required' || order.refund_status === 'refund_completed' || order.status === 'hardware_uncertain') {
                             clearInterval(orderPollingTimerId);
                             orderPollingTimerId = null;
                             hideStartingPanel();
-                            showRefundedPanel(order.errorReason || 'Pöydän käynnistys epäonnistui. Maksu palautetaan automaattisesti.');
+                            const refundMsg = order.refund_status === 'refund_completed'
+                                ? 'Pöydän käynnistys epäonnistui. Maksusi on palautettu automaattisesti takaisin kortillesi.'
+                                : (order.errorReason || 'Pöydän käynnistys epäonnistui. Maksu palautetaan automaattisesti.');
+                            showRefundedPanel(refundMsg);
                             return;
                         }
 
@@ -2460,16 +2463,32 @@
         }
 
         function updateCountdownDisplay() {
-            if (activeTargetExpiresAt && timeRemaining > 60) {
-                const m = Math.floor(timeRemaining / 60);
-                const s = timeRemaining % 60;
-                document.getElementById('timerDigits').textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
-            } else {
-                document.getElementById('timerDigits').textContent = Math.max(0, timeRemaining) + 's';
+            const m = Math.floor(Math.max(0, timeRemaining) / 60);
+            const s = Math.max(0, timeRemaining) % 60;
+            const timerEl = document.getElementById('timerDigits');
+            if (timerEl) {
+                timerEl.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+                if (timeRemaining <= 30) {
+                    timerEl.style.color = 'var(--accent-red)';
+                } else if (timeRemaining <= 60) {
+                    timerEl.style.color = 'var(--accent-yellow)';
+                } else {
+                    timerEl.style.color = '';
+                }
             }
             const total = activeTotalDuration || (selectedMinutes * 60);
             const pct = Math.max(0, Math.min(100, (timeRemaining / total) * 100));
-            document.getElementById('progressBarFill').style.width = pct + '%';
+            const progressEl = document.getElementById('progressBarFill');
+            if (progressEl) {
+                progressEl.style.width = pct + '%';
+                if (timeRemaining <= 30) {
+                    progressEl.style.backgroundColor = 'var(--accent-red)';
+                } else if (timeRemaining <= 60) {
+                    progressEl.style.backgroundColor = 'var(--accent-yellow)';
+                } else {
+                    progressEl.style.backgroundColor = '';
+                }
+            }
         }
 
         function onSessionExpired() {
