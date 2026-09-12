@@ -1749,8 +1749,7 @@ async function activateSessionCore({
                 deviceSn,
                 durationSeconds: targetSeconds,
                 targetOutletId: targetOutputId,
-                attractOutletId: cfg?.lights_output_id || 3,
-                timeoutMs: process.env.TEST_DISPATCH_TIMEOUT_MS ? parseInt(process.env.TEST_DISPATCH_TIMEOUT_MS, 10) : 15000
+                attractOutletId: cfg?.lights_output_id || 3
             });
             if (mqttRes.success) {
                 netioResult = { success: true, mode: 'mqtt', observedAt: mqttRes.observedAt };
@@ -2145,8 +2144,7 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isFreePlay = fals
                 deviceSn,
                 durationSeconds,
                 targetOutletId,
-                attractOutletId: lightsOutputId,
-                timeoutMs: 12000
+                attractOutletId: lightsOutputId
             });
             if (mqttRes.success) {
                 netioResult = { success: true, mode: 'mqtt', observedAt: mqttRes.observedAt };

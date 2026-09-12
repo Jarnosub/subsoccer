@@ -55,8 +55,7 @@ exports.handler = async (event) => {
         if (action === 'probe') {
             const result = await probeOutletOffMqtt({
                 deviceSn: config.deviceSn,
-                targetOutletId: targetOutlet,
-                timeoutMs: 6000
+                targetOutletId: targetOutlet
             });
             return {
                 statusCode: 200,
@@ -119,8 +118,7 @@ exports.handler = async (event) => {
                 deviceSn: config.deviceSn,
                 durationSeconds,
                 targetOutletId: targetOutlet,
-                attractOutletId: 3,
-                timeoutMs: 12000
+                attractOutletId: 3
             });
 
             return {

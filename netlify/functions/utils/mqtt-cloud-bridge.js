@@ -32,6 +32,9 @@
 
 const mqtt = require('mqtt');
 
+// Clock skew tolerance for embedded IoT device RTC/NTP vs cloud server (60 seconds)
+const CLOCK_SKEW_TOLERANCE_MS = 60000;
+
 let _clientFactory = null;
 
 /**
@@ -350,8 +353,8 @@ async function dispatchTimedPlayMqtt({
             const parsed = parseNetioOutputsTelemetry(msgBuffer);
             if (!parsed || !parsed.outputs || parsed.outputs.length === 0) return;
 
-            // Device timestamp freshness check: if device provided a timestamp, verify it is not stale
-            if (parsed.deviceTimeMs !== null && parsed.deviceTimeMs < (commandPublishedAt - 3000)) {
+            // Device timestamp freshness check: if device provided a timestamp, verify it is within allowable clock skew
+            if (parsed.deviceTimeMs !== null && parsed.deviceTimeMs < (commandPublishedAt - CLOCK_SKEW_TOLERANCE_MS)) {
                 console.log(`[MQTT BRIDGE] Discarding stale device timestamp: ${parsed.deviceTime} (command was at ${new Date(commandPublishedAt).toISOString()})`);
                 return;
             }
@@ -359,13 +362,9 @@ async function dispatchTimedPlayMqtt({
             // Search strictly by ID field, NOT by array index
             const targetOutput = parsed.outputs.find(o => o.ID === targetOutletId);
             if (targetOutput && targetOutput.State === 1) {
-                // Command correlation: if Action is reported, verify it is 3 (timed play)
-                if (targetOutput.Action !== undefined && targetOutput.Action !== 3) {
-                    console.log(`[MQTT BRIDGE] Output ${targetOutletId} is State 1 but Action is ${targetOutput.Action} (expected 3 for timed play). Ignoring.`);
-                    return;
-                }
-
-                console.log(`[MQTT BRIDGE] Verified Output ${targetOutletId} is ACTIVE (State: 1)!`);
+                // NOTE: NETIO PowerBOX 3PF reports Action: 6 ("no action / read status") in standard telemetry
+                // both when ON and OFF. Do not reject Action !== 3; State === 1 confirms relay activation.
+                console.log(`[MQTT BRIDGE] Verified Output ${targetOutletId} is ACTIVE (State: 1, Action: ${targetOutput.Action ?? 'none'})!`);
                 finish({
                     success: true,
                     observedAt: parsed.deviceTime || new Date().toISOString(),
@@ -490,8 +489,8 @@ async function probeOutletOffMqtt({
             const parsed = parseNetioOutputsTelemetry(msgBuffer);
             if (!parsed || !parsed.outputs || parsed.outputs.length === 0) return;
 
-            // Device timestamp freshness check: if device provided a timestamp, verify it was generated at or after probe started
-            if (parsed.deviceTimeMs !== null && parsed.deviceTimeMs < (probeStartedAt - 3000)) {
+            // Device timestamp freshness check: if device provided a timestamp, verify it is within allowable clock skew
+            if (parsed.deviceTimeMs !== null && parsed.deviceTimeMs < (probeStartedAt - CLOCK_SKEW_TOLERANCE_MS)) {
                 console.log(`[MQTT PROBE] Discarding stale device timestamp in probe: ${parsed.deviceTime} (probe started at ${new Date(probeStartedAt).toISOString()})`);
                 return;
             }
@@ -525,7 +524,7 @@ async function setAuxOutletMqtt({
     deviceSn,
     outletId,
     action,
-    timeoutMs = 5000
+    timeoutMs = (process.env.TEST_PROBE_TIMEOUT_MS ? Number(process.env.TEST_PROBE_TIMEOUT_MS) : (Number(process.env.MQTT_AUX_TIMEOUT_MS) || 15000))
 }) {
     if (![2, 3].includes(outletId)) {
         throw new Error(`Only auxiliary outlets 2 (Screen) and 3 (Lights) can be controlled via setAuxOutletMqtt`);

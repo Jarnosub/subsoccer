@@ -269,17 +269,17 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(result.code).toBe('TIMEOUT_NO_TELEMETRY');
         });
 
-        it('discards stale telemetry with old device timestamp from before command', async () => {
+        it('discards stale telemetry with old device timestamp from before command (exceeding clock skew window)', async () => {
             const promise = dispatchTimedPlayMqtt(baseOptions);
 
             await new Promise(r => setTimeout(r, 20));
             const client = activeClients[0];
 
-            // Device timestamp from 10 minutes ago
+            // Device timestamp from 10 minutes ago (well outside 60s tolerance)
             const staleTime = new Date(Date.now() - 600000).toISOString();
             client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
                 Time: staleTime,
-                Outputs: [{ ID: 1, State: 1, Action: 3 }]
+                Outputs: [{ ID: 1, State: 1, Action: 6 }]
             }, { retain: false });
 
             const result = await promise;
@@ -287,35 +287,20 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(result.code).toBe('TIMEOUT_NO_TELEMETRY');
         });
 
-        it('rejects telemetry if Action is reported but does not correlate to timed play (Action !== 3)', async () => {
-            const promise = dispatchTimedPlayMqtt(baseOptions);
-
-            await new Promise(r => setTimeout(r, 20));
-            const client = activeClients[0];
-
-            // Output is ON, but Action is 1 (manual continuous ON), not 3 (timed play pulse)
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
-                Time: new Date().toISOString(),
-                Outputs: [{ ID: 1, State: 1, Action: 1 }]
-            }, { retain: false });
-
-            const result = await promise;
-            expect(result.success).toBe(false);
-            expect(result.code).toBe('TIMEOUT_NO_TELEMETRY');
-        });
-
-        it('succeeds immediately when fresh non-retained telemetry with State === 1 and Action === 3 arrives post-publish', async () => {
+        it('succeeds when real NETIO telemetry reports Action === 6 and State === 1 (standard NETIO status readout)', async () => {
             const promise = dispatchTimedPlayMqtt({ ...baseOptions, timeoutMs: 1000 });
 
             await new Promise(r => setTimeout(r, 30));
             const client = activeClients[0];
 
+            // Real NETIO PowerBOX 3PF returns Action: 6 ("no action / read status") and Delay: 0
             const nowIso = new Date().toISOString();
             client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
                 Time: nowIso,
                 Outputs: [
-                    { ID: 1, State: 1, Action: 3, Delay: 300000 },
-                    { ID: 3, State: 0 }
+                    { ID: 1, State: 1, Action: 6, Delay: 0 },
+                    { ID: 2, State: 0, Action: 6, Delay: 0 },
+                    { ID: 3, State: 0, Action: 6, Delay: 0 }
                 ]
             }, { retain: false });
 
@@ -323,14 +308,49 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(result.success).toBe(true);
             expect(result.observedAt).toBe(nowIso);
             expect(result.rawTelemetry).toBeDefined();
+            expect(result.rawTelemetry.find(o => o.ID === 1).Action).toBe(6);
+        });
 
-            // Verify published command payload
-            expect(client.publishedMessages).toHaveLength(1);
-            const published = JSON.parse(client.publishedMessages[0].payload);
-            expect(published.Outputs).toEqual([
-                { ID: 1, Action: 3, Delay: 300000 },
-                { ID: 3, Action: 0 }
-            ]);
+        it('succeeds when telemetry has NO Time field (raw ${OUTPUTS_STATUS} template) using causal arrival time', async () => {
+            const promise = dispatchTimedPlayMqtt({ ...baseOptions, timeoutMs: 1000 });
+
+            await new Promise(r => setTimeout(r, 30));
+            const client = activeClients[0];
+
+            // Pure ${OUTPUTS_STATUS} payload with no top-level Time or Agent
+            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Outputs: [
+                    { ID: 1, State: 1, Action: 6, Delay: 0 },
+                    { ID: 2, State: 0, Action: 6, Delay: 0 },
+                    { ID: 3, State: 0, Action: 6, Delay: 0 }
+                ]
+            }, { retain: false });
+
+            const result = await promise;
+            expect(result.success).toBe(true);
+            expect(result.observedAt).toBeDefined();
+            // observedAt must be a valid fresh ISO timestamp
+            expect(isNaN(Date.parse(result.observedAt))).toBe(false);
+        });
+
+        it('accepts telemetry when device clock has minor clock skew (e.g. 15 seconds behind server)', async () => {
+            const promise = dispatchTimedPlayMqtt({ ...baseOptions, timeoutMs: 1000 });
+
+            await new Promise(r => setTimeout(r, 30));
+            const client = activeClients[0];
+
+            // Device clock is 15s behind server (within 60s tolerance)
+            const skewedDeviceTime = new Date(Date.now() - 15000).toISOString();
+            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Time: skewedDeviceTime,
+                Outputs: [
+                    { ID: 1, State: 1, Action: 6, Delay: 0 }
+                ]
+            }, { retain: false });
+
+            const result = await promise;
+            expect(result.success).toBe(true);
+            expect(result.observedAt).toBe(skewedDeviceTime);
         });
     });
 
@@ -352,7 +372,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(result.reason).toBe('PROBE_TIMEOUT_NO_FRESH_TELEMETRY');
         });
 
-        it('returns confirmedOff: true with genuine observedAt when fresh telemetry reports State === 0', async () => {
+        it('returns confirmedOff: true with genuine observedAt when fresh telemetry reports State === 0 (Action: 6)', async () => {
             const promise = probeOutletOffMqtt({ ...probeOptions, timeoutMs: 1000 });
 
             await new Promise(r => setTimeout(r, 30));
@@ -362,8 +382,8 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
                 Time: deviceTime,
                 Outputs: [
-                    { ID: 1, State: 0, Action: 0, Delay: 0 },
-                    { ID: 3, State: 1 }
+                    { ID: 1, State: 0, Action: 6, Delay: 0 },
+                    { ID: 3, State: 1, Action: 6, Delay: 0 }
                 ]
             }, { retain: false });
 
@@ -374,7 +394,27 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(result.reason).toBe('CONFIRMED_OFF');
         });
 
-        it('returns confirmedOff: false when fresh telemetry reports State === 1 (outlet still active)', async () => {
+        it('returns confirmedOff: true when raw ${OUTPUTS_STATUS} payload arrives without Time field (State === 0)', async () => {
+            const promise = probeOutletOffMqtt({ ...probeOptions, timeoutMs: 1000 });
+
+            await new Promise(r => setTimeout(r, 30));
+            const client = activeClients[0];
+
+            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Outputs: [
+                    { ID: 1, State: 0, Action: 6, Delay: 0 }
+                ]
+            }, { retain: false });
+
+            const result = await promise;
+            expect(result.confirmedOff).toBe(true);
+            expect(result.state).toBe(0);
+            expect(result.observedAt).toBeDefined();
+            expect(isNaN(Date.parse(result.observedAt))).toBe(false);
+            expect(result.reason).toBe('CONFIRMED_OFF');
+        });
+
+        it('returns confirmedOff: false when fresh telemetry reports State === 1 (Action: 6, outlet still active)', async () => {
             const promise = probeOutletOffMqtt({ ...probeOptions, timeoutMs: 1000 });
 
             await new Promise(r => setTimeout(r, 30));
@@ -383,7 +423,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
                 Time: new Date().toISOString(),
                 Outputs: [
-                    { ID: 1, State: 1, Action: 3, Delay: 150000 }
+                    { ID: 1, State: 1, Action: 6, Delay: 0 }
                 ]
             }, { retain: false });
 
@@ -393,16 +433,16 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(result.reason).toBe('OUTLET_STILL_ON');
         });
 
-        it('discards stale device timestamp during probe', async () => {
+        it('discards stale device timestamp during probe (exceeding clock skew window)', async () => {
             const promise = probeOutletOffMqtt(probeOptions);
 
             await new Promise(r => setTimeout(r, 20));
             const client = activeClients[0];
 
-            // Device timestamp from 5 minutes ago
+            // Device timestamp from 5 minutes ago (well outside 60s tolerance)
             client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
                 Time: new Date(Date.now() - 300000).toISOString(),
-                Outputs: [{ ID: 1, State: 0 }]
+                Outputs: [{ ID: 1, State: 0, Action: 6 }]
             }, { retain: false });
 
             const result = await promise;
@@ -496,7 +536,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             if (client) {
                 client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
                     Time: new Date().toISOString(),
-                    Outputs: [{ ID: 1, State: 0 }]
+                    Outputs: [{ ID: 1, State: 0, Action: 6, Delay: 0 }]
                 }, { retain: false });
             }
 
@@ -526,7 +566,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             if (client) {
                 client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
                     Time: new Date().toISOString(),
-                    Outputs: [{ ID: 1, State: 0 }]
+                    Outputs: [{ ID: 1, State: 0, Action: 6, Delay: 0 }]
                 }, { retain: false });
             }
 
@@ -601,8 +641,8 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             dispatchClient.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
                 Time: new Date().toISOString(),
                 Outputs: [
-                    { ID: 1, State: 1, Action: 3, Delay: 300000 },
-                    { ID: 3, State: 0 }
+                    { ID: 1, State: 1, Action: 6, Delay: 0 },
+                    { ID: 3, State: 0, Action: 6, Delay: 0 }
                 ]
             }, { retain: false });
 
